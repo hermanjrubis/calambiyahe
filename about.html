@@ -71,13 +71,16 @@
                 <img src="assets/CalamBiyahe - Blue.png" alt="CalamBiyahe Logo" class="logo-img">
             </a>
 
-            <nav class="nav-links">
+            <nav class="nav-links" id="navLinks">
                 <a href="index.html#place-finder" class="nav-link">Place Finder</a>
                 <a href="index.html#p2p" class="nav-link">P2P</a>
                 <a href="faq.html" class="nav-link">FAQs</a>
                 <a href="javascript:void(0)" class="nav-link" id="jeepTokLink" style="cursor: pointer;">JeepTok</a>
                 <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;">Plan Route</a>
             </nav>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <ion-icon name="menu-outline"></ion-icon>
+            </button>
         </div>
     </header>
 
@@ -92,36 +95,36 @@
                 <p>
                     <strong>CalamBiyahe</strong> is a <strong>commuter-focused web application</strong> designed to
                     provide clear, reliable, and accessible information about public transportation options in
-                    <strong>Calamba and nearby areas</strong>.
+                    Calamba and nearby areas.
                     The platform integrates multiple modes of transport, including <strong>jeepneys, buses, P2P,
                     UV Express, and tricycles</strong>, allowing users to plan their trips more efficiently.
                 </p>
                 <p>
-                    The website offers a <strong>route suggestion feature</strong> that presents different travel
-                    options based on departure and arrival times, estimated duration, <strong>fare cost</strong>, and
+                    The website offers a route suggestion feature that presents different travel
+                    options based on departure and arrival times, estimated duration, fare cost, and
                     walking distance.
-                    This helps commuters compare alternatives and choose the <strong>most convenient journey</strong>.
-                    In addition, the system emphasizes <strong>fare transparency</strong>, ensuring that users are
+                    This helps commuters compare alternatives and choose the most convenient journey.
+                    In addition, the system emphasizes fare transparency, ensuring that users are
                     informed of the expected costs before starting their trip.
                 </p>
                 <p>
-                    <strong>CalamBiyahe</strong> also highlights <strong>multi-modal navigation</strong>, enabling
+                    CalamBiyahe also highlights <strong>multi-modal navigation</strong>, enabling
                     commuters to combine different transport modes in a single journey.
-                    The platform is built with a <strong>responsive design</strong>, making it accessible on both
-                    <strong>desktop and mobile devices</strong>, and features a <strong>user-friendly interface</strong>
+                    The platform is built with a responsive design, making it accessible on both
+                    desktop and mobile devices, and features a user-friendly interface
                     that simplifies route planning even for first-time users.
                 </p>
 
                 <h2 class="goal-title">Goal</h2>
                 <p>
-                    The primary goal of <strong>CalamBiyahe</strong> is to <strong>empower commuters</strong> by
+                    The primary goal of CalamBiyahe is to empower commuters by
                     providing accurate, transparent, and easy-to-use transit information.
-                    By <strong>centralizing data on routes, fares, and transport options</strong>, the website aims to
-                    <strong>reduce commuting stress</strong>, promote informed decision-making, and improve overall
+                    By centralizing data on routes, fares, and transport options, the website aims to
+                    reduce commuting stress, promote informed decision-making, and improve overall
                     mobility in the city.
-                    Ultimately, <strong>CalamBiyahe</strong> seeks to become a <strong>trusted digital
-                    companion</strong> for everyday commuters, helping them <strong>save time, manage expenses, and
-                    travel with confidence</strong>.
+                    Ultimately, CalamBiyahe seeks to become a trusted digital
+                    companion for everyday commuters, helping them save time, manage expenses, and
+                    travel with confidence.
                 </p>
             </div>
         </div>
@@ -186,6 +189,7 @@
             </div>
 
             <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
                 <div class="vm-frequency-pill" id="vmFrequencyPill">
                     <canvas id="voiceVisualizer" width="140" height="30"></canvas>
                 </div>

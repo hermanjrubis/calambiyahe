@@ -26,12 +26,15 @@
                 <img src="assets/logo-header.png" alt="CalamBiyahe Logo" class="logo-img">
             </a>
             
-            <nav class="nav-links">
+            <nav class="nav-links" id="navLinks">
                 <a href="about.html" class="nav-link">About</a>
                 <a href="#place-finder" class="nav-link">Place Finder</a>
                 <a href="#p2p" class="nav-link">P2P</a>
                 <a href="faq.html" class="nav-link">FAQs</a>
             </nav>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <ion-icon name="menu-outline"></ion-icon>
+            </button>
         </div>
     </header>
 
@@ -147,6 +150,7 @@
             </div>
 
             <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
                 <div class="vm-frequency-pill" id="vmFrequencyPill">
                     <canvas id="voiceVisualizer" width="140" height="30"></canvas>
                 </div>

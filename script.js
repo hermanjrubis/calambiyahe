@@ -121,6 +121,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
+    // === MOBILE MENU TOGGLE ===
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.getElementById('navLinks');
+    
+    if (mobileMenuBtn && navLinks) {
+        mobileMenuBtn.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = mobileMenuBtn.querySelector('ion-icon');
+            if (icon) {
+                icon.name = navLinks.classList.contains('active') ? 'close-outline' : 'menu-outline';
+            }
+        });
+
+        // Close menu when a link is clicked
+        navLinks.querySelectorAll('.nav-link, .btn-plan-route').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                const icon = mobileMenuBtn.querySelector('ion-icon');
+                if (icon) icon.name = 'menu-outline';
+            });
+        });
+    }
+
     // === CHATBOT ===
     const chatToggleBtn = document.getElementById('chatToggleBtn');
     const chatWindow = document.getElementById('chatWindow');
@@ -130,12 +153,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chatMessages');
     const jeepTokLink = document.getElementById('jeepTokLink');
 
+    // === CHATBOT INACTIVITY TIMEOUT ===
+    let inactivityTimer;
+    const INACTIVITY_LIMIT = 120000; // 2 minutes
+
+    function resetInactivityTimer() {
+        clearTimeout(inactivityTimer);
+        if (chatWindow && chatWindow.classList.contains('open')) {
+            inactivityTimer = setTimeout(() => {
+                // Auto close on timeout
+                chatWindow.classList.remove('open');
+                if (chatToggleBtn) {
+                    const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
+                    if (pulseRing) pulseRing.style.animation = '';
+                }
+                const cancelBtn = document.getElementById('cancelMicBtn');
+                if (cancelBtn) cancelBtn.click(); // Stop recording if active
+                
+                // Optional: Notify user next time they open
+                addMessage("Session ended due to inactivity.", false);
+            }, INACTIVITY_LIMIT);
+        }
+    }
+
+    // Bind interaction events to reset timer
+    if (chatWindow) {
+        chatWindow.addEventListener('click', resetInactivityTimer);
+        chatWindow.addEventListener('input', resetInactivityTimer);
+    }
+
     if (chatToggleBtn) {
         const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
         chatToggleBtn.addEventListener('click', () => {
             if (chatWindow) chatWindow.classList.add('open');
             if (pulseRing) pulseRing.style.animation = 'none';
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
+            resetInactivityTimer();
         });
     }
 
@@ -146,6 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (chatWindow) {
                 chatWindow.classList.add('open');
                 if (chatInput) setTimeout(() => chatInput.focus(), 350);
+                resetInactivityTimer();
             }
         });
     }
@@ -215,6 +269,7 @@ IMPORTANT: If the user greets you (e.g., "Hello", "Hi", "Kumusta"), you must res
         chatInput.value = '';
         chatInput.style.height = 'auto'; 
         chatInput.classList.remove('scrolling');
+        resetInactivityTimer();
 
         // Typing Indicator
         showTyping();
@@ -520,8 +575,18 @@ IMPORTANT: If the user greets you (e.g., "Hello", "Hi", "Kumusta"), you must res
         }
 
         if (micBtn) {
-            micBtn.addEventListener('click', () => {
-                if (!isRecording) recognition.start();
+            micBtn.addEventListener('click', async () => {
+                if (!isRecording) {
+                    try {
+                        // Explicitly ask for microphone permission before starting Web Speech API to ensure user consent
+                        await navigator.mediaDevices.getUserMedia({ audio: true });
+                        resetInactivityTimer();
+                        recognition.start();
+                    } catch (err) {
+                        console.error('Microphone access denied:', err);
+                        addMessage('Please allow microphone permissions to use voice chat.', false);
+                    }
+                }
             });
         }
 
