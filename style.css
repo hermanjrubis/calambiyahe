@@ -188,6 +188,30 @@ body {
 
 .nav-link:hover::after { width: 100%; }
 
+/* Mobile Menu Button */
+.mobile-menu-btn {
+    display: none;
+    background: rgba(26, 143, 255, 0.1);
+    border: none;
+    color: var(--primary);
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    cursor: pointer;
+    transition: all 0.3s var(--ease);
+}
+
+.mobile-menu-btn:hover, .mobile-menu-btn:active {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05);
+}
+
+.navbar-white .mobile-menu-btn {
+    background: rgba(26, 143, 255, 0.08);
+}
+
 /* =============================================
    HERO SECTION
    ============================================= */
@@ -1039,14 +1063,67 @@ body {
 }
 
 @media (max-width: 768px) {
+    .brand-logo { margin-right: auto; } /* Push logo away from hamburger */
+    .mobile-menu-btn { display: flex; align-items: center; justify-content: center; }
+
+    /* Mobile Navbar Dropdown - Modern Floating Card */
+    .nav-links {
+        position: absolute;
+        top: calc(100% + 15px);
+        left: 1rem;
+        width: calc(100% - 2rem);
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex-direction: column;
+        padding: 10px;
+        gap: 5px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12), 0 5px 15px rgba(26, 143, 255, 0.08);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-15px) scale(0.95);
+        pointer-events: none;
+        transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        clip-path: none;
+    }
+
+    .nav-links.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+        clip-path: none;
+    }
+
+    .nav-links .nav-link, .nav-links .btn-plan-route {
+        width: 100%;
+        text-align: left;
+        padding: 14px 20px;
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-dark) !important;
+        border: none;
+        border-radius: 16px;
+        background: transparent;
+        transition: background 0.3s ease, padding-left 0.3s ease;
+    }
+
+    .nav-links .nav-link:hover, .nav-links .btn-plan-route:hover {
+        background: rgba(26, 143, 255, 0.08) !important;
+        padding-left: 24px;
+        color: var(--primary) !important;
+    }
+    
+    .nav-links .nav-link::after { display: none; }
+
     .hero-title {
         font-size: clamp(1.2rem, 5vw, 1.8rem);
         white-space: normal;
     }
     .hero-subtitle { font-size: 0.95rem; }
     .center-logo { width: 130px; height: 130px; }
-    .nav-links { gap: 1rem; }
-    .nav-link { font-size: 0.82rem; }
     .features-grid { 
         gap: 0.5rem; 
         flex-wrap: nowrap; /* Single line */
@@ -1069,6 +1146,16 @@ body {
     .features-bar { padding: 0.5rem 1rem; }
 
     /* Mobile full-screen chat -> Floating Card */
+    .chat-widget-container {
+        bottom: 85px; /* Above mobile features bar */
+        right: 15px;
+    }
+
+    .chat-toggle-btn {
+        width: 54px; height: 54px;
+        font-size: 1.6rem;
+    }
+
     .chat-window {
         width: calc(100% - 30px); 
         height: 480px;
