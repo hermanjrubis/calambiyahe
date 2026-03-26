@@ -498,7 +498,11 @@ IMPORTANT: If the user greets you (e.g., "Hello", "Hi", "Kumusta"), you must res
 
         recognition.onerror = (event) => {
             console.error('Speech recognition error:', event.error);
-            if (event.error !== 'aborted') stopRecordingUI();
+            // Ignore no-speech error
+            if (event.error !== 'aborted' && event.error !== 'no-speech') {
+                addMessage('Voice error: ' + event.error + '. Try typing instead.', false);
+                stopRecordingUI();
+            }
         };
 
         recognition.onend = () => {
@@ -575,16 +579,15 @@ IMPORTANT: If the user greets you (e.g., "Hello", "Hi", "Kumusta"), you must res
         }
 
         if (micBtn) {
-            micBtn.addEventListener('click', async () => {
+            micBtn.addEventListener('click', () => {
                 if (!isRecording) {
                     try {
-                        // Explicitly ask for microphone permission before starting Web Speech API to ensure user consent
-                        await navigator.mediaDevices.getUserMedia({ audio: true });
                         resetInactivityTimer();
+                        // Call start directly - browsers require synchronous action on click for Speech API permissions
                         recognition.start();
                     } catch (err) {
-                        console.error('Microphone access denied:', err);
-                        addMessage('Please allow microphone permissions to use voice chat.', false);
+                        console.error('Microphone start error:', err);
+                        addMessage('Unable to access microphone. Please check your browser permissions.', false);
                     }
                 }
             });

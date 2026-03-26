@@ -191,25 +191,23 @@ body {
 /* Mobile Menu Button */
 .mobile-menu-btn {
     display: none;
-    background: rgba(26, 143, 255, 0.1);
+    background: transparent !important;
     border: none;
-    color: var(--primary);
+    color: var(--primary) !important;
     width: 44px; height: 44px;
     border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.8rem;
+    font-size: 2.2rem;
     cursor: pointer;
     transition: all 0.3s var(--ease);
 }
 
 .mobile-menu-btn:hover, .mobile-menu-btn:active {
-    background: var(--primary);
-    color: white;
-    transform: scale(1.05);
+    transform: scale(1.1);
 }
 
 .navbar-white .mobile-menu-btn {
-    background: rgba(26, 143, 255, 0.08);
+    background: transparent !important;
 }
 
 /* =============================================
@@ -1185,7 +1183,7 @@ body {
 
     /* Mobile full-screen chat -> Floating Card */
     .chat-widget-container {
-        bottom: 85px; /* Above mobile features bar */
+        bottom: 15px !important; /* Move to the very bottom */
         right: 15px;
     }
 
@@ -1196,11 +1194,17 @@ body {
 
     .chat-window {
         width: calc(100% - 30px); 
-        height: 480px;
-        bottom: 85px; 
+        height: calc(100% - 30px);
+        max-height: 550px;
+        bottom: 15px !important; /* Sit exactly at bottom */
         right: 15px;
         border-radius: 18px;
         padding-top: 0;
+    }
+    
+    /* Hide features bar when Chat is open or when keyboard shrinks screen height */
+    body:has(.chat-window.open) .features-bar {
+        display: none !important;
     }
 
     /* Back button on mobile — big and clearly visible */
