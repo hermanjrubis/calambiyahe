@@ -1182,8 +1182,9 @@ body {
 
     /* Mobile full-screen chat -> Floating Card */
     .chat-widget-container {
-        bottom: 15px !important; /* Move to the very bottom */
+        bottom: 85px !important; /* Move back above the features bar */
         right: 15px;
+        transition: bottom 0.3s ease, transform 0.3s ease;
     }
 
     .chat-toggle-btn {
@@ -1201,9 +1202,15 @@ body {
         padding-top: 0;
     }
     
-    /* Hide features bar when Chat is open or when keyboard shrinks screen height */
-    body:has(.chat-window.open) .features-bar {
+    /* Robust hiding logic for older iOS devices via JS classes */
+    body.chat-active .features-bar,
+    body.keyboard-open .features-bar {
         display: none !important;
+    }
+
+    body.chat-active .chat-widget-container,
+    body.keyboard-open .chat-widget-container {
+        bottom: 15px !important; /* Slide down when features bar is gone */
     }
 
     /* Back button on mobile — big and clearly visible */

@@ -144,6 +144,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // === VIRTUAL KEYBOARD DETECT (Mobile UI Fix) ===
+    const focusableInputs = document.querySelectorAll('input, textarea');
+    focusableInputs.forEach(input => {
+        input.addEventListener('focus', () => document.body.classList.add('keyboard-open'));
+        input.addEventListener('blur', () => document.body.classList.remove('keyboard-open'));
+    });
+
     // === CHATBOT ===
     const chatToggleBtn = document.getElementById('chatToggleBtn');
     const chatWindow = document.getElementById('chatWindow');
@@ -163,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             inactivityTimer = setTimeout(() => {
                 // Auto close on timeout
                 chatWindow.classList.remove('open');
+                document.body.classList.remove('chat-active');
                 if (chatToggleBtn) {
                     const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
                     if (pulseRing) pulseRing.style.animation = '';
@@ -185,6 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatToggleBtn) {
         const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
         chatToggleBtn.addEventListener('click', () => {
+            document.body.classList.add('chat-active');
             if (chatWindow) chatWindow.classList.add('open');
             if (pulseRing) pulseRing.style.animation = 'none';
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
@@ -196,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
         jeepTokLink.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('JeepTok link clicked');
+            document.body.classList.add('chat-active');
             if (chatWindow) {
                 chatWindow.classList.add('open');
                 if (chatInput) setTimeout(() => chatInput.focus(), 350);
@@ -206,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => {
+            document.body.classList.remove('chat-active');
             if (chatWindow) chatWindow.classList.remove('open');
             // Resume pulse if button exists
             if (chatToggleBtn) {
