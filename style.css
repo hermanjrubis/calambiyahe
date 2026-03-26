@@ -191,12 +191,11 @@ body {
 /* Mobile Menu Button */
 .mobile-menu-btn {
     display: none;
-    background: transparent !important;
+    background: transparent;
     border: none;
-    color: var(--primary) !important;
+    color: white; /* Visible on the blue hero background */
     width: 44px; height: 44px;
     border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
     font-size: 2.2rem;
     cursor: pointer;
     transition: all 0.3s var(--ease);
@@ -207,7 +206,7 @@ body {
 }
 
 .navbar-white .mobile-menu-btn {
-    background: transparent !important;
+    color: var(--primary); /* Turns blue when scrolling down (white background) */
 }
 
 /* =============================================

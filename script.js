@@ -451,8 +451,8 @@ IMPORTANT: If the user greets you (e.g., "Hello", "Hi", "Kumusta"), you must res
             recognition.grammars = speechRecognitionList;
         }
 
-        // Tagalog (Philippines) provides the best accuracy for Taglish sentences
-        recognition.lang = 'tl-PH'; 
+        // en-PH (Philippines English) provides the highest accuracy for mixed Tagalog and English sentences
+        recognition.lang = 'en-PH'; 
         recognition.continuous = true; 
         recognition.interimResults = true;
         recognition.maxAlternatives = 1; // Focus entirely on the highest confidence result
