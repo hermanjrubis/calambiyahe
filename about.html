@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - CalamBiyahe</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .about-page-container {
+            max-width: 900px;
+            margin: 120px auto 100px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 32px;
+            box-shadow: var(--shadow-md);
+            animation: heroFadeIn 0.8s var(--ease) both;
+        }
+
+        .about-content-wrapper {
+            max-height: none;
+            /* Full page scroll is used instead of inner scroll */
+        }
+
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            transition: transform 0.2s;
+        }
+
+        .back-home:hover {
+            transform: translateX(-5px);
+        }
+
+        @media (max-width: 768px) {
+            .about-page-container {
+                margin: 100px 1.5rem 100px;
+                padding: 30px 20px;
+                border-radius: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Nav Blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <!-- Frosted Glass Navbar -->
+    <header class="navbar navbar-white" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <img src="assets/CalamBiyahe - Blue.png" alt="CalamBiyahe Logo" class="logo-img">
+            </a>
+
+            <nav class="nav-links">
+                <a href="index.html#place-finder" class="nav-link">Place Finder</a>
+                <a href="index.html#p2p" class="nav-link">P2P</a>
+                <a href="faq.html" class="nav-link">FAQs</a>
+                <a href="javascript:void(0)" class="nav-link" id="jeepTokLink" style="cursor: pointer;">JeepTok</a>
+                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;">Plan Route</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="about-page-container">
+        <a href="index.html" class="back-home">
+            <ion-icon name="arrow-back-outline"></ion-icon> Back to Home
+        </a>
+
+        <div class="about-content-wrapper">
+            <h1 class="about-title">About</h1>
+            <div class="about-text">
+                <p>
+                    <strong>CalamBiyahe</strong> is a <strong>commuter-focused web application</strong> designed to
+                    provide clear, reliable, and accessible information about public transportation options in
+                    <strong>Calamba and nearby areas</strong>.
+                    The platform integrates multiple modes of transport, including <strong>jeepneys, buses, P2P,
+                    UV Express, and tricycles</strong>, allowing users to plan their trips more efficiently.
+                </p>
+                <p>
+                    The website offers a <strong>route suggestion feature</strong> that presents different travel
+                    options based on departure and arrival times, estimated duration, <strong>fare cost</strong>, and
+                    walking distance.
+                    This helps commuters compare alternatives and choose the <strong>most convenient journey</strong>.
+                    In addition, the system emphasizes <strong>fare transparency</strong>, ensuring that users are
+                    informed of the expected costs before starting their trip.
+                </p>
+                <p>
+                    <strong>CalamBiyahe</strong> also highlights <strong>multi-modal navigation</strong>, enabling
+                    commuters to combine different transport modes in a single journey.
+                    The platform is built with a <strong>responsive design</strong>, making it accessible on both
+                    <strong>desktop and mobile devices</strong>, and features a <strong>user-friendly interface</strong>
+                    that simplifies route planning even for first-time users.
+                </p>
+
+                <h2 class="goal-title">Goal</h2>
+                <p>
+                    The primary goal of <strong>CalamBiyahe</strong> is to <strong>empower commuters</strong> by
+                    providing accurate, transparent, and easy-to-use transit information.
+                    By <strong>centralizing data on routes, fares, and transport options</strong>, the website aims to
+                    <strong>reduce commuting stress</strong>, promote informed decision-making, and improve overall
+                    mobility in the city.
+                    Ultimately, <strong>CalamBiyahe</strong> seeks to become a <strong>trusted digital
+                    companion</strong> for everyday commuters, helping them <strong>save time, manage expenses, and
+                    travel with confidence</strong>.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features Stats Bar (Pinned at bottom) -->
+    <section class="features-bar">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="map-outline"></ion-icon></div>
+                <div class="feature-text"><strong>50+</strong><span>Routes Covered</span></div>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="bus-outline"></ion-icon></div>
+                <div class="feature-text"><strong>6</strong><span>Transit Modes</span></div>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="home-outline"></ion-icon></div>
+                <div class="feature-text"><strong>54</strong><span>Barangays</span></div>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="cash-outline"></ion-icon></div>
+                <div class="feature-text"><strong>Real-time</strong><span>Fare Info</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <ion-icon name="bus-outline"></ion-icon>
+                </div>
+                <div>
+                    <div class="chat-name">JeepTok Assistant</div>
+                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn">
+                <ion-icon name="chevron-back-outline" class="back-icon"></ion-icon>
+                <ion-icon name="close-outline" class="close-icon"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm JeepTok. Where do you want to go today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+            
+            <!-- Bottom Action Row -->
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Trigger / script handling can be added if needed, but for now focus on the page -->
+    <script src="script.js"></script>
+</body>
+
+</html>

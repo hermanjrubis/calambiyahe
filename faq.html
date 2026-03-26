@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalamBiyahe - FAQs</title>
+    <meta name="description" content="Frequently Asked Questions about CalamBiyahe, your smart commuting companion in Calamba City.">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- Animated background blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <!-- Header / Navigation (Frosted Glass) -->
+    <header class="navbar navbar-white" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <img src="assets/CalamBiyahe - Blue.png" alt="CalamBiyahe Logo" class="logo-img">
+            </a>
+            
+            <nav class="nav-links">
+                <a href="about.html" class="nav-link">About</a>
+                <a href="index.html#place-finder" class="nav-link">Place Finder</a>
+                <a href="index.html#p2p" class="nav-link">P2P</a>
+                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;">Plan Route</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- FAQ Section -->
+    <main class="faq-section">
+        <div class="faq-container">
+            <h1 class="page-title">Frequently Asked Questions</h1>
+            
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-question">What is CalamBiyahe? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>CalamBiyahe is a web-based commuter guide that provides route suggestions, fare information, and transport options for jeepneys, buses, P2P, UV Express, and tricycles. It is designed to help commuters plan their trips more efficiently and with transparency.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">How do I use the route search feature? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>Simply enter your starting point and destination in the search bar, then click the button to begin. The system will generate several route options, showing travel time, fare cost, and walking distance so you can compare and choose the most convenient journey.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">Does the website show exact fares? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>The platform provides estimated fares based on available data. Actual fares may vary slightly depending on operator policies, but the goal is to give commuters a clear idea of expected costs before traveling.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">Can I access CalamBiyahe on mobile devices? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>Yes. The website is built with a responsive design, meaning it adjusts automatically to different screen sizes. Whether you are using a desktop, laptop, or smartphone, the interface remains clear and easy to use.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">What transport modes are included? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>Currently, CalamBiyahe supports jeepneys, buses, P2P, UV Express, and tricycles. These modes cover the most common commuting options in Calamba and nearby areas.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">Is CalamBiyahe free to use? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>Yes. The platform is free for commuters and does not require any subscription. Its primary goal is to provide accessible and transparent information to the public.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <button class="faq-question">What is the main goal of CalamBiyahe? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <div class="faq-answer">
+                        <p>The goal is to empower commuters by centralizing transport data, reducing commuting stress, and promoting informed decision-making. By offering route options and fare transparency, CalamBiyahe aims to improve mobility and make everyday travel more convenient.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget-container">
+        <span class="chat-label">Ask JeepTok</span>
+        <button class="chat-toggle-btn" id="chatToggleBtn">
+            <ion-icon name="chatbubble"></ion-icon>
+            <span class="pulse-ring"></span>
+        </button>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <ion-icon name="bus-outline"></ion-icon>
+                </div>
+                <div>
+                    <div class="chat-name">JeepTok Assistant</div>
+                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn">
+                <ion-icon name="chevron-back-outline" class="back-icon"></ion-icon>
+                <ion-icon name="close-outline" class="close-icon"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm JeepTok. Where do you want to go today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+            
+            <!-- Bottom Action Row -->
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalamBiyahe - Your Commuting Guide in Calamba</title>
+    <meta name="description" content="Find jeepney routes, fares, and transit connections in Calamba City. Your smart commuting companion.">
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- Animated background blobs -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <!-- Header / Navigation (Frosted Glass) -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <img src="assets/logo-header.png" alt="CalamBiyahe Logo" class="logo-img">
+            </a>
+            
+            <nav class="nav-links">
+                <a href="about.html" class="nav-link">About</a>
+                <a href="#place-finder" class="nav-link">Place Finder</a>
+                <a href="#p2p" class="nav-link">P2P</a>
+                <a href="faq.html" class="nav-link">FAQs</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Hero Section -->
+    <main class="hero-section">
+        <!-- Map background overlay -->
+        <div class="map-bg-overlay"></div>
+
+        <div class="hero-content">
+            <!-- Center Logo -->
+            <div class="center-logo-container">
+                <div class="logo-glow-ring"></div>
+                <img src="assets/logo-center.png" alt="CalamBiyahe App Icon" class="center-logo">
+            </div>
+            
+            <h1 class="hero-title">Your <span class="title-highlight">Commuting Guide</span> in Calamba.</h1>
+            <p class="hero-subtitle">
+                Find routes, fares, and connections for Jeepneys, 
+                Buses, P2P, UV Express, and Tricycles.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="search-container">
+                <div class="search-bar" id="searchBar">
+                    <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
+                    <input type="text" placeholder="Where do you want to go?" class="search-input" id="searchInput">
+                    <button class="search-button" aria-label="Search" id="searchBtn">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </button>
+                </div>
+                <div class="search-results-dropdown" id="searchResults"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Features Stats Bar -->
+    <section class="features-bar">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="map-outline"></ion-icon></div>
+                <div class="feature-text">
+                    <strong>50+</strong>
+                    <span>Routes Covered</span>
+                </div>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-card">
+                <ion-icon name="git-network-outline" class="feature-icon"></ion-icon>
+                <div class="feature-text">
+                    <strong>6</strong>
+                    <span>Transit Modes</span>
+                </div>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="location-outline"></ion-icon></div>
+                <div class="feature-text">
+                    <strong>54</strong>
+                    <span>Barangays</span>
+                </div>
+            </div>
+            <div class="feature-divider"></div>
+            <div class="feature-card">
+                <div class="feature-icon"><ion-icon name="cash-outline"></ion-icon></div>
+                <div class="feature-text">
+                    <strong>Real-time</strong>
+                    <span>Fare Info</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget-container">
+        <span class="chat-label">Ask JeepTok</span>
+        <button class="chat-toggle-btn" id="chatToggleBtn">
+            <ion-icon name="chatbubble"></ion-icon>
+            <span class="pulse-ring"></span>
+        </button>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <ion-icon name="bus-outline"></ion-icon>
+                </div>
+                <div>
+                    <div class="chat-name">JeepTok Assistant</div>
+                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn">
+                <ion-icon name="chevron-back-outline" class="back-icon"></ion-icon>
+                <ion-icon name="close-outline" class="close-icon"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm JeepTok. Where do you want to go today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+            
+            <!-- Bottom Action Row -->
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
