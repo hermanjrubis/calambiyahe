@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calzada - Modern Commuter Route Planner</title>
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Main Style -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Planner Specific Style -->
+    <link rel="stylesheet" href="planner.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- Leaflet Map Full Background -->
+    <div id="map" class="planner-map"></div>
+
+    <!-- Floating UI Panel (Right Side Desktop / Bottom Sheet Mobile) -->
+    <div class="floating-panel">
+        <div class="drag-handle" id="dragHandle"></div>
+        
+        <!-- Modernized Blue Header within the Panel -->
+        <div class="panel-header-blue">
+            <a href="index.html" class="panel-logo-link">
+                <img src="assets/logo-new.png" alt="Calzada Logo" class="panel-logo" onerror="this.src='assets/logo-blue.png'">
+            </a>
+            <nav class="panel-nav">
+                <a href="index.html#p2p">P2P</a>
+                <a href="#">Submit a Route</a>
+                <a href="#">Ask JeepTalk</a>
+            </nav>
+        </div>
+
+        <!-- panel-scroll-body wraps everything below the header for clean inner scroll -->
+        <div class="panel-scroll-body">
+
+        <!-- Ride Form / Input Area -->
+        <div class="ride-form">
+            <div class="inputs-wrapper">
+                <div class="input-row">
+                    <div class="icon-column">
+                        <ion-icon name="ellipse" class="origin-dot"></ion-icon>
+                        <div class="connecting-line"></div>
+                    </div>
+                    <div class="input-column">
+                        <input type="text" id="originInput" placeholder="Saan ka magmumula?" value="" autocomplete="off">
+                        <ul class="suggestions-list" id="originSuggestions" style="display:none;"></ul>
+                        <div class="powered-by" id="originPoweredBy" style="display:none;">
+                            <img src="https://nominatim.openstreetmap.org/ui/mapicons/nominatim-logo.svg" onerror="this.style.display='none'" height="12" alt="">
+                            <span>Search results powered by <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="input-row">
+                    <div class="icon-column">
+                        <ion-icon name="location" class="dest-pin"></ion-icon>
+                    </div>
+                    <div class="input-column destination-input-container">
+                        <input type="text" id="destinationInput" placeholder="Saan ka bababa?" value="" autocomplete="off">
+                        <ul class="suggestions-list" id="destSuggestions" style="display:none;"></ul>
+                        <div class="powered-by" id="destPoweredBy" style="display:none;">
+                            <img src="https://nominatim.openstreetmap.org/ui/mapicons/nominatim-logo.svg" onerror="this.style.display='none'" height="12" alt="">
+                            <span>Search results powered by <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="swap-btn" id="swapBtn" title="Swap locations">
+                    <ion-icon name="swap-vertical"></ion-icon>
+                </button>
+            </div>
+            
+            <div class="schedule-selector">
+                <ion-icon name="time-outline"></ion-icon>
+                <div class="custom-dropdown" id="scheduleDropdownContainer">
+                    <div class="dropdown-selected" id="scheduleSelected">
+                        <span id="scheduleSelectedText">Leaving now</span>
+                        <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
+                    </div>
+                    <ul class="dropdown-options" id="scheduleOptions">
+                        <li data-value="now" class="active">Leaving now</li>
+                        <li data-value="depart">Depart at</li>
+                        <li data-value="arrive">Arrive by</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Quick Trip Details Placeholder (Time & Fare) -->
+            <div class="trip-quick-details" id="tripQuickDetails" style="display: none;">
+                <div class="detail-item">
+                    <span class="detail-label">Est. Time</span>
+                    <span class="detail-value" id="estTimeValue">-- min</span>
+                </div>
+                <div class="detail-divider"></div>
+                <div class="detail-item">
+                    <span class="detail-label">Est. Fare</span>
+                    <span class="detail-value" id="estFareValue">₱0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Minimalist Transit Mode Selection -->
+        <div class="transit-mode-area">
+            <div class="custom-dropdown" id="modeDropdownContainer">
+                <div class="dropdown-selected" id="modeSelected">
+                    <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney">
+                    <span id="modeSelectedText">Jeepney</span>
+                    <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
+                </div>
+                <ul class="dropdown-options" id="modeOptions">
+                    <li data-value="jeep" class="active">
+                        <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney"> Jeepney
+                    </li>
+                    <li data-value="bus">
+                        <img src="assets/icons/bus-icon.png" class="mode-option-icon" alt="Bus"> Bus
+                    </li>
+                    <li data-value="van">
+                        <img src="assets/icons/van-icon.png" class="mode-option-icon" alt="Van"> Van
+                    </li>
+                    <li data-value="tricycle">
+                        <img src="assets/icons/tricycle-icon.png" class="mode-option-icon" alt="Tricycle"> Tricycle
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        </div><!-- /.panel-scroll-body -->
+
+        <!-- Sticky Action Buttons -->
+        <!-- State 1: Before journey starts -->
+        <div class="bottom-action-area" id="bookActionArea" style="display: none;">
+            <button class="primary-action-btn" id="startJourneyBtn">
+                <ion-icon name="navigate-outline"></ion-icon>
+                Simulan ang Biyahe
+            </button>
+        </div>
+
+        <!-- State 2: After journey started -->
+        <div class="bottom-action-area active-trip-area" id="activeTripArea" style="display: none;">
+            <div class="active-trip-label">
+                <ion-icon name="radio-button-on-outline" class="live-dot-icon"></ion-icon>
+                <span>Trip Active</span>
+            </div>
+            <button class="cancel-trip-btn" id="cancelTripBtn">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                Cancel Trip
+            </button>
+        </div>
+    </div>
+
+    <!-- =============================================
+         DATETIME PICKER MODAL (Depart at / Arrive by)
+         ============================================= -->
+    <div class="dt-picker-overlay" id="dtPickerOverlay"></div>
+    <div class="dt-picker-modal" id="dtPickerModal">
+        <!-- Header: Back + Toggle + Now -->
+        <div class="dt-picker-header">
+            <button class="dt-back-btn" id="dtBackBtn">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+            </button>
+            <div class="dt-toggle">
+                <button class="dt-toggle-btn active" id="dtLeaveBtn" data-mode="depart">Leave</button>
+                <button class="dt-toggle-btn" id="dtArriveBtn" data-mode="arrive">Arrive</button>
+            </div>
+            <button class="dt-now-btn" id="dtNowBtn">Now</button>
+        </div>
+
+        <!-- Time Display -->
+        <div class="dt-time-display" id="dtTimeDisplay">01:00 pm</div>
+
+        <!-- HR / MIN Sliders -->
+        <div class="dt-sliders">
+            <div class="dt-slider-row">
+                <span class="dt-slider-label">HR</span>
+                <input type="range" class="dt-slider" id="dtHrSlider" min="1" max="12" value="1">
+            </div>
+            <div class="dt-slider-row">
+                <span class="dt-slider-label">MIN</span>
+                <input type="range" class="dt-slider" id="dtMinSlider" min="0" max="59" value="0">
+            </div>
+            <div class="dt-ampm-row">
+                <button class="dt-ampm-btn active" id="dtAmBtn">AM</button>
+                <button class="dt-ampm-btn" id="dtPmBtn">PM</button>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="dt-calendar">
+            <div class="dt-cal-header">
+                <span class="dt-cal-monthyear" id="dtCalMonthYear">March 2026</span>
+                <div class="dt-cal-nav">
+                    <button class="dt-cal-nav-btn" id="dtPrevMonth">&#9664;</button>
+                    <button class="dt-cal-nav-btn" id="dtNextMonth">&#9654;</button>
+                </div>
+            </div>
+            <div class="dt-cal-weekdays">
+                <span>Su</span><span>Mo</span><span>Tu</span>
+                <span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div class="dt-cal-days" id="dtCalDays"></div>
+        </div>
+
+        <!-- Confirm Button -->
+        <button class="dt-confirm-btn" id="dtConfirmBtn">Set Schedule</button>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Planner Script -->
+    <script src="planner.js"></script>
+</body>
+</html>

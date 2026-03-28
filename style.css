@@ -478,6 +478,26 @@ body {
     transform: translateY(0);
 }
 
+/* OSM Nominatim attribution footer inside dropdown */
+.search-osm-attribution {
+    padding: 8px 16px;
+    border-top: 1px solid #f1f5f9;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.search-osm-attribution a {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.search-osm-attribution a:hover { text-decoration: underline; }
+
 .result-item {
     padding: 13px 20px;
     border-bottom: 1px solid #f3f4f6;

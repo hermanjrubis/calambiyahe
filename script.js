@@ -46,69 +46,113 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchResults = document.getElementById('searchResults');
 
     if (searchInput && searchResults) {
+        // Local quick suggestions (shown instantly before API responds)
         const popularPlaces = [
-            { name: "SM City Calamba", type: "Terminal" },
-            { name: "Turbina Terminal", type: "Hub" },
-            { name: "Pansol Hot Springs", type: "Destination" },
-            { name: "Calamba City Hall", type: "Landmark" },
-            { name: "Mayapa Crossing", type: "Stop" },
-            { name: "Bucal Bypass Road", type: "Route" },
-            { name: "Letran Calamba", type: "School" },
-            { name: "Liana's Supermarket", type: "Landmark" },
-            { name: "Real", type: "Barangay" },
-            { name: "Halang", type: "Barangay" },
-            { name: "National University Calamba", type: "School" },
-            { name: "Pamana", type: "Barangay" },
-            { name: "Canlubang", type: "Destination" }
+            { name: "SM City Calamba", address: "Calamba, Laguna" },
+            { name: "Turbina Terminal", address: "Calamba, Laguna" },
+            { name: "Pansol Hot Springs", address: "Calamba, Laguna" },
+            { name: "Calamba City Hall", address: "Calamba, Laguna" },
+            { name: "Mayapa Crossing", address: "Calamba, Laguna" },
+            { name: "Letran Calamba", address: "Calamba, Laguna" },
+            { name: "National University Calamba", address: "Calamba, Laguna" },
+            { name: "Canlubang", address: "Calamba, Laguna" }
         ];
 
-        function handleSearch() {
-            const val = searchInput.value.toLowerCase().trim();
+        // Attribution footer HTML
+        const osmAttribution = `
+            <div class="search-osm-attribution">
+                <span>🗺️ Search results powered by <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> / Nominatim</span>
+            </div>`;
+
+        const buildResultItem = (name, address, onClick) => {
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            item.innerHTML = `
+                <ion-icon name="location-outline" class="result-icon"></ion-icon>
+                <div>
+                    <div class="result-name">${name}</div>
+                    <div class="result-type">${address}</div>
+                </div>
+            `;
+            item.addEventListener('click', onClick);
+            return item;
+        };
+
+        const showResults = (items, showAttribution = false) => {
             searchResults.innerHTML = '';
-
-            if (val.length > 0) {
-                const matches = popularPlaces.filter(p => p.name.toLowerCase().includes(val));
-
-                if (matches.length > 0) {
-                    matches.forEach(match => {
-                        const item = document.createElement('div');
-                        item.className = 'result-item';
-                        item.innerHTML = `
-                            <ion-icon name="location-outline" class="result-icon"></ion-icon>
-                            <div>
-                                <div class="result-name">${match.name}</div>
-                                <div class="result-type">${match.type}</div>
-                            </div>
-                        `;
-                        item.addEventListener('click', () => {
-                            searchInput.value = match.name;
-                            searchResults.classList.remove('active');
-                        });
-                        searchResults.appendChild(item);
-                    });
-                } else {
-                    const item = document.createElement('div');
-                    item.className = 'result-item';
-                    item.innerHTML = `<em style="color:#aab4c5; font-size:0.9rem;">No places found. Try another keyword.</em>`;
-                    searchResults.appendChild(item);
-                }
-                searchResults.classList.add('active');
-            } else {
-                searchResults.classList.remove('active');
+            items.forEach(el => searchResults.appendChild(el));
+            if (showAttribution && items.length > 0) {
+                searchResults.insertAdjacentHTML('beforeend', osmAttribution);
             }
-        }
+            searchResults.classList.add('active');
+        };
 
+        let nominatimDebounce;
+
+        const handleSearch = async () => {
+            const val = searchInput.value.trim();
+
+            if (val.length === 0) {
+                searchResults.classList.remove('active');
+                return;
+            }
+
+            // 1. Instantly show local matches
+            const localMatches = popularPlaces.filter(p =>
+                p.name.toLowerCase().includes(val.toLowerCase())
+            );
+            if (localMatches.length > 0) {
+                const items = localMatches.map(m =>
+                    buildResultItem(m.name, m.address, () => {
+                        window.location.href = 'planner.html?dest=' + encodeURIComponent(m.name);
+                    })
+                );
+                showResults(items, false);
+            }
+
+            // 2. Debounced Nominatim search (kicks in after 350ms of no typing)
+            clearTimeout(nominatimDebounce);
+            if (val.length < 3) return;
+
+            nominatimDebounce = setTimeout(async () => {
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val)}&format=json&addressdetails=1&limit=6&countrycodes=ph`,
+                        { headers: { 'Accept-Language': 'en' } }
+                    );
+                    const data = await res.json();
+                    if (!data.length) return;
+
+                    const apiItems = data.map(place => {
+                        const name = place.name || place.display_name.split(',')[0];
+                        const parts = place.display_name.split(',').slice(1, 3).map(s => s.trim());
+                        const address = parts.join(', ');
+                        return buildResultItem(name, address, () => {
+                            // Navigate to planner with the destination name
+                            window.location.href = 'planner.html?dest=' + encodeURIComponent(name);
+                        });
+                    });
+
+                    showResults(apiItems, true); // show OSM attribution for API results
+                } catch (e) {
+                    // Silently fail — local results already showing
+                }
+            }, 350);
+        };
+
+        searchInput.setAttribute('autocomplete', 'off');
         searchInput.addEventListener('input', handleSearch);
 
         searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') if (searchBtn) searchBtn.click();
+            if (e.key === 'Enter' && searchInput.value.trim()) {
+                window.location.href = 'planner.html?dest=' + encodeURIComponent(searchInput.value.trim());
+            }
         });
 
         if (searchBtn) {
             searchBtn.addEventListener('click', () => {
-                if (searchInput.value.trim() !== '') {
-                    searchResults.classList.remove('active');
-                    console.log("Searching for:", searchInput.value);
+                if (searchInput.value.trim()) {
+                    window.location.href = 'planner.html?dest=' + encodeURIComponent(searchInput.value.trim());
                 }
             });
         }
