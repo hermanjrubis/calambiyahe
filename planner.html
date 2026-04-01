@@ -33,7 +33,7 @@
             <nav class="panel-nav">
                 <a href="index.html#p2p">P2P</a>
                 <a href="#">Submit a Route</a>
-                <a href="#">Ask JeepTalk</a>
+                <a href="#" id="jeepTokLink">Ask JeepTalk</a>
             </nav>
         </div>
 
@@ -76,23 +76,56 @@
                     <ion-icon name="swap-vertical"></ion-icon>
                 </button>
             </div>
-            
-            <div class="schedule-selector">
-                <ion-icon name="time-outline"></ion-icon>
-                <div class="custom-dropdown" id="scheduleDropdownContainer">
-                    <div class="dropdown-selected" id="scheduleSelected">
-                        <span id="scheduleSelectedText">Leaving now</span>
-                        <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
+
+            <!-- Schedule + Transit Mode — side by side in one row -->
+            <div class="schedule-mode-row">
+                <div class="schedule-selector">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <div class="custom-dropdown" id="scheduleDropdownContainer">
+                        <div class="dropdown-selected" id="scheduleSelected">
+                            <span id="scheduleSelectedText">Leaving now</span>
+                            <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
+                        </div>
+                        <ul class="dropdown-options" id="scheduleOptions">
+                            <li data-value="now" class="active">Leaving now</li>
+                            <li data-value="depart">Depart at</li>
+                            <li data-value="arrive">Arrive by</li>
+                        </ul>
                     </div>
-                    <ul class="dropdown-options" id="scheduleOptions">
-                        <li data-value="now" class="active">Leaving now</li>
-                        <li data-value="depart">Depart at</li>
-                        <li data-value="arrive">Arrive by</li>
-                    </ul>
+                </div>
+
+                <div class="schedule-mode-divider"></div>
+
+                <!-- Transit Mode Selection -->
+                <div class="transit-mode-area">
+                    <div class="custom-dropdown" id="modeDropdownContainer">
+                        <div class="dropdown-selected" id="modeSelected">
+                            <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney">
+                            <span id="modeSelectedText">Jeepney</span>
+                            <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
+                        </div>
+                        <ul class="dropdown-options" id="modeOptions">
+                            <li data-value="jeep" class="active">
+                                <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney"> Jeepney
+                            </li>
+                            <li data-value="modern-jeep">
+                                <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Modern Jeepney"> Modern Jeepney
+                            </li>
+                            <li data-value="bus">
+                                <img src="assets/icons/bus-icon.png" class="mode-option-icon" alt="Bus"> Bus
+                            </li>
+                            <li data-value="van">
+                                <img src="assets/icons/van-icon.png" class="mode-option-icon" alt="Van"> Van
+                            </li>
+                            <li data-value="tricycle">
+                                <img src="assets/icons/tricycle-icon.png" class="mode-option-icon" alt="Tricycle"> Tricycle
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-            
-            <!-- Quick Trip Details Placeholder (Time & Fare) -->
+
+            <!-- Quick Trip Details (Est. Time & Fare) -->
             <div class="trip-quick-details" id="tripQuickDetails" style="display: none;">
                 <div class="detail-item">
                     <span class="detail-label">Est. Time</span>
@@ -106,37 +139,12 @@
             </div>
         </div>
 
-        <!-- Minimalist Transit Mode Selection -->
-        <div class="transit-mode-area">
-            <div class="custom-dropdown" id="modeDropdownContainer">
-                <div class="dropdown-selected" id="modeSelected">
-                    <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney">
-                    <span id="modeSelectedText">Jeepney</span>
-                    <ion-icon name="chevron-down-outline" class="dropdown-icon"></ion-icon>
-                </div>
-                <ul class="dropdown-options" id="modeOptions">
-                    <li data-value="jeep" class="active">
-                        <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney"> Jeepney
-                    </li>
-                    <li data-value="bus">
-                        <img src="assets/icons/bus-icon.png" class="mode-option-icon" alt="Bus"> Bus
-                    </li>
-                    <li data-value="van">
-                        <img src="assets/icons/van-icon.png" class="mode-option-icon" alt="Van"> Van
-                    </li>
-                    <li data-value="tricycle">
-                        <img src="assets/icons/tricycle-icon.png" class="mode-option-icon" alt="Tricycle"> Tricycle
-                    </li>
-                </ul>
-            </div>
-        </div>
-
         </div><!-- /.panel-scroll-body -->
 
         <!-- Sticky Action Buttons -->
         <!-- State 1: Before journey starts -->
-        <div class="bottom-action-area" id="bookActionArea" style="display: none;">
-            <button class="primary-action-btn" id="startJourneyBtn">
+        <div class="bottom-action-area" id="bookActionArea">
+            <button class="primary-action-btn" id="startJourneyBtn" disabled>
                 <ion-icon name="navigate-outline"></ion-icon>
                 Simulan ang Biyahe
             </button>
@@ -211,9 +219,71 @@
         <button class="dt-confirm-btn" id="dtConfirmBtn">Set Schedule</button>
     </div>
 
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget-container" style="z-index: 9999;">
+        <span class="chat-label">Ask JeepTok</span>
+        <button class="chat-toggle-btn" id="chatToggleBtn">
+            <ion-icon name="chatbubble"></ion-icon>
+            <span class="pulse-ring"></span>
+        </button>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow" style="z-index: 10000;">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <ion-icon name="bus-outline"></ion-icon>
+                </div>
+                <div>
+                    <div class="chat-name">JeepTok Assistant</div>
+                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn">
+                <ion-icon name="chevron-back-outline" class="back-icon"></ion-icon>
+                <ion-icon name="close-outline" class="close-icon"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                Hello! I'm JeepTok. Where do you want to go today?
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+            
+            <!-- Bottom Action Row -->
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <!-- Planner Script -->
     <script src="planner.js"></script>
+    <!-- Chatbot Logic -->
+    <script src="script.js"></script>
 </body>
 </html>

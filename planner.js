@@ -393,10 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const originVal = originInput ? originInput.value.trim() : '';
         const destVal = destinationInput ? destinationInput.value.trim() : '';
         const bookActionArea = document.getElementById('bookActionArea');
-        if (originVal && destVal) {
-            if (bookActionArea) bookActionArea.style.display = 'block';
-        } else {
-            if (bookActionArea) bookActionArea.style.display = 'none';
+        const startJourneyBtn = document.getElementById('startJourneyBtn');
+        
+        if (bookActionArea) bookActionArea.style.display = 'block';
+        
+        if (startJourneyBtn) {
+            startJourneyBtn.disabled = !(originVal && destVal);
         }
         document.getElementById('tripQuickDetails').style.display = 'none';
     };
@@ -465,9 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 firstSchedule.classList.add('active');
             }
 
-            // Switch UI state back: hide "Cancel Trip" → hide both action areas
+            // Switch UI state back: hide "Cancel Trip" → show disabled book area
             activeTripArea.style.display = 'none';
-            document.getElementById('bookActionArea').style.display = 'none';
+            document.getElementById('bookActionArea').style.display = 'block';
+            if (startJourneyBtn) startJourneyBtn.disabled = true;
 
             // Re-center map
             map.setView([14.2045, 121.1641], 14);

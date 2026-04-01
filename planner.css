@@ -32,7 +32,7 @@
     z-index: 500;
     display: flex;
     flex-direction: column;
-    /* No overflow here — let children control scroll */
+    overflow: hidden; /* Clips children to border-radius */
 }
 
 /* Inner scrollable area below the blue header */
@@ -289,18 +289,35 @@
     background: #e2e8f0;
 }
 
+/* Schedule + Mode Row — side by side */
+.schedule-mode-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: nowrap;
+}
+
 /* Schedule Toggle */
 .schedule-selector {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 16px;
+    gap: 6px;
     color: var(--text-dark);
+    flex-shrink: 0;
 }
 
 .schedule-selector ion-icon {
     font-size: 1.2rem;
-    padding-left: 10px;
+    padding-left: 6px;
+}
+
+/* Divider between the two dropdowns */
+.schedule-mode-divider {
+    width: 1px;
+    height: 20px;
+    background: #e2e8f0;
+    flex-shrink: 0;
 }
 
 /* Custom Dropdown Styling */
@@ -436,12 +453,13 @@
     color: var(--text-dark);
 }
 
-/* Transit Mode Area */
+/* Transit Mode Area — now inline beside schedule */
 .transit-mode-area {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 4px 20px 8px;
+    gap: 6px;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 /* Dropdown selected row with icon */
@@ -472,10 +490,18 @@
     box-shadow: 0 6px 16px rgba(26, 143, 255, 0.3);
 }
 
-.primary-action-btn:hover {
+.primary-action-btn:hover:not(:disabled) {
     background: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: 0 8px 24px rgba(26, 143, 255, 0.4);
+}
+
+.primary-action-btn:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Leaflet Overrides */
@@ -787,9 +813,9 @@
 }
 
 .dt-toggle-btn.active {
-    background: #0db6a0;  /* Teal like reference image */
+    background: var(--primary);
     color: white;
-    box-shadow: 0 2px 8px rgba(13, 182, 160, 0.35);
+    box-shadow: 0 2px 8px rgba(26, 143, 255, 0.35);
 }
 
 /* "Now" button */
@@ -799,13 +825,13 @@
     font-family: 'Outfit', sans-serif;
     font-size: 0.9rem;
     font-weight: 600;
-    color: #0db6a0;
+    color: var(--primary);
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 8px;
     transition: background 0.15s;
 }
-.dt-now-btn:hover { background: rgba(13, 182, 160, 0.08); }
+.dt-now-btn:hover { background: rgba(26, 143, 255, 0.08); }
 
 /* Time Display */
 .dt-time-display {
@@ -859,7 +885,7 @@
     height: 26px;
     border-radius: 50%;
     background: white;
-    border: 3px solid #0db6a0;
+    border: 3px solid var(--primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     cursor: grab;
     transition: transform 0.15s;
@@ -870,7 +896,7 @@
     width: 26px; height: 26px;
     border-radius: 50%;
     background: white;
-    border: 3px solid #0db6a0;
+    border: 3px solid var(--primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     cursor: grab;
 }
@@ -896,7 +922,7 @@
 }
 
 .dt-ampm-btn.active {
-    background: #0db6a0;
+    background: var(--primary);
     color: white;
 }
 
@@ -975,17 +1001,17 @@
     background: none;
 }
 
-.dt-cal-day:hover { background: #f0faf9; color: #0db6a0; }
+.dt-cal-day:hover { background: #e8f4ff; color: var(--primary); }
 
 .dt-cal-day.today {
     font-weight: 700;
-    color: #0db6a0;
+    color: var(--primary);
 }
 
 .dt-cal-day.selected {
-    background: #0db6a0;
+    background: var(--primary);
     color: white !important;
-    box-shadow: 0 4px 12px rgba(13, 182, 160, 0.4);
+    box-shadow: 0 4px 12px rgba(26, 143, 255, 0.4);
     font-weight: 700;
 }
 
@@ -1002,7 +1028,7 @@
     display: block;
     margin: 8px 20px 0;
     width: calc(100% - 40px);
-    background: #0db6a0;
+    background: var(--primary);
     color: white;
     border: none;
     border-radius: 14px;
@@ -1012,13 +1038,13 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
-    box-shadow: 0 6px 20px rgba(13, 182, 160, 0.35);
+    box-shadow: 0 6px 20px rgba(26, 143, 255, 0.35);
 }
 
 .dt-confirm-btn:hover {
-    background: #0aa090;
+    background: var(--primary-dark);
     transform: translateY(-1px);
-    box-shadow: 0 8px 24px rgba(13, 182, 160, 0.45);
+    box-shadow: 0 8px 24px rgba(26, 143, 255, 0.45);
 }
 
 /* Mobile: full-width bottom sheet style for small screens */
