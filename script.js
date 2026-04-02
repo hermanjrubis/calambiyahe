@@ -540,8 +540,15 @@ Accessible on mobile, tablet, and desktop.
             const speechRecognitionList = new SpeechGrammarList();
             const keywords = ['Calamba', 'Jeep', 'Bus', 'Tricycle', 'SM', 'Crossing', 'Pansol', 'Bucal', 'Turbina', 'Halang', 'Real', 'Pamana', 'Mayapa', 'Canlubang', 'Liana', 'Terminal', 'Saan', 'Papuntang', 'Paano', 'Magkano', 'Pamasahe'];
             const grammar = '#JSGF V1.0; grammar transit; public <keyword> = ' + keywords.join(' | ') + ' ;';
-            speechRecognitionList.addFromString(grammar, 1);
-            recognition.grammars = speechRecognitionList;
+            
+            try {
+                speechRecognitionList.addFromString(grammar, 1);
+                // Note: Setting recognition.grammars in Chrome often throws a "network" error 
+                // because it doesn't support local grammars. Thus, we omit setting it.
+                // recognition.grammars = speechRecognitionList; 
+            } catch (e) {
+                console.warn("SpeechGrammarList not fully supported.", e);
+            }
         }
 
         // en-PH (Philippines English) provides the highest accuracy for mixed Tagalog and English sentences

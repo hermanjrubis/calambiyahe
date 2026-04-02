@@ -756,7 +756,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             btn.addEventListener('click', () => {
                 selectedDate = new Date(year, month, d);
-                renderCalendar(); // re-render to update selected highlight
+                renderCalendar();
             });
 
             calDays.appendChild(btn);
