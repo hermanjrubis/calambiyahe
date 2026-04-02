@@ -289,6 +289,133 @@
     background: #e2e8f0;
 }
 
+/* Quick Locations Section */
+.quick-locations-container {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0 8px 0;
+    border-bottom: 1px solid #e8edf3;
+    margin-bottom: 12px;
+}
+
+.quick-loc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    padding: 12px 8px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background 0.2s;
+}
+
+.quick-loc-row:hover {
+    background: #f1f5f9;
+}
+
+.quick-loc-row ion-icon {
+    font-size: 1.4rem;
+    color: #3b82f6; /* Blue matching screenshot */
+}
+
+.quick-loc-row span {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #475569;
+}
+
+/* Map Center Pin styles */
+.map-center-pin {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    z-index: 2000;
+    pointer-events: none; /* Let clicks pass through to map */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.map-center-pin.dragging {
+    transform: translate(-50%, -120%);
+}
+
+.map-center-pin ion-icon {
+    font-size: 42px;
+    color: #ef4444; /* Red map pin */
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+.pin-shadow {
+    width: 14px;
+    height: 6px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 50%;
+    margin-top: -4px;
+}
+
+/* Bottom Map Picker UI */
+.map-picker-ui {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 20px;
+    box-shadow: 0 -8px 30px rgba(0,0,0,0.15);
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.picker-address {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    text-align: center;
+    padding: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.picker-confirm-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 14px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.picker-cancel-btn {
+    width: 100%;
+    background: transparent;
+    color: #64748b;
+    border: none;
+    padding: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 /* Schedule + Mode Row — side by side */
 .schedule-mode-row {
     display: flex;
@@ -358,7 +485,7 @@
 }
 
 .dropdown-options {
-    /* Uses position:fixed — coordinates set by JavaScript */
+    /* Uses position:fixed — coordinates */
     position: fixed;
     min-width: 200px;
     background: white;
@@ -508,6 +635,33 @@
 .leaflet-control-zoom {
     border: none !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+}
+
+/* Style and Reposition OpenStreetMap Watermark / Attribution */
+.leaflet-control-attribution {
+    display: block !important;
+    position: fixed !important;
+    top: 8px !important;
+    right: 8px !important;
+    bottom: auto !important;
+    left: auto !important;
+    font-size: 9px !important;
+    background: rgba(255, 255, 255, 0.65) !important;
+    backdrop-filter: blur(4px);
+    padding: 2px 6px !important;
+    border-radius: 8px;
+    z-index: 9000;
+    pointer-events: auto;
+    color: #64748b !important;
+}
+
+.leaflet-control-attribution a {
+    color: #475569 !important;
+    text-decoration: none;
+}
+
+.leaflet-control-attribution a:hover {
+    text-decoration: underline;
 }
 
 /* Swap Button Flash Animation */

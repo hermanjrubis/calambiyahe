@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const questionBtn = item.querySelector('.faq-question');
             questionBtn.addEventListener('click', () => {
                 const isActive = item.classList.contains('active');
-                
+
                 // Close others
                 faqItems.forEach(otherItem => {
                     otherItem.classList.remove('active');
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // === MOBILE MENU TOGGLE ===
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const navLinks = document.getElementById('navLinks');
-    
+
     if (mobileMenuBtn && navLinks) {
         mobileMenuBtn.addEventListener('click', () => {
             navLinks.classList.toggle('active');
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const cancelBtn = document.getElementById('cancelMicBtn');
                 if (cancelBtn) cancelBtn.click(); // Stop recording if active
-                
+
                 // Optional: Notify user next time they open
                 addMessage("Session ended due to inactivity.", false);
             }, INACTIVITY_LIMIT);
@@ -338,7 +338,7 @@ Accessible on mobile, tablet, and desktop.
 
     let typingIndicatorEl = null;
     function showTyping() {
-        if(!chatMessages) return;
+        if (!chatMessages) return;
         typingIndicatorEl = document.createElement('div');
         typingIndicatorEl.classList.add('typing-indicator');
         typingIndicatorEl.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
@@ -347,7 +347,7 @@ Accessible on mobile, tablet, and desktop.
     }
 
     function removeTyping() {
-        if(typingIndicatorEl && typingIndicatorEl.parentNode) {
+        if (typingIndicatorEl && typingIndicatorEl.parentNode) {
             typingIndicatorEl.parentNode.removeChild(typingIndicatorEl);
         }
         typingIndicatorEl = null;
@@ -360,7 +360,7 @@ Accessible on mobile, tablet, and desktop.
         // User Message
         addMessage(text, true);
         chatInput.value = '';
-        chatInput.style.height = 'auto'; 
+        chatInput.style.height = 'auto';
         chatInput.classList.remove('scrolling');
         resetInactivityTimer();
 
@@ -390,13 +390,13 @@ Accessible on mobile, tablet, and desktop.
             const data = await response.json();
             removeTyping();
 
-            if(data.choices && data.choices.length > 0) {
+            if (data.choices && data.choices.length > 0) {
                 const botReply = data.choices[0].message.content;
                 addMessage(botReply, false);
             } else {
                 console.error("Groq API Error:", data);
                 let errMsg = "Pasensya na, may error sa aking system. Try again later.";
-                if(data.error && data.error.message) {
+                if (data.error && data.error.message) {
                     errMsg = `API Error: ${data.error.message}`;
                 }
                 addMessage(errMsg, false);
@@ -409,9 +409,9 @@ Accessible on mobile, tablet, and desktop.
     }
 
     sendMessageBtn.addEventListener('click', handleChatSend);
-    
+
     // Auto-expanding logic & Enter key
-    chatInput.addEventListener('input', function() {
+    chatInput.addEventListener('input', function () {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
         if (this.scrollHeight >= 120) {
@@ -468,7 +468,7 @@ Accessible on mobile, tablet, and desktop.
 
         function draw() {
             visualizerFrame = requestAnimationFrame(draw);
-            
+
             if (!isRecording || isPaused) {
                 canvases.forEach(canvas => {
                     const canvasCtx = canvas.getContext('2d');
@@ -478,28 +478,28 @@ Accessible on mobile, tablet, and desktop.
                 });
                 return;
             }
-            
+
             // Randomly simulate voice frequency data
             for (let i = 0; i < bufferLength; i++) {
-                dataArray[i] = Math.random() * 200 + 50; 
+                dataArray[i] = Math.random() * 200 + 50;
             }
-            
+
             canvases.forEach(canvas => {
                 const canvasCtx = canvas.getContext('2d');
                 canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-                
+
                 const barWidth = (canvas.width / bufferLength) * 1.8;
                 let barHeight;
                 let x = 0;
                 const mid = canvas.width / 2;
-                
-                for(let i = 0; i < bufferLength; i++) {
+
+                for (let i = 0; i < bufferLength; i++) {
                     // Smooth visualizer slightly
                     barHeight = (dataArray[i] / 255) * (canvas.height * 0.8);
-                    if (barHeight < 3) barHeight = 3; 
-                    
+                    if (barHeight < 3) barHeight = 3;
+
                     canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                    
+
                     // Right side
                     canvasCtx.fillRect(mid + x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
                     // Left side
@@ -512,7 +512,7 @@ Accessible on mobile, tablet, and desktop.
         }
         draw();
     }
-    
+
     function stopVisualizer() {
         if (visualizerFrame) cancelAnimationFrame(visualizerFrame);
         visualizerFrame = null;
@@ -528,13 +528,13 @@ Accessible on mobile, tablet, and desktop.
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
         recognition = new SpeechRecognition();
-        
+
         // Define local keywords to boost Web Speech API accuracy in the context of Calamba Commuting
         if (SpeechGrammarList) {
             const speechRecognitionList = new SpeechGrammarList();
             const keywords = ['Calamba', 'Jeep', 'Bus', 'Tricycle', 'SM', 'Crossing', 'Pansol', 'Bucal', 'Turbina', 'Halang', 'Real', 'Pamana', 'Mayapa', 'Canlubang', 'Liana', 'Terminal', 'Saan', 'Papuntang', 'Paano', 'Magkano', 'Pamasahe'];
             const grammar = '#JSGF V1.0; grammar transit; public <keyword> = ' + keywords.join(' | ') + ' ;';
-            
+
             try {
                 speechRecognitionList.addFromString(grammar, 1);
                 // Note: Setting recognition.grammars in Chrome often throws a "network" error 
@@ -546,21 +546,21 @@ Accessible on mobile, tablet, and desktop.
         }
 
         // en-PH (Philippines English) provides the highest accuracy for mixed Tagalog and English sentences
-        recognition.lang = 'en-PH'; 
-        recognition.continuous = true; 
+        recognition.lang = 'en-PH';
+        recognition.continuous = true;
         recognition.interimResults = true;
         recognition.maxAlternatives = 1; // Focus entirely on the highest confidence result
 
         recognition.onstart = () => {
             isRecording = true;
             isCanceled = false;
-            
+
             if (!isPaused) {
                 // Completely fresh session
                 sessionTranscript = '';
             }
             isPaused = false;
-            
+
             // Hide standard chat input UI
             if (chatInput) chatInput.style.display = 'none';
             const toolbar = document.querySelector('.chat-input-toolbar');
@@ -581,7 +581,7 @@ Accessible on mobile, tablet, and desktop.
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 // Remove weird trailing punctuations often generated by the API mid-sentence to avoid breaking words
                 let rawText = event.results[i][0].transcript;
-                
+
                 if (event.results[i].isFinal) {
                     finalTranscript += rawText;
                 } else {
@@ -609,7 +609,7 @@ Accessible on mobile, tablet, and desktop.
                 isRecording = false;
                 return;
             }
-            
+
             // after auto-end or Stop
             if (chatInput) {
                 let total = (sessionTranscript + ' ' + finalTranscript + ' ' + interimTranscript).trim();
@@ -628,16 +628,16 @@ Accessible on mobile, tablet, and desktop.
         function formatTranscript(text) {
             if (!text) return text;
             text = text.trim();
-            
+
             // Fix standalone commas or weird spacing around punctuation
             text = text.replace(/\s+([.,!?;:])/g, '$1'); // "hello , world" -> "hello, world"
-            
+
             // Add space after comma if missing
             text = text.replace(/,([^\s])/g, ', $1'); // "hello,world" -> "hello, world"
-            
+
             // Capitalize first letter of every sentence
-            text = text.replace(/(^\s*\w|[\.\!\?]\s*\w)/g, function(c) { return c.toUpperCase(); });
-            
+            text = text.replace(/(^\s*\w|[\.\!\?]\s*\w)/g, function (c) { return c.toUpperCase(); });
+
             // Specific local capitalization fixes for transit words (just to be safe)
             const properNouns = ['Sm', 'Calamba', 'Turbina', 'Pansol', 'Bucal', 'Halang', 'Real', 'Pamana', 'Mayapa', 'Liana'];
             properNouns.forEach(noun => {
@@ -645,7 +645,7 @@ Accessible on mobile, tablet, and desktop.
                 text = text.replace(regex, noun); // E.g., 'sm' -> 'Sm' -> wait, let's fix that 'SM'
             });
             text = text.replace(/\bSm\b/ig, 'SM'); // Fix SM
-            
+
             // Add an automatic period at the end if there's no punctuation
             if (!/[.!?]$/.test(text)) {
                 text += '.';
@@ -660,7 +660,7 @@ Accessible on mobile, tablet, and desktop.
             sessionTranscript = '';
             finalTranscript = '';
             interimTranscript = '';
-            
+
             stopVisualizer();
 
             // Revert UI to normal
@@ -711,10 +711,10 @@ Accessible on mobile, tablet, and desktop.
             // "Stop & Review" manual trigger
             stopMicBtn.addEventListener('click', () => {
                 const wasPaused = isPaused;
-                isPaused = false; 
-                
+                isPaused = false;
+
                 if (isRecording) {
-                    recognition.stop(); 
+                    recognition.stop();
                 } else if (wasPaused) {
                     // Just paused, need to populate sessionTranscript
                     if (chatInput) {
@@ -732,8 +732,8 @@ Accessible on mobile, tablet, and desktop.
         if (cancelMicBtn) {
             cancelMicBtn.addEventListener('click', () => {
                 isCanceled = true;
-                if (isRecording) recognition.abort(); 
-                else stopRecordingUI(); 
+                if (isRecording) recognition.abort();
+                else stopRecordingUI();
             });
         }
     } else {

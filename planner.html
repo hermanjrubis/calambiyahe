@@ -21,8 +21,21 @@
     <!-- Leaflet Map Full Background -->
     <div id="map" class="planner-map"></div>
 
+    <!-- Map Center Pin (For Location Picking) -->
+    <div id="mapCenterPin" class="map-center-pin" style="display: none;">
+        <ion-icon name="location"></ion-icon>
+        <div class="pin-shadow"></div>
+    </div>
+
+    <!-- Map Picker Bottom UI -->
+    <div id="mapPickerUI" class="map-picker-ui" style="display: none;">
+        <div class="picker-address" id="mapPickerAddress">Move map to select location...</div>
+        <button class="picker-confirm-btn" id="mapPickerConfirmBtn">Choose This Location</button>
+        <button class="picker-cancel-btn" id="mapPickerCancelBtn">Cancel</button>
+    </div>
+
     <!-- Floating UI Panel (Right Side Desktop / Bottom Sheet Mobile) -->
-    <div class="floating-panel">
+    <div class="floating-panel" id="mainFloatingPanel">
         <div class="drag-handle" id="dragHandle"></div>
         
         <!-- Modernized Blue Header within the Panel -->
@@ -33,7 +46,7 @@
             <nav class="panel-nav">
                 <a href="index.html#p2p">P2P</a>
                 <a href="#">Submit a Route</a>
-                <a href="#" id="jeepTokLink">Ask JeepTalk</a>
+                <a href="#" id="jeepTokLink">Ask JeepTok</a>
             </nav>
         </div>
 
@@ -74,6 +87,14 @@
                 
                 <button class="swap-btn" id="swapBtn" title="Swap locations">
                     <ion-icon name="swap-vertical"></ion-icon>
+                </button>
+            </div>
+
+            <!-- Quick Locations Section (Like Grab/Joyride) -->
+            <div class="quick-locations-container">
+                <button class="quick-loc-row" id="useLocationBtnEx">
+                    <ion-icon name="locate"></ion-icon>
+                    <span>Use My Current Location / Pin on Map</span>
                 </button>
             </div>
 

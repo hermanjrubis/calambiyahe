@@ -507,6 +507,113 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ==========================================
+    // MAP PICKER MODE (Pin on Map)
+    // ==========================================
+    let isMapPickerMode = false;
+    const useLocationBtn = document.getElementById('useLocationBtnEx');
+    const mainFloatingPanel = document.getElementById('mainFloatingPanel');
+    const mapCenterPin = document.getElementById('mapCenterPin');
+    const mapPickerUI = document.getElementById('mapPickerUI');
+    const mapPickerAddress = document.getElementById('mapPickerAddress');
+    const mapPickerConfirmBtn = document.getElementById('mapPickerConfirmBtn');
+    const mapPickerCancelBtn = document.getElementById('mapPickerCancelBtn');
+
+    const exitMapPicker = () => {
+        isMapPickerMode = false;
+        mapCenterPin.style.display = 'none';
+        mapPickerUI.style.display = 'none';
+        mainFloatingPanel.style.display = 'flex';
+    };
+
+    if (useLocationBtn && originInput) {
+        useLocationBtn.addEventListener('click', () => {
+            isMapPickerMode = true;
+            mainFloatingPanel.style.display = 'none';
+            mapCenterPin.style.display = 'flex';
+            mapPickerUI.style.display = 'flex';
+            mapPickerAddress.textContent = 'Locating...';
+
+            // Try to center on user's real location first
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    if(!isMapPickerMode) return;
+                    map.setView([position.coords.latitude, position.coords.longitude], 16);
+                }, () => {}, { enableHighAccuracy: true });
+            }
+            
+            // Trigger an initial reverse geocode for current map center
+            map.fire('moveend');
+        });
+
+        map.on('movestart', () => {
+            if (isMapPickerMode) mapCenterPin.classList.add('dragging');
+        });
+
+        let mapMoveTimeout;
+        map.on('moveend', () => {
+            if (!isMapPickerMode) return;
+            mapCenterPin.classList.remove('dragging');
+            mapPickerAddress.textContent = 'Loading address...';
+            
+            clearTimeout(mapMoveTimeout);
+            mapMoveTimeout = setTimeout(async () => {
+                if (!isMapPickerMode) return;
+                const center = map.getCenter();
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${center.lat}&lon=${center.lng}&format=json&addressdetails=1`);
+                    const data = await res.json();
+                    if (!isMapPickerMode) return;
+                    
+                    if (data && data.display_name) {
+                        const addr = data.address || {};
+                        
+                        // Extract relevant components
+                        const name = data.name;
+                        const road = addr.road;
+                        const local = addr.neighbourhood || addr.village || addr.suburb || addr.quarter;
+                        const city = addr.city || addr.town || addr.municipality;
+                        
+                        const parts = [];
+                        if (name) parts.push(name);
+                        if (road && road !== name) parts.push(road);
+                        if (local && local !== name && local !== road) parts.push(local);
+                        if (city && city !== name) parts.push(city);
+                        
+                        if (parts.length > 0) {
+                            mapPickerAddress.textContent = parts.join(', ');
+                        } else {
+                            // Fallback to display_name minus postcode and country so it's not overly verbose
+                            let fallback = data.display_name.split(',').slice(0, 4).join(', ');
+                            mapPickerAddress.textContent = fallback || "Selected Location";
+                        }
+                    } else {
+                        mapPickerAddress.textContent = "Selected Location";
+                    }
+                } catch (err) {
+                    if (isMapPickerMode) mapPickerAddress.textContent = "Selected Location";
+                }
+            }, 500); // debounce API calls
+        });
+
+        mapPickerCancelBtn.addEventListener('click', exitMapPicker);
+
+        mapPickerConfirmBtn.addEventListener('click', () => {
+            const center = map.getCenter();
+            selectedCoords.origin = [center.lat, center.lng];
+            originInput.value = mapPickerAddress.textContent;
+            
+            exitMapPicker();
+            checkFormStatus();
+            
+            if (document.getElementById('tripQuickDetails').style.display === 'flex') {
+                const activeModeEl = document.querySelector('#modeOptions li.active');
+                const mode = activeModeEl ? activeModeEl.getAttribute('data-value') : 'jeep';
+                drawRoute(mode);
+            }
+        });
+    }
+
     const updateResultsUI = (mode, routeData = null) => {
         let timeStr, fareStr;
 
