@@ -459,69 +459,63 @@ Accessible on mobile, tablet, and desktop.
     let visualizerFrame = null;
 
     function startVisualizer() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
-        
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-            .then(stream => {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                microphone = audioContext.createMediaStreamSource(stream);
-                microphone.connect(analyser);
-                analyser.fftSize = 64; 
-                const bufferLength = analyser.frequencyBinCount;
-                const dataArray = new Uint8Array(bufferLength);
+        // Use a simulated visualizer to avoid microphone locking conflicts.
+        // Web Speech API already holds the microphone, and requesting it again via
+        // getUserMedia often causes a "network error" or "not-allowed" on platforms like Chrome or mobile.
+        const canvases = document.querySelectorAll('#voiceVisualizer');
+        const bufferLength = 32; // Simulating 32 bars
+        let dataArray = new Uint8Array(bufferLength);
+
+        function draw() {
+            visualizerFrame = requestAnimationFrame(draw);
+            
+            if (!isRecording || isPaused) {
+                canvases.forEach(canvas => {
+                    const canvasCtx = canvas.getContext('2d');
+                    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    canvasCtx.fillRect(0, canvas.height / 2 - 1, canvas.width, 2); // Flat line
+                });
+                return;
+            }
+            
+            // Randomly simulate voice frequency data
+            for (let i = 0; i < bufferLength; i++) {
+                dataArray[i] = Math.random() * 200 + 50; 
+            }
+            
+            canvases.forEach(canvas => {
+                const canvasCtx = canvas.getContext('2d');
+                canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                const canvases = document.querySelectorAll('#voiceVisualizer');
+                const barWidth = (canvas.width / bufferLength) * 1.8;
+                let barHeight;
+                let x = 0;
+                const mid = canvas.width / 2;
                 
-                function draw() {
-                    visualizerFrame = requestAnimationFrame(draw);
-                    if (!isRecording || isPaused) {
-                        canvases.forEach(canvas => {
-                            const canvasCtx = canvas.getContext('2d');
-                            canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-                            canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                            canvasCtx.fillRect(0, canvas.height / 2 - 1, canvas.width, 2); // Flat line
-                        });
-                        return;
+                for(let i = 0; i < bufferLength; i++) {
+                    // Smooth visualizer slightly
+                    barHeight = (dataArray[i] / 255) * (canvas.height * 0.8);
+                    if (barHeight < 3) barHeight = 3; 
+                    
+                    canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    
+                    // Right side
+                    canvasCtx.fillRect(mid + x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
+                    // Left side
+                    if (i !== 0) {
+                        canvasCtx.fillRect(mid - x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
                     }
-                    
-                    analyser.getByteFrequencyData(dataArray);
-                    
-                    canvases.forEach(canvas => {
-                        const canvasCtx = canvas.getContext('2d');
-                        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-                        
-                        const barWidth = (canvas.width / bufferLength) * 1.8;
-                        let barHeight;
-                        let x = 0;
-                        const mid = canvas.width / 2;
-                        
-                        for(let i = 0; i < bufferLength; i++) {
-                            barHeight = (dataArray[i] / 255) * canvas.height;
-                            if (barHeight < 3) barHeight = 3; 
-                            
-                            canvasCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                            
-                            // Right side
-                            canvasCtx.fillRect(mid + x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
-                            // Left side
-                            if (i !== 0) {
-                                canvasCtx.fillRect(mid - x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
-                            }
-                            x += barWidth;
-                        }
-                    });
+                    x += barWidth;
                 }
-                draw();
-            })
-            .catch(err => console.error("Mic error:", err));
+            });
+        }
+        draw();
     }
     
     function stopVisualizer() {
         if (visualizerFrame) cancelAnimationFrame(visualizerFrame);
-        if (microphone) microphone.disconnect();
-        if (audioContext && audioContext.state !== 'closed') audioContext.close();
-        audioContext = null;
+        visualizerFrame = null;
     }
 
     let isPaused = false;
