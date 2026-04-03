@@ -96,66 +96,6 @@
         </div>
     </main>
 
-    <!-- Floating Chat Widget -->
-    <div class="chat-widget-container">
-        <span class="chat-label">Ask JeepTok</span>
-        <button class="chat-toggle-btn" id="chatToggleBtn">
-            <ion-icon name="chatbubble"></ion-icon>
-            <span class="pulse-ring"></span>
-        </button>
-    </div>
-
-    <!-- Chatbot Window -->
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <div class="chat-avatar">
-                    <ion-icon name="bus-outline"></ion-icon>
-                </div>
-                <div>
-                    <div class="chat-name">JeepTok Assistant</div>
-                    <div class="chat-status"><span class="status-dot"></span> Online</div>
-                </div>
-            </div>
-            <button class="close-chat-btn" id="closeChatBtn">
-                <ion-icon name="chevron-back-outline" class="back-icon"></ion-icon>
-                <ion-icon name="close-outline" class="close-icon"></ion-icon>
-            </button>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                Hello! I'm JeepTok. Where do you want to go today?
-            </div>
-        </div>
-        <div class="chat-input-area">
-            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
-            
-            <!-- Bottom Action Row -->
-            <div class="chat-input-toolbar">
-                <div class="toolbar-right">
-                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
-                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <div id="recordingControls" class="vm-active-container" style="display: none;">
-                <div class="recording-indicator-dot"></div>
-                <div class="vm-frequency-pill" id="vmFrequencyPill">
-                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
-                </div>
-                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
-                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
-                </button>
-                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
-                    <ion-icon name="close-outline"></ion-icon>
-                </button>
-                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
-                    <ion-icon name="checkmark-done-outline"></ion-icon>
-                </button>
-            </div>
-        </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
 </html>
