@@ -377,6 +377,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if ((val === 'depart' || val === 'arrive') && typeof window.openDtPicker === 'function') {
                 // use setTimeout so dropdown closes cleanly before modal opens
                 setTimeout(() => window.openDtPicker(val), 80);
+            } else if (val === 'now') {
+                const btnText = document.getElementById('startJourneyBtnText');
+                if (btnText) btnText.textContent = 'Simulan ang Biyahe';
             }
         }
     );
@@ -459,6 +462,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reset schedule dropdown text to default
             const schedText = document.getElementById('scheduleSelectedText');
             if (schedText) schedText.textContent = 'Leaving now';
+            
+            // Reset button text
+            const btnText = document.getElementById('startJourneyBtnText');
+            if (btnText) btnText.textContent = 'Simulan ang Biyahe';
 
             // Reset first schedule li to active
             const firstSchedule = document.querySelector('#scheduleOptions li');
@@ -903,6 +910,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update the schedule dropdown selected text
         const schedText = document.getElementById('scheduleSelectedText');
         if (schedText) schedText.textContent = label;
+
+        // Change button text to indicate scheduling
+        const btnText = document.getElementById('startJourneyBtnText');
+        if (btnText) btnText.textContent = 'I-schedule ang Biyahe';
 
         closePicker();
     };
