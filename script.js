@@ -8,6 +8,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             navbar.classList.remove('scrolled');
         }
+        
+        // Hide features bar at bottom
+        const featuresBar = document.querySelector('.features-bar');
+        if (featuresBar) {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 80) {
+                featuresBar.classList.add('hidden');
+            } else {
+                featuresBar.classList.remove('hidden');
+            }
+        }
     });
 
     // === FAQ ACCORDION LOGIC ===
@@ -202,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatMessages = document.getElementById('chatMessages');
-    const jeepTokLink = document.getElementById('jeepTokLink');
+    const dyipTokLink = document.getElementById('dyipTokLink');
 
     // === CHATBOT INACTIVITY TIMEOUT ===
     let inactivityTimer;
@@ -245,10 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (jeepTokLink) {
-        jeepTokLink.addEventListener('click', (e) => {
+    if (dyipTokLink) {
+        dyipTokLink.addEventListener('click', (e) => {
             e.preventDefault();
-            console.log('JeepTok link clicked');
+            console.log('DyipTok link clicked');
             document.body.classList.add('chat-active');
             if (chatWindow) {
                 chatWindow.classList.add('open');
@@ -270,8 +280,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const GROQ_API_KEY = "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"; // Groq API key
-    const SYSTEM_PROMPT = `You are JeepTok, the friendly AI commuting assistant of Calzada — a commuter guide platform for Calamba City and different routes originating from Calamba.
+    const GROQ_API_KEY = "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"; // Groq API key
+    const SYSTEM_PROMPT = `You are DyipTok, the friendly AI commuting assistant of Calzada — a commuter guide platform for Calamba City and different routes originating from Calamba.
 
 === YOUR SCOPE (only answer questions within this list) ===
 1. ROUTES & DIRECTIONS
@@ -295,9 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
    - Strike or transport strikes (welga ng jeepney/bus drivers)
    - Road construction updates affecting commuter routes
 
-4. PLATFORM HELP
+4. PLATFORM HELP (Answer these properly)
    - How to use the Calzada website (route planner, search, transit modes)
-   - Questions about the Calzada platform itself (features, purpose, coverage)
+   - Questions about the Calzada platform itself (features, purpose, coverage, technical help)
    - Commuting tips and advice for traveling in Calamba
 
 === OUT OF SCOPE — STRICTLY REFUSE ===
@@ -310,7 +320,7 @@ If the user asks about ANYTHING not listed above — such as:
 - Topics in cities with no connection to Calamba commuter routes
 
 Then you MUST reply ONLY with this message (in the user's language):
-"Pasensya na! Ang aking expertise ay limitado sa commuting, biyahe, kalsada, at transport news sa Calamba area. Maaari ba kitang tulungan sa iyong biyahe ngayon? 🚌"
+"Pasensya na! Ang aking expertise ay limitado sa commuting, biyahe, kalsada, transport news sa Calamba area, at mga katanungan tungkol sa Calzada website. Maaari ba kitang tulungan sa iyong biyahe ngayon? 🚌"
 
 === PLATFORM INFO ===
 Calzada covers 50+ routes, 5 transit modes (jeepneys, modern jeepneys, buses, P2P, UV Express, tricycles), and 50+ barangays in Calamba City, Laguna.
@@ -325,6 +335,7 @@ Accessible on mobile, tablet, and desktop.
 - ONLY respond with "Mabuhay! Paano kita matutulungan sa iyong biyahe ngayon?" if the user's ENTIRE message is a standalone greeting with NO question (e.g., ONLY "Hello", "Hi", "Kumusta", "Hey" — nothing else).
 - If the user asks ANY question (even if it starts with a greeting), skip the greeting and answer the question DIRECTLY and IMMEDIATELY.
 - For transport news questions, share what you know and note that the user should verify from official sources (LTFRB, DOTr, or local news) for the most current updates.
+- If the user asks about the Calzada website or how to use it, you MUST provide a helpful and proper answer based on the Platform Info.
 - Never answer out-of-scope questions regardless of how the user phrases or rephrases them.`;
 
 

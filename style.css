@@ -624,6 +624,13 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
     padding: 0.7rem 2rem;
+    transition: transform 0.4s var(--ease), opacity 0.4s var(--ease);
+}
+
+.features-bar.hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
 }
 
 .features-grid {
@@ -1700,5 +1707,247 @@ body {
 
     .about-text p {
         font-size: 1rem;
+    }
+}
+
+/* =============================================
+   SCROLLABLE CONTENT SECTIONS (About, News, Fare)
+   ============================================= */
+.scrollable-content {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 80px 20px 120px; /* 120px bottom padding to clear footer and tracking bar, 80px top padding as gap */
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.about-card, .news-section, .fare-section {
+    width: 100%;
+}
+
+/* We removed the white box background, so focus on the typography */
+.section-header {
+    margin-bottom: 24px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.section-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.section-header h2 ion-icon {
+    color: var(--primary);
+    font-size: 2.2rem;
+}
+
+.header-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 4px;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+.about-card p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+.info-section.about-card p strong {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.news-card {
+    background: transparent;
+    border-radius: 0;
+    padding: 16px 0;
+    box-shadow: none;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    transition: transform var(--transition);
+    display: flex;
+    flex-direction: column;
+}
+
+.news-card:hover {
+    transform: translateX(6px);
+}
+
+.news-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.news-tag {
+    align-self: flex-start;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.news-tag.closure { background: #fee2e2; color: #ef4444; }
+.news-tag.alert { background: #fef3c7; color: #f59e0b; }
+.news-tag.fare { background: #e0e7ff; color: #4f46e5; }
+.news-tag.announcement { background: #dcfce7; color: #16a34a; }
+
+.news-card h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.news-card p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    flex-grow: 1; /* Pushes date to bottom */
+}
+
+.news-date {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* =============================================
+   BLUE FOOTER LOGIC
+   ============================================= */
+.site-footer {
+    background: var(--primary); /* Theme Color */
+    color: white;
+    padding: 60px 20px 20px;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+    z-index: 10;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-logo {
+    height: 40px;
+    margin-bottom: 15px;
+}
+
+.brand-column p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    max-width: 300px;
+}
+
+.social-icons {
+    display: flex;
+    gap: 15px;
+}
+
+.social-icons a {
+    color: white;
+    font-size: 1.4rem;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.3s, transform 0.3s;
+}
+
+.social-icons a:hover {
+    background: var(--primary);
+    transform: translateY(-3px);
+}
+
+.footer-column h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.nav-column a {
+    display: block;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    margin-bottom: 12px;
+    transition: color 0.2s;
+    font-size: 0.95rem;
+}
+
+.nav-column a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.contact-column p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 15px;
+    font-size: 0.95rem;
+}
+
+.contact-column p ion-icon {
+    font-size: 1.2rem;
+    color: #60b3ff;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 20px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+}
+
+/* User asked for wider gap in mobile */
+@media (max-width: 768px) {
+    .scrollable-content {
+        gap: 60px; /* Increased from 40px */
+        padding: 140px 20px 140px; /* 140px top gap from search bar on mobile */
+    }
+
+    .footer-container {
+        grid-template-columns: 1fr;
+        gap: 30px;
     }
 }
