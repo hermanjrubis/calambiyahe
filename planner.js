@@ -121,26 +121,36 @@ document.addEventListener('DOMContentLoaded', () => {
         let startY = 0, isDragging = false;
         
         card.addEventListener('touchstart', (e) => {
-            if (e.target.closest('input') || e.target.closest('.search-card-scrollbody')) return;
-            startY = e.touches[0].clientY;
-            isDragging = true;
+            const scrollBody = e.target.closest('.search-card-scrollbody');
+            // Allow drag if NOT in scroll body, OR if scroll body is at very top
+            if (!scrollBody || scrollBody.scrollTop <= 0) {
+                startY = e.touches[0].clientY;
+                isDragging = true;
+            }
         }, { passive: true });
         
         document.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
             const y = e.touches[0].clientY;
-            if (y - startY > 40) { // Dragged down
+            const deltaY = y - startY;
+
+            // DRAG DOWN TO HIDE
+            if (deltaY > 60) { 
                 card.classList.add('minimized');
                 isDragging = false;
-            } else if (y - startY < -40) { // Dragged up
+            } 
+            // DRAG UP TO SHOW
+            else if (deltaY < -60) {
                 card.classList.remove('minimized');
                 isDragging = false;
             }
         }, { passive: true });
         
-        document.addEventListener('touchend', () => isDragging = false);
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
 
-        // Tapping pulls it back up
+        // Tapping/Clicking the card while minimized pulls it back up
         card.addEventListener('click', (e) => {
             if (card.classList.contains('minimized') && !e.target.closest('.search-card-scrollbody')) {
                 card.classList.remove('minimized');

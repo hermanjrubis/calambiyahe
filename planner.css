@@ -1501,7 +1501,7 @@
     padding-top: 24px;
     display: flex;
     flex-direction: column;
-    max-height: 80vh; /* Limits maximum height so it can scroll */
+    max-height: 85vh; /* Standardized to match guide card */
     padding-bottom: 0;
 }
 .search-card-scrollbody {
@@ -1760,7 +1760,6 @@
     padding-top: 24px;
     display: flex;
     flex-direction: column;
-    height: 75vh; /* EXPLICIT height to force child scroll constraints reliably on all mobile engines */
     max-height: 85vh;
     padding-bottom: 0;
     overflow: hidden; /* Guarantee that contents cannot visually bleed out of the white border-radius box */
