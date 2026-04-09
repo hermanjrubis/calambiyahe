@@ -113,9 +113,49 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('remindersOverlay')?.addEventListener('click', () => toggleReminders(false));
 
     // =============================================
-    // BOTTOM SHEET DRAG (Sakay.ph style snap)
+    // BOTTOM SHEET DRAG (Mobile View)
     // =============================================
-    // =============================================
+    const guiContainer = document.querySelector('.planner-gui-container');
+    let startY = 0, currentY = 0, isDragging = false, currentTransform = 0;
+    
+    if (guiContainer && window.innerWidth <= 768) {
+        guiContainer.addEventListener('touchstart', (e) => {
+            if (e.target.closest('input') || e.target.closest('.sakay-terminal-list') || e.target.closest('.flatpickr-calendar')) return;
+            startY = e.touches[0].clientY - currentTransform;
+            isDragging = true;
+            guiContainer.style.transition = 'none';
+        }, { passive: true });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const y = e.touches[0].clientY;
+            currentTransform = Math.max(0, y - startY);
+            guiContainer.style.transform = `translateY(${currentTransform}px)`;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            guiContainer.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+            
+            // Snap logic: if dragged down significantly, snap to bottom leaving just top visible
+            if (currentTransform > 100) {
+                currentTransform = guiContainer.offsetHeight - 85; 
+            } else {
+                currentTransform = 0;
+            }
+            guiContainer.style.transform = `translateY(${currentTransform}px)`;
+        });
+
+        // Tapping the card when minimized pulls it back up
+        guiContainer.addEventListener('click', (e) => {
+            if (currentTransform > 0 && !e.target.closest('input')) {
+                currentTransform = 0;
+                guiContainer.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                guiContainer.style.transform = `translateY(0px)`;
+            }
+        });
+    }
     // UI CARD STATE TRANSITIONS (Search vs Active)
     // =============================================
     const searchCard = document.getElementById('searchCard');
