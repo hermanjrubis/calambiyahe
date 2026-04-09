@@ -1494,6 +1494,7 @@
 }
 .search-card-scrollbody {
     flex: 1;
+    min-height: 0; /* CRITICAL: Allows flex child to shrink below intrinsic content size to trigger scrolling */
     overflow-y: auto;
     padding-bottom: 24px;
     margin-right: -10px; padding-right: 10px; /* offset inner scrollbar padding */
