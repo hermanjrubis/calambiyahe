@@ -1499,7 +1499,7 @@
     padding-bottom: 24px;
     margin-right: -10px; padding-right: 10px; /* offset inner scrollbar padding */
     transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding-bottom 0.3s;
-    max-height: 1000px; /* Increased from 400px to allow taller expansion on mobile screens */
+    max-height: calc(85vh - 140px); /* Limits child height so it activates its own scroll panel! */
 }
 .search-card-scrollbody::-webkit-scrollbar {
     width: 5px;
