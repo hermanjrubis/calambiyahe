@@ -1500,7 +1500,7 @@
     margin-right: -10px; padding-right: 10px; /* offset inner scrollbar padding */
     scrollbar-width: none; /* Firefox */
     transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding-bottom 0.3s;
-    max-height: 400px;
+    max-height: 1000px; /* Increased from 400px to allow taller expansion on mobile screens */
 }
 .input-card.minimized .search-card-scrollbody {
     max-height: 0;
@@ -1736,7 +1736,7 @@
     padding-top: 24px;
     display: flex;
     flex-direction: column;
-    max-height: 70vh;
+    max-height: 85vh; /* Increased from 70vh to make container taller */
     padding-bottom: 0;
     overflow: hidden; /* Guarantee that contents cannot visually bleed out of the white border-radius box */
 }
