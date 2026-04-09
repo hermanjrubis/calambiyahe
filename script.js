@@ -107,18 +107,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 1. Instantly show local matches
-            const localMatches = popularPlaces.filter(p =>
-                p.name.toLowerCase().includes(val.toLowerCase())
-            );
-            if (localMatches.length > 0) {
-                const items = localMatches.map(m =>
-                    buildResultItem(m.name, m.address, () => {
-                        window.location.href = 'planner.html?dest=' + encodeURIComponent(m.name);
-                    })
-                );
-                showResults(items, false);
-            }
+            searchResults.innerHTML = '';
+            searchResults.classList.remove('active');
 
             // 2. Debounced Nominatim search (kicks in after 350ms of no typing)
             clearTimeout(nominatimDebounce);
@@ -138,8 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         const parts = place.display_name.split(',').slice(1, 3).map(s => s.trim());
                         const address = parts.join(', ');
                         return buildResultItem(name, address, () => {
-                            // Navigate to planner with the destination name
-                            window.location.href = 'planner.html?dest=' + encodeURIComponent(name);
+                            // Navigate to planner with the destination name and exact coordinates
+                            window.location.href = `planner.html?dest=${encodeURIComponent(name)}&dlat=${place.lat}&dlng=${place.lon}`;
                         });
                     });
 
@@ -213,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatMessages = document.getElementById('chatMessages');
     const dyipTokLink = document.getElementById('dyipTokLink');
+    const drawerDyipTokLink = document.getElementById('drawerDyipTokLink');
 
     // === CHATBOT INACTIVITY TIMEOUT ===
     let inactivityTimer;
@@ -255,18 +246,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (dyipTokLink) {
-        dyipTokLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('DyipTok link clicked');
-            document.body.classList.add('chat-active');
-            if (chatWindow) {
-                chatWindow.classList.add('open');
-                if (chatInput) setTimeout(() => chatInput.focus(), 350);
-                resetInactivityTimer();
-            }
-        });
-    }
+    const openChat = (e) => {
+        if(e) e.preventDefault();
+        console.log('DyipTok link clicked');
+        document.body.classList.add('chat-active');
+        if (chatWindow) {
+            chatWindow.classList.add('open');
+            if (chatInput) setTimeout(() => chatInput.focus(), 350);
+            resetInactivityTimer();
+        }
+        // Also close side drawer if open
+        const sideDrawer = document.getElementById('sideDrawer');
+        const overlay = document.getElementById('sideDrawerOverlay');
+        if(sideDrawer) sideDrawer.classList.remove('open');
+        if(overlay) overlay.classList.remove('visible');
+    };
+
+    if (dyipTokLink) dyipTokLink.addEventListener('click', openChat);
+    if (drawerDyipTokLink) drawerDyipTokLink.addEventListener('click', openChat);
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => {

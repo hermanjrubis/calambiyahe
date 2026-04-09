@@ -1446,3 +1446,395 @@
 .pause-btn { background: var(--bg-muted); color: var(--text); }
 .close-btn { background: #fee2e2; color: var(--danger); }
 .send-btn { background: var(--success); color: white; }
+
+/* =============================================
+   SAKAY.PH REWORK / DISJOINT CARDS UI
+   ============================================= */
+.planner-gui-container {
+    position: fixed;
+    bottom: 0; left: 0; right: 0; top: 0;
+    pointer-events: none; /* Let clicks pass through map */
+    z-index: 500;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    padding: 10px;
+}
+
+.sakay-card {
+    pointer-events: auto;
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+@media (min-width: 768px) {
+    .planner-gui-container {
+        width: 400px;
+        right: auto;
+        left: 20px;
+        top: 80px; /* Below standard header */
+        bottom: 20px;
+    }
+    .sakay-card { margin-bottom: 15px; }
+}
+
+/* 1. INPUT CARD */
+.input-card {
+    position: relative;
+    padding-top: 24px;
+}
+.input-card::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+}
+
+.sakay-input-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    z-index: 2;
+}
+.route-node {
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+.origin-node {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid white;
+    box-shadow: 0 0 0 1px var(--primary);
+}
+.dest-node ion-icon {
+    color: var(--danger);
+}
+.route-connector-line {
+    position: relative;
+    left: 9px;
+    height: 24px;
+    border-left: 2px dashed #0c76ce;
+    margin-top: -8px;
+    margin-bottom: -8px;
+    z-index: 1;
+}
+.route-connector-line.small {
+    height: 28px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+.sakay-input-wrap {
+    flex: 1;
+    position: relative;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 0 16px;
+}
+.sakay-input-wrap input {
+    width: 100%;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: var(--text-dark); 
+    padding: 14px 0;
+    outline: none;
+    background: transparent;
+}
+.sakay-input-wrap input::placeholder {
+    color: #94a3b8;
+}
+
+.sakay-action-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2b9bf5;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+.sakay-action-row ion-icon {
+    font-size: 1.3rem;
+}
+
+#scheduleDropdownContainer {
+    color: var(--text-dark);
+}
+
+/* Dropdowns in Sakay Card */
+.sakay-dropdown-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.sakay-dropdown-menu {
+    position: absolute;
+    top: 100%; left: 40px; right: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    list-style: none; padding: 6px 0;
+    z-index: 10;
+    display: none;
+    border: 1px solid #e2e8f0;
+}
+.sakay-action-row:focus-within .sakay-dropdown-menu { display: block; }
+.open .sakay-dropdown-menu { display: block !important; }
+.sakay-dropdown-menu.up-menu { top: auto; bottom: 100%; }
+.sakay-dropdown-menu li {
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+}
+.sakay-dropdown-menu li:last-child { border-bottom: none; }
+.sakay-dropdown-menu li:hover { background: #f8fafc; }
+
+
+/* Terminal Picker specific */
+.sakay-terminal-picker {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #e2e8f0;
+}
+.sakay-section-title { font-size: 0.85rem; font-weight: 700; color: var(--text-dark); margin-bottom: 8px; }
+
+.sakay-terminal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 125px;
+    overflow-y: auto;
+    padding-right: 6px;
+}
+.sakay-terminal-list::-webkit-scrollbar {
+    width: 6px;
+}
+.sakay-terminal-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+
+/* 2. ACTION CARD */
+.action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+}
+.sakay-mode-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    cursor: pointer;
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-simulan {
+    background: #e2e8f0; /* Grayed out when disabled */
+    color: #94a3b8;
+    border: none;
+    border-radius: 99px;
+    padding: 18px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s;
+}
+.btn-simulan:not([disabled]) {
+    background: #2b9bf5; /* Active Blue */
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(43,155,245,0.4);
+}
+.btn-simulan:not([disabled]):hover {
+    transform: translateY(-2px);
+    background: #1a89e0;
+}
+
+/* FLATPICKR CUSTOMIZATION (Calzada Theme) */
+.flatpickr-calendar {
+    font-family: 'Inter', sans-serif !important;
+    border-radius: 16px !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+    border: none !important;
+    padding: 8px !important;
+}
+.flatpickr-day.selected {
+    background: #2b9bf5 !important;
+    border-color: #2b9bf5 !important;
+}
+.flatpickr-months .flatpickr-month {
+    color: #0f172a !important;
+    fill: #0f172a !important;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+    font-weight: 700 !important;
+}
+.flatpickr-time input:hover, .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time input:focus, .flatpickr-time .flatpickr-am-pm:focus {
+    background: #f1f5f9 !important;
+}
+.flatpickr-day { border-radius: 99px !important; }
+/* 3. LAKBAY GUIDE (Itinerary Card) */
+.guide-card {
+    position: relative;
+    padding-top: 24px;
+    flex-grow: 1; /* Stretch up when active */
+    max-height: 70vh;
+    overflow-y: auto;
+}
+.guide-drag-handle {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+}
+.guide-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+}
+.guide-route-preview {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.guide-places {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+.guide-place-text { font-size: 0.95rem; font-weight: 500; }
+
+.guide-summary-strip {
+    background: #dbeafe;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 12px;
+}
+.guide-summary-item {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    gap: 8px; font-weight: 700; font-size: 1.05rem; color: #0f172a;
+}
+.guide-summary-divider {
+    width: 1px; height: 24px; background: #94a3b8;
+}
+
+.sakay-itinerary-list {
+    margin-top: 24px;
+}
+
+/* 4. ACTIVE TRIP BANNER */
+.active-trip-banner {
+    padding: 12px 20px;
+    border-radius: 20px 20px 0 0;
+    margin-bottom: 0; /* Sticks to bottom completely */
+    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+}
+.trip-banner-top {
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+}
+.trip-banner-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.trip-status {
+    display: flex; align-items: center; gap: 8px;
+}
+.live-dot.green {
+    background: #10b981;
+}
+.btn-cancel-trip {
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    background: white;
+    border-radius: 99px;
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer;
+}
+.btn-cancel-trip:hover {
+    background: #fef2f2;
+}
+
+/* Mobile Sidebar Overrides */
+@media (max-width: 767px) {
+    .planner-gui-container {
+        padding: 12px;
+        bottom: 10px;
+        z-index: 500;
+    }
+    .sakay-card {
+        margin-bottom: 10px;
+        padding: 14px 16px;
+        border-radius: 20px;
+    }
+    .input-card {
+        padding-top: 20px;
+    }
+    .action-card {
+        gap: 12px;
+        padding: 16px;
+    }
+    .sakay-input-wrap input {
+        padding: 10px 0;
+        font-size: 0.95rem;
+    }
+    .btn-simulan {
+        padding: 14px;
+        font-size: 1rem;
+    }
+    .guide-card {
+        max-height: 55vh;
+    }
+    .active-trip-banner {
+        border-radius: 20px;
+        margin-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+}

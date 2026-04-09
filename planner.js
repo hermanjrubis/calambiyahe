@@ -115,95 +115,56 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // BOTTOM SHEET DRAG (Sakay.ph style snap)
     // =============================================
-    const panel = document.getElementById('mainFloatingPanel');
-    const dragBar = document.getElementById('dragHandleBar');
-    const panelHeader = document.getElementById('panelHeader');
-    const scrollBody = document.getElementById('panelScrollBody');
-    const PEEK = 100;
-    const getMid = () => window.innerHeight * 0.52;
-    const getFull = () => window.innerHeight * 0.90;
+    // =============================================
+    // UI CARD STATE TRANSITIONS (Search vs Active)
+    // =============================================
+    const searchCard = document.getElementById('searchCard');
+    const actionCard = document.getElementById('actionCard');
+    const guideCard = document.getElementById('guideCard');
+    const activeTripBanner = document.getElementById('activeTripBanner');
+    const startJourneyBtn = document.getElementById('startJourneyBtn');
+    const cancelTripBtn = document.getElementById('cancelTripBtn');
 
-    const snapPanel = (h, animate = true) => {
-        if (!panel || window.innerWidth > 768) return;
-        if (!animate) panel.classList.add('dragging');
-        panel.style.height = h + 'px';
-        if (!animate) { requestAnimationFrame(() => panel.classList.remove('dragging')); }
-    };
-    const snapToNearest = () => {
-        if (!panel || window.innerWidth > 768) return;
-        const cur = panel.getBoundingClientRect().height;
-        const snaps = [PEEK, getMid(), getFull()];
-        const closest = snaps.reduce((a, b) => Math.abs(b - cur) < Math.abs(a - cur) ? b : a);
-        panel.classList.add('snapping');
-        panel.style.height = closest + 'px';
-        setTimeout(() => panel.classList.remove('snapping'), 380);
-    };
-
-    if (panel) {
-        let startY = 0, startH = 0, isDragging = false;
-        let isScrollDragging = false, scrollStartY = 0;
-
-        const handleDragStart = (e) => {
-            if (e.target.closest('button') || e.target.closest('input')) return;
-            startY = e.touches[0].clientY;
-            startH = panel.getBoundingClientRect().height;
-            isDragging = true;
-            panel.classList.add('dragging');
-        };
-
-        if (dragBar) dragBar.addEventListener('touchstart', handleDragStart, { passive: true });
-        if (panelHeader) panelHeader.addEventListener('touchstart', handleDragStart, { passive: true });
-
-        // Scroll top handoff
-        if (scrollBody) {
-            scrollBody.addEventListener('touchstart', (e) => {
-                if (scrollBody.scrollTop <= 0) {
-                    scrollStartY = e.touches[0].clientY;
-                    isScrollDragging = true;
-                }
-            }, { passive: true });
-            
-            scrollBody.addEventListener('touchmove', (e) => {
-                if (isScrollDragging && scrollBody.scrollTop <= 0) {
-                    const dy = scrollStartY - e.touches[0].clientY;
-                    if (dy < -5 && !isDragging) { // User swiping down at top of scroll
-                        isDragging = true;
-                        startY = e.touches[0].clientY;
-                        startH = panel.getBoundingClientRect().height;
-                        panel.classList.add('dragging');
-                        if(e.cancelable) e.preventDefault();
-                    }
-                }
-            }, { passive: false });
-            
-            scrollBody.addEventListener('touchend', () => {
-                isScrollDragging = false;
-            });
+    const checkFormStatus = () => {
+        const ov = document.getElementById('originInput')?.value.trim();
+        const dv = document.getElementById('destinationInput')?.value.trim();
+        if (ov && dv && selectedCoords.origin && selectedCoords.destination) {
+            if (startJourneyBtn) startJourneyBtn.disabled = false;
+        } else {
+            if (startJourneyBtn) startJourneyBtn.disabled = true;
         }
+    };
 
-        document.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            if (e.cancelable && !isScrollDragging) e.preventDefault();
-            const dy = startY - e.touches[0].clientY;
-            const newH = Math.max(PEEK, Math.min(getFull(), startH + dy));
-            panel.style.height = newH + 'px';
-        }, { passive: false });
-
-        document.addEventListener('touchend', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            panel.classList.remove('dragging');
-            snapToNearest();
+    if (startJourneyBtn) {
+        startJourneyBtn.addEventListener('click', () => {
+            if (startJourneyBtn.disabled) return;
+            // Hide Input and Action forms
+            if (searchCard) searchCard.style.display = 'none';
+            if (actionCard) actionCard.style.display = 'none';
+            
+            // Show Active ITINERARY UI
+            if (guideCard) guideCard.style.display = 'block';
+            if (activeTripBanner) activeTripBanner.style.display = 'block';
+            
+            // Populate Guide header
+            document.getElementById('guideOriginText').textContent = document.getElementById('originInput')?.value || 'Origin';
+            document.getElementById('guideDestText').textContent = document.getElementById('destinationInput')?.value || 'Destination';
         });
     }
 
-    // Auto-expand panel to mid when inputs are focused
-    const autoExpandPanel = () => {
-        if (window.innerWidth > 768) return;
-        const cur = panel?.getBoundingClientRect().height || 0;
-        if (cur < getMid()) snapPanel(getMid());
-    };
+    if (cancelTripBtn) {
+        cancelTripBtn.addEventListener('click', () => {
+            // Restore Input and Action forms
+            if (searchCard) searchCard.style.display = 'block';
+            if (actionCard) actionCard.style.display = 'flex';
+            
+            // Hide Active ITINERARY UI
+            if (guideCard) guideCard.style.display = 'none';
+            if (activeTripBanner) activeTripBanner.style.display = 'none';
+        });
+    }
 
+    const autoExpandPanel = () => {}; // Stub to prevent errors from other components
 
     // =============================================
     // ROUTING ENGINE
@@ -235,17 +196,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Steps 3 & 4: Generate multi-leg itinerary
     const generateItineraryLegs = (originCoords, terminal, destCoords, destName, modeKey) => {
         const legs = [];
-        const distToTerm = calcDist(originCoords[0], originCoords[1], terminal.coords[0], terminal.coords[1]);
         const mode = modeKey || 'jeep';
         const fareInfo = FARE_MAP[mode] || FARE_MAP.jeep;
 
-        // --- LEG 1: Access leg (Case A / B / C) ---
-        if (distToTerm > 10.0) {
-            // Case A: Far → Tricycle
-            const fare = FARE_MAP.tricycle.base + Math.max(0, distToTerm - 1) * FARE_MAP.tricycle.perKm;
+        // --- LEG 1: Access to terminal ---
+        const distToTerm = calcDist(originCoords[0], originCoords[1], terminal.coords[0], terminal.coords[1]);
+        if (distToTerm > 3) {
+            // Case A: Too far → Trycycle access
+            const fare = distToTerm > 3 ? 50 + (distToTerm - 3) * 15 : 50;
             legs.push({
-                type: 'access', mode: 'tricycle', icon: 'bicycle-outline', iconColor: '#16a34a',
-                title: 'Tricycle Ride', from: 'Iyong Lokasyon', to: terminal.shortName,
+                type: 'access', mode: 'tricycle', imageIcon: 'assets/icons/tricycle-icon.png', iconColor: '#16a34a',
+                title: 'Sumakay ng Tricycle', from: 'Iyong Lokasyon', to: terminal.shortName,
                 distance: distToTerm, fare, duration: Math.round(distToTerm * 6),
                 note: `Sakay ng tricycle papunta sa ${terminal.name}`
             });
@@ -263,10 +224,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- LEG 2: Main commute ---
         const distToDest = calcDist(terminal.coords[0], terminal.coords[1], destCoords[0], destCoords[1]);
         const mainFare = fareInfo.base + Math.max(0, distToDest - 4) * fareInfo.perKm;
-        const iconMap = { bus: 'bus', van: 'car-sport-outline', tricycle: 'bicycle-outline', 'modern-jeep': 'bus-outline', jeep: 'bus-outline' };
         const colorMap = { bus: '#0f6fd1', van: '#f59e0b', tricycle: '#16a34a', 'modern-jeep': '#7c3aed', jeep: '#1a8fff' };
+        const imageMap = { bus: 'assets/icons/bus-icon.png', van: 'assets/icons/van-icon.png', tricycle: 'assets/icons/tricycle-icon.png', 'modern-jeep': 'assets/icons/jeepney-icon.png', jeep: 'assets/icons/jeepney-icon.png' };
+        
         legs.push({
-            type: 'main', mode, icon: iconMap[mode] || 'bus-outline', iconColor: colorMap[mode] || '#1a8fff',
+            type: 'main', mode, imageIcon: imageMap[mode] || 'assets/icons/jeepney-icon.png', iconColor: colorMap[mode] || '#1a8fff',
             title: fareInfo.name, from: terminal.shortName, to: destName,
             distance: distToDest, fare: Math.max(mainFare, fareInfo.base),
             duration: Math.round(distToDest * 3) + 5,
@@ -342,10 +304,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderItinerary = (legs) => {
         const container = document.getElementById('itineraryResults');
         const list = document.getElementById('itineraryList');
-        if (!container || !list) return;
+        if (!list) return;
 
         list.innerHTML = '';
-        container.style.display = 'block';
+        if(container) container.style.display = 'block';
 
         let totalFare = 0, totalMins = 0;
 
@@ -370,10 +332,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span><ion-icon name="time-outline"></ion-icon> ~${leg.duration} min</span>
                   </div>` : '';
 
+            const iconHTML = leg.imageIcon 
+                ? `<img src="${leg.imageIcon}" style="width:20px;height:20px;object-fit:contain;filter: drop-shadow(0 0 1px rgba(0,0,0,0.2));">` 
+                : `<ion-icon name="${leg.icon}"></ion-icon>`;
+
             card.innerHTML = `
                 <div class="leg-icon-column">
                     <div class="leg-icon-circle" style="background:${leg.iconColor}18;color:${leg.iconColor};">
-                        <ion-icon name="${leg.icon}"></ion-icon>
+                        ${iconHTML}
                     </div>
                     ${!isLast ? '<div class="leg-line"></div>' : ''}
                 </div>
@@ -386,13 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
             list.appendChild(card);
         });
 
-        // Update summary
-        const badge = document.getElementById('totalSummaryBadge');
-        if (badge) badge.textContent = `~${totalMins} min · ₱${Math.ceil(totalFare)}`;
+        // Update summary dynamically in Lakbay Guide
         const estTimeEl = document.getElementById('estTimeValue');
         const estFareEl = document.getElementById('estFareValue');
-        if (estTimeEl) estTimeEl.textContent = `${totalMins} min`;
-        if (estFareEl) estFareEl.textContent = `₱${Math.ceil(totalFare)}`;
+        
+        const h = Math.floor(totalMins / 60);
+        const m = Math.ceil(totalMins % 60);
+        const timeStr = h > 0 ? `${h}hr ${m}min` : `${m}min`;
+
+        if (estTimeEl) estTimeEl.textContent = timeStr;
+        if (estFareEl) estFareEl.textContent = `₱ ${Math.ceil(totalFare)}`;
 
         const tripDetails = document.getElementById('tripQuickDetails');
         if (tripDetails) tripDetails.style.display = 'flex';
@@ -441,6 +410,43 @@ document.addEventListener('DOMContentLoaded', () => {
         card.style.display = 'flex';
     };
 
+    // Steps 3 & 4: Generate DIRECT itinerary (For short distance / within Calamba)
+    const generateLocalItinerary = (originCoords, destCoords, destName, modeKey) => {
+        const legs = [];
+        const mode = modeKey || 'jeep';
+        const fareInfo = FARE_MAP[mode] || FARE_MAP.jeep;
+
+        const dist = calcDist(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
+        const mainFare = fareInfo.base + Math.max(0, dist - 4) * fareInfo.perKm;
+
+        const colorMap = { bus: '#0f6fd1', van: '#f59e0b', tricycle: '#16a34a', 'modern-jeep': '#7c3aed', jeep: '#1a8fff' };
+        const imageMap = { bus: 'assets/icons/bus-icon.png', van: 'assets/icons/van-icon.png', tricycle: 'assets/icons/tricycle-icon.png', 'modern-jeep': 'assets/icons/jeepney-icon.png', jeep: 'assets/icons/jeepney-icon.png' };
+
+        if (dist > 0.5) {
+            legs.push({
+                type: 'access', mode: 'walk', icon: 'walk-outline', iconColor: '#64748b',
+                title: 'Maglakad papunta sa sakayan', from: 'Iyong Lokasyon', to: 'National Highway / Sakayan',
+                distance: 0.3, fare: 0, duration: 4,
+                note: `Pumunta sa pinakamalapit na paradahan o highway`
+            });
+        }
+
+        legs.push({
+            type: 'main', mode, imageIcon: imageMap[mode] || 'assets/icons/jeepney-icon.png', iconColor: colorMap[mode] || '#1a8fff',
+            title: `Sumakay ng ${fareInfo.name}`, from: 'Sakayan', to: destName,
+            distance: dist, fare: Math.max(mainFare, fareInfo.base),
+            duration: Math.round(dist * 4) + 2,
+            note: `Direktang byahe papuntang ${destName}`
+        });
+
+        legs.push({
+            type: 'arrival', mode: 'arrive', icon: 'flag-outline', iconColor: '#ef4444',
+            title: 'Nakarating!', from: destName, to: destName, distance: 0, fare: 0, duration: 0,
+            note: `Dumating sa ${destName}`
+        });
+        return legs;
+    };
+
     // =============================================
     // TRIGGER TERMINAL PICKER
     // =============================================
@@ -448,17 +454,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const destVal = destinationInput?.value.trim();
         if (!destVal || destVal.length < 2) { hideTerminalPicker(); return; }
 
-        const terminals = getNearestTerminals(destVal, selectedCoords.destination);
-        renderTerminalPicker(terminals);
+        let isLocal = false;
+        const ldest = destVal.toLowerCase();
+        if (ldest.includes('calamba') || ldest.includes('crossing') || ldest.includes('mayapa') || ldest.includes('turbina') || ldest.includes('pansol') || ldest.includes('canlubang')) {
+            isLocal = true;
+        }
+        if (selectedCoords.destination) {
+            const dist = calcDist(14.2045, 121.1641, selectedCoords.destination[0], selectedCoords.destination[1]);
+            if (dist < 8) isLocal = true;
+        }
 
-        // If origin is also set, auto-generate itinerary with first terminal
-        if (selectedCoords.origin && selectedCoords.destination && terminals.length) {
-            const term = terminals.find(t => t.id === selectedTerminalId) || terminals[0];
-            selectedTerminalId = term.id;
-            const mode = getActiveMode();
-            const legs = generateItineraryLegs(selectedCoords.origin, term, selectedCoords.destination, destVal, mode);
-            renderItinerary(legs);
-            drawRoute(mode);
+        if (isLocal) {
+            hideTerminalPicker();
+            selectedTerminalId = null;
+            if (selectedCoords.origin && selectedCoords.destination) {
+                const mode = getActiveMode();
+                const legs = generateLocalItinerary(selectedCoords.origin, selectedCoords.destination, destVal, mode);
+                renderItinerary(legs);
+                drawRoute(mode);
+            }
+        } else {
+            const terminals = getNearestTerminals(destVal, selectedCoords.destination);
+            renderTerminalPicker(terminals);
+
+            if (selectedCoords.origin && selectedCoords.destination && terminals.length) {
+                const term = terminals.find(t => t.id === selectedTerminalId) || terminals[0];
+                selectedTerminalId = term.id;
+                const mode = getActiveMode();
+                const legs = generateItineraryLegs(selectedCoords.origin, term, selectedCoords.destination, destVal, mode);
+                renderItinerary(legs);
+                drawRoute(mode);
+            }
         }
     };
 
@@ -476,18 +502,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // MARKER + OSRM ROUTING
     // =============================================
-    const createTransitMarker = (iconName, color) => L.divIcon({
-        html: `<div style="background:${color};color:white;border:2px solid white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.3);"><ion-icon name="${iconName}"></ion-icon></div>`,
-        className: 'custom-leaflet-marker',
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-    });
+    const createTransitMarker = (iconStr, color, isImage=false) => {
+        let innerHtml = '';
+        if (iconStr === 'circle') {
+            innerHtml = `<div style="background:${color};border:3px solid white;border-radius:50%;width:20px;height:20px;box-shadow:0 0 0 1px ${color};"></div>`;
+            return L.divIcon({ html: innerHtml, className: 'custom-leaflet-marker', iconSize: [20, 20], iconAnchor: [10, 10] });
+        } else {
+            innerHtml = `<div style="background:${color};color:white;border:2px solid white;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.3);"><ion-icon name="${iconStr}"></ion-icon></div>`;
+            return L.divIcon({ html: innerHtml, className: 'custom-leaflet-marker', iconSize: [32, 32], iconAnchor: [16, 16] });
+        }
+    };
 
     const fetchOSRMRoute = async (o, d) => {
         const url = `https://router.project-osrm.org/route/v1/driving/${o[1]},${o[0]};${d[1]},${d[0]}?geometries=geojson&overview=full`;
         const res = await fetch(url); if (!res.ok) throw new Error('OSRM fail');
         const data = await res.json(); if (!data.routes?.length) throw new Error('no route');
-        return { coords: data.routes[0].geometry.coordinates.map(([ln, lt]) => [lt, ln]) };
+        return { coords: data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]) }; // flip to lat,lng
     };
 
     const showRouteLoading = (show) => {
@@ -503,9 +533,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const getActiveMode = () => document.querySelector('#modeOptions li.active')?.getAttribute('data-value') || 'jeep';
 
     const drawRoute = async (mode) => {
+        if (currentPolyline) map.removeLayer(currentPolyline);
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
+        
         const data = routeSimulations[mode] || routeSimulations.jeep;
-        if (currentPolyline) { map.removeLayer(currentPolyline); currentPolyline = null; }
-        markers.forEach(m => map.removeLayer(m)); markers = [];
 
         const originInput = document.getElementById('originInput');
         const destinationInput = document.getElementById('destinationInput');
@@ -526,10 +558,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const isMob = window.innerWidth <= 768;
         map.fitBounds(currentPolyline.getBounds(), { paddingTopLeft: [50, 60], paddingBottomRight: [isMob ? 50 : 450, isMob ? window.innerHeight * .4 : 50], maxZoom: 16 });
 
-        const vehicleIcon = { bus: 'bus', van: 'car-sport-outline', tricycle: 'bicycle-outline' }[mode] || 'bus-outline';
         markers.push(
-            L.marker(oC, { icon: createTransitMarker('ellipse-outline', '#64748b') }).bindPopup(`<b>${ov}</b><br>📍 Start`).addTo(map),
-            L.marker(dC, { icon: createTransitMarker(vehicleIcon, data.color) }).bindPopup(`<b>${dv}</b><br>🏁 Destination`).addTo(map)
+            L.marker(oC, { icon: L.icon({ iconUrl: 'assets/startingpoint-icon.png', iconSize: [40, 40], iconAnchor: [20, 36], popupAnchor: [0, -36] }) }).bindPopup(`<b>${ov}</b><br>📍 Start`).addTo(map),
+            L.marker(dC, { icon: L.icon({ iconUrl: 'assets/destination-icon.png', iconSize: [40, 40], iconAnchor: [20, 36], popupAnchor: [0, -36] }) }).bindPopup(`<b>${dv}</b><br>🏁 Destination`).addTo(map)
         );
     };
 
@@ -578,12 +609,18 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedCoords[coordKey] = null;
             clearTimeout(debounce);
             debounce = setTimeout(() => {
-                searchNominatim(inputEl.value, r => buildSuggestions(r, listEl, inputEl, coordKey));
-                if (coordKey === 'destination') {
-                    selectedTerminalId = null;
-                    if (inputEl.value.length >= 2) triggerTerminalPicker();
-                    else { hideTerminalPicker(); hideItinerary(); }
-                }
+                searchNominatim(inputEl.value, r => {
+                    buildSuggestions(r, listEl, inputEl, coordKey);
+                    // Critical Fix: If user manually typing and Nominatim finds it, cache the first result coordinates invisibly
+                    if (r && r.length > 0 && !selectedCoords[coordKey]) {
+                        selectedCoords[coordKey] = [parseFloat(r[0].lat), parseFloat(r[0].lon)];
+                    }
+                    if (coordKey === 'destination') {
+                        selectedTerminalId = null;
+                        if (inputEl.value.length >= 2) triggerTerminalPicker();
+                        else { hideTerminalPicker(); hideItinerary(); }
+                    }
+                });
             }, 350);
             checkFormStatus();
         });
@@ -595,8 +632,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Parse URL params
     const urlParams = new URLSearchParams(window.location.search);
     const destParam = urlParams.get('dest');
+    const dlatParam = urlParams.get('dlat');
+    const dlngParam = urlParams.get('dlng');
     const originParam = urlParams.get('origin');
-    if (destParam && destinationInput) destinationInput.value = destParam;
+    
+    if (destParam && destinationInput) {
+        destinationInput.value = destParam;
+        // Directly cache the API-proven coordinates
+        if (dlatParam && dlngParam) {
+            selectedCoords.destination = [parseFloat(dlatParam), parseFloat(dlngParam)];
+        }
+    }
     if (originParam && originInput) originInput.value = originParam;
 
     // Bind inputs
@@ -605,8 +651,23 @@ document.addEventListener('DOMContentLoaded', () => {
         bindSearchInput(destinationInput, document.getElementById('destSuggestions'), 'destination');
     }
 
-    // If dest was passed via URL, trigger terminal picker after short delay
-    if (destParam) setTimeout(triggerTerminalPicker, 800);
+    // Process passed destination into routing engine
+    if (destParam) {
+        setTimeout(() => {
+            if (dlatParam && dlngParam) {
+                triggerTerminalPicker();
+                checkFormStatus();
+            } else {
+                searchNominatim(destParam, r => {
+                    if (r && r.length > 0) {
+                        selectedCoords.destination = [parseFloat(r[0].lat), parseFloat(r[0].lon)];
+                    }
+                    triggerTerminalPicker();
+                    checkFormStatus();
+                });
+            }
+        }, 800);
+    }
 
     // =============================================
     // DROPDOWNS
@@ -618,23 +679,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const list = document.getElementById(optionsListId);
         if (!container || !selected || !list) return;
 
-        const position = () => {
-            const r = selected.getBoundingClientRect();
-            const w = Math.max(r.width, 190);
-            let top = r.bottom + 6;
-            const est = list.querySelectorAll('li').length * 48 + 16;
-            if (top + est > window.innerHeight - 20) top = r.top - est - 6;
-            let left = r.left;
-            if (left + w > window.innerWidth - 12) left = window.innerWidth - w - 12;
-            list.style.cssText = `top:${Math.max(left, 12)}px;left:${Math.max(left, 12)}px;min-width:${w}px;`;
-            list.style.top = `${top}px`; list.style.left = `${Math.max(left, 12)}px`;
-        };
-
         selected.addEventListener('click', (e) => {
             e.stopPropagation();
             const was = container.classList.contains('open');
-            document.querySelectorAll('.custom-dropdown.open').forEach(d => d.classList.remove('open'));
-            if (!was) { position(); container.classList.add('open'); }
+            // Close all others
+            document.querySelectorAll('.sakay-action-row.open, .sakay-mode-selector.open').forEach(d => d.classList.remove('open'));
+            if (!was) { container.classList.add('open'); }
         });
 
         list.querySelectorAll('li').forEach(opt => {
@@ -654,38 +704,58 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('click', () => container.classList.remove('open'));
     };
 
+    let fpInstance = null;
+
     initDropdown('scheduleDropdownContainer', 'scheduleSelected', 'scheduleSelectedText', 'scheduleOptions', (val) => {
-        if ((val === 'depart' || val === 'arrive') && typeof window.openDtPicker === 'function') {
-            setTimeout(() => window.openDtPicker(val), 80);
+        if ((val === 'depart' || val === 'arrive')) {
+            if (fpInstance) setTimeout(() => fpInstance.open(), 50);
         } else if (val === 'now') {
             const btnText = document.getElementById('startJourneyBtnText');
             if (btnText) btnText.textContent = 'Simulan ang Biyahe';
             const schedCard = document.getElementById('scheduleSummaryCard');
             if (schedCard) schedCard.style.display = 'none';
+            if (fpInstance) fpInstance.clear();
         }
     });
+
+    const bindDatePicker = () => {
+        const pickerElement = document.getElementById('nativeDatePicker');
+        const text = document.getElementById('scheduleSelectedText');
+        if (pickerElement && window.flatpickr) {
+            fpInstance = flatpickr(pickerElement, {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                minDate: "today",
+                position: "auto center",
+                onChange: (selectedDates, dateStr, instance) => {
+                    if (selectedDates.length > 0) {
+                        const date = selectedDates[0];
+                        const fmt = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }).toLowerCase();
+                        let activeOption = document.querySelector('#scheduleOptions li.active')?.getAttribute('data-value');
+                        
+                        if (activeOption === 'now') {
+                            document.querySelector('#scheduleOptions li[data-value="now"]').classList.remove('active');
+                            document.querySelector('#scheduleOptions li[data-value="depart"]').classList.add('active');
+                            activeOption = 'depart';
+                        }
+                        
+                        text.textContent = (activeOption === 'arrive' ? 'Arrive by ' : 'Depart at ') + fmt;
+                        if (selectedCoords.origin && selectedCoords.destination) triggerTerminalPicker();
+                    }
+                }
+            });
+        }
+    };
+    bindDatePicker();
 
     initDropdown('modeDropdownContainer', 'modeSelected', 'modeSelectedText', 'modeOptions', (mode) => {
-        if (selectedCoords.origin && selectedCoords.destination && selectedTerminalId) {
-            const term = TERMINALS.find(t => t.id === selectedTerminalId);
-            if (term) {
-                const legs = generateItineraryLegs(selectedCoords.origin, term, selectedCoords.destination, destinationInput.value.trim(), mode);
-                renderItinerary(legs);
-                drawRoute(mode);
-            }
+        if (selectedCoords.origin && selectedCoords.destination) {
+            triggerTerminalPicker();
         }
     });
 
     // =============================================
-    // FORM STATUS
-    // =============================================
-    const checkFormStatus = () => {
-        const ov = originInput?.value.trim(), dv = destinationInput?.value.trim();
-        const btn = document.getElementById('startJourneyBtn');
-        if (btn) btn.disabled = !(ov && dv);
-        document.getElementById('bookActionArea').style.display = 'block';
-    };
-    checkFormStatus();
+
 
     // =============================================
     // TOAST
@@ -815,11 +885,16 @@ document.addEventListener('DOMContentLoaded', () => {
         hideTerminalPicker(); hideItinerary();
         const schedText = document.getElementById('scheduleSelectedText');
         if (schedText) schedText.textContent = 'Leaving now';
-        const btnText = document.getElementById('startJourneyBtnText');
-        if (btnText) btnText.textContent = 'Simulan ang Biyahe';
+        
         document.querySelectorAll('#scheduleOptions li').forEach((l, i) => l.classList.toggle('active', i === 0));
-        document.getElementById('activeTripArea').style.display = 'none';
-        document.getElementById('bookActionArea').style.display = 'block';
+        
+        // Restore Input and Action cards
+        if (searchCard) searchCard.style.display = 'block';
+        if (actionCard) actionCard.style.display = 'flex';
+        // Hide Active ITINERARY UI
+        if (guideCard) guideCard.style.display = 'none';
+        if (activeTripBanner) activeTripBanner.style.display = 'none';
+
         const startBtn = document.getElementById('startJourneyBtn');
         if (startBtn) startBtn.disabled = true;
         map.setView([14.2045, 121.1641], 14);
@@ -845,18 +920,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const mapPickerAddress = document.getElementById('mapPickerAddress');
     const mapPickerUI = document.getElementById('mapPickerUI');
     const mapCenterPin = document.getElementById('mapCenterPin');
-    const mainFloatingPanel = document.getElementById('mainFloatingPanel');
+    const plannerGuiContainer = document.querySelector('.planner-gui-container');
 
     const exitMapPicker = () => {
         isMapPickerMode = false;
         if (mapCenterPin) mapCenterPin.style.display = 'none';
         if (mapPickerUI) mapPickerUI.style.display = 'none';
-        if (mainFloatingPanel) mainFloatingPanel.style.display = 'flex';
+        if (plannerGuiContainer) plannerGuiContainer.style.display = 'flex';
     };
 
     document.getElementById('useLocationBtnEx')?.addEventListener('click', () => {
         isMapPickerMode = true;
-        if (mainFloatingPanel) mainFloatingPanel.style.display = 'none';
+        if (plannerGuiContainer) plannerGuiContainer.style.display = 'none';
         if (mapCenterPin) mapCenterPin.style.display = 'flex';
         if (mapPickerUI) mapPickerUI.style.display = 'flex';
         if (mapPickerAddress) mapPickerAddress.textContent = 'Locating...';

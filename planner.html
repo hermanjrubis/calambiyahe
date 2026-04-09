@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="planner.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -45,165 +46,138 @@
         </div>
     </div>
 
-    <!-- ===== MAIN BOTTOM SHEET PANEL ===== -->
-    <div class="floating-panel" id="mainFloatingPanel">
-
-        <!-- Drag Handle (Sakay.ph style) -->
-        <div class="drag-handle-bar" id="dragHandleBar">
-            <div class="drag-pill"></div>
-        </div>
-
-        <!-- Panel Header: Brand + Where to -->
-        <div class="panel-brand-header" id="panelHeader">
-            <img src="assets/logo-new.png" alt="Calzada" class="panel-logo-sm" onerror="this.src='assets/logo-blue.png'">
-            <span class="panel-tagline">Saan ka pupunta?</span>
-        </div>
-
-        <!-- Scrollable Content -->
-        <div class="panel-scroll-body" id="panelScrollBody">
-
-            <!-- ===== SEARCH INPUTS ===== -->
-            <div class="search-card">
-                <div class="search-input-group">
-
+    <!-- ===== SAKAY.PH STYLE DISJOINT FLOATING PANELS ===== -->
+    <div class="planner-gui-container">
+        
+        <!-- 1. MAIN INPUT CARD (Origin, Dest, Use Location, Leave Now) -->
+        <div class="sakay-card input-card" id="searchCard">
+            <div style="display:flex; gap:16px; margin-bottom: 8px; position:relative;">
+                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; padding-left: 8px;">
+                    <img src="assets/originDestination-icon.png" style="height:90px; object-fit:contain; margin-top:2px;">
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; gap:8px; padding-right: 32px;">
                     <!-- Origin -->
-                    <div class="search-row">
-                        <div class="search-dot origin-dot-icon">
-                            <div class="dot-inner"></div>
-                        </div>
-                        <div class="search-field-wrap">
-                            <input type="text" id="originInput" class="search-field" placeholder="Sakay mula saan?" autocomplete="off">
-                            <ul class="suggestions-list" id="originSuggestions" style="display:none;"></ul>
-                        </div>
+                    <div class="sakay-input-wrap">
+                        <input type="text" id="originInput" placeholder="Saan ka magmumula?" autocomplete="off">
+                        <ul class="suggestions-list" id="originSuggestions" style="display:none;"></ul>
                     </div>
-
-                    <!-- Connector Line -->
-                    <div class="search-connector">
-                        <div class="connector-line"></div>
-                        <button class="swap-btn" id="swapBtn" title="Swap">
-                            <ion-icon name="swap-vertical-outline"></ion-icon>
-                        </button>
-                    </div>
-
                     <!-- Destination -->
-                    <div class="search-row">
-                        <div class="search-dot dest-dot-icon">
-                            <ion-icon name="location-sharp"></ion-icon>
-                        </div>
-                        <div class="search-field-wrap">
-                            <input type="text" id="destinationInput" class="search-field" placeholder="Pupunta saan?" autocomplete="off">
-                            <ul class="suggestions-list" id="destSuggestions" style="display:none;"></ul>
-                        </div>
+                    <div class="sakay-input-wrap">
+                        <input type="text" id="destinationInput" placeholder="Saan ka bababa?" autocomplete="off">
+                        <ul class="suggestions-list" id="destSuggestions" style="display:none;"></ul>
                     </div>
                 </div>
-
-                <!-- Use My Location -->
-                <button class="use-location-btn" id="useLocationBtnEx">
-                    <div class="location-icon-wrap">
-                        <ion-icon name="locate-outline"></ion-icon>
-                    </div>
-                    <span>Gamitin ang aking lokasyon</span>
+                
+                <!-- Swap Button -->
+                <button id="swapBtn" style="position:absolute; right:0; top:50%; transform:translateY(-50%); background:white; border:1px solid #e2e8f0; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:#0c76ce; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.05); z-index:3;" aria-label="Swap Locations">
+                    <ion-icon name="swap-vertical" style="font-size:1.1rem;"></ion-icon>
                 </button>
+                
             </div>
 
-            <!-- ===== SCHEDULE + MODE ROW (Angkas-inspired pill selectors) ===== -->
-            <div class="options-row">
-                <!-- Schedule Dropdown -->
-                <div class="option-pill-wrap">
-                    <div class="custom-dropdown" id="scheduleDropdownContainer">
-                        <div class="option-pill" id="scheduleSelected">
-                            <ion-icon name="time-outline"></ion-icon>
-                            <span id="scheduleSelectedText">Ngayon</span>
-                            <ion-icon name="chevron-down-outline" class="pill-chevron"></ion-icon>
-                        </div>
-                        <ul class="dropdown-options" id="scheduleOptions">
-                            <li data-value="now" class="active">Ngayon (Leave Now)</li>
-                            <li data-value="depart">Depart at...</li>
-                            <li data-value="arrive">Arrive by...</li>
-                        </ul>
-                    </div>
-                </div>
+            <!-- Use My Current Location -->
+            <button class="sakay-action-row" id="useLocationBtnEx" style="margin-top: 10px;">
+                <ion-icon name="locate-outline"></ion-icon>
+                <span>Use my Current Location</span>
+            </button>
 
-                <!-- Mode Dropdown -->
-                <div class="option-pill-wrap">
-                    <div class="custom-dropdown" id="modeDropdownContainer">
-                        <div class="option-pill" id="modeSelected">
-                            <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="Jeepney">
-                            <span id="modeSelectedText">Jeepney</span>
-                            <ion-icon name="chevron-down-outline" class="pill-chevron"></ion-icon>
-                        </div>
-                        <ul class="dropdown-options" id="modeOptions">
-                            <li data-value="jeep" class="active"><img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="J"> Jeepney</li>
-                            <li data-value="modern-jeep"><img src="assets/icons/jeepney-icon.png" class="mode-option-icon" alt="MJ"> Modern Jeepney</li>
-                            <li data-value="bus"><img src="assets/icons/bus-icon.png" class="mode-option-icon" alt="B"> Bus</li>
-                            <li data-value="van"><img src="assets/icons/van-icon.png" class="mode-option-icon" alt="V"> Van</li>
-                            <li data-value="tricycle"><img src="assets/icons/tricycle-icon.png" class="mode-option-icon" alt="T"> Tricycle</li>
-                        </ul>
-                    </div>
+            <!-- Schedule Dropdown -->
+            <div class="sakay-action-row" id="scheduleDropdownContainer">
+                <ion-icon name="time-outline"></ion-icon>
+                <div class="sakay-dropdown-trigger" id="scheduleSelected">
+                    <span id="scheduleSelectedText">Leave now</span>
+                    <ion-icon name="chevron-down-outline"></ion-icon>
                 </div>
+                <ul class="sakay-dropdown-menu" id="scheduleOptions">
+                    <li data-value="now" class="active">Leave now</li>
+                    <li data-value="depart">Depart at...</li>
+                    <li data-value="arrive">Arrive by...</li>
+                </ul>
+                <!-- Hidden Native Date Picker anchor for flatpickr -->
+                <input type="text" id="nativeDatePicker" style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
             </div>
-
-            <!-- ===== TERMINAL PICKER (Step 2 — auto appears) ===== -->
-            <div id="terminalPickerSection" class="terminal-section" style="display:none;">
-                <div class="section-divider"></div>
-                <div class="section-heading">
-                    <ion-icon name="business-outline"></ion-icon>
-                    <span>Piliin ang Terminal</span>
-                </div>
-                <div id="terminalList" class="terminal-list"></div>
+            
+            <!-- Terminal Picker (Appears when suggested) -->
+            <div id="terminalPickerSection" class="sakay-terminal-picker" style="display:none;">
+                <div class="sakay-section-title">Suggested Terminals</div>
+                <div id="terminalList" class="sakay-terminal-list"></div>
             </div>
+        </div>
 
-            <!-- ===== ROUTE SUMMARY (Sakay.ph style quick strip) ===== -->
-            <div id="tripQuickDetails" class="route-summary-strip" style="display:none;">
-                <div class="summary-chip">
-                    <ion-icon name="time-outline"></ion-icon>
-                    <span id="estTimeValue">-- min</span>
+        <!-- 2. TRANSIT MODE & START JOURNEY CARD -->
+        <div class="sakay-card action-card" id="actionCard">
+            <div class="sakay-mode-selector" id="modeDropdownContainer">
+                <span style="font-weight:700; font-size:0.9rem;">Transit modes</span>
+                <div class="sakay-dropdown-trigger" id="modeSelected">
+                    <ion-icon name="bus-outline" style="color:var(--primary)"></ion-icon>
+                    <span id="modeSelectedText">Jeepney</span>
+                    <ion-icon name="chevron-forward-outline"></ion-icon>
                 </div>
-                <div class="summary-divider"></div>
-                <div class="summary-chip">
-                    <ion-icon name="cash-outline"></ion-icon>
-                    <span id="estFareValue">₱0</span>
-                </div>
+                <ul class="sakay-dropdown-menu up-menu" id="modeOptions">
+                    <li data-value="jeep" class="active"><ion-icon name="bus-outline"></ion-icon> Jeepney</li>
+                    <li data-value="modern-jeep"><ion-icon name="bus-outline"></ion-icon> Modern Jeepney</li>
+                    <li data-value="bus"><ion-icon name="bus-sharp"></ion-icon> Bus</li>
+                    <li data-value="van"><ion-icon name="car-sport-outline"></ion-icon> Van</li>
+                    <li data-value="tricycle"><ion-icon name="bicycle-outline"></ion-icon> Tricycle</li>
+                </ul>
             </div>
-
-            <!-- ===== SCHEDULE ALERT (Step 5) ===== -->
-            <div id="scheduleSummaryCard" class="schedule-alert" style="display:none;">
-                <ion-icon name="alarm-outline"></ion-icon>
-                <p id="scheduleSummaryText"></p>
-            </div>
-
-            <!-- ===== ITINERARY (Step 8 — Sakay.ph style) ===== -->
-            <div id="itineraryResults" class="itinerary-section" style="display:none;">
-                <div class="section-divider"></div>
-                <div class="itinerary-header">
-                    <span class="itinerary-title">Itinerary</span>
-                    <span id="totalSummaryBadge" class="itinerary-badge"></span>
-                </div>
-                <div id="itineraryList" class="itinerary-steps"></div>
-            </div>
-
-        </div><!-- /panel-scroll-body -->
-
-        <!-- ===== BOTTOM CTA (Angkas-style big button) ===== -->
-        <div class="panel-cta-area" id="bookActionArea">
-            <button class="cta-btn" id="startJourneyBtn" disabled>
-                <ion-icon name="navigate-outline"></ion-icon>
+            
+            <button class="btn-simulan" id="startJourneyBtn" disabled>
+                <ion-icon name="paper-plane-outline"></ion-icon>
                 <span id="startJourneyBtnText">Simulan ang Biyahe</span>
             </button>
         </div>
 
-        <!-- Active Trip State -->
-        <div class="panel-cta-area active-trip-cta" id="activeTripArea" style="display:none;">
-            <div class="active-trip-status">
-                <span class="live-dot"></span>
-                <span id="activeTripLabel">Trip Active</span>
+        <!-- 3. ACTIVE JOURNEY ITERINARY (LAKBAY GUIDE) -->
+        <div class="sakay-card guide-card" id="guideCard" style="display:none;">
+            <div class="guide-drag-handle"></div>
+            <h3 class="guide-title">Lakbay Guide</h3>
+            
+            <!-- Route Header -->
+            <div class="guide-route-preview">
+                <div class="guide-nodes" style="display:flex; flex-direction:column; justify-content:center; align-items:center; padding-top:2px; padding-left: 4px; padding-right: 4px;">
+                    <img src="assets/originDestination-icon.png" style="height:55px; object-fit:contain;">
+                </div>
+                <div class="guide-places">
+                    <div id="guideOriginText" class="guide-place-text" style="color:var(--primary)">Origin</div>
+                    <div id="guideDestText" class="guide-place-text" style="color:var(--danger)">Destination</div>
+                </div>
             </div>
-            <button class="cancel-trip-btn" id="cancelTripBtn">
-                <ion-icon name="close-circle-outline"></ion-icon> Cancel
-            </button>
+
+            <!-- Time & Fare Summary Strip -->
+            <div class="guide-summary-strip">
+                <div class="guide-summary-item">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <span id="estTimeValue">1hr 12min</span>
+                </div>
+                <div class="guide-summary-divider"></div>
+                <div class="guide-summary-item">
+                    <ion-icon name="cash-outline"></ion-icon>
+                    <span id="estFareValue">₱ 45</span>
+                </div>
+            </div>
+
+            <!-- Detailed Itinerary List -->
+            <div id="itineraryList" class="sakay-itinerary-list"></div>
         </div>
 
-    </div><!-- /floating-panel -->
+        <!-- 4. BOTTOM TRIP STATUS BANNER (JOURNEY STARTED) -->
+        <div class="sakay-card active-trip-banner" id="activeTripBanner" style="display:none;">
+            <div class="trip-banner-top">
+                <strong>Journey Started</strong>
+            </div>
+            <div class="trip-banner-bottom">
+                <div class="trip-status">
+                    <span class="live-dot green"></span>
+                    <span style="color: #0ea5e9; font-weight: 600;">Trip Active</span>
+                </div>
+                <button class="btn-cancel-trip" id="cancelTripBtn">
+                    <ion-icon name="close-outline"></ion-icon> Cancel
+                </button>
+            </div>
+        </div>
+
+    </div><!-- /planner-gui-container -->
 
     <!-- ===== SIDE DRAWER ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
@@ -355,6 +329,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="planner.js"></script>
     <script src="script.js"></script>
 </body>
