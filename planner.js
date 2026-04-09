@@ -115,11 +115,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // BOTTOM SHEET DRAG (Mobile View)
     // =============================================
-    const searchCardElem = document.getElementById('searchCard');
-    let startY = 0, isDragging = false;
-    
-    if (searchCardElem && window.innerWidth <= 768) {
-        searchCardElem.addEventListener('touchstart', (e) => {
+    const setupBottomSheetDrag = (cardId) => {
+        const card = document.getElementById(cardId);
+        if (!card) return;
+        let startY = 0, isDragging = false;
+        
+        card.addEventListener('touchstart', (e) => {
             if (e.target.closest('input') || e.target.closest('.search-card-scrollbody')) return;
             startY = e.touches[0].clientY;
             isDragging = true;
@@ -128,25 +129,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
             const y = e.touches[0].clientY;
-            if (y - startY > 40) { // Dragged down sufficiently
-                searchCardElem.classList.add('minimized');
+            if (y - startY > 40) { // Dragged down
+                card.classList.add('minimized');
                 isDragging = false;
             } else if (y - startY < -40) { // Dragged up
-                searchCardElem.classList.remove('minimized');
+                card.classList.remove('minimized');
                 isDragging = false;
             }
         }, { passive: true });
         
-        document.addEventListener('touchend', () => {
-            isDragging = false;
-        });
+        document.addEventListener('touchend', () => isDragging = false);
 
-        // Tapping the minimized card pulls it back up
-        searchCardElem.addEventListener('click', (e) => {
-            if (searchCardElem.classList.contains('minimized') && !e.target.closest('input')) {
-                searchCardElem.classList.remove('minimized');
+        // Tapping pulls it back up
+        card.addEventListener('click', (e) => {
+            if (card.classList.contains('minimized') && !e.target.closest('input')) {
+                card.classList.remove('minimized');
             }
         });
+    };
+
+    if (window.innerWidth <= 768) {
+        setupBottomSheetDrag('searchCard');
+        setupBottomSheetDrag('guideCard');
     }
     // UI CARD STATE TRANSITIONS (Search vs Active)
     // =============================================

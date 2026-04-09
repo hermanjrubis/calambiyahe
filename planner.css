@@ -1733,9 +1733,16 @@
 .guide-card {
     position: relative;
     padding-top: 24px;
-    flex-grow: 1; /* Stretch up when active */
+    display: flex;
+    flex-direction: column;
     max-height: 70vh;
-    overflow-y: auto;
+    padding-bottom: 0;
+}
+.guide-card.minimized .search-card-scrollbody {
+    max-height: 0;
+    padding-bottom: 0px;
+    opacity: 0;
+    overflow: hidden;
 }
 .guide-drag-handle {
     position: absolute;
