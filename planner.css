@@ -1524,11 +1524,8 @@
     background: #cbd5e1; /* visible gray scrollbar thumb */
     border-radius: 10px;
 }
-.input-card.minimized .search-card-scrollbody {
-    max-height: 0;
-    padding-bottom: 0px;
-    opacity: 0;
-    overflow: hidden;
+.input-card.minimized {
+    transform: translateY(calc(100% - 24px)); /* Pushes entire card down, leaving only the drag handle sticking up! */
 }
 .input-card::before {
     content: '';
@@ -1762,11 +1759,8 @@
     padding-bottom: 0;
     overflow: hidden; /* Guarantee that contents cannot visually bleed out of the white border-radius box */
 }
-.guide-card.minimized .search-card-scrollbody {
-    max-height: 0;
-    padding-bottom: 0px;
-    opacity: 0;
-    overflow: hidden;
+.guide-card.minimized {
+    transform: translateY(calc(100% - 24px)); /* Push everything down out of view except the handle */
 }
 .guide-drag-handle {
     position: absolute;
