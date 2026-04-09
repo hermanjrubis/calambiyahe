@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calzada - Login & Register</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Geometric background assets -->
+    <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
+    <img src="assets/1.png" class="geo-bg geo-bg-2" alt="">
+
+    <!-- Frosted Glass Navbar -->
+    <header class="navbar navbar-white" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <img src="assets/Calzada - Blue.png" alt="Calzada Logo" class="logo-img">
+            </a>
+            
+            <nav class="nav-links" id="navLinks">
+                <a href="about.html" class="nav-link">About</a>
+                <a href="index.html#place-finder" class="nav-link">Place Finder</a>
+                <a href="index.html#p2p" class="nav-link">P2P</a>
+                <a href="faq.html" class="nav-link">FAQs</a>
+                <a href="planner.html" class="btn-plan-route">Plan Route</a>
+            </nav>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <ion-icon name="menu-outline"></ion-icon>
+            </button>
+        </div>
+    </header>
+
+    <main class="auth-page-container">
+        <div class="auth-card">
+            
+            <!-- Auth Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')">Login</button>
+                <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')">Register</button>
+            </div>
+
+            <div class="auth-content">
+                <!-- LOGIN FORM -->
+                <form id="formLogin" class="auth-form active" onsubmit="event.preventDefault(); window.location.href='index.html';">
+                    <h2 class="auth-title">Welcome Back!</h2>
+                    <p class="auth-subtitle">Log in to continue navigating Calamba.</p>
+
+                    <div class="input-group">
+                        <ion-icon name="mail-outline"></ion-icon>
+                        <input type="email" placeholder="Email Address" required>
+                    </div>
+
+                    <div class="input-group">
+                        <ion-icon name="lock-closed-outline"></ion-icon>
+                        <input type="password" placeholder="Password" id="loginPass" required>
+                        <ion-icon name="eye-outline" class="btn-toggle-pass" onclick="togglePassword('loginPass')"></ion-icon>
+                    </div>
+
+                    <div class="auth-options">
+                        <label class="remember-me">
+                            <input type="checkbox"> Remember me
+                        </label>
+                        <a href="#" class="forgot-pass">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-auth-primary">Sign in</button>
+
+                    <div class="auth-divider">
+                        <span>Or continue with</span>
+                    </div>
+
+                    <button type="button" class="btn-social-auth">
+                        <img src="https://www.google.com/favicon.ico" alt="Google">
+                        Sign in with Google
+                    </button>
+                </form>
+
+                <!-- REGISTER FORM -->
+                <form id="formRegister" class="auth-form" onsubmit="event.preventDefault(); window.location.href='index.html';">
+                    <h2 class="auth-title">Create an Account</h2>
+                    <p class="auth-subtitle">Join us and streamline your daily commute.</p>
+
+                    <div class="input-group">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <input type="text" placeholder="Full Name" required>
+                    </div>
+
+                    <div class="input-group">
+                        <ion-icon name="mail-outline"></ion-icon>
+                        <input type="email" placeholder="Email Address" required>
+                    </div>
+
+                    <div class="input-group">
+                        <ion-icon name="lock-closed-outline"></ion-icon>
+                        <input type="password" placeholder="Create Password" id="regPass" oninput="checkPasswordStrength()" required>
+                        <ion-icon name="eye-outline" class="btn-toggle-pass" onclick="togglePassword('regPass')"></ion-icon>
+                    </div>
+
+                    <!-- Modern Security Requirements Display -->
+                    <div class="password-requirements">
+                        <div class="req-item" id="req-length">
+                            <ion-icon name="close-circle-outline"></ion-icon> At least 8 characters
+                        </div>
+                        <div class="req-item" id="req-number">
+                            <ion-icon name="close-circle-outline"></ion-icon> Contains a number
+                        </div>
+                        <div class="req-item" id="req-special">
+                            <ion-icon name="close-circle-outline"></ion-icon> Contains a special character (!@#)
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        <input type="password" placeholder="Confirm Password" id="regPassConfirm" required>
+                    </div>
+
+                    <div class="auth-options" style="margin-bottom: 20px;">
+                        <label class="remember-me">
+                            <input type="checkbox" required> I agree to the <a href="#">Terms</a> & <a href="#">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn-auth-primary">Create Account</button>
+                </form>
+            </div>
+
+            <!-- Security Trust Badge Assurance -->
+            <div class="security-assurance">
+                <ion-icon name="lock-closed"></ion-icon>
+                <span><strong>Secure Access:</strong> Your data is encrypted and securely stored. We never sell your personal information.</span>
+            </div>
+            <a href="index.html" class="guest-link">Continue as Guest</a>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

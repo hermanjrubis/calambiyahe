@@ -54,7 +54,7 @@
         </div>
 
         <!-- Panel Header: Brand + Where to -->
-        <div class="panel-brand-header">
+        <div class="panel-brand-header" id="panelHeader">
             <img src="assets/logo-new.png" alt="Calzada" class="panel-logo-sm" onerror="this.src='assets/logo-blue.png'">
             <span class="panel-tagline">Saan ka pupunta?</span>
         </div>
@@ -62,7 +62,7 @@
         <!-- Scrollable Content -->
         <div class="panel-scroll-body" id="panelScrollBody">
 
-            <!-- ===== SEARCH INPUTS (Sakay.ph style) ===== -->
+            <!-- ===== SEARCH INPUTS ===== -->
             <div class="search-card">
                 <div class="search-input-group">
 
@@ -290,6 +290,13 @@
             <div class="message bot-message">Hello! I'm DyipTok. Where do you want to go today?</div>
         </div>
         <div class="chat-input-area">
+            <!-- Suggested Chats -->
+            <div class="chat-suggestions">
+                <button class="suggestion-chip">Pamasahe pa-Turbina?</button>
+                <button class="suggestion-chip">P2P bus location?</button>
+                <button class="suggestion-chip">Road conditions now?</button>
+                <button class="suggestion-chip">Para saan itong platform?</button>
+            </div>
             <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
             <div class="chat-input-toolbar">
                 <div class="toolbar-right">

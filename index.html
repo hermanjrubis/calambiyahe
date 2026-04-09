@@ -19,10 +19,9 @@
 
 <body>
 
-    <!-- Animated background blobs -->
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
-    <div class="bg-blob blob-3"></div>
+    <!-- Geometric background assets -->
+    <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
+    <img src="assets/1.png" class="geo-bg geo-bg-2" alt="">
 
     <!-- Header / Navigation (Frosted Glass) -->
     <header class="navbar" id="navbar">
@@ -36,6 +35,7 @@
                 <a href="planner.html" class="nav-link">Place Finder</a>
                 <a href="#p2p" class="nav-link">P2P</a>
                 <a href="faq.html" class="nav-link">FAQs</a>
+                <a href="login.html" class="btn-plan-route" style="background: transparent; color: white; border: 1px solid white; padding: 6px 18px; border-radius: 20px;">Sign In</a>
             </nav>
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <ion-icon name="menu-outline"></ion-icon>
@@ -162,8 +162,8 @@
             <div class="feature-card">
                 <div class="feature-icon"><ion-icon name="location-outline"></ion-icon></div>
                 <div class="feature-text">
-                    <strong>54</strong>
-                    <span>Barangays</span>
+                    <strong>50+</strong>
+                    <span>Routes</span>
                 </div>
             </div>
             <div class="feature-divider"></div>
@@ -179,7 +179,7 @@
 
     <!-- Floating Chat Widget -->
     <div class="chat-widget-container">
-        <span class="chat-label">Ask JeepTok</span>
+        <span class="chat-label">Ask DyipTok</span>
         <button class="chat-toggle-btn" id="chatToggleBtn">
             <ion-icon name="chatbubble"></ion-icon>
             <span class="pulse-ring"></span>
@@ -194,7 +194,7 @@
                     <ion-icon name="bus-outline"></ion-icon>
                 </div>
                 <div>
-                    <div class="chat-name">JeepTok Assistant</div>
+                    <div class="chat-name">DyipTok Assistant</div>
                     <div class="chat-status"><span class="status-dot"></span> Online</div>
                 </div>
             </div>
@@ -205,10 +205,17 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message bot-message">
-                Hello! I'm JeepTok. Where do you want to go today?
+                Hello! I'm DyipTok. Where do you want to go today?
             </div>
         </div>
         <div class="chat-input-area">
+            <!-- Suggested Chats -->
+            <div class="chat-suggestions">
+                <button class="suggestion-chip">Pamasahe pa-Turbina?</button>
+                <button class="suggestion-chip">P2P bus location?</button>
+                <button class="suggestion-chip">Road conditions now?</button>
+                <button class="suggestion-chip">Para saan itong platform?</button>
+            </div>
             <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
 
             <!-- Bottom Action Row -->

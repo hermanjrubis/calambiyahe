@@ -421,6 +421,21 @@ Accessible on mobile, tablet, and desktop.
 
     sendMessageBtn.addEventListener('click', handleChatSend);
 
+    // Suggestion Chips Logic
+    const suggestionChips = document.querySelectorAll('.suggestion-chip');
+    suggestionChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            if (chatInput) {
+                chatInput.value = chip.textContent;
+                triggerAutoExpand();
+                handleChatSend();
+                // Optionally hide chips after first use to make room
+                const suggestionsContainer = chip.closest('.chat-suggestions');
+                if (suggestionsContainer) suggestionsContainer.style.display = 'none';
+            }
+        });
+    });
+
     // Auto-expanding logic & Enter key
     chatInput.addEventListener('input', function () {
         this.style.height = 'auto';
@@ -755,3 +770,75 @@ Accessible on mobile, tablet, and desktop.
     }
 
 });
+
+// === GLOBAL AUTHENTICATION LOGIC ===
+
+function switchAuth(type) {
+    const tabLogin = document.getElementById('tabLogin');
+    const tabRegister = document.getElementById('tabRegister');
+    const formLogin = document.getElementById('formLogin');
+    const formRegister = document.getElementById('formRegister');
+
+    if (!tabLogin || !formRegister) return;
+
+    if (type === 'login') {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        formLogin.classList.add('active');
+        formRegister.classList.remove('active');
+    } else {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        formRegister.classList.add('active');
+        formLogin.classList.remove('active');
+    }
+}
+
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    const icon = input.nextElementSibling;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.name = 'eye-off-outline';
+    } else {
+        input.type = 'password';
+        icon.name = 'eye-outline';
+    }
+}
+
+function checkPasswordStrength() {
+    const passInput = document.getElementById('regPass');
+    if (!passInput) return;
+    
+    const val = passInput.value;
+    
+    const reqLength = document.getElementById('req-length');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+
+    if (val.length >= 8) {
+        reqLength.classList.add('met');
+        reqLength.querySelector('ion-icon').name = 'checkmark-circle';
+    } else {
+        reqLength.classList.remove('met');
+        reqLength.querySelector('ion-icon').name = 'close-circle-outline';
+    }
+
+    if (/\d/.test(val)) {
+        reqNumber.classList.add('met');
+        reqNumber.querySelector('ion-icon').name = 'checkmark-circle';
+    } else {
+        reqNumber.classList.remove('met');
+        reqNumber.querySelector('ion-icon').name = 'close-circle-outline';
+    }
+
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(val)) {
+        reqSpecial.classList.add('met');
+        reqSpecial.querySelector('ion-icon').name = 'checkmark-circle';
+    } else {
+        reqSpecial.classList.remove('met');
+        reqSpecial.querySelector('ion-icon').name = 'close-circle-outline';
+    }
+}

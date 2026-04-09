@@ -5,7 +5,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const map = L.map('map').setView([14.2045, 121.1641], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
         className: 'calzada-map-tiles'
@@ -117,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     const panel = document.getElementById('mainFloatingPanel');
     const dragBar = document.getElementById('dragHandleBar');
+    const panelHeader = document.getElementById('panelHeader');
+    const scrollBody = document.getElementById('panelScrollBody');
     const PEEK = 100;
     const getMid = () => window.innerHeight * 0.52;
     const getFull = () => window.innerHeight * 0.90;
@@ -137,20 +139,56 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => panel.classList.remove('snapping'), 380);
     };
 
-    if (dragBar && panel) {
+    if (panel) {
         let startY = 0, startH = 0, isDragging = false;
-        dragBar.addEventListener('touchstart', (e) => {
+        let isScrollDragging = false, scrollStartY = 0;
+
+        const handleDragStart = (e) => {
+            if (e.target.closest('button') || e.target.closest('input')) return;
             startY = e.touches[0].clientY;
             startH = panel.getBoundingClientRect().height;
             isDragging = true;
             panel.classList.add('dragging');
-        }, { passive: true });
+        };
+
+        if (dragBar) dragBar.addEventListener('touchstart', handleDragStart, { passive: true });
+        if (panelHeader) panelHeader.addEventListener('touchstart', handleDragStart, { passive: true });
+
+        // Scroll top handoff
+        if (scrollBody) {
+            scrollBody.addEventListener('touchstart', (e) => {
+                if (scrollBody.scrollTop <= 0) {
+                    scrollStartY = e.touches[0].clientY;
+                    isScrollDragging = true;
+                }
+            }, { passive: true });
+            
+            scrollBody.addEventListener('touchmove', (e) => {
+                if (isScrollDragging && scrollBody.scrollTop <= 0) {
+                    const dy = scrollStartY - e.touches[0].clientY;
+                    if (dy < -5 && !isDragging) { // User swiping down at top of scroll
+                        isDragging = true;
+                        startY = e.touches[0].clientY;
+                        startH = panel.getBoundingClientRect().height;
+                        panel.classList.add('dragging');
+                        if(e.cancelable) e.preventDefault();
+                    }
+                }
+            }, { passive: false });
+            
+            scrollBody.addEventListener('touchend', () => {
+                isScrollDragging = false;
+            });
+        }
+
         document.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
+            if (e.cancelable && !isScrollDragging) e.preventDefault();
             const dy = startY - e.touches[0].clientY;
             const newH = Math.max(PEEK, Math.min(getFull(), startH + dy));
             panel.style.height = newH + 'px';
-        }, { passive: true });
+        }, { passive: false });
+
         document.addEventListener('touchend', () => {
             if (!isDragging) return;
             isDragging = false;
