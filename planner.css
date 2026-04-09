@@ -1525,7 +1525,13 @@
     border-radius: 10px;
 }
 .input-card.minimized {
-    transform: translateY(calc(100% - 24px)); /* Pushes entire card down, leaving only the drag handle sticking up! */
+    height: auto !important; /* Force the container to physically shrink when folded */
+}
+.input-card.minimized .search-card-scrollbody {
+    max-height: 0;
+    padding-bottom: 0px;
+    opacity: 0;
+    overflow: hidden;
 }
 .input-card::before {
     content: '';
@@ -1760,7 +1766,13 @@
     overflow: hidden; /* Guarantee that contents cannot visually bleed out of the white border-radius box */
 }
 .guide-card.minimized {
-    transform: translateY(calc(100% - 24px)); /* Push everything down out of view except the handle */
+    height: auto !important; /* Retract the explicit 75vh constraints so it tightly wraps the header without leaving a massive white box */
+}
+.guide-card.minimized .search-card-scrollbody {
+    max-height: 0;
+    padding-bottom: 0px;
+    opacity: 0;
+    overflow: hidden;
 }
 .guide-drag-handle {
     position: absolute;
