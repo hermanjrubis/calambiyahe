@@ -1481,6 +1481,18 @@
         bottom: 20px;
     }
     .sakay-card { margin-bottom: 15px; }
+    /* Desktop Overrides for Flexbox Container Clipping */
+    .guide-card {
+        height: auto;
+        flex: 1;
+        min-height: 0;
+        max-height: none;
+    }
+    .search-card-scrollbody {
+        max-height: none;
+        height: 100%;
+        min-height: 0;
+    }
 }
 
 /* 1. INPUT CARD */

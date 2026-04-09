@@ -121,7 +121,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let startY = 0, isDragging = false;
         
         card.addEventListener('touchstart', (e) => {
-            if (e.target.closest('input') || e.target.closest('.search-card-scrollbody')) return;
+            if (e.target.closest('input')) return;
+            const scrollBody = e.target.closest('.search-card-scrollbody');
+            // If touching inside the scroll body...
+            if (scrollBody) {
+                // ... ONLY allow minimizing pull-down if we are completely at the top of the list!
+                // Otherwise let the user natively scroll the list.
+                if (scrollBody.scrollTop > 0) return;
+            }
             startY = e.touches[0].clientY;
             isDragging = true;
         }, { passive: true });
@@ -142,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Tapping pulls it back up
         card.addEventListener('click', (e) => {
-            if (card.classList.contains('minimized') && !e.target.closest('input')) {
+            if (card.classList.contains('minimized') && !e.target.closest('.search-card-scrollbody')) {
                 card.classList.remove('minimized');
             }
         });
