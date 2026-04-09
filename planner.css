@@ -1487,7 +1487,27 @@
 .input-card {
     position: relative;
     padding-top: 24px;
+    display: flex;
+    flex-direction: column;
+    max-height: 80vh; /* Limits maximum height so it can scroll */
+    padding-bottom: 0;
 }
+.search-card-scrollbody {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 24px;
+    margin-right: -10px; padding-right: 10px; /* offset inner scrollbar padding */
+    scrollbar-width: none; /* Firefox */
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding-bottom 0.3s;
+    max-height: 400px;
+}
+.input-card.minimized .search-card-scrollbody {
+    max-height: 0;
+    padding-bottom: 0px;
+    opacity: 0;
+    overflow: hidden;
+}
+.search-card-scrollbody::-webkit-scrollbar { display: none; /* WebKit */ }
 .input-card::before {
     content: '';
     position: absolute;

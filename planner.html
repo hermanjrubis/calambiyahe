@@ -75,33 +75,37 @@
                 
             </div>
 
-            <!-- Use My Current Location -->
-            <button class="sakay-action-row" id="useLocationBtnEx" style="margin-top: 10px;">
-                <ion-icon name="locate-outline"></ion-icon>
-                <span>Use my Current Location</span>
-            </button>
+            <!-- START SCROLLABLE BODY -->
+            <div class="search-card-scrollbody" id="searchScrollArea">
+                <!-- Use My Current Location -->
+                <button class="sakay-action-row" id="useLocationBtnEx" style="margin-top: 10px;">
+                    <ion-icon name="locate-outline"></ion-icon>
+                    <span>Use my Current Location</span>
+                </button>
 
-            <!-- Schedule Dropdown -->
-            <div class="sakay-action-row" id="scheduleDropdownContainer">
-                <ion-icon name="time-outline"></ion-icon>
-                <div class="sakay-dropdown-trigger" id="scheduleSelected">
-                    <span id="scheduleSelectedText">Leave now</span>
-                    <ion-icon name="chevron-down-outline"></ion-icon>
+                <!-- Schedule Dropdown -->
+                <div class="sakay-action-row" id="scheduleDropdownContainer">
+                    <ion-icon name="time-outline"></ion-icon>
+                    <div class="sakay-dropdown-trigger" id="scheduleSelected">
+                        <span id="scheduleSelectedText">Leave now</span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </div>
+                    <ul class="sakay-dropdown-menu" id="scheduleOptions">
+                        <li data-value="now" class="active">Leave now</li>
+                        <li data-value="depart">Depart at...</li>
+                        <li data-value="arrive">Arrive by...</li>
+                    </ul>
+                    <!-- Hidden Native Date Picker anchor for flatpickr -->
+                    <input type="text" id="nativeDatePicker" style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
                 </div>
-                <ul class="sakay-dropdown-menu" id="scheduleOptions">
-                    <li data-value="now" class="active">Leave now</li>
-                    <li data-value="depart">Depart at...</li>
-                    <li data-value="arrive">Arrive by...</li>
-                </ul>
-                <!-- Hidden Native Date Picker anchor for flatpickr -->
-                <input type="text" id="nativeDatePicker" style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
+                
+                <!-- Terminal Picker -->
+                <div id="terminalPickerSection" class="sakay-terminal-picker" style="display:none;">
+                    <div class="sakay-section-title">Suggested Terminals</div>
+                    <div id="terminalList" class="sakay-terminal-list"></div>
+                </div>
             </div>
-            
-            <!-- Terminal Picker (Appears when suggested) -->
-            <div id="terminalPickerSection" class="sakay-terminal-picker" style="display:none;">
-                <div class="sakay-section-title">Suggested Terminals</div>
-                <div id="terminalList" class="sakay-terminal-list"></div>
-            </div>
+            <!-- END SCROLLABLE BODY -->
         </div>
 
         <!-- 2. TRANSIT MODE & START JOURNEY CARD -->
