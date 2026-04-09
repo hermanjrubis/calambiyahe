@@ -121,14 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let startY = 0, isDragging = false;
         
         card.addEventListener('touchstart', (e) => {
-            if (e.target.closest('input')) return;
-            const scrollBody = e.target.closest('.search-card-scrollbody');
-            // If touching inside the scroll body...
-            if (scrollBody) {
-                // ... ONLY allow minimizing pull-down if we are completely at the top of the list!
-                // Otherwise let the user natively scroll the list.
-                if (scrollBody.scrollTop > 0) return;
-            }
+            if (e.target.closest('input') || e.target.closest('.search-card-scrollbody')) return;
             startY = e.touches[0].clientY;
             isDragging = true;
         }, { passive: true });
