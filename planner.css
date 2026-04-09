@@ -1738,6 +1738,7 @@
     flex-direction: column;
     max-height: 70vh;
     padding-bottom: 0;
+    overflow: hidden; /* Guarantee that contents cannot visually bleed out of the white border-radius box */
 }
 .guide-card.minimized .search-card-scrollbody {
     max-height: 0;
