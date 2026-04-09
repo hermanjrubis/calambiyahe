@@ -1498,9 +1498,18 @@
     overflow-y: auto;
     padding-bottom: 24px;
     margin-right: -10px; padding-right: 10px; /* offset inner scrollbar padding */
-    scrollbar-width: none; /* Firefox */
     transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, padding-bottom 0.3s;
     max-height: 1000px; /* Increased from 400px to allow taller expansion on mobile screens */
+}
+.search-card-scrollbody::-webkit-scrollbar {
+    width: 5px;
+}
+.search-card-scrollbody::-webkit-scrollbar-track {
+    background: transparent;
+}
+.search-card-scrollbody::-webkit-scrollbar-thumb {
+    background: #cbd5e1; /* visible gray scrollbar thumb */
+    border-radius: 10px;
 }
 .input-card.minimized .search-card-scrollbody {
     max-height: 0;
@@ -1508,7 +1517,6 @@
     opacity: 0;
     overflow: hidden;
 }
-.search-card-scrollbody::-webkit-scrollbar { display: none; /* WebKit */ }
 .input-card::before {
     content: '';
     position: absolute;
