@@ -702,34 +702,34 @@
 
 .itinerary-card {
     display: flex;
-    gap: 14px;
-    padding: 10px 0;
+    gap: 12px;
+    padding: 6px 0;
 }
 
 .leg-icon-column {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 36px;
+    width: 30px;
     flex-shrink: 0;
 }
 .leg-icon-circle {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1rem;
     flex-shrink: 0;
 }
 .leg-line {
     width: 2px;
     flex: 1;
-    min-height: 20px;
+    min-height: 15px;
     background: linear-gradient(to bottom, #c0ccd8 0%, #e8edf3 100%);
     border-radius: 1px;
-    margin: 4px 0;
+    margin: 2px 0;
 }
 
 .leg-content { flex: 1; min-width: 0; }
@@ -742,13 +742,13 @@
 .leg-title {
     font-family: 'Outfit', sans-serif;
     font-weight: 700;
-    font-size: 0.97rem;
+    font-size: 0.9rem;
     color: var(--text);
 }
 .leg-fare {
     font-family: 'Outfit', sans-serif;
     font-weight: 800;
-    font-size: 0.88rem;
+    font-size: 0.8rem;
 }
 .free-fare {
     color: var(--success) !important;
@@ -763,22 +763,22 @@
     align-items: center;
     gap: 4px;
     flex-wrap: wrap;
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     color: #475569;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
 }
-.leg-arrow { color: var(--text-muted); font-size: 0.72rem; }
+.leg-arrow { color: var(--text-muted); font-size: 0.65rem; }
 .leg-meta {
     display: flex;
-    gap: 12px;
-    font-size: 0.77rem;
+    gap: 10px;
+    font-size: 0.72rem;
     color: var(--text-muted);
     font-weight: 600;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
-.leg-meta ion-icon { font-size: 0.85rem; vertical-align: -1px; }
+.leg-meta ion-icon { font-size: 0.8rem; vertical-align: -1px; }
 .leg-note {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
     color: #94a3b8;
     font-style: italic;
 }
@@ -1784,15 +1784,15 @@
     border-radius: 2px;
 }
 .guide-title {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 800;
     color: var(--text-dark);
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 .guide-route-preview {
     display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 .guide-places {
     display: flex;
@@ -1800,25 +1800,25 @@
     justify-content: space-between;
     padding: 2px 0;
 }
-.guide-place-text { font-size: 0.95rem; font-weight: 500; }
+.guide-place-text { font-size: 0.9rem; font-weight: 500; }
 
 .guide-summary-strip {
     background: #dbeafe;
     border-radius: 12px;
     display: flex;
     align-items: center;
-    padding: 12px;
+    padding: 8px 12px;
 }
 .guide-summary-item {
     flex: 1; display: flex; align-items: center; justify-content: center;
-    gap: 8px; font-weight: 700; font-size: 1.05rem; color: #0f172a;
+    gap: 6px; font-weight: 700; font-size: 0.9rem; color: #0f172a;
 }
 .guide-summary-divider {
-    width: 1px; height: 24px; background: #94a3b8;
+    width: 1px; height: 20px; background: #94a3b8;
 }
 
 .sakay-itinerary-list {
-    margin-top: 24px;
+    margin-top: 16px;
 }
 
 /* 4. ACTIVE TRIP BANNER */
@@ -1887,7 +1887,7 @@
         font-size: 1rem;
     }
     .guide-card {
-        max-height: 55vh;
+        max-height: 65vh;
     }
     .active-trip-banner {
         border-radius: 20px;
