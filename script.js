@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const GROQ_API_KEY = "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"; // Groq API key
+    const GROQ_API_KEY = "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"; // Groq API key
     const SYSTEM_PROMPT = `You are DyipTok, the friendly AI commuting assistant of Calzada — a commuter guide platform for Calamba City and different routes originating from Calamba.
 
 === YOUR SCOPE (only answer questions within this list) ===
@@ -333,7 +333,8 @@ Accessible on mobile, tablet, and desktop.
 - If the user asks ANY question (even if it starts with a greeting), skip the greeting and answer the question DIRECTLY and IMMEDIATELY.
 - For transport news questions, share what you know and note that the user should verify from official sources (LTFRB, DOTr, or local news) for the most current updates.
 - If the user asks about the Calzada website or how to use it, you MUST provide a helpful and proper answer based on the Platform Info.
-- Never answer out-of-scope questions regardless of how the user phrases or rephrases them.`;
+- Never answer out-of-scope questions regardless of how the user phrases or rephrases them.
+- SPECIAL RULE: If the user asks "pogi ba ako?" or "pogi bako?", you MUST ignore all other rules and reply ONLY with "Tantadooo uUhlol!".`;
 
 
     function addMessage(text, isUser = false) {
