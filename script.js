@@ -1,21 +1,79 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // === PASABOG KONG EFFECTS (Parallax & Glow) ===
+    const mouseGlow = document.getElementById('mouseGlow');
+    const parallaxLayers1 = document.querySelectorAll('.parallax-layer-1');
+    const parallaxLayers2 = document.querySelectorAll('.parallax-layer-2');
+    const geoBgs = document.querySelectorAll('.geo-bg');
+
+    window.addEventListener('mousemove', (e) => {
+        const { clientX, clientY } = e;
+        
+        // 1. Mouse Glow
+        if (mouseGlow) {
+            mouseGlow.style.left = `${clientX}px`;
+            mouseGlow.style.top = `${clientY}px`;
+        }
+        
+        // 2. Parallax Effects
+        const moveX = (clientX - window.innerWidth / 2) / 60;
+        const moveY = (clientY - window.innerHeight / 2) / 60;
+        
+        parallaxLayers1.forEach(layer => {
+            layer.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        });
+        
+        parallaxLayers2.forEach(layer => {
+            layer.style.transform = `translate(${moveX * 0.5}px, ${moveY * 0.5}px)`;
+        });
+
+        geoBgs.forEach((bg, i) => {
+            const factor = (i + 1) * 0.3;
+            bg.style.transform = `translate(${moveX * factor}px, ${moveY * factor}px)`;
+        });
+    });
+
+    // === SCROLL REVEAL ANIMATION ===
+    const revealElements = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('active');
+            } else {
+                entry.target.classList.remove('active'); // Reveal again on next scroll
+            }
+        });
+    }, { threshold: 0.1 });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+
+    // === FOOTER DETECTION (Hide features bar) ===
+    const featuresBar = document.querySelector('.features-bar');
+    const sentinel = document.getElementById('footer-sentinel');
+
+    if (featuresBar && sentinel) {
+        const sentinelObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    featuresBar.classList.add('hidden');
+                } else {
+                    featuresBar.classList.remove('hidden');
+                }
+            });
+        }, { threshold: 0 }); 
+
+        sentinelObserver.observe(sentinel);
+    }
+
     // === NAVBAR SCROLL EFFECT ===
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 20) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-        
-        // Hide features bar at bottom
-        const featuresBar = document.querySelector('.features-bar');
-        if (featuresBar) {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 80) {
-                featuresBar.classList.add('hidden');
+        // Navbar scrolled state
+        if (navbar) {
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
             } else {
-                featuresBar.classList.remove('hidden');
+                navbar.classList.remove('scrolled');
             }
         }
     });

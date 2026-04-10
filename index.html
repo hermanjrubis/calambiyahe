@@ -18,6 +18,8 @@
 </head>
 
 <body>
+    <!-- Mouse Glow Aura -->
+    <div class="mouse-glow" id="mouseGlow"></div>
 
     <!-- Geometric background assets -->
     <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
@@ -35,7 +37,7 @@
                 <a href="planner.html" class="nav-link">Place Finder</a>
                 <a href="#p2p" class="nav-link">P2P</a>
                 <a href="faq.html" class="nav-link">FAQs</a>
-                <a href="login.html" class="btn-plan-route" style="background: transparent; color: white; border: 1px solid white; padding: 6px 18px; border-radius: 20px;">Sign In</a>
+                <a href="login.html" class="nav-link btn-nav-auth">Sign In</a>
             </nav>
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <ion-icon name="menu-outline"></ion-icon>
@@ -45,17 +47,27 @@
 
     <!-- Main Hero Section -->
     <main class="hero-section">
+        <!-- Transit Pulse Background Lines -->
+        <div class="transit-lines-container">
+            <svg class="transit-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+                <path d="M-100,500 Q250,250 500,500 T1100,500" class="transit-path p1" />
+                <path d="M500,-100 Q750,250 500,500 T500,1100" class="transit-path p2" />
+                <path d="M-100,100 Q500,500 1100,900" class="transit-path p3" />
+                <path d="M1100,100 Q500,500 -100,900" class="transit-path p4" />
+            </svg>
+        </div>
+
         <!-- Map background overlay -->
         <div class="map-bg-overlay"></div>
 
         <div class="hero-content">
             <!-- Center Logo -->
-            <div class="center-logo-container">
+            <div class="center-logo-container parallax-layer-1">
                 <div class="logo-glow-ring"></div>
                 <img src="assets/logo-center.png" alt="Calzada App Icon" class="center-logo">
             </div>
 
-            <h1 class="hero-title">Your <span class="title-highlight">Commuting Guide</span> in Calamba.</h1>
+            <h1 class="hero-title">Your <span class="title-highlight shimmer-text">Commuting Guide</span> in Calamba.</h1>
             <p class="hero-subtitle">
                 Find routes, fares, and connections for Jeepneys,
                 Buses, P2P, UV Express, and Tricycles.
@@ -91,49 +103,45 @@
             </p>
         </section>
 
-        <!-- Section: Road News & Updates -->
-        <section class="news-section">
+        <!-- Section: News & Traffic -->
+        <section class="news-section reveal">
             <div class="section-header">
-                <h2><ion-icon name="construct-outline"></ion-icon> Road News & Updates</h2>
+                <h2><ion-icon name="newspaper-outline"></ion-icon> Latest News & Traffic</h2>
                 <div class="header-line"></div>
             </div>
             <div class="news-grid">
-                <div class="news-card">
+                <div class="news-card reveal-delay-1">
                     <span class="news-tag closure">Road Closure</span>
-                    <h3>Turbina - Bucal Repair</h3>
-                    <p>May ginagawang kalsada malapit sa Pansol resort area. Asahan ang matinding traffic kapag rush
-                        hour dahil one-lane lang ang bukas.</p>
-                    <span class="news-date">Updated: 2 hours ago</span>
+                    <h3>Parian Flyover Maintenance</h3>
+                    <p>May schedule na repair sa Parian flyover ngayong weekend. Pinapayuhan ang mga motorista na dumaan sa alternate routes para makaiwas sa abala.</p>
+                    <span class="news-date">Updated: 1 hour ago</span>
                 </div>
-                <div class="news-card">
+                <div class="news-card reveal-delay-2">
                     <span class="news-tag alert">Heavy Traffic</span>
-                    <h3>Crossing Calamba Alert</h3>
-                    <p>Bumper-to-bumper ang trapik mula SM City Calamba hanggang Letran Calamba dahil sa naaksidenteng
-                        truck.</p>
-                    <span class="news-date">Updated: 5 hours ago</span>
+                    <h3>Real Crossing Gridlock</h3>
+                    <p>Mabagal ang daloy ng trapiko sa Real Crossing area dahil sa volume ng sasakyan. Asahan ang 15-20 mins delay sa biyahe.</p>
+                    <span class="news-date">Updated: 34 mins ago</span>
                 </div>
             </div>
         </section>
 
         <!-- Section: Fare & LTFRB Updates -->
-        <section class="fare-section">
+        <section class="fare-section reveal">
             <div class="section-header">
                 <h2><ion-icon name="cash-outline"></ion-icon> Pamasahe & LTFRB Updates</h2>
                 <div class="header-line"></div>
             </div>
             <div class="news-grid">
-                <div class="news-card">
+                <div class="news-card reveal-delay-1">
                     <span class="news-tag fare">Fare Update</span>
-                    <h3>₱13.00 Minimum Fare for Traditional Jeeps</h3>
-                    <p>Base rate stays at ₱13 para sa unang apat na kilometro ng Traditional Jeepneys. ₱15 naman sa
-                        Modern Jeeps.</p>
+                    <h3>₱13.00 Standard Fare Confirmed</h3>
+                    <p>Nanatili ang minimum fare sa ₱13 para sa traditional jeepneys at ₱15 para sa modern jeepneys sa buong Region IV-A.</p>
                     <span class="news-date">Source: LTFRB Official</span>
                 </div>
-                <div class="news-card">
+                <div class="news-card reveal-delay-2">
                     <span class="news-tag announcement">Rollout</span>
-                    <h3>Modern Jeepneys sa Canlubang-Mayapa Route</h3>
-                    <p>Ngayong linggo, 15 bagong modern jeepneys ang itinalaga sa rutang Canlubang at Mayapa (Paciano)
-                        crossing.</p>
+                    <h3>New Modern Jeeps in Canlubang</h3>
+                    <p>Nagdagdag pa ng bagong units ng modern jeepney para sa Canlubang - Calamba Crossing route para sa mas mabilis na biyahe.</p>
                     <span class="news-date">Source: DOTr Laguna</span>
                 </div>
             </div>
@@ -141,9 +149,9 @@
     </div>
 
     <!-- Features Stats Bar -->
-    <section class="features-bar">
+    <section class="features-bar reveal">
         <div class="features-grid">
-            <div class="feature-card">
+            <div class="feature-card reveal-delay-1">
                 <div class="feature-icon"><ion-icon name="map-outline"></ion-icon></div>
                 <div class="feature-text">
                     <strong>50+</strong>
@@ -151,7 +159,7 @@
                 </div>
             </div>
             <div class="feature-divider"></div>
-            <div class="feature-card">
+            <div class="feature-card reveal-delay-2">
                 <ion-icon name="git-network-outline" class="feature-icon"></ion-icon>
                 <div class="feature-text">
                     <strong>5</strong>
@@ -159,15 +167,15 @@
                 </div>
             </div>
             <div class="feature-divider"></div>
-            <div class="feature-card">
-                <div class="feature-icon"><ion-icon name="location-outline"></ion-icon></div>
+            <div class="feature-card reveal-delay-3">
+                <div class="feature-icon"><ion-icon name="home-outline"></ion-icon></div>
                 <div class="feature-text">
-                    <strong>50+</strong>
-                    <span>Routes</span>
+                    <strong>54</strong>
+                    <span>Barangays</span>
                 </div>
             </div>
             <div class="feature-divider"></div>
-            <div class="feature-card">
+            <div class="feature-card reveal-delay-3">
                 <div class="feature-icon"><ion-icon name="cash-outline"></ion-icon></div>
                 <div class="feature-text">
                     <strong>Real-time</strong>
@@ -191,7 +199,7 @@
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="chat-avatar">
-                    <ion-icon name="bus-outline"></ion-icon>
+                    <img src="assets/DyipTok-icon.png" alt="DyipTok">
                 </div>
                 <div>
                     <div class="chat-name">DyipTok Assistant</div>
@@ -278,6 +286,8 @@
     </footer>
 
     <script src="script.js"></script>
+    <!-- Page End Sentinel (For Footer Detection) -->
+    <div id="footer-sentinel" style="height: 1px; width: 100%; pointer-events: none; opacity: 0;"></div>
 </body>
 
 </html>
