@@ -2033,6 +2033,12 @@ body {
     transform: translateY(-3px);
 }
 
+.social-icon-img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
 .footer-column h3 {
     font-family: 'Outfit', sans-serif;
     font-size: 1.2rem;
