@@ -1657,9 +1657,74 @@
     display: none;
     border: 1px solid #e2e8f0;
 }
+
+/* Fix for Transit Mode specifically - better alignment */
+.sakay-mode-selector .sakay-dropdown-menu {
+    left: 10px;
+    right: 10px;
+}
+
+/* High Z-Index when open to overlap search card - applied to container and parent via specificity */
+.action-card:has(.open),
+.sakay-mode-selector.open {
+    z-index: 200 !important;
+}
+
 .sakay-action-row:focus-within .sakay-dropdown-menu { display: block; }
 .open .sakay-dropdown-menu { display: block !important; }
-.sakay-dropdown-menu.up-menu { top: auto; bottom: 100%; }
+.sakay-dropdown-menu.up-menu { 
+    top: auto; 
+    bottom: calc(100% + 12px); /* Give it a bit more breathing room */
+    margin-bottom: 0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15); /* Stronger shadow for desktop floating panel */
+}
+
+/* MODE DRAWER - Premium Bottom Sheet on Mobile */
+@media (max-width: 768px) {
+    .sakay-dropdown-menu.mode-drawer {
+        position: fixed;
+        top: auto;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        margin-bottom: 0;
+        border-radius: 24px 24px 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: block !important; /* Always block, controlled by transform */
+        visibility: hidden;
+        z-index: 2000;
+        border: none;
+        box-shadow: 0 -8px 30px rgba(0,0,0,0.15);
+    }
+    .open .sakay-dropdown-menu.mode-drawer {
+        transform: translateY(0);
+        visibility: visible;
+    }
+    
+    .drawer-drag-handle {
+        width: 40px;
+        height: 4px;
+        background: #e2e8f0;
+        border-radius: 2px;
+        margin: 12px auto 8px;
+        display: block;
+    }
+
+    .sakay-dropdown-menu.mode-drawer li {
+        padding: 16px 24px;
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+    
+    .sakay-dropdown-menu.mode-drawer li img {
+        width: 24px !important;
+        height: 24px !important;
+    }
+}
+
 .sakay-dropdown-menu li {
     padding: 12px 16px;
     font-size: 0.95rem;

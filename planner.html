@@ -117,7 +117,8 @@
                     <span id="modeSelectedText">Jeepney</span>
                     <ion-icon name="chevron-forward-outline"></ion-icon>
                 </div>
-                <ul class="sakay-dropdown-menu up-menu" id="modeOptions">
+                <ul class="sakay-dropdown-menu up-menu mode-drawer" id="modeOptions">
+                    <div class="drawer-drag-handle"></div>
                     <li data-value="jeep" class="active"><img src="assets/icons/jeepney-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Jeepney</li>
                     <li data-value="modern-jeep"><img src="assets/icons/jeepney-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Modern Jeepney</li>
                     <li data-value="bus"><img src="assets/icons/bus-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Bus</li>
@@ -189,6 +190,7 @@
 
     <!-- ===== SIDE DRAWER ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
+    <div class="drawer-overlay" id="modeDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <img src="assets/logo-new.png" alt="Calzada" class="drawer-logo" onerror="this.src='assets/logo-blue.png'">

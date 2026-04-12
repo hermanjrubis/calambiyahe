@@ -723,14 +723,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const selected = document.getElementById(selectedId);
         const text = document.getElementById(textId);
         const list = document.getElementById(optionsListId);
+        const modeOverlay = document.getElementById('modeDrawerOverlay');
+        const isModeSelector = containerId === 'modeDropdownContainer';
+
         if (!container || !selected || !list) return;
+
+        const closeAll = () => {
+            document.querySelectorAll('.sakay-action-row.open, .sakay-mode-selector.open').forEach(d => d.classList.remove('open'));
+            if (modeOverlay) modeOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+        };
 
         selected.addEventListener('click', (e) => {
             e.stopPropagation();
             const was = container.classList.contains('open');
-            // Close all others
-            document.querySelectorAll('.sakay-action-row.open, .sakay-mode-selector.open').forEach(d => d.classList.remove('open'));
-            if (!was) { container.classList.add('open'); }
+            
+            if (was) {
+                closeAll();
+            } else {
+                closeAll();
+                container.classList.add('open');
+                if (isModeSelector && modeOverlay && window.innerWidth <= 768) {
+                    modeOverlay.classList.add('visible');
+                    document.body.style.overflow = 'hidden'; // Prevent background scroll
+                }
+            }
         });
 
         list.querySelectorAll('li').forEach(opt => {
@@ -742,12 +759,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const img = opt.querySelector('img');
                 const sImg = selected.querySelector('.mode-option-icon');
                 if (img && sImg) { sImg.src = img.src; sImg.alt = img.alt; }
-                container.classList.remove('open');
+                closeAll();
                 onChange?.(opt.getAttribute('data-value'));
             });
         });
 
-        document.addEventListener('click', () => container.classList.remove('open'));
+        document.addEventListener('click', (e) => {
+            if (!container.contains(e.target)) closeAll();
+        });
+
+        if (isModeSelector && modeOverlay) {
+            modeOverlay.addEventListener('click', closeAll);
+        }
     };
 
     let fpInstance = null;
