@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Destination Finder - Calzada</title>
+    <meta name="description" content="Saan ka sasakay, saan ka bababa? Explore different destinations using Calzada.">
+    <!-- Modern Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+<body>
+
+    <!-- Frosted Glass Navbar -->
+    <header class="navbar navbar-white" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="brand-logo">
+                <img src="assets/Calzada - Blue.png" alt="Calzada Logo" class="logo-img">
+            </a>
+
+            <nav class="nav-links" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
+                <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;" data-i18n="planner.plan_route">Plan Route</a>
+                
+                <!-- Navbar Toggle (Desktop) -->
+                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
+                    <span class="lang-active">EN</span>
+                    <span class="lang-sep">|</span>
+                    <span class="lang-other">TL</span>
+                </button>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <button class="mobile-lang-toggle">
+                        <span class="lang-active">EN</span>
+                        <span class="lang-sep">|</span>
+                        <span class="lang-other">TL</span>
+                    </button>
+                </div>
+            </nav>
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <ion-icon name="menu-outline"></ion-icon>
+            </button>
+        </div>
+    </header>
+
+    <!-- Reference Hero Section -->
+    <section class="ref-hero">
+        <h1 data-i18n="places.hero_title">Saan ka sasakay, saan ka bababa?</h1>
+        <p data-i18n="places.hero_subtitle">From sakayan to galaan — your smart guide<br>to Calamba's terminals<br>and must-visit places</p>
+        
+        <!-- API Powered Search Bar -->
+        <div class="search-container" style="margin-top: 35px; animation: none; width: 100%; max-width: 600px;">
+            <div class="search-bar" id="searchBar">
+                <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
+                <input type="text" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Maghanap ng lugar..." class="search-input" id="searchInput">
+                <button class="search-button" aria-label="Search" id="searchBtn">
+                    <ion-icon name="search-outline"></ion-icon>
+                </button>
+            </div>
+            <!-- Dynamic Dropdown for Nominatim API Results -->
+            <div class="search-results-dropdown" id="searchResults" style="text-align: left; color: #1e293b;"></div>
+        </div>
+    </section>
+
+    <main class="places-page">
+        <!-- Categories -->
+        <div class="category-tabs">
+            <button class="category-tab active"><ion-icon name="grid-outline"></ion-icon> <span data-i18n="places.cat_all">All Places</span></button>
+            <button class="category-tab"><ion-icon name="business-outline"></ion-icon> <span data-i18n="places.cat_est">Establishments</span></button>
+            <button class="category-tab"><ion-icon name="bag-handle-outline"></ion-icon> <span data-i18n="places.cat_malls">Malls</span></button>
+            <button class="category-tab"><ion-icon name="cafe-outline"></ion-icon> <span data-i18n="places.cat_coffee">Coffee Shops</span></button>
+            <button class="category-tab"><ion-icon name="beer-outline"></ion-icon> <span data-i18n="places.cat_hangout">Hangout Place</span></button>
+        </div>
+
+        <!-- Section: CALAMBA / NEARBY PLACES -->
+        <h2 class="section-label" data-i18n="places.calamba_label">CALAMBA</h2>
+        <div class="places-grid">
+            <!-- Place Card 1 -->
+            <a href="planner.html?dest=Calamba City Hall" class="ref-card">
+                <div class="ref-img-container">
+                    <img src="https://images.unsplash.com/photo-1541888029519-7d04ebac2862?auto=format&fit=crop&w=600&q=80" alt="Calamba City Hall">
+                </div>
+                <h3>Calamba City Hall</h3>
+            </a>
+
+            <!-- Place Card 2: Reference exact string inside image -->
+            <a href="planner.html?dest=Rizal Shrine" class="ref-card">
+                <div class="ref-img-container">
+                    <!-- Placeholder close enough to "Bahay ni Rizal" / old house style -->
+                    <img src="https://images.unsplash.com/photo-1561501878-aabd62634533?auto=format&fit=crop&w=600&q=80" alt="Bahay ni Rizal">
+                </div>
+                <h3>Bahay ni Rizal</h3>
+            </a>
+
+            <!-- Place Card 3: Reference exact string -->
+            <a href="planner.html?dest=Moonbucks" class="ref-card">
+                <div class="ref-img-container">
+                    <!-- Placeholder for Coffee shop -->
+                    <img src="https://www.facebook.com/moonbuckscoffee8/" alt="Moonbucks">
+                </div>
+                <h3>Moonbucks</h3>
+            </a>
+            
+            <!-- Place Card 4 -->
+            <a href="planner.html?dest=SM City Calamba" class="ref-card">
+                <div class="ref-img-container">
+                    <img src="https://images.unsplash.com/photo-1519567281023-ec0646c1a84f?auto=format&fit=crop&w=600&q=80" alt="SM City Calamba">
+                </div>
+                <h3>SM City Calamba</h3>
+            </a>
+        </div>
+
+        <!-- Section: OUTSIDE CALAMBA / SIKAT NA LUGAR -->
+        <h2 class="section-label">OUTSIDE CALAMBA / FAMOUS PLACES</h2>
+        <div class="places-grid">
+            <!-- National Museum -->
+            <a href="planner.html?dest=National Museum" class="ref-card">
+                <div class="ref-img-container">
+                    <img src="https://images.unsplash.com/photo-1616016629737-14e414c22784?auto=format&fit=crop&w=600&q=80" alt="National Museum">
+                </div>
+                <h3>National Museum</h3>
+            </a>
+
+            <!-- Alabang Town Center / Festival Mall -->
+            <a href="planner.html?dest=Festival Mall Alabang" class="ref-card">
+                <div class="ref-img-container">
+                    <img src="https://images.unsplash.com/photo-1561069934-cee7cb420fb7?auto=format&fit=crop&w=600&q=80" alt="Alabang">
+                </div>
+                <h3>Alabang</h3>
+            </a>
+
+            <!-- Nuvali -->
+            <a href="planner.html?dest=Nuvali Sta Rosa" class="ref-card">
+                <div class="ref-img-container">
+                    <img src="https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?auto=format&fit=crop&w=600&q=80" alt="Nuvali">
+                </div>
+                <h3>Nuvali (Sta. Rosa)</h3>
+            </a>
+            
+            <!-- Tagaytay -->
+            <a href="planner.html?dest=Tagaytay" class="ref-card">
+                <div class="ref-img-container">
+                    <img src="https://plus.unsplash.com/premium_photo-1661962325946-b63e8a71d88a?auto=format&fit=crop&w=600&q=80" alt="Tagaytay">
+                </div>
+                <h3>Tagaytay City</h3>
+            </a>
+        </div>
+    </main>
+
+
+
+    <script src="script.js"></script>
+    <script src="i18n.js"></script>
+    <script>
+        // Category selection
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabs = document.querySelectorAll('.category-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Add filtering logic here if needed
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+

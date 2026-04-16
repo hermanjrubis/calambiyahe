@@ -26,11 +26,28 @@
             </a>
             
             <nav class="nav-links" id="navLinks">
-                <a href="about.html" class="nav-link">About</a>
-                <a href="index.html#place-finder" class="nav-link">Place Finder</a>
-                <a href="index.html#p2p" class="nav-link">P2P</a>
-                <a href="faq.html" class="nav-link">FAQs</a>
-                <a href="planner.html" class="btn-plan-route">Plan Route</a>
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
+                <a href="index.html#place-finder" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="planner.html" class="btn-plan-route" data-i18n="planner.plan_route">Plan Route</a>
+                
+                <!-- Navbar Toggle (Desktop) -->
+                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
+                    <span class="lang-active">EN</span>
+                    <span class="lang-sep">|</span>
+                    <span class="lang-other">TL</span>
+                </button>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <button class="mobile-lang-toggle">
+                        <span class="lang-active">EN</span>
+                        <span class="lang-sep">|</span>
+                        <span class="lang-other">TL</span>
+                    </button>
+                </div>
             </nav>
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <ion-icon name="menu-outline"></ion-icon>
@@ -43,19 +60,19 @@
             
             <!-- Auth Tabs -->
             <div class="auth-tabs">
-                <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')">Login</button>
-                <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')">Register</button>
+                <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')" data-i18n="login.title">Login</button>
+                <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')" data-i18n="login.register">Register</button>
             </div>
 
             <div class="auth-content">
                 <!-- LOGIN FORM -->
                 <form id="formLogin" class="auth-form active" onsubmit="event.preventDefault(); window.location.href='index.html';">
-                    <h2 class="auth-title">Welcome Back!</h2>
-                    <p class="auth-subtitle">Log in to continue navigating Calamba.</p>
+                    <h2 class="auth-title" data-i18n="login.welcome">Welcome Back!</h2>
+                    <p class="auth-subtitle" data-i18n="login.subtitle">Log in to continue navigating Calamba.</p>
 
                     <div class="input-group">
                         <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" placeholder="Email Address" required>
+                        <input type="email" data-i18n="login.email_placeholder" data-i18n-attr="placeholder" placeholder="Email Address" required>
                     </div>
 
                     <div class="input-group">
@@ -135,12 +152,13 @@
             <!-- Security Trust Badge Assurance -->
             <div class="security-assurance">
                 <ion-icon name="lock-closed"></ion-icon>
-                <span><strong>Secure Access:</strong> Your data is encrypted and securely stored. We never sell your personal information.</span>
+                <span data-i18n="login.secure_access"><strong>Secure Access:</strong> Your data is encrypted and securely stored. We never sell your personal information.</span>
             </div>
-            <a href="index.html" class="guest-link">Continue as Guest</a>
+            <a href="index.html" class="guest-link" data-i18n="login.guest">Continue as Guest</a>
         </div>
     </main>
 
     <script src="script.js"></script>
+    <script src="i18n.js"></script>
 </body>
 </html>

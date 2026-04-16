@@ -65,10 +65,27 @@
             </a>
 
             <nav class="nav-links" id="navLinks">
-                <a href="index.html#place-finder" class="nav-link">Place Finder</a>
-                <a href="index.html#p2p" class="nav-link">P2P</a>
-                <a href="faq.html" class="nav-link">FAQs</a>
-                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;">Plan Route</a>
+                <a href="index.html#place-finder" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;" data-i18n="planner.plan_route">Plan Route</a>
+                
+                <!-- Navbar Toggle (Desktop) -->
+                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
+                    <span class="lang-active">EN</span>
+                    <span class="lang-sep">|</span>
+                    <span class="lang-other">TL</span>
+                </button>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <button class="mobile-lang-toggle">
+                        <span class="lang-active">EN</span>
+                        <span class="lang-sep">|</span>
+                        <span class="lang-other">TL</span>
+                    </button>
+                </div>
             </nav>
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <ion-icon name="menu-outline"></ion-icon>
@@ -78,29 +95,29 @@
 
     <main class="about-page-container">
         <div class="about-content-wrapper">
-            <h1 class="about-title">About</h1>
+            <h1 class="about-title" data-i18n="about_page.title">About</h1>
             <div class="about-text">
-                <p>
+                <p data-i18n="about_page.p1">
                     <strong>Calzada</strong> is a commuter guide platform envisioned to transform the way people travel 
                     across Calamba and nearby cities. Rooted in the word <em>calzada</em>, meaning road or pathway, 
                     the brand embodies the idea of direction, clarity, and movement.
                 </p>
-                <p>
+                <p data-i18n="about_page.p2">
                     The platform integrates multiple modes of transport, including <strong>jeepneys, buses, P2P,
                     UV Express, and tricycles</strong>. Calzada offers a route suggestion feature that presents 
                     different travel options based on estimated duration, fare cost, and walking distance, 
                     helping commuters compare alternatives and choose the most convenient journey.
                 </p>
-                <p>
+                <p data-i18n="about_page.p3">
                     Calzada also highlights <strong>multi-modal navigation</strong>, enabling
                     commuters to combine different transport modes in a single journey.
                     The platform is built with a responsive design, making it accessible on both
                     desktop and mobile devices, and features a user-friendly interface
-                    that simplifies route planning even for first-time users.
+                     that simplifies route planning even for first-time users.
                 </p>
 
-                <h2 class="goal-title">Goal</h2>
-                <p>
+                <h2 class="goal-title" data-i18n="about_page.goal.heading">Goal</h2>
+                <p data-i18n="about_page.goal.body">
                     The primary goal of Calzada is to empower commuters by
                     providing accurate, transparent, and easy-to-use transit information.
                     By centralizing data on routes, fares, and transport options, the website aims to
@@ -119,22 +136,22 @@
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon"><ion-icon name="map-outline"></ion-icon></div>
-                <div class="feature-text"><strong>50+</strong><span>Routes Covered</span></div>
+                <div class="feature-text"><strong>50+</strong><span data-i18n="features.routes">Routes Covered</span></div>
             </div>
             <div class="feature-divider"></div>
             <div class="feature-card">
                 <div class="feature-icon"><ion-icon name="bus-outline"></ion-icon></div>
-                <div class="feature-text"><strong>6</strong><span>Transit Modes</span></div>
+                <div class="feature-text"><strong>6</strong><span data-i18n="features.modes">Transit Modes</span></div>
             </div>
             <div class="feature-divider"></div>
             <div class="feature-card">
                 <div class="feature-icon"><ion-icon name="home-outline"></ion-icon></div>
-                <div class="feature-text"><strong>54</strong><span>Barangays</span></div>
+                <div class="feature-text"><strong>54</strong><span data-i18n="features.barangays">Barangays</span></div>
             </div>
             <div class="feature-divider"></div>
             <div class="feature-card">
                 <div class="feature-icon"><ion-icon name="cash-outline"></ion-icon></div>
-                <div class="feature-text"><strong>Real-time</strong><span>Fare Info</span></div>
+                <div class="feature-text"><strong>Real-time</strong><span data-i18n="features.fare">Fare Info</span></div>
             </div>
         </div>
     </section>
@@ -199,6 +216,7 @@
 
     <!-- Chat Trigger / script handling can be added if needed, but for now focus on the page -->
     <script src="script.js"></script>
+    <script src="i18n.js"></script>
 </body>
 
 </html>

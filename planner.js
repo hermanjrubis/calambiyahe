@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let el = document.getElementById('routeLoadingIndicator');
         if (!el) {
             el = document.createElement('div'); el.id = 'routeLoadingIndicator';
-            el.innerHTML = `<div class="route-loading-inner"><div class="route-spinner"></div><span>Calculating route…</span></div>`;
+            el.innerHTML = `<div class="route-loading-inner"><div class="route-spinner"></div><span>${window.t('planner.calculating_route')}</span></div>`;
             document.body.appendChild(el);
         }
         el.style.display = show ? 'flex' : 'none';
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (fpInstance) setTimeout(() => fpInstance.open(), 50);
         } else if (val === 'now') {
             const btnText = document.getElementById('startJourneyBtnText');
-            if (btnText) btnText.textContent = 'Simulan ang Biyahe';
+            if (btnText) btnText.textContent = window.t('planner.simulan');
             const schedCard = document.getElementById('scheduleSummaryCard');
             if (schedCard) schedCard.style.display = 'none';
             if (fpInstance) fpInstance.clear();
@@ -808,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             activeOption = 'depart';
                         }
                         
-                        text.textContent = (activeOption === 'arrive' ? 'Arrive by ' : 'Depart at ') + fmt;
+                        text.textContent = (activeOption === 'arrive' ? window.t('planner.arrive_by_pre') : window.t('planner.depart_at_pre')) + ' ' + fmt;
                         if (selectedCoords.origin && selectedCoords.destination) triggerTerminalPicker();
                     }
                 }
@@ -1118,11 +1118,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const h = pad2(hrSlider.value), m = pad2(minSlider.value);
         const timeStr = `${h}:${m} ${ampm}`;
         const dateStr = selectedDate.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
-        const label = `${pickerMode === 'depart' ? 'Depart' : 'Arrive'} ${dateStr} ${timeStr}`;
+        const label = `${pickerMode === 'depart' ? window.t('planner.depart_at_pre') : window.t('planner.arrive_by_pre')} ${dateStr} ${timeStr}`;
         const schedText = document.getElementById('scheduleSelectedText');
         if (schedText) schedText.textContent = label;
         const btnText = document.getElementById('startJourneyBtnText');
-        if (btnText) btnText.textContent = 'I-schedule ang Biyahe';
+        if (btnText) btnText.textContent = window.t('planner.schedule_journey');
         closePicker();
         // Re-trigger schedule computation with updated time
         const estTime = document.getElementById('estTimeValue');
@@ -1144,4 +1144,24 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('dtNextMonth')?.addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
     leaveBtn?.addEventListener('click', () => { pickerMode = 'depart'; leaveBtn.classList.add('active'); arriveBtn?.classList.remove('active'); });
     arriveBtn?.addEventListener('click', () => { pickerMode = 'arrive'; arriveBtn.classList.add('active'); leaveBtn?.classList.remove('active'); });
+
+    // Handle language change
+    window.addEventListener('calzada_lang_changed', () => {
+        // Update Start Journey button text
+        const startBtnText = document.getElementById('startJourneyBtnText');
+        if (startBtnText) {
+            const isScheduled = document.getElementById('scheduleSummaryCard')?.style.display !== 'none';
+            startBtnText.textContent = isScheduled ? window.t('planner.schedule_journey') : window.t('planner.simulan');
+        }
+
+        // Update schedule label if Leave Now is active
+        const schedText = document.getElementById('scheduleSelectedText');
+        const activeSchedOption = document.querySelector('#scheduleOptions li.active')?.getAttribute('data-value');
+        if (schedText && activeSchedOption === 'now') {
+            schedText.textContent = window.t('planner.leave_now');
+        }
+
+        // Re-apply static translations
+        if (typeof window.applyLang === 'function') window.applyLang();
+    });
 })();

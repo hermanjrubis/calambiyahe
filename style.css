@@ -2415,3 +2415,88 @@ body {
     background: #f1f5f9;
     color: var(--primary-dark);
 }
+
+/* =============================================
+   LANGUAGE TOGGLE BUTTON
+   ============================================= */
+.lang-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+}
+.navbar-white .lang-toggle-btn {
+    background: rgba(26, 143, 255, 0.08);
+    border-color: rgba(26, 143, 255, 0.3);
+    color: var(--primary);
+}
+@media (max-width: 768px) {
+    .lang-toggle-btn {
+        display: none !important;
+    }
+}
+.lang-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.04);
+}
+.navbar-white .lang-toggle-btn:hover {
+    background: rgba(26, 143, 255, 0.15);
+}
+.lang-active {
+    color: white;
+    font-weight: 800;
+}
+.navbar-white .lang-active {
+    color: var(--primary);
+}
+.lang-sep {
+    opacity: 0.45;
+    font-weight: 400;
+}
+.lang-other {
+    opacity: 0.6;
+}
+
+/* Mobile Specific Toggle Row */
+.mobile-lang-row {
+    display: none; /* Hidden on Desktop */
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-top: 1px solid rgba(0, 45, 60, 0.08);
+    margin-top: 10px;
+}
+@media (max-width: 768px) {
+    .mobile-lang-row {
+        display: flex; /* Shown on Mobile */
+    }
+}
+.mobile-lang-label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+}
+.mobile-lang-toggle {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--primary);
+    cursor: pointer;
+}

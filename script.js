@@ -825,6 +825,18 @@ Accessible on mobile, tablet, and desktop.
         }
     }
 
+    // Handle language change
+    window.addEventListener('calzada_lang_changed', () => {
+        // Update chatbot greeting if it exists and hasn't been changed by interaction
+        const chatMsgs = document.getElementById('chatMessages');
+        if (chatMsgs && chatMsgs.children.length === 1) {
+            const firstMsg = chatMsgs.querySelector('.bot-message');
+            if (firstMsg) firstMsg.textContent = window.t('chat.greeting');
+        }
+
+        // Re-apply static translations
+        if (typeof window.applyLang === 'function') window.applyLang();
+    });
 });
 
 // === GLOBAL AUTHENTICATION LOGIC ===

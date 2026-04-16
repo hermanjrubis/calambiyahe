@@ -26,10 +26,27 @@
             </a>
             
             <nav class="nav-links" id="navLinks">
-                <a href="about.html" class="nav-link">About</a>
-                <a href="index.html#place-finder" class="nav-link">Place Finder</a>
-                <a href="index.html#p2p" class="nav-link">P2P</a>
-                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;">Plan Route</a>
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
+                <a href="index.html#place-finder" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;" data-i18n="planner.plan_route">Plan Route</a>
+                
+                <!-- Navbar Toggle (Desktop) -->
+                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
+                    <span class="lang-active">EN</span>
+                    <span class="lang-sep">|</span>
+                    <span class="lang-other">TL</span>
+                </button>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <button class="mobile-lang-toggle">
+                        <span class="lang-active">EN</span>
+                        <span class="lang-sep">|</span>
+                        <span class="lang-other">TL</span>
+                    </button>
+                </div>
             </nav>
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <ion-icon name="menu-outline"></ion-icon>
@@ -40,20 +57,20 @@
     <!-- FAQ Section -->
     <main class="faq-section">
         <div class="faq-container">
-            <h1 class="page-title">Frequently Asked Questions</h1>
+            <h1 class="page-title" data-i18n="faq.heading">Frequently Asked Questions</h1>
             
             <div class="faq-list">
                 <div class="faq-item">
-                    <button class="faq-question">What is Calzada? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question"><span data-i18n="faq1.q">What is Calzada?</span> <ion-icon name="chevron-down-outline"></ion-icon></button>
                     <div class="faq-answer">
-                        <p>Calzada is a commuter guide platform envisioned to transform the way people travel across Calamba and nearby cities. It provides route suggestions, fare information, and transport options for jeepneys, buses, P2P, UV Express, and tricycles to help commuters plan their trips with direction, clarity, and movement.</p>
+                        <p data-i18n="faq1.a">Calzada is a commuter guide platform envisioned to transform the way people travel across Calamba and nearby cities. It provides route suggestions, fare information, and transport options for jeepneys, buses, P2P, UV Express, and tricycles to help commuters plan their trips with direction, clarity, and movement.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question">How do I use the route search feature? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question"><span data-i18n="faq2.q">How do I use the route search feature?</span> <ion-icon name="chevron-down-outline"></ion-icon></button>
                     <div class="faq-answer">
-                        <p>Simply enter your starting point and destination in the search bar, then click the button to begin. The system will generate several route options, showing travel time, fare cost, and walking distance so you can compare and choose the most convenient journey.</p>
+                        <p data-i18n="faq2.a">Simply enter your starting point and destination in the search bar, then click the button to begin. The system will generate several route options, showing travel time, fare cost, and walking distance so you can compare and choose the most convenient journey.</p>
                     </div>
                 </div>
 
@@ -65,30 +82,30 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question">Can I access Calzada on mobile devices? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question"><span data-i18n="faq_mobile.q">Can I access Calzada on mobile devices?</span> <ion-icon name="chevron-down-outline"></ion-icon></button>
                     <div class="faq-answer">
-                        <p>Yes. The website is built with a responsive design, meaning it adjusts automatically to different screen sizes. Whether you are using a desktop, laptop, or smartphone, the interface remains clear and easy to use.</p>
+                        <p data-i18n="faq_mobile.a">Yes. The website is built with a responsive design, meaning it adjusts automatically to different screen sizes. Whether you are using a desktop, laptop, or smartphone, the interface remains clear and easy to use.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question">What transport modes are included? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question"><span data-i18n="faq_modes.q">What transport modes are included?</span> <ion-icon name="chevron-down-outline"></ion-icon></button>
                     <div class="faq-answer">
-                        <p>Currently, Calzada supports jeepneys, buses, P2P, UV Express, and tricycles. These modes cover the most common commuting options in Calamba and nearby areas.</p>
+                        <p data-i18n="faq_modes.a">Currently, Calzada supports jeepneys, buses, P2P, UV Express, and tricycles. These modes cover the most common commuting options in Calamba and nearby areas.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question">Is Calzada free to use? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question"><span data-i18n="faq3.q">Is Calzada free to use?</span> <ion-icon name="chevron-down-outline"></ion-icon></button>
                     <div class="faq-answer">
-                        <p>Yes. The platform is free for commuters and does not require any subscription. Its primary goal is to provide accessible and transparent information to the public.</p>
+                        <p data-i18n="faq3.a">Yes. The platform is free for commuters and does not require any subscription. Its primary goal is to provide accessible and transparent information to the public.</p>
                     </div>
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question">What is the main goal of Calzada? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question"><span data-i18n="faq4.q">What is the main goal of Calzada?</span> <ion-icon name="chevron-down-outline"></ion-icon></button>
                     <div class="faq-answer">
-                        <p>The primary goal of Calzada is to empower commuters by providing accurate, transparent, and easy-to-use transit information. By centralizing data on routes, fares, and transport options, the platform aims to reduce commuting stress and improve overall mobility in the city.</p>
+                        <p data-i18n="faq4.a">The primary goal of Calzada is to empower commuters by providing accurate, transparent, and easy-to-use transit information. By centralizing data on routes, fares, and transport options, the platform aims to reduce commuting stress and improve overall mobility in the city.</p>
                     </div>
                 </div>
             </div>
@@ -96,5 +113,6 @@
     </main>
 
     <script src="script.js"></script>
+    <script src="i18n.js"></script>
 </body>
 </html>

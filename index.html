@@ -33,11 +33,28 @@
             </a>
 
             <nav class="nav-links" id="navLinks">
-                <a href="about.html" class="nav-link">About</a>
-                <a href="#placeFinder" class="nav-link">Place Finder</a>
-                <a href="#p2p" class="nav-link">P2P</a>
-                <a href="faq.html" class="nav-link">FAQs</a>
-                <a href="login.html" class="nav-link btn-nav-auth">Sign In</a>
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
+                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="login.html" class="nav-link btn-nav-auth" data-i18n="login.signin">Sign In</a>
+                
+                <!-- Navbar Toggle (Desktop) -->
+                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
+                    <span class="lang-active">EN</span>
+                    <span class="lang-sep">|</span>
+                    <span class="lang-other">TL</span>
+                </button>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <button class="mobile-lang-toggle">
+                        <span class="lang-active">EN</span>
+                        <span class="lang-sep">|</span>
+                        <span class="lang-other">TL</span>
+                    </button>
+                </div>
             </nav>
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <ion-icon name="menu-outline"></ion-icon>
@@ -67,8 +84,8 @@
                 <img src="assets/logo-center.png" alt="Calzada App Icon" class="center-logo">
             </div>
 
-            <h1 class="hero-title">Your <span class="title-highlight shimmer-text">Commuting Guide</span> in Calamba.</h1>
-            <p class="hero-subtitle">
+            <h1 class="hero-title" data-i18n="hero.title">Your <span class="title-highlight shimmer-text">Commuting Guide</span> in Calamba.</h1>
+            <p class="hero-subtitle" data-i18n="hero.subtitle">
                 Find routes, fares, and connections for Jeepneys,
                 Buses, P2P, UV Express, and Tricycles.
             </p>
@@ -77,7 +94,7 @@
             <div class="search-container">
                 <div class="search-bar" id="searchBar">
                     <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
-                    <input type="text" placeholder="Where do you want to go?" class="search-input" id="searchInput">
+                    <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder" placeholder="Where do you want to go?" class="search-input" id="searchInput">
                     <button class="search-button" aria-label="Search" id="searchBtn">
                         <ion-icon name="search-outline"></ion-icon>
                     </button>
@@ -92,10 +109,10 @@
         <!-- Section: About Calzada -->
         <section class="about-card">
             <div class="section-header">
-                <h2>Ano ang Calzada?</h2>
+                <h2 data-i18n="about.heading">Ano ang Calzada?</h2>
                 <div class="header-line"></div>
             </div>
-            <p>
+            <p data-i18n="about.body">
                 Ang <strong>Calzada</strong> ay ang iyong maaasahang commuter guide platform dito sa Calamba at
                 karatig-bayan.
                 Madaliang mai-plano ang biyahe gamit ang aming platform na nagpapakita ng presyo ng pamasahe at
@@ -187,7 +204,7 @@
 
     <!-- Floating Chat Widget -->
     <div class="chat-widget-container">
-        <span class="chat-label">Ask DyipTok</span>
+        <span class="chat-label" data-i18n="chat.label">Ask DyipTok</span>
         <button class="chat-toggle-btn" id="chatToggleBtn">
             <ion-icon name="chatbubble"></ion-icon>
             <span class="pulse-ring"></span>
@@ -212,7 +229,7 @@
             </button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
+            <div class="message bot-message" data-i18n="chat.greeting">
                 Hello! I'm DyipTok. Where do you want to go today?
             </div>
         </div>
@@ -258,7 +275,7 @@
         <div class="footer-container">
             <div class="footer-column brand-column">
                 <img src="assets/logo-white.png" alt="Calzada Logo" class="footer-logo">
-                <p>Ang iyong maaasahang commuter guide platform sa Calamba.</p>
+                <p data-i18n="footer.tagline">Ang iyong maaasahang commuter guide platform sa Calamba.</p>
                 <div class="social-icons">
                     <a href="https://web.facebook.com/kelly.torres.861688"><ion-icon name="logo-facebook"></ion-icon></a>
                     <a href="#"><img src="assets/X_logo-white.png" alt="X" class="social-icon-img"></a>
@@ -266,26 +283,27 @@
                 </div>
             </div>
             <div class="footer-column nav-column">
-                <h3>Navigation</h3>
-                <a href="index.html">Home</a>
-                <a href="index.html#p2p">P2P Paths</a>
-                <a href="#">Submit a Route</a>
-                <a href="about.html">About Us</a>
-                <a href="faq.html">FAQ</a>
+                <h3 data-i18n="footer.nav.heading">Navigation</h3>
+                <a href="index.html" data-i18n="footer.nav.home">Home</a>
+                <a href="index.html#p2p" data-i18n="footer.nav.p2p">P2P Paths</a>
+                <a href="#" data-i18n="footer.nav.submit">Submit a Route</a>
+                <a href="about.html" data-i18n="footer.nav.about">About Us</a>
+                <a href="faq.html" data-i18n="footer.nav.faq">FAQ</a>
             </div>
             <div class="footer-column contact-column">
-                <h3>Contact Us</h3>
+                <h3 data-i18n="footer.contact.heading">Contact Us</h3>
                 <p><ion-icon name="mail-outline"></ion-icon> hello@calzada.ph</p>
                 <p><ion-icon name="call-outline"></ion-icon> (049) 555 1234</p>
                 <p><ion-icon name="location-outline"></ion-icon> Calamba City, Laguna</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026 Calzada. All rights reserved.</p>
+            <p data-i18n="footer.copyright">&copy; 2026 Calzada. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="script.js"></script>
+    <script src="i18n.js"></script>
     <!-- Page End Sentinel (For Footer Detection) -->
     <div id="footer-sentinel" style="height: 1px; width: 100%; pointer-events: none; opacity: 0;"></div>
 </body>
