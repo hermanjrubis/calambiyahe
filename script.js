@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const GROQ_API_KEY = "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"; // Groq API key
+    const GROQ_API_KEY = "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"; // Groq API key
     const SYSTEM_PROMPT = `You are DyipTok, the friendly AI commuting assistant of Calzada — a commuter guide platform for Calamba City and different routes originating from Calamba.
 
 === YOUR SCOPE (only answer questions within this list) ===
@@ -396,28 +396,54 @@ Accessible on mobile, tablet, and desktop.
 
 
     function addMessage(text, isUser = false) {
+        const wrapper = document.createElement('div');
+        wrapper.className = `message-wrapper ${isUser ? 'user-wrapper' : 'bot-wrapper'}`;
+        
+        if (!isUser) {
+            const avatar = document.createElement('div');
+            avatar.className = 'bot-avatar';
+            avatar.innerHTML = '<img src="assets/DyipTok-icon.png" alt="DyipTok">';
+            wrapper.appendChild(avatar);
+        }
+
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
         msgDiv.textContent = text;
-        chatMessages.appendChild(msgDiv);
+        wrapper.appendChild(msgDiv);
+        
+        chatMessages.appendChild(wrapper);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     let typingIndicatorEl = null;
+    let typingWrapperEl = null;
+
     function showTyping() {
         if (!chatMessages) return;
+        
+        typingWrapperEl = document.createElement('div');
+        typingWrapperEl.className = 'message-wrapper bot-wrapper';
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'bot-avatar';
+        avatar.innerHTML = '<img src="assets/DyipTok-icon.png" alt="DyipTok">';
+        typingWrapperEl.appendChild(avatar);
+        
         typingIndicatorEl = document.createElement('div');
         typingIndicatorEl.classList.add('typing-indicator');
         typingIndicatorEl.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
-        chatMessages.appendChild(typingIndicatorEl);
+        
+        typingWrapperEl.appendChild(typingIndicatorEl);
+        chatMessages.appendChild(typingWrapperEl);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
     function removeTyping() {
-        if (typingIndicatorEl && typingIndicatorEl.parentNode) {
-            typingIndicatorEl.parentNode.removeChild(typingIndicatorEl);
+        if (typingWrapperEl && typingWrapperEl.parentNode) {
+            typingWrapperEl.parentNode.removeChild(typingWrapperEl);
         }
         typingIndicatorEl = null;
+        typingWrapperEl = null;
     }
 
     async function handleChatSend() {
@@ -436,7 +462,6 @@ Accessible on mobile, tablet, and desktop.
 
         // API Call
         try {
-
             const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
                 method: 'POST',
                 headers: {
@@ -837,6 +862,38 @@ Accessible on mobile, tablet, and desktop.
         // Re-apply static translations
         if (typeof window.applyLang === 'function') window.applyLang();
     });
+
+    // === CATEGORY SCROLL NAVIGATION (Desktop) ===
+    const tabs = document.getElementById('categoryTabs');
+    const btnLeft = document.getElementById('catScrollLeft');
+    const btnRight = document.getElementById('catScrollRight');
+
+    function updateCatScrollButtons() {
+        if (!tabs || !btnLeft || !btnRight) return;
+        
+        // Use a small threshold (5px) for safety
+        const canScrollLeft = tabs.scrollLeft > 5;
+        const canScrollRight = tabs.scrollLeft < (tabs.scrollWidth - tabs.clientWidth - 5);
+
+        btnLeft.classList.toggle('visible', canScrollLeft);
+        btnRight.classList.toggle('visible', canScrollRight);
+    }
+
+    if (tabs && btnLeft && btnRight) {
+        // Initial check after content loads
+        setTimeout(updateCatScrollButtons, 300);
+
+        tabs.addEventListener('scroll', updateCatScrollButtons);
+        window.addEventListener('resize', updateCatScrollButtons);
+
+        btnLeft.addEventListener('click', () => {
+            tabs.scrollBy({ left: -280, behavior: 'smooth' });
+        });
+
+        btnRight.addEventListener('click', () => {
+            tabs.scrollBy({ left: 280, behavior: 'smooth' });
+        });
+    }
 });
 
 // === GLOBAL AUTHENTICATION LOGIC ===

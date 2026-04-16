@@ -215,32 +215,34 @@
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
             <div class="chat-header-info">
-                <div class="chat-avatar">
-                    <img src="assets/DyipTok-icon.png" alt="DyipTok">
-                </div>
                 <div>
                     <div class="chat-name">DyipTok Assistant</div>
                     <div class="chat-status"><span class="status-dot"></span> Online</div>
                 </div>
             </div>
             <button class="close-chat-btn" id="closeChatBtn">
-                <ion-icon name="chevron-back-outline" class="back-icon"></ion-icon>
-                <ion-icon name="close-outline" class="close-icon"></ion-icon>
+                <ion-icon name="close-outline"></ion-icon>
             </button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message" data-i18n="chat.greeting">
-                Hello! I'm DyipTok. Where do you want to go today?
+            <div class="message-wrapper bot-wrapper">
+                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
+                <div class="message bot-message" data-i18n="chat.greeting">
+                    Hello! I'm DyipTok. Where do you want to go today?
+                </div>
             </div>
         </div>
+
+        <!-- Suggested Chats -->
+        <div class="chat-suggestions">
+            <button class="suggestion-chip">Ano ang Calzada?</button>
+            <button class="suggestion-chip">Paano gamitin ang route search?</button>
+            <button class="suggestion-chip">Magagamit ba sa mobile?</button>
+            <button class="suggestion-chip">Anong transport modes ang meron?</button>
+            <button class="suggestion-chip">Libre ba ito?</button>
+        </div>
+
         <div class="chat-input-area">
-            <!-- Suggested Chats -->
-            <div class="chat-suggestions">
-                <button class="suggestion-chip">Para saan itong platform?</button>
-                <button class="suggestion-chip">P2P bus location?</button>
-                <button class="suggestion-chip">Road conditions now?</button>
-                <button class="suggestion-chip">Magkano ba pamasahe ngayon?</button>
-            </div>
             <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
 
             <!-- Bottom Action Row -->

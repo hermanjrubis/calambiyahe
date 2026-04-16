@@ -13,6 +13,12 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 <body>
+    <!-- Mouse Glow Aura -->
+    <div class="mouse-glow" id="mouseGlow"></div>
+
+    <!-- Geometric background assets -->
+    <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
+    <img src="assets/1.png" class="geo-bg geo-bg-2" alt="">
 
     <!-- Frosted Glass Navbar -->
     <header class="navbar navbar-white" id="navbar">
@@ -53,10 +59,10 @@
     <!-- Reference Hero Section -->
     <section class="ref-hero">
         <h1 data-i18n="places.hero_title">Saan ka sasakay, saan ka bababa?</h1>
-        <p data-i18n="places.hero_subtitle">From sakayan to galaan — your smart guide<br>to Calamba's terminals<br>and must-visit places</p>
+        <p data-i18n="places.hero_subtitle">From sakayan to galaan — your smart guide to Calamba's terminals and must-visit places</p>
         
         <!-- API Powered Search Bar -->
-        <div class="search-container" style="margin-top: 35px; animation: none; width: 100%; max-width: 600px;">
+        <div class="search-container" style="margin: 35px auto 0; animation: none; width: 100%; max-width: 600px;">
             <div class="search-bar" id="searchBar">
                 <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
                 <input type="text" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Maghanap ng lugar..." class="search-input" id="searchInput">
@@ -70,50 +76,103 @@
     </section>
 
     <main class="places-page">
-        <!-- Categories -->
-        <div class="category-tabs">
-            <button class="category-tab active"><ion-icon name="grid-outline"></ion-icon> <span data-i18n="places.cat_all">All Places</span></button>
-            <button class="category-tab"><ion-icon name="business-outline"></ion-icon> <span data-i18n="places.cat_est">Establishments</span></button>
-            <button class="category-tab"><ion-icon name="bag-handle-outline"></ion-icon> <span data-i18n="places.cat_malls">Malls</span></button>
-            <button class="category-tab"><ion-icon name="cafe-outline"></ion-icon> <span data-i18n="places.cat_coffee">Coffee Shops</span></button>
-            <button class="category-tab"><ion-icon name="beer-outline"></ion-icon> <span data-i18n="places.cat_hangout">Hangout Place</span></button>
+        <div class="category-nav-wrapper">
+            <button class="category-scroll-btn left" id="catScrollLeft" aria-label="Scroll Left">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
+            <div class="category-tabs" id="categoryTabs">
+                <button class="category-tab active" data-category="all"><ion-icon name="grid-outline"></ion-icon> <span data-i18n="places.cat_all">All Places</span></button>
+                <button class="category-tab" data-category="terminals"><ion-icon name="bus-outline"></ion-icon> <span data-i18n="places.cat_terminals">Terminals</span></button>
+                <button class="category-tab" data-category="establishments"><ion-icon name="business-outline"></ion-icon> <span data-i18n="places.cat_est">Establishments</span></button>
+                <button class="category-tab" data-category="malls"><ion-icon name="bag-handle-outline"></ion-icon> <span data-i18n="places.cat_malls">Malls</span></button>
+                <button class="category-tab" data-category="coffee"><ion-icon name="cafe-outline"></ion-icon> <span data-i18n="places.cat_coffee">Coffee Shops</span></button>
+                <button class="category-tab" data-category="hangout"><ion-icon name="beer-outline"></ion-icon> <span data-i18n="places.cat_hangout">Hangout Place</span></button>
+                <button class="category-tab" data-category="schools"><ion-icon name="school-outline"></ion-icon> <span data-i18n="places.cat_schools">Schools</span></button>
+            </div>
+            <button class="category-scroll-btn right" id="catScrollRight" aria-label="Scroll Right">
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+            </button>
+        </div>
+
+        <!-- No Results State -->
+        <div class="no-results" id="noResults">
+            <ion-icon name="search-outline"></ion-icon>
+            <p>No places found in this category.</p>
         </div>
 
         <!-- Section: CALAMBA / NEARBY PLACES -->
         <h2 class="section-label" data-i18n="places.calamba_label">CALAMBA</h2>
         <div class="places-grid">
             <!-- Place Card 1 -->
-            <a href="planner.html?dest=Calamba City Hall" class="ref-card">
+            <a href="planner.html?dest=Calamba City Hall" class="ref-card" data-category="establishments">
                 <div class="ref-img-container">
-                    <img src="https://images.unsplash.com/photo-1541888029519-7d04ebac2862?auto=format&fit=crop&w=600&q=80" alt="Calamba City Hall">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczM1DDQ8qkvS-5Yc_dvrpnI5HAwRSuj5zofc7zFnSeoqvrNcP1lBLZRsQv-GuutdVIb96tE83_WyDHGHxYviOh7JlUiUZNWnKJRuEOC4cyb6If3r669AS8ZN9iJB6fo_itMSwMNjVPSPmAvzo7Fe6Xw5zw=w2734-h2050-s-no-gm?authuser=0" alt="Calamba City Hall">
                 </div>
                 <h3>Calamba City Hall</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Establishment</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
 
-            <!-- Place Card 2: Reference exact string inside image -->
-            <a href="planner.html?dest=Rizal Shrine" class="ref-card">
+            <!-- Place Card 2 -->
+            <a href="planner.html?dest=Rizal Shrine" class="ref-card" data-category="hangout">
                 <div class="ref-img-container">
-                    <!-- Placeholder close enough to "Bahay ni Rizal" / old house style -->
-                    <img src="https://images.unsplash.com/photo-1561501878-aabd62634533?auto=format&fit=crop&w=600&q=80" alt="Bahay ni Rizal">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_EEk4rCx1aWAAIKLD-D9dGvcre4MjbxKdFQ&s" alt="Bahay ni Rizal">
                 </div>
                 <h3>Bahay ni Rizal</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Historic</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
 
-            <!-- Place Card 3: Reference exact string -->
-            <a href="planner.html?dest=Moonbucks" class="ref-card">
-                <div class="ref-img-container">
-                    <!-- Placeholder for Coffee shop -->
-                    <img src="https://www.facebook.com/moonbuckscoffee8/" alt="Moonbucks">
-                </div>
-                <h3>Moonbucks</h3>
-            </a>
-            
+            <!-- Place Card 3: Already updated in previous step -->
+
             <!-- Place Card 4 -->
-            <a href="planner.html?dest=SM City Calamba" class="ref-card">
+            <a href="planner.html?dest=SM City Calamba" class="ref-card" data-category="malls">
                 <div class="ref-img-container">
-                    <img src="https://images.unsplash.com/photo-1519567281023-ec0646c1a84f?auto=format&fit=crop&w=600&q=80" alt="SM City Calamba">
+                    <img src="https://evendo-location-media.s3.amazonaws.com/ShoppingImages/6267eb28-343f-4cc5-a08f-8f6022fcba2b" alt="SM City Calamba">
                 </div>
                 <h3>SM City Calamba</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Mall</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
+            </a>
+
+            <!-- Place Card 5: Terminal -->
+            <a href="planner.html?dest=Calamba Central Terminal" class="ref-card" data-category="terminals">
+                <div class="ref-img-container">
+                    <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80" alt="Terminal">
+                </div>
+                <h3>Central Terminal</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Terminal</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
+            </a>
+
+            <!-- Place Card 6: School -->
+            <a href="planner.html?dest=City College of Calamba" class="ref-card" data-category="schools">
+                <div class="ref-img-container">
+                    <img src="https://static.where-e.com/Philippines/City-College-Of-Calamba_ba2dfbc35e249893367f22e7076f4a27.jpg" alt="CCC">
+                </div>
+                <h3>City College of Calamba</h3>
+                <div class="card-meta">
+                    <span class="card-tag">School</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
         </div>
 
@@ -121,53 +180,207 @@
         <h2 class="section-label">OUTSIDE CALAMBA / FAMOUS PLACES</h2>
         <div class="places-grid">
             <!-- National Museum -->
-            <a href="planner.html?dest=National Museum" class="ref-card">
+            <a href="planner.html?dest=National Museum" class="ref-card" data-category="hangout establishments">
                 <div class="ref-img-container">
-                    <img src="https://images.unsplash.com/photo-1616016629737-14e414c22784?auto=format&fit=crop&w=600&q=80" alt="National Museum">
+                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/e2/63/5e/caption.jpg?w=900&h=500&s=1" alt="National Museum">
                 </div>
                 <h3>National Museum</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Historic</span>
+                    <span class="card-tag">Culture</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
 
-            <!-- Alabang Town Center / Festival Mall -->
-            <a href="planner.html?dest=Festival Mall Alabang" class="ref-card">
+            <!-- Alabang -->
+            <a href="planner.html?dest=Festival Mall Alabang" class="ref-card" data-category="malls hangout">
                 <div class="ref-img-container">
-                    <img src="https://images.unsplash.com/photo-1561069934-cee7cb420fb7?auto=format&fit=crop&w=600&q=80" alt="Alabang">
+                    <img src="https://image-tc.galaxy.tf/wijpeg-8apqa2wrqbabqxgblbqaaqrl0/_photo.jpg" alt="Alabang">
                 </div>
                 <h3>Alabang</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Mall</span>
+                    <span class="card-tag">Hub</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
 
             <!-- Nuvali -->
-            <a href="planner.html?dest=Nuvali Sta Rosa" class="ref-card">
+            <a href="planner.html?dest=Nuvali Sta Rosa" class="ref-card" data-category="hangout">
                 <div class="ref-img-container">
-                    <img src="https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?auto=format&fit=crop&w=600&q=80" alt="Nuvali">
+                    <img src="https://images.squarespace-cdn.com/content/v1/5fa1522044bdda192713063c/1694433501371-TZH3WMEXP477B0IUHAGU/20230910_095936-v2.jpg" alt="Nuvali">
                 </div>
                 <h3>Nuvali (Sta. Rosa)</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Leisure</span>
+                    <span class="card-tag">Nature</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
             
             <!-- Tagaytay -->
-            <a href="planner.html?dest=Tagaytay" class="ref-card">
+            <a href="planner.html?dest=Tagaytay" class="ref-card" data-category="hangout">
                 <div class="ref-img-container">
-                    <img src="https://plus.unsplash.com/premium_photo-1661962325946-b63e8a71d88a?auto=format&fit=crop&w=600&q=80" alt="Tagaytay">
+                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/1c/54/ff/caption.jpg?w=1200&h=-1&s=1" alt="Tagaytay">
                 </div>
                 <h3>Tagaytay City</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Nature</span>
+                    <span class="card-tag">Hangout</span>
+                </div>
+                <div class="card-footer">
+                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                </div>
             </a>
         </div>
     </main>
 
 
 
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget-container">
+        <span class="chat-label" data-i18n="chat.label">Ask DyipTok</span>
+        <button class="chat-toggle-btn" id="chatToggleBtn">
+            <ion-icon name="chatbubble"></ion-icon>
+            <span class="pulse-ring"></span>
+        </button>
+    </div>
+
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div>
+                    <div class="chat-name">DyipTok Assistant</div>
+                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message-wrapper bot-wrapper">
+                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
+                <div class="message bot-message" data-i18n="chat.greeting">
+                    Hello! I'm DyipTok. Where do you want to go today?
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Chats -->
+        <div class="chat-suggestions">
+            <button class="suggestion-chip">Ano ang Calzada?</button>
+            <button class="suggestion-chip">Paano gamitin ang route search?</button>
+            <button class="suggestion-chip">Magagamit ba sa mobile?</button>
+            <button class="suggestion-chip">Anong transport modes ang meron?</button>
+            <button class="suggestion-chip">Libre ba ito?</button>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+
+            <!-- Bottom Action Row -->
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon id="pauseMicIcon" name="pause-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Send">
+                    <ion-icon name="send-outline"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script src="i18n.js"></script>
     <script>
-        // Category selection
+        // Category selection & Filtering
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
+            const cards = document.querySelectorAll('.ref-card');
+            const sections = document.querySelectorAll('.section-label');
+            const noResults = document.getElementById('noResults');
+
+            const searchInput = document.getElementById('searchInput');
+            const noResults = document.getElementById('noResults');
+
+            function filterPlaces() {
+                const category = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
+                const searchTerm = searchInput?.value.toLowerCase() || '';
+                
+                let totalVisible = 0;
+
+                document.querySelectorAll('.places-grid').forEach(grid => {
+                    let gridVisibleCount = 0;
+                    const gridCards = grid.querySelectorAll('.ref-card');
+                    const sectionLabel = grid.previousElementSibling;
+
+                    gridCards.forEach(card => {
+                        const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
+                        const cardCats = card.getAttribute('data-category') || '';
+                        const cardTags = Array.from(card.querySelectorAll('.card-tag')).map(t => t.textContent.toLowerCase()).join(' ');
+                        
+                        const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
+                        const matchesSearch = (cardName.includes(searchTerm) || cardTags.includes(searchTerm));
+
+                        if (matchesCategory && matchesSearch) {
+                            card.style.display = 'flex';
+                            gridVisibleCount++;
+                            totalVisible++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Show/hide section label based on whether it has visible cards
+                    if (sectionLabel && sectionLabel.classList.contains('section-label')) {
+                        sectionLabel.style.display = gridVisibleCount > 0 ? 'flex' : 'none';
+                    }
+                });
+
+                // Handle Global No Results
+                if (noResults) {
+                    noResults.style.display = totalVisible === 0 ? 'block' : 'none';
+                }
+            }
+
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
+                    // Update tabs UI
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    // Add filtering logic here if needed
+                    filterPlaces();
                 });
+            });
+
+            if (searchInput) {
+                searchInput.addEventListener('input', filterPlaces);
+            }
+            
+            // Initial animation for cards
+            cards.forEach((card, index) => {
+                card.style.animation = `heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + (index * 0.05)}s both`;
             });
         });
     </script>

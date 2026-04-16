@@ -86,6 +86,8 @@ window.translations = {
         'places.cat_malls':     'Malls',
         'places.cat_coffee':    'Coffee Shops',
         'places.cat_hangout':   'Hangout Place',
+        'places.cat_terminals': 'Terminals',
+        'places.cat_schools':   'Schools',
         'places.calamba_label': 'CALAMBA',
         'places.outside_label': 'OUTSIDE CALAMBA / FAMOUS PLACES',
         // === planner.html ===
@@ -248,6 +250,8 @@ window.translations = {
         'places.cat_malls':     'Mga Malls',
         'places.cat_coffee':    'Mga Coffee Shops',
         'places.cat_hangout':   'Galaan / Hangout',
+        'places.cat_terminals': 'Mga Terminal',
+        'places.cat_schools':   'Mga Paaralan',
         'places.calamba_label': 'CALAMBA',
         'places.outside_label': 'SA LABAS NG CALAMBA / SIKAT NA LUGAR',
         // === planner.html ===
