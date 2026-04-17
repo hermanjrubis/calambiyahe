@@ -169,6 +169,10 @@ window.translations = {
         'planner.dt_arrive':    'Arrive',
         'planner.dt_now':       'Now',
         'planner.dt_set':       'Set Schedule',
+        'planner.schedule_journey': 'Schedule Journey',
+        'planner.depart_at_pre': 'Depart at',
+        'planner.arrive_by_pre': 'Arrive by',
+        'planner.calculating_route': 'Calculating route...',
     },
     tl: {
         // === index.html ===
@@ -330,9 +334,13 @@ window.translations = {
         'planner.dt_am':        'AM',
         'planner.dt_pm':        'PM',
         'planner.dt_leave':     'Alis',
-        'planner.dt_arrive':    'Rating',
+        'planner.dt_arrive':    'Dating',
         'planner.dt_now':       'Ngayon',
         'planner.dt_set':       'I-set ang Schedule',
+        'planner.schedule_journey': 'I-schedule ang Biyahe',
+        'planner.depart_at_pre': 'Alis ng',
+        'planner.arrive_by_pre': 'Dating ng',
+        'planner.calculating_route': 'Kinakalkula ang ruta...',
     }
 };
 

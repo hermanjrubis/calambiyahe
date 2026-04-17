@@ -603,7 +603,14 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.terminal-modes { display: flex; flex-wrap: wrap; gap: 4px; }
+.terminal-modes { 
+    display: flex; 
+    flex-wrap: nowrap; 
+    gap: 4px; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
+}
+.terminal-modes::-webkit-scrollbar { display: none; }
 .mode-badge {
     font-size: 0.67rem;
     font-weight: 600;

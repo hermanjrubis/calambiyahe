@@ -1144,6 +1144,7 @@ body {
 
 .chat-suggestions {
     display: flex;
+    flex-wrap: nowrap;
     gap: 6px;
     padding: 5px 10px 15px;
     overflow-x: auto;
@@ -1625,13 +1626,12 @@ body {
     }
 
     .features-grid {
-        gap: 0.5rem;
-        flex-wrap: nowrap;
-        /* Single line */
-        justify-content: flex-start;
-        overflow-x: auto;
-        padding-bottom: 5px;
+        gap: 0.35rem; /* Slightly smaller gap */
+        flex-wrap: nowrap; /* Force single line */
+        justify-content: space-evenly;
+        padding-bottom: 0;
         scrollbar-width: none;
+        width: 100%;
     }
 
     .features-grid::-webkit-scrollbar {
@@ -1639,19 +1639,19 @@ body {
     }
 
     .feature-card {
-        padding: 0.2rem 0.8rem;
-        flex-shrink: 0;
+        padding: 0.2rem 0.5rem;
+        flex-shrink: 1;
         gap: 8px;
     }
 
     .feature-icon {
-        width: 30px;
-        height: 30px;
-        font-size: 1rem;
+        width: 28px;
+        height: 28px;
+        font-size: 0.95rem;
     }
 
     .feature-text strong {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
     }
 
     .feature-text span {
@@ -1663,7 +1663,7 @@ body {
     }
 
     .features-bar {
-        padding: 0.5rem 1rem;
+        padding: 0.4rem 0.8rem;
     }
 
     /* Mobile full-screen chat -> Floating Card */
@@ -1729,25 +1729,34 @@ body {
     }
 
     .features-bar {
-        padding: 0.4rem 1rem;
+        padding: 0.3rem 0.6rem;
+    }
+
+    .features-grid {
+        gap: 0.2rem;
+        flex-wrap: nowrap;
+        justify-content: space-evenly;
     }
 
     .feature-card {
-        padding: 0.1rem 0.6rem;
+        padding: 0.1rem 0.3rem;
+        gap: 4px;
+        flex-shrink: 1;
+        min-width: 0; /* Allow shrinking below content size */
     }
 
     .feature-icon {
-        width: 26px;
-        height: 26px;
-        font-size: 0.85rem;
+        width: 18px;
+        height: 18px;
+        font-size: 0.75rem;
     }
 
     .feature-text strong {
-        font-size: 0.85rem;
+        font-size: 0.7rem;
     }
 
     .feature-text span {
-        font-size: 0.6rem;
+        font-size: 0.5rem;
     }
 }
 
@@ -2604,6 +2613,7 @@ body {
 
 .category-tabs {
     display: flex;
+    flex-wrap: nowrap;
     gap: 14px;
     overflow-x: auto;
     padding: 30px 0 50px;
