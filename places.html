@@ -320,10 +320,41 @@
             const tabs = document.querySelectorAll('.category-tab');
             const cards = document.querySelectorAll('.ref-card');
             const sections = document.querySelectorAll('.section-label');
+            const categoryTabs = document.getElementById('categoryTabs');
+            const scrollLeftBtn = document.getElementById('catScrollLeft');
+            const scrollRightBtn = document.getElementById('catScrollRight');
             const noResults = document.getElementById('noResults');
-
             const searchInput = document.getElementById('searchInput');
-            const noResults = document.getElementById('noResults');
+
+            // Scroll Buttons Logic
+            const updateScrollButtons = () => {
+                if (!categoryTabs || !scrollLeftBtn || !scrollRightBtn) return;
+                
+                const showLeft = categoryTabs.scrollLeft > 10;
+                const showRight = categoryTabs.scrollLeft < (categoryTabs.scrollWidth - categoryTabs.clientWidth - 10);
+                
+                scrollLeftBtn.classList.toggle('visible', showLeft);
+                scrollRightBtn.classList.toggle('visible', showRight);
+            };
+
+            if (categoryTabs) {
+                categoryTabs.addEventListener('scroll', updateScrollButtons);
+                window.addEventListener('resize', updateScrollButtons);
+                // Initial check
+                setTimeout(updateScrollButtons, 100);
+            }
+
+            if (scrollLeftBtn) {
+                scrollLeftBtn.addEventListener('click', () => {
+                    categoryTabs.scrollBy({ left: -200, behavior: 'smooth' });
+                });
+            }
+
+            if (scrollRightBtn) {
+                scrollRightBtn.addEventListener('click', () => {
+                    categoryTabs.scrollBy({ left: 200, behavior: 'smooth' });
+                });
+            }
 
             function filterPlaces() {
                 const category = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
