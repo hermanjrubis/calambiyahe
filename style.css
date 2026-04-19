@@ -2999,7 +2999,7 @@ body {
 
     .steps-dot {
         transform-origin: center;
-        transform: scale(0.65);
+        transform: scale(0.50);
     }
 }
 
@@ -3138,4 +3138,4 @@ body {
     position: relative;
     z-index: 1;
 }
-
+
