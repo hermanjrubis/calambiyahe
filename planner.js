@@ -92,13 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     const FARE_MAP = {
-        jeep: { base: 13, perKm: 2, name: 'Jeepney' },
-        'modern-jeep': { base: 15, perKm: 2.5, name: 'Modern Jeepney' },
-        bus: { base: 15, perKm: 2.5, name: 'Bus' },
-        van: { base: 25, perKm: 4, name: 'Van' },
-        uv: { base: 30, perKm: 4, name: 'UV Express' }, // UV Express added
-        tricycle: { base: 20, perKm: 5, name: 'Tricycle' },
-        walk: { base: 0, perKm: 0, name: 'Walk' }
+        jeep:           { base: 13, perKm: 2,   freeKm: 4, name: 'Jeepney' },
+        'modern-jeep':  { base: 15, perKm: 2.5, freeKm: 4, name: 'Modern Jeepney' },
+        bus:            { base: 15, perKm: 2.5, freeKm: 5, name: 'Bus' },
+        van:            { base: 25, perKm: 4,   freeKm: 5, name: 'Van' },
+        uv:             { base: 30, perKm: 4,   freeKm: 5, name: 'UV Express' },
+        tricycle:       { base: 20, perKm: 5,   freeKm: 1, name: 'Tricycle' },
+        walk:           { base: 0,  perKm: 0,   freeKm: 0, name: 'Walk' }
     };
 
 
@@ -298,6 +298,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 badge: 'planner.badge_least_transfer', badgeClass: 'badge-least-transfer',
                 legs: generateLocalLegs(originCoords, destCoords, destName, 'modern-jeep')
             });
+            // Option 3: Tricycle (for short local trips only)
+            if (dist < 4) {
+                options.push({
+                    badge: 'planner.badge_cheapest', badgeClass: 'badge-cheapest',
+                    legs: generateLocalLegs(originCoords, destCoords, destName, 'tricycle')
+                });
+            }
         } 
         // Scenario B: Long Distance / Out of City
         else {
@@ -341,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dist > 0.5) {
             legs.push({ type: 'access', mode: 'walk', icon: 'walk-outline', iconColor: '#64748b', title: window.t('js.maglakad'), from: window.t('js.iyong_lokasyon'), to: 'Sakayan', distance: 0.3, fare: 0, duration: 5, note: 'Lakad papunta sa sakayan' });
         }
-        legs.push({ type: 'main', mode, imageIcon: imageMap[mode], iconColor: colorMap[mode], title: fareInfo.name, from: 'Sakayan', to: destName, distance: dist, fare: fareInfo.base + Math.max(0, dist-4)*fareInfo.perKm, duration: Math.round(dist * 4) + 5 });
+        legs.push({ type: 'main', mode, imageIcon: imageMap[mode], iconColor: colorMap[mode], title: fareInfo.name, from: 'Sakayan', to: destName, distance: dist, fare: fareInfo.base + Math.max(0, dist - fareInfo.freeKm) * fareInfo.perKm, duration: Math.round(dist * 4) + 5 });
         legs.push({ type: 'arrival', mode: 'arrive', icon: 'flag-outline', iconColor: '#ef4444', title: window.t('js.nakarating'), from: destName, to: destName, distance: 0, fare: 0, duration: 0 });
         return legs;
     };
@@ -357,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Leg 1: Tricycle to Terminal
         legs.push({ type: 'access', mode: 'tricycle', imageIcon: 'assets/icons/tricycle-icon.png', iconColor: '#16a34a', title: 'Tricycle', from: 'Lokasyon', to: terminal.shortName, distance: distToTerm, fare: 20 + Math.max(0, distToTerm-1)*10, duration: Math.round(distToTerm * 6) });
         // Leg 2: Main Commute
-        legs.push({ type: 'main', mode, imageIcon: imageMap[mode], iconColor: colorMap[mode], title: fareInfo.name, from: terminal.shortName, to: destName, distance: distToDest, fare: fareInfo.base + Math.max(0, distToDest-5)*fareInfo.perKm, duration: Math.round(distToDest * 3) + 10 });
+        legs.push({ type: 'main', mode, imageIcon: imageMap[mode], iconColor: colorMap[mode], title: fareInfo.name, from: terminal.shortName, to: destName, distance: distToDest, fare: fareInfo.base + Math.max(0, distToDest - fareInfo.freeKm) * fareInfo.perKm, duration: Math.round(distToDest * 3) + 10 });
         // Leg 3: Arrival
         legs.push({ type: 'arrival', mode: 'arrive', icon: 'flag-outline', iconColor: '#ef4444', title: window.t('js.nakarating'), from: destName, to: destName, distance: 0, fare: 0, duration: 0 });
         return legs;
@@ -374,7 +381,21 @@ document.addEventListener('DOMContentLoaded', () => {
         panel.innerHTML = '';
         panel.style.display = 'flex';
 
-        options.forEach((opt, idx) => {
+        // Upgrade #6: Empty state when no valid options could be generated
+        const validOptions = options.filter(opt => opt.legs && opt.legs.length > 0);
+        if (validOptions.length === 0) {
+            panel.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:24px 16px;text-align:center;width:100%;">
+                    <ion-icon name="map-outline" style="font-size:2.5rem;color:#94a3b8;"></ion-icon>
+                    <div style="font-weight:700;color:#1e293b;font-size:1rem;">Walang nahanap na ruta</div>
+                    <div style="font-size:0.85rem;color:#64748b;line-height:1.5;">
+                        Hindi pa namin nase-serve ang destinasyong ito. Subukan ang ibang lugar o i-adjust ang iyong origin.
+                    </div>
+                </div>`;
+            return;
+        }
+
+        validOptions.forEach((opt, idx) => {
             const card = document.createElement('div');
             card.className = `route-option-card ${idx === selectedOptionIndex ? 'selected' : ''}`;
             
@@ -414,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
             panel.appendChild(card);
         });
 
-        selectItinerary(selectedOptionIndex);
+        selectItinerary(selectedOptionIndex < validOptions.length ? selectedOptionIndex : 0);
     };
 
     const selectItinerary = (index) => {
@@ -436,6 +457,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const h = Math.floor(selected.totalTime / 60), m = selected.totalTime % 60;
         document.getElementById('estTimeValue').textContent = h > 0 ? `${h}hr ${m}min` : `${m}min`;
         document.getElementById('estFareValue').textContent = `₱ ${Math.ceil(selected.totalFare)}`;
+
+        // Upgrade #5: Show estimated arrival clock time
+        const arrivalTime = new Date(Date.now() + selected.totalTime * 60000);
+        const arrivalStr = arrivalTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' });
+        let arrivalEl = document.getElementById('estArrivalTime');
+        if (!arrivalEl) {
+            // Inject arrival time element once into the summary strip
+            const strip = document.querySelector('.guide-summary-strip');
+            if (strip) {
+                strip.insertAdjacentHTML('beforeend', `
+                    <div class="guide-summary-divider"></div>
+                    <div class="guide-summary-item">
+                        <ion-icon name="flag-outline"></ion-icon>
+                        <span id="estArrivalTime"></span>
+                    </div>`);
+                arrivalEl = document.getElementById('estArrivalTime');
+            }
+        }
+        if (arrivalEl) arrivalEl.textContent = arrivalStr;
     };
 
     const renderItinerarySteps = (legs) => {
@@ -676,7 +716,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fareInfo = FARE_MAP[mode] || FARE_MAP.jeep;
 
         const dist = calcDist(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
-        const mainFare = fareInfo.base + Math.max(0, dist - 4) * fareInfo.perKm;
+        const mainFare = fareInfo.base + Math.max(0, dist - fareInfo.freeKm) * fareInfo.perKm;
 
         const colorMap = { bus: '#0f6fd1', van: '#f59e0b', tricycle: '#16a34a', 'modern-jeep': '#7c3aed', jeep: '#1a8fff' };
         const imageMap = { bus: 'assets/icons/bus-icon.png', van: 'assets/icons/van-icon.png', tricycle: 'assets/icons/tricycle-icon.png', 'modern-jeep': 'assets/icons/jeepney-icon.png', jeep: 'assets/icons/jeepney-icon.png' };
@@ -772,6 +812,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const getActiveMode = () => 'jeep'; // Hardcoded fallback since mode selector was removed
 
+    // Upgrade #1: Fetch a real road-following polyline from OSRM
+    const fetchOSRMRoute = async (from, to, profile = 'driving') => {
+        try {
+            const url = `https://router.project-osrm.org/route/v1/${profile}/${from[1]},${from[0]};${to[1]},${to[0]}?overview=full&geometries=geojson`;
+            const r = await fetch(url);
+            const d = await r.json();
+            if (d.code === 'Ok' && d.routes && d.routes.length > 0) {
+                // GeoJSON coords are [lng, lat], Leaflet needs [lat, lng]
+                return d.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+            }
+        } catch (e) {
+            console.warn('OSRM fetch failed, falling back to straight line:', e);
+        }
+        return null;
+    };
+
     const drawRouteMulti = async (legs) => {
         if (currentPolyline) {
             if (Array.isArray(currentPolyline)) currentPolyline.forEach(p => map.removeLayer(p));
@@ -779,9 +835,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         markers.forEach(m => map.removeLayer(m));
         markers = [];
-        
+
         currentPolyline = [];
         const bounds = L.latLngBounds();
+
+        // Determine waypoints from legs
+        const waypoints = [];
+        for (let i = 0; i < legs.length; i++) {
+            const leg = legs[i];
+            if (i === 0) waypoints.push({ coords: leg.fromCoords || selectedCoords.origin, leg });
+            if (leg.type !== 'arrival') {
+                waypoints.push({ coords: leg.toCoords || selectedCoords.destination, leg });
+            }
+        }
 
         for (let i = 0; i < legs.length; i++) {
             const leg = legs[i];
@@ -789,21 +855,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const color = leg.iconColor || '#3b82f6';
             const weight = leg.mode === 'walk' ? 4 : 6;
-            const dashArray = leg.mode === 'walk' ? '5,10' : null;
+            const dashArray = leg.mode === 'walk' ? '8,12' : null;
 
-            let points = [leg.fromCoords || selectedCoords.origin, leg.toCoords || selectedCoords.destination];
-            // If it's a known simulation, use it
-            if (routeSimulations[leg.mode] && i === 1) { 
-                points = routeSimulations[leg.mode].paths;
-            }
-            const poly = L.polyline(points, { color, weight, opacity: 0.8, dashArray, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+            const from = leg.fromCoords || selectedCoords.origin;
+            const to   = leg.toCoords   || selectedCoords.destination;
+
+            // Walk legs use foot profile; others use driving
+            const osrmProfile = leg.mode === 'walk' ? 'foot' : 'driving';
+            const roadPoints = await fetchOSRMRoute(from, to, osrmProfile);
+            const points = roadPoints || [from, to]; // fallback to straight line
+
+            const poly = L.polyline(points, {
+                color, weight, opacity: 0.85, dashArray,
+                lineJoin: 'round', lineCap: 'round'
+            }).addTo(map);
             currentPolyline.push(poly);
             bounds.extend(poly.getBounds());
 
-            // Add intermediate markers
+            // Transfer point markers (not the first leg start)
             if (i > 0) {
                 const midIcon = createTransitMarker('circle', color, true);
-                markers.push(L.marker(points[0], { icon: midIcon }).addTo(map));
+                markers.push(L.marker(from, { icon: midIcon }).addTo(map));
             }
         }
 
@@ -813,7 +885,9 @@ document.addEventListener('DOMContentLoaded', () => {
             L.marker(selectedCoords.destination, { icon: L.icon({ iconUrl: 'assets/destination-icon.png', iconSize: [40, 40], iconAnchor: [20, 36] }) }).addTo(map)
         );
 
-        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+        if (bounds.isValid()) {
+            map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+        }
     };
 
     // =============================================
@@ -1377,6 +1451,222 @@ document.addEventListener('DOMContentLoaded', () => {
         checkFormStatus();
         if (selectedCoords.destination) triggerTerminalPicker();
     });
+
+    // =============================================
+    // UPGRADE #7: RECENT SEARCHES
+    // =============================================
+    const RECENTS_KEY = 'calzada_recent_searches';
+    const MAX_RECENTS = 5;
+
+    const getRecentSearches = () => {
+        try { return JSON.parse(localStorage.getItem(RECENTS_KEY)) || []; }
+        catch { return []; }
+    };
+
+    const saveRecentSearch = (origin, destination, originCoords, destCoords) => {
+        if (!origin || !destination) return;
+        let recents = getRecentSearches();
+        // Remove duplicates (same origin+dest)
+        recents = recents.filter(r => !(r.origin === origin && r.destination === destination));
+        recents.unshift({ origin, destination, originCoords, destCoords, ts: Date.now() });
+        if (recents.length > MAX_RECENTS) recents = recents.slice(0, MAX_RECENTS);
+        localStorage.setItem(RECENTS_KEY, JSON.stringify(recents));
+    };
+
+    const renderRecentSearches = (inputEl, listEl, coordKey) => {
+        const recents = getRecentSearches();
+        if (!recents.length) { listEl.style.display = 'none'; return; }
+        listEl.innerHTML = '';
+        recents.forEach(r => {
+            const label = coordKey === 'origin' ? r.origin : r.destination;
+            const coordsToSet = coordKey === 'origin' ? r.originCoords : r.destCoords;
+            const li = document.createElement('li'); li.className = 'suggestion-item';
+            li.innerHTML = `<span class="suggestion-icon">🕐</span>
+                <div class="suggestion-text">
+                    <span class="suggestion-name">${label}</span>
+                    <span class="suggestion-address">${r.origin} → ${r.destination}</span>
+                </div>`;
+            li.addEventListener('click', () => {
+                inputEl.value = label;
+                if (coordsToSet) selectedCoords[coordKey] = coordsToSet;
+                listEl.style.display = 'none';
+                checkFormStatus();
+                if (coordKey === 'destination') { selectedTerminalId = null; triggerTerminalPicker(); }
+                if (coordKey === 'origin' && selectedCoords.destination) triggerTerminalPicker();
+            });
+            listEl.appendChild(li);
+        });
+        listEl.style.display = 'block';
+    };
+
+    // Show recent searches when inputs are focused and empty
+    [
+        { input: originInput, list: document.getElementById('originSuggestions'), key: 'origin' },
+        { input: destinationInput, list: document.getElementById('destSuggestions'), key: 'destination' }
+    ].forEach(({ input, list, key }) => {
+        if (!input || !list) return;
+        input.addEventListener('focus', () => {
+            if (!input.value.trim()) renderRecentSearches(input, list, key);
+        });
+    });
+
+    // Save search when journey starts
+    const origStartJourneyBtn = document.getElementById('startJourneyBtn');
+    origStartJourneyBtn?.addEventListener('click', () => {
+        const ov = originInput?.value.trim();
+        const dv = destinationInput?.value.trim();
+        if (ov && dv) {
+            saveRecentSearch(ov, dv, selectedCoords.origin, selectedCoords.destination);
+        }
+    }, true); // capture phase so it fires before other listeners
+
+
+    // =============================================
+    // UPGRADE #8: FAVORITE ROUTES
+    // =============================================
+    const FAVS_KEY = 'calzada_favorite_routes';
+
+    const getFavorites = () => {
+        try { return JSON.parse(localStorage.getItem(FAVS_KEY)) || []; }
+        catch { return []; }
+    };
+
+    const saveFavorite = (origin, destination, originCoords, destCoords) => {
+        let favs = getFavorites();
+        const exists = favs.some(f => f.origin === origin && f.destination === destination);
+        if (exists) return false; // already saved
+        favs.unshift({ origin, destination, originCoords, destCoords, ts: Date.now() });
+        localStorage.setItem(FAVS_KEY, JSON.stringify(favs));
+        return true;
+    };
+
+    const removeFavorite = (origin, destination) => {
+        let favs = getFavorites().filter(f => !(f.origin === origin && f.destination === destination));
+        localStorage.setItem(FAVS_KEY, JSON.stringify(favs));
+    };
+
+    const isFavorite = (origin, destination) =>
+        getFavorites().some(f => f.origin === origin && f.destination === destination);
+
+    // Inject star button into the guide card header
+    const guideTitle = document.querySelector('.guide-title');
+    if (guideTitle) {
+        guideTitle.insertAdjacentHTML('afterend', `
+            <button id="favStarBtn" title="Save as Favorite"
+                style="position:absolute;right:16px;top:16px;background:none;border:none;cursor:pointer;font-size:1.4rem;color:#cbd5e1;transition:color 0.2s;"
+                >☆</button>`);
+    }
+
+    const updateFavStar = () => {
+        const btn = document.getElementById('favStarBtn');
+        if (!btn) return;
+        const ov = originInput?.value.trim();
+        const dv = destinationInput?.value.trim();
+        if (ov && dv && isFavorite(ov, dv)) {
+            btn.textContent = '★'; btn.style.color = '#f59e0b';
+        } else {
+            btn.textContent = '☆'; btn.style.color = '#cbd5e1';
+        }
+    };
+
+    document.getElementById('favStarBtn')?.addEventListener('click', () => {
+        const ov = originInput?.value.trim();
+        const dv = destinationInput?.value.trim();
+        if (!ov || !dv) return;
+        if (isFavorite(ov, dv)) {
+            removeFavorite(ov, dv);
+            showToast('Natanggal sa mga paboritong ruta.', false);
+        } else {
+            saveFavorite(ov, dv, selectedCoords.origin, selectedCoords.destination);
+            showToast('✨ Nai-save ang paboritong ruta!', true);
+        }
+        updateFavStar();
+        renderFavoritesInDrawer();
+    });
+
+    // Render favorites list inside side drawer
+    const renderFavoritesInDrawer = () => {
+        let container = document.getElementById('drawerFavsSection');
+        const drawerLinks = document.querySelector('.drawer-links');
+        if (!drawerLinks) return;
+
+        if (!container) {
+            drawerLinks.insertAdjacentHTML('beforeend', `
+                <div id="drawerFavsSection" style="margin-top:12px;border-top:1px solid #e2e8f0;padding-top:12px;">
+                    <div style="font-size:0.75rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;padding-left:4px;">
+                        Mga Paboritong Ruta
+                    </div>
+                    <div id="drawerFavsList"></div>
+                </div>`);
+            container = document.getElementById('drawerFavsSection');
+        }
+
+        const list = document.getElementById('drawerFavsList');
+        if (!list) return;
+        const favs = getFavorites();
+        if (!favs.length) { container.style.display = 'none'; return; }
+        container.style.display = 'block';
+        list.innerHTML = '';
+        favs.forEach(f => {
+            const item = document.createElement('a');
+            item.href = '#';
+            item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 4px;text-decoration:none;color:#1e293b;font-size:0.875rem;border-radius:8px;transition:background 0.15s;';
+            item.innerHTML = `<ion-icon name="star" style="color:#f59e0b;font-size:1rem;flex-shrink:0;"></ion-icon>
+                <div style="overflow:hidden;">
+                    <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.origin} → ${f.destination}</div>
+                </div>`;
+            item.addEventListener('mouseover', () => item.style.background = '#f1f5f9');
+            item.addEventListener('mouseout', () => item.style.background = '');
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (originInput) originInput.value = f.origin;
+                if (destinationInput) destinationInput.value = f.destination;
+                if (f.originCoords) selectedCoords.origin = f.originCoords;
+                if (f.destCoords) selectedCoords.destination = f.destCoords;
+                toggleDrawer(false);
+                checkFormStatus();
+                if (selectedCoords.origin && selectedCoords.destination) triggerTerminalPicker();
+                updateFavStar();
+            });
+            list.appendChild(item);
+        });
+    };
+
+    // Init favorites on load
+    renderFavoritesInDrawer();
+    // Update star when guide card becomes visible
+    const origStartBtn = document.getElementById('startJourneyBtn');
+    origStartBtn?.addEventListener('click', () => { setTimeout(updateFavStar, 100); }, true);
+
+
+    // =============================================
+    // UPGRADE #9: DYIPTOK CONTEXT AWARENESS
+    // =============================================
+    // Expose current route context globally so DyipTok in script.js can read it
+    const updateDyipTokContext = () => {
+        const ov = originInput?.value.trim();
+        const dv = destinationInput?.value.trim();
+        if (ov && dv) {
+            window._calzadaRouteContext = {
+                origin: ov,
+                destination: dv,
+                totalTime: currentItineraryOptions[selectedOptionIndex]?.totalTime || null,
+                totalFare: currentItineraryOptions[selectedOptionIndex]?.totalFare || null,
+                legs: currentItineraryOptions[selectedOptionIndex]?.legs?.map(l => l.title) || []
+            };
+        } else {
+            window._calzadaRouteContext = null;
+        }
+    };
+
+    // Patch selectItinerary to also update context
+    const _origSelectItinerary = selectItinerary;
+    // Re-hook via the already-defined selectItinerary — update context after each selection
+    document.getElementById('itineraryOptionsPanel')?.addEventListener('click', () => {
+        setTimeout(updateDyipTokContext, 50);
+    });
+    origStartBtn?.addEventListener('click', updateDyipTokContext, true);
+
 
 }); // end DOMContentLoaded
 
