@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Your Commuting Guide in Calamba</title>
     <meta name="description"
         content="Find jeepney routes, fares, and transit connections in Calamba City. Your smart commuting companion.">
@@ -38,7 +38,7 @@
                 <a href="#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
                 <a href="login.html" class="nav-link btn-nav-auth" data-i18n="login.signin">Sign In</a>
-                
+
                 <!-- Navbar Toggle (Desktop) -->
                 <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
                     <span class="lang-active">EN</span>
@@ -84,7 +84,8 @@
                 <img src="assets/logo-center.png" alt="Calzada App Icon" class="center-logo">
             </div>
 
-            <h1 class="hero-title" data-i18n="hero.title">Your <span class="title-highlight shimmer-text">Commuting Guide</span> in Calamba.</h1>
+            <h1 class="hero-title" data-i18n="hero.title">Your <span class="title-highlight shimmer-text">Commuting
+                    Guide</span> in Calamba.</h1>
             <p class="hero-subtitle" data-i18n="hero.subtitle">
                 Find routes, fares, and connections for Jeepneys,
                 Buses, P2P, UV Express, and Tricycles.
@@ -94,10 +95,13 @@
             <div class="search-container">
                 <div class="search-bar" id="searchBar">
                     <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
-                    <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder" placeholder="Where do you want to go?" class="search-input" id="searchInput">
+                    <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder"
+                        placeholder="Where do you want to go?" class="search-input" id="searchInput">
                     <button class="search-button" aria-label="Search" id="searchBtn">
                         <ion-icon name="search-outline"></ion-icon>
                     </button>
+
+
                 </div>
                 <div class="search-results-dropdown" id="searchResults"></div>
             </div>
@@ -120,6 +124,61 @@
             </p>
         </section>
 
+        <!-- Section: 3 Easy Steps -->
+        <section class="steps-section reveal">
+            <!-- Animated Background -->
+            <div class="steps-bg">
+                <svg class="steps-transit-svg" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice" width="100%"
+                    height="100%">
+                    <path id="stepsPath1" class="steps-path" d="M -100,50 Q 250,150 500,50 T 1100,100" />
+                    <circle class="steps-dot" r="6" fill="var(--primary)">
+                        <animateMotion dur="8s" repeatCount="indefinite">
+                            <mpath href="#stepsPath1" />
+                        </animateMotion>
+                    </circle>
+
+                    <path id="stepsPath2" class="steps-path" d="M -100,200 Q 300,100 600,250 T 1100,200" />
+                    <circle class="steps-dot" r="6" fill="var(--primary)">
+                        <animateMotion dur="12s" repeatCount="indefinite">
+                            <mpath href="#stepsPath2" />
+                        </animateMotion>
+                    </circle>
+                </svg>
+            </div>
+            <div class="steps-content">
+                <div class="steps-pill">
+                    <span data-i18n="steps.pill">Simple & Fast</span>
+                </div>
+                <h2 class="steps-title" data-i18n="steps.heading">Plan your commute in 3 easy steps</h2>
+                <p class="steps-subtitle" data-i18n="steps.sub">No more guessing fares or routes. Calzada lays it all
+                    out, clear and simple.</p>
+
+                <div class="steps-grid">
+                    <div class="step-card reveal-delay-1">
+                        <div class="step-ghost-num">01</div>
+                        <div class="step-icon"><ion-icon name="search-outline"></ion-icon></div>
+                        <h3 data-i18n="steps.1.title">Enter Your Destination</h3>
+                        <p data-i18n="steps.1.desc">Type where you want to go. Calzada recognizes landmarks, barangays,
+                            terminals, and more.</p>
+                    </div>
+                    <div class="step-card reveal-delay-2">
+                        <div class="step-ghost-num">02</div>
+                        <div class="step-icon"><ion-icon name="git-network-outline"></ion-icon></div>
+                        <h3 data-i18n="steps.2.title">Compare Route Options</h3>
+                        <p data-i18n="steps.2.desc">See multiple route suggestions with estimated travel time, fare
+                            cost, and number of transfers.</p>
+                    </div>
+                    <div class="step-card reveal-delay-3">
+                        <div class="step-ghost-num">03</div>
+                        <div class="step-icon"><ion-icon name="walk-outline"></ion-icon></div>
+                        <h3 data-i18n="steps.3.title">Go & Travel with Confidence</h3>
+                        <p data-i18n="steps.3.desc">Follow step-by-step directions. Multi-modal journeys combining
+                            jeepney, P2P, and tricycle are fully supported.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Section: News & Traffic -->
         <section class="news-section reveal">
             <div class="section-header">
@@ -130,13 +189,15 @@
                 <div class="news-card reveal-delay-1">
                     <span class="news-tag closure">Road Closure</span>
                     <h3>Parian Flyover Maintenance</h3>
-                    <p>May schedule na repair sa Parian flyover ngayong weekend. Pinapayuhan ang mga motorista na dumaan sa alternate routes para makaiwas sa abala.</p>
+                    <p>May schedule na repair sa Parian flyover ngayong weekend. Pinapayuhan ang mga motorista na dumaan
+                        sa alternate routes para makaiwas sa abala.</p>
                     <span class="news-date">Updated: 1 hour ago</span>
                 </div>
                 <div class="news-card reveal-delay-2">
                     <span class="news-tag alert">Heavy Traffic</span>
                     <h3>Real Crossing Gridlock</h3>
-                    <p>Mabagal ang daloy ng trapiko sa Real Crossing area dahil sa volume ng sasakyan. Asahan ang 15-20 mins delay sa biyahe.</p>
+                    <p>Mabagal ang daloy ng trapiko sa Real Crossing area dahil sa volume ng sasakyan. Asahan ang 15-20
+                        mins delay sa biyahe.</p>
                     <span class="news-date">Updated: 34 mins ago</span>
                 </div>
             </div>
@@ -152,13 +213,15 @@
                 <div class="news-card reveal-delay-1">
                     <span class="news-tag fare">Fare Update</span>
                     <h3>₱13.00 Standard Fare Confirmed</h3>
-                    <p>Nanatili ang minimum fare sa ₱13 para sa traditional jeepneys at ₱15 para sa modern jeepneys sa buong Region IV-A.</p>
+                    <p>Nanatili ang minimum fare sa ₱13 para sa traditional jeepneys at ₱15 para sa modern jeepneys sa
+                        buong Region IV-A.</p>
                     <span class="news-date">Source: LTFRB Official</span>
                 </div>
                 <div class="news-card reveal-delay-2">
                     <span class="news-tag announcement">Rollout</span>
                     <h3>New Modern Jeeps in Canlubang</h3>
-                    <p>Nagdagdag pa ng bagong units ng modern jeepney para sa Canlubang - Calamba Crossing route para sa mas mabilis na biyahe.</p>
+                    <p>Nagdagdag pa ng bagong units ng modern jeepney para sa Canlubang - Calamba Crossing route para sa
+                        mas mabilis na biyahe.</p>
                     <span class="news-date">Source: DOTr Laguna</span>
                 </div>
             </div>
@@ -279,7 +342,8 @@
                 <img src="assets/logo-white.png" alt="Calzada Logo" class="footer-logo">
                 <p data-i18n="footer.tagline">Ang iyong maaasahang commuter guide platform sa Calamba.</p>
                 <div class="social-icons">
-                    <a href="https://web.facebook.com/kelly.torres.861688"><ion-icon name="logo-facebook"></ion-icon></a>
+                    <a href="https://web.facebook.com/kelly.torres.861688"><ion-icon
+                            name="logo-facebook"></ion-icon></a>
                     <a href="#"><img src="assets/X_logo-white.png" alt="X" class="social-icon-img"></a>
                     <a href="https://www.instagram.com/dedanielss/"><ion-icon name="logo-instagram"></ion-icon></a>
                 </div>

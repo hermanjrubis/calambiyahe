@@ -68,17 +68,39 @@ document.addEventListener('DOMContentLoaded', () => {
             serves: ['uplb', 'university of the philippines los baños', 'college', 'ipb', 'dost', 'caf'],
             modes: ['jeep', 'tricycle'],
             address: 'Jamboree Road, College, Los Baños'
+        },
+        // NEW: Inter-city / Long Distance Nodes
+        {
+            id: 'cubao',
+            name: 'Araneta City bus Terminal, Cubao',
+            shortName: 'Cubao',
+            coords: [14.6178, 121.0560],
+            serves: ['cubao', 'quezon city', 'ncr', 'metro manila', 'starmall', 'farmers'],
+            modes: ['bus', 'van'],
+            address: 'Cubao, Quezon City'
+        },
+        {
+            id: 'buendia',
+            name: 'Pasay / Buendia Terminal',
+            shortName: 'Buendia',
+            coords: [14.5540, 120.9991],
+            serves: ['pasay', 'gil puyat', 'buendia', 'makati', 'moa', 'lrt'],
+            modes: ['bus', 'van'],
+            address: 'Pasay City, NCR'
         }
     ];
+
 
     const FARE_MAP = {
         jeep: { base: 13, perKm: 2, name: 'Jeepney' },
         'modern-jeep': { base: 15, perKm: 2.5, name: 'Modern Jeepney' },
         bus: { base: 15, perKm: 2.5, name: 'Bus' },
         van: { base: 25, perKm: 4, name: 'Van' },
+        uv: { base: 30, perKm: 4, name: 'UV Express' }, // UV Express added
         tricycle: { base: 20, perKm: 5, name: 'Tricycle' },
         walk: { base: 0, perKm: 0, name: 'Walk' }
     };
+
 
     // Simulated fallback paths per mode
     const routeSimulations = {
@@ -92,6 +114,19 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPolyline = null;
     let markers = [];
     let selectedTerminalId = null;
+
+    // Real-time tracking state
+    let watchId = null;
+    let userMarker = null;
+    let userCircle = null;
+    let currentItineraryOptions = [];
+    let selectedOptionIndex = 0;
+    let activeLegs = [];
+    let currentLegIndex = 0;
+    let isTrackingArrival = false;
+    let lastUserPos = null;
+    let mapAutoFollow = true;
+
 
     // =============================================
     // UI CONTROLS
@@ -218,12 +253,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Haversine distance in km
     const calcDist = (lat1, lon1, lat2, lon2) => {
-        const R = 6371, dLat = (lat2 - lat1) * Math.PI / 180, dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     };
 
-    // Step 2: Find terminals that serve the destination
+    // Find destination terminals
     const getNearestTerminals = (destName, destCoords) => {
         const query = (destName || '').toLowerCase();
         const matching = TERMINALS.filter(t =>
@@ -239,57 +278,231 @@ document.addEventListener('DOMContentLoaded', () => {
         return pool.slice(0, 4);
     };
 
-    // Steps 3 & 4: Generate multi-leg itinerary
-    const generateItineraryLegs = (originCoords, terminal, destCoords, destName, modeKey) => {
-        const legs = [];
-        const mode = modeKey || 'jeep';
-        const fareInfo = FARE_MAP[mode] || FARE_MAP.jeep;
+    // =============================================
+    // ITINERARY GENERATION (MULTI-OPTION)
+    // =============================================
 
-        // --- LEG 1: Access to terminal ---
-        const distToTerm = calcDist(originCoords[0], originCoords[1], terminal.coords[0], terminal.coords[1]);
-        if (distToTerm > 3) {
-            // Case A: Too far → Trycycle access
-            const fare = distToTerm > 3 ? 50 + (distToTerm - 3) * 15 : 50;
-            legs.push({
-                type: 'access', mode: 'tricycle', imageIcon: 'assets/icons/tricycle-icon.png', iconColor: '#16a34a',
-                title: 'Sumakay ng Tricycle', from: 'Iyong Lokasyon', to: terminal.shortName,
-                distance: distToTerm, fare, duration: Math.round(distToTerm * 6),
-                note: `Sakay ng tricycle papunta sa ${terminal.name}`
+    const generateItineraryOptions = (originCoords, destCoords, destName) => {
+        const options = [];
+        const dist = calcDist(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
+        
+        // Scenario A: Local (Short Distance)
+        if (dist < 8 || destName.toLowerCase().includes('calamba') || destName.toLowerCase().includes('crossing')) {
+            // Option 1: Standard Jeep
+            options.push({
+                badge: 'planner.badge_fastest', badgeClass: 'badge-fastest',
+                legs: generateLocalLegs(originCoords, destCoords, destName, 'jeep')
             });
-        } else if (distToTerm > 0.3) {
-            // Case B: Near → Walk
-            legs.push({
-                type: 'access', mode: 'walk', icon: 'walk-outline', iconColor: '#64748b',
-                title: 'Maglakad', from: 'Iyong Lokasyon', to: terminal.shortName,
-                distance: distToTerm, fare: 0, duration: Math.round(distToTerm * 13),
-                note: `Pumunta sa ${terminal.name}`
+            // Option 2: Modern Jeep
+            options.push({
+                badge: 'planner.badge_least_transfer', badgeClass: 'badge-least-transfer',
+                legs: generateLocalLegs(originCoords, destCoords, destName, 'modern-jeep')
+            });
+        } 
+        // Scenario B: Long Distance / Out of City
+        else {
+            const terminals = getNearestTerminals(destName, destCoords);
+            const bestTerm = terminals[0] || TERMINALS[0];
+
+            // Option 1: Via Main Terminal (Typical)
+            options.push({
+                badge: 'planner.badge_fastest', badgeClass: 'badge-fastest',
+                legs: generateMultiLegs(originCoords, bestTerm, destCoords, destName, 'bus')
+            });
+            // Option 2: Alternative Mode
+            options.push({
+                badge: 'planner.badge_cheapest', badgeClass: 'badge-cheapest',
+                legs: generateMultiLegs(originCoords, bestTerm, destCoords, destName, 'van')
+            });
+            // Option 3: UV Express
+            options.push({
+                badge: 'planner.badge_least_transfer', badgeClass: 'badge-least-transfer',
+                legs: generateMultiLegs(originCoords, bestTerm, destCoords, destName, 'uv')
             });
         }
-        // Case C: Already at terminal → no access leg
 
-        // --- LEG 2: Main commute ---
-        const distToDest = calcDist(terminal.coords[0], terminal.coords[1], destCoords[0], destCoords[1]);
-        const mainFare = fareInfo.base + Math.max(0, distToDest - 4) * fareInfo.perKm;
-        const colorMap = { bus: '#0f6fd1', van: '#f59e0b', tricycle: '#16a34a', 'modern-jeep': '#7c3aed', jeep: '#1a8fff' };
-        const imageMap = { bus: 'assets/icons/bus-icon.png', van: 'assets/icons/van-icon.png', tricycle: 'assets/icons/tricycle-icon.png', 'modern-jeep': 'assets/icons/jeepney-icon.png', jeep: 'assets/icons/jeepney-icon.png' };
-        
-        legs.push({
-            type: 'main', mode, imageIcon: imageMap[mode] || 'assets/icons/jeepney-icon.png', iconColor: colorMap[mode] || '#1a8fff',
-            title: fareInfo.name, from: terminal.shortName, to: destName,
-            distance: distToDest, fare: Math.max(mainFare, fareInfo.base),
-            duration: Math.round(distToDest * 3) + 5,
-            note: `Mula ${terminal.name} → ${destName}`
+        // Post-process options (calculate totals)
+        return options.map(opt => {
+            let totalTime = 0, totalFare = 0;
+            opt.legs.forEach(l => { totalTime += l.duration; totalFare += l.fare; });
+            return { ...opt, totalTime, totalFare, transferCount: opt.legs.length - 1 };
         });
+    };
 
-        // --- LEG 3: Arrival ---
-        legs.push({
-            type: 'arrival', mode: 'arrive', icon: 'flag-outline', iconColor: '#ef4444',
-            title: 'Nakarating!', from: destName, to: destName, distance: 0, fare: 0, duration: 0,
-            note: `Dumating sa ${destName}`
-        });
 
+
+    const generateLocalLegs = (originCoords, destCoords, destName, mode) => {
+        const legs = [];
+        const fareInfo = FARE_MAP[mode] || FARE_MAP.jeep;
+        const dist = calcDist(originCoords[0], originCoords[1], destCoords[0], destCoords[1]);
+        const imageMap = { bus: 'assets/icons/bus-icon.png', van: 'assets/icons/van-icon.png', uv: 'assets/icons/van-icon.png', 'modern-jeep': 'assets/icons/jeepney-icon.png', jeep: 'assets/icons/jeepney-icon.png' };
+        const colorMap = { bus: '#0f6fd1', van: '#f59e0b', uv: '#f59e0b', tricycle: '#16a34a', 'modern-jeep': '#7c3aed', jeep: '#1a8fff' };
+
+        if (dist > 0.5) {
+            legs.push({ type: 'access', mode: 'walk', icon: 'walk-outline', iconColor: '#64748b', title: window.t('js.maglakad'), from: window.t('js.iyong_lokasyon'), to: 'Sakayan', distance: 0.3, fare: 0, duration: 5, note: 'Lakad papunta sa sakayan' });
+        }
+        legs.push({ type: 'main', mode, imageIcon: imageMap[mode], iconColor: colorMap[mode], title: fareInfo.name, from: 'Sakayan', to: destName, distance: dist, fare: fareInfo.base + Math.max(0, dist-4)*fareInfo.perKm, duration: Math.round(dist * 4) + 5 });
+        legs.push({ type: 'arrival', mode: 'arrive', icon: 'flag-outline', iconColor: '#ef4444', title: window.t('js.nakarating'), from: destName, to: destName, distance: 0, fare: 0, duration: 0 });
         return legs;
     };
+
+    const generateMultiLegs = (originCoords, terminal, destCoords, destName, mode) => {
+        const legs = [];
+        const fareInfo = FARE_MAP[mode] || FARE_MAP.jeep;
+        const distToTerm = calcDist(originCoords[0], originCoords[1], terminal.coords[0], terminal.coords[1]);
+        const distToDest = calcDist(terminal.coords[0], terminal.coords[1], destCoords[0], destCoords[1]);
+        const imageMap = { bus: 'assets/icons/bus-icon.png', van: 'assets/icons/van-icon.png', uv: 'assets/icons/van-icon.png', 'modern-jeep': 'assets/icons/jeepney-icon.png', jeep: 'assets/icons/jeepney-icon.png' };
+        const colorMap = { bus: '#0f6fd1', van: '#f59e0b', uv: '#f59e0b', tricycle: '#16a34a', 'modern-jeep': '#7c3aed', jeep: '#1a8fff' };
+
+        // Leg 1: Tricycle to Terminal
+        legs.push({ type: 'access', mode: 'tricycle', imageIcon: 'assets/icons/tricycle-icon.png', iconColor: '#16a34a', title: 'Tricycle', from: 'Lokasyon', to: terminal.shortName, distance: distToTerm, fare: 20 + Math.max(0, distToTerm-1)*10, duration: Math.round(distToTerm * 6) });
+        // Leg 2: Main Commute
+        legs.push({ type: 'main', mode, imageIcon: imageMap[mode], iconColor: colorMap[mode], title: fareInfo.name, from: terminal.shortName, to: destName, distance: distToDest, fare: fareInfo.base + Math.max(0, distToDest-5)*fareInfo.perKm, duration: Math.round(distToDest * 3) + 10 });
+        // Leg 3: Arrival
+        legs.push({ type: 'arrival', mode: 'arrive', icon: 'flag-outline', iconColor: '#ef4444', title: window.t('js.nakarating'), from: destName, to: destName, distance: 0, fare: 0, duration: 0 });
+        return legs;
+    };
+
+    // =============================================
+    // RENDERING LOGIC
+    // =============================================
+
+    const renderItineraryOptions = (options) => {
+        currentItineraryOptions = options;
+        const panel = document.getElementById('itineraryOptionsPanel');
+        if (!panel) return;
+        panel.innerHTML = '';
+        panel.style.display = 'flex';
+
+        options.forEach((opt, idx) => {
+            const card = document.createElement('div');
+            card.className = `route-option-card ${idx === selectedOptionIndex ? 'selected' : ''}`;
+            
+            // Badge
+            const badge = document.createElement('div');
+            badge.className = `route-option-badge ${opt.badgeClass}`;
+            badge.textContent = window.t(opt.badge);
+            card.appendChild(badge);
+
+            // Time & Fare
+            const h = Math.floor(opt.totalTime / 60), m = opt.totalTime % 60;
+            const timeStr = h > 0 ? `${h}h ${m}m` : `${m}m`;
+            card.innerHTML += `
+                <div class="option-main-info">
+                    <span class="option-time">${timeStr}</span>
+                    <span class="option-fare">₱${Math.ceil(opt.totalFare)}</span>
+                </div>
+            `;
+
+            // Leg Strip
+            const strip = document.createElement('div');
+            strip.className = 'leg-strip';
+            opt.legs.forEach((leg, lIdx) => {
+                if (leg.type === 'arrival') return;
+                if (leg.mode === 'walk') {
+                    strip.innerHTML += `<ion-icon name="walk-outline" class="leg-strip-walk"></ion-icon>`;
+                } else if (leg.imageIcon) {
+                    strip.innerHTML += `<img src="${leg.imageIcon}" class="leg-strip-icon">`;
+                }
+                if (lIdx < opt.legs.length - 2) {
+                    strip.innerHTML += `<ion-icon name="chevron-forward-outline" class="leg-strip-arrow"></ion-icon>`;
+                }
+            });
+            card.appendChild(strip);
+
+            card.addEventListener('click', () => selectItinerary(idx));
+            panel.appendChild(card);
+        });
+
+        selectItinerary(selectedOptionIndex);
+    };
+
+    const selectItinerary = (index) => {
+        selectedOptionIndex = index;
+        const opts = document.querySelectorAll('.route-option-card');
+        opts.forEach((o, i) => o.classList.toggle('selected', i === index));
+
+        const selected = currentItineraryOptions[index];
+        activeLegs = selected.legs;
+
+        // Render full breakdown & steps
+        renderItinerarySteps(activeLegs);
+        renderFareBreakdown(activeLegs);
+        
+        // Fit Map to the route
+        drawRouteMulti(activeLegs);
+
+        // Update summary values
+        const h = Math.floor(selected.totalTime / 60), m = selected.totalTime % 60;
+        document.getElementById('estTimeValue').textContent = h > 0 ? `${h}hr ${m}min` : `${m}min`;
+        document.getElementById('estFareValue').textContent = `₱ ${Math.ceil(selected.totalFare)}`;
+    };
+
+    const renderItinerarySteps = (legs) => {
+        const list = document.getElementById('itineraryList');
+        if (!list) return;
+        list.innerHTML = '';
+        
+        legs.forEach((leg, idx) => {
+            const card = document.createElement('div');
+            card.className = `itinerary-card ${leg.type === 'arrival' ? 'icard-arrival' : ''}`;
+            const isLast = idx === legs.length - 1;
+            const fareHTML = leg.fare > 0 ? `<span class="leg-fare">₱${Math.ceil(leg.fare)}</span>` : (leg.type === 'main' ? '<span class="leg-fare free-fare">LORE</span>' : '');
+
+            const iconHTML = leg.imageIcon 
+                ? `<img src="${leg.imageIcon}" style="width:20px;height:20px;object-fit:contain;">` 
+                : `<ion-icon name="${leg.icon || 'location-outline'}"></ion-icon>`;
+
+            card.innerHTML = `
+                <div class="leg-icon-column">
+                    <div class="leg-icon-circle" style="background:${leg.iconColor}18;color:${leg.iconColor};">
+                        ${iconHTML}
+                    </div>
+                    ${!isLast ? `<div class="leg-line" style="background: ${leg.iconColor}44"></div>` : ''}
+                </div>
+                <div class="leg-content">
+                    <div class="leg-header"><span class="leg-title">${leg.title}</span>${fareHTML}</div>
+                    <div class="leg-details"><span>${leg.from}</span> <span class="leg-arrow">→</span> <span>${leg.to}</span></div>
+                    <div class="leg-meta"><span>${leg.distance.toFixed(1)} km</span> • <span>~${leg.duration} min</span></div>
+                </div>`;
+            list.appendChild(card);
+        });
+    };
+
+    const renderFareBreakdown = (legs) => {
+        const section = document.getElementById('fareBreakdownSection');
+        const list = document.getElementById('fareBreakdownList');
+        if (!section || !list) return;
+        section.style.display = 'block';
+        list.innerHTML = '';
+
+        legs.forEach(leg => {
+            if (leg.fare <= 0) return;
+            const item = document.createElement('div');
+            item.className = 'fare-item';
+            item.innerHTML = `
+                <div class="fare-item-mode">
+                    ${leg.imageIcon ? `<img src="${leg.imageIcon}" style="width:16px;height:16px;object-fit:contain;">` : `<ion-icon name="${leg.icon}"></ion-icon>`}
+                    <span>${leg.title}</span>
+                </div>
+                <strong>₱${Math.ceil(leg.fare)}</strong>
+            `;
+            list.appendChild(item);
+        });
+    };
+
+    // Fare toggle
+    document.getElementById('fareToggleBtn')?.addEventListener('click', () => {
+        const list = document.getElementById('fareBreakdownList');
+        const icon = document.querySelector('#fareToggleBtn ion-icon');
+        if (list.style.display === 'none') {
+            list.style.display = 'flex';
+            icon.name = 'chevron-up-outline';
+        } else {
+            list.style.display = 'none';
+            icon.name = 'chevron-down-outline';
+        }
+    });
 
     // =============================================
     // RENDER TERMINAL PICKER (Step 2 UI)
@@ -514,25 +727,22 @@ document.addEventListener('DOMContentLoaded', () => {
             hideTerminalPicker();
             selectedTerminalId = null;
             if (selectedCoords.origin && selectedCoords.destination) {
-                const mode = getActiveMode();
-                const legs = generateLocalItinerary(selectedCoords.origin, selectedCoords.destination, destVal, mode);
-                renderItinerary(legs);
-                drawRoute(mode);
+                const options = generateItineraryOptions(selectedCoords.origin, selectedCoords.destination, destVal);
+                renderItineraryOptions(options);
             }
         } else {
             const terminals = getNearestTerminals(destVal, selectedCoords.destination);
             renderTerminalPicker(terminals);
 
             if (selectedCoords.origin && selectedCoords.destination && terminals.length) {
-                const term = terminals.find(t => t.id === selectedTerminalId) || terminals[0];
-                selectedTerminalId = term.id;
-                const mode = getActiveMode();
-                const legs = generateItineraryLegs(selectedCoords.origin, term, selectedCoords.destination, destVal, mode);
-                renderItinerary(legs);
-                drawRoute(mode);
+                const options = generateItineraryOptions(selectedCoords.origin, selectedCoords.destination, destVal);
+                renderItineraryOptions(options);
             }
         }
+
+
     };
+
 
     const hideTerminalPicker = () => {
         const s = document.getElementById('terminalPickerSection');
@@ -559,55 +769,221 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const fetchOSRMRoute = async (o, d) => {
-        const url = `https://router.project-osrm.org/route/v1/driving/${o[1]},${o[0]};${d[1]},${d[0]}?geometries=geojson&overview=full`;
-        const res = await fetch(url); if (!res.ok) throw new Error('OSRM fail');
-        const data = await res.json(); if (!data.routes?.length) throw new Error('no route');
-        return { coords: data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]) }; // flip to lat,lng
-    };
 
-    const showRouteLoading = (show) => {
-        let el = document.getElementById('routeLoadingIndicator');
-        if (!el) {
-            el = document.createElement('div'); el.id = 'routeLoadingIndicator';
-            el.innerHTML = `<div class="route-loading-inner"><div class="route-spinner"></div><span>${window.t('planner.calculating_route')}</span></div>`;
-            document.body.appendChild(el);
+    const getActiveMode = () => 'jeep'; // Hardcoded fallback since mode selector was removed
+
+    const drawRouteMulti = async (legs) => {
+        if (currentPolyline) {
+            if (Array.isArray(currentPolyline)) currentPolyline.forEach(p => map.removeLayer(p));
+            else map.removeLayer(currentPolyline);
         }
-        el.style.display = show ? 'flex' : 'none';
-    };
-
-    const getActiveMode = () => document.querySelector('#modeOptions li.active')?.getAttribute('data-value') || 'jeep';
-
-    const drawRoute = async (mode) => {
-        if (currentPolyline) map.removeLayer(currentPolyline);
         markers.forEach(m => map.removeLayer(m));
         markers = [];
         
-        const data = routeSimulations[mode] || routeSimulations.jeep;
+        currentPolyline = [];
+        const bounds = L.latLngBounds();
 
-        const originInput = document.getElementById('originInput');
-        const destinationInput = document.getElementById('destinationInput');
-        const ov = originInput?.value.trim(), dv = destinationInput?.value.trim();
-        if (!ov || !dv) return;
+        for (let i = 0; i < legs.length; i++) {
+            const leg = legs[i];
+            if (leg.type === 'arrival') continue;
 
-        const oC = selectedCoords.origin || data.paths[0];
-        const dC = selectedCoords.destination || data.paths[data.paths.length - 1];
-        let path = data.paths;
+            const color = leg.iconColor || '#3b82f6';
+            const weight = leg.mode === 'walk' ? 4 : 6;
+            const dashArray = leg.mode === 'walk' ? '5,10' : null;
 
-        if (selectedCoords.origin && selectedCoords.destination) {
-            showRouteLoading(true);
-            try { const r = await fetchOSRMRoute(oC, dC); path = r.coords; }
-            catch { path = [oC, dC]; } finally { showRouteLoading(false); }
+            let points = [leg.fromCoords || selectedCoords.origin, leg.toCoords || selectedCoords.destination];
+            // If it's a known simulation, use it
+            if (routeSimulations[leg.mode] && i === 1) { 
+                points = routeSimulations[leg.mode].paths;
+            }
+            const poly = L.polyline(points, { color, weight, opacity: 0.8, dashArray, lineJoin: 'round', lineCap: 'round' }).addTo(map);
+            currentPolyline.push(poly);
+            bounds.extend(poly.getBounds());
+
+            // Add intermediate markers
+            if (i > 0) {
+                const midIcon = createTransitMarker('circle', color, true);
+                markers.push(L.marker(points[0], { icon: midIcon }).addTo(map));
+            }
         }
 
-        currentPolyline = L.polyline(path, { color: data.color, weight: data.weight, opacity: 0.88, dashArray: data.dashArray, lineJoin: 'round', lineCap: 'round' }).addTo(map);
-        const isMob = window.innerWidth <= 768;
-        map.fitBounds(currentPolyline.getBounds(), { paddingTopLeft: [50, 60], paddingBottomRight: [isMob ? 50 : 450, isMob ? window.innerHeight * .4 : 50], maxZoom: 16 });
-
+        // Start and End markers
         markers.push(
-            L.marker(oC, { icon: L.icon({ iconUrl: 'assets/startingpoint-icon.png', iconSize: [40, 40], iconAnchor: [20, 36], popupAnchor: [0, -36] }) }).bindPopup(`<b>${ov}</b><br>📍 Start`).addTo(map),
-            L.marker(dC, { icon: L.icon({ iconUrl: 'assets/destination-icon.png', iconSize: [40, 40], iconAnchor: [20, 36], popupAnchor: [0, -36] }) }).bindPopup(`<b>${dv}</b><br>🏁 Destination`).addTo(map)
+            L.marker(selectedCoords.origin, { icon: L.icon({ iconUrl: 'assets/startingpoint-icon.png', iconSize: [40, 40], iconAnchor: [20, 36] }) }).addTo(map),
+            L.marker(selectedCoords.destination, { icon: L.icon({ iconUrl: 'assets/destination-icon.png', iconSize: [40, 40], iconAnchor: [20, 36] }) }).addTo(map)
         );
+
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+    };
+
+    // =============================================
+    // REAL-TIME TRACKING & NAVIGATION
+    // =============================================
+
+    const startTracking = () => {
+        if (!navigator.geolocation) {
+            showToast(window.t('planner.tracking_unavailable'), false);
+            return;
+        }
+
+        watchId = navigator.geolocation.watchPosition(
+            (pos) => updateUserLocation(pos),
+            (err) => {
+                console.error(err);
+                showToast(window.t('planner.tracking_unavailable'), false);
+            },
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 }
+        );
+    };
+
+    const stopTracking = () => {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+        if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
+        if (userCircle) { map.removeLayer(userCircle); userCircle = null; }
+    };
+
+    const updateUserLocation = (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const latlng = [latitude, longitude];
+        lastUserPos = latlng;
+
+        // Pulse Marker
+        if (!userMarker) {
+            const gpsIcon = L.divIcon({
+                className: 'custom-gps-marker',
+                html: '<div class="gps-dot-pulse"></div>',
+                iconSize: [20, 20]
+            });
+            userMarker = L.marker(latlng, { icon: gpsIcon, zIndexOffset: 1000 }).addTo(map);
+            userCircle = L.circle(latlng, { radius: accuracy, weight: 1, color: '#4285F4', fillOpacity: 0.15 }).addTo(map);
+            
+            // Initial Fly
+            map.flyTo(latlng, 16, { animate: true, duration: 1.5 });
+        } else {
+            userMarker.setLatLng(latlng);
+            userCircle.setLatLng(latlng);
+            userCircle.setRadius(accuracy);
+            
+            if (mapAutoFollow) {
+                map.panTo(latlng, { animate: true });
+            }
+        }
+
+        handleJourneyProgression(latlng);
+    };
+
+    const handleJourneyProgression = (userCoords) => {
+        if (currentLegIndex >= activeLegs.length - 1) return;
+
+        const currentLeg = activeLegs[currentLegIndex];
+        const nextTargetCoords = activeLegs[currentLegIndex + 1].fromCoords || selectedCoords.destination; 
+        
+        const distToNext = calcDist(userCoords[0], userCoords[1], nextTargetCoords[0], nextTargetCoords[1]);
+
+        // Auto-Advancement (80m)
+        if (distToNext < 0.08) {
+            const targetName = activeLegs[currentLegIndex + 1].from || activeLegs[currentLegIndex + 1].title;
+            showToast(window.t('planner.reached_landmark').replace('{name}', targetName));
+            advanceLeg();
+        }
+
+        // Contextual Zoom Out (150m)
+        if (distToNext < 0.15 && mapAutoFollow) {
+            // Zoom out to show both user and target
+            const bounds = L.latLngBounds([userCoords, nextTargetCoords]);
+            map.flyToBounds(bounds, { padding: [100, 100], maxZoom: 15 });
+        }
+    };
+
+    const advanceLeg = () => {
+        if (currentLegIndex < activeLegs.length - 1) {
+            currentLegIndex++;
+            updateActiveJourneyUI();
+            
+            // Zoom to next leg start if not auto-following
+            if (!mapAutoFollow) {
+                const nextTarget = activeLegs[currentLegIndex].fromCoords || activeLegs[currentLegIndex].coords;
+                if (nextTarget) map.flyTo(nextTarget, 16);
+            }
+        } else {
+            handleArrival();
+        }
+    };
+
+    const handleArrival = () => {
+        stopTracking();
+        document.getElementById('arrivalOverlay').classList.add('show');
+        document.getElementById('arrivalScreen').classList.add('show');
+        map.flyTo(selectedCoords.destination, 15);
+    };
+
+    const updateActiveJourneyUI = () => {
+        const leg = activeLegs[currentLegIndex];
+        const banner = document.getElementById('activeTripBanner');
+        if (!banner) return;
+
+        document.getElementById('activeLegTitle').textContent = leg.title;
+        document.getElementById('legProgressText').textContent = window.t('planner.leg_progress')
+            .replace('{current}', currentLegIndex + 1)
+            .replace('{total}', activeLegs.length);
+        
+        const iconImg = document.getElementById('activeLegIcon');
+        if (leg.imageIcon) {
+            iconImg.src = leg.imageIcon;
+            iconImg.style.display = 'block';
+        } else {
+            iconImg.style.display = 'none';
+        }
+
+        // If it's the last leg (arrival), handle specially
+        if (leg.type === 'arrival') {
+            handleArrival();
+        }
+    };
+
+    const reCenterMap = () => {
+        if (lastUserPos) {
+            mapAutoFollow = true;
+            document.getElementById('reCenterBtn').style.display = 'none';
+            map.flyTo(lastUserPos, 16);
+        }
+    };
+
+    document.getElementById('reCenterBtn')?.addEventListener('click', reCenterMap);
+    map.on('dragstart', () => {
+        if (watchId !== null) {
+            mapAutoFollow = false;
+            document.getElementById('reCenterBtn').style.display = 'flex';
+        }
+    });
+
+    document.getElementById('arrivalCloseBtn')?.addEventListener('click', () => {
+        document.getElementById('arrivalOverlay').classList.remove('show');
+        document.getElementById('arrivalScreen').classList.remove('show');
+        // Reset to initial search state
+        cancelJourney();
+    });
+
+    const cancelJourney = () => {
+        stopTracking();
+        currentLegIndex = 0;
+        activeLegs = [];
+        if (searchCard) searchCard.style.display = 'block';
+        if (actionCard) actionCard.style.display = 'flex';
+        if (guideCard) guideCard.style.display = 'none';
+        if (activeTripBanner) activeTripBanner.style.display = 'none';
+        if (document.getElementById('itineraryOptionsPanel')) document.getElementById('itineraryOptionsPanel').style.display = 'none';
+        
+        if (currentPolyline) {
+            if (Array.isArray(currentPolyline)) currentPolyline.forEach(p => map.removeLayer(p));
+            else map.removeLayer(currentPolyline);
+            currentPolyline = null;
+        }
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
     };
 
     // =============================================
@@ -718,35 +1094,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // DROPDOWNS
     // =============================================
+    const closeAllDropdowns = () => {
+        document.querySelectorAll('.sakay-action-row.open').forEach(d => d.classList.remove('open'));
+        // Close mobile bottom sheet overlay if open
+        const bsOverlay = document.getElementById('scheduleBottomSheetOverlay');
+        if (bsOverlay) bsOverlay.classList.remove('visible');
+        document.body.style.overflow = '';
+    };
+
     const initDropdown = (containerId, selectedId, textId, optionsListId, onChange) => {
         const container = document.getElementById(containerId);
         const selected = document.getElementById(selectedId);
         const text = document.getElementById(textId);
         const list = document.getElementById(optionsListId);
-        const modeOverlay = document.getElementById('modeDrawerOverlay');
-        const isModeSelector = containerId === 'modeDropdownContainer';
 
         if (!container || !selected || !list) return;
-
-        const closeAll = () => {
-            document.querySelectorAll('.sakay-action-row.open, .sakay-mode-selector.open').forEach(d => d.classList.remove('open'));
-            if (modeOverlay) modeOverlay.classList.remove('visible');
-            document.body.style.overflow = '';
-        };
 
         selected.addEventListener('click', (e) => {
             e.stopPropagation();
             const was = container.classList.contains('open');
-            
-            if (was) {
-                closeAll();
-            } else {
-                closeAll();
+            closeAllDropdowns();
+            if (!was) {
                 container.classList.add('open');
-                if (isModeSelector && modeOverlay && window.innerWidth <= 768) {
-                    modeOverlay.classList.add('visible');
-                    document.body.style.overflow = 'hidden'; // Prevent background scroll
-                }
             }
         });
 
@@ -755,34 +1124,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 list.querySelectorAll('li').forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
-                text.textContent = opt.textContent.trim();
-                const img = opt.querySelector('img');
-                const sImg = selected.querySelector('.mode-option-icon');
-                if (img && sImg) { sImg.src = img.src; sImg.alt = img.alt; }
-                closeAll();
+                if (text) text.textContent = opt.textContent.trim();
+                closeAllDropdowns();
                 onChange?.(opt.getAttribute('data-value'));
             });
         });
 
         document.addEventListener('click', (e) => {
-            if (!container.contains(e.target)) closeAll();
+            if (!container.contains(e.target)) closeAllDropdowns();
         });
-
-        if (isModeSelector && modeOverlay) {
-            modeOverlay.addEventListener('click', closeAll);
-        }
     };
 
     let fpInstance = null;
 
     initDropdown('scheduleDropdownContainer', 'scheduleSelected', 'scheduleSelectedText', 'scheduleOptions', (val) => {
-        if ((val === 'depart' || val === 'arrive')) {
-            if (fpInstance) setTimeout(() => fpInstance.open(), 50);
+        if (val === 'depart' || val === 'arrive') {
+            // Use the custom datetime picker (openDtPicker is defined in the standalone module below)
+            if (typeof window.openDtPicker === 'function') {
+                setTimeout(() => window.openDtPicker(val), 50);
+            } else if (fpInstance) {
+                setTimeout(() => fpInstance.open(), 50);
+            }
         } else if (val === 'now') {
             const btnText = document.getElementById('startJourneyBtnText');
-            if (btnText) btnText.textContent = window.t('planner.simulan');
+            if (btnText) btnText.textContent = window.t ? window.t('planner.simulan') : 'Simulan ang Biyahe';
             const schedCard = document.getElementById('scheduleSummaryCard');
             if (schedCard) schedCard.style.display = 'none';
+            const schedText = document.getElementById('scheduleSelectedText');
+            if (schedText) schedText.textContent = window.t ? window.t('planner.leave_now') : 'Leave now';
             if (fpInstance) fpInstance.clear();
         }
     });
@@ -808,7 +1177,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             activeOption = 'depart';
                         }
                         
-                        text.textContent = (activeOption === 'arrive' ? window.t('planner.arrive_by_pre') : window.t('planner.depart_at_pre')) + ' ' + fmt;
+                        const pre = activeOption === 'arrive'
+                            ? (window.t ? window.t('planner.arrive_by_pre') : 'Arrive by')
+                            : (window.t ? window.t('planner.depart_at_pre') : 'Depart at');
+                        if (text) text.textContent = pre + ' ' + fmt;
                         if (selectedCoords.origin && selectedCoords.destination) triggerTerminalPicker();
                     }
                 }
@@ -817,11 +1189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     bindDatePicker();
 
-    initDropdown('modeDropdownContainer', 'modeSelected', 'modeSelectedText', 'modeOptions', (mode) => {
-        if (selectedCoords.origin && selectedCoords.destination) {
-            triggerTerminalPicker();
-        }
-    });
+
 
     // =============================================
 
@@ -897,76 +1265,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =============================================
-    // START JOURNEY (Steps 7 + 8)
+    // START JOURNEY & TRACKING WIRING
     // =============================================
     document.getElementById('startJourneyBtn')?.addEventListener('click', () => {
-        const mode = getActiveMode();
-        const activeSchedule = document.querySelector('#scheduleOptions li.active');
-        const schedVal = activeSchedule?.getAttribute('data-value') || 'now';
-        const isScheduled = schedVal !== 'now';
+        if (!selectedCoords.origin || !selectedCoords.destination) return;
 
-        const proceedWithJourney = () => {
-            // Draw route if not already drawn
-            if (!currentPolyline) drawRoute(mode);
+        // UI Transition
+        if (searchCard) searchCard.style.display = 'none';
+        if (actionCard) actionCard.style.display = 'none';
+        if (guideCard) guideCard.style.display = 'block';
+        if (activeTripBanner) activeTripBanner.style.display = 'block';
+        if (document.getElementById('itineraryOptionsPanel')) document.getElementById('itineraryOptionsPanel').style.display = 'none';
 
-            document.getElementById('bookActionArea').style.display = 'none';
-            const tripArea = document.getElementById('activeTripArea');
-            if (tripArea) {
-                tripArea.style.display = 'flex';
-                const label = document.getElementById('activeTripLabel');
-                if (label) label.textContent = isScheduled ? 'Trip Scheduled ✓' : 'Trip Active';
-            }
-            // Expand panel to full on mobile
-            if (window.innerWidth <= 768) snapPanel(getFull());
+        // Populate Guide header
+        document.getElementById('guideOriginText').textContent = document.getElementById('originInput')?.value || 'Origin';
+        document.getElementById('guideDestText').textContent = document.getElementById('destinationInput')?.value || 'Destination';
 
-            // Step 7: Notification Simulation
-            if (isScheduled) {
-                const schedTime = document.getElementById('scheduleSelectedText')?.textContent || '';
-                const destName = destinationInput?.value.trim() || 'iyong destinasyon';
-                const notifMsg = window._notifMsg || `Departure reminder para sa biyahe papunta sa ${destName} (${schedTime}).`;
+        // Initialize Journey state
+        currentLegIndex = 0;
+        updateActiveJourneyUI();
 
-                showToast(`✓ Naka-schedule! ${notifMsg.substring(0, 80)}...`);
-                console.log('[Calzada Notification]', notifMsg);
-                // Simulate SMS/email notification
-                console.log('[SMS Simulation] To:', JSON.parse(localStorage.getItem('calzadaUser') || '{}')?.phone || 'user');
-                console.log('[Email Simulation] Subject: Calzada Trip Reminder');
-                console.log('[Email Simulation] Body:', notifMsg);
-            } else {
-                showToast('Maingat sa byahe! Nagsimula na ang iyong biyahe.', true);
-            }
-        };
+        // Start Real-time Tracking
+        startTracking();
+        showToast(window.t('planner.journey_started'));
 
-        if (isScheduled && !localStorage.getItem('calzadaUser')) {
-            showAuthModal(proceedWithJourney);
-        } else {
-            proceedWithJourney();
-        }
+        // Scroll to top of guide
+        guideCard.classList.remove('minimized');
     });
 
-    // Cancel Trip
-    document.getElementById('cancelTripBtn')?.addEventListener('click', () => {
-        if (currentPolyline) { map.removeLayer(currentPolyline); currentPolyline = null; }
-        markers.forEach(m => map.removeLayer(m)); markers = [];
-        selectedCoords.origin = null; selectedCoords.destination = null;
-        selectedTerminalId = null;
-        if (originInput) originInput.value = '';
-        if (destinationInput) destinationInput.value = '';
-        hideTerminalPicker(); hideItinerary();
-        const schedText = document.getElementById('scheduleSelectedText');
-        if (schedText) schedText.textContent = 'Leaving now';
-        
-        document.querySelectorAll('#scheduleOptions li').forEach((l, i) => l.classList.toggle('active', i === 0));
-        
-        // Restore Input and Action cards
-        if (searchCard) searchCard.style.display = 'block';
-        if (actionCard) actionCard.style.display = 'flex';
-        // Hide Active ITINERARY UI
-        if (guideCard) guideCard.style.display = 'none';
-        if (activeTripBanner) activeTripBanner.style.display = 'none';
+    // Mark Done / Advance Leg
+    document.getElementById('markDoneBtn')?.addEventListener('click', () => {
+        advanceLeg();
+    });
 
-        const startBtn = document.getElementById('startJourneyBtn');
-        if (startBtn) startBtn.disabled = true;
-        map.setView([14.2045, 121.1641], 14);
+    // Cancel / Stop Journey
+    document.getElementById('cancelTripBtn')?.addEventListener('click', () => {
+        cancelJourney();
+        showToast(window.t('planner.cancel'), false);
     });
 
     // Swap Button

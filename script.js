@@ -198,20 +198,80 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 350);
         };
 
+        const cleanInputName = (str) => {
+            if (!str) return "";
+            let cleaned = str.replace(/[^a-zA-Z0-9\s,\.\-ñÑéÉáÁíÍóÓúÚ]/g, '');
+            cleaned = cleaned.replace(/\s+/g, ' ').trim();
+            if (!cleaned) return "";
+
+            const words = cleaned.toLowerCase().split(' ');
+            const prepositions = ["ng", "sa", "at", "de", "the", "of", "in"];
+            
+            for (let i = 0; i < words.length; i++) {
+                if (i === 0 || !prepositions.includes(words[i])) {
+                    words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+                }
+            }
+            return words.join(' ');
+        };
+
+        let cleanDebounce;
         searchInput.setAttribute('autocomplete', 'off');
-        searchInput.addEventListener('input', handleSearch);
+        
+        searchInput.addEventListener('input', () => {
+            clearTimeout(cleanDebounce);
+            cleanDebounce = setTimeout(() => {
+                if (searchInput.value.trim().length > 0) {
+                    const currentVal = searchInput.value;
+                    const cleanedVal = cleanInputName(currentVal);
+                    if (currentVal !== cleanedVal) {
+                        const start = searchInput.selectionStart;
+                        const end = searchInput.selectionEnd;
+                        searchInput.value = cleanedVal;
+                        // Attempt to restore cursor
+                        if (start !== null && end !== null) {
+                            try { searchInput.setSelectionRange(start, end); } catch (e) {}
+                        }
+                    }
+                }
+            }, 600);
+            
+            handleSearch();
+        });
+
+        const performFinalSearch = async () => {
+            const rawVal = searchInput.value;
+            const cleanedVal = cleanInputName(rawVal);
+            if (!cleanedVal) return;
+
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanedVal)}&format=json&addressdetails=1&limit=1&countrycodes=ph`,
+                    { headers: { 'Accept-Language': 'en' } }
+                );
+                const data = await res.json();
+
+                let finalDest = cleanedVal;
+                if (data && data.length > 0) {
+                    finalDest = data[0].name || data[0].display_name.split(',')[0];
+                }
+                window.location.href = `planner.html?dest=${encodeURIComponent(finalDest)}`;
+            } catch (e) {
+                window.location.href = `planner.html?dest=${encodeURIComponent(cleanedVal)}`;
+            }
+        };
 
         searchInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && searchInput.value.trim()) {
-                window.location.href = 'planner.html?dest=' + encodeURIComponent(searchInput.value.trim());
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                performFinalSearch();
             }
         });
 
         if (searchBtn) {
-            searchBtn.addEventListener('click', () => {
-                if (searchInput.value.trim()) {
-                    window.location.href = 'planner.html?dest=' + encodeURIComponent(searchInput.value.trim());
-                }
+            searchBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                performFinalSearch();
             });
         }
 

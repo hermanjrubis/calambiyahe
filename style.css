@@ -2941,4 +2941,201 @@ body {
         font-size: 0.88rem;
     }
 }
+
+/* =============================================
+   3 EASY STEPS SECTION
+   ============================================= */
+.steps-section {
+    position: relative;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-md);
+    padding: 60px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 30px rgba(0, 45, 60, 0.04);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    z-index: 10;
+}
+
+.steps-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.steps-transit-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.steps-path {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 2;
+    stroke-dasharray: 6 6;
+    opacity: 0.15;
+    will-change: transform, stroke-dashoffset;
+}
+
+.steps-dot {
+    opacity: 0.8;
+    filter: drop-shadow(0 0 6px var(--primary));
+    will-change: transform;
+}
+
+@media (max-width: 768px) {
+    /* Prevent auto-zoom on mobile when focusing inputs */
+    input, textarea, select {
+        font-size: 16px !important;
+    }
+
+    /* Reduce paths/dots and scale down on mobile for performance */
+    .steps-path:nth-of-type(2), 
+    .steps-dot:nth-of-type(2) {
+        display: none;
+    }
+
+    .steps-dot {
+        transform-origin: center;
+        transform: scale(0.65);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .steps-dot {
+        display: none !important;
+    }
+    .steps-path {
+        stroke-dasharray: none;
+        opacity: 0.1;
+    }
+}
+
+.steps-content {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.steps-pill {
+    background: rgba(26, 143, 255, 0.1);
+    color: var(--primary);
+    padding: 6px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(26, 143, 255, 0.2);
+}
+
+.steps-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.steps-subtitle {
+    font-size: 1rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin-bottom: 40px;
+    line-height: 1.6;
+}
+
+.steps-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .steps-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.step-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: var(--radius-md);
+    padding: 30px 24px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s var(--ease);
+}
+
+.step-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-blue);
+    border-color: rgba(26, 143, 255, 0.3);
+}
+
+.step-ghost-num {
+    position: absolute;
+    top: -15px;
+    right: -10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 6rem;
+    font-weight: 800;
+    color: rgba(26, 143, 255, 0.05);
+    line-height: 1;
+    z-index: 0;
+    pointer-events: none;
+    transition: all 0.4s var(--ease);
+}
+
+.step-card:hover .step-ghost-num {
+    color: rgba(26, 143, 255, 0.1);
+    transform: scale(1.1);
+}
+
+.step-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, rgba(26, 143, 255, 0.15), rgba(26, 143, 255, 0.05));
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.step-card h3 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+}
+
+.step-card p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    position: relative;
+    z-index: 1;
+}
 

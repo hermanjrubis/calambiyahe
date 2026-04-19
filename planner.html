@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Route Planner</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -12,7 +12,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
-<body class="planner-body">
+
 
     <!-- ===== MAP FULLSCREEN ===== -->
     <div id="map" class="planner-map"></div>
@@ -32,9 +32,6 @@
 
     <!-- ===== FLOATING TOP CONTROLS (Above Map, Always Visible) ===== -->
     <div class="map-top-bar">
-        <a href="index.html" class="map-back-btn">
-            <ion-icon name="arrow-back-outline"></ion-icon>
-        </a>
         <div class="map-top-right">
             <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language" style="margin-right: 8px;">
                 <span class="lang-active">EN</span>
@@ -115,28 +112,15 @@
 
         <!-- 2. TRANSIT MODE & START JOURNEY CARD -->
         <div class="sakay-card action-card" id="actionCard">
-            <div class="sakay-mode-selector" id="modeDropdownContainer">
-                <span style="font-weight:700; font-size:0.9rem;" data-i18n="planner.transit_modes">Transit modes</span>
-                <div class="sakay-dropdown-trigger" id="modeSelected">
-                    <img src="assets/icons/jeepney-icon.png" class="mode-option-icon" style="height:22px; width:22px; object-fit:contain;" alt="">
-                    <span id="modeSelectedText">Jeepney</span>
-                    <ion-icon name="chevron-forward-outline"></ion-icon>
-                </div>
-                <ul class="sakay-dropdown-menu up-menu mode-drawer" id="modeOptions">
-                    <div class="drawer-drag-handle"></div>
-                    <li data-value="jeep" class="active"><img src="assets/icons/jeepney-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Jeepney</li>
-                    <li data-value="modern-jeep"><img src="assets/icons/jeepney-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Modern Jeepney</li>
-                    <li data-value="bus"><img src="assets/icons/bus-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Bus</li>
-                    <li data-value="van"><img src="assets/icons/van-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Van</li>
-                    <li data-value="tricycle"><img src="assets/icons/tricycle-icon.png" style="height:20px; width:20px; margin-right:4px; object-fit:contain;"> Tricycle</li>
-                </ul>
-            </div>
-            
             <button class="btn-simulan" id="startJourneyBtn" disabled>
                 <ion-icon name="paper-plane-outline"></ion-icon>
                 <span id="startJourneyBtnText" data-i18n="planner.simulan">Simulan ang Biyahe</span>
             </button>
         </div>
+
+        <!-- NEW: Itinerary Options Selection Panel (2-3 Variants) -->
+        <div id="itineraryOptionsPanel" class="itinerary-options-container" style="display:none;"></div>
+
 
         <!-- 3. ACTIVE JOURNEY ITERINARY (LAKBAY GUIDE) -->
         <div class="sakay-card guide-card" id="guideCard" style="display:none;">
@@ -171,19 +155,39 @@
 
                 <!-- Detailed Itinerary List -->
                 <div id="itineraryList" class="sakay-itinerary-list"></div>
+
+                <!-- NEW: Fare Breakdown Section -->
+                <div id="fareBreakdownSection" class="fare-breakdown-section" style="display:none;">
+                    <button class="fare-breakdown-toggle" id="fareToggleBtn">
+                        <span data-i18n="planner.fare_breakdown">Fare Breakdown</span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div id="fareBreakdownList" class="fare-breakdown-list" style="display:none;"></div>
+                    <div class="fare-disclaimer" data-i18n="planner.fare_disclaimer">Fares are estimated. Actual may vary.</div>
+                </div>
             </div>
+
             <!-- END SCROLLABLE BODY -->
         </div>
 
         <!-- 4. BOTTOM TRIP STATUS BANNER (JOURNEY STARTED) -->
         <div class="sakay-card active-trip-banner" id="activeTripBanner" style="display:none;">
             <div class="trip-banner-top">
-                <strong data-i18n="planner.journey_started">Journey Started</strong>
+                <div class="trip-status">
+                    <span id="tripBannerIconWrap" class="banner-mode-icon">
+                        <img src="assets/icons/jeepney-icon.png" id="activeLegIcon" style="height:22px; width:22px; object-fit:contain;">
+                    </span>
+                    <strong id="activeLegTitle">Leg 1</strong>
+                    <span class="leg-progress-label" id="legProgressText">Leg 1 of 3</span>
+                </div>
+                <button class="mark-done-btn" id="markDoneBtn">
+                    <span data-i18n="planner.mark_done">Mark as Done</span>
+                </button>
             </div>
             <div class="trip-banner-bottom">
-                <div class="trip-status">
+                <div class="trip-status-sub">
                     <span class="live-dot green"></span>
-                    <span style="color: #0ea5e9; font-weight: 600;" data-i18n="planner.trip_active">Trip Active</span>
+                    <span style="color: #0ea5e9; font-weight: 600;" id="activeTripLabel" data-i18n="planner.trip_active">Trip Active</span>
                 </div>
                 <button class="btn-cancel-trip" id="cancelTripBtn">
                     <ion-icon name="close-outline"></ion-icon> <span data-i18n="planner.cancel">Cancel</span>
@@ -191,15 +195,36 @@
             </div>
         </div>
 
+
     </div><!-- /planner-gui-container -->
+
+    <!-- Floating Map Controls -->
+    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map">
+        <ion-icon name="locate"></ion-icon>
+        <span data-i18n="planner.recenter">Re-center</span>
+    </button>
+
+    <!-- Arrival Success Modal -->
+    <div class="arrival-screen-overlay" id="arrivalOverlay"></div>
+    <div class="arrival-screen" id="arrivalScreen">
+        <div class="arrival-confetti"></div>
+        <div class="arrival-content">
+            <div class="arrival-icon-circle">
+                <ion-icon name="checkmark-done-outline"></ion-icon>
+            </div>
+            <h2 data-i18n="planner.arrival_title">Arrived at Destination!</h2>
+            <button class="arrival-close-btn" id="arrivalCloseBtn">Done</button>
+        </div>
+    </div>
+
 
     <!-- ===== SIDE DRAWER ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="drawer-overlay" id="modeDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
-            <img src="assets/logo-new.png" alt="Calzada" class="drawer-logo" onerror="this.src='assets/logo-blue.png'">
             <button class="drawer-close" id="drawerCloseBtn"><ion-icon name="close-outline"></ion-icon></button>
+            <img src="assets/logo-new.png" alt="Calzada" class="drawer-logo" onerror="this.src='assets/logo-blue.png'">
         </div>
         <nav class="drawer-links">
             <a href="index.html"><ion-icon name="home-outline"></ion-icon> <span data-i18n="footer.nav.home">Home</span></a>
