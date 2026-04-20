@@ -130,14 +130,14 @@ body {
     right: 0;
     top: 0;
     opacity: 0.9;
-    animation: floatGeo 20s ease-in-out infinite; /* Slower, more subtle */
+    animation: floatGeo 12s ease-in-out infinite; /* Increased speed for more energy */
 }
 .geo-bg-2 {
     width: min(40vw, 200px);
     left: 20px;
     bottom: 50px;
     opacity: 0.8;
-    animation: floatGeo 25s ease-in-out infinite reverse;
+    animation: floatGeo 15s ease-in-out infinite reverse; /* Increased speed for more energy */
 }
 
 /* Card Backgrounds for readability on Mobile/Desktop overlaying shapes */
@@ -398,13 +398,7 @@ body {
 .center-logo-container {
     position: relative;
     margin-bottom: 1.8rem;
-    animation: logoFloat 7s ease-in-out infinite;
     pointer-events: none;
-}
-
-@keyframes logoFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
 }
 
 .logo-glow-ring {

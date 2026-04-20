@@ -358,7 +358,7 @@ Then you MUST reply ONLY with this message (in the user's language):
 "Pasensya na! Ang aking expertise ay limitado sa commuting, biyahe, kalsada, transport news sa Calamba area, at mga katanungan tungkol sa Calzada website. Maaari ba kitang tulungan sa iyong biyahe ngayon? 🚌"
 
 === PLATFORM INFO ===
-Calzada covers 50+ routes, 5 transit modes (jeepneys, modern jeepneys, buses, P2P, UV Express, tricycles), and 50+ barangays in Calamba City, Laguna.
+Calzada covers 50+ routes, 6 transit modes (jeepneys, modern jeepneys, buses, P2P, UV Express, tricycles), and 50+ barangays in Calamba City, Laguna.
 It offers route suggestions with estimated duration, fare, and walking distance.
 Completely free to use — no subscription needed.
 Accessible on mobile, tablet, and desktop.
