@@ -16,36 +16,25 @@
     <link rel="stylesheet" href="style.css">
     <style>
         .about-page-container {
-            max-width: 900px;
-            margin: 120px auto 100px;
-            padding: 40px 0;
-            animation: heroFadeIn 0.8s var(--ease) both;
+            padding: 120px 20px 80px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            background: transparent;
         }
 
         .about-content-wrapper {
-            max-height: none;
-            /* Full page scroll is used instead of inner scroll */
-        }
-
-        .back-home {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            transition: transform 0.2s;
-        }
-
-        .back-home:hover {
-            transform: translateX(-5px);
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 45, 60, 0.1);
         }
 
         @media (max-width: 768px) {
-            .about-page-container {
-                margin: 100px 1.5rem 100px;
-                padding: 0;
+            .about-content-wrapper {
+                padding: 30px 20px;
             }
         }
     </style>
@@ -98,14 +87,17 @@
             <h1 class="about-title" data-i18n="about_page.title">About</h1>
             <div class="about-text">
                 <p data-i18n="about_page.p1">
-                    <strong>Calzada</strong> is a commuter guide platform envisioned to transform the way people travel 
-                    across Calamba and nearby cities. Rooted in the word <em>calzada</em>, meaning road or pathway, 
+                    <strong>Calzada</strong> is a commuter guide platform envisioned to transform the way people
+                    travel
+                    across Calamba and nearby cities. Rooted in the word <em>calzada</em>, meaning road or
+                    pathway,
                     the brand embodies the idea of direction, clarity, and movement.
                 </p>
                 <p data-i18n="about_page.p2">
                     The platform integrates multiple modes of transport, including <strong>jeepneys, buses, P2P,
-                    UV Express, and tricycles</strong>. Calzada offers a route suggestion feature that presents 
-                    different travel options based on estimated duration, fare cost, and walking distance, 
+                        UV Express, and tricycles</strong>. Calzada offers a route suggestion feature that
+                    presents
+                    different travel options based on estimated duration, fare cost, and walking distance,
                     helping commuters compare alternatives and choose the most convenient journey.
                 </p>
                 <p data-i18n="about_page.p3">
@@ -113,9 +105,8 @@
                     commuters to combine different transport modes in a single journey.
                     The platform is built with a responsive design, making it accessible on both
                     desktop and mobile devices, and features a user-friendly interface
-                     that simplifies route planning even for first-time users.
+                    that simplifies route planning even for first-time users.
                 </p>
-
                 <h2 class="goal-title" data-i18n="about_page.goal.heading">Goal</h2>
                 <p data-i18n="about_page.goal.body">
                     The primary goal of Calzada is to empower commuters by

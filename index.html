@@ -111,32 +111,31 @@
     <!-- Scrollable Content Sections -->
     <div class="scrollable-content">
         <!-- Section: About Calzada -->
-        <section class="about-card">
-            <div class="section-header">
+        <section class="about-card reveal">
+            <div class="section-header reveal-delay-1">
                 <h2 data-i18n="about.heading">Ano ang Calzada?</h2>
                 <div class="header-line"></div>
             </div>
-            <p data-i18n="about.body">
+            <p data-i18n="about.body" class="reveal-delay-2">
                 Ang <strong>Calzada</strong> ay ang iyong maaasahang commuter guide platform dito sa Calamba at
                 karatig-bayan.
                 Madaliang mai-plano ang biyahe gamit ang aming platform na nagpapakita ng presyo ng pamasahe at
                 eksaktong transit mode—jeepney, bus, modern jeep, UV, o tricycle man 'yan!
             </p>
+            <a href="about.html" class="btn-learn-more reveal-delay-3" data-i18n="about.learn_more">Learn More →</a>
         </section>
 
         <!-- Section: 3 Easy Steps -->
         <section class="steps-section reveal">
             <!-- Animated Background -->
             <div class="steps-bg">
-                <svg class="steps-transit-svg" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice" width="100%"
-                    height="100%">
+                <svg class="steps-transit-svg" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
                     <path id="stepsPath1" class="steps-path" d="M -100,50 Q 250,150 500,50 T 1100,100" />
                     <circle class="steps-dot" r="6" fill="var(--primary)">
                         <animateMotion dur="5s" repeatCount="indefinite">
                             <mpath href="#stepsPath1" />
                         </animateMotion>
                     </circle>
-
                     <path id="stepsPath2" class="steps-path" d="M -100,200 Q 300,100 600,250 T 1100,200" />
                     <circle class="steps-dot" r="6" fill="var(--primary)">
                         <animateMotion dur="7s" repeatCount="indefinite">
@@ -146,11 +145,11 @@
                 </svg>
             </div>
             <div class="steps-content">
-                <div class="steps-pill">
+                <div class="steps-pill reveal-delay-1">
                     <span data-i18n="steps.pill">Simple & Fast</span>
                 </div>
-                <h2 class="steps-title" data-i18n="steps.heading">Plan your commute in 3 easy steps</h2>
-                <p class="steps-subtitle" data-i18n="steps.sub">No more guessing fares or routes. Calzada lays it all
+                <h2 class="steps-title reveal-delay-2" data-i18n="steps.heading">Plan your commute in 3 easy steps</h2>
+                <p class="steps-subtitle reveal-delay-3" data-i18n="steps.sub">No more guessing fares or routes. Calzada lays it all
                     out, clear and simple.</p>
 
                 <div class="steps-grid">
@@ -181,19 +180,19 @@
 
         <!-- Section: News & Traffic -->
         <section class="news-section reveal">
-            <div class="section-header">
+            <div class="section-header reveal-delay-1">
                 <h2><ion-icon name="newspaper-outline"></ion-icon> Latest News & Traffic</h2>
                 <div class="header-line"></div>
             </div>
             <div class="news-grid">
-                <div class="news-card reveal-delay-1">
+                <div class="news-card reveal-delay-2">
                     <span class="news-tag closure">Road Closure</span>
                     <h3>Parian Flyover Maintenance</h3>
                     <p>May schedule na repair sa Parian flyover ngayong weekend. Pinapayuhan ang mga motorista na dumaan
                         sa alternate routes para makaiwas sa abala.</p>
                     <span class="news-date">Updated: 1 hour ago</span>
                 </div>
-                <div class="news-card reveal-delay-2">
+                <div class="news-card reveal-delay-3">
                     <span class="news-tag alert">Heavy Traffic</span>
                     <h3>Real Crossing Gridlock</h3>
                     <p>Mabagal ang daloy ng trapiko sa Real Crossing area dahil sa volume ng sasakyan. Asahan ang 15-20
@@ -205,19 +204,19 @@
 
         <!-- Section: Fare & LTFRB Updates -->
         <section class="fare-section reveal">
-            <div class="section-header">
+            <div class="section-header reveal-delay-1">
                 <h2><ion-icon name="cash-outline"></ion-icon> Pamasahe & LTFRB Updates</h2>
                 <div class="header-line"></div>
             </div>
             <div class="news-grid">
-                <div class="news-card reveal-delay-1">
+                <div class="news-card reveal-delay-2">
                     <span class="news-tag fare">Fare Update</span>
                     <h3>₱13.00 Standard Fare Confirmed</h3>
                     <p>Nanatili ang minimum fare sa ₱13 para sa traditional jeepneys at ₱15 para sa modern jeepneys sa
                         buong Region IV-A.</p>
                     <span class="news-date">Source: LTFRB Official</span>
                 </div>
-                <div class="news-card reveal-delay-2">
+                <div class="news-card reveal-delay-3">
                     <span class="news-tag announcement">Rollout</span>
                     <h3>New Modern Jeeps in Canlubang</h3>
                     <p>Nagdagdag pa ng bagong units ng modern jeepney para sa Canlubang - Calamba Crossing route para sa

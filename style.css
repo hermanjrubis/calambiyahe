@@ -6,7 +6,7 @@
     --primary: #1a8fff;
     --primary-dark: #0f6fd1;
     --primary-glow: rgba(26, 143, 255, 0.35);
-    --bg: #ebf7fa;
+    --bg: #f0f6fc; /* Light blue-gray background for the whole page */
     --bg-card: rgba(255, 255, 255, 0.95);
     --text-dark: #002d3c;
     --text-muted: #1e506b;
@@ -141,16 +141,30 @@ body {
 }
 
 /* Card Backgrounds for readability on Mobile/Desktop overlaying shapes */
-.about-card, .news-section, .fare-section, .features-grid, .about-content-wrapper, .faq-container {
+/* Card Backgrounds - Removed for a cleaner, open look as per user request */
+.about-card, .news-section, .fare-section, .steps-section {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 10;
+    backdrop-filter: none;
+}
+
+.features-grid {
     background: rgba(255, 255, 255, 0.95);
     border-radius: var(--radius-md);
     padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 8px 30px rgba(0, 45, 60, 0.06);
-    border: 1px solid var(--border);
-    position: relative;
-    z-index: 10;
-    backdrop-filter: blur(10px);
+}
+
+.about-content-wrapper, .faq-container {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 45, 60, 0.1);
 }
 .about-card p {
     font-size: 0.95rem;
@@ -347,18 +361,38 @@ body {
    ============================================= */
 .hero-section {
     position: relative;
-    /* Hero fills screen minus navbar (~65px) and fixed features bar (~70px) */
-    min-height: calc(100vh - 65px - 70px);
-    height: calc(100vh - 65px - 70px);
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 80px 2rem 2rem;
+    padding: 80px 2rem;
     text-align: center;
     z-index: 1;
-    /* overflow: visible so search dropdown is never clipped */
     overflow: visible;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 100dvh;
+        padding-bottom: 60px;
+    }
+
+    .scrollable-content {
+        padding-top: 60px;
+    }
+}
+
+@media (min-width: 769px) {
+    .hero-section {
+        min-height: 100vh;
+        padding-bottom: 80px;
+    }
+
+    .scrollable-content {
+        padding-top: 120px;
+    }
 }
 
 .map-bg-overlay {
@@ -373,6 +407,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-bottom: 20px;
 }
 
 /* Staggered entry for Hero elements */
@@ -789,18 +824,47 @@ body {
     flex-shrink: 0;
 }
 
-/* =============================================
-   REVEAL ON SCROLL UTILITIES
-   ============================================= */
-.reveal {
+/* Smoother reveal animations with staggered desktop/mobile triggers */
+.reveal, 
+.reveal [class*="reveal-delay-"] {
     opacity: 0;
-    transform: translateY(40px);
-    transition: all 1s var(--ease);
+    transform: translateY(48px);
+    transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.reveal.active {
+
+.reveal.active,
+.reveal.active [class*="reveal-delay-"] {
     opacity: 1;
     transform: translateY(0);
 }
+
+.reveal-delay-1 { transition-delay: 0.10s; }
+.reveal-delay-2 { transition-delay: 0.22s; }
+.reveal-delay-3 { transition-delay: 0.34s; }
+.reveal-delay-4 { transition-delay: 0.46s; }
+
+/* Learn More Button Styling */
+.btn-learn-more {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 24px;
+    border: 2px solid var(--primary);
+    border-radius: 99px;
+    color: var(--primary);
+    background: transparent;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+}
+
+.btn-learn-more:hover {
+    background: var(--primary);
+    color: #fff;
+}
+
 .reveal-delay-1 { transition-delay: 0.1s; }
 .reveal-delay-2 { transition-delay: 0.2s; }
 .reveal-delay-3 { transition-delay: 0.3s; }
@@ -1903,11 +1967,14 @@ body {
 .scrollable-content {
     display: flex;
     flex-direction: column;
-    gap: 40px;
-    padding: 120px 20px 120px; /* Increased top padding to 120px for more spacing from hero */
+    gap: 80px;
+    padding: 40px 20px 120px;
     max-width: 900px;
     margin: 0 auto;
     width: 100%;
+    background: transparent;
+    border: none;
+    box-shadow: none;
 }
 
 .about-card, .news-section, .fare-section {
@@ -2035,7 +2102,24 @@ body {
     padding: 60px 20px 20px;
     font-family: 'Inter', sans-serif;
     position: relative;
+    overflow: hidden;
     z-index: 10;
+}
+
+.site-footer::before {
+    content: '';
+    position: absolute;
+    right: -60px;
+    bottom: -40px;
+    width: 420px;
+    height: 420px;
+    background-image: url('assets/logo-white.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .footer-container {
@@ -2046,6 +2130,8 @@ body {
     gap: 40px;
     padding-bottom: 40px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    z-index: 1;
 }
 
 .footer-logo {
@@ -2130,18 +2216,28 @@ body {
     padding-top: 20px;
     color: rgba(255, 255, 255, 0.5);
     font-size: 0.85rem;
+    position: relative;
+    z-index: 1;
 }
 
 /* User asked for wider gap in mobile */
 @media (max-width: 768px) {
     .scrollable-content {
         gap: 60px; /* Increased from 40px */
-        padding: 140px 20px 140px; /* 140px top gap from search bar on mobile */
+        /* padding-top will be handled by the specialized media query above */
+        padding-bottom: 140px; 
     }
 
     .footer-container {
         grid-template-columns: 1fr;
         gap: 30px;
+    }
+
+    .site-footer::before {
+        width: 280px;
+        height: 280px;
+        right: -30px;
+        bottom: -20px;
     }
 }
 
@@ -2941,14 +3037,8 @@ body {
    ============================================= */
 .steps-section {
     position: relative;
-    background: rgba(255, 255, 255, 0.4);
-    border-radius: var(--radius-md);
-    padding: 60px 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 8px 30px rgba(0, 45, 60, 0.04);
-    border: 1px solid var(--border);
+    padding: 60px 0;
     overflow: hidden;
-    z-index: 10;
 }
 
 .steps-bg {
@@ -2986,7 +3076,7 @@ body {
     }
 
     /* Reduce paths/dots and scale down on mobile for performance */
-    .steps-path:nth-of-type(2), 
+    .steps-path:nth-of-type(2),
     .steps-dot:nth-of-type(2) {
         display: none;
     }
@@ -3009,7 +3099,6 @@ body {
 
 .steps-content {
     position: relative;
-    z-index: 2;
     max-width: 900px;
     margin: 0 auto;
     display: flex;
@@ -3062,37 +3151,40 @@ body {
 }
 
 .step-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: var(--radius-md);
-    padding: 30px 24px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: var(--shadow-sm);
-    text-align: left;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(12, 118, 206, 0.12);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(12, 118, 206, 0.08);
+    padding: 28px 24px;
     position: relative;
+    z-index: 2;
     overflow: hidden;
-    transition: all 0.4s var(--ease);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .step-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-blue);
-    border-color: rgba(26, 143, 255, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(12, 118, 206, 0.15);
 }
 
 .step-ghost-num {
     position: absolute;
-    top: -15px;
+    top: -10px;
     right: -10px;
     font-family: 'Outfit', sans-serif;
-    font-size: 6rem;
-    font-weight: 800;
-    color: rgba(26, 143, 255, 0.05);
+    font-size: 5rem;
+    font-weight: 900;
+    color: var(--primary);
+    opacity: 0.07;
     line-height: 1;
     z-index: 0;
     pointer-events: none;
+    user-select: none;
     transition: all 0.4s var(--ease);
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .step-card:hover .step-ghost-num {
@@ -3133,3 +3225,21 @@ body {
     z-index: 1;
 }
 
+/* =============================================
+   ABOUT PAGE CONTENT REDESIGN
+   ============================================= */
+.about-hero {
+    padding: 130px 24px 48px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.faq-section .page-title {
+    font-size: 2.5rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    color: var(--primary);
+    text-align: center;
+    margin-bottom: 48px;
+}
