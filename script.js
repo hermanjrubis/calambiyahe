@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!data.length) return;
                     const apiItems = data.map(place => {
                         const name = place.name || place.display_name.split(',')[0];
-                        const parts = place.display_name.split(',').slice(1, 3).map(s => s.trim());
+                        const parts = place.display_name.split(',').slice(1, 4).map(s => s.trim());
                         const address = parts.join(', ');
                         return buildResultItem(name, address, () => {
                             window.location.href = `planner.html?dest=${encodeURIComponent(name)}&dlat=${place.lat}&dlng=${place.lon}`;
@@ -315,7 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const GROQ_API_KEY = "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";
+    // ⚠️ SECURITY: Move this to a backend proxy — never expose API keys in client-side code.
+    const GROQ_API_KEY = window.__GROQ_KEY__ || "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";
     const SYSTEM_PROMPT = `You are DyipTok, the friendly AI commuting assistant of Calzada — a commuter guide platform for Calamba City and different routes originating from Calamba.
 
 === YOUR SCOPE (only answer questions within this list) ===
@@ -489,7 +490,7 @@ Use this context to give more relevant, specific answers. If the user asks about
         }
     }
 
-    sendMessageBtn.addEventListener('click', handleChatSend);
+    if (sendMessageBtn) sendMessageBtn.addEventListener('click', handleChatSend);
 
     const suggestionChips = document.querySelectorAll('.suggestion-chip');
     suggestionChips.forEach(chip => {

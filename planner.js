@@ -4,10 +4,10 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const map = L.map('map').setView([14.2045, 121.1641], 14);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    const map = L.map('map').setView([14.2045, 121.1641], 16);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        attribution: '&copy; Google',
         className: 'calzada-map-tiles'
     }).addTo(map);
 

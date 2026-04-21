@@ -27,9 +27,10 @@
             
             <nav class="nav-links" id="navLinks">
                 <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
-                <a href="index.html#place-finder" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
                 <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
-                <a href="index.html#place-finder" class="btn-plan-route" style="cursor: pointer;" data-i18n="planner.plan_route">Plan Route</a>
+                <a href="faq.html" class="nav-link active" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="planner.html" class="btn-plan-route" data-i18n="planner.plan_route">Plan Route</a>
                 
                 <!-- Navbar Toggle (Desktop) -->
                 <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
@@ -75,9 +76,12 @@
                 </div>
 
                 <div class="faq-item">
-                    <button class="faq-question">Does the website show exact fares? <ion-icon name="chevron-down-outline"></ion-icon></button>
+                    <button class="faq-question">
+                        <span data-i18n="faq_fares.q">Does the website show exact fares?</span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
                     <div class="faq-answer">
-                        <p>The platform provides estimated fares based on available data. Actual fares may vary slightly depending on operator policies, but the goal is to give commuters a clear idea of expected costs before traveling.</p>
+                        <p data-i18n="faq_fares.a">The platform provides estimated fares based on available data. Actual fares may vary slightly depending on operator policies, but the goal is to give commuters a clear idea of expected costs before traveling.</p>
                     </div>
                 </div>
 
