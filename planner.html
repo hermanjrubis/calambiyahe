@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calzada - Route Planner</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -12,7 +12,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
-
+<body class="planner-body">
 
     <!-- ===== MAP FULLSCREEN ===== -->
     <div id="map" class="planner-map"></div>
@@ -30,65 +30,73 @@
         <button class="picker-cancel-btn" id="mapPickerCancelBtn">Cancel</button>
     </div>
 
-    <!-- ===== FLOATING TOP CONTROLS (Above Map, Always Visible) ===== -->
+    <!-- Floating Recenter Button -->
+    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map">
+        <ion-icon name="locate"></ion-icon>
+    </button>
+
+    <!-- Mid-point Bubble (when directions card collapsed) -->
+    <div id="midpointBubble" class="route-bubble" style="display:none;">
+        <span id="midpointBubbleTime">-- min</span>
+    </div>
+
+    <!-- ===== FLOATING TOP CONTROLS (Always Visible) ===== -->
     <div class="map-top-bar">
         <div class="map-top-right">
-            <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language" style="margin-right: 8px;">
+            <button class="lang-toggle-btn pill-btn" id="langToggleBtn" title="Switch Language">
                 <span class="lang-active">EN</span>
                 <span class="lang-sep">|</span>
                 <span class="lang-other">TL</span>
             </button>
-            <button class="map-top-pill" id="remindersPillBtn">
+            <button class="map-top-pill pill-btn" id="remindersPillBtn">
                 <ion-icon name="shield-checkmark-outline"></ion-icon>
                 <span data-i18n="planner.reminders_title">Reminders</span>
             </button>
-            <button class="map-top-icon-btn" id="hamburgerBtn" aria-label="Menu">
+            <button class="map-top-icon-btn pill-btn" id="hamburgerBtn" aria-label="Menu">
                 <ion-icon name="menu-outline"></ion-icon>
             </button>
         </div>
     </div>
 
-    <!-- ===== SAKAY.PH STYLE DISJOINT FLOATING PANELS ===== -->
+    <!-- ===== UI SCREENS CONTAINER ===== -->
     <div class="planner-gui-container">
         
-        <!-- 1. MAIN INPUT CARD (Origin, Dest, Use Location, Leave Now) -->
-        <div class="sakay-card input-card" id="searchCard">
-            <div style="display:flex; gap:16px; margin-bottom: 8px; position:relative;">
-                <div style="display:flex; flex-direction:column; justify-content:center; align-items:center; padding-left: 8px;">
-                    <img src="assets/originDestination-icon.png" style="height:90px; object-fit:contain; margin-top:2px;">
+        <!-- SCREEN 1: DIRECTIONS CARD -->
+        <div class="bottom-sheet directions-card expanded" id="directionsCard">
+            <!-- Drag Handle Bar for mobile -->
+            <div class="drag-handle-bar ds-drag-handle">
+                <div class="drag-pill"></div>
+            </div>
+            
+            <div class="ds-header">
+                <h3 class="ds-title">Directions</h3>
+                <!-- Collapsed state peek info -->
+                <div class="ds-peek-info" id="dsPeekInfo" style="display:none;">
+                    <span id="peekSummary" class="peek-summary-text">-- min • ₱ --</span>
                 </div>
-                <div style="flex:1; display:flex; flex-direction:column; gap:8px; padding-right: 32px;">
-                    <!-- Origin -->
-                    <div class="sakay-input-wrap">
-                        <input type="text" id="originInput" data-i18n="planner.search_origin_placeholder" data-i18n-attr="placeholder" placeholder="Saan ka magmumula?" autocomplete="off">
-                        <ul class="suggestions-list" id="originSuggestions" style="display:none;"></ul>
-                    </div>
-                    <!-- Destination -->
-                    <div class="sakay-input-wrap">
-                        <input type="text" id="destinationInput" data-i18n="planner.search_dest_placeholder" data-i18n-attr="placeholder" placeholder="Saan ka bababa?" autocomplete="off">
-                        <ul class="suggestions-list" id="destSuggestions" style="display:none;"></ul>
-                    </div>
-                </div>
-                
-                <!-- Swap Button -->
-                <button id="swapBtn" style="position:absolute; right:0; top:50%; transform:translateY(-50%); background:white; border:1px solid #e2e8f0; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; color:#0c76ce; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.05); z-index:3;" aria-label="Swap Locations">
-                    <ion-icon name="swap-vertical" style="font-size:1.1rem;"></ion-icon>
-                </button>
-                
+                <!-- Close X logic will reset planner -->
+                <button class="ds-close-btn" id="closeDirectionsBtn"><ion-icon name="close"></ion-icon></button>
             </div>
 
-            <!-- START SCROLLABLE BODY -->
-            <div class="search-card-scrollbody" id="searchScrollArea">
-                <!-- Use My Current Location -->
-                <button class="sakay-action-row" id="useLocationBtnEx" style="margin-top: 10px;">
-                    <ion-icon name="locate-outline"></ion-icon>
-                    <span data-i18n="planner.use_location">Use my Current Location</span>
-                </button>
+            <div class="ds-body">
+                <!-- Origin-Destination Block -->
+                <div class="od-input-block">
+                    <img src="assets/originDestination-icon.png" class="od-connector-img" alt="Connector">
+                    <div class="od-input-column">
+                        <div class="od-row">
+                            <div class="od-field" id="openOriginModal">My Location</div>
+                        </div>
+                        <div class="od-divider-line"></div>
+                        <div class="od-row">
+                            <div class="od-field unfilled" id="openDestModal">Where to?</div>
+                        </div>
+                    </div>
+                    <button class="swap-btn" id="swapLocationsBtn"><ion-icon name="swap-vertical"></ion-icon></button>
+                </div>
 
                 <!-- Schedule Dropdown -->
-                <div class="sakay-action-row" id="scheduleDropdownContainer">
-                    <ion-icon name="time-outline"></ion-icon>
-                    <div class="sakay-dropdown-trigger" id="scheduleSelected">
+                <div class="schedule-row">
+                    <div class="schedule-pill" id="scheduleSelected">
                         <span id="scheduleSelectedText">Leave now</span>
                         <ion-icon name="chevron-down-outline"></ion-icon>
                     </div>
@@ -97,116 +105,128 @@
                         <li data-value="depart" data-i18n="planner.depart_at">Depart at...</li>
                         <li data-value="arrive" data-i18n="planner.arrive_by">Arrive by...</li>
                     </ul>
-                    <!-- Hidden Native Date Picker anchor for flatpickr -->
                     <input type="text" id="nativeDatePicker" style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
                 </div>
-                
-                <!-- Terminal Picker -->
-                <div id="terminalPickerSection" class="sakay-terminal-picker" style="display:none;">
-                    <div class="sakay-section-title" data-i18n="planner.suggested_terminals">Suggested Terminals</div>
-                    <div id="terminalList" class="sakay-terminal-list"></div>
-                </div>
-            </div>
-            <!-- END SCROLLABLE BODY -->
-        </div>
 
-        <!-- 2. TRANSIT MODE & START JOURNEY CARD -->
-        <div class="sakay-card action-card" id="actionCard">
-            <button class="btn-simulan" id="startJourneyBtn" disabled>
-                <ion-icon name="paper-plane-outline"></ion-icon>
-                <span id="startJourneyBtnText" data-i18n="planner.simulan">Simulan ang Biyahe</span>
-            </button>
-        </div>
-
-        <!-- NEW: Itinerary Options Selection Panel (2-3 Variants) -->
-        <div id="itineraryOptionsPanel" class="itinerary-options-container" style="display:none;"></div>
-
-
-        <!-- 3. ACTIVE JOURNEY ITERINARY (LAKBAY GUIDE) -->
-        <div class="sakay-card guide-card" id="guideCard" style="display:none;">
-            <div class="guide-drag-handle"></div>
-            <h3 class="guide-title" data-i18n="planner.lakbay_guide">Lakbay Guide</h3>
-            
-            <!-- Route Header -->
-            <div class="guide-route-preview">
-                <div class="guide-nodes" style="display:flex; flex-direction:column; justify-content:center; align-items:center; padding-top:2px; padding-left: 4px; padding-right: 4px;">
-                    <img src="assets/originDestination-icon.png" style="height:55px; object-fit:contain;">
-                </div>
-                <div class="guide-places">
-                    <div id="guideOriginText" class="guide-place-text" style="color:var(--primary)">Origin</div>
-                    <div id="guideDestText" class="guide-place-text" style="color:var(--danger)">Destination</div>
-                </div>
-            </div>
-
-            <!-- START SCROLLABLE BODY -->
-            <div class="search-card-scrollbody">
-                <!-- Time & Fare Summary Strip -->
-                <div class="guide-summary-strip">
-                    <div class="guide-summary-item">
-                        <ion-icon name="time-outline"></ion-icon>
-                        <span id="estTimeValue">1hr 12min</span>
-                    </div>
-                    <div class="guide-summary-divider"></div>
-                    <div class="guide-summary-item">
-                        <ion-icon name="cash-outline"></ion-icon>
-                        <span id="estFareValue">₱ 45</span>
-                    </div>
-                </div>
-
-                <!-- Detailed Itinerary List -->
-                <div id="itineraryList" class="sakay-itinerary-list"></div>
-
-                <!-- NEW: Fare Breakdown Section -->
-                <div id="fareBreakdownSection" class="fare-breakdown-section" style="display:none;">
-                    <button class="fare-breakdown-toggle" id="fareToggleBtn">
-                        <span data-i18n="planner.fare_breakdown">Fare Breakdown</span>
-                        <ion-icon name="chevron-down-outline"></ion-icon>
+                <!-- Transport Modes -->
+                <div class="mode-pills-row" id="transportModesBlock" style="display: none;">
+                    <button class="mode-pill outline-pill" id="modeJeepney" data-mode="jeepney">
+                        <img src="assets/icons/jeepney-icon.png" alt="Jeepney" class="transit-icon"> Jeepney
                     </button>
-                    <div id="fareBreakdownList" class="fare-breakdown-list" style="display:none;"></div>
-                    <div class="fare-disclaimer" data-i18n="planner.fare_disclaimer">Fares are estimated. Actual may vary.</div>
+                    <button class="mode-pill selected-pill" id="modeModernJeepney" data-mode="modern-jeepney">
+                        <img src="assets/icons/bus-icon.png" alt="M. Jeepney" class="transit-icon"> M. Jeepney
+                    </button>
                 </div>
+
+                <!-- Summary Row (Visible when route is found) -->
+                <div class="route-summary-block" id="routeSummaryBlock" style="display: none;">
+                    <div class="summary-large"><span id="sumTime">-- min</span> • ₱ <span id="sumFare">--</span></div>
+                    <div class="summary-sub"><span id="sumETA">--:-- am</span> ETA • <span id="sumDist">--</span> km</div>
+                    <div class="summary-note">*Fare starts from National Highway boarding point</div>
+                </div>
+
             </div>
 
-            <!-- END SCROLLABLE BODY -->
-        </div>
-
-        <!-- 4. BOTTOM TRIP STATUS BANNER (JOURNEY STARTED) -->
-        <div class="sakay-card active-trip-banner" id="activeTripBanner" style="display:none;">
-            <div class="trip-banner-top">
-                <div class="trip-status">
-                    <span id="tripBannerIconWrap" class="banner-mode-icon">
-                        <img src="assets/icons/jeepney-icon.png" id="activeLegIcon" style="height:22px; width:22px; object-fit:contain;">
-                    </span>
-                    <strong id="activeLegTitle">Leg 1</strong>
-                    <span class="leg-progress-label" id="legProgressText">Leg 1 of 3</span>
-                </div>
-                <button class="mark-done-btn" id="markDoneBtn">
-                    <span data-i18n="planner.mark_done">Mark as Done</span>
-                </button>
-            </div>
-            <div class="trip-banner-bottom">
-                <div class="trip-status-sub">
-                    <span class="live-dot green"></span>
-                    <span style="color: #0ea5e9; font-weight: 600;" id="activeTripLabel" data-i18n="planner.trip_active">Trip Active</span>
-                </div>
-                <button class="btn-cancel-trip" id="cancelTripBtn">
-                    <ion-icon name="close-outline"></ion-icon> <span data-i18n="planner.cancel">Cancel</span>
-                </button>
-            </div>
+            <!-- Full Width Start Journey Button -->
+            <button class="start-journey-btn" id="startJourneyBtn" disabled>START JOURNEY</button>
         </div>
 
 
+        <!-- SCREEN 3: ACTIVE NAVIGATION PANELS -->
+        
+        <!-- Top Guide Card (Glassmorphism) -->
+        <div class="active-guide-card glass-panel" id="activeGuideCard" style="display:none;">
+            <div class="guide-top-section">
+                <div class="guide-header">
+                    <b>Guide</b>
+                </div>
+                
+                <div class="guide-steps-container" id="guideStepsContainer">
+                    <!-- Current step — white elevated card -->
+                    <div class="guide-current-step" id="guideCurrentStep">
+                        <ion-icon name="walk"></ion-icon>
+                        <span id="guideCurrentText">Walk to National Highway</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="guide-steps-container-next" id="guideStepsContainerNext">
+                <!-- Next steps listed below on the glass background -->
+                <div class="guide-next-step" id="guideNextStep">
+                    <ion-icon name="arrow-redo-outline"></ion-icon>
+                    <span id="guideNextText">Turn right</span>
+                </div>
+                <div class="guide-expanded-steps visible" id="guideExpandedSteps">
+                    <!-- Additional next steps rendered here by JS -->
+                </div>
+            </div>
+            
+            <!-- Drag handle on bottom for mobile -->
+            <div class="drag-handle-bar guide-drag-handle">
+                <div class="drag-pill"></div>
+            </div>
+        </div>
+
+        <!-- Bottom Status Pill (Glassmorphism) -->
+        <div class="bottom-status-pill glass-panel" id="bottomStatusPill" style="display:none;">
+            <!-- Drag handle on top for bottom pill -->
+            <div class="drag-handle-bar status-drag-handle">
+                <div class="drag-pill"></div>
+            </div>
+            <div class="status-cols">
+                <div class="col">
+                    <div class="val" id="pillArrival">--:--</div>
+                    <div class="lbl">arrival</div>
+                </div>
+                <div class="col">
+                    <div class="val" id="pillMin">--</div>
+                    <div class="lbl">min</div>
+                </div>
+                <div class="col">
+                    <div class="val" id="pillPhp">--</div>
+                    <div class="lbl">php</div>
+                </div>
+            </div>
+            <div class="cancel-action-row" id="cancelActionRow">
+                <button class="btn-cancel-route" id="cancelRouteBtn">Cancel Route</button>
+            </div>
+        </div>
+        
     </div><!-- /planner-gui-container -->
 
-    <!-- Floating Map Controls -->
-    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map">
-        <ion-icon name="locate"></ion-icon>
-        <span data-i18n="planner.recenter">Re-center</span>
-    </button>
+    <!-- SCREEN 2: CHANGE LOCATION MODAL -->
+    <div class="modal-overlay" id="locationModalOverlay"></div>
+    <div class="location-modal" id="locationModal">
+        <div class="loc-header">
+            <h3 id="locModalTitle">Change Origin</h3>
+            <button class="loc-close-btn" id="closeLocModal"><ion-icon name="close"></ion-icon></button>
+        </div>
+        <div class="loc-search">
+            <input type="text" id="locSearchInput" placeholder="Search..." autocomplete="off">
+        </div>
+        
+        <div class="loc-options" id="locOptionsList">
+            <!-- Render options/results here -->
+            <div class="loc-row" id="optMyLocation">
+                <div class="loc-icon bg-blue"><ion-icon name="locate"></ion-icon></div>
+                <div class="loc-text">My Location</div>
+            </div>
+            <div class="loc-row" id="optPinLocation">
+                <div class="loc-icon pin-blue"><ion-icon name="location"></ion-icon></div>
+                <div class="loc-text">Pin Location</div>
+            </div>
+        </div>
+        <!-- Will show results instead of options when typing -->
+        
+        <div class="loc-attribution" id="locAttribution" style="display:none;">
+            <span>■</span> Search results powered by OpenStreetMap · ESRI
+        </div>
+    </div>
+
 
     <!-- Arrival Success Modal -->
-    <div class="arrival-screen-overlay" id="arrivalOverlay"></div>
-    <div class="arrival-screen" id="arrivalScreen">
+    <div class="arrival-screen-overlay glass-panel" id="arrivalOverlay"></div>
+    <div class="arrival-screen glass-panel" id="arrivalScreen">
         <div class="arrival-confetti"></div>
         <div class="arrival-content">
             <div class="arrival-icon-circle">
@@ -217,11 +237,9 @@
         </div>
     </div>
 
-
-    <!-- ===== SIDE DRAWER ===== -->
+    <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
-    <div class="drawer-overlay" id="modeDrawerOverlay"></div>
-    <div class="side-drawer" id="sideDrawer">
+    <div class="side-drawer glass-panel" id="sideDrawer">
         <div class="drawer-top">
             <button class="drawer-close" id="drawerCloseBtn"><ion-icon name="close-outline"></ion-icon></button>
             <img src="assets/logo-new.png" alt="Calzada" class="drawer-logo" onerror="this.src='assets/logo-blue.png'">
@@ -232,10 +250,12 @@
             <a href="#"><ion-icon name="add-circle-outline"></ion-icon> <span data-i18n="footer.nav.submit">Submit a Route</span></a>
             <a href="#" id="drawerDyipTokLink"><ion-icon name="chatbubble-outline"></ion-icon> <span data-i18n="footer.nav.dyiptok">Ask DyipTok</span></a>
 
+            <div class="drawer-separator"></div>
+
             <!-- Mobile Language Selection Row -->
             <div class="mobile-lang-row">
                 <span class="mobile-lang-label">Language / Wika</span>
-                <button class="mobile-lang-toggle">
+                <button class="mobile-lang-toggle pill-btn">
                     <span class="lang-active">EN</span>
                     <span class="lang-sep">|</span>
                     <span class="lang-other">TL</span>
@@ -245,9 +265,9 @@
         <div class="drawer-footer-text">© 2026 Calzada</div>
     </div>
 
-    <!-- ===== REMINDERS MODAL ===== -->
+    <!-- ===== REMINDERS MODAL (GLASSMORPHISM) ===== -->
     <div class="modal-overlay" id="remindersOverlay"></div>
-    <div class="reminders-modal" id="remindersModal">
+    <div class="reminders-modal glass-panel" id="remindersModal">
         <div class="modal-header">
             <div class="modal-title-row">
                 <ion-icon name="shield-checkmark-outline" class="modal-icon-blue"></ion-icon>
@@ -264,9 +284,9 @@
         </div>
     </div>
 
-    <!-- ===== DATETIME PICKER ===== -->
+    <!-- ===== DATETIME PICKER (GLASSMORPHISM) ===== -->
     <div class="dt-picker-overlay" id="dtPickerOverlay"></div>
-    <div class="dt-picker-modal" id="dtPickerModal">
+    <div class="dt-picker-modal glass-panel" id="dtPickerModal">
         <div class="dt-picker-header">
             <button class="dt-back-btn" id="dtBackBtn"><ion-icon name="arrow-back-outline"></ion-icon></button>
             <div class="dt-toggle">
@@ -298,7 +318,7 @@
         <button class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set Schedule</button>
     </div>
 
-    <!-- ===== CHATBOT ===== -->
+    <!-- ===== CHATBOT (Kept as is but container updated if needed) ===== -->
     <div class="chat-window" id="chatWindow" style="z-index:10000;">
         <div class="chat-header">
             <div class="chat-header-info">
@@ -319,8 +339,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Suggested Chats -->
         <div class="chat-suggestions">
             <button class="suggestion-chip">Ano ang Calzada?</button>
             <button class="suggestion-chip">Paano gamitin ang route search?</button>
@@ -328,7 +346,6 @@
             <button class="suggestion-chip">Anong transport modes ang meron?</button>
             <button class="suggestion-chip">Libre ba ito?</button>
         </div>
-
         <div class="chat-input-area">
             <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1"></textarea>
             <div class="chat-input-toolbar">
@@ -337,25 +354,18 @@
                     <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
                 </div>
             </div>
-            <div id="recordingControls" class="vm-active-container" style="display:none;">
-                <div class="recording-indicator-dot"></div>
-                <div class="vm-frequency-pill" id="vmFrequencyPill"><canvas id="voiceVisualizer" width="140" height="30"></canvas></div>
-                <button id="pauseMicBtn" class="vm-action-btn pause-btn"><ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon></button>
-                <button id="cancelMicBtn" class="vm-action-btn close-btn"><ion-icon name="close-outline"></ion-icon></button>
-                <button id="stopMicBtn" class="vm-action-btn send-btn"><ion-icon name="checkmark-done-outline"></ion-icon></button>
-            </div>
         </div>
     </div>
 
-    <!-- Toast -->
-    <div class="toast-notification" id="toastNotification">
+    <!-- Toast Notification (Glassmorphism) -->
+    <div class="toast-notification glass-panel" id="toastNotification">
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <span id="toastMessage">Success!</span>
     </div>
 
-    <!-- Auth Modal -->
+    <!-- Auth Modal (Glassmorphism) -->
     <div class="modal-overlay" id="authOverlay"></div>
-    <div class="auth-modal" id="authModal">
+    <div class="auth-modal glass-panel" id="authModal">
         <div class="modal-header">
             <div class="modal-title-row">
                 <ion-icon name="person-circle-outline" class="modal-icon-blue"></ion-icon>
@@ -364,26 +374,19 @@
             <button class="modal-close-btn" id="closeAuthBtn"><ion-icon name="close-outline"></ion-icon></button>
         </div>
         <div class="auth-body">
-            <p class="auth-desc" data-i18n="planner.login_desc">Kailangan ng account para i-save ang iyong scheduled trips at para maka-receive ng departure reminders.</p>
+            <p class="auth-desc" data-i18n="planner.login_desc">Kailangan ng account para i-save ang iyong scheduled trips.</p>
             <button class="google-signin-btn" id="googleSignInBtn">
-                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                    <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-                </svg>
                 <span data-i18n="planner.google_login">Continue with Google</span>
             </button>
             <div class="auth-or"><span>o</span></div>
             <div class="auth-input-group">
                 <ion-icon name="call-outline"></ion-icon>
-                <input type="tel" id="authPhone" data-i18n="planner.mobile_placeholder" data-i18n-attr="placeholder" placeholder="Mobile Number (09XXXXXXXXX)">
+                <input type="tel" id="authPhone" placeholder="Mobile Number (09XXXXXXXXX)">
             </div>
             <button class="cta-btn" id="authSubmitBtn">
                 <span id="authBtnText" data-i18n="planner.mobile_login">Continue with Mobile</span>
                 <div class="btn-spinner" id="authSpinner" style="display:none;"></div>
             </button>
-            <p class="auth-disclaimer" data-i18n="planner.auth_disclaimer">By proceeding, you agree to our Terms &amp; Privacy Policy.</p>
         </div>
     </div>
 
