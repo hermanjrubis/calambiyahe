@@ -27,6 +27,11 @@
     padding: 0;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
 .planner-body {
     overflow: hidden;
     height: 100vh;
@@ -77,24 +82,38 @@
     border-color: #0f172a transparent transparent transparent;
 }
 
+.custom-mid-bubble {
+    width: auto !important;
+    height: auto !important;
+    background: transparent;
+    border: none;
+}
+
 .recenter-btn {
     position: fixed;
     right: 16px;
-    bottom: 260px;
-    width: 44px;
-    height: 44px;
+    bottom: 200px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    background: white;
-    border: none;
+    background: rgba(26, 143, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
-    color: var(--primary);
     z-index: 600;
     cursor: pointer;
     transition: transform 0.2s;
+}
+
+@media (min-width: 768px) {
+    .recenter-btn {
+        bottom: 30px;
+        right: 20px;
+    }
 }
 
 .recenter-btn:active {
@@ -128,8 +147,11 @@
 }
 
 .pill-btn {
-    background: white;
-    border: none;
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
     border-radius: 999px;
     height: 40px;
     display: flex;
@@ -140,7 +162,6 @@
     font-weight: 700;
     color: var(--text);
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     transition: transform 0.2s;
 }
 
@@ -184,11 +205,57 @@
    GLASSMORPHISM BASE
    ============================================= */
 .glass-panel {
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.10);
+}
+
+.realtime-pointer-wrapper {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pointer-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    position: relative;
+    z-index: 2;
+}
+
+.pointer-glow-ring {
+    position: absolute;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(28, 110, 242, 0.15);
+    border: 2px solid rgba(28, 110, 242, 0.3);
+    z-index: 1;
+    animation: pointerGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes pointerGlowPulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(28, 110, 242, 0.4);
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+        box-shadow: 0 0 0 10px rgba(28, 110, 242, 0);
+    }
+    100% {
+        transform: scale(0.9);
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(28, 110, 242, 0);
+    }
 }
 
 /* =============================================
@@ -209,14 +276,23 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.10);
     pointer-events: auto;
     display: flex;
     flex-direction: column;
     transition: transform 0.35s var(--ease);
     max-height: 92vh;
+}
+
+@media (max-width: 767px) {
+    .bottom-sheet {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.10);
+        border-radius: 24px;
+        margin: 0 12px 12px 12px;
+    }
 }
 
 .bottom-sheet.collapsed {
@@ -250,9 +326,14 @@
         left: 0;
         right: auto;
         width: 340px;
+        background: #ffffff;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border: none;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.07);
         border-radius: 0;
+        margin: 0;
         transform: none !important;
-        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05);
         max-height: none;
     }
 
@@ -621,6 +702,11 @@
     overflow: hidden;
     transition: transform 0.35s var(--ease);
     padding: 0;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 @media (min-width: 768px) {
@@ -633,7 +719,7 @@
 }
 
 .guide-top-section {
-    background: white;
+    background: transparent;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
@@ -701,6 +787,8 @@
 
 .guide-expanded-steps.visible {
     display: block;
+    max-height: 50vh;
+    overflow-y: auto;
 }
 
 .expanded-step {
@@ -740,6 +828,35 @@
     transition: all 0.3s var(--ease);
     width: calc(100% - 40px);
     max-width: 360px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.active-mode-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px 0;
+}
+.amt-btn {
+    flex: 1;
+    background: rgba(255,255,255,0.5);
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 6px 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.amt-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
 @media (min-width: 768px) {
@@ -825,12 +942,15 @@
     top: 8%;
     left: 5%;
     right: 5%;
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     border-radius: 22px;
     z-index: 9000;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
     opacity: 0;
     visibility: hidden;
     transform: translateY(24px);
@@ -1053,6 +1173,11 @@
     transition: transform 0.4s var(--ease);
     display: flex;
     flex-direction: column;
+    background: rgba(255, 255, 255, 0.90);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.12);
 }
 
 @media (min-width: 768px) {
@@ -1176,6 +1301,11 @@
     visibility: hidden;
     transition: all 0.3s var(--ease);
     border-radius: 24px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
 }
 
 .reminders-modal.visible,
@@ -1478,6 +1608,11 @@
     z-index: 9500;
     transform: translateY(100%);
     transition: transform 0.4s var(--ease);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
 }
 
 @media (min-width: 768px) {
@@ -1670,6 +1805,206 @@
     flex-direction: column;
     align-items: center;
     transition: all 0.4s var(--ease);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+}
+
+.arrival-screen.visible {
+    display: flex;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.arrival-icon-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.arrival-screen h2 {
+    font-family: 'Outfit';
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 24px;
+}
+
+.arrival-close-btn {
+    padding: 16px 40px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-family: 'Outfit';
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+/* =============================================
+   MAP PICKER UI
+   ============================================= */
+.map-picker-ui {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 20px;
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    z-index: 700;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.picker-address {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+}
+
+.picker-confirm-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.picker-cancel-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+}
+
+.map-center-pin {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    z-index: 599;
+    font-size: 2.5rem;
+    color: var(--danger);
+    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* =============================================
+   SPINNER
+   ============================================= */
+.route-spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* =============================================
+   RECENTER / COMPASS BUTTON
+   ============================================= */
+.recenter-btn {
+    position: fixed;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: none;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: #1C6EF2;
+    cursor: pointer;
+    transition: all 0.3s;
+    /* MOBILE defaults */
+}
+
+.dt-cal-nav-btn {
+    background: #f1f5f9;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.dt-cal-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    margin-bottom: 6px;
+}
+
+.dt-cal-weekdays span {
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 4px 0;
+}
+
+.dt-cal-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+/* =============================================
+   ARRIVAL SCREEN
+   ============================================= */
+.arrival-screen-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    background: rgba(0, 0, 0, 0.6);
+    display: none;
+}
+
+.arrival-screen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    z-index: 12000;
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.4s var(--ease);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
 }
 
 .arrival-screen.visible {

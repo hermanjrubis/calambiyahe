@@ -12,6 +12,38 @@
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <!-- Search dropdown styles -->
+    <style>
+        .search-results-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0; right: 0;
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            overflow: hidden;
+            z-index: 200;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.15s;
+        }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-item:hover { background: #f0f7ff; }
+        .search-result-item ion-icon { font-size: 1.1rem; color: #1C6EF2; flex-shrink: 0; }
+        .result-name  { font-size: 0.92rem; font-weight: 600; color: #1e293b; }
+        .result-addr  { font-size: 0.78rem; color: #94a3b8; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+        .search-container { position: relative; }
+    </style>
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -96,7 +128,8 @@
                 <div class="search-bar" id="searchBar">
                     <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
                     <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder"
-                        placeholder="Where do you want to go?" class="search-input" id="searchInput">
+                        placeholder="Where do you want to go?" class="search-input" id="searchInput"
+                        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                     <button class="search-button" aria-label="Search" id="searchBtn">
                         <ion-icon name="search-outline"></ion-icon>
                     </button>
@@ -369,6 +402,152 @@
 
     <script src="script.js"></script>
     <script src="i18n.js"></script>
+
+    <!-- =============================================
+         LANDING PAGE SEARCH → PLANNER NAVIGATION
+         Geocodes the typed destination and passes
+         destName + destLat + destLng to planner.html
+    ============================================= -->
+    <script>
+    (function () {
+        const searchInput  = document.getElementById('searchInput');
+        const searchBtn    = document.getElementById('searchBtn');
+        const resultsBox   = document.getElementById('searchResults');
+
+        let debounceTimer  = null;
+        let activeSuggestions = []; // [{name, address, lat, lng, isSuggestion}]
+
+        // ── helpers ──────────────────────────────────────────
+        const goToPlanner = (name, lat, lng) => {
+            const params = new URLSearchParams({
+                destName : encodeURIComponent(name),
+                destLat  : lat,
+                destLng  : lng
+            });
+            window.location.href = `planner.html?${params.toString()}`;
+        };
+
+        const showResults = (items) => {
+            resultsBox.innerHTML = '';
+            if (!items.length) { resultsBox.style.display = 'none'; return; }
+            activeSuggestions = items;
+            items.forEach((item, i) => {
+                const row = document.createElement('div');
+                row.className = 'search-result-item';
+                row.innerHTML = `
+                    <ion-icon name="location-outline"></ion-icon>
+                    <div>
+                        <div class="result-name">${item.name}</div>
+                        <div class="result-addr">${item.address}</div>
+                    </div>`;
+                row.addEventListener('click', () => selectItem(item));
+                resultsBox.appendChild(row);
+            });
+            resultsBox.style.display = 'block';
+        };
+
+        const selectItem = async (item) => {
+            resultsBox.style.display = 'none';
+            searchInput.value = item.name;
+            if (!item.isSuggestion) {
+                // Already has coords (Nominatim result)
+                goToPlanner(item.name, item.lat, item.lng);
+                return;
+            }
+            // ESRI suggestion — resolve to coordinates first
+            try {
+                const url = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(item.address)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&maxLocations=1&f=json`;
+                const res  = await fetch(url);
+                const data = await res.json();
+                if (data.candidates && data.candidates.length > 0) {
+                    const c = data.candidates[0];
+                    goToPlanner(item.name, c.location.y, c.location.x);
+                    return;
+                }
+            } catch (e) { /* fall through to Nominatim */ }
+            // Nominatim fallback
+            try {
+                const url  = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(item.address)},+Laguna,+Philippines&format=json&limit=1&countrycodes=ph`;
+                const res  = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    goToPlanner(item.name, parseFloat(data[0].lat), parseFloat(data[0].lon));
+                    return;
+                }
+            } catch (e) {}
+            // Last resort — go without coords (planner will prompt user to pick manually)
+            goToPlanner(item.name, '', '');
+        };
+
+        // ── search (ESRI suggest → Nominatim fallback) ───────
+        const doSearch = async (query) => {
+            if (query.length < 2) { resultsBox.style.display = 'none'; return; }
+            try {
+                const url  = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?text=${encodeURIComponent(query)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&maxSuggestions=6&f=json`;
+                const res  = await fetch(url);
+                const data = await res.json();
+                if (data.suggestions && data.suggestions.length > 0) {
+                    showResults(data.suggestions.map(s => ({
+                        name        : s.text.split(',')[0],
+                        address     : s.text,
+                        isSuggestion: true
+                    })));
+                    return;
+                }
+            } catch (e) {}
+            // Nominatim fallback
+            try {
+                const url  = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)},+Laguna,+Philippines&format=json&addressdetails=1&limit=5&countrycodes=ph&viewbox=120.8,14.5,121.5,13.9&bounded=1`;
+                const res  = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    showResults(data.map(c => ({
+                        name        : c.display_name.split(',')[0],
+                        address     : c.display_name,
+                        lat         : parseFloat(c.lat),
+                        lng         : parseFloat(c.lon),
+                        isSuggestion: false
+                    })));
+                    return;
+                }
+            } catch (e) {}
+            showResults([]);
+        };
+
+        // ── event listeners ───────────────────────────────────
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => doSearch(e.target.value.trim()), 400);
+        });
+
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(debounceTimer);
+                const q = searchInput.value.trim();
+                if (!q) return;
+                // If suggestions visible, pick first
+                if (activeSuggestions.length) { selectItem(activeSuggestions[0]); return; }
+                doSearch(q);
+            }
+        });
+
+        searchBtn.addEventListener('click', () => {
+            clearTimeout(debounceTimer);
+            const q = searchInput.value.trim();
+            if (!q) return;
+            if (activeSuggestions.length) { selectItem(activeSuggestions[0]); return; }
+            doSearch(q);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                resultsBox.style.display = 'none';
+            }
+        });
+    })();
+    </script>
+
     <!-- Page End Sentinel (For Footer Detection) -->
     <div id="footer-sentinel" style="height: 1px; width: 100%; pointer-events: none; opacity: 0;"></div>
 </body>

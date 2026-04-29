@@ -8,30 +8,33 @@ function t(key, context) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
 
-    const map = L.map('map').setView([14.2045, 121.1641], 15);
-    L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    const map = L.map('map', { rotate: true, rotateControl: false }).setView([14.2045, 121.1641], 13);
+    L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', {
         maxZoom: 20,
-        attribution: '&copy; Google'
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
     }).addTo(map);
 
-    // AH26 Maharlika Highway Corridor (San Pedro to Los Baños direction)
-    const NATIONAL_HIGHWAY_COORDS = [
-        [14.3504, 121.0285], // San Pedro, Laguna (north entry)
-        [14.3200, 121.0420],
-        [14.2900, 121.0580],
-        [14.2600, 121.0850],
-        [14.2400, 121.1100],
-        [14.2200, 121.1350],
-        [14.2045, 121.1641], // SM Calamba / Crossing area
-        [14.1900, 121.1800],
-        [14.1687, 121.2100], // Los Baños direction
-    ];
+    map.on('tileerror', function(error) {
+        console.warn('Tile load error:', error);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+    });
+
+    window.addEventListener('resize', () => map.invalidateSize());
+
+    // NATIONAL_HIGHWAY_COORDS removed — OSRM handles road routing universally.
 
     let currentLocation = { lat: 14.2045, lng: 121.1641 }; // Default
     let selectedCoords = { origin: null, destination: null };
-    let originPlaceName = 'My Location';
+    let originPlaceName = '';
     let destPlaceName = '';
+
+    // URL parameters parsed later
     let isTrackingArrival = false;
     let mapAutoFollow = true;
     let selectedMode = 'modern-jeepney';
@@ -45,12 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentWalkDist = 0, currentWalkDur = 0, currentTransitDist = 0, currentTransitDur = 0;
     let currentFare = 0;
     let walkRouteGeojson = null, transitRouteGeojson = null;
+    let currentCorridor = 'unknown'; // FIX: was referenced but never declared
 
     // Real-Time Tracking State
     let watchId = null;
     let lastOsrmFetchTime = 0;
     let remainingTransitDurationStrRawTimer = null;
     let cachedRemainingSeconds = 0;
+    let countdownInterval = null; // FIX: real-time countdown between GPS pings
 
     // =============================================
     // UI SHELL LOGIC (Modals, Panels, Breakpoints)
@@ -95,6 +100,20 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMidpointBubbleVisibility(false);
     });
 
+    const guideDragHandle = document.querySelector('.guide-drag-handle');
+    let guideStartY = 0, guideCurrentY = 0;
+    if (guideDragHandle) {
+        guideDragHandle.addEventListener('touchstart', (e) => guideStartY = e.touches[0].clientY, { passive: true });
+        guideDragHandle.addEventListener('touchmove', (e) => guideCurrentY = e.touches[0].clientY, { passive: true });
+        guideDragHandle.addEventListener('touchend', () => {
+            if (guideCurrentY - guideStartY > 50) {
+                document.getElementById('guideExpandedSteps').classList.add('visible');
+            } else if (guideStartY - guideCurrentY > 50) {
+                document.getElementById('guideExpandedSteps').classList.remove('visible');
+            }
+        });
+    }
+
     const updateMidpointBubbleVisibility = (show) => {
         const b = document.getElementById('midpointBubble');
         if (!b) return;
@@ -133,6 +152,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeLocModal').addEventListener('click', closeLocationModal);
     locationModalOverlay.addEventListener('click', closeLocationModal);
 
+    document.getElementById('closeDirectionsBtn').addEventListener('click', () => {
+        selectedCoords.origin = null;
+        selectedCoords.destination = null;
+        originPlaceName = '';
+        destPlaceName = '';
+        updateODDisplay();
+        
+        if (originMarker) { map.removeLayer(originMarker); originMarker = null; }
+        if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
+        if (walkPolyline) { map.removeLayer(walkPolyline); walkPolyline = null; }
+        if (transitPolyline) { map.removeLayer(transitPolyline); transitPolyline = null; }
+        if (completedTransitPolyline) { map.removeLayer(completedTransitPolyline); completedTransitPolyline = null; }
+        if (midpointBubbleMarker) { map.removeLayer(midpointBubbleMarker); midpointBubbleMarker = null; }
+        
+        document.getElementById('transportModesBlock').style.display = 'none';
+        document.getElementById('routeSummaryBlock').style.display = 'none';
+        document.getElementById('startJourneyBtn').disabled = true;
+        document.getElementById('closeDirectionsBtn').style.display = 'none';
+        updateMidpointBubbleVisibility(false);
+        
+        if (currentLocation && currentLocation.lat && currentLocation.lng) {
+            map.setView([currentLocation.lat, currentLocation.lng], 14);
+        } else {
+            map.setView([14.2045, 121.1641], 13);
+        }
+    });
+
     const renderModalDefaultOptions = () => {
         const isOrig = activeSelectingField === 'origin';
         locOptionsList.innerHTML = '';
@@ -143,7 +189,24 @@ document.addEventListener('DOMContentLoaded', () => {
         locAttribution.style.display = 'none';
         
         document.getElementById('optMyLoc')?.addEventListener('click', () => {
-            selectLocation('My Location', [currentLocation.lat, currentLocation.lng]);
+            const locText = document.querySelector('#optMyLoc .loc-text');
+            if (locText) locText.textContent = 'Getting your location...';
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
+                    originPlaceName = 'My Location';
+                    updateODDisplay();
+                    closeLocationModal();
+                    if (selectedCoords.destination) executeRouteQuery();
+                },
+                () => {
+                    closeLocationModal();
+                    showToast('Hindi ma-detect ang iyong lokasyon. I-check ang location permission.');
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
         });
         document.getElementById('optPinLoc')?.addEventListener('click', () => {
             closeLocationModal();
@@ -167,10 +230,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateODDisplay = () => {
         const origEl = document.getElementById('openOriginModal');
         const destEl = document.getElementById('openDestModal');
-        if (originPlaceName) { origEl.textContent = originPlaceName; origEl.classList.remove('unfilled'); }
-        else { origEl.textContent = 'My Location'; origEl.classList.remove('unfilled'); }
+        if (originPlaceName && selectedCoords.origin) { origEl.textContent = originPlaceName; origEl.classList.remove('unfilled'); }
+        else { origEl.textContent = 'Where from?'; origEl.classList.add('unfilled'); }
         
-        if (destPlaceName) { destEl.textContent = destPlaceName; destEl.classList.remove('unfilled'); }
+        if (destPlaceName && selectedCoords.destination) { destEl.textContent = destPlaceName; destEl.classList.remove('unfilled'); }
         else { destEl.textContent = 'Where to?'; destEl.classList.add('unfilled'); }
     };
 
@@ -184,7 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         updateODDisplay();
         closeLocationModal();
-        executeRouteQuery();
+        if (selectedCoords.origin && selectedCoords.destination) {
+            executeRouteQuery();
+        }
     };
 
     // Mode Selection
@@ -192,16 +257,16 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedMode = 'jeepney';
         document.getElementById('modeJeepney').className = 'mode-pill selected-pill';
         document.getElementById('modeModernJeepney').className = 'mode-pill outline-pill';
-        document.getElementById('modeJeepney').innerHTML = `Jeepney`;
-        document.getElementById('modeModernJeepney').innerHTML = `<ion-icon name="bus"></ion-icon> M. Jeepney`;
+        document.getElementById('modeJeepney').innerHTML = `<img src="assets/icons/jeepney-icon.png" alt="Jeepney" class="transit-icon"> Jeepney`;
+        document.getElementById('modeModernJeepney').innerHTML = `<img src="assets/icons/bus-icon.png" alt="M. Jeepney" class="transit-icon"> M. Jeepney`;
         executeRouteQuery();
     });
     document.getElementById('modeModernJeepney').addEventListener('click', (e) => {
         selectedMode = 'modern-jeepney';
         document.getElementById('modeModernJeepney').className = 'mode-pill selected-pill';
         document.getElementById('modeJeepney').className = 'mode-pill outline-pill';
-        document.getElementById('modeModernJeepney').innerHTML = `<ion-icon name="bus"></ion-icon> M. Jeepney`;
-        document.getElementById('modeJeepney').innerHTML = `Jeepney`;
+        document.getElementById('modeModernJeepney').innerHTML = `<img src="assets/icons/bus-icon.png" alt="M. Jeepney" class="transit-icon"> M. Jeepney`;
+        document.getElementById('modeJeepney').innerHTML = `<img src="assets/icons/jeepney-icon.png" alt="Jeepney" class="transit-icon"> Jeepney`;
         executeRouteQuery();
     });
 
@@ -212,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
     locSearchInput.addEventListener('input', (e) => {
         const val = e.target.value.trim();
         clearTimeout(geocodeTimeout);
-        if (val.length < 3) {
+        if (val.length < 3 && val.toLowerCase() !== 'my') {
             renderModalDefaultOptions();
             return;
         }
@@ -233,7 +298,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     address: s.text,
                     isSuggestion: true,
                     provider: 'ESRI'
-                })));
+                })), query);
                 return;
             }
         } catch(e) { console.warn("ESRI Search failed, falling back to OSM", e); }
@@ -250,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     lng: parseFloat(c.lon),
                     isSuggestion: false,
                     provider: 'OpenStreetMap'
-                })));
+                })), query);
                 return;
             }
         } catch(e) {}
@@ -258,8 +323,34 @@ document.addEventListener('DOMContentLoaded', () => {
         locOptionsList.innerHTML = `<div style="padding: 20px; text-align: center; color: #ef4444; font-size: 0.9rem;">No results found.</div>`;
     };
 
-    const renderSearchResults = (results) => {
+    const renderSearchResults = (results, query) => {
         locOptionsList.innerHTML = '';
+        
+        if (activeSelectingField === 'origin' && query && query.toLowerCase().startsWith('my')) {
+            locOptionsList.innerHTML += `<div class="loc-row" id="optMyLocSearch"><div class="loc-icon bg-blue"><ion-icon name="locate"></ion-icon></div><div class="loc-text">My Location</div></div>`;
+            setTimeout(() => {
+                document.getElementById('optMyLocSearch')?.addEventListener('click', () => {
+                    const locText = document.querySelector('#optMyLocSearch .loc-text');
+                    if (locText) locText.textContent = 'Getting your location...';
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                            selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
+                            originPlaceName = 'My Location';
+                            updateODDisplay();
+                            closeLocationModal();
+                            if (selectedCoords.destination) executeRouteQuery();
+                        },
+                        () => {
+                            closeLocationModal();
+                            showToast('Hindi ma-detect ang iyong lokasyon. I-check ang location permission.');
+                        },
+                        { enableHighAccuracy: true, timeout: 8000 }
+                    );
+                });
+            }, 0);
+        }
+
         const bubble = document.createElement('div');
         bubble.className = 'search-results-bubble';
         results.forEach(r => {
@@ -314,7 +405,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const findNearestHighwayPoint = (pt) => {
         let minD = Infinity;
         let snapLat = pt[0], snapLng = pt[1];
-        
         // Closest point to line segment
         const distToSegmentSq = (p, v, w) => {
             const l2 = (w[0]-v[0])**2 + (w[1]-v[1])**2;
@@ -347,28 +437,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // =============================================
-    // ROUTING EXECUTOR (OSRM)
+    // ROUTING EXECUTOR — UNIVERSAL 2-LEG (OSRM)
+    // No corridor detection needed. OSRM handles all road routing.
+    // Walk leg: origin → first road point of car route.
+    // Transit leg: full car route origin → destination.
     // =============================================
-
-    const detectCorridor = (originCoords, destCoords) => {
-        const isSanPedroArea = (c) => c[0] >= 14.28 && c[0] <= 14.37 && c[1] >= 121.01 && c[1] <= 121.07;
-        const isStaCruzArea = (c) => c[0] >= 14.27 && c[0] <= 14.32 && c[1] >= 121.40 && c[1] <= 121.48;
-        const isCaLambaArea = (c) => c[0] >= 14.17 && c[0] <= 14.25 && c[1] >= 121.10 && c[1] <= 121.22;
-        const isSanIsidroArea = (c) => c[0] >= 14.20 && c[0] <= 14.30 && c[1] >= 121.05 && c[1] <= 121.12;
-
-        const o = originCoords, d = destCoords;
-        if ((isSanPedroArea(o) || isSanIsidroArea(o)) && isCaLambaArea(d)) return 'san-pedro-calamba';
-        if ((isSanPedroArea(d) || isSanIsidroArea(d)) && isCaLambaArea(o)) return 'san-pedro-calamba';
-        if (isStaCruzArea(o) && isCaLambaArea(d)) return 'sta-cruz-calamba';
-        if (isStaCruzArea(d) && isCaLambaArea(o)) return 'sta-cruz-calamba';
-        return 'unknown';
-    };
-
-    const getAvailableModes = (corridor) => {
-        if (corridor === 'san-pedro-calamba') return ['jeepney', 'modern-jeepney'];
-        if (corridor === 'sta-cruz-calamba') return ['jeepney'];
-        return ['jeepney']; // default fallback
-    };
 
     const executeRouteQuery = async () => {
         if (!selectedCoords.origin || !selectedCoords.destination) {
@@ -377,107 +450,141 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('startJourneyBtn').disabled = true;
             return;
         }
-        
+
         document.getElementById('startJourneyBtn').disabled = true;
+        currentCorridor = 'universal';
 
         const oPt = selectedCoords.origin;
         const dPt = selectedCoords.destination;
 
-        const corridor = detectCorridor(oPt, dPt);
-        const modes = getAvailableModes(corridor);
-        
-        const jeepBtn = document.getElementById('modeJeepney');
-        const mjeepBtn = document.getElementById('modeModernJeepney');
-        
-        jeepBtn.style.display = 'flex';
-        mjeepBtn.style.display = modes.includes('modern-jeepney') ? 'flex' : 'none';
-        
-        if (!modes.includes(selectedMode)) {
-            selectedMode = 'jeepney';
-            jeepBtn.className = 'mode-pill selected-pill';
-            mjeepBtn.className = 'mode-pill outline-pill';
-        }
+        // Always show both mode buttons
+        document.getElementById('modeJeepney').style.display  = 'flex';
+        document.getElementById('modeModernJeepney').style.display = 'flex';
 
         // Draw Markers
         if (originMarker) map.removeLayer(originMarker);
-        if (destMarker) map.removeLayer(destMarker);
-        
+        if (destMarker)   map.removeLayer(destMarker);
+
         originMarker = L.marker([oPt[0], oPt[1]], {
-            icon: L.divIcon({ className: 'custom-leaflet-marker', html: `<div class="origin-node"></div>`, iconSize: [14,14], iconAnchor: [7,7] })
+            icon: L.divIcon({
+                className: '',
+                html: `<div style="width:16px;height:16px;background:#1C6EF2;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(28,110,242,0.5);"></div>`,
+                iconSize: [16, 16], iconAnchor: [8, 8]
+            })
         }).addTo(map);
+
         destMarker = L.marker([dPt[0], dPt[1]], {
-            icon: L.divIcon({ className: 'custom-leaflet-marker', html: `<ion-icon name="location" class="pin red" style="font-size:2rem; margin-top:-32px;"></ion-icon>`, iconSize: [32,32], iconAnchor: [16,16] })
+            icon: L.divIcon({
+                className: '',
+                html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
+                    <circle cx="14" cy="14" r="6" fill="white"/>
+                </svg>`,
+                iconSize: [28, 36], iconAnchor: [14, 36]
+            })
         }).addTo(map);
 
-        // 1. Snap to highway
-        let snapPt = null;
-        try {
-            snapPt = findNearestHighwayPoint(oPt);
-        } catch (e) {
-            console.error(e);
-            snapPt = oPt;
-        }
+        // ── UNIVERSAL 2-LEG ROUTING ───────────────────────────────────────────
+        // Step 1: Full car route origin → destination (OSRM picks actual road path)
+        // Step 2: Walk leg = origin → first coord of car route (walk to boarding point)
+        // Step 3: Transit leg = entire car route
+        // Works for ANY trip — local, inter-city, any barangay.
+        // ─────────────────────────────────────────────────────────────────────
 
-        // 2. Fetch OSRM Foot for Walk
-        let wRes = null;
-        try {
-            wRes = await fetchOSRMRouteCoords(oPt, snapPt, 'foot');
-        } catch (e) { console.error(e); }
-
-        // 3. Fetch OSRM Driving for Transit
         let tRes = null;
         try {
-            tRes = await fetchOSRMRouteCoords(snapPt, dPt, 'driving');
-        } catch (e) { console.error(e); }
+            tRes = await fetchOSRMRouteCoords(oPt, dPt, 'car');
+        } catch (e) { console.error('Transit OSRM error:', e); }
+
+        if (!tRes) {
+            showToast('Route not found — check connection');
+            tRes = {
+                coordinates: [oPt, dPt],
+                distance: getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000,
+                duration: (getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) / 30) * 3600,
+                steps: []
+            };
+        }
+
+        // Boarding point = first coord of car route (nearest road snap)
+        const boardingPt = tRes.coordinates[0];
+        const walkDistM  = getHaversineDist(oPt[0], oPt[1], boardingPt[0], boardingPt[1]) * 1000;
+
+        let wRes = null;
+        if (walkDistM > 15) {
+            try {
+                wRes = await fetchOSRMRouteCoords(oPt, boardingPt, 'foot');
+            } catch (e) { console.error('Walk OSRM error:', e); }
+        }
 
         if (!wRes) {
             wRes = {
-                coordinates: [[oPt[0], oPt[1]], [snapPt[0], snapPt[1]]],
-                distance: getHaversineDist(oPt[0], oPt[1], snapPt[0], snapPt[1]) * 1000,
-                duration: (getHaversineDist(oPt[0], oPt[1], snapPt[0], snapPt[1]) / 5) * 3600
-            };
-        }
-        if (!tRes) {
-            tRes = {
-                coordinates: [[snapPt[0], snapPt[1]], [dPt[0], dPt[1]]],
-                distance: getHaversineDist(snapPt[0], snapPt[1], dPt[0], dPt[1]) * 1000,
-                duration: (getHaversineDist(snapPt[0], snapPt[1], dPt[0], dPt[1]) / 30) * 3600
+                coordinates: [oPt, boardingPt],
+                distance: walkDistM,
+                duration: Math.max(30, (walkDistM / 1000 / 5) * 3600),
+                steps: []
             };
         }
 
-        walkRouteGeojson = wRes;
+        walkRouteGeojson    = wRes;
         transitRouteGeojson = tRes;
-        
-        currentWalkDist = wRes.distance / 1000;
-        currentWalkDur = Math.ceil(wRes.duration / 60);
-        
-        currentTransitDist = tRes.distance / 1000;
-        currentTransitDur = Math.ceil(tRes.duration / 60);
 
-        // 4. Compute Fares (Transit ONLY)
+        currentWalkDist    = wRes.distance / 1000;
+        currentWalkDur     = Math.ceil(wRes.duration / 60);
+        currentTransitDist = tRes.distance / 1000;
+        // Apply jeepney travel-time correction: OSRM car speed is optimistic.
+        // ×1.6 for slower jeepney speed + 180s buffer for stops, boarding & traffic.
+        const correctedTransitDur = tRes.duration * 1.6 + 180;
+        currentTransitDur  = Math.ceil(correctedTransitDur / 60);
+
         currentFare = computeLTFRBFare(currentTransitDist, selectedMode);
 
         drawRoutes(wRes.coordinates, tRes.coordinates);
         updateSummaryRow();
-        
+
+        // Persist route state for recovery on refresh/reconnect
+        saveJourneyState();
+
         document.getElementById('transportModesBlock').style.display = 'flex';
-        document.getElementById('routeSummaryBlock').style.display = 'block';
+        document.getElementById('routeSummaryBlock').style.display  = 'block';
+    };
+
+    // =============================================
+    // SESSION PERSISTENCE HELPER
+    // =============================================
+    const saveJourneyState = () => {
+        try {
+            sessionStorage.setItem('calzada_journey', JSON.stringify({
+                origin        : selectedCoords.origin,
+                destination   : selectedCoords.destination,
+                originName    : originPlaceName,
+                destName      : destPlaceName,
+                selectedMode  : selectedMode,
+                activeLegIndex: activeLegIndex,
+                currentStepIndex: window.currentStepIndex || 0,
+                isJourneyActive : isTrackingArrival,
+                savedAt       : Date.now()
+            }));
+        } catch(e) { /* sessionStorage unavailable (private mode edge case) */ }
     };
 
     const fetchOSRMRouteCoords = async (start, end, profile) => {
-        const url = `https://routing.openstreetmap.de/routed-${profile}/route/v1/${profile}/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson&alternatives=false`;
+        // OSRM public instance supports: foot, car (not 'driving')
+        const osrmProfile = profile === 'foot' ? 'foot' : 'car';
+        const url = `https://router.project-osrm.org/route/v1/${osrmProfile}/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson&steps=true&alternatives=false`;
         try {
             const req = await fetch(url);
             const json = await req.json();
-            if (json.routes && json.routes.length > 0) {
+            if (json.code === 'Ok' && json.routes && json.routes.length > 0) {
                 const rt = json.routes[0];
                 return {
                     coordinates: rt.geometry.coordinates.map(c => [c[1], c[0]]),
                     distance: rt.distance,
-                    duration: rt.duration
+                    duration: rt.duration,
+                    steps: rt.legs[0]?.steps || []
                 };
             }
-        } catch(e) { console.error("OSRM Error:", e); }
+        } catch(e) { console.error('OSRM Error:', e); }
         return null;
     };
 
@@ -490,30 +597,50 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const drawRoutes = (walkCoords, transitCoords) => {
-        if (walkPolyline) map.removeLayer(walkPolyline);
-        if (transitPolyline) map.removeLayer(transitPolyline);
-        if (completedTransitPolyline) map.removeLayer(completedTransitPolyline);
-        if (midpointBubbleMarker) map.removeLayer(midpointBubbleMarker);
+        if (walkPolyline) { map.removeLayer(walkPolyline); walkPolyline = null; }
+        if (transitPolyline) { map.removeLayer(transitPolyline); transitPolyline = null; }
+        if (completedTransitPolyline) { map.removeLayer(completedTransitPolyline); completedTransitPolyline = null; }
+        if (midpointBubbleMarker) { map.removeLayer(midpointBubbleMarker); midpointBubbleMarker = null; }
 
         const modeColor = selectedMode === 'modern-jeepney' ? '#7c3aed' : '#1a8fff';
 
-        walkPolyline = L.polyline(walkCoords, { color: '#64748b', weight: 4, dashArray: '5,5' }).addTo(map);
-        transitPolyline = L.polyline(transitCoords, { color: modeColor, weight: 6 }).addTo(map);
+        walkPolyline = L.polyline(walkCoords, {
+            color: '#64748b',
+            weight: 5,
+            dashArray: '8, 10',
+            opacity: 0.8,
+            lineCap: 'round',
+            lineJoin: 'round'
+        }).addTo(map);
 
-        // Create Midpoint Bubble
-        if (transitCoords.length > 0) {
+        transitPolyline = L.polyline(transitCoords, {
+            color: modeColor,
+            weight: 6,
+            opacity: 1,
+            lineCap: 'round',
+            lineJoin: 'round'
+        }).addTo(map);
+
+        if (transitCoords.length > 1) {
             const midNode = transitCoords[Math.floor(transitCoords.length / 2)];
             midpointBubbleMarker = L.marker(midNode, {
-                icon: L.divIcon({ className: 'custom-mid-bubble', html: `<div class="route-bubble">${currentWalkDur + currentTransitDur} min</div>`, iconSize: [0,0], iconAnchor: [0,0] })
+                icon: L.divIcon({
+                    className: 'custom-mid-bubble',
+                    html: `<div class="route-bubble">${currentWalkDur + currentTransitDur} min</div>`,
+                    iconSize: [0, 0],
+                    iconAnchor: [0, 0]
+                })
             });
             if (directionsCard.classList.contains('collapsed')) midpointBubbleMarker.addTo(map);
         }
 
-        const group = new L.featureGroup([walkPolyline, transitPolyline, originMarker, destMarker]);
-        map.fitBounds(group.getBounds(), { padding: [40, 40] });
+        const allMarkers = [walkPolyline, transitPolyline, originMarker, destMarker].filter(Boolean);
+        const group = L.featureGroup(allMarkers);
+        map.fitBounds(group.getBounds(), { padding: [60, 60] });
 
-        // Enable button
         document.getElementById('startJourneyBtn').disabled = false;
+        document.getElementById('closeDirectionsBtn').style.display = 'flex';
+        setTimeout(() => map.invalidateSize(), 200);
     };
 
     const updateSummaryRow = () => {
@@ -543,6 +670,63 @@ document.addEventListener('DOMContentLoaded', () => {
     // ACTIVE NAVIGATION (Screen 3)
     // =============================================
 
+    window.activeRouteSteps = [];
+    window.currentStepIndex = 0;
+
+    const getStepIcon = (step, mode) => {
+        const type = step.maneuver.type;
+        const mod = step.maneuver.modifier || '';
+        if (type === 'depart') return mode === 'foot' ? 'walk' : 'bus';
+        if (type === 'arrive') return 'flag';
+        if (type === 'turn' || mod.includes('right') || mod.includes('left')) {
+            if (mod.includes('right')) return 'arrow-redo';
+            if (mod.includes('left')) return 'arrow-undo';
+            return 'arrow-forward';
+        }
+        if (type === 'new name' || mod.includes('straight')) return 'arrow-up';
+        return 'arrow-forward';
+    };
+
+    const formatDist = (m) => m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
+
+    const updateGuideStepsUI = () => {
+        if (!window.activeRouteSteps || window.activeRouteSteps.length === 0) return;
+        const steps = window.activeRouteSteps;
+        const idx = window.currentStepIndex;
+        
+        const formatStep = (step, mode) => {
+            const name = step.name || 'route';
+            if (step.maneuver.type === 'depart') {
+                return mode === 'foot' ? `Walk to ${name}` : `Board jeepney towards ${name}`;
+            } else if (step.maneuver.type === 'turn') {
+                return step.maneuver.modifier && step.maneuver.modifier.includes('right') ? `Turn right onto ${name}` : `Turn left onto ${name}`;
+            } else if (step.maneuver.type === 'arrive') {
+                return `You have arrived`;
+            }
+            return `Continue on ${name}`;
+        };
+
+        if (idx < steps.length) {
+            const current = steps[idx];
+            document.getElementById('guideCurrentText').textContent = formatStep(current, current.mode) + (current.distance ? ` (${formatDist(current.distance)})` : '');
+            document.getElementById('guideCurrentStep').querySelector('ion-icon').setAttribute('name', getStepIcon(current, current.mode));
+            
+            if (idx + 1 < steps.length) {
+                const nextS = steps[idx+1];
+                document.getElementById('guideNextText').textContent = formatStep(nextS, nextS.mode) + (nextS.distance ? ` (${formatDist(nextS.distance)})` : '');
+                let expandedHTML = '';
+                for (let i = idx + 2; i < steps.length; i++) {
+                    const s = steps[i];
+                    expandedHTML += `<div class="expanded-step"><ion-icon name="${getStepIcon(s, s.mode)}"></ion-icon><span>${formatStep(s, s.mode)} ${s.distance ? `<span style="color:#64748b;font-size:0.85em;margin-left:4px;">(${formatDist(s.distance)})</span>` : ''}</span></div>`;
+                }
+                document.getElementById('guideExpandedSteps').innerHTML = expandedHTML;
+            } else {
+                document.getElementById('guideNextText').textContent = 'You have arrived';
+                document.getElementById('guideExpandedSteps').innerHTML = '';
+            }
+        }
+    };
+
     document.getElementById('startJourneyBtn').addEventListener('click', () => {
         if (!selectedCoords.origin || !selectedCoords.destination) return;
         
@@ -552,6 +736,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show Active Nav Overlays
         activeGuideCard.style.display = 'flex';
         bottomStatusPill.style.display = 'flex';
+        
+        document.getElementById('remindersPillBtn').style.display = 'none';
+        document.getElementById('hamburgerBtn').style.display = 'none';
 
         // Clean map markers, center on origin
         map.setView(selectedCoords.origin, 17);
@@ -560,15 +747,28 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('reCenterBtn').style.display = 'none';
 
         startLiveTracking();
+        // Persist active journey state immediately
+        saveJourneyState();
+        map.invalidateSize();
     });
 
     document.getElementById('cancelRouteBtn').addEventListener('click', () => {
         stopLiveTracking();
         isTrackingArrival = false;
+        mapAutoFollow = false;
+        sessionStorage.removeItem('calzada_journey'); // user cancelled — clear state
+        document.getElementById('reCenterBtn').style.display = 'none';
+
+        // Reset map bearing to north
+        if (typeof map.setBearing === 'function') map.setBearing(0);
+        else map.getContainer().style.transform = '';
         
         // Hide Active
         activeGuideCard.style.display = 'none';
         bottomStatusPill.style.display = 'none';
+        
+        document.getElementById('remindersPillBtn').style.display = '';
+        document.getElementById('hamburgerBtn').style.display = '';
         
         // Restore Directions
         directionsCard.style.display = 'flex';
@@ -576,33 +776,40 @@ document.addEventListener('DOMContentLoaded', () => {
         directionsCard.classList.remove('collapsed');
         document.getElementById('dsPeekInfo').style.display = 'none';
         updateMidpointBubbleVisibility(false);
+        map.invalidateSize();
     });
 
-    // Expand bottom pill to show cancel button
+    // Expand bottom pill to show cancel button — only when clicking the pill body, not mode buttons
     bottomStatusPill.addEventListener('click', (e) => {
         if (e.target.closest('.btn-cancel-route')) return;
+        if (e.target.closest('#amtJeep') || e.target.closest('#amtMJeep')) return; // let mode buttons handle themselves
         bottomStatusPill.classList.toggle('expanded');
     });
 
-    // Panning logic exposes recenter
+    // Panning disables auto-follow only during active navigation
     map.on('dragstart', () => {
-        if (isTrackingArrival && mapAutoFollow) {
+        if (isTrackingArrival) {
             mapAutoFollow = false;
             document.getElementById('reCenterBtn').style.display = 'flex';
         }
     });
 
     document.getElementById('reCenterBtn').addEventListener('click', () => {
+        if (!currentLocation) return;
+        // Re-enable auto-follow and snap back to user location
         mapAutoFollow = true;
-        if (currentLocation) map.setView([currentLocation.lat, currentLocation.lng], 17);
+        map.setView([currentLocation.lat, currentLocation.lng], 17);
+        if (typeof map.setBearing === 'function') map.setBearing(0);
         document.getElementById('reCenterBtn').style.display = 'none';
     });
-
 
     // --- Tracker Variables --- //
     let trackedCoordinates = [];
     let completedCoords = [];
     let activeLegIndex = 0; // 0 = walk, 1 = transit
+    let lastMovementTimestamp = Date.now();
+    let lastValidPosition = null;
+    let deviationTimer = null;
 
     const startLiveTracking = () => {
         if (!navigator.geolocation) return;
@@ -610,48 +817,64 @@ document.addEventListener('DOMContentLoaded', () => {
         activeLegIndex = 0;
         trackedCoordinates = walkRouteGeojson.coordinates.concat(transitRouteGeojson.coordinates);
         completedCoords = [];
+        lastMovementTimestamp = Date.now();
+        lastValidPosition = null;
 
-        // Populate guide steps (current + next steps like the screenshot)
-        document.getElementById('guideCurrentText').textContent = 'Walk to National Highway';
-        document.getElementById('guideCurrentStep').querySelector('ion-icon').setAttribute('name', 'walk');
-        document.getElementById('guideNextText').textContent = 'Turn right';
-        document.getElementById('guideExpandedSteps').innerHTML = `
-            <div class="expanded-step"><ion-icon name="arrow-redo-outline"></ion-icon><span>Turn right</span></div>
-            <div class="expanded-step"><ion-icon name="arrow-redo-outline"></ion-icon><span>Turn right</span></div>
-        `;
+        window.activeRouteSteps = [
+            ...(walkRouteGeojson.steps || []).map(s => ({ ...s, mode: 'foot' })),
+            ...(transitRouteGeojson.steps || []).map(s => ({ ...s, mode: 'driving' }))
+        ];
+        window.currentStepIndex = 0;
+        updateGuideStepsUI();
 
-        // Set Bottom pill statics
         document.getElementById('pillPhp').textContent = `₱${currentFare}`;
         cachedRemainingSeconds = (currentWalkDur + currentTransitDur) * 60;
         updateDynamicBottomPill();
 
-        // Simulate 1s countdown interpolator
-        remainingTransitDurationStrRawTimer = setInterval(() => {
-            if (cachedRemainingSeconds > 0) cachedRemainingSeconds -= 1;
-            updateDynamicBottomPill();
+        // FIX: tick every second so the time display updates even between GPS pings
+        if (countdownInterval) clearInterval(countdownInterval);
+        countdownInterval = setInterval(() => {
+            if (cachedRemainingSeconds > 0) {
+                cachedRemainingSeconds -= 1;
+                updateDynamicBottomPill(Date.now() - lastMovementTimestamp);
+            }
         }, 1000);
+        if (currentCorridor !== 'other') {
+            document.getElementById('activeModeToggle').style.display = 'flex';
+        } else {
+            document.getElementById('activeModeToggle').style.display = 'none';
+        }
 
         watchId = navigator.geolocation.watchPosition(handleLocationUpdate, (err) => console.log(err), {
             enableHighAccuracy: true, maximumAge: 10000, timeout: 5000
         });
 
-        // Initialize user marker
         if (userMarker) map.removeLayer(userMarker);
         if (gpsCircle) map.removeLayer(gpsCircle);
         
-        /* User Beacon Marker */
         userMarker = L.marker([currentLocation.lat, currentLocation.lng], {
             icon: L.divIcon({
-                className: 'custom-leaflet-marker',
-                html: `<div style="width: 20px; height: 20px; border-radius: 50%; background: #1a8fff; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
-                iconSize: [20,20], iconAnchor: [10,10]
-            })
+                className: '',
+                html: `
+                    <div class="realtime-pointer-wrapper">
+                        <div class="pointer-glow-ring"></div>
+                        <img src="assets/realtime-LocationPointer.png" class="pointer-img" alt="location">
+                    </div>
+                `,
+                iconSize: [52, 52],
+                iconAnchor: [26, 26]
+            }),
+            zIndexOffset: 1000
         }).addTo(map);
+
+        // compass rotated in handleLocationUpdate
     };
 
     const stopLiveTracking = () => {
         if (watchId) navigator.geolocation.clearWatch(watchId);
-        clearInterval(remainingTransitDurationStrRawTimer);
+        if (deviationTimer) clearTimeout(deviationTimer);
+        if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; } // FIX: stop countdown
+        if (typeof remainingTransitDurationStrRawTimer !== 'undefined') clearInterval(remainingTransitDurationStrRawTimer);
         watchId = null;
     };
 
@@ -660,17 +883,49 @@ document.addEventListener('DOMContentLoaded', () => {
         currentLocation = { lat: latitude, lng: longitude };
         
         userMarker.setLatLng([latitude, longitude]);
+        // Auto-follow: re-center on every GPS ping while mapAutoFollow is true
         if (mapAutoFollow) map.setView([latitude, longitude], 17);
 
-        // Check if arrived at destination
-        const destDist = getHaversineDist(latitude, longitude, selectedCoords.destination[0], selectedCoords.destination[1]) * 1000; // in meters
+        // Keep step index current in session
+        saveJourneyState();
+
+        if (pos.coords.heading !== null && !isNaN(pos.coords.heading) && isTrackingArrival) {
+            const heading = pos.coords.heading;
+            // Compass counter-rotates to always show true north
+            const compass = document.getElementById('compassSvg');
+            if (compass) compass.style.transform = `rotate(${-heading}deg)`;
+
+            // Map rotation — mobile only
+            if (window.innerWidth <= 768) {
+                if (typeof map.setBearing === 'function') {
+                    map.setBearing(heading);
+                } else {
+                    // Fallback: rotate the map container directly
+                    map.getContainer().style.transform = `rotate(${-heading}deg)`;
+                }
+                // Counter-rotate user marker so it stays upright on screen
+                const pointerEl = userMarker.getElement();
+                if (pointerEl) pointerEl.style.transform = `rotate(${-heading}deg)`;
+            }
+        }
+
+        if (lastValidPosition) {
+            const moveDist = getHaversineDist(latitude, longitude, lastValidPosition.lat, lastValidPosition.lng) * 1000;
+            if (moveDist > 10) {
+                lastMovementTimestamp = Date.now();
+                lastValidPosition = { lat: latitude, lng: longitude };
+            }
+        } else {
+            lastValidPosition = { lat: latitude, lng: longitude };
+            lastMovementTimestamp = Date.now();
+        }
+
+        const destDist = getHaversineDist(latitude, longitude, selectedCoords.destination[0], selectedCoords.destination[1]) * 1000;
         if (destDist < 30) {
             triggerArrival();
             return;
         }
 
-        // Logic 1: Find closest point on current active polyline
-        // Merge remaining path for evaluation
         const currentPath = activeLegIndex === 0 ? walkRouteGeojson.coordinates : transitRouteGeojson.coordinates;
         let minD = Infinity, closestIdx = 0;
         
@@ -679,58 +934,149 @@ document.addEventListener('DOMContentLoaded', () => {
             if (d < minD) { minD = d; closestIdx = i; }
         }
 
-        // Auto Advance Step (if within 30m of segment end, switch activeLeg to transit)
-        if (activeLegIndex === 0 && minD < 50 && closestIdx > currentPath.length - 3) {
-            activeLegIndex = 1; // switch to transit phase
-            document.getElementById('guideCurrentText').textContent = "Wait for your ride";
-            document.getElementById('guideCurrentStep').querySelector('ion-icon').name = "bus";
+        if (window.activeRouteSteps && window.currentStepIndex < window.activeRouteSteps.length - 1) {
+            const nextManeuver = window.activeRouteSteps[window.currentStepIndex + 1].maneuver;
+            if (nextManeuver && nextManeuver.location) {
+                const stepDist = getHaversineDist(latitude, longitude, nextManeuver.location[1], nextManeuver.location[0]) * 1000;
+                if (stepDist < 30) {
+                    window.currentStepIndex++;
+                    updateGuideStepsUI();
+                }
+            }
+        }
+        
+        if (activeLegIndex === 0 && minD < 50 && closestIdx >= currentPath.length - 3) {
+            // Also switch legs when the user is within 40m of the snap/boarding point
+            activeLegIndex = 1;
+        }
+        // Extra guard: if user is within 40m of walk leg end (boarding point), switch legs
+        if (activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0) {
+            const walkEnd = walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1];
+            const distToBoard = getHaversineDist(latitude, longitude, walkEnd[0], walkEnd[1]) * 1000;
+            if (distToBoard < 40) activeLegIndex = 1;
         }
 
-        // Split polyline logic
-        if (activeLegIndex === 1 && transitRouteGeojson) {
+        let remainingDist = 0;
+        for (let i = closestIdx; i < currentPath.length - 1; i++) {
+            remainingDist += getHaversineDist(currentPath[i][0], currentPath[i][1], currentPath[i+1][0], currentPath[i+1][1]);
+        }
+        
+        let remainingTimeSecs = 0;
+        if (activeLegIndex === 1) {
+            // Transit leg: remaining distance on transit at 30 km/h
+            const remFare = computeLTFRBFare(remainingDist, selectedMode);
+            document.getElementById('pillPhp').textContent = `₱${remFare}`;
+
             const passCoords = transitRouteGeojson.coordinates.slice(0, closestIdx + 1);
             const remainCoords = transitRouteGeojson.coordinates.slice(closestIdx);
             
             if (completedTransitPolyline) map.removeLayer(completedTransitPolyline);
             if (transitPolyline) map.removeLayer(transitPolyline);
 
-            completedTransitPolyline = L.polyline(passCoords, { color: '#9ca3af', weight: 6 }).addTo(map);
-            transitPolyline = L.polyline(remainCoords, { color: selectedMode === 'modern-jeepney' ? '#7c3aed' : '#1a8fff', weight: 6 }).addTo(map);
+            // Sakay-style: completed = gray, remaining = mode color
+            completedTransitPolyline = L.polyline(passCoords, {
+                color: '#9ca3af', weight: 6, opacity: 0.7
+            }).addTo(map);
+            transitPolyline = L.polyline(remainCoords, {
+                color: selectedMode === 'modern-jeepney' ? '#7c3aed' : '#1a8fff',
+                weight: 6, opacity: 1
+            }).addTo(map);
+
+            remainingTimeSecs = (remainingDist / 30) * 3600; // transit speed
+        } else {
+            // Walk leg: walk remaining + full transit time ahead
+            const remFare = computeLTFRBFare(currentTransitDist, selectedMode);
+            document.getElementById('pillPhp').textContent = `₱${remFare}`;
+
+            const walkRemainingSecs = (remainingDist / 5) * 3600;   // 5 km/h walk
+            const transitAheadSecs  = currentTransitDur * 60;        // full transit duration
+            remainingTimeSecs = walkRemainingSecs + transitAheadSecs;
+
+            // Dim the walk polyline as user progresses
+            if (walkPolyline) {
+                const walkCoords = walkRouteGeojson.coordinates;
+                const doneCoords = walkCoords.slice(0, closestIdx + 1);
+                const aheadCoords = walkCoords.slice(closestIdx);
+                if (doneCoords.length > 1) {
+                    if (!completedTransitPolyline) {
+                        completedTransitPolyline = L.polyline(doneCoords, {
+                            color: '#9ca3af', weight: 5, dashArray: '8,10', opacity: 0.5
+                        }).addTo(map);
+                    } else {
+                        completedTransitPolyline.setLatLngs(doneCoords);
+                    }
+                }
+                if (aheadCoords.length > 1) walkPolyline.setLatLngs(aheadCoords);
+            }
         }
 
-        // Re-route Logic (every 30 seconds if activeLeg = 1)
-        const now = Date.now();
-        if (activeLegIndex === 1 && (now - lastOsrmFetchTime > 30000 || minD > 50)) {
-            // Refetch active transit duration
-            lastOsrmFetchTime = now;
-            const res = await fetchOSRMRouteCoords([latitude, longitude], selectedCoords.destination, 'driving');
-            if (res) {
-                if (minD > 50) {
-                    // Full deviation reroute -> reset path coords completely
-                    transitRouteGeojson.coordinates = res.coordinates;
-                    if (completedTransitPolyline) map.removeLayer(completedTransitPolyline);
-                    if (transitPolyline) transitPolyline.setLatLngs(res.coordinates);
-                    showToast('Na-update ang ruta');
-                }
-                cachedRemainingSeconds = res.duration;
-                updateDynamicBottomPill();
+        const timeSinceLastMove = Date.now() - lastMovementTimestamp;
+        let effectiveTime = remainingTimeSecs;
+        if (timeSinceLastMove > 480000) {
+            effectiveTime = remainingTimeSecs + (timeSinceLastMove / 1000);
+        }
+        
+        cachedRemainingSeconds = effectiveTime;
+        updateDynamicBottomPill(timeSinceLastMove);
+
+        if (minD > 50) {
+            if (!deviationTimer) {
+                deviationTimer = setTimeout(async () => {
+                    deviationTimer = null;
+                    // During walk leg, reroute to the boarding point (walk leg end), not the destination
+                    const legTarget = activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0
+                        ? walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1]
+                        : selectedCoords.destination;
+                    const res = await fetchOSRMRouteCoords([latitude, longitude], legTarget, activeLegIndex === 0 ? 'foot' : 'driving');
+                    if (res) {
+                        if (activeLegIndex === 0) {
+                            walkRouteGeojson.coordinates = res.coordinates;
+                            walkRouteGeojson.steps = res.steps;
+                            if (walkPolyline) walkPolyline.setLatLngs(res.coordinates);
+                        } else {
+                            transitRouteGeojson.coordinates = res.coordinates;
+                            transitRouteGeojson.steps = res.steps;
+                            if (completedTransitPolyline) map.removeLayer(completedTransitPolyline);
+                            if (transitPolyline) transitPolyline.setLatLngs(res.coordinates);
+                        }
+                        showToast('Route updated');
+                    }
+                }, 10000);
             }
+        } else {
+            if (deviationTimer) { clearTimeout(deviationTimer); deviationTimer = null; }
         }
     };
 
-    const updateDynamicBottomPill = () => {
-        // Minutes display
+    const updateDynamicBottomPill = (timeSinceLastMove = 0) => {
         let mins = Math.ceil(cachedRemainingSeconds / 60);
-        document.getElementById('pillMin').textContent = mins < 1 ? "< 1" : mins;
+        const pillMin = document.getElementById('pillMin');
+        pillMin.textContent = mins < 1 ? "< 1" : mins;
 
-        // Arrival Time
+        if (timeSinceLastMove > 900000) {
+            pillMin.style.color = '#ef4444';
+            pillMin.style.animation = 'pulse 2s infinite';
+        } else if (timeSinceLastMove > 300000) {
+            pillMin.style.color = '#f59e0b';
+            pillMin.style.animation = 'pulse 2s infinite';
+        } else {
+            pillMin.style.color = 'var(--text)';
+            pillMin.style.animation = 'none';
+        }
+
         const d = new Date(Date.now() + cachedRemainingSeconds * 1000);
         document.getElementById('pillArrival').textContent = d.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit' }).toLowerCase();
     };
 
 
+
+
     const triggerArrival = () => {
         stopLiveTracking();
+        sessionStorage.removeItem('calzada_journey'); // journey complete — clear state
+        // Reset map bearing to north on arrival
+        if (typeof map.setBearing === 'function') map.setBearing(0);
+        else map.getContainer().style.transform = '';
         document.getElementById('arrivalOverlay').style.display = 'block';
         document.getElementById('arrivalScreen').classList.add('visible');
     };
@@ -742,17 +1088,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // =============================================
     // GET MY LOCATION (Initial)
+    // Location permission is NOT requested on load.
+    // It is only requested when the user explicitly picks
+    // "My Location" as their origin inside the modal.
     // =============================================
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                selectedCoords.origin = [currentLocation.lat, currentLocation.lng];
-                map.setView([currentLocation.lat, currentLocation.lng], 15);
-            },
-            () => console.warn("Location disabled")
-        );
-    }
 
     // =============================================
     // MAP PIN PICKER (Modals)
@@ -775,9 +1114,15 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mapPickerAddress').textContent = `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
     };
 
-    document.getElementById('mapPickerConfirmBtn').addEventListener('click', () => {
+    document.getElementById('mapPickerConfirmBtn').addEventListener('click', async () => {
         const c = map.getCenter();
-        selectLocation('Pinned Location', [c.lat, c.lng]);
+        let placeName = 'Pinned Location';
+        try {
+            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${c.lat}&lon=${c.lng}&format=json&addressdetails=1`);
+            const data = await res.json();
+            placeName = data.name || data.address?.road || data.address?.suburb || data.address?.village || data.address?.town || data.address?.city || 'Pinned Location';
+        } catch(e) {}
+        selectLocation(placeName, [c.lat, c.lng]);
         cancelMapPicking();
     });
     document.getElementById('mapPickerCancelBtn').addEventListener('click', cancelMapPicking);
@@ -849,4 +1194,151 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('closeChatBtn').addEventListener('click', () => {
         document.getElementById('chatWindow').classList.remove('open');
     });
+
+    // =============================================
+    // URL PARAMETERS LOGIC
+    // =============================================
+    const urlParams = new URLSearchParams(window.location.search);
+    // Accept both naming conventions: destName/destLat/destLng (new) and dest/dlat/dlng (old)
+    const destName = decodeURIComponent(urlParams.get('destName') || urlParams.get('dest') || '');
+    const destLat  = parseFloat(urlParams.get('destLat')  || urlParams.get('dlat') || '');
+    const destLng  = parseFloat(urlParams.get('destLng')  || urlParams.get('dlng') || '');
+    if (destName && !isNaN(destLat) && !isNaN(destLng)) {
+        selectedCoords.destination = [destLat, destLng];
+        destPlaceName = destName; // already decoded above
+        updateODDisplay();
+        
+        if (destMarker) map.removeLayer(destMarker);
+        destMarker = L.marker([destLat, destLng], {
+            icon: L.divIcon({
+                className: '',
+                html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
+        <circle cx="14" cy="14" r="6" fill="white"/>
+    </svg>`,
+                iconSize: [28, 36],
+                iconAnchor: [14, 36]
+            })
+        }).addTo(map);
+        
+        map.fitBounds([[destLat, destLng], [destLat, destLng]], { padding: [60, 60], maxZoom: 16 });
+    }
+
+    document.getElementById('amtJeep').addEventListener('click', () => switchActiveMode('jeepney'));
+    document.getElementById('amtMJeep').addEventListener('click', () => switchActiveMode('modern-jeepney'));
+
+    const switchActiveMode = (newMode) => {
+        if (selectedMode === newMode) return;
+        selectedMode = newMode;
+        
+        document.getElementById('amtJeep').classList.toggle('active', newMode === 'jeepney');
+        document.getElementById('amtMJeep').classList.toggle('active', newMode === 'modern-jeepney');
+
+        const remainingRatio = window.activeRouteSteps.length > 0
+            ? 1 - (window.currentStepIndex / window.activeRouteSteps.length)
+            : 1;
+        const remainingDistKm = Math.max(0, currentTransitDist * remainingRatio);
+        const newFare = computeLTFRBFare(remainingDistKm, newMode);
+        currentFare = newFare;
+
+        // Update polyline color
+        const modeColor = newMode === 'modern-jeepney' ? '#7c3aed' : '#1a8fff';
+        if (transitPolyline) transitPolyline.setStyle({ color: modeColor });
+
+        document.getElementById('pillPhp').textContent = `₱${currentFare}`;
+    };
+
+    // =============================================
+    // SESSION RECOVERY — restore last journey on reload
+    // =============================================
+    (() => {
+        const raw = sessionStorage.getItem('calzada_journey');
+        if (!raw) return;
+        let state;
+        try { state = JSON.parse(raw); } catch(e) { return; }
+        const ageMs = Date.now() - (state.savedAt || 0);
+        if (ageMs > 7200000) { sessionStorage.removeItem('calzada_journey'); return; } // >2h old
+        if (!state.origin || !state.destination) return;
+
+        // Build recovery banner
+        const banner = document.createElement('div');
+        banner.id = 'recoveryBanner';
+        const wasActive = state.isJourneyActive;
+        const msg = wasActive
+            ? `Resuming journey to <strong>${state.destName || 'destination'}</strong>…`
+            : `Your last route was restored.`;
+        banner.innerHTML = `
+            <span>${msg}</span>
+            <button id="recoveryDismissBtn" title="Start fresh">×</button>
+        `;
+        banner.style.cssText = [
+            'position:fixed','bottom:90px','left:50%','transform:translateX(-50%)',
+            'background:rgba(30,41,59,0.95)','color:#f8fafc','padding:10px 18px',
+            'border-radius:12px','font-size:0.88rem','z-index:9999',
+            'display:flex','align-items:center','gap:12px',
+            'box-shadow:0 4px 20px rgba(0,0,0,0.3)','backdrop-filter:blur(8px)'
+        ].join(';');
+        banner.querySelector('#recoveryDismissBtn').style.cssText =
+            'background:none;border:none;color:#94a3b8;font-size:1.1rem;cursor:pointer;padding:0 4px;line-height:1;';
+        document.body.appendChild(banner);
+
+        const dismissBanner = () => banner.remove();
+        banner.querySelector('#recoveryDismissBtn').addEventListener('click', () => {
+            sessionStorage.removeItem('calzada_journey');
+            dismissBanner();
+        });
+
+        // Restore OD state
+        selectedCoords.origin      = state.origin;
+        selectedCoords.destination = state.destination;
+        originPlaceName = state.originName || '';
+        destPlaceName   = state.destName   || '';
+        selectedMode    = state.selectedMode || 'modern-jeepney';
+        updateODDisplay();
+
+        // Re-fetch fresh OSRM route (never use stale saved polylines)
+        executeRouteQuery().then(() => {
+            dismissBanner();
+            if (wasActive) {
+                // Get current GPS position then resume tracking from there
+                showToast(`Resuming journey to ${state.destName || 'destination'}…`);
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        // Update origin to current position so route starts from here
+                        selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
+                        originPlaceName = 'My Location';
+                        currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        updateODDisplay();
+                        executeRouteQuery().then(() => {
+                            // Resume active navigation UI
+                            directionsCard.style.display = 'none';
+                            activeGuideCard.style.display = 'flex';
+                            bottomStatusPill.style.display = 'flex';
+                            document.getElementById('remindersPillBtn').style.display = 'none';
+                            document.getElementById('hamburgerBtn').style.display = 'none';
+                            mapAutoFollow = true;
+                            isTrackingArrival = true;
+                            document.getElementById('reCenterBtn').style.display = 'none';
+                            activeLegIndex = state.activeLegIndex || 0;
+                            window.currentStepIndex = state.currentStepIndex || 0;
+                            startLiveTracking();
+                            map.invalidateSize();
+                        });
+                    },
+                    () => {
+                        // GPS unavailable — just show the route, let user restart manually
+                        showToast('Could not get current position. Tap Start Journey to resume.');
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                );
+            } else {
+                showToast('Your last route was restored.');
+            }
+        }).catch(() => {
+            sessionStorage.removeItem('calzada_journey');
+            dismissBanner();
+        });
+    })();
+
+    }, 100);
 });
