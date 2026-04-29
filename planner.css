@@ -423,7 +423,7 @@ html, body {
 }
 
 .od-connector-img {
-    height: 80px;
+    height: 56px;
     width: auto;
     object-fit: contain;
     flex-shrink: 0;
