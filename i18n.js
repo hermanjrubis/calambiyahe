@@ -195,6 +195,14 @@ window.translations = {
         'planner.tracking_unavailable': 'GPS tracking unavailable. Using manual mode.',
         'planner.reached_landmark': "You've reached {name}. Moving to next step.",
         'planner.recenter': 'Re-center',
+        'about_page.tagline': 'Your daily commute, simplified.',
+        'about_page.why.heading': 'Why Calzada?',
+        'about_page.why.card1.title': 'Direction',
+        'about_page.why.card1.desc': 'You won\'t get lost – every route is clear and accurate.',
+        'about_page.why.card2.title': 'Transparency',
+        'about_page.why.card2.desc': 'No hidden charges. You know the exact fare before you ride.',
+        'about_page.why.card3.title': 'Community',
+        'about_page.why.card3.desc': 'Made for commuters, by commuters. Free and accessible to all.',
     },
 
     tl: {
@@ -386,6 +394,14 @@ window.translations = {
         'planner.tracking_unavailable': 'GPS tracking unavailable. Manual mode ang gagamitin.',
         'planner.reached_landmark': 'Abot na sa {name}. Sunod na hakbang...',
         'planner.recenter': 'I-gitna',
+        'about_page.tagline': 'Ang iyong araw-araw na biyahe, pinadali.',
+        'about_page.why.heading': 'Bakit Calzada?',
+        'about_page.why.card1.title': 'Direksyon',
+        'about_page.why.card1.desc': 'Hindi ka na maliligaw – bawat ruta ay klaro at tumpak.',
+        'about_page.why.card2.title': 'Transparency',
+        'about_page.why.card2.desc': 'Walang hidden charges. Alam mo ang pamasahe bago ka sumakay.',
+        'about_page.why.card3.title': 'Komunidad',
+        'about_page.why.card3.desc': 'Gawa para sa mga commuter, ng mga commuter. Libre at accessible.',
     }
 
 };

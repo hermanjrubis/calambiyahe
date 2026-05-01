@@ -73,40 +73,7 @@ body {
     to { background-position: 200% center; }
 }
 
-.transit-lines-container {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-    opacity: 0.4;
-}
 
-.transit-svg {
-    width: 100%; height: 100%;
-}
-
-.transit-path {
-    fill: none;
-    stroke: var(--primary);
-    stroke-width: 2;
-    stroke-linecap: round;
-    opacity: 0.15;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: drawPath 10s linear infinite;
-}
-
-@keyframes drawPath {
-    0% { stroke-dashoffset: 1000; opacity: 0; }
-    20% { opacity: 0.4; }
-    80% { opacity: 0.4; }
-    100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
-.transit-path.p2 { animation-delay: 2s; stroke-width: 1.5; }
-.transit-path.p3 { animation-delay: 5s; stroke-width: 1; }
-.transit-path.p4 { animation-delay: 7s; stroke-width: 2.5; }
 
 .parallax-layer-1 { transition: transform 0.1s ease-out; }
 .parallax-layer-2 { transition: transform 0.2s ease-out; }
@@ -129,15 +96,39 @@ body {
     width: min(80vw, 450px);
     right: 0;
     top: 0;
-    opacity: 0.9;
+    opacity: 0.2;
     animation: floatGeo 12s ease-in-out infinite; /* Increased speed for more energy */
 }
 .geo-bg-2 {
     width: min(40vw, 200px);
     left: 20px;
     bottom: 50px;
-    opacity: 0.8;
+    opacity: 0.15;
     animation: floatGeo 15s ease-in-out infinite reverse; /* Increased speed for more energy */
+}
+
+/* System Network overlay – static, minimal */
+.system-network {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.2;
+}
+.system-network svg {
+  width: 100%;
+  height: 100%;
+}
+.network-line {
+  stroke: var(--primary);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 8;
+  fill: none;
+  opacity: 0.5;
+}
+.network-node {
+  fill: var(--primary);
+  opacity: 0.6;
 }
 
 /* Card Backgrounds for readability on Mobile/Desktop overlaying shapes */
@@ -367,7 +358,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 80px 2rem;
+    padding: 80px 2rem 60px;
     text-align: center;
     z-index: 1;
     overflow: visible;
@@ -557,6 +548,8 @@ body {
     max-width: 620px;
     position: relative;
     z-index: 300;
+    /* Ensure dropdown can overflow hero without being clipped */
+    isolation: isolate;
 }
 
 .search-bar {
@@ -3033,196 +3026,165 @@ body {
 }
 
 /* =============================================
-   3 EASY STEPS SECTION
+   STEPS SECTION - FULL-WIDTH SOLID BLUE "LINE"
    ============================================= */
 .steps-section {
-    position: relative;
-    padding: 60px 0;
-    overflow: hidden;
+  position: relative;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  background: #1a8fff; /* Solid blue background */
+  padding: 80px 0 100px;
+  overflow: hidden;
 }
 
-.steps-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.8;
-}
-
-.steps-transit-svg {
-    width: 100%;
-    height: 100%;
-}
-
-.steps-path {
-    fill: none;
-    stroke: var(--primary);
-    stroke-width: 2;
-    stroke-dasharray: 6 6;
-    opacity: 0.15;
-    will-change: transform, stroke-dashoffset;
-}
-
-.steps-dot {
-    opacity: 0.8;
-    filter: drop-shadow(0 0 6px var(--primary));
-    will-change: transform;
-}
-
-@media (max-width: 768px) {
-    /* Prevent auto-zoom on mobile when focusing inputs */
-    input, textarea, select {
-        font-size: 16px !important;
-    }
-
-    /* Reduce paths/dots and scale down on mobile for performance */
-    .steps-path:nth-of-type(2),
-    .steps-dot:nth-of-type(2) {
-        display: none;
-    }
-
-    .steps-dot {
-        transform-origin: center;
-        transform: scale(0.50);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .steps-dot {
-        display: none !important;
-    }
-    .steps-path {
-        stroke-dasharray: none;
-        opacity: 0.1;
-    }
-}
-
-.steps-content {
-    position: relative;
-    max-width: 900px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+/* Para kumalat ang blue sa buong lapad kahit may container */
+.steps-section .steps-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .steps-pill {
-    background: rgba(26, 143, 255, 0.1);
-    color: var(--primary);
-    padding: 6px 16px;
-    border-radius: var(--radius-full);
-    font-size: 0.85rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(26, 143, 255, 0.2);
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  padding: 6px 18px;
+  border-radius: 40px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white;
+  margin-bottom: 24px;
 }
 
 .steps-title {
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
-    font-weight: 800;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-    line-height: 1.2;
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-weight: 800;
+  color: white;
+  margin-bottom: 16px;
+  line-height: 1.2;
 }
 
 .steps-subtitle {
-    font-size: 1rem;
-    color: var(--text-muted);
-    max-width: 600px;
-    margin-bottom: 40px;
-    line-height: 1.6;
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 600px;
+  margin: 0 auto 50px;
+  line-height: 1.6;
 }
 
 .steps-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
-    width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
 }
 
 @media (max-width: 768px) {
-    .steps-grid {
-        grid-template-columns: 1fr;
-    }
+  .steps-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }
 
+/* Puti ang cards, may malaking ghost number */
 .step-card {
-    background: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(12, 118, 206, 0.12);
-    border-radius: 20px;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 20px rgba(12, 118, 206, 0.08);
-    padding: 28px 24px;
-    position: relative;
-    z-index: 2;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
+  background: white;
+  border-radius: 28px;
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s ease;
+  box-shadow: 0 8px 28px -8px rgba(0, 0, 0, 0.15);
+  border: none;
 }
 
 .step-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 28px rgba(12, 118, 206, 0.15);
+  transform: translateY(-8px);
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.25);
 }
 
 .step-ghost-num {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 5rem;
-    font-weight: 900;
-    color: var(--primary);
-    opacity: 0.07;
-    line-height: 1;
-    z-index: 0;
-    pointer-events: none;
-    user-select: none;
-    transition: all 0.4s var(--ease);
-    max-width: 100%;
-    overflow: hidden;
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 6rem;
+  font-weight: 900;
+  color: rgba(26, 143, 255, 0.08);
+  line-height: 1;
+  pointer-events: none;
+  transition: all 0.3s;
+  z-index: 0;
 }
 
 .step-card:hover .step-ghost-num {
-    color: rgba(26, 143, 255, 0.1);
-    transform: scale(1.1);
+  color: rgba(26, 143, 255, 0.15);
+  transform: scale(1.05);
 }
 
 .step-icon {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(135deg, rgba(26, 143, 255, 0.15), rgba(26, 143, 255, 0.05));
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    color: var(--primary);
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
+  width: 56px;
+  height: 56px;
+  background: rgba(26, 143, 255, 0.1);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: var(--primary);
+  margin-bottom: 24px;
+  transition: all 0.3s;
+  position: relative;
+  z-index: 1;
+}
+
+.step-card:hover .step-icon {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.02);
 }
 
 .step-card h3 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-dark);
-    margin-bottom: 12px;
-    position: relative;
-    z-index: 1;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .step-card p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-    position: relative;
-    z-index: 1;
+  font-size: 0.95rem;
+  color: #475569;
+  line-height: 1.6;
+  position: relative;
+  z-index: 1;
+}
+
+/* Optional: mag‑add ng banayad na linya sa itaas/ibaba para maging "line" effect */
+.steps-section::before,
+.steps-section::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.steps-section::before {
+  top: 0;
+}
+
+.steps-section::after {
+  bottom: 0;
 }
 
 /* =============================================
@@ -3242,4 +3204,428 @@ body {
     color: var(--primary);
     text-align: center;
     margin-bottom: 48px;
+}
+
+/* =============================================
+   SCROLL ANIMATIONS & ENGAGING EFFECTS
+   ============================================= */
+
+/* ── 1. Enhanced reveal — slide from bottom + fade ── */
+.reveal,
+.reveal [class*="reveal-delay-"] {
+    opacity: 0;
+    transform: translateY(52px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+.reveal.active,
+.reveal.active [class*="reveal-delay-"] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Slide-from-left variant */
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-48px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-left.active { opacity: 1; transform: translateX(0); }
+
+/* Slide-from-right variant */
+.reveal-right {
+    opacity: 0;
+    transform: translateX(48px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-right.active { opacity: 1; transform: translateX(0); }
+
+/* Scale-in variant for cards */
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.92) translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-scale.active { opacity: 1; transform: scale(1) translateY(0); }
+
+/* ── 2. Step cards — staggered scale-in ── */
+.step-card {
+    transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.25s ease;
+}
+.steps-section .step-card {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+}
+.steps-section.active .step-card:nth-child(1) {
+    opacity: 1; transform: translateY(0) scale(1); transition-delay: 0.05s;
+}
+.steps-section.active .step-card:nth-child(2) {
+    opacity: 1; transform: translateY(0) scale(1); transition-delay: 0.18s;
+}
+.steps-section.active .step-card:nth-child(3) {
+    opacity: 1; transform: translateY(0) scale(1); transition-delay: 0.31s;
+}
+
+/* ── 3. News cards — slide from left/right alternate ── */
+.news-card {
+    opacity: 0;
+    transform: translateX(-36px);
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.2s;
+}
+.news-card:nth-child(even) {
+    transform: translateX(36px);
+}
+.news-section.active .news-card,
+.fare-section.active .news-card {
+    opacity: 1;
+    transform: translateX(0);
+}
+.news-section.active .news-card:nth-child(1),
+.fare-section.active .news-card:nth-child(1) { transition-delay: 0.1s; }
+.news-section.active .news-card:nth-child(2),
+.fare-section.active .news-card:nth-child(2) { transition-delay: 0.25s; }
+
+/* ── 4. Features bar — count-up shimmer ── */
+.features-bar {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.features-bar.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+.features-bar.active .feature-card {
+    animation: featurePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.features-bar.active .feature-card:nth-child(1) { animation-delay: 0.05s; }
+.features-bar.active .feature-card:nth-child(2) { animation-delay: 0.15s; }
+.features-bar.active .feature-card:nth-child(3) { animation-delay: 0.25s; }
+.features-bar.active .feature-card:nth-child(4) { animation-delay: 0.35s; }
+@keyframes featurePop {
+    from { opacity: 0; transform: scale(0.8) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ── 5. Section header line — animate width ── */
+.header-line {
+    width: 0;
+    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+.reveal.active .header-line,
+.news-section.active .header-line,
+.fare-section.active .header-line {
+    width: 60px;
+}
+
+/* ── 6. About card text — word highlight on reveal ── */
+.about-card.active strong {
+    background: linear-gradient(90deg, var(--primary) 0%, #0f6fd1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* ── 7. Parallax hero content ── */
+.hero-content {
+    will-change: transform;
+}
+
+/* ── 8. Scroll-progress indicator ── */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary) 0%, #60a5fa 100%);
+    z-index: 9999;
+    transition: width 0.1s linear;
+    border-radius: 0 2px 2px 0;
+}
+
+/* ── 9. Floating section number badge ── */
+.section-num {
+    display: inline-block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--primary);
+    background: rgba(26, 143, 255, 0.1);
+    border: 1px solid rgba(26, 143, 255, 0.2);
+    border-radius: 99px;
+    padding: 3px 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+    width: fit-content;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.5s ease 0.05s, transform 0.5s ease 0.05s;
+}
+.reveal.active .section-num,
+.news-section.active .section-num,
+.fare-section.active .section-num {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ── 10. Hover lift for step cards ── */
+.step-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 48px rgba(26,143,255,0.13);
+}
+
+/* reduce motion override */
+@media (prefers-reduced-motion: reduce) {
+    .reveal, .reveal-left, .reveal-right, .reveal-scale,
+    .news-card, .step-card, .features-bar {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+    }
+    .header-line { width: 60px !important; }
+    .scroll-progress { display: none; }
+}
+
+/* =============================================
+   ABOUT PAGE – ENHANCED
+   ============================================= */
+.about-hero-logo {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.about-logo-img {
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+}
+
+.about-tagline {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-top: 12px;
+  letter-spacing: -0.3px;
+}
+
+/* Why Calzada section */
+.why-calzada {
+  margin-top: 60px;
+  padding-top: 40px;
+  border-top: 2px solid rgba(26, 143, 255, 0.2);
+}
+
+.why-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 30px;
+}
+
+.why-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 28px 20px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.why-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 30px -12px rgba(26, 143, 255, 0.2);
+  border-color: rgba(26, 143, 255, 0.3);
+}
+
+.why-card ion-icon {
+  font-size: 2.6rem;
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+.why-card h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-dark);
+}
+
+.why-card p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Adjust existing about text spacing */
+.about-text {
+  margin-top: 20px;
+}
+
+/* =============================================
+   ABOUT SECTION – SIDE-BY-SIDE MOCKUP LAYOUT
+   ============================================= */
+.about-split {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+.about-split-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.about-split-mockup {
+  flex: 0 0 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Crop wrapper: hides the bottom github browser bar */
+.mockup-crop-wrapper {
+  width: 220px;
+  height: 370px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.about-mockup-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+
+
+@media (max-width: 768px) {
+  .about-split {
+    flex-direction: column-reverse;
+    gap: 32px;
+  }
+
+  .about-split-mockup {
+    flex: none;
+  }
+
+  .mockup-crop-wrapper {
+    width: 180px;
+    height: 300px;
+  }
+}
+
+/* =============================================
+   PAGE TRANSITION OVERLAY – CUBE LOADER
+   ============================================= */
+#page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #1a8fff;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#page-transition.fade-in {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Cube loader */
+#page-transition .pt-cubes {
+  --uib-size: 48px;
+  --uib-color: white;
+  --uib-speed: 1.75s;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: var(--uib-size);
+  height: calc(var(--uib-size) * 0.6);
+}
+
+#page-transition .pt-cube {
+  flex-shrink: 0;
+  width: calc(var(--uib-size) * 0.2);
+  height: calc(var(--uib-size) * 0.2);
+  animation: ptJump var(--uib-speed) ease-in-out infinite;
+}
+
+#page-transition .pt-cube__inner {
+  display: block;
+  height: 100%;
+  width: 100%;
+  border-radius: 25%;
+  background-color: var(--uib-color);
+  transform-origin: center bottom;
+  animation: ptMorph var(--uib-speed) ease-in-out infinite;
+}
+
+#page-transition .pt-cube:nth-child(2) {
+  animation-delay: calc(var(--uib-speed) * -0.36);
+}
+#page-transition .pt-cube:nth-child(2) .pt-cube__inner {
+  animation-delay: calc(var(--uib-speed) * -0.36);
+}
+#page-transition .pt-cube:nth-child(3) {
+  animation-delay: calc(var(--uib-speed) * -0.2);
+}
+#page-transition .pt-cube:nth-child(3) .pt-cube__inner {
+  animation-delay: calc(var(--uib-speed) * -0.2);
+}
+
+@keyframes ptJump {
+  0%                          { transform: translateY(0px); }
+  30%                         { transform: translateY(0px); animation-timing-function: ease-out; }
+  50%                         { transform: translateY(-200%); animation-timing-function: ease-in; }
+  75%                         { transform: translateY(0px); animation-timing-function: ease-in; }
+}
+
+@keyframes ptMorph {
+  0%                          { transform: scaleY(1); }
+  10%                         { transform: scaleY(1); }
+  20%, 25%                    { transform: scaleY(0.6) scaleX(1.3); animation-timing-function: ease-in-out; }
+  30%                         { transform: scaleY(1.15) scaleX(0.9); animation-timing-function: ease-in-out; }
+  40%                         { transform: scaleY(1); }
+  70%, 85%, 100%              { transform: scaleY(1); }
+  75%                         { transform: scaleY(0.8) scaleX(1.2); }
+}
+
+/* Optional label under loader */
+#page-transition .pt-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 1px;
+  text-transform: uppercase;
 }

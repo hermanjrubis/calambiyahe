@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -50,6 +50,10 @@
 </head>
 
 <body>
+    <div id="page-transition"></div>
+    <!-- Scroll progress indicator -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
     <!-- Mouse Glow Aura -->
     <div class="mouse-glow" id="mouseGlow"></div>
 
@@ -96,15 +100,7 @@
 
     <!-- Main Hero Section -->
     <main class="hero-section">
-        <!-- Transit Pulse Background Lines -->
-        <div class="transit-lines-container">
-            <svg class="transit-svg" viewBox="0 0 1000 1000" preserveAspectRatio="none">
-                <path d="M-100,500 Q250,250 500,500 T1100,500" class="transit-path p1" />
-                <path d="M500,-100 Q750,250 500,500 T500,1100" class="transit-path p2" />
-                <path d="M-100,100 Q500,500 1100,900" class="transit-path p3" />
-                <path d="M1100,100 Q500,500 -100,900" class="transit-path p4" />
-            </svg>
-        </div>
+
 
         <!-- Map background overlay -->
         <div class="map-bg-overlay"></div>
@@ -141,42 +137,40 @@
         </div>
     </main>
 
+
+
+
+
     <!-- Scrollable Content Sections -->
     <div class="scrollable-content">
         <!-- Section: About Calzada -->
         <section class="about-card reveal">
-            <div class="section-header reveal-delay-1">
-                <h2 data-i18n="about.heading">Ano ang Calzada?</h2>
-                <div class="header-line"></div>
+            <div class="about-split">
+                <div class="about-split-text">
+                    <span class="section-num">01 â€” About</span>
+                    <div class="section-header reveal-delay-1">
+                        <h2 data-i18n="about.heading">Ano ang Calzada?</h2>
+                        <div class="header-line"></div>
+                    </div>
+                    <p data-i18n="about.body" class="reveal-delay-2">
+                        Ang <strong>Calzada</strong> ay ang iyong maaasahang commuter guide platform dito sa Calamba at
+                        karatig-bayan.
+                        Madaliang mai-plano ang biyahe gamit ang aming platform na nagpapakita ng presyo ng pamasahe at
+                        eksaktong transit modeâ€”jeepney, bus, modern jeep, UV, o tricycle man 'yan!
+                    </p>
+                    <a href="about.html" class="btn-learn-more reveal-delay-3" data-i18n="about.learn_more">Learn More â†’</a>
+                </div>
+                <div class="about-split-mockup reveal-delay-2">
+                    <div class="mockup-crop-wrapper">
+                        <img src="assets/app-mockup.png" alt="Calzada App Preview" class="about-mockup-img">
+                    </div>
+                </div>
             </div>
-            <p data-i18n="about.body" class="reveal-delay-2">
-                Ang <strong>Calzada</strong> ay ang iyong maaasahang commuter guide platform dito sa Calamba at
-                karatig-bayan.
-                Madaliang mai-plano ang biyahe gamit ang aming platform na nagpapakita ng presyo ng pamasahe at
-                eksaktong transit mode—jeepney, bus, modern jeep, UV, o tricycle man 'yan!
-            </p>
-            <a href="about.html" class="btn-learn-more reveal-delay-3" data-i18n="about.learn_more">Learn More →</a>
         </section>
 
         <!-- Section: 3 Easy Steps -->
         <section class="steps-section reveal">
-            <!-- Animated Background -->
-            <div class="steps-bg">
-                <svg class="steps-transit-svg" viewBox="0 0 1000 300" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">
-                    <path id="stepsPath1" class="steps-path" d="M -100,50 Q 250,150 500,50 T 1100,100" />
-                    <circle class="steps-dot" r="6" fill="var(--primary)">
-                        <animateMotion dur="5s" repeatCount="indefinite">
-                            <mpath href="#stepsPath1" />
-                        </animateMotion>
-                    </circle>
-                    <path id="stepsPath2" class="steps-path" d="M -100,200 Q 300,100 600,250 T 1100,200" />
-                    <circle class="steps-dot" r="6" fill="var(--primary)">
-                        <animateMotion dur="7s" repeatCount="indefinite">
-                            <mpath href="#stepsPath2" />
-                        </animateMotion>
-                    </circle>
-                </svg>
-            </div>
+
             <div class="steps-content">
                 <div class="steps-pill reveal-delay-1">
                     <span data-i18n="steps.pill">Simple & Fast</span>
@@ -213,6 +207,7 @@
 
         <!-- Section: News & Traffic -->
         <section class="news-section reveal">
+            <span class="section-num">02 â€” Updates</span>
             <div class="section-header reveal-delay-1">
                 <h2><ion-icon name="newspaper-outline"></ion-icon> Latest News & Traffic</h2>
                 <div class="header-line"></div>
@@ -237,6 +232,7 @@
 
         <!-- Section: Fare & LTFRB Updates -->
         <section class="fare-section reveal">
+            <span class="section-num">03 â€” Fares</span>
             <div class="section-header reveal-delay-1">
                 <h2><ion-icon name="cash-outline"></ion-icon> Pamasahe & LTFRB Updates</h2>
                 <div class="header-line"></div>
@@ -244,8 +240,8 @@
             <div class="news-grid">
                 <div class="news-card reveal-delay-2">
                     <span class="news-tag fare">Fare Update</span>
-                    <h3>₱13.00 Standard Fare Confirmed</h3>
-                    <p>Nanatili ang minimum fare sa ₱13 para sa traditional jeepneys at ₱15 para sa modern jeepneys sa
+                    <h3>â‚±13.00 Standard Fare Confirmed</h3>
+                    <p>Nanatili ang minimum fare sa â‚±13 para sa traditional jeepneys at â‚±15 para sa modern jeepneys sa
                         buong Region IV-A.</p>
                     <span class="news-date">Source: LTFRB Official</span>
                 </div>
@@ -404,7 +400,136 @@
     <script src="i18n.js"></script>
 
     <!-- =============================================
-         LANDING PAGE SEARCH → PLANNER NAVIGATION
+         SCROLL ANIMATION ENGINE
+    ============================================= -->
+    <script>
+    (function () {
+        // â”€â”€ Scroll Progress Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        const progressBar = document.getElementById('scrollProgress');
+        const updateProgress = () => {
+            const scrolled = window.scrollY;
+            const total = document.documentElement.scrollHeight - window.innerHeight;
+            if (progressBar) progressBar.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
+        };
+
+        // â”€â”€ IntersectionObserver for reveal animations â”€â”€
+        const revealEls = document.querySelectorAll(
+            '.reveal, .reveal-left, .reveal-right, .reveal-scale, .features-bar, .news-section, .fare-section, .steps-section'
+        );
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Don't unobserve â€” keep active once triggered
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+        revealEls.forEach(el => observer.observe(el));
+
+        // â”€â”€ Parallax on hero content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        const heroContent = document.querySelector('.hero-content');
+        const geoBg1 = document.querySelector('.geo-bg-1');
+        const geoBg2 = document.querySelector('.geo-bg-2');
+
+        const handleScroll = () => {
+            updateProgress();
+            const sy = window.scrollY;
+
+            // Hero content subtle upward drift
+            if (heroContent) {
+                heroContent.style.transform = `translateY(${sy * 0.18}px)`;
+                heroContent.style.opacity = Math.max(0, 1 - sy / 480);
+            }
+
+            // Geometric bg parallax layers at different speeds
+            if (geoBg1) geoBg1.style.transform = `translateY(${sy * 0.08}px) rotate(${sy * 0.01}deg)`;
+            if (geoBg2) geoBg2.style.transform = `translateY(${sy * -0.06}px) rotate(${sy * -0.008}deg)`;
+
+            // â”€â”€ Background color shift on scroll â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // Hero (blue-ish) â†’ neutral white as user scrolls into sections
+            const maxShift = 600;
+            const ratio = Math.min(sy / maxShift, 1);
+            const r = Math.round(248 + (255 - 248) * ratio);
+            const g = Math.round(250 + (255 - 250) * ratio);
+            const b = Math.round(252 + (255 - 252) * ratio);
+            document.body.style.background = `rgb(${r},${g},${b})`;
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        updateProgress(); // init
+
+        // â”€â”€ Stagger step cards on steps-section reveal â”€â”€
+        const stepsSection = document.querySelector('.steps-section');
+        if (stepsSection) {
+            const stepsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        // Trigger step cards individually
+                        const cards = entry.target.querySelectorAll('.step-card');
+                        cards.forEach((card, i) => {
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateY(0) scale(1)';
+                            }, 80 + i * 130);
+                        });
+                    }
+                });
+            }, { threshold: 0.15 });
+            stepsObserver.observe(stepsSection);
+        }
+
+        // â”€â”€ News cards stagger on parent reveal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        document.querySelectorAll('.news-section, .fare-section').forEach(section => {
+            const newsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const cards = entry.target.querySelectorAll('.news-card');
+                        cards.forEach((card, i) => {
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                                card.style.transform = 'translateX(0)';
+                            }, 100 + i * 150);
+                        });
+                    }
+                });
+            }, { threshold: 0.1 });
+            newsObserver.observe(section);
+        });
+
+        // â”€â”€ Features bar number count-up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        const featuresBar = document.querySelector('.features-bar');
+        if (featuresBar) {
+            const countObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        featuresBar.querySelectorAll('.feature-text strong').forEach(el => {
+                            const raw = el.textContent.trim();
+                            const num = parseInt(raw.replace(/\D/g,''));
+                            if (isNaN(num)) return;
+                            const suffix = raw.replace(/[\d]/g,'');
+                            let start = 0;
+                            const dur = 900;
+                            const step = dur / num;
+                            const counter = setInterval(() => {
+                                start += 1;
+                                el.textContent = start + suffix;
+                                if (start >= num) { clearInterval(counter); el.textContent = raw; }
+                            }, Math.max(step, 16));
+                        });
+                        countObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            countObserver.observe(featuresBar);
+        }
+
+    })();
+    </script>
+
+    <!-- =============================================
+         LANDING PAGE SEARCH â†’ PLANNER NAVIGATION
          Geocodes the typed destination and passes
          destName + destLat + destLng to planner.html
     ============================================= -->
@@ -417,7 +542,7 @@
         let debounceTimer  = null;
         let activeSuggestions = []; // [{name, address, lat, lng, isSuggestion}]
 
-        // ── helpers ──────────────────────────────────────────
+        // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const goToPlanner = (name, lat, lng) => {
             const params = new URLSearchParams({
                 destName : encodeURIComponent(name),
@@ -454,7 +579,7 @@
                 goToPlanner(item.name, item.lat, item.lng);
                 return;
             }
-            // ESRI suggestion — resolve to coordinates first
+            // ESRI suggestion â€” resolve to coordinates first
             try {
                 const url = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(item.address)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&maxLocations=1&f=json`;
                 const res  = await fetch(url);
@@ -475,11 +600,11 @@
                     return;
                 }
             } catch (e) {}
-            // Last resort — go without coords (planner will prompt user to pick manually)
+            // Last resort â€” go without coords (planner will prompt user to pick manually)
             goToPlanner(item.name, '', '');
         };
 
-        // ── search (ESRI suggest → Nominatim fallback) ───────
+        // â”€â”€ search (ESRI suggest â†’ Nominatim fallback) â”€â”€â”€â”€â”€â”€â”€
         const doSearch = async (query) => {
             if (query.length < 2) { resultsBox.style.display = 'none'; return; }
             try {
@@ -514,7 +639,7 @@
             showResults([]);
         };
 
-        // ── event listeners ───────────────────────────────────
+        // â”€â”€ event listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         searchInput.addEventListener('input', (e) => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => doSearch(e.target.value.trim()), 400);
@@ -550,6 +675,7 @@
 
     <!-- Page End Sentinel (For Footer Detection) -->
     <div id="footer-sentinel" style="height: 1px; width: 100%; pointer-events: none; opacity: 0;"></div>
+    <script src="transitions.js"></script>
 </body>
 
 </html>

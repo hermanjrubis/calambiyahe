@@ -112,6 +112,15 @@
 
                 <!-- Transport Modes -->
                 <div class="mode-pills-row" id="transportModesBlock" style="display: none;">
+                    <button class="mode-pill outline-pill" id="modeWalking" data-mode="walking">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:4px">
+                            <circle cx="12" cy="3.5" r="1.5" fill="currentColor"/>
+                            <path d="M10 9l-2 5h2l1 5h2l1-5h2l-2-5-1 1.5L10 9z" fill="currentColor"/>
+                            <path d="M8.5 14.5L7 19h2l1.5-4.5" fill="currentColor" opacity="0.6"/>
+                            <path d="M15.5 14.5L17 19h-2l-1.5-4.5" fill="currentColor" opacity="0.6"/>
+                        </svg>
+                        Walk
+                    </button>
                     <button class="mode-pill outline-pill" id="modeJeepney" data-mode="jeepney">
                         <img src="assets/icons/jeepney-icon.png" alt="Jeepney" class="transit-icon"> Jeepney
                     </button>
@@ -175,6 +184,7 @@
                 <div class="drag-pill"></div>
             </div>
             <div class="active-mode-toggle" id="activeModeToggle" style="display:none;">
+                <button class="amt-btn" id="amtWalk">Walk</button>
                 <button class="amt-btn active" id="amtJeep">Jeepney</button>
                 <button class="amt-btn" id="amtMJeep">M. Jeepney</button>
             </div>
