@@ -1784,30 +1784,31 @@ body {
     }
 
     .features-grid {
-        gap: 0.2rem;
-        flex-wrap: nowrap;
-        justify-content: space-evenly;
+        gap: 0.6rem 0.2rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        justify-items: center;
     }
 
     .feature-card {
-        padding: 0.1rem 0.3rem;
-        gap: 4px;
-        flex-shrink: 1;
-        min-width: 0; /* Allow shrinking below content size */
+        padding: 0.3rem 0.5rem;
+        gap: 8px;
+        width: 100%;
+        justify-content: center;
     }
 
     .feature-icon {
-        width: 18px;
-        height: 18px;
-        font-size: 0.75rem;
+        width: 28px;
+        height: 28px;
+        font-size: 0.9rem;
     }
 
     .feature-text strong {
-        font-size: 0.7rem;
+        font-size: 0.85rem;
     }
 
     .feature-text span {
-        font-size: 0.5rem;
+        font-size: 0.6rem;
     }
 }
 
