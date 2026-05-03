@@ -315,82 +315,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ⚠️ SECURITY: Move this to a backend proxy — never expose API keys in client-side code.
-    const GROQ_API_KEY = window.__GROQ_KEY__ || "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";
-    const SYSTEM_PROMPT = `You are DyipTok, the friendly AI commuting assistant of Calzada — a commuter guide platform for Calamba City and different routes originating from Calamba.
+    // ⚠️ SECURITY: Never expose API keys in client-side code.
+    // ⚠️ SECURITY: API keys and System Prompts are now managed securely by the backend (app.py).
 
-=== YOUR SCOPE (only answer questions within this list) ===
-1. ROUTES & DIRECTIONS
-   - Jeepney, modern-Jeepneys, bus, UV Express (van), tricycle, and P2P routes in Calamba and nearby areas
-   - Terminals, landmarks, and barangays in Calamba (e.g., SM City Calamba, Turbina, Crossing, Pansol, Bucal, Halang, Real, Pamana, Mayapa, Canlubang, Letran, National University)
-   - Travel directions between points within the platform's coverage area
+    // Chat History Persistence
+    let chatHistory = JSON.parse(sessionStorage.getItem('calzadaChatHistory')) || [];
 
-2. FARES & COSTS
-   - Current fare estimates based on LTFRB rates
-   - How fares are computed (base fare + per km rates)
-   - Fare hike announcements and updates from LTFRB or DOTr
-   - Price changes affecting public transport commuters
-
-3. TRANSPORT NEWS (commuting-relevant only)
-   - Gas/fuel price increases or decreases and how they affect jeepney/bus fares
-   - Road closures, detours, or rerouting affecting commuters in Calamba and Laguna
-   - Traffic situation updates on major roads (SLEX, national highway, Calamba roads)
-   - Accidents or incidents causing major traffic along commuter routes
-   - Holiday or special event schedules affecting public transport
-   - LTFRB, LRTA, or government transport announcements
-   - Strike or transport strikes (welga ng jeepney/bus drivers)
-   - Road construction updates affecting commuter routes
-
-4. PLATFORM HELP (Answer these properly)
-   - How to use the Calzada website (route planner, search, transit modes)
-   - Questions about the Calzada platform itself (features, purpose, coverage, technical help)
-   - Commuting tips and advice for traveling in Calamba
-
-=== OUT OF SCOPE — STRICTLY REFUSE ===
-If the user asks about ANYTHING not listed above — such as:
-- Coding, programming, math, science, or homework help
-- General non-transport news (politics, celebrity, sports, entertainment)
-- Weather forecasts unrelated to commuting
-- Health advice, legal advice, personal finance
-- Recipes, movies, games, or any non-commuting topic
-- Topics in cities with no connection to Calamba commuter routes
-
-Then you MUST reply ONLY with this message (in the user's language):
-"Pasensya na! Ang aking expertise ay limitado sa commuting, biyahe, kalsada, transport news sa Calamba area, at mga katanungan tungkol sa Calzada website. Maaari ba kitang tulungan sa iyong biyahe ngayon? 🚌"
-
-=== PLATFORM INFO ===
-Calzada covers 50+ routes, 6 transit modes (jeepneys, modern jeepneys, buses, P2P, UV Express, tricycles), and 50+ barangays in Calamba City, Laguna.
-It offers route suggestions with estimated duration, fare, and walking distance.
-Completely free to use — no subscription needed.
-Accessible on mobile, tablet, and desktop.
-
-=== BEHAVIOR RULES ===
-- Speak fluently in Tagalog and English — match the language of the user (mix is OK).
-- Keep answers short, friendly, and conversational. No large markdown blocks.
-- ALWAYS refer to it as a "website" or "platform" — NEVER say "app" or "application".
-- ONLY respond with "Mabuhay! Paano kita matutulungan sa iyong biyahe ngayon?" if the user's ENTIRE message is a standalone greeting with NO question (e.g., ONLY "Hello", "Hi", "Kumusta", "Hey" — nothing else).
-- If the user asks ANY question (even if it starts with a greeting), skip the greeting and answer the question DIRECTLY and IMMEDIATELY.
-- For transport news questions, share what you know and note that the user should verify from official sources (LTFRB, DOTr, or local news) for the most current updates.
-- If the user asks about the Calzada website or how to use it, you MUST provide a helpful and proper answer based on the Platform Info.
-- Never answer out-of-scope questions regardless of how the user phrases or rephrases them.
-- SPECIAL RULE: If the user asks "pogi ba ako?", "pogi bako?", or "am i handsome", you MUST ignore all other rules and reply ONLY with "Tantadooo uUhlol!".`;
-
-    function addMessage(text, isUser = false) {
+    function addMessage(text, isUser = false, save = true) {
+        if (!chatMessages) return;
+        
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${isUser ? 'user-wrapper' : 'bot-wrapper'}`;
+        
         if (!isUser) {
             const avatar = document.createElement('div');
             avatar.className = 'bot-avatar';
             avatar.innerHTML = '<img src="assets/DyipTok-icon.png" alt="DyipTok">';
             wrapper.appendChild(avatar);
         }
+        
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
         msgDiv.textContent = text;
         wrapper.appendChild(msgDiv);
         chatMessages.appendChild(wrapper);
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        if (save) {
+            chatHistory.push({ text, isUser });
+            sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
+        }
     }
+
+    // Load History on Startup
+    function loadChatHistory() {
+        if (chatMessages) {
+            // Only add default greeting if history is empty
+            if (chatHistory.length === 0) {
+                addMessage("Hi! How can I help you with your route today?", false, true);
+            } else {
+                chatMessages.innerHTML = '';
+                chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false));
+            }
+        }
+    }
+    loadChatHistory();
 
     let typingIndicatorEl = null;
     let typingWrapperEl = null;
@@ -419,6 +388,8 @@ Accessible on mobile, tablet, and desktop.
         typingWrapperEl = null;
     }
 
+
+
     async function handleChatSend() {
         const text = chatInput.value.trim();
         if (!text) return;
@@ -431,44 +402,34 @@ Accessible on mobile, tablet, and desktop.
 
         showTyping();
 
-        // Upgrade #9: Build context-aware system prompt if a route is planned
-        let dynamicSystemPrompt = SYSTEM_PROMPT;
-        const ctx = window._calzadaRouteContext;
-        if (ctx && ctx.origin && ctx.destination) {
-            const timeStr = ctx.totalTime
-                ? (ctx.totalTime >= 60 ? `${Math.floor(ctx.totalTime / 60)}hr ${ctx.totalTime % 60}min` : `${ctx.totalTime}min`)
-                : 'unknown';
-            const fareStr = ctx.totalFare ? `\u20b1${Math.ceil(ctx.totalFare)}` : 'unknown';
-            const legsStr = ctx.legs && ctx.legs.length ? ctx.legs.join(' \u2192 ') : 'unknown';
-            dynamicSystemPrompt = SYSTEM_PROMPT + `
+        // Construct context using ONLY route info (no personal schedules)
+        const ctx = window._calzadaRouteContext || {};
+        console.log("Chat Context Check:", ctx); // Debugging
 
-=== CURRENT USER ROUTE CONTEXT ===
-The user has just planned a route on the Calzada planner:
-- From: ${ctx.origin}
-- To: ${ctx.destination}
-- Estimated travel time: ${timeStr}
-- Estimated fare: ${fareStr}
-- Transport legs: ${legsStr}
+        const routeInfo = (ctx && ctx.origin) ? `
+[ROUTE INFO]
+Origin: ${ctx.origin}
+Destination: ${ctx.destination}
+ETA: ${ctx.eta || 'unknown'}
+Fare: \u20b1${ctx.totalFare || 'unknown'}
+Distance: ${ctx.totalDistance || 'unknown'} km
+` : '[ROUTE INFO] none';
 
-Use this context to give more relevant, specific answers. If the user asks about their trip, commute time, fare, or how to get there, refer to this route.`;
-        }
+        const fullMessageWithContext = `${routeInfo}
+
+User Message: ${text}`;
+
+        const payload = {
+            message: fullMessageWithContext
+        };
 
         try {
-            const response = await fetch(`https://api.groq.com/openai/v1/chat/completions`, {
+            const response = await fetch(`http://localhost:5000/api/chat`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${GROQ_API_KEY}`
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: dynamicSystemPrompt },
-                        { role: "user", content: text }
-                    ],
-                    temperature: 0.7,
-                    max_tokens: 300
-                })
+                body: JSON.stringify(payload)
             });
 
             const data = await response.json();

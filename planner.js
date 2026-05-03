@@ -170,6 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('routeSummaryBlock').style.display = 'none';
         document.getElementById('startJourneyBtn').disabled = true;
         document.getElementById('closeDirectionsBtn').style.display = 'none';
+        
+        // Clear chatbot context
+        window._calzadaRouteContext = null;
+        
         updateMidpointBubbleVisibility(false);
         
         if (currentLocation && currentLocation.lat && currentLocation.lng) {
@@ -708,6 +712,16 @@ document.addEventListener('DOMContentLoaded', () => {
             ? `${totalMin} min • Walk`
             : `${totalMin} min • ₱ ${currentFare}`;
         blk.style.visibility = 'visible';
+
+        // Update chatbot context for DyipTok Assistant
+        window._calzadaRouteContext = {
+            origin: originPlaceName,
+            destination: destPlaceName,
+            totalTime: totalMin,
+            totalFare: currentFare,
+            totalDistance: totalDist,
+            eta: eta
+        };
     };
 
 
