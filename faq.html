@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -116,6 +116,75 @@
             </div>
         </div>
     </main>
+
+    <!-- Floating Chat Widget -->
+    <div class="chat-widget-container">
+        <span class="chat-label" data-i18n="chat.label">Ask DyipTok</span>
+        <button class="chat-toggle-btn" id="chatToggleBtn">
+            <ion-icon name="chatbubble"></ion-icon>
+            <span class="pulse-ring"></span>
+        </button>
+    </div>
+
+
+
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div>
+                    <div class="chat-name">DyipTok Assistant</div>
+                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message-wrapper bot-wrapper">
+                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
+                <div class="message bot-message" data-i18n="chat.greeting">
+                    Hello! I'm DyipTok. Where do you want to go today?
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested Chips Container -->
+        <div class="chat-suggestions-wrapper">
+            <button class="suggestion-chip">Ano ang Calzada?</button>
+            <button class="suggestion-chip">Paano gamitin ang route search?</button>
+            <button class="suggestion-chip">Anong transport modes ang meron?</button>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+            
+            <!-- Bottom Action Row -->
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
     <script src="i18n.js"></script>
