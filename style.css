@@ -972,6 +972,16 @@ body {
     transition: all 0.35s var(--ease);
 }
 
+@media (min-width: 768px) {
+  .chat-window {
+    width: 360px;
+    height: 510px;  /* Reduced height to prevent overlapping */
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
 .chat-window.open {
     opacity: 1;
     visibility: visible;
@@ -1193,40 +1203,64 @@ body {
     }
 }
 
-.chat-suggestions {
+/* =============================================
+   CHAT WIDGET – SUGGESTED CHIPS LAYOUT
+   ============================================= */
+
+/* Container for suggestion chips – fixed between messages and input */
+.chat-suggestions-wrapper {
+  padding: 10px 16px;
+  background: white;
+  border-top: 1px solid #eef2f6;
+  border-bottom: 1px solid #eef2f6;
+  display: flex;
+  flex-wrap: wrap;          /* Allows chips to wrap to next line */
+  gap: 8px;
+  justify-content: center;
+  flex-shrink: 0;           /* Prevents shrinking when scrolling */
+  overflow-x: visible;
+  overflow-y: visible;
+  z-index: 2;
+}
+
+/* Scrollable messages area – independent height */
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f7f9fc;
+}
+
+/* Mobile view – full width with adequate height */
+@media (max-width: 768px) {
+  .chat-window {
+    width: calc(100% - 30px);
+    height: 480px !important;
     display: flex;
-    flex-wrap: nowrap;
-    gap: 6px;
-    padding: 5px 10px 15px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    width: 100%;
-    background: white;
-    margin-top: -10px;
+    flex-direction: column;
+  }
 }
-.chat-suggestions::-webkit-scrollbar {
-    display: none;
-}
+/* Individual chip styling */
 .suggestion-chip {
-    background: #f8fafc;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 6px 12px;
-    white-space: nowrap;
-    font-size: 0.75rem;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  white-space: nowrap;         /* Prevents text wrapping inside chip */
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 32px;
+  padding: 6px 14px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
 .suggestion-chip:hover {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(26, 143, 255, 0.2);
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-1px);
 }
 
 .chat-input-area {

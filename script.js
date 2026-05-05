@@ -281,6 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
         chatToggleBtn.addEventListener('click', () => {
             document.body.classList.add('chat-active');
             if (chatWindow) chatWindow.classList.add('open');
+            const suggestionsWrapper = chatWindow.querySelector('.chat-suggestions-wrapper');
+            if (suggestionsWrapper) suggestionsWrapper.style.display = 'flex';
             if (pulseRing) pulseRing.style.animation = 'none';
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
             resetInactivityTimer();
@@ -292,6 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('chat-active');
         if (chatWindow) {
             chatWindow.classList.add('open');
+            const suggestionsWrapper = chatWindow.querySelector('.chat-suggestions-wrapper');
+            if (suggestionsWrapper) suggestionsWrapper.style.display = 'flex';
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
             resetInactivityTimer();
         }
@@ -315,8 +319,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ⚠️ SECURITY: Never expose API keys in client-side code.
-    // ⚠️ SECURITY: API keys and System Prompts are now managed securely by the backend (app.py).
 
     // Chat History Persistence
     let chatHistory = JSON.parse(sessionStorage.getItem('calzadaChatHistory')) || [];
@@ -352,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (chatMessages) {
             // Only add default greeting if history is empty
             if (chatHistory.length === 0) {
-                addMessage("Hi! How can I help you with your route today?", false, true);
+                addMessage("How can I help you with your route today?", false, true);
             } else {
                 chatMessages.innerHTML = '';
                 chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false));
@@ -460,7 +462,7 @@ User Message: ${text}`;
                 chatInput.value = chip.textContent;
                 triggerAutoExpand();
                 handleChatSend();
-                const suggestionsContainer = chip.closest('.chat-suggestions');
+                const suggestionsContainer = chip.closest('.chat-suggestions-wrapper');
                 if (suggestionsContainer) suggestionsContainer.style.display = 'none';
             }
         });

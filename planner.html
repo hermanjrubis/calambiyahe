@@ -333,6 +333,8 @@
         <button class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set Schedule</button>
     </div>
 
+
+
     <!-- ===== CHATBOT (Kept as is but container updated if needed) ===== -->
     <div class="chat-window" id="chatWindow" style="z-index:10000;">
         <div class="chat-header">
@@ -349,13 +351,14 @@
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will be loaded dynamically by script.js -->
         </div>
-        <div class="chat-suggestions">
+
+        <!-- Suggested Chips Container -->
+        <div class="chat-suggestions-wrapper">
             <button class="suggestion-chip">Ano ang Calzada?</button>
             <button class="suggestion-chip">Paano gamitin ang route search?</button>
-            <button class="suggestion-chip">Magagamit ba sa mobile?</button>
             <button class="suggestion-chip">Anong transport modes ang meron?</button>
-            <button class="suggestion-chip">Libre ba ito?</button>
         </div>
+
         <div class="chat-input-area">
             <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1"></textarea>
             <div class="chat-input-toolbar">
