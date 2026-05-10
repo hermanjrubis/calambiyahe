@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calzada - Route Planner</title>
+    <link rel="icon" type="image/png" href="assets/Calzada - Blue.png">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
     <link rel="stylesheet" href="style.css">
@@ -111,28 +112,41 @@
                 </div>
 
                 <!-- Transport Modes -->
-                <div class="mode-pills-row" id="transportModesBlock" style="display: none;">
-                    <button class="mode-pill outline-pill" id="modeWalking" data-mode="walking">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:4px">
-                            <circle cx="12" cy="3.5" r="1.5" fill="currentColor"/>
-                            <path d="M10 9l-2 5h2l1 5h2l1-5h2l-2-5-1 1.5L10 9z" fill="currentColor"/>
-                            <path d="M8.5 14.5L7 19h2l1.5-4.5" fill="currentColor" opacity="0.6"/>
-                            <path d="M15.5 14.5L17 19h-2l-1.5-4.5" fill="currentColor" opacity="0.6"/>
-                        </svg>
-                        Walk
+                <div class="mode-segment-control" id="transportModesBlock" style="display:none;">
+                  <div class="segment-track">
+                    <button class="segment-btn" id="modeWalking" data-mode="walking">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="13" cy="4" r="2"/>
+                        <path d="M7.5 22H5.6l1.9-7.2-1.9 1V19H3.7v-4.5l3.8-2c.7-.4 1.7-.3 2.2.4l1.1 1.8c.6.9 1.6 1.5 2.7 1.5H15v-2h-1.5l-1.6-2.7.9-.4C14.1 12.5 15.3 13 16 13h2v-2h-2c-.4 0-.8-.1-1.1-.3L13 9.2C12.4 8.4 11.5 8 10.5 8c-.6 0-1.1.2-1.6.5L5 11v4h2v-2.8l1.5-.9L7.5 22zm6 0h-1.9l-1-4 1.9-1L13.5 22z"/>
+                      </svg>
+                      Walk
                     </button>
-                    <button class="mode-pill outline-pill" id="modeJeepney" data-mode="jeepney">
-                        <img src="assets/icons/jeepney-icon.png" alt="Jeepney" class="transit-icon"> Jeepney
+                    <button class="segment-btn" id="modeJeepney" data-mode="jeepney">
+                      <img class="segment-icon-img" src="assets/icons/jeepney-icon.png" 
+                           alt="Jeepney" width="18" height="18" 
+                           style="object-fit:contain; filter: none;">
+                      Jeepney
                     </button>
-                    <button class="mode-pill selected-pill" id="modeModernJeepney" data-mode="modern-jeepney">
-                        <img src="assets/icons/bus-icon.png" alt="M. Jeepney" class="transit-icon"> M. Jeepney
+                    <button class="segment-btn active" id="modeModernJeepney" data-mode="modern-jeepney">
+                      <img class="segment-icon-img" src="assets/icons/bus-icon.png" 
+                           alt="Modern Jeepney" width="18" height="18" 
+                           style="object-fit:contain; filter: none;">
+                      M. Jeepney
                     </button>
+                  </div>
                 </div>
 
                 <!-- Summary Row (Visible when route is found) -->
                 <div class="route-summary-block" id="routeSummaryBlock" style="display: none;">
-                    <div class="summary-large"><span id="sumTime">-- min</span> · ₱ <span id="sumFare">--</span></div>
-                    <div class="summary-sub"><span id="sumETA">--:-- am</span> ETA · <span id="sumDist">--</span> km</div>
+                  <!-- Compact header summary -->
+                  <div class="summary-large">
+                    <span id="sumTime">-- min</span> · <span id="sumFare">--</span>
+                  </div>
+                  <div class="summary-sub">
+                    <span id="sumETA">--:--</span> ETA · <span id="sumDist">--</span> km
+                  </div>
+                  <!-- Sakay-style itinerary leg cards -->
+                  <div class="itinerary-legs" id="itineraryLegs"></div>
                 </div>
 
             </div>
@@ -183,10 +197,22 @@
             <div class="drag-handle-bar status-drag-handle">
                 <div class="drag-pill"></div>
             </div>
-            <div class="active-mode-toggle" id="activeModeToggle" style="display:none;">
-                <button class="amt-btn" id="amtWalk">Walk</button>
-                <button class="amt-btn active" id="amtJeep">Jeepney</button>
-                <button class="amt-btn" id="amtMJeep">M. Jeepney</button>
+            <div class="active-mode-toggle segment-track" id="activeModeToggle" style="display:none;">
+                <button class="segment-btn" id="amtWalk">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="13" cy="4" r="2"/>
+                    <path d="M7.5 22H5.6l1.9-7.2-1.9 1V19H3.7v-4.5l3.8-2c.7-.4 1.7-.3 2.2.4l1.1 1.8c.6.9 1.6 1.5 2.7 1.5H15v-2h-1.5l-1.6-2.7.9-.4C14.1 12.5 15.3 13 16 13h2v-2h-2c-.4 0-.8-.1-1.1-.3L13 9.2C12.4 8.4 11.5 8 10.5 8c-.6 0-1.1.2-1.6.5L5 11v4h2v-2.8l1.5-.9L7.5 22zm6 0h-1.9l-1-4 1.9-1L13.5 22z"/>
+                  </svg>
+                  Walk
+                </button>
+                <button class="segment-btn active" id="amtJeep">
+                  <img class="segment-icon-img" src="assets/icons/jeepney-icon.png" width="14" height="14" style="object-fit:contain;">
+                  Jeep
+                </button>
+                <button class="segment-btn" id="amtMJeep">
+                  <img class="segment-icon-img" src="assets/icons/bus-icon.png" width="14" height="14" style="object-fit:contain;">
+                  M. Jeep
+                </button>
             </div>
             <div class="status-cols">
                 <div class="col">
@@ -201,6 +227,10 @@
                     <div class="val" id="pillPhp">--</div>
                     <div class="lbl">php</div>
                 </div>
+            </div>
+            <div class="pill-itinerary" id="pillItinerary">
+                <div class="pill-itinerary-label">Route Summary</div>
+                <div class="pill-itinerary-legs" id="pillItineraryLegs"></div>
             </div>
             <div class="cancel-action-row" id="cancelActionRow">
                 <button class="btn-cancel-route" id="cancelRouteBtn">Cancel Route</button>
@@ -240,15 +270,57 @@
 
 
     <!-- Arrival Success Modal -->
-    <div class="arrival-screen-overlay glass-panel" id="arrivalOverlay"></div>
-    <div class="arrival-screen glass-panel" id="arrivalScreen">
-        <div class="arrival-confetti"></div>
-        <div class="arrival-content">
-            <div class="arrival-icon-circle">
-                <ion-icon name="checkmark-done-outline"></ion-icon>
+    <div class="arrival-overlay" id="arrivalOverlay"></div>
+    <div class="trip-receipt" id="arrivalScreen">
+        <div class="receipt-paper">
+            <div class="receipt-header">
+                <div class="receipt-logo">CALZADA</div>
+                <div class="receipt-tagline">TRIP SUMMARY</div>
+                <div class="receipt-dashes">--------------------------------</div>
             </div>
-            <h2 data-i18n="planner.arrival_title">Arrived at Destination!</h2>
-            <button class="arrival-close-btn" id="arrivalCloseBtn">Done</button>
+            <div class="receipt-destination" id="rcptDestination"></div>
+            <div class="receipt-dashes">--------------------------------</div>
+            <div class="receipt-meta-row">
+                <span class="receipt-label">DATE</span>
+                <span class="receipt-value" id="rcptDate">--</span>
+            </div>
+            <div class="receipt-meta-row">
+                <span class="receipt-label">DEPARTED</span>
+                <span class="receipt-value" id="rcptTimeOut">--:--</span>
+            </div>
+            <div class="receipt-meta-row">
+                <span class="receipt-label">ARRIVED</span>
+                <span class="receipt-value" id="rcptTimeArrived">--:--</span>
+            </div>
+            <div class="receipt-meta-row">
+                <span class="receipt-label">FROM</span>
+                <span class="receipt-value" id="rcptOrigin">--</span>
+            </div>
+            <div class="receipt-dashes">--------------------------------</div>
+            <div class="receipt-items" id="rcptItems"></div>
+            <div class="receipt-dashes">--------------------------------</div>
+            <div class="receipt-total-row">
+                <span>TOTAL FARE</span>
+                <span id="rcptTotalFare">₱0</span>
+            </div>
+            <div class="receipt-total-row receipt-total-dist">
+                <span>TOTAL DIST</span>
+                <span id="rcptTotalDist">-- km</span>
+            </div>
+            <div class="receipt-total-row receipt-total-time">
+                <span>TRAVEL TIME</span>
+                <span id="rcptTravelTime">-- min</span>
+            </div>
+            <div class="receipt-dashes">--------------------------------</div>
+            <div class="receipt-footer">
+                <div>SALAMAT SA PAGSAKAY!</div>
+                <div>calzada.app</div>
+                <div class="receipt-barcode">||| || | ||| | || ||| || | |||</div>
+            </div>
+            <div class="receipt-tear"></div>
+            <button class="receipt-done-btn" id="arrivalCloseBtn">
+                <ion-icon name="checkmark-outline"></ion-icon> Done
+            </button>
         </div>
     </div>
 
@@ -352,12 +424,7 @@
             <!-- Messages will be loaded dynamically by script.js -->
         </div>
 
-        <!-- Suggested Chips Container -->
-        <div class="chat-suggestions-wrapper">
-            <button class="suggestion-chip">Ano ang Calzada?</button>
-            <button class="suggestion-chip">Paano gamitin ang route search?</button>
-            <button class="suggestion-chip">Anong transport modes ang meron?</button>
-        </div>
+
 
         <div class="chat-input-area">
             <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1"></textarea>
@@ -405,7 +472,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://rawcdn.githack.com/Leaflet/Leaflet.rotate/main/dist/leaflet.rotate-src.js"></script>
     <script src="planner.js"></script>
     <script src="script.js"></script>
     <script src="i18n.js"></script>

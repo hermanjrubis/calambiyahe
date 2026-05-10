@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Your Commuting Guide in Calamba</title>
+    <link rel="icon" type="image/png" href="assets/Calzada - Blue.png">
     <meta name="description"
         content="Find jeepney routes, fares, and transit connections in Calamba City. Your smart commuting companion.">
     <!-- Modern Fonts -->
@@ -49,7 +50,7 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
 
-<body>
+<body class="index-page">
     <div id="page-transition"></div>
     <!-- Scroll progress indicator -->
     <div class="scroll-progress" id="scrollProgress"></div>
@@ -260,31 +261,31 @@
     <section class="features-bar reveal">
         <div class="features-grid">
             <div class="feature-card reveal-delay-1">
-                <div class="feature-icon"><ion-icon name="map-outline"></ion-icon></div>
+                <div class="feature-icon"><ion-icon name="navigate-outline"></ion-icon></div>
                 <div class="feature-text">
                     <strong id="stat-routes">50+</strong>
                     <span data-i18n="features.routes">Routes Covered</span>
                 </div>
             </div>
-            <div class="feature-divider"></div>
+            
             <div class="feature-card reveal-delay-2">
-                <ion-icon name="git-network-outline" class="feature-icon"></ion-icon>
+                <div class="feature-icon"><ion-icon name="bus-outline"></ion-icon></div>
                 <div class="feature-text">
                     <strong id="stat-modes">6</strong>
                     <span data-i18n="features.modes">Transit Modes</span>
                 </div>
             </div>
-            <div class="feature-divider"></div>
+            
             <div class="feature-card reveal-delay-3">
-                <div class="feature-icon"><ion-icon name="home-outline"></ion-icon></div>
+                <div class="feature-icon"><ion-icon name="grid-outline"></ion-icon></div>
                 <div class="feature-text">
                     <strong id="stat-brgy">54</strong>
                     <span data-i18n="features.barangays">Barangays</span>
                 </div>
             </div>
-            <div class="feature-divider"></div>
+            
             <div class="feature-card reveal-delay-3">
-                <div class="feature-icon"><ion-icon name="cash-outline"></ion-icon></div>
+                <div class="feature-icon"><ion-icon name="pricetag-outline"></ion-icon></div>
                 <div class="feature-text">
                     <strong data-i18n="features.realtime">Real-time</strong>
                     <span data-i18n="features.fare">Fare Info</span>
@@ -321,12 +322,7 @@
             <!-- Messages will be loaded dynamically by script.js -->
         </div>
 
-        <!-- Suggested Chips Container -->
-        <div class="chat-suggestions-wrapper">
-            <button class="suggestion-chip">Ano ang Calzada?</button>
-            <button class="suggestion-chip">Paano gamitin ang route search?</button>
-            <button class="suggestion-chip">Anong transport modes ang meron?</button>
-        </div>
+
 
 
 
@@ -542,7 +538,7 @@
         // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const goToPlanner = (name, lat, lng) => {
             const params = new URLSearchParams({
-                destName : encodeURIComponent(name),
+                destName : name,
                 destLat  : lat,
                 destLng  : lng
             });
@@ -673,6 +669,19 @@
     <!-- Page End Sentinel (For Footer Detection) -->
     <div id="footer-sentinel" style="height: 1px; width: 100%; pointer-events: none; opacity: 0;"></div>
     <script src="transitions.js"></script>
+    <script>
+        (function() {
+          const panel = document.querySelector('.features-bar');
+          const trigger = document.querySelector('.scrollable-content');
+          if (!panel || !trigger) return;
+          const obs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+              panel.classList.toggle('features-bar--hidden', e.isIntersecting);
+            });
+          }, { threshold: 0.05 });
+          obs.observe(trigger);
+        })();
+    </script>
 </body>
 
 </html>

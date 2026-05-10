@@ -34,6 +34,8 @@ RESTRICTIONS:
 - NEVER mention personal calendars, tasks, or schedules.
 - If asked something unrelated to Calzada or commuting in Calamba, politely decline.`;
 
+app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
+
 app.post('/api/chat', async (req, res) => {
     const { message, route } = req.body;
 
@@ -56,13 +58,13 @@ Distance: ${route.distance}`;
                 { role: "system", content: SYSTEM_PROMPT },
                 { role: "user", content: fullUserMessage },
             ],
-            model: "llama3-8b-8192",
+            model: "gemma2-9b-it",
             temperature: 0.5,
-            max_tokens: 512,
+            max_tokens: 256,
         });
 
         const reply = chatCompletion.choices[0]?.message?.content || "Sorry, hindi ko naintindihan.";
-        res.json({ reply });
+        res.json({ choices: [{ message: { content: reply } }] });
     } catch (error) {
         console.error('Groq API Error:', error);
         res.status(500).json({ error: "May problema sa AI assistant. Subukan ulit mamaya." });

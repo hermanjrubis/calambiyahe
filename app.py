@@ -37,6 +37,10 @@ RESTRICTIONS:
 - NEVER mention personal calendars, tasks, or schedules.
 - If asked something unrelated to Calzada or commuting in Calamba, politely decline."""
 
+@app.route('/api/ping', methods=['GET'])
+def ping():
+    return jsonify({"status": "ok"})
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     if not os.environ.get("GROQ_API_KEY"):
@@ -47,13 +51,13 @@ def chat():
 
     try:
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="gemma2-9b-it",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_message_with_context}
             ],
             temperature=0.5,
-            max_tokens=512
+            max_tokens=256
         )
         
         reply = completion.choices[0].message.content

@@ -1,5 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    const CHAT_API = 'https://calambiyahe-7i9b.onrender.com';
+    
+    // Warm up the server on page load
+    fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => {});
+    setInterval(() => {
+        fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => {});
+    }, 10 * 60 * 1000);
+
+    const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost';
+
+
     // === PASABOG KONG EFFECTS (Parallax & Glow) ===
     const mouseGlow = document.getElementById('mouseGlow');
     const parallaxLayers1 = document.querySelectorAll('.parallax-layer-1');
@@ -281,8 +292,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatToggleBtn.addEventListener('click', () => {
             document.body.classList.add('chat-active');
             if (chatWindow) chatWindow.classList.add('open');
-            const suggestionsWrapper = chatWindow.querySelector('.chat-suggestions-wrapper');
-            if (suggestionsWrapper) suggestionsWrapper.style.display = 'flex';
             if (pulseRing) pulseRing.style.animation = 'none';
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
             resetInactivityTimer();
@@ -294,8 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('chat-active');
         if (chatWindow) {
             chatWindow.classList.add('open');
-            const suggestionsWrapper = chatWindow.querySelector('.chat-suggestions-wrapper');
-            if (suggestionsWrapper) suggestionsWrapper.style.display = 'flex';
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
             resetInactivityTimer();
         }
@@ -315,6 +322,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (chatToggleBtn) {
                 const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
                 if (pulseRing) pulseRing.style.animation = '';
+            }
+            if (typeof inactivityTimer !== 'undefined' && inactivityTimer) {
+                clearTimeout(inactivityTimer);
+                inactivityTimer = null;
             }
         });
     }
@@ -351,15 +362,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load History on Startup
     function loadChatHistory() {
-        if (chatMessages) {
-            // Only add default greeting if history is empty
-            if (chatHistory.length === 0) {
-                addMessage("How can I help you with your route today?", false, true);
-            } else {
-                chatMessages.innerHTML = '';
-                chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false));
-            }
+        if (!chatMessages) return;
+        if (chatHistory.length === 0) {
+            // Greeting already in HTML — do nothing
+            return;
         }
+        chatMessages.innerHTML = '';
+        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false));
     }
     loadChatHistory();
 
@@ -406,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Construct context using ONLY route info (no personal schedules)
         const ctx = window._calzadaRouteContext || {};
-        console.log("Chat Context Check:", ctx); // Debugging
 
         const routeInfo = (ctx && ctx.origin) ? `
 [ROUTE INFO]
@@ -425,48 +433,53 @@ User Message: ${text}`;
             message: fullMessageWithContext
         };
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         try {
-            const response = await fetch(`https://calambiyahe-7i9b.onrender.com/api/chat`, {
+            const response = await fetch(`${CHAT_API}/api/chat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(payload),
+                signal: controller.signal
             });
+            clearTimeout(timeoutId);
 
             const data = await response.json();
             removeTyping();
 
-            if (data.choices && data.choices.length > 0) {
-                const botReply = data.choices[0].message.content;
+            let botReply = null;
+            if (data.choices && data.choices[0]?.message?.content) {
+                botReply = data.choices[0].message.content;
+            } else if (data.reply) {
+                botReply = data.reply;
+            }
+
+            if (botReply) {
                 addMessage(botReply, false);
             } else {
-                console.error("Groq API Error:", data);
+                if (isDev) console.error("API Error:", data);
                 let errMsg = "Pasensya na, may error sa aking system. Try again later.";
                 if (data.error && data.error.message) { errMsg = `API Error: ${data.error.message}`; }
                 addMessage(errMsg, false);
             }
         } catch (error) {
-            console.error("Groq API Network Exception:", error);
+            clearTimeout(timeoutId);
+            if (isDev) console.error("API Network Exception:", error);
             removeTyping();
-            addMessage(`Naku! Hindi ako maka-connect. Paki-check ang connection mo. (${error.message || ''})`, false);
+            if (error.name === 'AbortError') {
+                addMessage("Medyo matagal ang response. Subukan ulit — ginigising ko pa lang ang server! 😅", false);
+            } else {
+                addMessage(`Naku! Hindi ako maka-connect. Paki-check ang connection mo.`, false);
+            }
         }
     }
 
     if (sendMessageBtn) sendMessageBtn.addEventListener('click', handleChatSend);
 
-    const suggestionChips = document.querySelectorAll('.suggestion-chip');
-    suggestionChips.forEach(chip => {
-        chip.addEventListener('click', () => {
-            if (chatInput) {
-                chatInput.value = chip.textContent;
-                triggerAutoExpand();
-                handleChatSend();
-                const suggestionsContainer = chip.closest('.chat-suggestions-wrapper');
-                if (suggestionsContainer) suggestionsContainer.style.display = 'none';
-            }
-        });
-    });
+
 
     chatInput.addEventListener('input', function () {
         this.style.height = 'auto';
@@ -544,7 +557,7 @@ User Message: ${text}`;
         recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'fil-PH';
+        recognition.lang = 'fil';
 
         let finalTranscript = '';
         let interimTranscript = '';
@@ -586,7 +599,7 @@ User Message: ${text}`;
         };
 
         recognition.onerror = (event) => {
-            console.error('Speech recognition error:', event.error);
+            if (isDev) console.error('Speech recognition error:', event.error);
             if (event.error !== 'aborted') { stopRecordingUI(); }
         };
 
@@ -604,7 +617,7 @@ User Message: ${text}`;
             micBtn.addEventListener('click', () => {
                 if (!isRecording) {
                     try { resetInactivityTimer(); recognition.start(); }
-                    catch (err) { console.error('Microphone start error:', err); addMessage('Unable to access microphone. Please check your browser permissions.', false); }
+                    catch (err) { if (isDev) console.error('Microphone start error:', err); addMessage('Unable to access microphone. Please check your browser permissions.', false); }
                 }
             });
         }
@@ -645,7 +658,7 @@ User Message: ${text}`;
             });
         }
     } else {
-        if (micBtn) { micBtn.style.display = 'none'; console.warn("Speech Recognition API not supported in this browser."); }
+        if (micBtn) { micBtn.style.display = 'none'; if (isDev) console.warn("Speech Recognition API not supported in this browser."); }
     }
 
     window.addEventListener('calzada_lang_changed', () => {

@@ -19,6 +19,8 @@
     --radius-md: 16px;
     --radius-sm: 8px;
     --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --sheet-spring: cubic-bezier(0.32, 0.72, 0, 1);
+    --sheet-dur: 0.42s;
 }
 
 * {
@@ -30,14 +32,19 @@
 html, body {
     height: 100%;
     margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .planner-body {
     overflow: hidden;
-    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     font-family: 'Inter', sans-serif;
     background: #e8edf3;
     -webkit-tap-highlight-color: transparent;
+    width: 100%;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* =============================================
@@ -215,7 +222,7 @@ html, body {
 .realtime-pointer-wrapper {
     position: relative;
     width: 44px;
-    height: 44px;
+    height: 54px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -225,8 +232,18 @@ html, body {
 
 .pointer-img {
     width: 44px;
-    height: 44px;
+    height: 54px;
     object-fit: contain;
+}
+
+.gps-pulse-ring {
+    animation: gps-pulse 2s ease-out infinite;
+    transform-origin: 22px 44px;
+}
+@keyframes gps-pulse {
+    0%   { r: 6;  opacity: 0.5; }
+    70%  { r: 14; opacity: 0; }
+    100% { r: 6;  opacity: 0; }
 }
 
 /* =============================================
@@ -237,6 +254,16 @@ html, body {
     inset: 0;
     z-index: 500;
     pointer-events: none;
+}
+
+/* Guarantee all interactive elements inside the GUI container are clickable */
+.bottom-sheet,
+.bottom-sheet *,
+.active-guide-card,
+.active-guide-card *,
+.bottom-status-pill,
+.bottom-status-pill * {
+    pointer-events: auto;
 }
 
 /* =============================================
@@ -250,8 +277,8 @@ html, body {
     pointer-events: auto;
     display: flex;
     flex-direction: column;
-    transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
-    max-height: 92vh;
+    transition: transform var(--sheet-dur) var(--sheet-spring);
+    max-height: calc(var(--vh, 1vh) * 92);
 }
 
 @media (max-width: 767px) {
@@ -267,8 +294,10 @@ html, body {
 }
 
 .bottom-sheet.collapsed {
-    transform: translateY(calc(100% - 80px));
+    /* JS handles the transform now. Keep class for state tracking only. */
 }
+
+.bottom-sheet.journey-active-hidden { display: none !important; }
 
 .drag-handle-bar {
     padding: 12px 0 4px;
@@ -308,20 +337,31 @@ html, body {
         transform: none !important;
         max-height: none;
         z-index: 500;
+        pointer-events: auto;
+        display: flex !important;
+        flex-direction: column;
     }
 
-    .bottom-sheet.collapsed {
-        transform: none !important;
+    /* Map stays full width — overlapped by sidebar visually, not in DOM */
+    .planner-map {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+    }
+
+    /* Recenter button shifts right of sidebar */
+    .recenter-btn {
+        left: 360px;
+        right: auto;
+        bottom: 30px;
     }
 
     .drag-handle-bar {
         display: none !important;
     }
-    
-    .planner-map {
-        left: 0 !important;
-        right: 0;
-        width: 100%;
+
+    .bottom-sheet.collapsed {
+        transform: none !important;
     }
 }
 
@@ -381,6 +421,8 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* =============================================
@@ -553,51 +595,50 @@ html, body {
 }
 
 /* =============================================
-   TRANSPORT MODE PILLS
+   TRANSPORT MODE — SEGMENTED CONTROL
    ============================================= */
-.mode-pills-row {
-    display: flex;
-    gap: 10px;
-    padding-top: 4px;
+.mode-segment-control {
+    margin: 10px 0 6px;
 }
-
-.mode-pill {
+.segment-track {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 50px;
+    padding: 4px;
+    gap: 2px;
+}
+.segment-btn {
     flex: 1;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 10px;
-    min-width: 120px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.transit-icon {
-    width: 28px;
-    height: auto;
-}
-
-.outline-pill {
-    border: 1.5px solid #e2e8f0;
+    gap: 5px;
+    padding: 8px 6px;
+    border: none;
+    background: transparent;
+    border-radius: 50px;
+    font-size: 0.82rem;
+    font-weight: 500;
     color: #64748b;
-    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
 }
-
-.outline-pill:hover {
-    background: #f8fafc;
-}
-
-.selected-pill {
-    border: 2px solid #2563eb;
-    color: #2563eb;
-    background: transparent;
+.segment-btn.active {
+    background: #0f6fbd;
+    color: #ffffff;
     font-weight: 700;
+    box-shadow: 0 2px 8px rgba(15,111,189,0.30);
+}
+.segment-btn svg {
+    flex-shrink: 0;
+}
+.segment-btn .segment-icon-img {
+    filter: none;
+    transition: filter 0.2s;
+}
+.segment-btn.active .segment-icon-img {
+    filter: brightness(0) invert(1);
 }
 
 /* =============================================
@@ -673,7 +714,7 @@ html, body {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform var(--sheet-dur) var(--sheet-spring);
     padding: 0;
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
@@ -783,6 +824,11 @@ html, body {
 
 .guide-drag-handle {
     padding: 4px 0 10px;
+    touch-action: none;
+    cursor: grab;
+}
+.guide-drag-handle:active {
+    cursor: grabbing;
 }
 
 /* =============================================
@@ -792,53 +838,134 @@ html, body {
     position: absolute;
     bottom: 32px;
     left: 50%;
-    transform: translateX(-50%);
-    border-radius: 22px;
+    transform: translateX(-50%) translateY(0);
+    border-radius: 24px;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     pointer-events: auto;
-    transition: all 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform var(--sheet-dur) var(--sheet-spring),
+                max-height 0.35s var(--sheet-spring),
+                opacity 0.25s ease;
+    will-change: transform;
     width: calc(100% - 40px);
     max-width: 360px;
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
     -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
-    border: 1px solid rgba(255, 255, 255, 0.45);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 
 .active-mode-toggle {
     display: flex;
     justify-content: center;
-    gap: 8px;
+    gap: 2px;
     max-height: 0;
     overflow: hidden;
     opacity: 0;
     padding: 0 16px;
+    margin: 0 12px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 50px;
     transition: max-height 0.35s cubic-bezier(0.32,0.72,0,1), opacity 0.25s ease, padding 0.3s;
 }
 .bottom-status-pill.expanded .active-mode-toggle {
+    display: flex !important;
     max-height: 60px;
     opacity: 1;
-    padding: 10px 16px 0;
+    padding: 10px 14px;
 }
-.amt-btn {
+
+.pill-itinerary {
+    display: none;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.38s cubic-bezier(0.32,0.72,0,1), opacity 0.25s ease;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    margin-top: 0;
+}
+
+.bottom-status-pill.expanded .pill-itinerary {
+    display: block;
+    max-height: 260px;
+    opacity: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.pill-itinerary-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    padding: 8px 16px 4px;
+}
+
+.pill-itinerary-legs {
+    padding: 4px 0 8px;
+}
+
+/* Make leg cards inside pill feel like a clean list, not heavy blocks */
+.pill-itinerary .leg-card {
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background: transparent;
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+}
+.pill-itinerary .leg-card:last-child {
+    border-bottom: none;
+}
+
+/* Slim down the colored sidebar — thinner stripe instead of block */
+.pill-itinerary .leg-sidebar {
+    width: 4px;
+    padding: 0;
+    border-radius: 0;
+    justify-content: flex-start;
+    gap: 0;
+}
+
+/* Hide label and icon inside pill — sidebar becomes just a color stripe */
+.pill-itinerary .leg-sidebar-icon,
+.pill-itinerary .leg-sidebar-label {
+    display: none;
+}
+
+/* Body gets left padding to compensate for the thin stripe */
+.pill-itinerary .leg-body {
+    padding: 10px 16px;
     flex: 1;
-    background: rgba(255,255,255,0.5);
-    border: 1px solid rgba(0,0,0,0.1);
-    border-radius: 8px;
-    padding: 6px 0;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.2s;
 }
-.amt-btn.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
+
+.pill-itinerary .leg-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.pill-itinerary .leg-detail,
+.pill-itinerary .leg-meta {
+    font-size: 0.72rem;
+    color: #64748b;
+}
+
+.pill-itinerary .leg-route-label {
+    font-size: 0.62rem;
+}
+
+.pill-itinerary .leg-sidebar.walk-sidebar  { background: #2563eb; }
+.pill-itinerary .leg-sidebar.jeep-sidebar  { background: #1a8fff; }
+.pill-itinerary .leg-sidebar.mjeep-sidebar { background: #7c3aed; }
+
+.pill-itinerary .leg-fare-badge {
+    font-size: 0.72rem;
+    padding: 2px 7px;
 }
 
 @media (min-width: 768px) {
@@ -849,6 +976,11 @@ html, body {
 
 .status-drag-handle {
     padding: 12px 0 0;
+    touch-action: none;
+    cursor: grab;
+}
+.status-drag-handle:active {
+    cursor: grabbing;
 }
 
 .status-cols {
@@ -856,7 +988,11 @@ html, body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    padding: 12px 28px 20px;
+    padding: 8px 24px 16px;
+}
+
+.bottom-status-pill .col:not(:last-child) {
+    border-right: 1px solid rgba(0,0,0,0.08);
 }
 
 .bottom-status-pill .col {
@@ -868,7 +1004,7 @@ html, body {
 
 .bottom-status-pill .val {
     font-family: 'Outfit', sans-serif;
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--text);
     letter-spacing: 0;
@@ -876,12 +1012,12 @@ html, body {
 }
 
 .bottom-status-pill .lbl {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 400;
     color: var(--text-muted);
-    text-transform: lowercase;
-    letter-spacing: 0;
-    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: 4px;
 }
 
 .bottom-status-pill .sep {
@@ -900,19 +1036,20 @@ html, body {
 .bottom-status-pill.expanded .cancel-action-row {
     max-height: 100px;
     opacity: 1;
-    padding: 0 16px 16px;
+    padding: 8px 14px 14px;
 }
 
 .btn-cancel-route {
     width: 100%;
-    padding: 15px;
-    background: var(--danger);
+    padding: 13px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
     border: none;
     border-radius: 12px;
     font-weight: 700;
     font-family: 'Outfit';
-    font-size: 1rem;
+    font-size: 0.95rem;
+    letter-spacing: 0.02em;
     cursor: pointer;
     transition: opacity 0.2s;
 }
@@ -942,7 +1079,7 @@ html, body {
     visibility: hidden;
     transform: translateY(24px);
     transition: all 0.3s var(--ease);
-    max-height: 82vh;
+    max-height: calc(var(--vh, 1vh) * 82);
 }
 
 @media (min-width: 768px) {
@@ -1022,6 +1159,8 @@ html, body {
 .loc-options {
     flex: 1;
     overflow-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 .loc-row {
@@ -1032,18 +1171,39 @@ html, body {
     border-bottom: 1px solid #f8fafc;
     cursor: pointer;
     transition: background 0.15s;
+    border-radius: 0;
 }
 
-.loc-row:last-child {
+/* First row: round top corners to match modal */
+.loc-options .loc-row:first-child {
+    border-radius: 0;
+}
+
+/* Last row: round bottom corners to match modal */
+.loc-options .loc-row:last-child {
     border-bottom: none;
+    border-radius: 0 0 18px 18px;
 }
 
+/* ONLY last child gets bottom radius on hover */
+.loc-options .loc-row:last-child:hover,
+.loc-options .loc-row:last-child:active {
+    border-radius: 0 0 18px 18px;
+}
+
+/* All hover states use margin+radius trick to stay inset */
 .loc-row:hover {
-    background: #f8fafc;
+    background: #f1f5f9;
+    border-radius: 12px;
+    margin: 0 8px;
+    padding: 15px 12px;
 }
 
 .loc-row:active {
-    background: #f1f5f9;
+    background: #e8edf3;
+    border-radius: 12px;
+    margin: 0 8px;
+    padding: 15px 12px;
 }
 
 /* Gray background wrapper for search results */
@@ -1063,6 +1223,25 @@ html, body {
 
 .search-results-bubble .loc-row:last-child {
     border-bottom: none;
+}
+
+/* Fix: search results bubble rows should NOT get the inset margin 
+   since they're already inside a rounded container */
+.search-results-bubble .loc-row:hover,
+.search-results-bubble .loc-row:active {
+    margin: 0;
+    padding: 12px 16px;
+    border-radius: 0;
+    background: #e8edf3;
+}
+.search-results-bubble .loc-row:first-child:hover {
+    border-radius: 16px 16px 0 0;
+}
+.search-results-bubble .loc-row:last-child:hover {
+    border-radius: 0 0 16px 16px;
+}
+.search-results-bubble .loc-row:only-child:hover {
+    border-radius: 16px;
 }
 
 .search-results-bubble .loc-text {
@@ -1157,7 +1336,7 @@ html, body {
     width: 300px;
     z-index: 1600;
     transform: translateX(100%);
-    transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+    transition: transform var(--sheet-dur) var(--sheet-spring);
     display: flex;
     flex-direction: column;
     background: rgba(240,244,255,0.70);
@@ -1769,73 +1948,73 @@ html, body {
 }
 
 /* =============================================
-   ARRIVAL SCREEN
+   ARRIVAL SCREEN (TRIP RECEIPT)
    ============================================= */
-.arrival-screen-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 11000;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
+.arrival-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(6px);
+  z-index: 9998; display: none;
 }
+.arrival-overlay.visible { display: block; }
 
-.arrival-screen {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    z-index: 12000;
-    padding: 40px;
-    border-radius: 24px;
-    text-align: center;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.4s var(--ease);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+.trip-receipt {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%, -60%) scale(0.88);
+  z-index: 9999; opacity: 0; pointer-events: none;
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 90vh; overflow-y: auto; scrollbar-width: none;
 }
-
-.arrival-screen.visible {
-    display: flex;
-    transform: translate(-50%, -50%) scale(1);
+.trip-receipt::-webkit-scrollbar { display: none; }
+.trip-receipt.visible {
+  opacity: 1; pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
 }
-
-.arrival-icon-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #dcfce7;
-    color: var(--success);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    margin-bottom: 20px;
+.receipt-paper {
+  background: #fffef5; width: 280px; padding: 24px 20px 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.78rem; color: #1a1a1a;
+  box-shadow: 0 2px 0 #e8e6d9, 0 4px 0 #fffef5, 0 6px 0 #e8e6d9, 0 20px 60px rgba(0,0,0,0.4);
 }
-
-.arrival-screen h2 {
-    font-family: 'Outfit';
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 24px;
+.receipt-header { text-align: center; margin-bottom: 10px; }
+.receipt-logo { font-size: 1.5rem; font-weight: 900; letter-spacing: 0.25em; color: #0f172a; }
+.receipt-tagline { font-size: 0.65rem; letter-spacing: 0.2em; color: #64748b; margin-top: 2px; }
+.receipt-dashes { color: #cbd5e1; font-size: 0.72rem; margin: 8px 0; overflow: hidden; white-space: nowrap; }
+.receipt-destination {
+  text-align: center; font-size: 1rem; font-weight: 800;
+  font-family: 'Courier New', monospace; letter-spacing: 0.05em;
+  text-transform: uppercase; color: #0f172a; margin: 6px 0;
 }
-
-.arrival-close-btn {
-    padding: 16px 40px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 999px;
-    font-weight: 700;
-    font-family: 'Outfit';
-    font-size: 1.1rem;
-    cursor: pointer;
+.receipt-meta-row { display: flex; justify-content: space-between; margin: 3px 0; font-size: 0.72rem; }
+.receipt-label { color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
+.receipt-value { font-weight: 700; color: #1e293b; text-align: right; max-width: 160px; }
+.receipt-items { margin: 4px 0; }
+.receipt-item {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 5px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.72rem; gap: 8px;
 }
+.receipt-item:last-child { border-bottom: none; }
+.receipt-item-left { display: flex; flex-direction: column; gap: 1px; }
+.receipt-item-name { font-weight: 700; color: #0f172a; font-size: 0.75rem; }
+.receipt-item-sub { color: #64748b; font-size: 0.68rem; }
+.receipt-item-price { font-weight: 800; color: #1a8fff; white-space: nowrap; font-size: 0.75rem; }
+.receipt-total-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 0.85rem; margin: 5px 0; color: #0f172a; }
+.receipt-total-dist, .receipt-total-time { font-weight: 600; font-size: 0.72rem; color: #64748b; }
+.receipt-footer { text-align: center; margin-top: 10px; font-size: 0.65rem; color: #94a3b8; letter-spacing: 0.1em; line-height: 2; }
+.receipt-barcode { font-size: 1.2rem; letter-spacing: 0.05em; color: #cbd5e1; margin-top: 4px; }
+.receipt-tear {
+  height: 12px;
+  background: repeating-linear-gradient(90deg, #fffef5 0px, #fffef5 8px, transparent 8px, transparent 16px);
+  margin: 16px -20px -12px; border-top: 2px dashed #e2e8f0;
+}
+.receipt-done-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 14px; margin-top: 20px;
+  background: #0f172a; color: white; border: none; border-radius: 10px;
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer; transition: background 0.2s;
+}
+.receipt-done-btn:active { background: #1e293b; }
 
 /* =============================================
    MAP PICKER UI
@@ -1934,175 +2113,175 @@ html, body {
     /* MOBILE defaults */
 }
 
-.dt-cal-nav-btn {
-    background: #f1f5f9;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 8px;
-    cursor: pointer;
+/* =============================================
+   SAKAY-STYLE ITINERARY LEG CARDS
+   ============================================= */
+.itinerary-legs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
 }
 
-.dt-cal-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-    margin-bottom: 6px;
+.leg-card {
+  display: flex;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-.dt-cal-weekdays span {
-    text-align: center;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--text-muted);
-    padding: 4px 0;
+.leg-card:active {
+  background: #f1f5f9;
 }
 
-.dt-cal-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
+/* Left colored sidebar — matches Sakay.ph design */
+.leg-sidebar {
+  width: 52px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 0;
+  background: #2563eb; /* walk = blue by default */
+  gap: 4px;
+}
+
+.leg-sidebar.walk-sidebar  { background: #2563eb; }
+.leg-sidebar.jeep-sidebar  { background: #1a8fff; }
+.leg-sidebar.mjeep-sidebar { background: #7c3aed; }
+
+.leg-sidebar-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.leg-sidebar-icon ion-icon {
+  font-size: 1rem;
+  color: white;
+}
+
+.leg-sidebar-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.leg-body {
+  padding: 12px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.leg-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.leg-detail {
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.leg-detail strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.leg-meta {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 2px;
+}
+
+.leg-fare-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #1a8fff;
+  margin-left: auto;
+  padding-left: 8px;
+  white-space: nowrap;
+}
+
+.leg-route-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.leg-route-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: #475569;
+}
+
+.leg-route-label {
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 46px;
+  margin-top: 1px;
+}
+
+/* Stop dot line — mimics Sakay.ph vertical connector */
+.leg-stop-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 3px;
+}
+.leg-stop-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 2px solid #94a3b8;
+  background: white;
+  flex-shrink: 0;
+}
+.leg-stop-dot.filled { background: #94a3b8; }
+.leg-stop-connector {
+  width: 2px;
+  height: 14px;
+  background: #cbd5e1;
 }
 
 /* =============================================
-   ARRIVAL SCREEN
+   NAVIGATION CURSOR ANIMATIONS
    ============================================= */
-.arrival-screen-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 11000;
-    background: rgba(0, 0, 0, 0.6);
-    display: none;
+.nav-cursor-wrapper {
+  transform-origin: center center;
+  will-change: transform;
 }
 
-.arrival-screen {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    z-index: 12000;
-    padding: 40px;
-    border-radius: 24px;
-    text-align: center;
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    transition: all 0.4s var(--ease);
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+.nav-pulse-ring {
+  animation: nav-pulse 2.4s ease-out infinite;
+  transform-origin: 24px 24px;
 }
 
-.arrival-screen.visible {
-    display: flex;
-    transform: translate(-50%, -50%) scale(1);
-}
-
-.arrival-icon-circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #dcfce7;
-    color: var(--success);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    margin-bottom: 20px;
-}
-
-.arrival-screen h2 {
-    font-family: 'Outfit';
-    font-size: 1.8rem;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 24px;
-}
-
-.arrival-close-btn {
-    padding: 16px 40px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    border-radius: 999px;
-    font-weight: 700;
-    font-family: 'Outfit';
-    font-size: 1.1rem;
-    cursor: pointer;
-}
-
-/* =============================================
-   MAP PICKER UI
-   ============================================= */
-.map-picker-ui {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    padding: 20px;
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-    z-index: 700;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.picker-address {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--text);
-    text-align: center;
-}
-
-.picker-confirm-btn {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 14px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 1rem;
-    cursor: pointer;
-}
-
-.picker-cancel-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    padding: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-}
-
-.map-center-pin {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -100%);
-    z-index: 599;
-    font-size: 2.5rem;
-    color: var(--danger);
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* =============================================
-   SPINNER
-   ============================================= */
-.route-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #e2e8f0;
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+@keyframes nav-pulse {
+  0%   { r: 14; opacity: 0.4; }
+  70%  { r: 22; opacity: 0; }
+  100% { r: 14; opacity: 0; }
 }
