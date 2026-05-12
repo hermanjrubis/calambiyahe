@@ -50,21 +50,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { threshold: 0.1 });
     revealElements.forEach(el => revealObserver.observe(el));
 
-    // === FOOTER DETECTION (Hide features bar) ===
+    // === FEATURES BAR TOGGLE (Mobile) ===
     const featuresBar = document.querySelector('.features-bar');
-    const sentinel = document.getElementById('footer-sentinel');
-    if (featuresBar && sentinel) {
-        const sentinelObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    featuresBar.classList.add('hidden');
-                } else {
-                    featuresBar.classList.remove('hidden');
-                }
-            });
-        }, { threshold: 0 });
-        sentinelObserver.observe(sentinel);
+    const footer = document.querySelector('.site-footer');
+
+    if (featuresBar) {
+        featuresBar.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                // Toggle expansion
+                featuresBar.classList.toggle('expanded');
+                
+                // Add quick haptic-like scale effect on click
+                featuresBar.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    featuresBar.style.transform = '';
+                }, 100);
+            }
+        });
+
+        // Hide bar when scrolling near footer to avoid overlap (Mobile only)
+        if (footer) {
+            const hideOnFooter = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (window.innerWidth <= 768) {
+                        // When footer enters the viewport (even partially), hide the bar
+                        featuresBar.classList.toggle('hidden', entry.isIntersecting);
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px 20px 0px' }); // trigger when footer is 20px from bottom edge
+
+            hideOnFooter.observe(footer);
+        }
     }
+
+    // === AUTO-COLLAPSE FEATURES BAR WHEN CLICKING OUTSIDE (Mobile only) ===
+    document.addEventListener('click', function(e) {
+        const featuresBar = document.querySelector('.features-bar');
+        if (!featuresBar) return;
+        
+        // Only apply on mobile and when the bar is expanded
+        if (window.innerWidth <= 768 && featuresBar.classList.contains('expanded')) {
+            // If the click target is NOT inside the features bar, collapse it
+            if (!featuresBar.contains(e.target)) {
+                featuresBar.classList.remove('expanded');
+                // Also clear any existing inactivity timer if you have one
+                if (window.featuresInactivityTimer) {
+                    clearTimeout(window.featuresInactivityTimer);
+                }
+                // Update localStorage preference
+                localStorage.setItem('featuresBarExpanded', 'false');
+            }
+        }
+    });
 
     // === NAVBAR SCROLL EFFECT ===
     const navbar = document.getElementById('navbar');
