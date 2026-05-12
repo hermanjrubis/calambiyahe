@@ -1,15 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const CHAT_API = 'https://calambiyahe-7i9b.onrender.com';
-    
+
     // Warm up the server on page load
-    fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => {});
+    fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
     setInterval(() => {
-        fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => {});
+        fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
     }, 10 * 60 * 1000);
 
     const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost';
-
 
     // === PASABOG KONG EFFECTS (Parallax & Glow) ===
     const mouseGlow = document.getElementById('mouseGlow');
@@ -52,14 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === FEATURES BAR TOGGLE (Mobile) ===
     const featuresBar = document.querySelector('.features-bar');
-    const footer = document.querySelector('.site-footer');
 
     if (featuresBar) {
-        featuresBar.addEventListener('click', (e) => {
+        featuresBar.addEventListener('click', () => {
             if (window.innerWidth <= 768) {
                 // Toggle expansion
                 featuresBar.classList.toggle('expanded');
-                
+
                 // Add quick haptic-like scale effect on click
                 featuresBar.style.transform = 'scale(0.95)';
                 setTimeout(() => {
@@ -67,37 +65,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 100);
             }
         });
+    }
 
-        // Hide bar when scrolling near footer to avoid overlap (Mobile only)
-        if (footer) {
-            const hideOnFooter = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (window.innerWidth <= 768) {
-                        // When footer enters the viewport (even partially), hide the bar
-                        featuresBar.classList.toggle('hidden', entry.isIntersecting);
-                    }
-                });
-            }, { threshold: 0.1, rootMargin: '0px 0px 20px 0px' }); // trigger when footer is 20px from bottom edge
+    // === HIDE FEATURES BAR ON SCROLL (Desktop & Mobile) ===
+    const heroSection = document.querySelector('.hero-section');
+    if (featuresBar && heroSection) {
+        const heroObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) {
+                    featuresBar.classList.add('hide-on-scroll');
+                } else {
+                    featuresBar.classList.remove('hide-on-scroll');
+                }
+            });
+        }, {
+            threshold: 0.95
+        });
 
-            hideOnFooter.observe(footer);
-        }
+        heroObserver.observe(heroSection);
     }
 
     // === AUTO-COLLAPSE FEATURES BAR WHEN CLICKING OUTSIDE (Mobile only) ===
-    document.addEventListener('click', function(e) {
-        const featuresBar = document.querySelector('.features-bar');
+    document.addEventListener('click', function (e) {
         if (!featuresBar) return;
-        
+
         // Only apply on mobile and when the bar is expanded
         if (window.innerWidth <= 768 && featuresBar.classList.contains('expanded')) {
             // If the click target is NOT inside the features bar, collapse it
             if (!featuresBar.contains(e.target)) {
                 featuresBar.classList.remove('expanded');
-                // Also clear any existing inactivity timer if you have one
                 if (window.featuresInactivityTimer) {
                     clearTimeout(window.featuresInactivityTimer);
                 }
-                // Update localStorage preference
                 localStorage.setItem('featuresBarExpanded', 'false');
             }
         }
@@ -220,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const end = searchInput.selectionEnd;
                         searchInput.value = cleanedVal;
                         if (start !== null && end !== null) {
-                            try { searchInput.setSelectionRange(start, end); } catch (e) {}
+                            try { searchInput.setSelectionRange(start, end); } catch (e) { }
                         }
                     }
                 }
@@ -228,7 +227,6 @@ document.addEventListener('DOMContentLoaded', () => {
             handleSearch();
         });
 
-        // BUG FIX: Removed incorrectly nested performSearch function
         const performFinalSearch = async () => {
             const rawVal = searchInput.value;
             const cleanedVal = cleanInputName(rawVal);
@@ -367,23 +365,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     // Chat History Persistence
     let chatHistory = JSON.parse(sessionStorage.getItem('calzadaChatHistory')) || [];
 
     function addMessage(text, isUser = false, save = true) {
         if (!chatMessages) return;
-        
+
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${isUser ? 'user-wrapper' : 'bot-wrapper'}`;
-        
+
         if (!isUser) {
             const avatar = document.createElement('div');
             avatar.className = 'bot-avatar';
             avatar.innerHTML = '<img src="assets/DyipTok-icon.png" alt="DyipTok">';
             wrapper.appendChild(avatar);
         }
-        
+
         const msgDiv = document.createElement('div');
         msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
         msgDiv.textContent = text;
@@ -400,10 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load History on Startup
     function loadChatHistory() {
         if (!chatMessages) return;
-        if (chatHistory.length === 0) {
-            // Greeting already in HTML — do nothing
-            return;
-        }
+        if (chatHistory.length === 0) return;
         chatMessages.innerHTML = '';
         chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false));
     }
@@ -436,8 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
         typingWrapperEl = null;
     }
 
-
-
     async function handleChatSend() {
         const text = chatInput.value.trim();
         if (!text) return;
@@ -450,9 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         showTyping();
 
-        // Construct context using ONLY route info (no personal schedules)
         const ctx = window._calzadaRouteContext || {};
-
         const routeInfo = (ctx && ctx.origin) ? `
 [ROUTE INFO]
 Origin: ${ctx.origin}
@@ -462,13 +452,8 @@ Fare: \u20b1${ctx.totalFare || 'unknown'}
 Distance: ${ctx.totalDistance || 'unknown'} km
 ` : '[ROUTE INFO] none';
 
-        const fullMessageWithContext = `${routeInfo}
-
-User Message: ${text}`;
-
-        const payload = {
-            message: fullMessageWithContext
-        };
+        const fullMessageWithContext = `${routeInfo}\n\nUser Message: ${text}`;
+        const payload = { message: fullMessageWithContext };
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -476,9 +461,7 @@ User Message: ${text}`;
         try {
             const response = await fetch(`${CHAT_API}/api/chat`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
                 signal: controller.signal
             });
@@ -515,8 +498,6 @@ User Message: ${text}`;
     }
 
     if (sendMessageBtn) sendMessageBtn.addEventListener('click', handleChatSend);
-
-
 
     chatInput.addEventListener('input', function () {
         this.style.height = 'auto';
