@@ -335,8 +335,7 @@
     <div class="chat-widget-container">
         <span class="chat-label" data-i18n="chat.label">Ask DyipTok</span>
         <button class="chat-toggle-btn" id="chatToggleBtn">
-            <ion-icon name="chatbubble"></ion-icon>
-            <span class="pulse-ring"></span>
+            <img src="assets/DyipTok-icon.png" alt="DyipTok" style="width: 60px; height: 60px; object-fit: contain;">
         </button>
     </div>
 
@@ -346,6 +345,9 @@
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
             <div class="chat-header-info">
+                <div class="bot-avatar">
+                    <img src="assets/DyipTok-icon.png" alt="DyipTok">
+                </div>
                 <div>
                     <div class="chat-name">DyipTok Assistant</div>
                     <div class="chat-status"><span class="status-dot"></span> Online</div>
@@ -356,7 +358,12 @@
             </button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be loaded dynamically by script.js -->
+            <div class="message-wrapper bot-wrapper">
+                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
+                <div class="message bot-message" data-i18n="chat.greeting">
+                    Hello! I'm DyipTok. Where do you want to go today?
+                </div>
+            </div>
         </div>
 
 
@@ -402,7 +409,11 @@
                 <div class="social-icons">
                     <a href="https://web.facebook.com/kelly.torres.861688"><ion-icon
                             name="logo-facebook"></ion-icon></a>
-                    <a href="#"><img src="assets/X_logo-white.png" alt="X" class="social-icon-img"></a>
+                    <a href="https://twitter.com/calzada" target="_blank" aria-label="X (Twitter)">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.25 2.25h6.69l4.71 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                    </a>
                     <a href="https://www.instagram.com/dedanielss/"><ion-icon name="logo-instagram"></ion-icon></a>
                 </div>
             </div>

@@ -193,7 +193,7 @@
                     <ion-icon name="arrow-redo-outline"></ion-icon>
                     <span id="guideNextText">Turn right</span>
                 </div>
-                <div class="guide-expanded-steps visible" id="guideExpandedSteps">
+                <div class="guide-expanded-steps" id="guideExpandedSteps">
                     <!-- Additional next steps rendered here by JS -->
                 </div>
             </div>
@@ -441,6 +441,9 @@
     <div class="chat-window" id="chatWindow" style="z-index:10000;">
         <div class="chat-header">
             <div class="chat-header-info">
+                <div class="bot-avatar">
+                    <img src="assets/DyipTok-icon.png" alt="DyipTok">
+                </div>
                 <div>
                     <div class="chat-name">DyipTok Assistant</div>
                     <div class="chat-status"><span class="status-dot"></span> Online</div>
@@ -451,7 +454,12 @@
             </button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be loaded dynamically by script.js -->
+            <div class="message-wrapper bot-wrapper">
+                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
+                <div class="message bot-message" data-i18n="chat.greeting">
+                    Hello! I'm DyipTok. Where do you want to go today?
+                </div>
+            </div>
         </div>
 
 

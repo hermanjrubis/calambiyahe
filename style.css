@@ -961,12 +961,12 @@ body {
    ============================================= */
 .chat-widget-container {
     position: fixed;
-    bottom: 28px;
+    bottom: 24px;
     right: 24px;
     left: unset;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 6px;
     z-index: 160;
     animation: slideInUp 1s var(--ease) forwards;
     animation-delay: 0.6s;
@@ -982,7 +982,7 @@ body {
 }
 
 .chat-label {
-    display: none;
+    display: block;
     font-family: 'Outfit', sans-serif;
     font-size: 0.9rem;
     font-weight: 600;
@@ -1000,36 +1000,28 @@ body {
 
 .chat-toggle-btn {
     position: relative;
-    background: var(--primary);
+    background: transparent;
     color: white;
-    border: 3px solid white;
-    /* White ring for contrast against any background */
-    width: 62px;
-    height: 62px;
+    border: none;
+    width: 65px;
+    height: 65px;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 2rem;
     cursor: pointer;
-    /* Strong drop shadow to pop against the page */
-    box-shadow: 0 8px 28px rgba(26, 143, 255, 0.55), 0 4px 12px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s var(--ease), background var(--transition);
+    box-shadow: none;
+    transition: transform 0.3s var(--ease);
 }
 
 .chat-toggle-btn:hover {
-    transform: scale(1.1);
-    background: var(--primary-dark);
+    transform: scale(1.15);
+    background: transparent;
 }
 
 /* Pulse ring animation */
 .pulse-ring {
-    position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 3px solid var(--primary);
-    opacity: 0;
-    animation: pulseRing 2.5s ease-out infinite;
+    display: none;
 }
 
 @keyframes pulseRing {
@@ -1816,16 +1808,15 @@ body {
 
     /* Mobile full-screen chat -> Floating Card */
     .chat-widget-container {
-        bottom: 85px !important;
-        /* Move back above the features bar */
+        bottom: 24px !important;
+        /* Align with the features bar */
         right: 15px;
         transition: bottom 0.3s ease, transform 0.3s ease;
     }
 
     .chat-toggle-btn {
-        width: 54px;
-        height: 54px;
-        font-size: 1.6rem;
+        width: 60px;
+        height: 60px;
     }
 
     .chat-window {

@@ -993,15 +993,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const getStepIcon = (step, mode) => {
         const type = step.maneuver.type;
         const mod = step.maneuver.modifier || '';
-        if (type === 'depart') return mode === 'foot' ? 'walk' : 'bus';
-        if (type === 'arrive') return 'flag';
-        if (type === 'turn' || mod.includes('right') || mod.includes('left')) {
-            if (mod.includes('right')) return 'arrow-redo';
-            if (mod.includes('left')) return 'arrow-undo';
-            return 'arrow-forward';
+        
+        if (type === 'depart') {
+            return mode === 'foot' ? 'walk-outline' : 'bus-outline';
         }
-        if (type === 'new name' || mod.includes('straight')) return 'arrow-up';
-        return 'arrow-forward';
+        if (type === 'arrive') return 'flag-outline';
+        
+        if (type === 'turn') {
+            if (mod.includes('right')) return 'arrow-forward-outline';
+            if (mod.includes('left')) return 'arrow-back-outline';
+            return 'arrow-up-outline';
+        }
+        
+        if (type === 'new name' || mod.includes('straight')) return 'arrow-up-outline';
+        
+        return 'arrow-forward-outline';
     };
 
     const formatDist = (m) => m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m';
