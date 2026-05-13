@@ -5,7 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>About - Calzada</title>
-    <link rel="icon" type="image/png" href="assets/Calzada - Blue.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
+    <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
+    <meta property="og:description" content="Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.">
     <!-- Google Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
@@ -55,7 +60,7 @@
                 <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
                 <a href="planner.html" class="btn-plan-route" data-i18n="planner.plan_route">Plan Route</a>
-                
+
                 <!-- Navbar Toggle (Desktop) -->
                 <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
                     <span class="lang-active">EN</span>
@@ -82,8 +87,8 @@
     <main class="about-page-container">
         <div class="about-content-wrapper">
             <div class="about-hero-logo">
-              <img src="assets/logo-header-blue.png" alt="Calzada Logo" class="about-logo-img">
-              <div class="about-tagline" data-i18n="about_page.tagline">Your daily commute, simplified.</div>
+                <img src="assets/logo-header-blue.png" alt="Calzada Logo" class="about-logo-img">
+                <div class="about-tagline" data-i18n="about_page.tagline">Your daily commute, simplified.</div>
             </div>
             <h1 class="about-title" data-i18n="about_page.title">About</h1>
             <div class="about-text">
@@ -121,24 +126,27 @@
                 </p>
             </div>
             <div class="why-calzada">
-              <h2 class="why-title" data-i18n="about_page.why.heading">Bakit Calzada?</h2>
-              <div class="why-grid">
-                <div class="why-card">
-                  <ion-icon name="compass-outline"></ion-icon>
-                  <h3 data-i18n="about_page.why.card1.title">Direction</h3>
-                  <p data-i18n="about_page.why.card1.desc">Hindi ka na maliligaw – bawat ruta ay klaro at tumpak.</p>
+                <h2 class="why-title" data-i18n="about_page.why.heading">Bakit Calzada?</h2>
+                <div class="why-grid">
+                    <div class="why-card">
+                        <ion-icon name="compass-outline"></ion-icon>
+                        <h3 data-i18n="about_page.why.card1.title">Direction</h3>
+                        <p data-i18n="about_page.why.card1.desc">Hindi ka na maliligaw – bawat ruta ay klaro at tumpak.
+                        </p>
+                    </div>
+                    <div class="why-card">
+                        <ion-icon name="cash-outline"></ion-icon>
+                        <h3 data-i18n="about_page.why.card2.title">Transparency</h3>
+                        <p data-i18n="about_page.why.card2.desc">Walang hidden charges. Alam mo ang pamasahe bago ka
+                            sumakay.</p>
+                    </div>
+                    <div class="why-card">
+                        <ion-icon name="people-outline"></ion-icon>
+                        <h3 data-i18n="about_page.why.card3.title">Komunidad</h3>
+                        <p data-i18n="about_page.why.card3.desc">Gawa para sa mga commuter, ng mga commuter. Libre at
+                            accessible.</p>
+                    </div>
                 </div>
-                <div class="why-card">
-                  <ion-icon name="cash-outline"></ion-icon>
-                  <h3 data-i18n="about_page.why.card2.title">Transparency</h3>
-                  <p data-i18n="about_page.why.card2.desc">Walang hidden charges. Alam mo ang pamasahe bago ka sumakay.</p>
-                </div>
-                <div class="why-card">
-                  <ion-icon name="people-outline"></ion-icon>
-                  <h3 data-i18n="about_page.why.card3.title">Komunidad</h3>
-                  <p data-i18n="about_page.why.card3.desc">Gawa para sa mga commuter, ng mga commuter. Libre at accessible.</p>
-                </div>
-              </div>
             </div>
         </div>
     </main>
@@ -171,11 +179,12 @@
 
         <div class="chat-input-area">
             <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
-            
+
             <!-- Bottom Action Row -->
             <div class="chat-input-toolbar">
                 <div class="toolbar-right">
-                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon
+                            name="mic-outline"></ion-icon></button>
                     <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
                 </div>
             </div>

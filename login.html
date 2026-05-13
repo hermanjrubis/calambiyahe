@@ -1,18 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Login & Register</title>
-    <link rel="icon" type="image/png" href="assets/Calzada - Blue.png">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
+    <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
+    <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
+    <meta property="og:description" content="Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
+        rel="stylesheet">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="page-transition"></div>
 
@@ -26,14 +35,14 @@
             <a href="index.html" class="brand-logo">
                 <img src="assets/Calzada - Blue.png" alt="Calzada Logo" class="logo-img">
             </a>
-            
+
             <nav class="nav-links" id="navLinks">
                 <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
                 <a href="index.html#place-finder" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
                 <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
                 <a href="planner.html" class="btn-plan-route" data-i18n="planner.plan_route">Plan Route</a>
-                
+
                 <!-- Navbar Toggle (Desktop) -->
                 <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
                     <span class="lang-active">EN</span>
@@ -59,28 +68,33 @@
 
     <main class="auth-page-container">
         <div class="auth-card">
-            
+
             <!-- Auth Tabs -->
             <div class="auth-tabs">
-                <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')" data-i18n="login.title">Login</button>
-                <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')" data-i18n="login.register">Register</button>
+                <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')"
+                    data-i18n="login.title">Login</button>
+                <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')"
+                    data-i18n="login.register">Register</button>
             </div>
 
             <div class="auth-content">
                 <!-- LOGIN FORM -->
-                <form id="formLogin" class="auth-form active" onsubmit="event.preventDefault(); window.location.href='index.html';">
+                <form id="formLogin" class="auth-form active"
+                    onsubmit="event.preventDefault(); window.location.href='index.html';">
                     <h2 class="auth-title" data-i18n="login.welcome">Welcome Back!</h2>
                     <p class="auth-subtitle" data-i18n="login.subtitle">Log in to continue navigating Calamba.</p>
 
                     <div class="input-group">
                         <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" data-i18n="login.email_placeholder" data-i18n-attr="placeholder" placeholder="Email Address" required>
+                        <input type="email" data-i18n="login.email_placeholder" data-i18n-attr="placeholder"
+                            placeholder="Email Address" required>
                     </div>
 
                     <div class="input-group">
                         <ion-icon name="lock-closed-outline"></ion-icon>
                         <input type="password" placeholder="Password" id="loginPass" required>
-                        <ion-icon name="eye-outline" class="btn-toggle-pass" onclick="togglePassword('loginPass')"></ion-icon>
+                        <ion-icon name="eye-outline" class="btn-toggle-pass"
+                            onclick="togglePassword('loginPass')"></ion-icon>
                     </div>
 
                     <div class="auth-options">
@@ -103,7 +117,8 @@
                 </form>
 
                 <!-- REGISTER FORM -->
-                <form id="formRegister" class="auth-form" onsubmit="event.preventDefault(); window.location.href='index.html';">
+                <form id="formRegister" class="auth-form"
+                    onsubmit="event.preventDefault(); window.location.href='index.html';">
                     <h2 class="auth-title">Create an Account</h2>
                     <p class="auth-subtitle">Join us and streamline your daily commute.</p>
 
@@ -119,8 +134,10 @@
 
                     <div class="input-group">
                         <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" placeholder="Create Password" id="regPass" oninput="checkPasswordStrength()" required>
-                        <ion-icon name="eye-outline" class="btn-toggle-pass" onclick="togglePassword('regPass')"></ion-icon>
+                        <input type="password" placeholder="Create Password" id="regPass"
+                            oninput="checkPasswordStrength()" required>
+                        <ion-icon name="eye-outline" class="btn-toggle-pass"
+                            onclick="togglePassword('regPass')"></ion-icon>
                     </div>
 
                     <!-- Modern Security Requirements Display -->
@@ -143,7 +160,8 @@
 
                     <div class="auth-options" style="margin-bottom: 20px;">
                         <label class="remember-me">
-                            <input type="checkbox" required> I agree to the <a href="#">Terms</a> & <a href="#">Privacy Policy</a>
+                            <input type="checkbox" required> I agree to the <a href="#">Terms</a> & <a href="#">Privacy
+                                Policy</a>
                         </label>
                     </div>
 
@@ -154,7 +172,8 @@
             <!-- Security Trust Badge Assurance -->
             <div class="security-assurance">
                 <ion-icon name="lock-closed"></ion-icon>
-                <span data-i18n="login.secure_access"><strong>Secure Access:</strong> Your data is encrypted and securely stored. We never sell your personal information.</span>
+                <span data-i18n="login.secure_access"><strong>Secure Access:</strong> Your data is encrypted and
+                    securely stored. We never sell your personal information.</span>
             </div>
             <a href="index.html" class="guest-link" data-i18n="login.guest">Continue as Guest</a>
         </div>
@@ -164,5 +183,5 @@
     <script src="i18n.js"></script>
     <script src="transitions.js"></script>
 </body>
-</html>
 
+</html>
