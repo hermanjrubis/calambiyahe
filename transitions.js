@@ -133,25 +133,57 @@
         'about.html': `
             ${navSkeleton}
             <div style="padding: 120px 5% 60px; max-width: 800px; margin: auto;">
-                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 40px;">
-                    <div class="skeleton sk-circle" style="width: 72px; height: 72px; margin-bottom: 16px;"></div>
-                    <div class="skeleton" style="width: 250px; height: 20px; border-radius: 6px;"></div>
+                <!-- Main Header Title -->
+                <div class="skeleton" style="width: 180px; height: 42px; border-radius: 12px; margin-bottom: 40px;"></div>
+                
+                <!-- Float Right Wordmark + Text -->
+                <div style="overflow: hidden; margin-bottom: 40px;">
+                    <div class="skeleton" style="float: right; width: 160px; height: 40px; border-radius: 8px; margin: 6px 0 15px 25px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 75%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
                 </div>
                 
-                <div class="skeleton" style="width: 140px; height: 40px; border-radius: 12px; margin-bottom: 24px;"></div>
-                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
-                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
-                <div class="skeleton" style="width: 90%; height: 16px; border-radius: 4px; margin-bottom: 32px;"></div>
-                
-                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
-                <div class="skeleton" style="width: 95%; height: 16px; border-radius: 4px; margin-bottom: 48px;"></div>
-                
-                <div class="skeleton" style="width: 180px; height: 32px; border-radius: 8px; margin-bottom: 24px;"></div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px;">
-                    <div class="skeleton" style="height: 180px; border-radius: 20px;"></div>
-                    <div class="skeleton" style="height: 180px; border-radius: 20px;"></div>
-                    <div class="skeleton" style="height: 180px; border-radius: 20px;"></div>
+                <!-- Float Left Mockup + Text Wrap -->
+                <div style="overflow: hidden; margin-bottom: 40px;">
+                    <div class="skeleton" style="float: left; width: 290px; height: 400px; border-radius: 24px; margin: 10px 35px 25px 0;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 80%; height: 16px; border-radius: 4px; margin-bottom: 32px;"></div>
+                    
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 90%; height: 16px; border-radius: 4px; margin-bottom: 32px;"></div>
                 </div>
+                
+                <!-- Goal Section Header -->
+                <div class="skeleton" style="width: 120px; height: 32px; border-radius: 8px; margin-bottom: 20px; clear: both;"></div>
+                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div class="skeleton" style="width: 60%; height: 16px; border-radius: 4px; margin-bottom: 60px;"></div>
+                
+                <!-- Supported Modes Grid -->
+                <div class="skeleton" style="width: 200px; height: 32px; border-radius: 8px; margin: 0 auto 24px;"></div>
+                <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-bottom: 60px;">
+                    <div class="skeleton" style="width: 130px; height: 48px; border-radius: 16px;"></div>
+                    <div class="skeleton" style="width: 110px; height: 48px; border-radius: 16px;"></div>
+                    <div class="skeleton" style="width: 130px; height: 48px; border-radius: 16px;"></div>
+                    <div class="skeleton" style="width: 120px; height: 48px; border-radius: 16px;"></div>
+                    <div class="skeleton" style="width: 110px; height: 48px; border-radius: 16px;"></div>
+                </div>
+
+                <!-- Bakit Calzada cards -->
+                <div class="skeleton" style="width: 180px; height: 32px; border-radius: 8px; margin: 0 auto 32px;"></div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 80px;">
+                    <div class="skeleton" style="height: 180px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 180px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 180px; border-radius: 24px;"></div>
+                </div>
+
+                <!-- Glowing Bottom CTA -->
+                <div class="skeleton" style="width: 100%; height: 220px; border-radius: 32px;"></div>
             </div>
         `
     };
