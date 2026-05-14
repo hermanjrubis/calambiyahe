@@ -20,10 +20,30 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Firebase Configuration -->
+    <script>
+        // Inject your Firebase Config here
+        window.FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAKI7xRjkfajArFjWknW4IkvWwlkep5wj4",
+            authDomain: "calzada-web.firebaseapp.com",
+            projectId: "calzada-web",
+            storageBucket: "calzada-web.firebasestorage.app",
+            messagingSenderId: "772241459557",
+            appId: "1:772241459557:web:992e794b2936faa25db98c",
+            measurementId: "G-D6QBPVQVZM"
+        };
+    </script>
+    <!-- Skeleton CSS & FOUC Preventer -->
+    <link rel="stylesheet" href="skeleton.css">
+    <style>
+        body { opacity: 0; }
+        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+    </style>
 </head>
 
 <body>
-    <div id="page-transition"></div>
+
 
     <!-- Geometric background assets -->
     <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
@@ -79,20 +99,20 @@
 
             <div class="auth-content">
                 <!-- LOGIN FORM -->
-                <form id="formLogin" class="auth-form active"
-                    onsubmit="event.preventDefault(); window.location.href='index.html';">
+                <form id="formLogin" class="auth-form active">
                     <h2 class="auth-title" data-i18n="login.welcome">Welcome Back!</h2>
                     <p class="auth-subtitle" data-i18n="login.subtitle">Log in to continue navigating Calamba.</p>
+                    <p id="loginError" class="auth-subtitle" style="color: #ff4d4f; display: none;"></p>
 
                     <div class="input-group">
                         <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" data-i18n="login.email_placeholder" data-i18n-attr="placeholder"
-                            placeholder="Email Address" required>
+                        <input type="email" id="loginEmail" data-i18n="login.email_placeholder" data-i18n-attr="placeholder"
+                            placeholder="Email Address" autocomplete="username" required>
                     </div>
 
                     <div class="input-group">
                         <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" placeholder="Password" id="loginPass" required>
+                        <input type="password" placeholder="Password" id="loginPass" autocomplete="current-password" required>
                         <ion-icon name="eye-outline" class="btn-toggle-pass"
                             onclick="togglePassword('loginPass')"></ion-icon>
                     </div>
@@ -104,37 +124,32 @@
                         <a href="#" class="forgot-pass">Forgot Password?</a>
                     </div>
 
-                    <button type="submit" class="btn-auth-primary">Sign in</button>
+                    <button type="submit" id="loginSubmitBtn" class="btn-auth-primary">Sign in</button>
 
                     <div class="auth-divider">
                         <span>Or continue with</span>
                     </div>
 
-                    <button type="button" class="btn-social-auth">
+                    <button type="button" id="googleLoginBtn" class="btn-social-auth">
                         <img src="https://www.google.com/favicon.ico" alt="Google">
                         Sign in with Google
                     </button>
                 </form>
 
                 <!-- REGISTER FORM -->
-                <form id="formRegister" class="auth-form"
-                    onsubmit="event.preventDefault(); window.location.href='index.html';">
+                <form id="formRegister" class="auth-form">
                     <h2 class="auth-title">Create an Account</h2>
                     <p class="auth-subtitle">Join us and streamline your daily commute.</p>
-
-                    <div class="input-group">
-                        <ion-icon name="person-outline"></ion-icon>
-                        <input type="text" placeholder="Full Name" required>
-                    </div>
+                    <p id="regError" class="auth-subtitle" style="color: #ff4d4f; display: none;"></p>
 
                     <div class="input-group">
                         <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" placeholder="Email Address" required>
+                        <input type="email" id="regEmail" placeholder="Email Address" autocomplete="off" required>
                     </div>
 
                     <div class="input-group">
                         <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" placeholder="Create Password" id="regPass"
+                        <input type="password" placeholder="Create Password" id="regPass" autocomplete="new-password"
                             oninput="checkPasswordStrength()" required>
                         <ion-icon name="eye-outline" class="btn-toggle-pass"
                             onclick="togglePassword('regPass')"></ion-icon>
@@ -155,17 +170,25 @@
 
                     <div class="input-group">
                         <ion-icon name="shield-checkmark-outline"></ion-icon>
-                        <input type="password" placeholder="Confirm Password" id="regPassConfirm" required>
+                        <input type="password" placeholder="Confirm Password" id="regPassConfirm" autocomplete="new-password" required>
                     </div>
 
                     <div class="auth-options" style="margin-bottom: 20px;">
                         <label class="remember-me">
-                            <input type="checkbox" required> I agree to the <a href="#">Terms</a> & <a href="#">Privacy
-                                Policy</a>
+                            <input type="checkbox" required> I agree to the <a href="#" onclick="document.getElementById('termsModal').classList.add('active'); return false;">Terms</a> & <a href="#" onclick="document.getElementById('privacyModal').classList.add('active'); return false;">Privacy Policy</a>
                         </label>
                     </div>
 
-                    <button type="submit" class="btn-auth-primary">Create Account</button>
+                    <button type="submit" id="regSubmitBtn" class="btn-auth-primary">Create Account</button>
+
+                    <div class="auth-divider">
+                        <span>Or register with</span>
+                    </div>
+
+                    <button type="button" id="googleRegBtn" class="btn-social-auth">
+                        <img src="https://www.google.com/favicon.ico" alt="Google">
+                        Sign up with Google
+                    </button>
                 </form>
             </div>
 
@@ -179,9 +202,205 @@
         </div>
     </main>
 
+    <!-- Terms Modal -->
+    <div class="modal" id="termsModal" style="align-items: center; justify-content: center;">
+        <div class="modal-content" style="text-align: left; position: relative;">
+            <button class="close-modal" onclick="document.getElementById('termsModal').classList.remove('active')" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;"><ion-icon name="close-outline"></ion-icon></button>
+            <h2 style="margin-bottom: 15px; color: #1e293b;">Terms of Service</h2>
+            <div style="max-height: 60vh; overflow-y: auto; padding-right: 15px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
+                <p><strong>1. Acceptance of Terms</strong><br>By creating an account and using Calzada, you agree to be bound by these Terms of Service. If you do not agree, please do not use the platform.</p>
+                <p style="margin-top: 10px;"><strong>2. Service Description</strong><br>Calzada is a navigational and transit guide for Calamba City. While we strive for accuracy, transit schedules and routes are subject to change. We are not liable for delays, missed trips, or inaccuracies in third-party transit data.</p>
+                <p style="margin-top: 10px;"><strong>3. User Responsibilities</strong><br>You are responsible for maintaining the confidentiality of your account credentials. Any activity occurring under your account is your sole responsibility. You agree not to misuse the platform or attempt to bypass security measures.</p>
+                <p style="margin-top: 10px;"><strong>4. Account Termination</strong><br>We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activities, or abuse the platform's systems.</p>
+                <p style="margin-top: 10px;"><strong>5. Changes to Terms</strong><br>We may modify these terms at any time. Continued use of Calzada constitutes acceptance of the updated terms.</p>
+            </div>
+            <button class="btn-auth-primary" style="margin-top: 20px;" onclick="document.getElementById('termsModal').classList.remove('active')">I Understand</button>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div class="modal" id="privacyModal" style="align-items: center; justify-content: center;">
+        <div class="modal-content" style="text-align: left; position: relative;">
+            <button class="close-modal" onclick="document.getElementById('privacyModal').classList.remove('active')" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;"><ion-icon name="close-outline"></ion-icon></button>
+            <h2 style="margin-bottom: 15px; color: #1e293b;">Privacy Policy</h2>
+            <div style="max-height: 60vh; overflow-y: auto; padding-right: 15px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
+                <p><strong>1. Information We Collect</strong><br>We collect information you provide during registration, including your email address and authentication credentials. We also automatically collect session data such as IP address, browser type, and timestamps to secure your account.</p>
+                <p style="margin-top: 10px;"><strong>2. How We Use Your Data</strong><br>Your data is strictly used to provide authentication, personalize your commuting experience, and improve our services. We use session logs exclusively for security monitoring and account verification.</p>
+                <p style="margin-top: 10px;"><strong>3. Third-Party Services</strong><br>We utilize Google Firebase for secure authentication and database management. Your data is encrypted and handled in compliance with Google's stringent security protocols.</p>
+                <p style="margin-top: 10px;"><strong>4. Data Sharing & Security</strong><br>We <strong>never</strong> sell your personal information to third parties. We employ industry-standard encryption to protect your account against unauthorized access.</p>
+                <p style="margin-top: 10px;"><strong>5. Your Rights</strong><br>You have the right to request access to, correction of, or deletion of your personal data at any time by contacting our support team.</p>
+            </div>
+            <button class="btn-auth-primary" style="margin-top: 20px;" onclick="document.getElementById('privacyModal').classList.remove('active')">I Agree</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
     <script src="i18n.js"></script>
     <script src="transitions.js"></script>
+
+    <!-- Firebase Logic Integration -->
+    <script type="module">
+        import { 
+            auth, 
+            db, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            signInWithPopup, 
+            GoogleAuthProvider, 
+            onAuthStateChanged, 
+            collection, 
+            doc, 
+            setDoc, 
+            serverTimestamp 
+        } from './firebase-init.js';
+
+        const formLogin = document.getElementById('formLogin');
+        const formRegister = document.getElementById('formRegister');
+        const loginError = document.getElementById('loginError');
+        const regError = document.getElementById('regError');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const regSubmitBtn = document.getElementById('regSubmitBtn');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const googleRegBtn = document.getElementById('googleRegBtn');
+
+        // Force clear forms on initial page load
+        if (formLogin) formLogin.reset();
+        if (formRegister) formRegister.reset();
+
+        // Check if already logged in -> Redirect
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Helper: Show Error
+        const showError = (element, message) => {
+            element.innerText = message;
+            element.style.display = 'block';
+        };
+
+        // Helper: Hide Error
+        const hideError = (element) => {
+            element.style.display = 'none';
+        };
+
+        // Helper: Log Activity to Firestore
+        const logActivity = async (uid, type, method) => {
+            try {
+                const sessionRef = doc(collection(db, `users/${uid}/sessions`));
+                await setDoc(sessionRef, {
+                    type: type,
+                    method: method,
+                    timestamp: serverTimestamp(),
+                    userAgent: navigator.userAgent,
+                    page: "login.html"
+                });
+            } catch (err) {
+                console.error("Failed to log activity:", err);
+            }
+        };
+
+        // Handle Email/Password Login
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError(loginError);
+            
+            const email = document.getElementById('loginEmail').value.trim();
+            const pass = document.getElementById('loginPass').value;
+
+            // UI feedback
+            const originalText = loginSubmitBtn.innerText;
+            loginSubmitBtn.innerText = 'Signing in...';
+            loginSubmitBtn.disabled = true;
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                await logActivity(userCredential.user.uid, "login", "email");
+                window.location.href = 'index.html';
+            } catch (err) {
+                showError(loginError, err.message);
+                loginSubmitBtn.innerText = originalText;
+                loginSubmitBtn.disabled = false;
+            }
+        });
+
+        // Handle Google Login
+        googleLoginBtn.addEventListener('click', async () => {
+            hideError(loginError);
+            const provider = new GoogleAuthProvider();
+            
+            // UI feedback
+            const originalHTML = googleLoginBtn.innerHTML;
+            googleLoginBtn.innerText = 'Signing in with Google...';
+            googleLoginBtn.disabled = true;
+
+            try {
+                const userCredential = await signInWithPopup(auth, provider);
+                await logActivity(userCredential.user.uid, "login", "google");
+                window.location.href = 'index.html';
+            } catch (err) {
+                showError(loginError, err.message);
+                googleLoginBtn.innerHTML = originalHTML;
+                googleLoginBtn.disabled = false;
+            }
+        });
+
+        // Handle Google Registration
+        if (googleRegBtn) {
+            googleRegBtn.addEventListener('click', async () => {
+                hideError(regError);
+                const provider = new GoogleAuthProvider();
+                
+                // UI feedback
+                const originalHTML = googleRegBtn.innerHTML;
+                googleRegBtn.innerText = 'Signing up with Google...';
+                googleRegBtn.disabled = true;
+
+                try {
+                    const userCredential = await signInWithPopup(auth, provider);
+                    await logActivity(userCredential.user.uid, "register", "google");
+                    window.location.href = 'index.html';
+                } catch (err) {
+                    showError(regError, err.message);
+                    googleRegBtn.innerHTML = originalHTML;
+                    googleRegBtn.disabled = false;
+                }
+            });
+        }
+
+        // Handle Email/Password Registration
+        formRegister.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideError(regError);
+            
+            const email = document.getElementById('regEmail').value.trim();
+            const pass = document.getElementById('regPass').value;
+            const passConfirm = document.getElementById('regPassConfirm').value;
+
+            // Validation: Passwords match
+            if (pass !== passConfirm) {
+                showError(regError, "Passwords do not match!");
+                return;
+            }
+
+            // UI feedback
+            const originalText = regSubmitBtn.innerText;
+            regSubmitBtn.innerText = 'Creating account...';
+            regSubmitBtn.disabled = true;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                await logActivity(userCredential.user.uid, "register", "email");
+                // Note: If you want to save the user's name, you can update their profile or write to a user document here.
+                window.location.href = 'index.html';
+            } catch (err) {
+                showError(regError, err.message);
+                regSubmitBtn.innerText = originalText;
+                regSubmitBtn.disabled = false;
+            }
+        });
+    </script>
 </body>
 
 </html>

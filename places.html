@@ -20,10 +20,17 @@
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- Skeleton CSS & FOUC Preventer -->
+    <link rel="stylesheet" href="skeleton.css">
+    <link rel="stylesheet" href="place-panel.css">
+    <style>
+        body { opacity: 0; }
+        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+    </style>
 </head>
 
 <body>
-    <div id="page-transition"></div>
+
     <!-- Mouse Glow Aura -->
     <div class="mouse-glow" id="mouseGlow"></div>
 
@@ -126,7 +133,7 @@
         <h2 class="section-label" data-i18n="places.calamba_label">CALAMBA</h2>
         <div class="places-grid">
             <!-- Place Card 1 -->
-            <a href="planner.html?dest=Calamba City Hall" class="ref-card" data-category="establishments">
+            <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Calamba City Hall')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://lh3.googleusercontent.com/pw/AP1GczM1DDQ8qkvS-5Yc_dvrpnI5HAwRSuj5zofc7zFnSeoqvrNcP1lBLZRsQv-GuutdVIb96tE83_WyDHGHxYviOh7JlUiUZNWnKJRuEOC4cyb6If3r669AS8ZN9iJB6fo_itMSwMNjVPSPmAvzo7Fe6Xw5zw=w2734-h2050-s-no-gm?authuser=0"
                         alt="Calamba City Hall">
@@ -136,12 +143,12 @@
                     <span class="card-tag">Establishment</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Calamba City Hall'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Place Card 2 -->
-            <a href="planner.html?dest=Rizal Shrine" class="ref-card" data-category="hangout">
+            <div class="ref-card" data-category="hangout" onclick="openPlacePanel('Rizal Shrine')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_EEk4rCx1aWAAIKLD-D9dGvcre4MjbxKdFQ&s"
                         alt="Bahay ni Rizal">
@@ -151,14 +158,14 @@
                     <span class="card-tag">Historic</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Rizal Shrine'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Place Card 3: Already updated in previous step -->
 
             <!-- Place Card 4 -->
-            <a href="planner.html?dest=SM City Calamba" class="ref-card" data-category="malls">
+            <div class="ref-card" data-category="malls" onclick="openPlacePanel('SM City Calamba')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://evendo-location-media.s3.amazonaws.com/ShoppingImages/6267eb28-343f-4cc5-a08f-8f6022fcba2b"
                         alt="SM City Calamba">
@@ -168,12 +175,12 @@
                     <span class="card-tag">Mall</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=SM City Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Place Card 5: Terminal -->
-            <a href="planner.html?dest=Calamba Central Terminal" class="ref-card" data-category="terminals">
+            <div class="ref-card" data-category="terminals" onclick="openPlacePanel('Calamba Central Terminal')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80"
                         alt="Terminal">
@@ -183,12 +190,12 @@
                     <span class="card-tag">Terminal</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Calamba Central Terminal'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Place Card 6: School -->
-            <a href="planner.html?dest=City College of Calamba" class="ref-card" data-category="schools">
+            <div class="ref-card" data-category="schools" onclick="openPlacePanel('City College of Calamba')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://static.where-e.com/Philippines/City-College-Of-Calamba_ba2dfbc35e249893367f22e7076f4a27.jpg"
                         alt="CCC">
@@ -198,16 +205,31 @@
                     <span class="card-tag">School</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=City College of Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
+
+            <!-- Place Card 7: STI College -->
+            <div class="ref-card" data-category="schools" onclick="openPlacePanel('STI College Calamba')" style="cursor:pointer;">
+                <div class="ref-img-container">
+                    <img src="https://www.sti.edu/cms/images/school/all/calamba.jpg"
+                        alt="STI College Calamba">
+                </div>
+                <h3>STI College Calamba</h3>
+                <div class="card-meta">
+                    <span class="card-tag">School</span>
+                </div>
+                <div class="card-footer">
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=STI College Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
+                </div>
+            </div>
         </div>
 
         <!-- Section: OUTSIDE CALAMBA / SIKAT NA LUGAR -->
         <h2 class="section-label">OUTSIDE CALAMBA / FAMOUS PLACES</h2>
         <div class="places-grid">
             <!-- National Museum -->
-            <a href="planner.html?dest=National Museum" class="ref-card" data-category="hangout establishments">
+            <div class="ref-card" data-category="hangout establishments" onclick="openPlacePanel('National Museum')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/e2/63/5e/caption.jpg?w=900&h=500&s=1"
                         alt="National Museum">
@@ -218,12 +240,12 @@
                     <span class="card-tag">Culture</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=National Museum'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Alabang -->
-            <a href="planner.html?dest=Festival Mall Alabang" class="ref-card" data-category="malls hangout">
+            <div class="ref-card" data-category="malls hangout" onclick="openPlacePanel('Festival Mall Alabang')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://image-tc.galaxy.tf/wijpeg-8apqa2wrqbabqxgblbqaaqrl0/_photo.jpg" alt="Alabang">
                 </div>
@@ -233,12 +255,12 @@
                     <span class="card-tag">Hub</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Festival Mall Alabang'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Nuvali -->
-            <a href="planner.html?dest=Nuvali Sta Rosa" class="ref-card" data-category="hangout">
+            <div class="ref-card" data-category="hangout" onclick="openPlacePanel('Nuvali Sta Rosa')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://images.squarespace-cdn.com/content/v1/5fa1522044bdda192713063c/1694433501371-TZH3WMEXP477B0IUHAGU/20230910_095936-v2.jpg"
                         alt="Nuvali">
@@ -249,12 +271,12 @@
                     <span class="card-tag">Nature</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Nuvali Sta Rosa'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
 
             <!-- Tagaytay -->
-            <a href="planner.html?dest=Tagaytay" class="ref-card" data-category="hangout">
+            <div class="ref-card" data-category="hangout" onclick="openPlacePanel('Tagaytay')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/1c/54/ff/caption.jpg?w=1200&h=-1&s=1"
                         alt="Tagaytay">
@@ -265,78 +287,12 @@
                     <span class="card-tag">Hangout</span>
                 </div>
                 <div class="card-footer">
-                    <span class="plan-btn">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></span>
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Tagaytay'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
-            </a>
+            </div>
         </div>
     </main>
 
-
-
-    <!-- Floating Chat Widget -->
-    <div class="chat-widget-container">
-        <span class="chat-label" data-i18n="chat.label">Ask DyipTok</span>
-        <button class="chat-toggle-btn" id="chatToggleBtn">
-            <ion-icon name="chatbubble"></ion-icon>
-            <span class="pulse-ring"></span>
-        </button>
-    </div>
-
-
-
-    <!-- Chatbot Window -->
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <div>
-                    <div class="chat-name">DyipTok Assistant</div>
-                    <div class="chat-status"><span class="status-dot"></span> Online</div>
-                </div>
-            </div>
-            <button class="close-chat-btn" id="closeChatBtn">
-                <ion-icon name="close-outline"></ion-icon>
-            </button>
-        </div>
-        <div class="chat-messages" id="chatMessages">
-            <div class="message-wrapper bot-wrapper">
-                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
-                <div class="message bot-message" data-i18n="chat.greeting">
-                    Hello! I'm DyipTok. Where do you want to go today?
-                </div>
-            </div>
-        </div>
-
-
-
-
-
-        <div class="chat-input-area">
-            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
-
-            <!-- Bottom Action Row -->
-            <div class="chat-input-toolbar">
-                <div class="toolbar-right">
-                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon
-                            name="mic-outline"></ion-icon></button>
-                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <div id="recordingControls" class="vm-active-container" style="display: none;">
-                <div class="recording-indicator-dot"></div>
-                <div class="vm-frequency-pill" id="vmFrequencyPill">
-                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
-                </div>
-                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
-                    <ion-icon id="pauseMicIcon" name="pause-outline"></ion-icon>
-                </button>
-                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Send">
-                    <ion-icon name="send-outline"></ion-icon>
-                </button>
-                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel">
-                    <ion-icon name="close-outline"></ion-icon>
-                </button>
-            </div>
         </div>
     </div>
 
@@ -443,6 +399,7 @@
             });
         });
     </script>
+    <script src="place-panel.js"></script>
     <script src="transitions.js"></script>
 </body>
 

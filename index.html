@@ -84,10 +84,29 @@
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script>
+        window.FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAKI7xRjkfajArFjWknW4IkvWwlkep5wj4",
+            authDomain: "calzada-web.firebaseapp.com",
+            projectId: "calzada-web",
+            storageBucket: "calzada-web.firebasestorage.app",
+            messagingSenderId: "772241459557",
+            appId: "1:772241459557:web:992e794b2936faa25db98c",
+            measurementId: "G-D6QBPVQVZM"
+        };
+    </script>
+    <!-- Skeleton CSS & FOUC Preventer -->
+    <link rel="stylesheet" href="skeleton.css">
+    <style>
+        body { opacity: 0; }
+        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+    </style>
 </head>
 
 <body class="index-page">
-    <div id="page-transition"></div>
+
     <!-- Scroll progress indicator -->
     <div class="scroll-progress" id="scrollProgress"></div>
 
@@ -110,7 +129,7 @@
                 <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
                 <a href="#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="login.html" class="nav-link btn-nav-auth" data-i18n="login.signin">Sign In</a>
+                <a href="login.html" id="authNavBtn" class="nav-link btn-nav-auth" data-i18n="login.signin">Sign In</a>
 
                 <!-- Navbar Toggle (Desktop) -->
                 <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
@@ -718,6 +737,39 @@
     </script>
 
     <script src="transitions.js"></script>
+
+    <!-- Firebase Auth State Check -->
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './firebase-init.js';
+
+        const authNavBtn = document.getElementById('authNavBtn');
+
+        if (authNavBtn) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // Logged in: Change to Logout
+                    authNavBtn.innerText = 'Log Out';
+                    authNavBtn.href = '#';
+                    authNavBtn.removeAttribute('data-i18n'); // prevent i18n from overriding text
+                    authNavBtn.onclick = async (e) => {
+                        e.preventDefault();
+                        try {
+                            await signOut(auth);
+                            window.location.reload(); // Refresh to update UI
+                        } catch (error) {
+                            console.error("Logout Error:", error);
+                        }
+                    };
+                } else {
+                    // Not logged in: Revert to Sign In
+                    authNavBtn.innerText = 'Sign In';
+                    authNavBtn.href = 'login.html';
+                    authNavBtn.setAttribute('data-i18n', 'login.signin');
+                    authNavBtn.onclick = null;
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

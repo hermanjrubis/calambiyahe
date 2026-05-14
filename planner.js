@@ -1748,33 +1748,82 @@ document.addEventListener('DOMContentLoaded', () => {
     // URL PARAMETERS — runs regardless of earlier errors
     try {
         const urlParams = new URLSearchParams(window.location.search);
+        // URLSearchParams.get automatically decodes, so no decodeURIComponent needed
         const destName = urlParams.get('destName') || urlParams.get('dest') || '';
         const destLat  = parseFloat(urlParams.get('destLat')  || urlParams.get('dlat') || '');
         const destLng  = parseFloat(urlParams.get('destLng')  || urlParams.get('dlng') || '');
 
-        if (destName && !isNaN(destLat) && !isNaN(destLng)) {
-            selectedCoords.destination = [destLat, destLng];
+        if (destName) {
             destPlaceName = destName;
             updateODDisplay();
 
-            if (destMarker) map.removeLayer(destMarker);
-            destMarker = L.marker([destLat, destLng], {
-                icon: L.divIcon({
-                    className: '',
-                    html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
-            <circle cx="14" cy="14" r="6" fill="white"/>
-        </svg>`,
-                    iconSize: [28, 36],
-                    iconAnchor: [14, 36]
-                })
-            }).addTo(map);
+            if (!isNaN(destLat) && !isNaN(destLng)) {
+                // Coordinates provided
+                selectedCoords.destination = [destLat, destLng];
+                if (destMarker) map.removeLayer(destMarker);
+                destMarker = L.marker([destLat, destLng], {
+                    icon: L.divIcon({
+                        className: '',
+                        html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
+                <circle cx="14" cy="14" r="6" fill="white"/>
+            </svg>`,
+                        iconSize: [28, 36],
+                        iconAnchor: [14, 36]
+                    })
+                }).addTo(map);
 
-            map.setView([destLat, destLng], 16);
-            setTimeout(() => map.invalidateSize(), 300);
+                map.setView([destLat, destLng], 16);
+                setTimeout(() => map.invalidateSize(), 300);
 
-            // Auto-open origin picker so user can complete the route
-            setTimeout(() => openLocationModal('origin'), 400);
+                // Auto-open origin picker so user can complete the route
+                setTimeout(() => openLocationModal('origin'), 400);
+            } else {
+                // Name only, no coordinates (e.g. from places.html)
+                // Automatically geocode and set the destination, then ask for origin
+                activeSelectingField = 'destination';
+                
+                // Hardcoded exact coordinates for all places in places.html for 100% reliability
+                const PLACE_FINDER_COORDS = {
+                    "calamba city hall": [14.20164, 121.16487],
+                    "rizal shrine": [14.21415, 121.16664],
+                    "sm city calamba": [14.19895, 121.16335],
+                    "calamba central terminal": [14.19821, 121.16315],
+                    "city college of calamba": [14.19502, 121.16104],
+                    "sti college calamba": [14.19323, 121.16016],
+                    "national museum": [14.58694, 120.98124],
+                    "festival mall alabang": [14.41703, 121.04165],
+                    "nuvali sta rosa": [14.23712, 121.05831],
+                    "tagaytay": [14.10086, 120.93488]
+                };
+
+                const lowerName = destName.toLowerCase().trim();
+
+                if (PLACE_FINDER_COORDS[lowerName]) {
+                    // Exact match found in local dictionary
+                    selectLocation(destName, PLACE_FINDER_COORDS[lowerName]);
+                    setTimeout(() => openLocationModal('origin'), 500);
+                } else {
+                    // Fallback to ESRI geocoder if place name is custom/unknown
+                    const fallbackCoords = [14.2045, 121.1641]; // Calamba center fallback
+                    const esriUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(destName)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&maxLocations=1&f=json`;
+                    
+                    fetch(esriUrl)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.candidates && data.candidates.length > 0) {
+                                selectLocation(destName, [data.candidates[0].location.y, data.candidates[0].location.x]);
+                            } else {
+                                selectLocation(destName, fallbackCoords);
+                            }
+                            setTimeout(() => openLocationModal('origin'), 500);
+                        })
+                        .catch(() => {
+                            selectLocation(destName, fallbackCoords);
+                            setTimeout(() => openLocationModal('origin'), 500);
+                        });
+                }
+            }
         }
     } catch (urlErr) {
         console.error('URL param error:', urlErr);

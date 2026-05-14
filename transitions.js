@@ -1,25 +1,202 @@
 /**
- * Calzada – Smooth Page Transitions (Cube Loader)
+ * Calzada – Modernized Skeleton Loading System
  */
 (function () {
-    const overlay = document.getElementById('page-transition');
-    if (!overlay) return;
+    const path = window.location.pathname;
+    const page = path.split('/').pop() || 'index.html';
 
-    // Inject cube loader content if not already there
-    if (!overlay.querySelector('.pt-cubes')) {
-        overlay.innerHTML = `
-            <div class="pt-cubes">
-                <div class="pt-cube"><span class="pt-cube__inner"></span></div>
-                <div class="pt-cube"><span class="pt-cube__inner"></span></div>
-                <div class="pt-cube"><span class="pt-cube__inner"></span></div>
+    // Shared Navbar Skeleton
+    const navSkeleton = `
+        <div style="height: 76px; width: 100%; position: absolute; top: 0; left: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 5%; z-index: 10;">
+            <div class="skeleton" style="width: 130px; height: 32px; border-radius: 8px;"></div>
+            <div style="display: flex; gap: 24px; align-items: center;" class="nav-desktop-only">
+                <div class="skeleton" style="width: 50px; height: 16px; border-radius: 4px;"></div>
+                <div class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></div>
+                <div class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></div>
+                <div class="skeleton" style="width: 120px; height: 44px; border-radius: 22px;"></div>
             </div>
-            <div class="pt-label">Loading…</div>
-        `;
-    }
+        </div>
+        <style>
+            @media (max-width: 768px) {
+                #skeleton-overlay .nav-desktop-only { display: none !important; }
+            }
+        </style>
+    `;
 
-    // Fade IN on page load — remove overlay
+    // Skeleton Templates matching actual Calzada Layouts
+    const SKELETONS = {
+        'index.html': `
+            ${navSkeleton}
+            <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 5%; background: linear-gradient(135deg, #f0f6fc 0%, #e2eaf5 100%);">
+                <div class="skeleton sk-circle" style="width: 90px; height: 90px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.05);"></div>
+                <div class="skeleton" style="width: 80%; max-width: 500px; height: 48px; border-radius: 12px; margin-bottom: 16px;"></div>
+                <div class="skeleton" style="width: 60%; max-width: 380px; height: 20px; border-radius: 6px; margin-bottom: 40px;"></div>
+                
+                <div class="skeleton" style="width: 100%; max-width: 650px; height: 64px; border-radius: 32px; box-shadow: 0 12px 32px rgba(26,143,255,0.1);"></div>
+            </div>
+        `,
+        'planner.html': `
+            <div style="display: flex; height: 100vh; width: 100vw; overflow: hidden; background: #f8fafc;">
+                <!-- Sidebar -->
+                <div class="planner-sidebar-sk" style="width: 400px; background: #ffffff; padding: 24px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid #e2eaf5; z-index: 5;">
+                    <div class="skeleton" style="width: 100%; height: 140px; border-radius: 20px; margin-top: 60px;"></div>
+                    <div class="skeleton" style="width: 140px; height: 36px; border-radius: 18px;"></div>
+                    <div style="display: flex; gap: 12px;">
+                        <div class="skeleton" style="flex: 1; height: 44px; border-radius: 12px;"></div>
+                        <div class="skeleton" style="flex: 1; height: 44px; border-radius: 12px;"></div>
+                        <div class="skeleton" style="flex: 1; height: 44px; border-radius: 12px;"></div>
+                    </div>
+                    <div class="skeleton" style="width: 100%; height: 100px; border-radius: 16px; margin-top: 10px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 100px; border-radius: 16px;"></div>
+                </div>
+                <!-- Map Area -->
+                <div style="flex: 1; position: relative;">
+                    <div class="skeleton" style="width: 100%; height: 100%; border-radius: 0;"></div>
+                    <!-- Top Right Controls -->
+                    <div style="position: absolute; top: 24px; right: 24px; display: flex; gap: 12px;">
+                        <div class="skeleton" style="width: 60px; height: 44px; border-radius: 22px;"></div>
+                        <div class="skeleton" style="width: 120px; height: 44px; border-radius: 22px;"></div>
+                        <div class="skeleton sk-circle" style="width: 44px; height: 44px;"></div>
+                    </div>
+                </div>
+            </div>
+            <style>
+                @media (max-width: 768px) {
+                    #skeleton-overlay .planner-sidebar-sk { width: 100% !important; position: absolute; bottom: 0; height: 60vh; border-radius: 24px 24px 0 0; padding-top: 40px !important; }
+                }
+            </style>
+        `,
+        'places.html': `
+            ${navSkeleton}
+            <!-- Hero -->
+            <div style="padding: 120px 5% 60px; text-align: center; background: #f0f6fc;">
+                <div class="skeleton" style="width: 60%; max-width: 450px; height: 40px; border-radius: 12px; margin: 0 auto 16px;"></div>
+                <div class="skeleton" style="width: 80%; max-width: 550px; height: 20px; border-radius: 6px; margin: 0 auto 40px;"></div>
+                <div class="skeleton" style="width: 100%; max-width: 600px; height: 60px; border-radius: 30px; margin: 0 auto;"></div>
+            </div>
+            <!-- Main Content -->
+            <div style="padding: 40px 5%; max-width: 1200px; margin: auto;">
+                <!-- Tabs -->
+                <div style="display: flex; gap: 12px; margin-bottom: 40px; overflow: hidden;">
+                    <div class="skeleton" style="width: 110px; height: 42px; border-radius: 21px; flex-shrink: 0;"></div>
+                    <div class="skeleton" style="width: 130px; height: 42px; border-radius: 21px; flex-shrink: 0;"></div>
+                    <div class="skeleton" style="width: 140px; height: 42px; border-radius: 21px; flex-shrink: 0;"></div>
+                    <div class="skeleton" style="width: 100px; height: 42px; border-radius: 21px; flex-shrink: 0;"></div>
+                    <div class="skeleton" style="width: 120px; height: 42px; border-radius: 21px; flex-shrink: 0;"></div>
+                </div>
+                <!-- Section Label -->
+                <div class="skeleton" style="width: 150px; height: 24px; border-radius: 6px; margin-bottom: 24px;"></div>
+                <!-- Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px;">
+                    <div class="skeleton" style="height: 280px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 280px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 280px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 280px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 280px; border-radius: 24px;"></div>
+                    <div class="skeleton" style="height: 280px; border-radius: 24px;"></div>
+                </div>
+            </div>
+        `,
+        'login.html': `
+            ${navSkeleton}
+            <div style="display: flex; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: #f8fafc;">
+                <div style="background: #ffffff; width: 100%; max-width: 480px; padding: 40px 32px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.04);">
+                    <div style="display: flex; gap: 12px; margin-bottom: 32px;">
+                        <div class="skeleton" style="flex: 1; height: 44px; border-radius: 12px;"></div>
+                        <div class="skeleton" style="flex: 1; height: 44px; border-radius: 12px;"></div>
+                    </div>
+                    <div class="skeleton" style="width: 200px; height: 32px; border-radius: 8px; margin-bottom: 12px;"></div>
+                    <div class="skeleton" style="width: 80%; height: 16px; border-radius: 4px; margin-bottom: 32px;"></div>
+                    
+                    <div class="skeleton" style="width: 100%; height: 56px; border-radius: 14px; margin-bottom: 16px;"></div>
+                    <div class="skeleton" style="width: 100%; height: 56px; border-radius: 14px; margin-bottom: 24px;"></div>
+                    
+                    <div class="skeleton" style="width: 100%; height: 52px; border-radius: 26px; margin-bottom: 32px;"></div>
+                    
+                    <div class="skeleton" style="width: 100%; height: 52px; border-radius: 14px;"></div>
+                </div>
+            </div>
+        `,
+        'faq.html': `
+            ${navSkeleton}
+            <div style="padding: 120px 5% 60px; max-width: 800px; margin: auto;">
+                <div class="skeleton" style="width: 60%; max-width: 400px; height: 40px; border-radius: 12px; margin: 0 auto 48px;"></div>
+                
+                <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px; margin-bottom: 16px;"></div>
+                <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px; margin-bottom: 16px;"></div>
+                <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px; margin-bottom: 16px;"></div>
+                <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px; margin-bottom: 16px;"></div>
+                <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px; margin-bottom: 16px;"></div>
+                <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px;"></div>
+            </div>
+        `,
+        'about.html': `
+            ${navSkeleton}
+            <div style="padding: 120px 5% 60px; max-width: 800px; margin: auto;">
+                <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 40px;">
+                    <div class="skeleton sk-circle" style="width: 72px; height: 72px; margin-bottom: 16px;"></div>
+                    <div class="skeleton" style="width: 250px; height: 20px; border-radius: 6px;"></div>
+                </div>
+                
+                <div class="skeleton" style="width: 140px; height: 40px; border-radius: 12px; margin-bottom: 24px;"></div>
+                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div class="skeleton" style="width: 90%; height: 16px; border-radius: 4px; margin-bottom: 32px;"></div>
+                
+                <div class="skeleton" style="width: 100%; height: 16px; border-radius: 4px; margin-bottom: 12px;"></div>
+                <div class="skeleton" style="width: 95%; height: 16px; border-radius: 4px; margin-bottom: 48px;"></div>
+                
+                <div class="skeleton" style="width: 180px; height: 32px; border-radius: 8px; margin-bottom: 24px;"></div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px;">
+                    <div class="skeleton" style="height: 180px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 180px; border-radius: 20px;"></div>
+                    <div class="skeleton" style="height: 180px; border-radius: 20px;"></div>
+                </div>
+            </div>
+        `
+    };
+
+    // DOMContentLoaded: Inject skeleton and show body
+    document.addEventListener('DOMContentLoaded', () => {
+        // FOUC Fix: allow body to become visible. Skeleton covers it immediately.
+        document.body.classList.add('fouc-ready');
+
+        // Fallback for root path matching index.html
+        const pageKey = (page === '' || page === '/') ? 'index.html' : page;
+
+        if (SKELETONS[pageKey]) {
+            const skWrap = document.createElement('div');
+            skWrap.id = 'skeleton-overlay';
+            skWrap.innerHTML = SKELETONS[pageKey];
+            document.body.appendChild(skWrap);
+
+            // Hide actual main content elements initially to prevent layout shifts underneath
+            const mainContentSelectors = ['main', '.scrollable-content', '.planner-gui-container', '.places-page', '.auth-page-container', '.ref-hero'];
+            mainContentSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(el => {
+                    el.style.opacity = '0';
+                });
+            });
+        }
+    });
+
+    // Fade IN on window load (fonts & images ready)
     function fadeOut() {
-        overlay.classList.remove('fade-in');
+        // Fade out skeleton
+        const skWrap = document.getElementById('skeleton-overlay');
+        if (skWrap) {
+            skWrap.classList.add('hidden');
+            setTimeout(() => skWrap.remove(), 500);
+
+            // Reveal main content smoothly
+            const mainContentSelectors = ['main', '.scrollable-content', '.planner-gui-container', '.places-page', '.auth-page-container', '.ref-hero'];
+            mainContentSelectors.forEach(selector => {
+                document.querySelectorAll(selector).forEach(el => {
+                    el.style.transition = 'opacity 0.4s ease';
+                    el.style.opacity = '1';
+                });
+            });
+        }
     }
 
     if (document.readyState === 'complete') {
@@ -28,29 +205,4 @@
         window.addEventListener('pageshow', fadeOut);
         window.addEventListener('load', fadeOut);
     }
-
-    // Intercept internal link clicks → fade-in overlay, then navigate
-    document.addEventListener('click', (e) => {
-        const link = e.target.closest('a[href]');
-        if (!link) return;
-
-        const href = link.getAttribute('href');
-
-        // Ignore: external, anchors, javascript:, mailto:, target=_blank
-        if (
-            !href ||
-            href.startsWith('#') ||
-            href.startsWith('javascript') ||
-            href.startsWith('http') ||
-            href.startsWith('mailto') ||
-            link.target === '_blank'
-        ) return;
-
-        e.preventDefault();
-        overlay.classList.add('fade-in');
-
-        setTimeout(() => {
-            window.location.href = href;
-        }, 400);
-    });
 })();

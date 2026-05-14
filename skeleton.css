@@ -1,0 +1,86 @@
+/* skeleton.css - Modern app loading placeholders */
+
+.skeleton {
+    /* Made the shimmer much more visible by darkening the contrast */
+    background: linear-gradient(90deg, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite linear;
+    border-radius: var(--radius-sm, 12px);
+    pointer-events: none;
+    user-select: none;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Shape Utilities */
+.sk-text {
+    width: 100%;
+    height: 1.2rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+}
+
+.sk-title {
+    width: 60%;
+    height: 3rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.sk-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+}
+
+.sk-card {
+    width: 100%;
+    background: #ffffff; /* Base white before shimmer if nested, but usually skeleton is the shimmer */
+    height: 150px;
+    border-radius: var(--radius-md, 20px);
+}
+
+.sk-btn {
+    width: 120px;
+    height: 48px;
+    border-radius: var(--radius-sm, 12px);
+}
+
+.sk-map {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    border-radius: var(--radius-md, 20px);
+}
+
+/* Container for skeleton overlay to match page background */
+#skeleton-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #ffffff;
+    z-index: 100; /* Below the page-transition cube loader, but above content */
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#skeleton-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Helper flex/grid classes for skeletons */
+.sk-flex { display: flex; gap: 1rem; align-items: center; }
+.sk-flex-col { display: flex; flex-direction: column; gap: 1rem; }
+.sk-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.sk-grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+
+@media (max-width: 768px) {
+    .sk-grid-3 { grid-template-columns: 1fr; }
+}

@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
     setInterval(() => {
         fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
-    }, 10 * 60 * 1000);
+    }, 5 * 60 * 1000); // Reduced to 5 mins for Render free tier
 
     const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost';
 
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchResults = document.getElementById('searchResults');
 
     if (searchInput && searchResults) {
-        const osmAttribution = `<div class="search-osm-attribution"><span>🗺️ Search results powered by <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> / Nominatim</span></div>`;
+        const osmAttribution = `<div class="search-osm-attribution"><span>${window.t('js.osm_attribution')}</span></div>`;
 
         const buildResultItem = (name, address, onClick) => {
             const item = document.createElement('div');
@@ -312,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const cancelBtn = document.getElementById('cancelMicBtn');
                 if (cancelBtn) cancelBtn.click();
-                addMessage("Session ended due to inactivity.", false);
+                addMessage(window.t('js.session_ended'), false);
             }, INACTIVITY_LIMIT);
         }
     }
@@ -325,6 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatToggleBtn) {
         const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
         chatToggleBtn.addEventListener('click', () => {
+            // Pre-warm the server when button is clicked
+            fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
+            
             document.body.classList.add('chat-active');
             if (chatWindow) chatWindow.classList.add('open');
             if (pulseRing) pulseRing.style.animation = 'none';
@@ -335,6 +338,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openChat = (e) => {
         if (e) e.preventDefault();
+        
+        // Pre-warm the server when chat is opened from other links
+        fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
+
         document.body.classList.add('chat-active');
         if (chatWindow) {
             chatWindow.classList.add('open');
@@ -456,7 +463,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const payload = { message: fullMessageWithContext };
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for Render cold starts
 
         try {
             const response = await fetch(`${CHAT_API}/api/chat`, {
@@ -481,7 +488,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                 addMessage(botReply, false);
             } else {
                 if (isDev) console.error("API Error:", data);
-                let errMsg = "Pasensya na, may error sa aking system. Try again later.";
+                let errMsg = window.t('js.error_system');
                 if (data.error && data.error.message) { errMsg = `API Error: ${data.error.message}`; }
                 addMessage(errMsg, false);
             }
@@ -490,9 +497,9 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             if (isDev) console.error("API Network Exception:", error);
             removeTyping();
             if (error.name === 'AbortError') {
-                addMessage("Medyo matagal ang response. Subukan ulit — ginigising ko pa lang ang server! 😅", false);
+                addMessage(window.t('js.server_wakeup'), false);
             } else {
-                addMessage(`Naku! Hindi ako maka-connect. Paki-check ang connection mo.`, false);
+                addMessage(window.t('js.error_connection'), false);
             }
         }
     }
@@ -635,7 +642,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             micBtn.addEventListener('click', () => {
                 if (!isRecording) {
                     try { resetInactivityTimer(); recognition.start(); }
-                    catch (err) { if (isDev) console.error('Microphone start error:', err); addMessage('Unable to access microphone. Please check your browser permissions.', false); }
+                    catch (err) { if (isDev) console.error('Microphone start error:', err); addMessage(window.t('js.error_mic'), false); }
                 }
             });
         }
@@ -718,6 +725,11 @@ function switchAuth(type) {
     const formLogin = document.getElementById('formLogin');
     const formRegister = document.getElementById('formRegister');
     if (!tabLogin || !formRegister) return;
+    
+    // Clear forms when switching tabs
+    formLogin.reset();
+    formRegister.reset();
+
     if (type === 'login') {
         tabLogin.classList.add('active'); tabRegister.classList.remove('active');
         formLogin.classList.add('active'); formRegister.classList.remove('active');
