@@ -3755,54 +3755,92 @@ body {
         max-height: 340px;
     }
 
-    /* Scoped side-by-side override for index.html only */
-    .index-page .about-split {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-        gap: 16px;
+    /* Scoped overrides for index.html only */
+    @media (min-width: 481px) {
+        .index-page .about-split {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .index-page .about-split-text {
+            flex: 1.2;
+            min-width: 0;
+        }
+
+        .index-page .about-split-text p {
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .index-page .about-split-text h2 {
+            font-size: 1.4rem;
+        }
+
+        .index-page .section-num {
+            font-size: 0.72rem;
+        }
+
+        .index-page .about-split-mockup {
+            flex: 1.1;
+            max-width: 220px;
+            margin: 0;
+            order: 2;
+            align-self: stretch;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .index-page .mockup-crop-wrapper {
+            max-height: 330px;
+            overflow: hidden;
+            border-radius: 18px;
+            width: 100%;
+        }
+
+        .index-page .about-mockup-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+        }
     }
 
-    .index-page .about-split-text {
-        flex: 1.2;
-        min-width: 0;
-    }
+    /* Mobile-first stacking for small phones (<480px) to maximize mockup size */
+    @media (max-width: 480px) {
+        .index-page .about-split {
+            flex-direction: column !important;
+            align-items: center;
+            gap: 32px;
+        }
 
-    .index-page .about-split-text p {
-        font-size: 0.92rem;
-        line-height: 1.6;
-    }
+        .index-page .about-split-text {
+            text-align: center;
+        }
 
-    .index-page .about-split-text h2 {
-        font-size: 1.4rem;
-    }
+        .index-page .about-split-mockup {
+            width: 100%;
+            max-width: 320px !important;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
 
-    .index-page .section-num {
-        font-size: 0.72rem;
-    }
+        .index-page .mockup-crop-wrapper {
+            max-height: 480px !important;
+            border-radius: 24px;
+            overflow: hidden;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
 
-    .index-page .about-split-mockup {
-        flex: 1.1;
-        max-width: 220px;
-        margin: 0;
-        order: 2;
-        align-self: stretch;
-        display: flex;
-        align-items: flex-start;
-    }
-
-    .index-page .mockup-crop-wrapper {
-        max-height: 330px;
-        overflow: hidden;
-        border-radius: 18px;
-        width: 100%;
-    }
-
-    .index-page .about-mockup-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: top center;
+        .index-page .about-mockup-img {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
     }
 }
 
