@@ -3747,12 +3747,12 @@ body {
         order: 2;
         flex: none;
         width: 100%;
-        max-width: 280px;
+        max-width: 320px;
         margin: 0 auto;
     }
 
     .mockup-crop-wrapper {
-        max-height: 260px;
+        max-height: 340px;
     }
 
     /* Scoped side-by-side override for index.html only */
@@ -3764,7 +3764,7 @@ body {
     }
 
     .index-page .about-split-text {
-        flex: 1.4;
+        flex: 1.2;
         min-width: 0;
     }
 
@@ -3782,8 +3782,8 @@ body {
     }
 
     .index-page .about-split-mockup {
-        flex: 1;
-        max-width: 190px;
+        flex: 1.1;
+        max-width: 220px;
         margin: 0;
         order: 2;
         align-self: stretch;
@@ -3792,7 +3792,7 @@ body {
     }
 
     .index-page .mockup-crop-wrapper {
-        max-height: 290px;
+        max-height: 330px;
         overflow: hidden;
         border-radius: 18px;
         width: 100%;
