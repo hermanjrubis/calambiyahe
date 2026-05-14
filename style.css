@@ -3938,21 +3938,18 @@ body {
 
 .about-float-mockup {
     float: left;
-    width: 200px;
-    margin: 10px 30px 25px 0;
-    border-radius: 24px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(26, 143, 255, 0.15);
-    padding: 6px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
+    width: 290px;
+    margin: 10px 35px 25px 0;
+    background: transparent;
+    border: none;
+    padding: 0;
+    filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.08));
     transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .about-float-mockup:hover {
     transform: translateY(-6px) scale(1.02);
-    box-shadow: 0 25px 50px -10px rgba(26, 143, 255, 0.22);
-    border-color: rgba(26, 143, 255, 0.4);
+    filter: drop-shadow(0 20px 40px rgba(26, 143, 255, 0.2));
 }
 
 @media (max-width: 576px) {
@@ -3966,7 +3963,8 @@ body {
         float: none;
         display: block;
         margin: 30px auto;
-        width: 240px; /* Scales beautifully on mobile center */
+        width: 320px; /* Bold visibility for mobile */
+        max-width: 100%;
     }
 }
 
