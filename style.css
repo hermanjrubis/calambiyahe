@@ -3761,11 +3761,19 @@ body {
 
 .transit-badge-item .badge-icon {
     display: flex;
-    font-size: 1.3rem;
+    align-items: center;
+    justify-content: center;
 }
 
-.transit-badge-item:hover .badge-icon {
-    color: white;
+.transit-badge-img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    transition: filter 0.25s ease;
+}
+
+.transit-badge-item:hover .transit-badge-img {
+    filter: brightness(0) invert(1); /* Smoothly converts native assets to white on hover */
 }
 
 /* Glowing Call-to-Action Bottom Card */
