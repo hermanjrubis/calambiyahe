@@ -516,6 +516,37 @@
         </div>
     </div>
 
+    <!-- ===== TERMINAL SUGGESTION PANEL (PostGIS — Calamba Only) ===== -->
+    <div class="ts-overlay" id="terminalSuggestOverlay"></div>
+    <div class="terminal-suggest-panel" id="terminalSuggestPanel">
+        <div class="ts-drag-bar"><div class="ts-drag-pill"></div></div>
+        <div class="ts-header">
+            <div class="ts-header-left">
+                <div class="ts-header-icon">
+                    <ion-icon name="navigate-circle"></ion-icon>
+                </div>
+                <div class="ts-header-text">
+                    <div class="ts-title">Terminals Near You</div>
+                    <div class="ts-subtitle">You're in Calamba — choose your boarding point</div>
+                </div>
+            </div>
+            <button class="ts-close-btn" id="tsCloseBtn">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <div class="ts-list" id="tsTerminalList">
+            <!-- Terminal cards injected by JS -->
+            <div class="ts-loading">
+                <div class="route-spinner"></div>
+                <span>Finding nearby terminals...</span>
+            </div>
+        </div>
+        <button class="ts-skip-btn" id="tsSkipBtn">
+            <ion-icon name="location-outline"></ion-icon>
+            Choose location manually instead
+        </button>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

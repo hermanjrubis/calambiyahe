@@ -347,6 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateODDisplay();
                     closeLocationModal();
                     if (selectedCoords.destination) executeRouteQuery();
+                    // PostGIS: show terminal suggestions if user is in Calamba
+                    if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude);
                 },
                 () => {
                     closeLocationModal();
@@ -492,6 +494,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             updateODDisplay();
                             closeLocationModal();
                             if (selectedCoords.destination) executeRouteQuery();
+                            // PostGIS: show terminal suggestions if user is in Calamba
+                            if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude);
                         },
                         () => {
                             closeLocationModal();
@@ -1947,6 +1951,120 @@ document.addEventListener('DOMContentLoaded', () => {
             dismissBanner();
         });
     })();
+
+
+    // =============================================
+    // TERMINAL SUGGESTION ENGINE (PostGIS — Calamba Only)
+    // =============================================
+
+    const API_BASE = 'https://calambiyahe-7i9b.onrender.com';
+
+    // Calamba City bounding box
+    const CALAMBA_BOUNDS = { minLat: 14.10, maxLat: 14.30, minLng: 121.05, maxLng: 121.25 };
+
+    const isInCalamba = (lat, lng) =>
+        lat >= CALAMBA_BOUNDS.minLat && lat <= CALAMBA_BOUNDS.maxLat &&
+        lng >= CALAMBA_BOUNDS.minLng && lng <= CALAMBA_BOUNDS.maxLng;
+
+    const fetchNearestTerminals = async (lat, lng) => {
+        try {
+            const res = await fetch(`${API_BASE}/api/terminals/nearest?lat=${lat}&lng=${lng}`);
+            if (!res.ok) throw new Error('API error');
+            return await res.json();
+        } catch (e) {
+            console.warn('Could not fetch terminals:', e);
+            return [];
+        }
+    };
+
+    const TERMINAL_COLORS = {
+        'CCT': '#1C6EF2', 'SMT': '#7c3aed',
+        'TBT': '#ef4444', 'SCT': '#f59e0b', 'SPT': '#10b981'
+    };
+
+    const renderTerminalCards = (terminals, userLat, userLng) => {
+        const list = document.getElementById('tsTerminalList');
+        if (!list) return;
+        list.innerHTML = '';
+
+        terminals.forEach(t => {
+            const distM = Math.round(t.dist_meters || 0);
+            const distTxt = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${distM} m`;
+            const rawTypes = t.transport_types;
+            const types = Array.isArray(rawTypes)
+                ? rawTypes.join(' · ')
+                : (typeof rawTypes === 'string' ? rawTypes.replace(/[{}"]/g, '').replace(/,/g, ' · ') : '');
+            const color = TERMINAL_COLORS[t.terminal_code] || '#1C6EF2';
+
+            const card = document.createElement('div');
+            card.className = 'ts-terminal-card';
+            card.innerHTML = `
+                <div class="ts-card-badge" style="background:${color}18; border-color:${color}35;">
+                    <span class="ts-code" style="color:${color}">${t.terminal_code || '??'}</span>
+                </div>
+                <div class="ts-card-body">
+                    <div class="ts-name">${t.name || 'Terminal'}</div>
+                    <div class="ts-types">${types}</div>
+                    <div class="ts-dist-row">
+                        <ion-icon name="navigate-outline"></ion-icon>
+                        <span>${distTxt} from you</span>
+                    </div>
+                </div>
+                <button class="ts-board-btn" style="background:${color}; box-shadow:0 4px 12px ${color}50;">
+                    Board <ion-icon name="arrow-forward-outline"></ion-icon>
+                </button>
+            `;
+
+            card.querySelector('.ts-board-btn').addEventListener('click', () => {
+                let termLat = userLat, termLng = userLng;
+                try {
+                    const geo = JSON.parse(t.geojson);
+                    termLng = geo.coordinates[0];
+                    termLat = geo.coordinates[1];
+                } catch (e) {}
+
+                selectedCoords.origin = [termLat, termLng];
+                originPlaceName = t.name;
+                updateODDisplay();
+                closeTerminalPanel();
+                showToast(`📍 Boarding from: ${t.name}`);
+                if (selectedCoords.destination) executeRouteQuery();
+            });
+
+            list.appendChild(card);
+        });
+    };
+
+    const showTerminalPanel = () => {
+        document.getElementById('terminalSuggestPanel')?.classList.add('visible');
+        document.getElementById('terminalSuggestOverlay')?.classList.add('visible');
+    };
+
+    const closeTerminalPanel = () => {
+        document.getElementById('terminalSuggestPanel')?.classList.remove('visible');
+        document.getElementById('terminalSuggestOverlay')?.classList.remove('visible');
+    };
+
+    document.getElementById('tsCloseBtn')?.addEventListener('click', closeTerminalPanel);
+    document.getElementById('tsSkipBtn')?.addEventListener('click', closeTerminalPanel);
+    document.getElementById('terminalSuggestOverlay')?.addEventListener('click', closeTerminalPanel);
+
+    // Exposed globally so it can be called from My Location callbacks above
+    window.checkAndShowTerminals = async (lat, lng) => {
+        if (!isInCalamba(lat, lng)) return;
+
+        // Show loading state
+        const list = document.getElementById('tsTerminalList');
+        if (list) list.innerHTML = `<div class="ts-loading"><div class="route-spinner" style="border-top-color:#1C6EF2;"></div><span>Finding nearest terminals...</span></div>`;
+        showTerminalPanel();
+
+        const terminals = await fetchNearestTerminals(lat, lng);
+        if (terminals && terminals.length > 0) {
+            renderTerminalCards(terminals, lat, lng);
+        } else {
+            if (list) list.innerHTML = `<div class="ts-loading" style="color:#ef4444;"><ion-icon name="warning-outline"></ion-icon><span>No terminals found nearby.</span></div>`;
+        }
+    };
 
     }, 0);
 });
