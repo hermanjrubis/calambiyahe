@@ -1969,8 +1969,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const API_BASE = 'https://calambiyahe-7i9b.onrender.com';
 
-    // Calamba City bounding box
-    const CALAMBA_BOUNDS = { minLat: 14.10, maxLat: 14.30, minLng: 121.05, maxLng: 121.25 };
+    // Strict Calamba City bounding box (excludes Cabuyao, Los Baños, etc.)
+    const CALAMBA_BOUNDS = { minLat: 14.14, maxLat: 14.235, minLng: 121.05, maxLng: 121.20 };
 
     const isInCalamba = (lat, lng) =>
         lat >= CALAMBA_BOUNDS.minLat && lat <= CALAMBA_BOUNDS.maxLat &&
