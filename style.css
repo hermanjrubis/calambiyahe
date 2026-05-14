@@ -3929,6 +3929,22 @@ body {
     margin-top: 20px;
 }
 
+.about-float-logo {
+    float: right;
+    width: 160px;
+    margin: 6px 0 15px 25px;
+    object-fit: contain;
+}
+
+@media (max-width: 576px) {
+    .about-float-logo {
+        float: none;
+        display: block;
+        margin: 0 auto 20px;
+        width: 140px;
+    }
+}
+
 /* =============================================
    ABOUT SECTION – SIDE-BY-SIDE MOCKUP LAYOUT
    ============================================= */
