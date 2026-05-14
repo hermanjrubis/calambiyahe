@@ -119,22 +119,14 @@ html, body {
 @media (min-width: 768px) {
     .recenter-btn {
         bottom: 30px;
-        right: 20px;
+        right: 30px;
+        left: auto;
     }
 }
 
 .recenter-btn:active {
     transform: scale(0.9);
 }
-
-@media (min-width: 768px) {
-    .recenter-btn {
-        left: 380px;
-        right: auto;
-        bottom: 30px;
-    }
-}
-
 .map-top-bar {
     position: fixed;
     top: 0;
@@ -350,11 +342,11 @@ html, body {
         z-index: 1;
     }
 
-    /* Recenter button shifts right of sidebar */
+    /* Recenter button stays on the right */
     .recenter-btn {
-        left: 360px;
-        right: auto;
+        right: 30px;
         bottom: 30px;
+        left: auto;
     }
 
     .drag-handle-bar {
