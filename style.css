@@ -1811,21 +1811,24 @@ body {
         bottom: 24px !important;
         /* Align with the features bar */
         right: 15px;
+        gap: 4px; /* Slightly tighter gap on mobile */
         transition: bottom 0.3s ease, transform 0.3s ease;
     }
 
     .chat-label {
-        display: none !important; /* Hide text label on mobile to save space */
+        display: block !important; /* Keep visible as requested */
+        font-size: 0.75rem !important; /* Shrink text font size */
+        padding: 6px 12px !important; /* Shrink text bubble padding */
     }
 
     .chat-toggle-btn {
-        width: 50px !important;
-        height: 50px !important;
+        width: 48px !important; /* Shrink icon button width */
+        height: 48px !important; /* Shrink icon button height */
     }
 
     .chat-toggle-btn img {
-        width: 50px !important;
-        height: 50px !important;
+        width: 48px !important; /* Shrink avatar image width */
+        height: 48px !important; /* Shrink avatar image height */
     }
 
     .chat-window {
