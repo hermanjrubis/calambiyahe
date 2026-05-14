@@ -1822,13 +1822,13 @@ body {
     }
 
     .chat-toggle-btn {
-        width: 48px !important; /* Shrink icon button width */
-        height: 48px !important; /* Shrink icon button height */
+        width: 58px !important; /* Re-scale icon button larger */
+        height: 58px !important;
     }
 
     .chat-toggle-btn img {
-        width: 48px !important; /* Shrink avatar image width */
-        height: 48px !important; /* Shrink avatar image height */
+        width: 58px !important; /* Re-scale robot avatar larger */
+        height: 58px !important;
     }
 
     .chat-window {
