@@ -816,13 +816,7 @@ body {
         pointer-events: none !important;
     }
 
-    .chat-widget-container.hide-on-scroll {
-        opacity: 0 !important;
-        visibility: hidden !important;
-        transform: translateY(30px) !important;
-        pointer-events: none !important;
-        transition: transform 0.4s ease, opacity 0.4s ease, visibility 0.4s !important;
-    }
+
 
     .features-grid {
         display: flex !important;
@@ -980,6 +974,16 @@ body {
     animation-delay: 0.6s;
     opacity: 0;
     transform: translateY(30px);
+    /* Added universal transitions for smooth hiding across all screens */
+    transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s, bottom 0.3s ease !important;
+}
+
+/* Universal Hide-on-scroll class for DyipTok */
+.chat-widget-container.hide-on-scroll {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(40px) !important; /* Glide slightly deeper down on scroll */
+    pointer-events: none !important;
 }
 
 @keyframes slideInUp {
