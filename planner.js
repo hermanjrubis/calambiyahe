@@ -348,7 +348,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     closeLocationModal();
                     if (selectedCoords.destination) executeRouteQuery();
                     // PostGIS: show terminal suggestions if user is in Calamba
-                    if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude);
+                    let dLat = null, dLng = null;
+                    if (selectedCoords.destination) {
+                        dLat = selectedCoords.destination[0];
+                        dLng = selectedCoords.destination[1];
+                    }
+                    if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude, dLat, dLng);
                 },
                 () => {
                     closeLocationModal();
@@ -495,7 +500,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             closeLocationModal();
                             if (selectedCoords.destination) executeRouteQuery();
                             // PostGIS: show terminal suggestions if user is in Calamba
-                            if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude);
+                            let dLat = null, dLng = null;
+                            if (selectedCoords.destination) {
+                                dLat = selectedCoords.destination[0];
+                                dLng = selectedCoords.destination[1];
+                            }
+                            if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude, dLat, dLng);
                         },
                         () => {
                             closeLocationModal();
@@ -1966,9 +1976,13 @@ document.addEventListener('DOMContentLoaded', () => {
         lat >= CALAMBA_BOUNDS.minLat && lat <= CALAMBA_BOUNDS.maxLat &&
         lng >= CALAMBA_BOUNDS.minLng && lng <= CALAMBA_BOUNDS.maxLng;
 
-    const fetchNearestTerminals = async (lat, lng) => {
+    const fetchNearestTerminals = async (lat, lng, destLat, destLng) => {
         try {
-            const res = await fetch(`${API_BASE}/api/terminals/nearest?lat=${lat}&lng=${lng}`);
+            let url = `${API_BASE}/api/terminals/nearest?lat=${lat}&lng=${lng}`;
+            if (destLat && destLng) {
+                url += `&destLat=${destLat}&destLng=${destLng}`;
+            }
+            const res = await fetch(url);
             if (!res.ok) throw new Error('API error');
             return await res.json();
         } catch (e) {
@@ -2050,15 +2064,15 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('terminalSuggestOverlay')?.addEventListener('click', closeTerminalPanel);
 
     // Exposed globally so it can be called from My Location callbacks above
-    window.checkAndShowTerminals = async (lat, lng) => {
+    window.checkAndShowTerminals = async (lat, lng, destLat, destLng) => {
         if (!isInCalamba(lat, lng)) return;
 
         // Show loading state
         const list = document.getElementById('tsTerminalList');
-        if (list) list.innerHTML = `<div class="ts-loading"><div class="route-spinner" style="border-top-color:#1C6EF2;"></div><span>Finding nearest terminals...</span></div>`;
+        if (list) list.innerHTML = `<div class="ts-loading"><div class="route-spinner" style="border-top-color:#1C6EF2;"></div><span>Finding best terminals for your route...</span></div>`;
         showTerminalPanel();
 
-        const terminals = await fetchNearestTerminals(lat, lng);
+        const terminals = await fetchNearestTerminals(lat, lng, destLat, destLng);
         if (terminals && terminals.length > 0) {
             renderTerminalCards(terminals, lat, lng);
         } else {

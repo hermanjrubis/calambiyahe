@@ -187,23 +187,48 @@ app.get('/api/stops/:id/terminal', async (req, res) => {
     }
 });
 
-// 5. Find the nearest terminal to a coordinate
+// 5. Find the nearest terminal to a coordinate (Destination-aware)
 app.get('/api/terminals/nearest', async (req, res) => {
-    const { lat, lng } = req.query;
+    const { lat, lng, destLat, destLng } = req.query;
     if (!lat || !lng) return res.status(400).json({ error: 'Missing lat or lng' });
     
     try {
-        const result = await pool.query(`
-            SELECT p.name, p.municipality,
-                   t.terminal_code, t.transport_types, t.operating_hours,
-                   ST_Distance(p.location, ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')')) AS dist_meters,
-                   ST_AsGeoJSON(p.location) as geojson
-            FROM places p
-            JOIN terminals t ON t.place_id = p.id
-            WHERE p.is_active = true
-            ORDER BY p.location <-> ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')')
-            LIMIT 3
-        `, [lat, lng]);
+        let query, params;
+        if (destLat && destLng) {
+            // Destination-aware sorting: minimize (dist to terminal + dist from terminal to destination)
+            // This favors terminals that are "on the way" to the destination
+            query = `
+                SELECT p.name, p.municipality,
+                       t.terminal_code, t.transport_types, t.operating_hours,
+                       ST_Distance(p.location, ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')')) AS dist_meters,
+                       ST_AsGeoJSON(p.location) as geojson
+                FROM places p
+                JOIN terminals t ON t.place_id = p.id
+                WHERE p.is_active = true
+                ORDER BY (
+                    ST_Distance(p.location, ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')')) +
+                    ST_Distance(p.location, ST_GeogFromText('POINT(' || $4 || ' ' || $3 || ')'))
+                ) ASC
+                LIMIT 3
+            `;
+            params = [lat, lng, destLat, destLng];
+        } else {
+            // Standard nearest sorting
+            query = `
+                SELECT p.name, p.municipality,
+                       t.terminal_code, t.transport_types, t.operating_hours,
+                       ST_Distance(p.location, ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')')) AS dist_meters,
+                       ST_AsGeoJSON(p.location) as geojson
+                FROM places p
+                JOIN terminals t ON t.place_id = p.id
+                WHERE p.is_active = true
+                ORDER BY p.location <-> ST_GeogFromText('POINT(' || $2 || ' ' || $1 || ')')
+                LIMIT 3
+            `;
+            params = [lat, lng];
+        }
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching nearest terminal:', err);
