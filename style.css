@@ -3712,14 +3712,14 @@ body {
 }
 
 .about-split-mockup {
-    flex: 0 0 300px;
+    flex: 0 0 360px;
     display: flex;
     justify-content: center;
 }
 
 /* Crop wrapper: hides the bottom github browser bar */
 .mockup-crop-wrapper {
-    max-height: 400px;
+    max-height: 480px;
     overflow: hidden;
     background: transparent;
     border-radius: 24px;
@@ -3783,7 +3783,7 @@ body {
 
     .index-page .about-split-mockup {
         flex: 1;
-        max-width: 160px;
+        max-width: 190px;
         margin: 0;
         order: 2;
         align-self: stretch;
@@ -3792,7 +3792,7 @@ body {
     }
 
     .index-page .mockup-crop-wrapper {
-        max-height: 240px;
+        max-height: 290px;
         overflow: hidden;
         border-radius: 18px;
         width: 100%;
