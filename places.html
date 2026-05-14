@@ -81,18 +81,16 @@
         <p data-i18n="places.hero_subtitle">From sakayan to galaan â€” your smart guide to Calamba's terminals and
             must-visit places</p>
 
-        <!-- API Powered Search Bar -->
+        <!-- Local Search Bar -->
         <div class="search-container" style="margin: 35px auto 0; animation: none; width: 100%; max-width: 600px;">
             <div class="search-bar" id="searchBar">
                 <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
                 <input type="text" data-i18n="places.search_placeholder" data-i18n-attr="placeholder"
-                    placeholder="Maghanap ng lugar..." class="search-input" id="searchInput">
-                <button class="search-button" aria-label="Search" id="searchBtn">
+                    placeholder="Maghanap ng lugar..." class="search-input" id="placeSearchInput">
+                <button class="search-button" aria-label="Search" id="placeSearchBtn">
                     <ion-icon name="search-outline"></ion-icon>
                 </button>
             </div>
-            <!-- Dynamic Dropdown for Nominatim API Results -->
-            <div class="search-results-dropdown" id="searchResults" style="text-align: left; color: #1e293b;"></div>
         </div>
     </section>
 
@@ -308,7 +306,7 @@
             const scrollLeftBtn = document.getElementById('catScrollLeft');
             const scrollRightBtn = document.getElementById('catScrollRight');
             const noResults = document.getElementById('noResults');
-            const searchInput = document.getElementById('searchInput');
+            const searchInput = document.getElementById('placeSearchInput');
 
             // Scroll Buttons Logic
             const updateScrollButtons = () => {
