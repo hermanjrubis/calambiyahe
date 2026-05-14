@@ -67,15 +67,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === HIDE FEATURES BAR ON SCROLL (Desktop & Mobile) ===
+    // === HIDE FEATURES BAR & DYIPTOK ON SCROLL (Desktop & Mobile) ===
     const heroSection = document.querySelector('.hero-section');
-    if (featuresBar && heroSection) {
+    const chatWidget = document.querySelector('.chat-widget-container');
+    
+    if ((featuresBar || chatWidget) && heroSection) {
         const heroObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) {
-                    featuresBar.classList.add('hide-on-scroll');
+                    if (featuresBar) featuresBar.classList.add('hide-on-scroll');
+                    if (chatWidget) chatWidget.classList.add('hide-on-scroll');
                 } else {
-                    featuresBar.classList.remove('hide-on-scroll');
+                    if (featuresBar) featuresBar.classList.remove('hide-on-scroll');
+                    if (chatWidget) chatWidget.classList.remove('hide-on-scroll');
                 }
             });
         }, {

@@ -816,6 +816,14 @@ body {
         pointer-events: none !important;
     }
 
+    .chat-widget-container.hide-on-scroll {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transform: translateY(30px) !important;
+        pointer-events: none !important;
+        transition: transform 0.4s ease, opacity 0.4s ease, visibility 0.4s !important;
+    }
+
     .features-grid {
         display: flex !important;
         flex-direction: column !important;
