@@ -894,8 +894,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="leg-sidebar walk-sidebar">
                 <div class="leg-sidebar-icon">
                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                     <circle cx="13" cy="3.5" r="1.5"/>
-                     <path d="M9.5 9.5L7 20h2l1.5-5 2.5 3v5h2v-6l-2.5-3 .5-4L15 12h3v-2h-3.5l-2-3.5c-.3-.5-.8-.8-1.4-.8-.3 0-.6.1-.9.2L6 8l.5 2 3-.5z"/>
+                       <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
                    </svg>
                 </div>
                 <div class="leg-sidebar-label">Walk</div>
