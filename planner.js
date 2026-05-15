@@ -1967,7 +1967,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
 
     const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const API_BASE = isDev ? 'http://localhost:5000' : 'https://calambiyahe-api.vercel.app';
+    const API_BASE = isDev ? 'http://localhost:5000' : 'https://calzada-api.vercel.app';
 
     // Strict Calamba City bounding box (excludes Cabuyao, Los Baños, etc.)
     const CALAMBA_BOUNDS = { minLat: 14.14, maxLat: 14.235, minLng: 121.05, maxLng: 121.20 };
