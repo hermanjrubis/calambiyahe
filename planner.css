@@ -285,9 +285,7 @@ html, body {
     }
 }
 
-.bottom-sheet.collapsed {
-    /* JS handles the transform now. Keep class for state tracking only. */
-}
+/* .bottom-sheet.collapsed — JS handles transform; class used for state tracking only. */
 
 .bottom-sheet.journey-active-hidden { display: none !important; }
 

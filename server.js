@@ -8,7 +8,10 @@ require('dotenv').config();
 // Database Pool Setup
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    max: 4, // Limit connection pool size for serverless environments to prevent db connection limits
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
 
 const app = express();
@@ -36,7 +39,7 @@ YOUR SCOPE & PERSONA:
 - Answer questions about Calzada, its history, features, and transit info in Calamba.
 - Be friendly, use Taglish, and keep answers **very short (1-2 sentences)** to improve speed.
 - **Avoid repeating greetings** like "Kumusta" or "Hello" in every reply. Direct at agad na sagutin ang tanong.
-- When suggesting routes, use known fare rules (jeep minimum ₱13, modern jeep ₱15, etc.).
+- When suggesting routes, use known fare rules (jeep minimum ₱14, modern jeep ₱17, etc.).
 
 RESTRICTIONS:
 - NEVER mention personal calendars, tasks, or schedules.
@@ -258,17 +261,13 @@ app.get('/api/terminals/:id/coverage', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    
-    // === SELF-WARMING MECHANISM ===
-    // Pings itself every 5 minutes to stay awake on Render free tier
-    const SELF_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
-    setInterval(() => {
-        https.get(`${SELF_URL}/api/ping`, (res) => {
-            console.log(`Self-ping status: ${res.statusCode}`);
-        }).on('error', (err) => {
-            console.error('Self-ping failed:', err.message);
-        });
-    }, 5 * 60 * 1000); 
-});
+
+// Only listen when NOT deployed on Vercel Serverless
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
+
+// Export the app for Vercel Serverless
+module.exports = app;

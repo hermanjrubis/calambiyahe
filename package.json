@@ -25,5 +25,8 @@
     "express": "^5.2.1",
     "groq-sdk": "^1.2.0",
     "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "sharp": "^0.34.5"
   }
 }

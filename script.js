@@ -1,14 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const CHAT_API = 'https://calambiyahe-7i9b.onrender.com';
+    const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const CHAT_API = isDev ? 'http://localhost:5000' : 'https://calambiyahe-api.vercel.app';
 
-    // Warm up the server on page load
-    fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
-    setInterval(() => {
+    // Warm up the server briefly on page load (helpful for DB wakeups)
+    if (CHAT_API !== '') {
         fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
-    }, 5 * 60 * 1000); // Reduced to 5 mins for Render free tier
-
-    const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost';
+    } else {
+        fetch('/api/ping', { method: 'GET' }).catch(() => { });
+    }
 
     // === PASABOG KONG EFFECTS (Parallax & Glow) ===
     const mouseGlow = document.getElementById('mouseGlow');

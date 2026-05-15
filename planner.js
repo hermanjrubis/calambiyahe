@@ -797,8 +797,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const computeLTFRBFare = (distKm, mode) => {
-        let base = 13, perKm = 1.80; // Default Jeep
-        if (mode === 'modern-jeepney') { base = 15; perKm = 2.20; }
+        let base = 14, perKm = 2.00; // Default Traditional Jeep
+        if (mode === 'modern-jeepney') { base = 17; perKm = 2.40; }
         if (distKm <= 4) return base;
         const total = base + (distKm - 4) * perKm;
         return Math.round(total); // rounded to nearest whole peso
@@ -1966,7 +1966,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // TERMINAL SUGGESTION ENGINE (PostGIS — Calamba Only)
     // =============================================
 
-    const API_BASE = 'https://calambiyahe-7i9b.onrender.com';
+    const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const API_BASE = isDev ? 'http://localhost:5000' : 'https://calambiyahe-api.vercel.app';
 
     // Strict Calamba City bounding box (excludes Cabuyao, Los Baños, etc.)
     const CALAMBA_BOUNDS = { minLat: 14.14, maxLat: 14.235, minLng: 121.05, maxLng: 121.20 };
