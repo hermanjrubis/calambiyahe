@@ -42,6 +42,7 @@ YOUR SCOPE & PERSONA:
 - When suggesting routes, use known fare rules (jeep minimum ₱14, modern jeep ₱17, etc.).
 
 RESTRICTIONS:
+- NEVER mention that "there is no active route" or "wala pang pinaplanong ruta" unless the user explicitly asks for navigation, directions, or routing help. Act naturally.
 - NEVER mention personal calendars, tasks, or schedules.
 - If asked something unrelated to Calzada or commuting in Calamba, politely decline.`;
 
@@ -75,17 +76,12 @@ app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 app.post('/api/chat', async (req, res) => {
     const { message, route } = req.body;
 
-    let routeInfo = "[ROUTE INFO]\nNo active route searched.";
+    let routeInfo = "";
     if (route && route.origin && route.destination) {
-        routeInfo = `[ROUTE INFO]
-Origin: ${route.origin}
-Destination: ${route.destination}
-ETA: ${route.eta}
-Fare: ${route.fare}
-Distance: ${route.distance}`;
+        routeInfo = `[ROUTE INFO]\nOrigin: ${route.origin}\nDestination: ${route.destination}\nETA: ${route.eta}\nFare: ${route.fare}\nDistance: ${route.distance}\n\n`;
     }
 
-    const fullUserMessage = `${routeInfo}\n\nUser message: ${message}`;
+    const fullUserMessage = `${routeInfo}${message}`;
 
     try {
         const chatCompletion = await callGroqWithRetry([

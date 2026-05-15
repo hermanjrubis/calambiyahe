@@ -461,7 +461,7 @@ Destination: ${ctx.destination}
 ETA: ${ctx.eta || 'unknown'}
 Fare: \u20b1${ctx.totalFare || 'unknown'}
 Distance: ${ctx.totalDistance || 'unknown'} km
-` : '[ROUTE INFO] none';
+` : '';
 
         const fullMessageWithContext = `${routeInfo}\n\nUser Message: ${text}`;
         const payload = { message: fullMessageWithContext };
