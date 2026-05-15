@@ -56,7 +56,7 @@ const callGroqWithRetry = async (messages, retries = 2) => {
 
             const completionPromise = groq.chat.completions.create({
                 messages,
-                model: "gemma2-9b-it",
+                model: "llama-3.1-8b-instant",
                 temperature: 0.5,
                 max_tokens: 256,
             });
