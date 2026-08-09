@@ -1,13 +1,13 @@
 {
   "name": "Calzada",
   "short_name": "Calzada",
-  "start_url": "/index.html",
+  "start_url": "/pages/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#1a8fff",
   "icons": [
     {
-      "src": "/apple-touch-icon.png",
+      "src": "/assets/apple-touch-icon.png",
       "sizes": "180x180",
       "type": "image/png"
     },

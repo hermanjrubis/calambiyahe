@@ -67,18 +67,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === HIDE FEATURES BAR & DYIPTOK ON SCROLL (Desktop & Mobile) ===
+    // === HIDE ROUTIE ON SCROLL (Desktop & Mobile) ===
     const heroSection = document.querySelector('.hero-section');
     const chatWidget = document.querySelector('.chat-widget-container');
     
-    if ((featuresBar || chatWidget) && heroSection) {
+    if (chatWidget && heroSection) {
         const heroObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (!entry.isIntersecting) {
-                    if (featuresBar) featuresBar.classList.add('hide-on-scroll');
                     if (chatWidget) chatWidget.classList.add('hide-on-scroll');
                 } else {
-                    if (featuresBar) featuresBar.classList.remove('hide-on-scroll');
                     if (chatWidget) chatWidget.classList.remove('hide-on-scroll');
                 }
             });
@@ -118,17 +116,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // === FAQ ACCORDION LOGIC ===
+    // === FAQ ACCORDION LOGIC & FILTERING ===
     const faqItems = document.querySelectorAll('.faq-item');
+    const faqSearchInput = document.getElementById('faqSearchInput');
+    const faqPills = document.querySelectorAll('.faq-pill');
+    const faqNoResults = document.getElementById('faqNoResults');
+
     if (faqItems.length > 0) {
         faqItems.forEach(item => {
             const questionBtn = item.querySelector('.faq-question');
-            questionBtn.addEventListener('click', () => {
-                const isActive = item.classList.contains('active');
-                faqItems.forEach(otherItem => { otherItem.classList.remove('active'); });
-                if (!isActive) { item.classList.add('active'); }
-            });
+            if (questionBtn) {
+                questionBtn.addEventListener('click', () => {
+                    const isActive = item.classList.contains('active');
+                    faqItems.forEach(otherItem => { otherItem.classList.remove('active'); });
+                    if (!isActive) { item.classList.add('active'); }
+                });
+            }
         });
+
+        let activeCategory = 'all';
+
+        function filterFaqs() {
+            const query = faqSearchInput ? faqSearchInput.value.toLowerCase().trim() : '';
+            let visibleCount = 0;
+
+            faqItems.forEach(item => {
+                const category = item.getAttribute('data-category');
+                const text = item.textContent.toLowerCase();
+
+                const categoryMatch = (activeCategory === 'all' || category === activeCategory);
+                const searchMatch = !query || text.includes(query);
+
+                if (categoryMatch && searchMatch) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            if (faqNoResults) {
+                faqNoResults.style.display = (visibleCount === 0) ? 'block' : 'none';
+            }
+        }
+
+        if (faqSearchInput) {
+            faqSearchInput.addEventListener('input', filterFaqs);
+        }
+
+        if (faqPills.length > 0) {
+            faqPills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    faqPills.forEach(p => p.classList.remove('active'));
+                    pill.classList.add('active');
+                    activeCategory = pill.getAttribute('data-category');
+                    filterFaqs();
+                });
+            });
+        }
     }
 
     // === TRANSPORT CHIP SELECTION ===
@@ -140,10 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // === SEARCH BAR FUNCTIONALITY ===
+
+
+    // === SEARCH BAR LOGIC ===
     const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
     const searchResults = document.getElementById('searchResults');
+    const searchBtn = document.getElementById('searchBtn');
 
     if (searchInput && searchResults) {
         const osmAttribution = `<div class="search-osm-attribution"><span>${window.t('js.osm_attribution')}</span></div>`;
@@ -271,15 +318,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.getElementById('navLinks');
     if (mobileMenuBtn && navLinks) {
         mobileMenuBtn.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            const icon = mobileMenuBtn.querySelector('ion-icon');
-            if (icon) { icon.name = navLinks.classList.contains('active') ? 'close-outline' : 'menu-outline'; }
+            const isMenuOpen = navLinks.classList.toggle('active');
+            const menuIcon = mobileMenuBtn.querySelector('.menu-toggle-icon');
+            if (menuIcon) {
+                menuIcon.classList.toggle('open', isMenuOpen);
+            }
         });
         navLinks.querySelectorAll('.nav-link, .btn-plan-route').forEach(link => {
             link.addEventListener('click', () => {
                 navLinks.classList.remove('active');
-                const icon = mobileMenuBtn.querySelector('ion-icon');
-                if (icon) icon.name = 'menu-outline';
+                const menuIcon = mobileMenuBtn.querySelector('.menu-toggle-icon');
+                if (menuIcon) {
+                    menuIcon.classList.remove('open');
+                }
             });
         });
     }
@@ -298,8 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('chatInput');
     const sendMessageBtn = document.getElementById('sendMessageBtn');
     const chatMessages = document.getElementById('chatMessages');
-    const dyipTokLink = document.getElementById('dyipTokLink');
-    const drawerDyipTokLink = document.getElementById('drawerDyipTokLink');
+    const routieLink = document.getElementById('routieLink');
+    const drawerRoutieLink = document.getElementById('drawerRoutieLink');
 
     let inactivityTimer;
     const INACTIVITY_LIMIT = 120000;
@@ -358,8 +409,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (overlay) overlay.classList.remove('visible');
     };
 
-    if (dyipTokLink) dyipTokLink.addEventListener('click', openChat);
-    if (drawerDyipTokLink) drawerDyipTokLink.addEventListener('click', openChat);
+    window.openChat = openChat;
+
+    if (routieLink) routieLink.addEventListener('click', openChat);
+    if (drawerRoutieLink) drawerRoutieLink.addEventListener('click', openChat);
+    const routieBannerBtn = document.getElementById('routieBannerBtn');
+    if (routieBannerBtn) routieBannerBtn.addEventListener('click', openChat);
+    const faqRoutieCtaBtn = document.getElementById('faqRoutieCtaBtn');
+    if (faqRoutieCtaBtn) faqRoutieCtaBtn.addEventListener('click', openChat);
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => {
@@ -388,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isUser) {
             const avatar = document.createElement('div');
             avatar.className = 'bot-avatar';
-            avatar.innerHTML = '<img src="assets/DyipTok-icon.png" alt="DyipTok">';
+            avatar.innerHTML = '<img src="../assets/DyipTok-icon.png" alt="Routie">';
             wrapper.appendChild(avatar);
         }
 
@@ -423,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
         typingWrapperEl.className = 'message-wrapper bot-wrapper';
         const avatar = document.createElement('div');
         avatar.className = 'bot-avatar';
-        avatar.innerHTML = '<img src="assets/DyipTok-icon.png" alt="DyipTok">';
+        avatar.innerHTML = '<img src="../assets/DyipTok-icon.png" alt="Routie">';
         typingWrapperEl.appendChild(avatar);
         typingIndicatorEl = document.createElement('div');
         typingIndicatorEl.classList.add('typing-indicator');
@@ -510,16 +567,18 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 
     if (sendMessageBtn) sendMessageBtn.addEventListener('click', handleChatSend);
 
-    chatInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = (this.scrollHeight) + 'px';
-        if (this.scrollHeight >= 120) { this.classList.add('scrolling'); }
-        else { this.classList.remove('scrolling'); }
-    });
+    if (chatInput) {
+        chatInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.scrollHeight >= 120) { this.classList.add('scrolling'); }
+            else { this.classList.remove('scrolling'); }
+        });
 
-    chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
-    });
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
+        });
+    }
 
     function triggerAutoExpand() {
         if (chatInput) {

@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Destination Finder - Calzada</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
     <meta property="og:description" content="Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.">
@@ -16,13 +16,13 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="skeleton.css">
-    <link rel="stylesheet" href="place-panel.css">
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/place-panel.css">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -31,46 +31,82 @@
 
 <body>
 
-    <!-- Mouse Glow Aura -->
-    <div class="mouse-glow" id="mouseGlow"></div>
-
-    <!-- Geometric background assets -->
-    <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
-    <img src="assets/1.png" class="geo-bg geo-bg-2" alt="">
-
-    <!-- Frosted Glass Navbar -->
-    <header class="navbar navbar-white" id="navbar">
+    <!-- Header / Navigation (Seamless Light Theme) -->
+    <header class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="index.html" class="brand-logo">
-                <img src="assets/Calzada - Blue.png" alt="Calzada Logo" class="logo-img">
-            </a>
+            <!-- Left: Logo -->
+            <div class="nav-left">
+                <a href="index.html" class="brand-logo">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                </a>
+            </div>
 
-            <nav class="nav-links" id="navLinks">
-                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
+            <!-- Center: Floating Nav Links Group -->
+            <nav class="nav-center" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
                 <a href="places.html" class="nav-link active" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="planner.html" class="btn-plan-route" data-i18n="planner.plan_route">Plan Route</a>
-
-                <!-- Navbar Toggle (Desktop) -->
-                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
-                    <span class="lang-active">EN</span>
-                    <span class="lang-sep">|</span>
-                    <span class="lang-other">TL</span>
-                </button>
+                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
                     <span class="mobile-lang-label">Language / Wika</span>
-                    <button class="mobile-lang-toggle">
-                        <span class="lang-active">EN</span>
-                        <span class="lang-sep">|</span>
-                        <span class="lang-other">TL</span>
-                    </button>
+                    <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu">
+                            <button class="lang-dropdown-item" type="button" data-lang="en">
+                                <span class="lang-flag">🇺🇸</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl">
+                                <span class="lang-flag">🇵🇭</span>
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </nav>
+
+            <!-- Right: Language Toggle & Sign In -->
+            <div class="nav-right">
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+                <a href="login.html" id="authNavBtn" class="btn-nav-auth" data-i18n="login.signin">Sign In</a>
+            </div>
+
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                <ion-icon name="menu-outline"></ion-icon>
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <path class="menu-toggle-line" d="M7 16 27 16" />
+            </svg>
             </button>
         </div>
     </header>
@@ -78,8 +114,7 @@
     <!-- Reference Hero Section -->
     <section class="ref-hero">
         <h1 data-i18n="places.hero_title">Saan ka sasakay, saan ka bababa?</h1>
-        <p data-i18n="places.hero_subtitle">From sakayan to galaan â€” your smart guide to Calamba's terminals and
-            must-visit places</p>
+        <p data-i18n="places.hero_subtitle">From sakayan to galaan — your smart guide to Calamba's must-visit places</p>
 
         <!-- Local Search Bar -->
         <div class="search-container" style="margin: 35px auto 0; animation: none; width: 100%; max-width: 600px;">
@@ -102,17 +137,11 @@
             <div class="category-tabs" id="categoryTabs">
                 <button class="category-tab active" data-category="all"><ion-icon name="grid-outline"></ion-icon> <span
                         data-i18n="places.cat_all">All Places</span></button>
-                <button class="category-tab" data-category="terminals"><ion-icon name="bus-outline"></ion-icon> <span
-                        data-i18n="places.cat_terminals">Terminals</span></button>
                 <button class="category-tab" data-category="establishments"><ion-icon
                         name="business-outline"></ion-icon> <span
                         data-i18n="places.cat_est">Establishments</span></button>
-                <button class="category-tab" data-category="malls"><ion-icon name="bag-handle-outline"></ion-icon> <span
-                        data-i18n="places.cat_malls">Malls</span></button>
                 <button class="category-tab" data-category="coffee"><ion-icon name="cafe-outline"></ion-icon> <span
                         data-i18n="places.cat_coffee">Coffee Shops</span></button>
-                <button class="category-tab" data-category="hangout"><ion-icon name="beer-outline"></ion-icon> <span
-                        data-i18n="places.cat_hangout">Hangout Place</span></button>
                 <button class="category-tab" data-category="schools"><ion-icon name="school-outline"></ion-icon> <span
                         data-i18n="places.cat_schools">Schools</span></button>
             </div>
@@ -146,7 +175,7 @@
             </div>
 
             <!-- Place Card 2 -->
-            <div class="ref-card" data-category="hangout" onclick="openPlacePanel('Rizal Shrine')" style="cursor:pointer;">
+            <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Rizal Shrine')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_EEk4rCx1aWAAIKLD-D9dGvcre4MjbxKdFQ&s"
                         alt="Bahay ni Rizal">
@@ -160,10 +189,23 @@
                 </div>
             </div>
 
-            <!-- Place Card 3: Already updated in previous step -->
+            <!-- Place Card: Moonbucks -->
+            <div class="ref-card" data-category="coffee" onclick="openPlacePanel('Moonbucks')" style="cursor:pointer;">
+                <div class="ref-img-container">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5SF7ZvAMmCMYah6b2qjK4ziOySSiP8JzzCg&s"
+                        alt="Moonbucks">
+                </div>
+                <h3>Moonbucks</h3>
+                <div class="card-meta">
+                    <span class="card-tag">Coffee Shop</span>
+                </div>
+                <div class="card-footer">
+                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Moonbucks'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
+                </div>
+            </div>
 
             <!-- Place Card 4 -->
-            <div class="ref-card" data-category="malls" onclick="openPlacePanel('SM City Calamba')" style="cursor:pointer;">
+            <div class="ref-card" data-category="establishments" onclick="openPlacePanel('SM City Calamba')" style="cursor:pointer;">
                 <div class="ref-img-container">
                     <img src="https://evendo-location-media.s3.amazonaws.com/ShoppingImages/6267eb28-343f-4cc5-a08f-8f6022fcba2b"
                         alt="SM City Calamba">
@@ -174,21 +216,6 @@
                 </div>
                 <div class="card-footer">
                     <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=SM City Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Place Card 5: Terminal -->
-            <div class="ref-card" data-category="terminals" onclick="openPlacePanel('Calamba Central Terminal')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80"
-                        alt="Terminal">
-                </div>
-                <h3>Central Terminal</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Terminal</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Calamba Central Terminal'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
                 </div>
             </div>
 
@@ -223,79 +250,13 @@
             </div>
         </div>
 
-        <!-- Section: OUTSIDE CALAMBA / SIKAT NA LUGAR -->
-        <h2 class="section-label">OUTSIDE CALAMBA / FAMOUS PLACES</h2>
-        <div class="places-grid">
-            <!-- National Museum -->
-            <div class="ref-card" data-category="hangout establishments" onclick="openPlacePanel('National Museum')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/29/e2/63/5e/caption.jpg?w=900&h=500&s=1"
-                        alt="National Museum">
-                </div>
-                <h3>National Museum</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Historic</span>
-                    <span class="card-tag">Culture</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=National Museum'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Alabang -->
-            <div class="ref-card" data-category="malls hangout" onclick="openPlacePanel('Festival Mall Alabang')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://image-tc.galaxy.tf/wijpeg-8apqa2wrqbabqxgblbqaaqrl0/_photo.jpg" alt="Alabang">
-                </div>
-                <h3>Alabang</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Mall</span>
-                    <span class="card-tag">Hub</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Festival Mall Alabang'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Nuvali -->
-            <div class="ref-card" data-category="hangout" onclick="openPlacePanel('Nuvali Sta Rosa')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://images.squarespace-cdn.com/content/v1/5fa1522044bdda192713063c/1694433501371-TZH3WMEXP477B0IUHAGU/20230910_095936-v2.jpg"
-                        alt="Nuvali">
-                </div>
-                <h3>Nuvali (Sta. Rosa)</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Leisure</span>
-                    <span class="card-tag">Nature</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Nuvali Sta Rosa'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Tagaytay -->
-            <div class="ref-card" data-category="hangout" onclick="openPlacePanel('Tagaytay')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/1c/54/ff/caption.jpg?w=1200&h=-1&s=1"
-                        alt="Tagaytay">
-                </div>
-                <h3>Tagaytay City</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Nature</span>
-                    <span class="card-tag">Hangout</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Tagaytay'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-        </div>
     </main>
 
         </div>
     </div>
 
-    <script src="script.js"></script>
-    <script src="i18n.js"></script>
+    <script src="../js/script.js"></script>
+    <script src="../js/i18n.js"></script>
     <script>
         // Category selection & Filtering
         document.addEventListener('DOMContentLoaded', () => {
@@ -397,8 +358,8 @@
             });
         });
     </script>
-    <script src="place-panel.js"></script>
-    <script src="transitions.js"></script>
+    <script src="../js/place-panel.js"></script>
+    <script src="../js/transitions.js"></script>
 </body>
 
 </html>

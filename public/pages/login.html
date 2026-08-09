@@ -5,21 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Login & Register</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
     <meta property="og:description" content="Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.">
-    <!-- Google Fonts -->
+    <!-- Google Fonts: Outfit -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../css/style.css">
 
     <!-- Firebase Configuration -->
     <script>
@@ -35,7 +35,7 @@
         };
     </script>
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="skeleton.css">
+    <link rel="stylesheet" href="../css/skeleton.css">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -45,48 +45,91 @@
 <body>
 
 
-    <!-- Geometric background assets -->
-    <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
-    <img src="assets/1.png" class="geo-bg geo-bg-2" alt="">
-
-    <!-- Frosted Glass Navbar -->
-    <header class="navbar navbar-white" id="navbar">
+    <!-- Header / Navigation (Seamless Light Theme) -->
+    <header class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="index.html" class="brand-logo">
-                <img src="assets/Calzada - Blue.png" alt="Calzada Logo" class="logo-img">
-            </a>
+            <!-- Left: Logo -->
+            <div class="nav-left">
+                <a href="index.html" class="brand-logo">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                </a>
+            </div>
 
-            <nav class="nav-links" id="navLinks">
-                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
-                <a href="index.html#place-finder" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="index.html#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+            <!-- Center: Floating Nav Links Group -->
+            <nav class="nav-center" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="planner.html" class="btn-plan-route" data-i18n="planner.plan_route">Plan Route</a>
-
-                <!-- Navbar Toggle (Desktop) -->
-                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
-                    <span class="lang-active">EN</span>
-                    <span class="lang-sep">|</span>
-                    <span class="lang-other">TL</span>
-                </button>
+                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
                     <span class="mobile-lang-label">Language / Wika</span>
-                    <button class="mobile-lang-toggle">
-                        <span class="lang-active">EN</span>
-                        <span class="lang-sep">|</span>
-                        <span class="lang-other">TL</span>
-                    </button>
+                    <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu">
+                            <button class="lang-dropdown-item" type="button" data-lang="en">
+                                <span class="lang-flag">🇺🇸</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl">
+                                <span class="lang-flag">🇵🇭</span>
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </nav>
+
+            <!-- Right: Language Toggle & Sign In -->
+            <div class="nav-right">
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+                <a href="login.html" id="authNavBtn" class="btn-nav-auth" data-i18n="login.signin">Sign In</a>
+            </div>
+
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                <ion-icon name="menu-outline"></ion-icon>
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <path class="menu-toggle-line" d="M7 16 27 16" />
+            </svg>
             </button>
         </div>
     </header>
 
     <main class="auth-page-container">
+        <img src="../assets/Calzada - Blue.png"
+             alt=""
+             aria-hidden="true"
+             class="auth-watermark">
         <div class="auth-card">
 
             <!-- Auth Tabs -->
@@ -175,7 +218,7 @@
 
                     <div class="auth-options" style="margin-bottom: 20px;">
                         <label class="remember-me">
-                            <input type="checkbox" required> I agree to the <a href="#" onclick="document.getElementById('termsModal').classList.add('active'); return false;">Terms</a> & <a href="#" onclick="document.getElementById('privacyModal').classList.add('active'); return false;">Privacy Policy</a>
+                            <input type="checkbox" required> I agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms</a> &amp; <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
                         </label>
                     </div>
 
@@ -234,9 +277,9 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
-    <script src="i18n.js"></script>
-    <script src="transitions.js"></script>
+    <script src="../js/script.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/transitions.js"></script>
 
     <!-- Firebase Logic Integration -->
     <script type="module">
@@ -252,7 +295,7 @@
             doc, 
             setDoc, 
             serverTimestamp 
-        } from './firebase-init.js';
+        } from '../js/firebase-init.js';
 
         const formLogin = document.getElementById('formLogin');
         const formRegister = document.getElementById('formRegister');

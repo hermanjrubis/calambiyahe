@@ -8,12 +8,20 @@
 window.translations = {
     en: {
         // === index.html ===
-        'hero.title':           'Your <span class="title-highlight shimmer-text">Commuting Guide</span> in Calamba.',
-        'hero.subtitle':        'Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.',
+        'hero.title':           'Find places you can explore in <span class="title-accent">Calamba.</span>',
+        'hero.subtitle':        'Your local guide to spots worth the trip.',
         'hero.search.placeholder': 'Where do you want to go?',
-        'about.heading':        'What is Calzada?',
-        'about.body':           '<strong>Calzada</strong> is your reliable commuter guide platform in Calamba and nearby cities. Easily plan your trip with fare information and exact transit modes — jeepney, bus, modern jeep, UV, or tricycle!',
+        'about.heading':        'More than just directions.',
+        'about.body':           'Calzada helps you discover places worth visiting around Calamba, then get you there. Search a spot, see how to reach it, and pick from a jeepney or tricycle — with fares and directions in one place.',
         'about.learn_more':     'Learn More →',
+        'about.card1.title':    'Find places',
+        'about.card1.desc':     'Browse spots by category across Calamba',
+        'about.card2.title':    'Live fares',
+        'about.card2.desc':     'Know the cost before you leave',
+        'about.card3.title':    'Jeep or tricycle',
+        'about.card3.desc':     'Pick the ride that fits your trip',
+        'about.card4.title':    'Nearest stop',
+        'about.card4.desc':     'Find the closest pickup point to you',
         'news.heading':         'Latest News & Traffic',
         'news1.tag':            'Road Closure',
         'news1.title':          'Parian Flyover Maintenance',
@@ -35,12 +43,12 @@ window.translations = {
         'steps.pill':           'Simple & Fast',
         'steps.heading':        'Plan your commute in 3 easy steps',
         'steps.sub':            'No more guessing fares or routes. Calzada lays it all out, clear and simple.',
-        'steps.1.title':        'Enter Your Destination',
-        'steps.1.desc':         'Type where you want to go. Calzada recognizes landmarks, barangays, terminals, and more.',
-        'steps.2.title':        'Compare Route Options',
-        'steps.2.desc':         'See multiple route suggestions with estimated travel time, fare cost, and number of transfers.',
-        'steps.3.title':        'Go & Travel with Confidence',
-        'steps.3.desc':         'Follow step-by-step directions. Multi-modal journeys combining jeepney, P2P, and tricycle are fully supported.',
+        'steps.1.title':        'Search Your Destination',
+        'steps.1.desc':         "Type where you're headed. Calzada picks up on landmarks, barangays, and common stops around Calamba.",
+        'steps.2.title':        'See Your Options',
+        'steps.2.desc':         "Compare routes with fare estimates, travel time, and how many rides you'll need.",
+        'steps.3.title':        'Ride with Confidence',
+        'steps.3.desc':         'Get simple directions to get there — by jeepney, tricycle, or a quick transfer between the two.',
         'features.routes':      'Routes Covered',
         'features.modes':       'Transit Modes',
         'features.barangays':   'Barangays',
@@ -49,16 +57,17 @@ window.translations = {
         'footer.tagline':       'Your reliable commuter guide platform in Calamba.',
         'footer.nav.heading':   'Navigation',
         'footer.nav.home':      'Home',
-        'footer.nav.p2p':       'P2P Paths',
+        'footer.nav.planner':   'Planner',
+        'footer.nav.feedback':  'Feedback',
         'footer.nav.submit':    'Submit a Route',
-        'footer.nav.dyiptok':   'Ask DyipTok',
+        'footer.nav.routie':    'Ask Routie',
         'footer.nav.about':     'About Us',
         'footer.nav.places':    'Place Finder',
         'footer.nav.faq':       'FAQs',
         'footer.contact.heading': 'Contact Us',
         'footer.copyright':     '© 2026 Calzada. All rights reserved.',
         // === chat ===
-        'chat.greeting':        "Hello! I'm DyipTok. Where do you want to go today?",
+        'chat.greeting':        "Hello! I'm Routie. Where do you want to go today?",
         'chat.placeholder':     'Type a message...',
         'chip.route':           'How to use route search?',
         'chip.free':            'Is Calzada free?',
@@ -68,29 +77,36 @@ window.translations = {
         // === about.html ===
         'about_page.title':        'About',
         'about_page.p1':           '<strong>Calzada</strong> is a commuter guide platform envisioned to transform the way people travel across Calamba and nearby cities. Rooted in the word <em>calzada</em>, meaning road or pathway, the brand embodies the idea of direction, clarity, and movement.',
-        'about_page.p2':           'The platform integrates multiple modes of transport, including <strong>jeepneys, buses, P2P, UV Express, and tricycles</strong>. Calzada offers a route suggestion feature that presents different travel options based on estimated duration, fare cost, and walking distance, helping commuters compare alternatives and choose the most convenient journey.',
-        'about_page.p3':           'Calzada also highlights <strong>multi-modal navigation</strong>, enabling commuters to combine different transport modes in a single journey. The platform is built with a responsive design, making it accessible on both desktop and mobile devices, and features a user-friendly interface that simplifies route planning even for first-time users.',
+        'about_page.p2':           'Calzada helps you discover places worth visiting around Calamba, then shows you how to get there. Compare travel options based on estimated duration, fare cost, and walking distance — using a jeepney or tricycle — to find the most convenient way to reach your destination.',
+        'about_page.p3':           'Need to transfer between a jeepney and tricycle to reach your destination? Calzada supports that too. The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.',
         'about_page.goal.heading': 'Goal',
-        'about_page.goal.body':    'The primary goal of Calzada is to empower commuters by providing accurate, transparent, and easy-to-use transit information. By centralizing data on routes, fares, and transport options, the website aims to reduce commuting stress, promote informed decision-making, and improve overall mobility in the city. Ultimately, Calzada seeks to become a trusted digital companion for everyday commuters, helping them save time, manage expenses, and travel with confidence.',
+        'about_page.goal.body':    'The primary goal of Calzada is to help commuters discover great places around Calamba and reach them with confidence. By centralizing data on places, routes, and fares, the platform aims to reduce commuting stress, promote informed decisions, and make getting around the city simpler. Calzada aims to be a trusted companion for everyday exploring and commuting — helping you save time, manage expenses, and travel with confidence.',
         // === faq.html ===
         'faq.heading':          'Frequently Asked Questions',
+        'faq.search_placeholder': 'Search questions...',
+        'faq.pill_all':         'All',
+        'faq.pill_general':     'General',
+        'faq.pill_getting_around': 'Getting Around',
+        'faq.pill_routie':      'Routie',
         'faq1.q':               'What is Calzada?',
-        'faq1.a':               'Calzada is a commuter guide platform envisioned to transform the way people travel across Calamba and nearby cities. It provides route suggestions, fare information, and transport options for jeepneys, buses, P2P, UV Express, and tricycles to help commuters plan their trips with direction, clarity, and movement.',
+        'faq1.a':               'It helps you discover places worth visiting around Calamba and shows you how to get there by jeepney or tricycle, with fares and directions in one place.',
         'faq2.q':               'How do I use the route search feature?',
         'faq2.a':               'Simply enter your starting point and destination in the search bar, then click the button to begin. The system generates several route options showing travel time, fare cost, and walking distance.',
         'faq_fares.q':          'Does the website show exact fares?',
         'faq_fares.a':          'The platform provides estimated fares based on available data. Actual fares may vary slightly depending on operator policies, but the goal is to give commuters a clear idea of expected costs before traveling.',
         'faq_mobile.q':         'Can I access Calzada on mobile devices?',
         'faq_mobile.a':         'Yes. The website is built with a responsive design that adjusts to different screen sizes — desktop, laptop, or smartphone.',
-        'faq_modes.q':          'What transport modes are included?',
-        'faq_modes.a':          'Currently, Calzada supports jeepneys, buses, P2P, UV Express, and tricycles — the most common commuting options in Calamba and nearby areas.',
+        'faq_modes.q':          'What transport options does Calzada support?',
+        'faq_modes.a':          'Jeepney and tricycle.',
+        'faq_routie.q':         'What is Routie?',
+        'faq_routie.a':         'Routie is your chat assistant — ask it to help you find places or figure out how to get there by jeepney or tricycle.',
         'faq3.q':               'Is Calzada free to use?',
         'faq3.a':               'Yes. The platform is completely free for commuters and does not require any subscription.',
         'faq4.q':               'What is the main goal of Calzada?',
         'faq4.a':               'The primary goal is to empower commuters with accurate, transparent, and easy-to-use transit information — reducing commuting stress and improving mobility in the city.',
         // === places.html ===
         'places.hero_title':    'Where will you ride, where will you get off?',
-        'places.hero_subtitle': 'From sakayan to galaan — your smart guide to Calamba\'s terminals and must-visit places',
+        'places.hero_subtitle': 'From sakayan to galaan — your smart guide to Calamba\'s must-visit places',
         'places.search_placeholder': 'Search for a place...',
         'places.cat_all':       'All Places',
         'places.cat_est':       'Establishments',
@@ -240,12 +256,20 @@ window.translations = {
 
     tl: {
         // === index.html ===
-        'hero.title':           'Ang Iyong <span class="title-highlight shimmer-text">Gabay sa Commute</span> sa Calamba.',
-        'hero.subtitle':        'Hanapin ang mga ruta, pamasahe, at koneksyon para sa Jeepney, Bus, P2P, UV Express, at Tricycle.',
+        'hero.title':           'Maghanap ng mga lugar na pwedeng puntahan sa <span class="title-accent">Calamba.</span>',
+        'hero.subtitle':        'Ang iyong lokal na gabay sa mga lugar na sulit puntahan.',
         'hero.search.placeholder': 'Saan ka pupunta?',
-        'about.heading':        'Ano ang Calzada?',
-        'about.body':           'Ang <strong>Calzada</strong> ay ang iyong maaasahang commuter guide platform dito sa Calamba at karatig-bayan. Madaliang mai-plano ang biyahe gamit ang aming platform na nagpapakita ng presyo ng pamasahe at eksaktong transit mode — jeepney, bus, modern jeep, UV, o tricycle man \'yan!',
+        'about.heading':        'Higit pa sa simpleng direksyon.',
+        'about.body':           'Tinutulungan ka ng Calzada na tumuklas ng mga lugar na sulit bisitahin sa Calamba, at ihatid ka roon. Maghanap ng lugar, alamin kung paano pumunta, at pumili ng jeepney o tricycle — kumpleto sa pamasahe at direksyon sa isang lugar.',
         'about.learn_more':     'Alamin Pa →',
+        'about.card1.title':    'Maghanap ng lugar',
+        'about.card1.desc':     'Mag-browse ng lugar kada kategorya sa Calamba',
+        'about.card2.title':    'Pamasahe',
+        'about.card2.desc':     'Alamin ang pamasahe bago umalis',
+        'about.card3.title':    'Jeep o tricycle',
+        'about.card3.desc':     'Pumili ng sasakyan na angkop sa biyahe',
+        'about.card4.title':    'Pinakamalapit na sakayan',
+        'about.card4.desc':     'Hanapin ang pinakamalapit na sakayan sa iyo',
         'news.heading':         'Pinakabagong Balita at Trapiko',
         'news1.tag':            'Saradong Daan',
         'news1.title':          'Pagkukumpuni ng Parian Flyover',
@@ -267,12 +291,12 @@ window.translations = {
         'steps.pill':           'Simple at Mabilis',
         'steps.heading':        'Planuhin ang iyong biyahe sa 3 simpleng hakbang',
         'steps.sub':            'Wala nang hula-hula sa pamasahe o ruta. Malinaw at simple ang lahat sa Calzada.',
-        'steps.1.title':        'Ilagay ang Iyong Destinasyon',
-        'steps.1.desc':         'I-type ang iyong destinasyon. Kinikilala ng Calzada ang mga landmark, barangay, terminal, at iba pa.',
-        'steps.2.title':        'Ikumpara ang mga Ruta',
-        'steps.2.desc':         'Tingnan ang iba\'t ibang route na may tinatayang oras ng biyahe, pamasahe, at bilang ng transfer.',
+        'steps.1.title':        'Maghanap ng Destinasyon',
+        'steps.1.desc':         'I-type kung saan ka pupunta. Kinikilala ng Calzada ang mga landmark, barangay, at karaniwang sakayan sa Calamba.',
+        'steps.2.title':        'Tingnan ang Iyong Pagpipilian',
+        'steps.2.desc':         'Ikumpara ang mga ruta gamit ang tantiya sa pamasahe, oras ng biyahe, at kung ilang beses ka sasakay.',
         'steps.3.title':        'Bumiyahe nang Panatag',
-        'steps.3.desc':         'Sundan ang hakbang-hakbang na direksyon. Sinusuportahan ang multi-modal na biyahe tulad ng jeep, P2P, at tricycle.',
+        'steps.3.desc':         'Kumuha ng simpleng direksyon para makarating — sa pamamagitan ng jeepney, tricycle, o mabilis na paglipat sa dalawa.',
         'features.routes':      'Mga Rutang Sakop',
         'features.modes':       'Transit Modes',
         'features.barangays':   'Mga Barangay',
@@ -281,9 +305,10 @@ window.translations = {
         'footer.tagline':       'Ang iyong maaasahang gabay sa commute sa Calamba.',
         'footer.nav.heading':   'Navigation',
         'footer.nav.home':      'Home',
-        'footer.nav.p2p':       'P2P Paths',
+        'footer.nav.planner':   'Planner',
+        'footer.nav.feedback':  'Feedback',
         'footer.nav.submit':    'Mag-submit ng Ruta',
-        'footer.nav.dyiptok':   'Magtanong sa DyipTok',
+        'footer.nav.routie':    'Magtanong sa Routie',
         'footer.nav.about':     'Tungkol sa Amin',
         'footer.nav.places':    'Place Finder',
         'footer.nav.faq':       'FAQs',
@@ -291,7 +316,7 @@ window.translations = {
         'footer.copyright':     '© 2026 Calzada. Lahat ng karapatan ay nakalaan.',
         
         // === chat ===
-        'chat.greeting':        "Kamusta! Ako si DyipTok. Saan ka pupunta ngayon?",
+        'chat.greeting':        "Kamusta! Ako si Routie. Saan ka pupunta ngayon?",
         'chat.placeholder':     'Mag-type ng mensahe...',
         'chip.route':           'Paano gamitin ang route search?',
         'chip.free':            'Libre ba ang Calzada?',
@@ -302,23 +327,30 @@ window.translations = {
         // === about.html ===
         'about_page.title':        'Tungkol Saan',
         'about_page.p1':           'Ang <strong>Calzada</strong> ay isang commuter guide platform na ginawa para baguhin ang paraan ng pagbiyahe sa Calamba at karatig-bayan. Galing sa salitang <em>calzada</em> (daan o landas), sinisimbolo nito ang direksyon, linaw, at tuloy-tuloy na byahe.',
-        'about_page.p2':           'Pinagsama ng platform ang iba\'t ibang paraan ng transportasyon, kabilang ang <strong>jeepney, bus, P2P, UV Express, at tricycle</strong>. Nagbibigay ang Calzada ng route suggestions base sa tagal ng byahe, pamasahe, at layo ng lalakarin.',
-        'about_page.p3':           'Tinutulungan din ng Calzada na mag-<strong>multi-modal navigation</strong>, kung saan pwedeng pag-konektahin ang iba\'t ibang sakay sa isang byahe. Responsive ang design nito kaya pwede mong gamitin sa phone o computer nang walang kahirap-hirap.',
+        'about_page.p2':           'Tinutulungan ka ng Calzada na tumuklas ng mga lugar na sulit bisitahin sa Calamba, at ipinapakita kung paano makapunta roon. Ikumpara ang mga pagpipilian sa biyahe base sa tantiya ng oras, pamasahe, at lakad — gamit ang jeepney o tricycle — para mahanap ang pinakamadaling paraan para makarating.',
+        'about_page.p3':           'Kailangan mo bang lumipat mula sa jeepney papuntang tricycle para makarating sa iyong destinasyon? Sinusuportahan din \'yan ng Calzada. Ang platform ay fully responsive sa desktop at mobile, na may simpleng interface para madali ang pagplano ng biyahe.',
         'about_page.goal.heading': 'Layunin',
-        'about_page.goal.body':    'Ang pangunahing layunin ng Calzada ay tulungan ang mga commuter sa pamamagitan ng tama, transparent, at madaling gamiting transit information. Para mabawasan ang stress sa pag-commute, maiplano ang byahe nang maayos, at mapabilis ang ikot sa lungsod. Ang pangarap namin ay maging number one digital buddy ng bawat araw-araw na commuter.',
+        'about_page.goal.body':    'Ang pangunahing layunin ng Calzada ay tulungan ang mga bumibyahe na tumuklas ng magagandang lugar sa Calamba at makarating nang panatag. Sa pagtipon ng impormasyon ukol sa mga lugar, ruta, at pamasahe, naglalayon ang platform na mabawasan ang stress sa pagbiyahe, magbigay ng tamang desisyon, at padaliin ang pag-ikot sa lungsod. Hangad ng Calzada na maging maaasahang kasama sa pang-araw-araw na paglalakbay.',
         
         // === faq.html ===
         'faq.heading':          'Mga Madalas na Katanungan (FAQs)',
+        'faq.search_placeholder': 'Maghanap ng tanong...',
+        'faq.pill_all':         'Lahat',
+        'faq.pill_general':     'Pangkalahatan',
+        'faq.pill_getting_around': 'Pagbibiyahe',
+        'faq.pill_routie':      'Routie',
         'faq1.q':               'Ano ang Calzada?',
-        'faq1.a':               'Ang Calzada ay isang commuter guide platform na ginawa para tulungan ang mga bumibyahe sa Calamba at karatig-bayan. Nagbibigay ito ng mga ruta, pamasahe, at options para sa jeepney, bus, P2P, UV Express, at tricycle.',
+        'faq1.a':               'Tinutulungan ka nitong tumuklas ng mga lugar na sulit bisitahin sa Calamba at ipinapakita kung paano makapunta roon gamit ang jeepney o tricycle, kasama ang pamasahe at direksyon sa iisang lugar.',
         'faq2.q':               'Paano gamitin ang route search?',
         'faq2.a':               'I-type lang kung saan ka manggagaling at kung saan ka pupunta sa search bar, tapos i-click ang button. Magpapakita ang system ng mga options na may estimated na oras, pamasahe, at lakad.',
         'faq_fares.q':          'Eksakto ba ang pamasahe na pinapakita ng website?',
         'faq_fares.a':          'Estimated fare lang ang ipinapakita base sa available data natin mula sa LTFRB. Pwedeng magbago nang konti depende sa mga operator, pero sapat na ito para may idea ka kung magkano aabutin.',
         'faq_mobile.q':         'Pwede ko bang gamitin ang Calzada sa phone?',
         'faq_mobile.a':         'Oo naman! Ginawa ang website natin na responsive kaya sakto ang itsura nito mapa-cellphone, tablet, o laptop man gamit mo.',
-        'faq_modes.q':          'Anong mga sasakyan ang kasama rito?',
-        'faq_modes.a':          'Sa ngayon, kasama sa Calzada ang mga jeepney, bus, P2P, UV Express, at tricycle — ang mga pinakakaraniwang sinasakyan dito sa Calamba.',
+        'faq_modes.q':          'Anong transport options ang sinusuportahan ng Calzada?',
+        'faq_modes.a':          'Jeepney at tricycle.',
+        'faq_routie.q':         'Ano ang Routie?',
+        'faq_routie.a':         'Ang Routie ay ang iyong chat assistant — magtanong lang sa kanya para tulungan kang maghanap ng lugar o alamin kung paano makapunta roon gamit ang jeepney o tricycle.',
         'faq3.q':               'May bayad ba ang paggamit ng Calzada?',
         'faq3.a':               'Wala. Libre itong gamitin para sa lahat ng commuters at walang kailangang subscription.',
         'faq4.q':               'Ano ang main goal ng Calzada?',
@@ -326,7 +358,7 @@ window.translations = {
         
         // === places.html ===
         'places.hero_title':    'Saan ka sasakay, saan ka bababa?',
-        'places.hero_subtitle': 'Mula sakayan hanggang galaan — ito ang smart guide mo para sa mga terminal at sikat na lugar sa Calamba.',
+        'places.hero_subtitle': 'Mula sakayan hanggang galaan — ito ang smart guide mo para sa mga sikat na lugar sa Calamba.',
         'places.search_placeholder': 'Maghanap ng lugar...',
         'places.cat_all':       'Lahat',
         'places.cat_est':       'Mga Establishments',
@@ -490,12 +522,24 @@ function applyLang(lang) {
     document.querySelectorAll('#langToggleBtn, .mobile-lang-toggle').forEach(btn => {
         const active = btn.querySelector('.lang-active');
         const other  = btn.querySelector('.lang-other');
+        const flag   = btn.querySelector('.lang-flag');
         if (active) active.textContent = lang === 'en' ? 'EN' : 'TL';
         if (other)  other.textContent  = lang === 'en' ? 'TL' : 'EN';
+        if (flag)   flag.textContent   = lang === 'en' ? '🇺🇸' : '🇵🇭';
         
         // Visual indicator
         btn.classList.remove('en-mode', 'tl-mode');
         btn.classList.add(lang === 'en' ? 'en-mode' : 'tl-mode');
+    });
+
+    // Update active states on dropdown items
+    document.querySelectorAll('.lang-dropdown-item').forEach(item => {
+        const itemLang = item.getAttribute('data-lang');
+        if (itemLang === lang) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
     });
 
     localStorage.setItem('calzada_lang', lang);
@@ -533,9 +577,51 @@ function initI18n() {
 
     // Initial listener setup
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('#langToggleBtn, .mobile-lang-toggle');
-        if (btn) {
-            toggleLang();
+        // 1. Toggle dropdown menu open/close
+        const toggleBtn = e.target.closest('#langToggleBtn, .mobile-lang-toggle');
+        if (toggleBtn) {
+            e.stopPropagation();
+            const container = toggleBtn.closest('.lang-dropdown-container');
+            if (container) {
+                const isOpen = container.classList.contains('open');
+                document.querySelectorAll('.lang-dropdown-container').forEach(c => {
+                    c.classList.remove('open');
+                    const btn = c.querySelector('button');
+                    if (btn) btn.setAttribute('aria-expanded', 'false');
+                });
+                if (!isOpen) {
+                    container.classList.add('open');
+                    toggleBtn.setAttribute('aria-expanded', 'true');
+                }
+            } else {
+                toggleLang();
+            }
+            return;
+        }
+
+        // 2. Select language from dropdown item
+        const dropdownItem = e.target.closest('.lang-dropdown-item');
+        if (dropdownItem) {
+            e.stopPropagation();
+            const selectedLang = dropdownItem.getAttribute('data-lang');
+            if (selectedLang) {
+                applyLang(selectedLang);
+            }
+            document.querySelectorAll('.lang-dropdown-container').forEach(c => {
+                c.classList.remove('open');
+                const btn = c.querySelector('button');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
+            return;
+        }
+
+        // 3. Click outside -> close any open dropdowns
+        if (!e.target.closest('.lang-dropdown-container')) {
+            document.querySelectorAll('.lang-dropdown-container').forEach(c => {
+                c.classList.remove('open');
+                const btn = c.querySelector('button');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            });
         }
     });
 }

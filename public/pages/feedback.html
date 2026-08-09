@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calzada - Feedback</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.json">
+    <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
+    <meta property="og:title" content="Calzada - We'd Love Your Feedback">
+    <meta property="og:description" content="Help us improve Calzada — report a bug, suggest a feature, or just tell us what you think.">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- Skeleton CSS & FOUC Preventer -->
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <style>
+        body { opacity: 0; }
+        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+    </style>
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body class="feedback-page">
+
+    <!-- Header / Navigation -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <!-- Left: Logo -->
+            <div class="nav-left">
+                <a href="index.html" class="brand-logo">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                </a>
+            </div>
+
+            <!-- Center: Floating Nav Links Group -->
+            <nav class="nav-center" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="feedback.html" class="nav-link active" data-i18n="footer.nav.feedback">Feedback</a>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu">
+                            <button class="lang-dropdown-item" type="button" data-lang="en">
+                                <span class="lang-flag">🇺🇸</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl">
+                                <span class="lang-flag">🇵🇭</span>
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Right: Language Toggle & Sign In -->
+            <div class="nav-right">
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+                <a href="login.html" id="authNavBtn" class="btn-nav-auth" data-i18n="login.signin">Sign In</a>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <path class="menu-toggle-line" d="M7 16 27 16" />
+            </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Feedback Content Section -->
+    <main class="feedback-section">
+        <!-- Large Decorative Background Icon -->
+        <ion-icon name="chatbubbles-outline" class="feedback-bg-mark" aria-hidden="true"></ion-icon>
+
+        <div class="feedback-header">
+            <h1 class="page-title">We'd Love Your Feedback</h1>
+            <p class="page-subtext">Help us improve Calzada — report a bug, suggest a feature, or just tell us what you think.</p>
+        </div>
+
+        <div class="feedback-card" id="feedbackFormCard">
+            <form id="feedbackForm" class="feedback-form" novalidate>
+                <div class="feedback-cols-wrapper">
+                    <!-- LEFT COLUMN: Category Cards & Emoji Scale -->
+                    <div class="feedback-col-left">
+                        <div class="form-group">
+                            <label>Feedback Category <span style="color:#EF4444;">*</span></label>
+                            <div class="category-cards-grid" id="categoryCardsGrid">
+                                <div class="category-card" data-category="Bug Report">
+                                    <i class="ti ti-bug cat-card-icon"></i>
+                                    <span class="cat-card-label">Bug Report</span>
+                                </div>
+                                <div class="category-card" data-category="Suggestion">
+                                    <i class="ti ti-bulb cat-card-icon"></i>
+                                    <span class="cat-card-label">Suggestion</span>
+                                </div>
+                                <div class="category-card" data-category="General">
+                                    <i class="ti ti-message-2 cat-card-icon"></i>
+                                    <span class="cat-card-label">General</span>
+                                </div>
+                            </div>
+                            <div class="category-helper-text" id="categoryHelperText"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 18px;">
+                            <label>How's your experience so far? <span style="font-weight:400; color:#64748B; font-size:0.8rem;">(optional)</span></label>
+                            <div class="emoji-rating-row" id="emojiRatingRow">
+                                <div class="emoji-option" data-rating="Bad" title="Bad">
+                                    <span class="emoji-char">😞</span>
+                                </div>
+                                <div class="emoji-option" data-rating="Poor" title="Poor">
+                                    <span class="emoji-char">😕</span>
+                                </div>
+                                <div class="emoji-option" data-rating="Okay" title="Okay">
+                                    <span class="emoji-char">😐</span>
+                                </div>
+                                <div class="emoji-option" data-rating="Good" title="Good">
+                                    <span class="emoji-char">🙂</span>
+                                </div>
+                                <div class="emoji-option" data-rating="Great" title="Great">
+                                    <span class="emoji-char">😄</span>
+                                </div>
+                            </div>
+                            <div class="emoji-selected-label" id="emojiSelectedLabel"></div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Name, Email, Message, Submit -->
+                    <div class="feedback-col-right">
+                        <div class="form-group">
+                            <label for="feedbackName">Name <span style="font-weight:400; color:#64748B; font-size:0.8rem;">(optional)</span></label>
+                            <input type="text" id="feedbackName" placeholder="e.g. Maria Santos">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="feedbackEmail">Email Address <span style="color:#EF4444;">*</span></label>
+                            <div class="input-group">
+                                <ion-icon name="mail-outline"></ion-icon>
+                                <input type="email" id="feedbackEmail" required placeholder="name@example.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="feedbackMessage">Your Message <span style="color:#EF4444;">*</span></label>
+                            <textarea id="feedbackMessage" required maxlength="500" placeholder="Tell us what you experienced or what we could improve..."></textarea>
+                            <div class="char-counter-row">
+                                <span class="char-counter" id="charCounter">0/500</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-submit-feedback">
+                            <i class="ti ti-send"></i> Submit Feedback
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Submission Loader State View -->
+            <div class="feedback-loader-wrapper" id="feedbackLoaderWrapper">
+                <div class="loader" id="feedbackLoader">
+                    <li class="ball"></li>
+                    <li class="ball"></li>
+                    <li class="ball"></li>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation State View -->
+        <div class="feedback-card feedback-confirmation" id="feedbackConfirmation">
+            <i class="ti ti-circle-check feedback-success-icon"></i>
+            <h2 class="feedback-confirmation-title">Thank you! We've received your feedback.</h2>
+            <p class="feedback-confirmation-desc">Your input helps us make commuting in Calamba clearer and easier for everyone.</p>
+            <div class="feedback-actions-row">
+                <button type="button" class="btn-feedback-reset" id="btnFeedbackReset">
+                    <i class="ti ti-rotate-clockwise"></i> Send Another Response
+                </button>
+                <a href="index.html" class="btn-feedback-home">
+                    <i class="ti ti-home"></i> Back to Home
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Blue Site Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-column brand-column">
+                <a href="index.html" class="footer-logo">
+                    <img src="../assets/logo-white.png" alt="Calzada Logo" class="footer-logo-img">
+                </a>
+                <p data-i18n="footer.tagline">Ang iyong maaasahang gabay sa commute sa Calamba.</p>
+                <div class="social-links">
+                    <a href="https://facebook.com"><ion-icon name="logo-facebook"></ion-icon></a>
+                    <a href="https://x.com" aria-label="X (Twitter)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.25 2.25h6.69l4.71 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                    </a>
+                    <a href="https://www.instagram.com/dedanielss/"><ion-icon name="logo-instagram"></ion-icon></a>
+                </div>
+            </div>
+            <div class="footer-column nav-column">
+                <h3 data-i18n="footer.nav.heading">Navigation</h3>
+                <a href="index.html" data-i18n="footer.nav.home">Home</a>
+                <a href="about.html" data-i18n="footer.nav.about">About Us</a>
+                <a href="places.html" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="planner.html" data-i18n="footer.nav.planner">Planner</a>
+                <a href="faq.html" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="feedback.html" data-i18n="footer.nav.feedback">Feedback</a>
+            </div>
+            <div class="footer-column contact-column">
+                <h3 data-i18n="footer.contact.heading">Contact Us</h3>
+                <p><ion-icon name="mail-outline"></ion-icon> hello@calzada.ph</p>
+                <p><ion-icon name="call-outline"></ion-icon> (049) 555 1234</p>
+                <p><ion-icon name="location-outline"></ion-icon> Calamba City, Laguna</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p data-i18n="footer.copyright">&copy; 2026 Calzada. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- i18n & Client-side Script -->
+    <script src="../js/i18n.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Skeleton loader fouc handler
+            document.body.classList.add('fouc-ready');
+
+            let selectedCategory = null;
+            let selectedRating = null;
+
+            const feedbackForm = document.getElementById('feedbackForm');
+            const feedbackFormCard = document.getElementById('feedbackFormCard');
+            const feedbackConfirmation = document.getElementById('feedbackConfirmation');
+            const btnFeedbackReset = document.getElementById('btnFeedbackReset');
+
+            const categoryCards = document.querySelectorAll('.category-card');
+            const categoryCardsGrid = document.getElementById('categoryCardsGrid');
+            const helperTextEl = document.getElementById('categoryHelperText');
+            const messageInput = document.getElementById('feedbackMessage');
+            const charCounterEl = document.getElementById('charCounter');
+            const emailInput = document.getElementById('feedbackEmail');
+
+            const helpers = {
+                'Bug Report': "Something's not working right? Let us know what happened.",
+                'Suggestion': "Got an idea to make Calzada better? We're listening.",
+                'General': "Anything else on your mind? Tell us."
+            };
+
+            const placeholders = {
+                'Bug Report': "Which part of the website had the issue?",
+                'Suggestion': "What would you like to see added or changed?",
+                'General': "Tell us what you experienced or what we could improve..."
+            };
+
+            // 1. Category Card Selection
+            categoryCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    categoryCards.forEach(c => c.classList.remove('is-selected'));
+                    card.classList.add('is-selected');
+                    categoryCardsGrid.style.outline = 'none';
+
+                    selectedCategory = card.getAttribute('data-category');
+                    helperTextEl.textContent = helpers[selectedCategory] || '';
+                    messageInput.placeholder = placeholders[selectedCategory] || placeholders['General'];
+                });
+            });
+
+            // 2. Emoji Rating Selection (Optional - Click again to deselect)
+            const emojiOptions = document.querySelectorAll('.emoji-option');
+            const emojiLabelEl = document.getElementById('emojiSelectedLabel');
+
+            emojiOptions.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    if (opt.classList.contains('is-selected')) {
+                        opt.classList.remove('is-selected');
+                        selectedRating = null;
+                        emojiLabelEl.textContent = '';
+                    } else {
+                        emojiOptions.forEach(o => o.classList.remove('is-selected'));
+                        opt.classList.add('is-selected');
+                        selectedRating = opt.getAttribute('data-rating');
+                        emojiLabelEl.textContent = selectedRating;
+                    }
+                });
+            });
+
+            // 3. Live Character Counter
+            messageInput.addEventListener('input', () => {
+                const len = messageInput.value.length;
+                charCounterEl.textContent = `${len}/500`;
+            });
+
+            // 4. Form Submission & Validation
+            feedbackForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                let isValid = true;
+
+                // Validate Category Selection
+                if (!selectedCategory) {
+                    categoryCardsGrid.style.outline = '2px solid #EF4444';
+                    isValid = false;
+                } else {
+                    categoryCardsGrid.style.outline = 'none';
+                }
+
+                // Validate Email
+                if (!emailInput.value.trim() || !emailInput.value.includes('@') || !emailInput.value.includes('.')) {
+                    emailInput.style.borderColor = '#EF4444';
+                    isValid = false;
+                } else {
+                    emailInput.style.borderColor = '#CBD5E1';
+                }
+
+                // Validate Message
+                if (!messageInput.value.trim()) {
+                    messageInput.style.borderColor = '#EF4444';
+                    isValid = false;
+                } else {
+                    messageInput.style.borderColor = '#CBD5E1';
+                }
+
+                if (!isValid) return;
+
+                // Show Loader Overlay & Blur Form
+                const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
+                feedbackForm.classList.add('is-loading');
+                if (loaderWrapper) loaderWrapper.style.display = 'flex';
+
+                setTimeout(() => {
+                    if (loaderWrapper) loaderWrapper.style.display = 'none';
+                    feedbackForm.classList.remove('is-loading');
+                    feedbackFormCard.style.display = 'none';
+                    feedbackConfirmation.classList.add('active');
+                }, 1400);
+            });
+
+            // 5. Reset Handler
+            btnFeedbackReset?.addEventListener('click', () => {
+                feedbackForm.reset();
+                selectedCategory = null;
+                selectedRating = null;
+
+                categoryCards.forEach(c => c.classList.remove('is-selected'));
+                categoryCardsGrid.style.outline = 'none';
+                helperTextEl.textContent = '';
+
+                emojiOptions.forEach(o => o.classList.remove('is-selected'));
+                emojiLabelEl.textContent = '';
+
+                messageInput.placeholder = placeholders['General'];
+                charCounterEl.textContent = '0/500';
+
+                emailInput.style.borderColor = '#CBD5E1';
+                messageInput.style.borderColor = '#CBD5E1';
+
+                const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
+                if (loaderWrapper) loaderWrapper.style.display = 'none';
+                feedbackForm.classList.remove('is-loading');
+                feedbackConfirmation.classList.remove('active');
+                feedbackFormCard.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+
+</html>

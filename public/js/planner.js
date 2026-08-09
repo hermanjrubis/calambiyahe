@@ -347,13 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateODDisplay();
                     closeLocationModal();
                     if (selectedCoords.destination) executeRouteQuery();
-                    // PostGIS: show terminal suggestions if user is in Calamba
-                    let dLat = null, dLng = null;
-                    if (selectedCoords.destination) {
-                        dLat = selectedCoords.destination[0];
-                        dLng = selectedCoords.destination[1];
-                    }
-                    if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude, dLat, dLng);
                 },
                 () => {
                     closeLocationModal();
@@ -499,13 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             updateODDisplay();
                             closeLocationModal();
                             if (selectedCoords.destination) executeRouteQuery();
-                            // PostGIS: show terminal suggestions if user is in Calamba
-                            let dLat = null, dLng = null;
-                            if (selectedCoords.destination) {
-                                dLat = selectedCoords.destination[0];
-                                dLng = selectedCoords.destination[1];
-                            }
-                            if (window.checkAndShowTerminals) window.checkAndShowTerminals(pos.coords.latitude, pos.coords.longitude, dLat, dLng);
                         },
                         () => {
                             closeLocationModal();
@@ -922,8 +908,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="leg-sidebar ${sidebarCls}">
                 <div class="leg-sidebar-icon">
                     ${selectedMode === 'jeepney'
-                      ? '<img src="assets/icons/jeepney-icon.png" style="width:28px;height:28px;object-fit:contain;">'
-                      : '<img src="assets/icons/bus-icon.png" style="width:28px;height:28px;object-fit:contain;">'}
+                      ? '<img src="../assets/icons/jeepney-icon.png" style="width:28px;height:28px;object-fit:contain;">'
+                      : '<img src="../assets/icons/bus-icon.png" style="width:28px;height:28px;object-fit:contain;">'}
                 </div>
                 <div class="leg-sidebar-label">${modeLabel}</div>
             </div>
@@ -982,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
             : `${totalMin} min • ₱${currentFare}`;
         blk.style.visibility = 'visible';
 
-        // Update chatbot context for DyipTok Assistant
+        // Update chatbot context for Routie Assistant
         window._calzadaRouteContext = {
             origin: originPlaceName,
             destination: destPlaceName,
@@ -1654,6 +1640,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reset any leftover inline transform/opacity from swipe gesture
         sd.style.transform = '';
         so.style.opacity = '';
+
+        const menuIcon = document.querySelector('#hamburgerBtn .menu-toggle-icon');
+        if (menuIcon) {
+            menuIcon.classList.toggle('open', state);
+        }
     };
     document.getElementById('hamburgerBtn').addEventListener('click', () => toggleDrawer(true));
     document.getElementById('drawerCloseBtn').addEventListener('click', () => toggleDrawer(false));
@@ -1747,10 +1738,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Chatbot Trigger
-    document.getElementById('drawerDyipTokLink').addEventListener('click', () => {
-        toggleDrawer(false);
-        document.getElementById('chatWindow').classList.add('open');
-    });
+    const drawerRoutieBtn = document.getElementById('drawerRoutieLink');
+    if (drawerRoutieBtn) {
+        drawerRoutieBtn.addEventListener('click', () => {
+            toggleDrawer(false);
+            document.getElementById('chatWindow').classList.add('open');
+        });
+    }
     document.getElementById('closeChatBtn').addEventListener('click', () => {
         document.getElementById('chatWindow').classList.remove('open');
     });
@@ -1961,124 +1955,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     })();
 
-
-    // =============================================
-    // TERMINAL SUGGESTION ENGINE (PostGIS — Calamba Only)
-    // =============================================
-
-    const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const API_BASE = isDev ? 'http://localhost:5000' : 'https://calzada-api.vercel.app';
-
-    // Strict Calamba City bounding box (excludes Cabuyao, Los Baños, etc.)
-    const CALAMBA_BOUNDS = { minLat: 14.14, maxLat: 14.235, minLng: 121.05, maxLng: 121.20 };
-
-    const isInCalamba = (lat, lng) =>
-        lat >= CALAMBA_BOUNDS.minLat && lat <= CALAMBA_BOUNDS.maxLat &&
-        lng >= CALAMBA_BOUNDS.minLng && lng <= CALAMBA_BOUNDS.maxLng;
-
-    const fetchNearestTerminals = async (lat, lng, destLat, destLng) => {
-        try {
-            let url = `${API_BASE}/api/terminals/nearest?lat=${lat}&lng=${lng}`;
-            if (destLat && destLng) {
-                url += `&destLat=${destLat}&destLng=${destLng}`;
-            }
-            const res = await fetch(url);
-            if (!res.ok) throw new Error('API error');
-            return await res.json();
-        } catch (e) {
-            console.warn('Could not fetch terminals:', e);
-            return [];
-        }
-    };
-
-    const TERMINAL_COLORS = {
-        'CCT': '#1C6EF2', 'SMT': '#7c3aed',
-        'TBT': '#ef4444', 'SCT': '#f59e0b', 'SPT': '#10b981'
-    };
-
-    const renderTerminalCards = (terminals, userLat, userLng) => {
-        const list = document.getElementById('tsTerminalList');
-        if (!list) return;
-        list.innerHTML = '';
-
-        terminals.forEach(t => {
-            const distM = Math.round(t.dist_meters || 0);
-            const distTxt = distM >= 1000 ? `${(distM / 1000).toFixed(1)} km` : `${distM} m`;
-            const rawTypes = t.transport_types;
-            const types = Array.isArray(rawTypes)
-                ? rawTypes.join(' · ')
-                : (typeof rawTypes === 'string' ? rawTypes.replace(/[{}"]/g, '').replace(/,/g, ' · ') : '');
-            const color = TERMINAL_COLORS[t.terminal_code] || '#1C6EF2';
-
-            const card = document.createElement('div');
-            card.className = 'ts-terminal-card';
-            card.innerHTML = `
-                <div class="ts-card-badge" style="background:${color}18; border-color:${color}35;">
-                    <span class="ts-code" style="color:${color}">${t.terminal_code || '??'}</span>
-                </div>
-                <div class="ts-card-body">
-                    <div class="ts-name">${t.name || 'Terminal'}</div>
-                    <div class="ts-types">${types}</div>
-                    <div class="ts-dist-row">
-                        <ion-icon name="navigate-outline"></ion-icon>
-                        <span>${distTxt} from you</span>
-                    </div>
-                </div>
-                <button class="ts-board-btn" style="background:${color}; box-shadow:0 4px 12px ${color}50;">
-                    Board <ion-icon name="arrow-forward-outline"></ion-icon>
-                </button>
-            `;
-
-            card.querySelector('.ts-board-btn').addEventListener('click', () => {
-                let termLat = userLat, termLng = userLng;
-                try {
-                    const geo = JSON.parse(t.geojson);
-                    termLng = geo.coordinates[0];
-                    termLat = geo.coordinates[1];
-                } catch (e) {}
-
-                selectedCoords.origin = [termLat, termLng];
-                originPlaceName = t.name;
-                updateODDisplay();
-                closeTerminalPanel();
-                showToast(`📍 Boarding from: ${t.name}`);
-                if (selectedCoords.destination) executeRouteQuery();
-            });
-
-            list.appendChild(card);
-        });
-    };
-
-    const showTerminalPanel = () => {
-        document.getElementById('terminalSuggestPanel')?.classList.add('visible');
-        document.getElementById('terminalSuggestOverlay')?.classList.add('visible');
-    };
-
-    const closeTerminalPanel = () => {
-        document.getElementById('terminalSuggestPanel')?.classList.remove('visible');
-        document.getElementById('terminalSuggestOverlay')?.classList.remove('visible');
-    };
-
-    document.getElementById('tsCloseBtn')?.addEventListener('click', closeTerminalPanel);
-    document.getElementById('tsSkipBtn')?.addEventListener('click', closeTerminalPanel);
-    document.getElementById('terminalSuggestOverlay')?.addEventListener('click', closeTerminalPanel);
-
-    // Exposed globally so it can be called from My Location callbacks above
-    window.checkAndShowTerminals = async (lat, lng, destLat, destLng) => {
-        if (!isInCalamba(lat, lng)) return;
-
-        // Show loading state
-        const list = document.getElementById('tsTerminalList');
-        if (list) list.innerHTML = `<div class="ts-loading"><div class="route-spinner" style="border-top-color:#1C6EF2;"></div><span>Finding best terminals for your route...</span></div>`;
-        showTerminalPanel();
-
-        const terminals = await fetchNearestTerminals(lat, lng, destLat, destLng);
-        if (terminals && terminals.length > 0) {
-            renderTerminalCards(terminals, lat, lng);
-        } else {
-            if (list) list.innerHTML = `<div class="ts-loading" style="color:#ef4444;"><ion-icon name="warning-outline"></ion-icon><span>No terminals found nearby.</span></div>`;
-        }
-    };
 
     }, 0);
 });

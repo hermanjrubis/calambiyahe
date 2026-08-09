@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Your Commuting Guide in Calamba</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
     <meta property="og:description"
@@ -18,7 +18,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/style.css">
     <!-- Search dropdown styles -->
     <style>
         .search-results-dropdown {
@@ -98,7 +99,7 @@
         };
     </script>
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="skeleton.css">
+    <link rel="stylesheet" href="../css/skeleton.css">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -107,119 +108,179 @@
 
 <body class="index-page">
 
-    <!-- Scroll progress indicator -->
-    <div class="scroll-progress" id="scrollProgress"></div>
 
-    <!-- Mouse Glow Aura -->
-    <div class="mouse-glow" id="mouseGlow"></div>
 
-    <!-- Geometric background assets -->
-    <img src="assets/2.png" class="geo-bg geo-bg-1" alt="">
-    <img src="assets/1.png" class="geo-bg geo-bg-2" alt="">
 
-    <!-- Header / Navigation (Frosted Glass) -->
+
+    <!-- Header / Navigation (Seamless Light Theme) -->
     <header class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="index.html" class="brand-logo">
-                <img src="assets/logo-header.png?v=2" alt="Calzada Logo" class="logo-img">
-            </a>
+            <!-- Left: Logo -->
+            <div class="nav-left">
+                <a href="index.html" class="brand-logo">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                </a>
+            </div>
 
-            <nav class="nav-links" id="navLinks">
-                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About</a>
+            <!-- Center: Floating Nav Links Group -->
+            <nav class="nav-center" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
                 <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="#p2p" class="nav-link" data-i18n="footer.nav.p2p">P2P</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="login.html" id="authNavBtn" class="nav-link btn-nav-auth" data-i18n="login.signin">Sign In</a>
-
-                <!-- Navbar Toggle (Desktop) -->
-                <button class="lang-toggle-btn" id="langToggleBtn" title="Switch Language">
-                    <span class="lang-active">EN</span>
-                    <span class="lang-sep">|</span>
-                    <span class="lang-other">TL</span>
-                </button>
+                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
                     <span class="mobile-lang-label">Language / Wika</span>
-                    <button class="mobile-lang-toggle">
-                        <span class="lang-active">EN</span>
-                        <span class="lang-sep">|</span>
-                        <span class="lang-other">TL</span>
-                    </button>
+                    <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu">
+                            <button class="lang-dropdown-item" type="button" data-lang="en">
+                                <span class="lang-flag">🇺🇸</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl">
+                                <span class="lang-flag">🇵🇭</span>
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </nav>
+
+            <!-- Right: Language Toggle & Sign In -->
+            <div class="nav-right">
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+                <a href="login.html" id="authNavBtn" class="btn-nav-auth" data-i18n="login.signin">Sign In</a>
+            </div>
+
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                <ion-icon name="menu-outline"></ion-icon>
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <path class="menu-toggle-line" d="M7 16 27 16" />
+            </svg>
             </button>
         </div>
     </header>
 
     <!-- Main Hero Section -->
     <main class="hero-section">
+        <!-- Flat, solid-color pale blue circles layered behind content -->
+        <div class="hero-flat-shape hero-shape-1"></div>
+        <div class="hero-flat-shape hero-shape-2"></div>
+        <div class="hero-flat-shape hero-shape-3"></div>
 
+        <div class="hero-container">
+            <!-- Left Column: Headline, Subtext, Search Bar -->
+            <div class="hero-left-col">
+                <h1 class="hero-title" data-i18n="hero.title">
+                    Find places you can explore in <span class="title-accent">Calamba.</span>
+                </h1>
+                <p class="hero-subtitle" data-i18n="hero.subtitle">
+                    Your local guide to spots worth the trip.
+                </p>
 
-        <!-- Map background overlay -->
-        <div class="map-bg-overlay"></div>
-
-        <div class="hero-content">
-            <!-- Center Logo -->
-            <div class="center-logo-container parallax-layer-1">
-                <div class="logo-glow-ring"></div>
-                <img src="assets/logo-center.png" alt="Calzada App Icon" class="center-logo">
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-bar" id="searchBar">
+                        <ion-icon name="search-outline" class="search-prefix-icon"></ion-icon>
+                        <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder"
+                            placeholder="Where do you want to go?" class="search-input" id="searchInput" autocomplete="off"
+                            autocorrect="off" autocapitalize="off" spellcheck="false">
+                        <button class="search-button" aria-label="Search" id="searchBtn">
+                            <ion-icon name="arrow-forward-outline"></ion-icon>
+                        </button>
+                    </div>
+                    <div class="search-results-dropdown" id="searchResults"></div>
+                </div>
             </div>
 
-            <h1 class="hero-title" data-i18n="hero.title">Your <span class="title-highlight shimmer-text">Commuting
-                    Guide</span> in Calamba.</h1>
-            <p class="hero-subtitle" data-i18n="hero.subtitle">
-                Find routes, fares, and connections for Jeepneys,
-                Buses, P2P, UV Express, and Tricycles.
-            </p>
-
-            <!-- Search Bar -->
-            <div class="search-container">
-                <div class="search-bar" id="searchBar">
-                    <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
-                    <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder"
-                        placeholder="Where do you want to go?" class="search-input" id="searchInput" autocomplete="off"
-                        autocorrect="off" autocapitalize="off" spellcheck="false">
-                    <button class="search-button" aria-label="Search" id="searchBtn">
-                        <ion-icon name="search-outline"></ion-icon>
-                    </button>
-
-
+            <!-- Right Column: Phone / App Mockup Asset -->
+            <div class="hero-right-col">
+                <div class="hero-mockup-frame">
+                    <img src="../assets/app-mockup.png" alt="Calzada App Mockup" class="hero-mockup-img">
                 </div>
-                <div class="search-results-dropdown" id="searchResults"></div>
             </div>
         </div>
     </main>
 
-
-
-
-
     <!-- Scrollable Content Sections -->
     <div class="scrollable-content">
         <!-- Section: About Calzada -->
-        <section class="about-card reveal">
+        <section class="about-card reveal" id="about-section">
             <div class="about-split">
                 <div class="about-split-text">
-                    <span class="section-num">01 — About</span>
                     <div class="section-header reveal-delay-1">
-                        <h2 data-i18n="about.heading">Ano ang Calzada?</h2>
+                        <h2 data-i18n="about.heading">More than just directions.</h2>
                         <div class="header-line"></div>
                     </div>
                     <p data-i18n="about.body" class="reveal-delay-2">
-                        Ang <strong>Calzada</strong> ay ang iyong maaasahang commuter guide platform dito sa Calamba at
-                        karatig-bayan.
-                        Madaliang mai-plano ang biyahe gamit ang aming platform na nagpapakita ng presyo ng pamasahe at
-                        eksaktong transit modeâ€”jeepney, bus, modern jeep, UV, o tricycle man 'yan!
+                        Calzada helps you discover places worth visiting around Calamba, then get you there. Search a spot, see how to reach it, and pick from a jeepney or tricycle — with fares and directions in one place.
                     </p>
-                    <a href="about.html" class="btn-learn-more reveal-delay-3" data-i18n="about.learn_more">Learn More
-                        â†’</a>
+                    <a href="about.html" class="btn-learn-more reveal-delay-3" data-i18n="about.learn_more">Learn More →</a>
                 </div>
-                <div class="about-split-mockup reveal-delay-2">
-                    <div class="mockup-crop-wrapper">
-                        <img src="assets/app-mockup.png" alt="Calzada App Preview" class="about-mockup-img">
+
+                <!-- Right Column: 2x2 Feature Grid -->
+                <div class="about-feature-grid reveal-delay-2">
+                    <div class="about-feature-card">
+                        <div class="feature-card-icon">
+                            <i class="ti ti-map-pin"></i>
+                        </div>
+                        <h3 class="feature-card-label" data-i18n="about.card1.title">Find places</h3>
+                        <p class="feature-card-desc" data-i18n="about.card1.desc">Browse spots by category across Calamba</p>
+                    </div>
+
+                    <div class="about-feature-card">
+                        <div class="feature-card-icon">
+                            <i class="ti ti-coin"></i>
+                        </div>
+                        <h3 class="feature-card-label" data-i18n="about.card2.title">Live fares</h3>
+                        <p class="feature-card-desc" data-i18n="about.card2.desc">Know the cost before you leave</p>
+                    </div>
+
+                    <div class="about-feature-card">
+                        <div class="feature-card-icon">
+                            <i class="ti ti-steering-wheel"></i>
+                        </div>
+                        <h3 class="feature-card-label" data-i18n="about.card3.title">Jeep or tricycle</h3>
+                        <p class="feature-card-desc" data-i18n="about.card3.desc">Pick the ride that fits your trip</p>
+                    </div>
+
+                    <div class="about-feature-card">
+                        <div class="feature-card-icon">
+                            <i class="ti ti-map-pin-search"></i>
+                        </div>
+                        <h3 class="feature-card-label" data-i18n="about.card4.title">Nearest stop</h3>
+                        <p class="feature-card-desc" data-i18n="about.card4.desc">Find the closest pickup point to you</p>
                     </div>
                 </div>
             </div>
@@ -240,24 +301,21 @@
                 <div class="steps-grid">
                     <div class="step-card reveal-delay-1">
                         <div class="step-ghost-num">01</div>
-                        <div class="step-icon"><ion-icon name="search-outline"></ion-icon></div>
-                        <h3 data-i18n="steps.1.title">Enter Your Destination</h3>
-                        <p data-i18n="steps.1.desc">Type where you want to go. Calzada recognizes landmarks, barangays,
-                            terminals, and more.</p>
+                        <div class="step-icon"><i class="ti ti-search"></i></div>
+                        <h3 data-i18n="steps.1.title">Search Your Destination</h3>
+                        <p data-i18n="steps.1.desc">Type where you're headed. Calzada picks up on landmarks, barangays, and common stops around Calamba.</p>
                     </div>
                     <div class="step-card reveal-delay-2">
                         <div class="step-ghost-num">02</div>
-                        <div class="step-icon"><ion-icon name="git-network-outline"></ion-icon></div>
-                        <h3 data-i18n="steps.2.title">Compare Route Options</h3>
-                        <p data-i18n="steps.2.desc">See multiple route suggestions with estimated travel time, fare
-                            cost, and number of transfers.</p>
+                        <div class="step-icon"><i class="ti ti-route"></i></div>
+                        <h3 data-i18n="steps.2.title">See Your Options</h3>
+                        <p data-i18n="steps.2.desc">Compare routes with fare estimates, travel time, and how many rides you'll need.</p>
                     </div>
                     <div class="step-card reveal-delay-3">
                         <div class="step-ghost-num">03</div>
-                        <div class="step-icon"><ion-icon name="walk-outline"></ion-icon></div>
-                        <h3 data-i18n="steps.3.title">Go & Travel with Confidence</h3>
-                        <p data-i18n="steps.3.desc">Follow step-by-step directions. Multi-modal journeys combining
-                            jeepney, P2P, and tricycle are fully supported.</p>
+                        <div class="step-icon"><i class="ti ti-steering-wheel"></i></div>
+                        <h3 data-i18n="steps.3.title">Ride with Confidence</h3>
+                        <p data-i18n="steps.3.desc">Get simple directions to get there — by jeepney, tricycle, or a quick transfer between the two.</p>
                     </div>
                 </div>
             </div>
@@ -310,62 +368,23 @@
         </section>
     </div>
 
-    <!-- Features Stats Bar -->
-    <section class="features-bar reveal">
-        <div class="features-grid">
-            <div class="feature-card reveal-delay-1">
-                <div class="feature-icon" data-tip="50+ Routes"><ion-icon name="navigate-outline"></ion-icon></div>
-                <div class="feature-text">
-                    <strong id="stat-routes">50+</strong>
-                    <span data-i18n="features.routes">Routes Covered</span>
-                </div>
-            </div>
-
-            <div class="feature-card reveal-delay-2">
-                <div class="feature-icon" data-tip="6 Modes"><ion-icon name="bus-outline"></ion-icon></div>
-                <div class="feature-text">
-                    <strong id="stat-modes">6</strong>
-                    <span data-i18n="features.modes">Transit Modes</span>
-                </div>
-            </div>
-
-            <div class="feature-card reveal-delay-3">
-                <div class="feature-icon" data-tip="54 Barangays"><ion-icon name="grid-outline"></ion-icon></div>
-                <div class="feature-text">
-                    <strong id="stat-brgy">54</strong>
-                    <span data-i18n="features.barangays">Barangays</span>
-                </div>
-            </div>
-
-            <div class="feature-card reveal-delay-3">
-                <div class="feature-icon" data-tip="Real-time Fares"><ion-icon name="pricetag-outline"></ion-icon></div>
-                <div class="feature-text">
-                    <strong data-i18n="features.realtime">Real-time</strong>
-                    <span data-i18n="features.fare">Fare Info</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Floating Chat Widget -->
+    <!-- Floating Chat Widget (Routie Pill) -->
     <div class="chat-widget-container">
-        <span class="chat-label" data-i18n="chat.label">Ask DyipTok</span>
-        <button class="chat-toggle-btn" id="chatToggleBtn">
-            <img src="assets/DyipTok-icon.png" alt="DyipTok" style="width: 60px; height: 60px; object-fit: contain;">
+        <button class="chat-toggle-pill" id="chatToggleBtn">
+            <img src="../assets/DyipTok-icon.png" alt="Routie" class="chat-pill-avatar">
+            <span class="chat-label" data-i18n="chat.label">Ask Routie</span>
         </button>
     </div>
-
-
 
     <!-- Chatbot Window -->
     <div class="chat-window" id="chatWindow">
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="bot-avatar">
-                    <img src="assets/DyipTok-icon.png" alt="DyipTok">
+                    <img src="../assets/DyipTok-icon.png" alt="Routie">
                 </div>
                 <div>
-                    <div class="chat-name">DyipTok Assistant</div>
+                    <div class="chat-name">Routie Assistant</div>
                     <div class="chat-status"><span class="status-dot"></span> Online</div>
                 </div>
             </div>
@@ -375,16 +394,12 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message-wrapper bot-wrapper">
-                <div class="bot-avatar"><img src="assets/DyipTok-icon.png" alt="DyipTok"></div>
+                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie"></div>
                 <div class="message bot-message" data-i18n="chat.greeting">
-                    Hello! I'm DyipTok. Where do you want to go today?
+                    Hello! I'm Routie. Where do you want to go today?
                 </div>
             </div>
         </div>
-
-
-
-
 
         <div class="chat-input-area">
             <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
@@ -420,13 +435,14 @@
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-column brand-column">
-                <img src="assets/logo-white.png" alt="Calzada Logo" class="footer-logo">
-                <p data-i18n="footer.tagline">Ang iyong maaasahang commuter guide platform sa Calamba.</p>
-                <div class="social-icons">
-                    <a href="https://web.facebook.com/kelly.torres.861688"><ion-icon
-                            name="logo-facebook"></ion-icon></a>
-                    <a href="https://twitter.com/calzada" target="_blank" aria-label="X (Twitter)">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"
+                <a href="index.html" class="footer-logo">
+                    <img src="../assets/logo-white.png" alt="Calzada Logo" class="footer-logo-img">
+                </a>
+                <p data-i18n="footer.tagline">Ang iyong maaasahang gabay sa commute sa Calamba.</p>
+                <div class="social-links">
+                    <a href="https://facebook.com"><ion-icon name="logo-facebook"></ion-icon></a>
+                    <a href="https://x.com" aria-label="X (Twitter)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
                                 d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.25 2.25h6.69l4.71 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
@@ -438,7 +454,6 @@
             <div class="footer-column nav-column">
                 <h3 data-i18n="footer.nav.heading">Navigation</h3>
                 <a href="index.html" data-i18n="footer.nav.home">Home</a>
-                <a href="index.html#p2p" data-i18n="footer.nav.p2p">P2P Paths</a>
                 <a href="#" data-i18n="footer.nav.submit">Submit a Route</a>
                 <a href="about.html" data-i18n="footer.nav.about">About Us</a>
                 <a href="faq.html" data-i18n="footer.nav.faq">FAQ</a>
@@ -455,8 +470,8 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
-    <script src="i18n.js"></script>
+    <script src="../js/script.js"></script>
+    <script src="../js/i18n.js"></script>
 
     <!-- =============================================
          SCROLL ANIMATION ENGINE
@@ -486,10 +501,8 @@
 
             revealEls.forEach(el => observer.observe(el));
 
-            // â”€â”€ Parallax on hero content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ——— Parallax on hero content —————————————————————
             const heroContent = document.querySelector('.hero-content');
-            const geoBg1 = document.querySelector('.geo-bg-1');
-            const geoBg2 = document.querySelector('.geo-bg-2');
 
             const handleScroll = () => {
                 updateProgress();
@@ -500,19 +513,6 @@
                     heroContent.style.transform = `translateY(${sy * 0.18}px)`;
                     heroContent.style.opacity = Math.max(0, 1 - sy / 480);
                 }
-
-                // Geometric bg parallax layers at different speeds
-                if (geoBg1) geoBg1.style.transform = `translateY(${sy * 0.08}px) rotate(${sy * 0.01}deg)`;
-                if (geoBg2) geoBg2.style.transform = `translateY(${sy * -0.06}px) rotate(${sy * -0.008}deg)`;
-
-                // â”€â”€ Background color shift on scroll â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                // Hero (blue-ish) â†’ neutral white as user scrolls into sections
-                const maxShift = 600;
-                const ratio = Math.min(sy / maxShift, 1);
-                const r = Math.round(248 + (255 - 248) * ratio);
-                const g = Math.round(250 + (255 - 250) * ratio);
-                const b = Math.round(252 + (255 - 252) * ratio);
-                document.body.style.background = `rgb(${r},${g},${b})`;
             };
 
             window.addEventListener('scroll', handleScroll, { passive: true });
@@ -556,33 +556,6 @@
                 }, { threshold: 0.1 });
                 newsObserver.observe(section);
             });
-
-            // â”€â”€ Features bar number count-up â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            const featuresBar = document.querySelector('.features-bar');
-            if (featuresBar) {
-                const countObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            featuresBar.querySelectorAll('.feature-text strong').forEach(el => {
-                                const raw = el.textContent.trim();
-                                const num = parseInt(raw.replace(/\D/g, ''));
-                                if (isNaN(num)) return;
-                                const suffix = raw.replace(/[\d]/g, '');
-                                let start = 0;
-                                const dur = 900;
-                                const step = dur / num;
-                                const counter = setInterval(() => {
-                                    start += 1;
-                                    el.textContent = start + suffix;
-                                    if (start >= num) { clearInterval(counter); el.textContent = raw; }
-                                }, Math.max(step, 16));
-                            });
-                            countObserver.unobserve(entry.target);
-                        }
-                    });
-                }, { threshold: 0.5 });
-                countObserver.observe(featuresBar);
-            }
 
         })();
     </script>
@@ -732,11 +705,11 @@
         })();
     </script>
 
-    <script src="transitions.js"></script>
+    <script src="../js/transitions.js"></script>
 
     <!-- Firebase Auth State Check -->
     <script type="module">
-        import { auth, onAuthStateChanged, signOut } from './firebase-init.js';
+        import { auth, onAuthStateChanged, signOut } from '../js/firebase-init.js';
 
         const authNavBtn = document.getElementById('authNavBtn');
 

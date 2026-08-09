@@ -52,17 +52,17 @@ const placesData = {
         travelTime: "15 mins",
         transport: "Tricycle"
     },
-    "Calamba Central Terminal": {
-        name: "Calamba Central Terminal",
-        category: "Terminal",
-        image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=600&q=80",
-        barangay: "Brgy. Real, Calamba City",
-        landmarks: ["Near SM City Calamba", "Crossing"],
-        howToGetThere: "Accessible via almost all jeepneys, buses, and tricycles in Calamba. It serves as the main transportation hub of the city.",
-        about: "The primary transport terminal connecting Calamba to Metro Manila, Batangas, Quezon, and other parts of Laguna.",
-        fare: "₱13+",
-        travelTime: "N/A",
-        transport: "Bus / Jeepney / UV"
+    "Moonbucks": {
+        name: "Moonbucks",
+        category: "Coffee Shop",
+        image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5SF7ZvAMmCMYah6b2qjK4ziOySSiP8JzzCg&s",
+        barangay: "Elepaño Subdivision, Brgy. 3 (Bayan), Calamba City",
+        landmarks: ["Near Calamba Plaza", "Bayan", "Elepaño Subdivision"],
+        howToGetThere: "Ride any jeepney going to Calamba Bayan. Drop off at Elepaño Subdivision / Plaza area. The coffee shop is within walking distance.",
+        about: "A cozy local favorite offering affordable coffee, snacks, and a chill atmosphere. Features amenities like billiards and dynamic seating, making it a great hangout spot.",
+        fare: "₱13–₱30",
+        travelTime: "10–15 mins",
+        transport: "Jeepney / Tricycle"
     },
     "City College of Calamba": {
         name: "City College of Calamba",
@@ -231,7 +231,7 @@ window.openPlacePanel = function(placeName) {
         data = {
             name: placeName,
             category: "Destination",
-            image: "assets/hero-places-bg.png", // fallback image
+            image: "../assets/hero-places-bg.png", // fallback image
             barangay: "Calamba City",
             landmarks: ["Popular destination in Calamba"],
             howToGetThere: "Use the Route Planner for detailed directions to this location.",

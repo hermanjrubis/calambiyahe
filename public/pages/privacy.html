@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Privacy Policy - Calzada</title>
+    <meta name="description" content="Privacy Policy for Calzada, an academic capstone project and commuting guide for Calamba City.">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.json">
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- Styles -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/skeleton.css">
+    <style>
+        body { opacity: 0; }
+        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+
+        .legal-page {
+            padding: 120px 20px 80px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .legal-container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .legal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #E6F1FB;
+            color: #378ADD;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-family: 'Outfit', sans-serif;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .legal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: #042C53;
+            margin: 0 0 8px 0;
+            line-height: 1.2;
+        }
+
+        .legal-meta {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            color: #94A3B8;
+            margin-bottom: 32px;
+        }
+
+        .legal-card {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0 0 28px 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .legal-card:last-of-type {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .legal-card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #042C53;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            background: #378ADD;
+            color: #FFFFFF;
+            border-radius: 50%;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .legal-card p {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            color: #4A607A;
+            line-height: 1.75;
+            margin: 0;
+        }
+
+        .legal-card p + p { margin-top: 10px; }
+
+        .legal-card ul {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            color: #4A607A;
+            line-height: 1.75;
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+        }
+
+        .legal-card ul li { margin-bottom: 4px; }
+
+        .legal-capstone-note {
+            background: #FFF8E6;
+            border: 1px solid #FBBF24;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            color: #78350F;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .legal-capstone-note ion-icon {
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+            color: #D97706;
+        }
+
+        .legal-third-party-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #F1F5F9;
+            color: #64748B;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Outfit', sans-serif;
+            vertical-align: middle;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        .legal-top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .legal-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            color: #378ADD;
+            text-decoration: none;
+            font-weight: 600;
+            transition: opacity 0.15s;
+            line-height: 1;
+        }
+
+        .legal-back-link:hover { opacity: 0.7; }
+
+        .legal-inline-link {
+            color: #378ADD;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .legal-title { font-size: 1.8rem; }
+            .legal-card { padding: 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header / Navigation -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="index.html" class="brand-logo">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                </a>
+            </div>
+
+            <nav class="nav-center" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu">
+                            <button class="lang-dropdown-item" type="button" data-lang="en">
+                                <span class="lang-flag">🇺🇸</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl">
+                                <span class="lang-flag">🇵🇭</span>
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <div class="nav-right">
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+                <a href="login.html" id="authNavBtn" class="btn-nav-auth">Sign In</a>
+            </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <path class="menu-toggle-line" d="M7 16 27 16" />
+            </svg>
+            </button>
+        </div>
+    </header>
+
+    <main class="legal-page">
+        <div class="legal-container">
+
+            <div class="legal-top-row">
+                <a href="login.html" class="legal-back-link">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                    Back
+                </a>
+                <span class="legal-badge">Legal</span>
+            </div>
+            <h1 class="legal-title">Privacy Policy</h1>
+            <p class="legal-meta">Last updated: August 6, 2025</p>
+
+            <div class="legal-capstone-note">
+                <ion-icon name="information-circle-outline"></ion-icon>
+                <span><strong>Note:</strong> Calzada is an academic capstone project, not a commercial service. This Privacy Policy is provided for transparency. Data collected is used solely for academic demonstration and app functionality.</span>
+            </div>
+
+            <div class="legal-card">
+                <h2><span class="section-num">1</span> Information We Collect</h2>
+                <p>When you use Calzada, we may collect the following types of information:</p>
+                <ul>
+                    <li><strong>Registration data:</strong> Your email address, used to create and identify your account.</li>
+                    <li><strong>Authentication credentials:</strong> Your password, stored in hashed form via Firebase Authentication. We never see or store your password in plain text.</li>
+                    <li><strong>Google account data (optional):</strong> If you sign in with Google, we receive your name, email address, and profile picture from Google's OAuth service.</li>
+                    <li><strong>Search and place queries:</strong> What places or routes you look up within the App, to provide relevant results.</li>
+                    <li><strong>Chatbot conversations:</strong> Messages sent to Routie (our AI assistant) are processed by the Groq API to generate responses. These messages are not stored permanently on our servers.</li>
+                    <li><strong>Session and activity data:</strong> Login timestamps, device/browser type, and session logs, stored in Firestore for security and academic analysis purposes.</li>
+                </ul>
+            </div>
+
+            <div class="legal-card">
+                <h2><span class="section-num">2</span> How We Use Your Information</h2>
+                <p>The information we collect is used to:</p>
+                <ul>
+                    <li>Authenticate your identity and manage your account</li>
+                    <li>Provide personalized place-finding and route guidance within Calamba</li>
+                    <li>Power the Routie chatbot to answer your commuting questions</li>
+                    <li>Monitor login sessions for security and abuse prevention</li>
+                    <li>Analyze usage patterns for academic research and system improvement</li>
+                </ul>
+                <p>We do not use your data for advertising, profiling, or any commercial purpose.</p>
+            </div>
+
+            <div class="legal-card">
+                <h2><span class="section-num">3</span> Third-Party Services</h2>
+                <p>Calzada uses the following third-party services. When you use features that rely on them, some data leaves our own servers:</p>
+                <ul>
+                    <li>
+                        <strong>Google Firebase</strong> <span class="legal-third-party-tag">Authentication &amp; Database</span><br>
+                        Used for user registration, login (including Google Sign-In), and storing session/activity data in Firestore. Google's privacy policy applies to data processed through Firebase.
+                        <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" class="legal-inline-link">Firebase Privacy</a>
+                    </li>
+                    <br>
+                    <li>
+                        <strong>Groq API</strong> <span class="legal-third-party-tag">AI Chatbot</span><br>
+                        Powers the Routie chatbot. Messages you send to Routie are transmitted to Groq's servers to generate responses. Groq's data retention policies apply. We recommend not sharing personally sensitive information through the chatbot.
+                        <a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener noreferrer" class="legal-inline-link">Groq Privacy</a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="legal-card">
+                <h2><span class="section-num">4</span> Data Security</h2>
+                <p>We take reasonable steps to protect your data:</p>
+                <ul>
+                    <li>Passwords are hashed using industry-standard algorithms via Firebase Authentication — never stored in plain text</li>
+                    <li>All data transmissions between the App and servers use HTTPS encryption</li>
+                    <li>Firestore database access is restricted to authenticated users only, via Firebase Security Rules</li>
+                </ul>
+                <p>As an academic project, our security measures are implemented in good faith but may not match commercial-grade standards. We encourage users not to reuse passwords from other services.</p>
+            </div>
+
+            <div class="legal-card">
+                <h2><span class="section-num">5</span> User Rights</h2>
+                <p>You have the following rights regarding your personal data:</p>
+                <ul>
+                    <li><strong>Access:</strong> Request a summary of data associated with your account</li>
+                    <li><strong>Correction:</strong> Request correction of inaccurate account information</li>
+                    <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
+                </ul>
+                <p>To exercise any of these rights, contact us via the <a href="feedback.html" class="legal-inline-link">Feedback page</a>. As this is a capstone project, we will do our best to accommodate requests in a timely manner.</p>
+            </div>
+
+            <div class="legal-card">
+                <h2><span class="section-num">6</span> Contact Information</h2>
+                <p>For questions or concerns about this Privacy Policy, reach us through the <a href="feedback.html" class="legal-inline-link">Feedback page</a>. You may also review our <a href="terms.html" class="legal-inline-link">Terms of Service</a> for the rules governing use of the App.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script src="../js/transitions.js"></script>
+
+</body>
+
+</html>
