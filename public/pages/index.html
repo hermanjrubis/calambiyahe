@@ -115,20 +115,106 @@
     <!-- Header / Navigation (Seamless Light Theme) -->
     <header class="navbar" id="navbar">
         <div class="nav-container">
-            <!-- Left: Logo -->
+            <!-- [Left Side]: Logo -->
             <div class="nav-left">
                 <a href="index.html" class="brand-logo">
                     <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
                 </a>
             </div>
 
-            <!-- Center: Floating Nav Links Group -->
+            <!-- [Center]: About Us | Explore ▼ | FAQs | My Trips -->
             <nav class="nav-center" id="navLinks">
                 <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
-                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
+
+                <!-- Explore Dropdown with Modern Crisp SVGs -->
+                <div class="nav-dropdown" id="exploreDropdown">
+                    <button class="nav-link nav-dropdown-btn" id="exploreDropdownBtn" type="button" aria-expanded="false">
+                        <span data-i18n="footer.nav.explore">Explore</span>
+                        <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
+                    </button>
+                    <div class="nav-dropdown-menu" id="exploreDropdownMenu">
+                        <a href="places.html?category=establishments&q=mall" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-mall">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
+                            </span>
+                            <span>Malls</span>
+                        </a>
+                        <a href="places.html?category=coffee&q=food" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-eatery">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="1" x2="6" y2="4"></line>
+                                    <line x1="10" y1="1" x2="10" y2="4"></line>
+                                    <line x1="14" y1="1" x2="14" y2="4"></line>
+                                </svg>
+                            </span>
+                            <span>Eateries</span>
+                        </a>
+                        <a href="places.html?category=schools" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-school">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                </svg>
+                            </span>
+                            <span>Schools</span>
+                        </a>
+                        <a href="places.html?category=establishments&q=hospital" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-hospital">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="4"></rect>
+                                    <path d="M12 8v8M8 12h8"></path>
+                                </svg>
+                            </span>
+                            <span>Hospitals</span>
+                        </a>
+                        <a href="places.html?category=establishments&q=landmark" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-landmark">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="3" y1="22" x2="21" y2="22"></line>
+                                    <line x1="6" y1="18" x2="6" y2="11"></line>
+                                    <line x1="10" y1="18" x2="10" y2="11"></line>
+                                    <line x1="14" y1="18" x2="14" y2="11"></line>
+                                    <line x1="18" y1="18" x2="18" y2="11"></line>
+                                    <polygon points="12 2 20 7 4 7 12 2"></polygon>
+                                </svg>
+                            </span>
+                            <span>Landmarks</span>
+                        </a>
+                        <a href="places.html?category=establishments&q=terminal" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-terminal">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+                                    <path d="M4 11h16"></path>
+                                    <path d="M8 19v2M16 19v2"></path>
+                                    <circle cx="8" cy="15" r="1"></circle>
+                                    <circle cx="16" cy="15" r="1"></circle>
+                                </svg>
+                            </span>
+                            <span>Terminals</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <a href="places.html" class="nav-dropdown-item view-all">
+                            <span class="nav-drop-icon icon-all">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                            </span>
+                            <span>View All Places →</span>
+                        </a>
+                    </div>
+                </div>
+
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.trips">My Trips</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
@@ -157,8 +243,9 @@
                 </div>
             </nav>
 
-            <!-- Right: Language Toggle & Sign In -->
+            <!-- [Right Side]: 🌐 EN | 🔔 (badge 3) | 👤 Sign In -->
             <div class="nav-right">
+                <!-- 1. Language Toggle (🌐 EN) -->
                 <div class="lang-dropdown-container">
                     <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
                         <span class="lang-flag">🌐</span>
@@ -180,7 +267,151 @@
                         </button>
                     </div>
                 </div>
-                <a href="login.html" id="authNavBtn" class="btn-nav-auth" data-i18n="login.signin">Sign In</a>
+
+                <!-- 2. Bell — Dynamic Activity Feed (driven by user actions) -->
+                <div class="alerts-dropdown-container">
+                    <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed" title="Your recent activity">
+                        <ion-icon name="notifications-outline"></ion-icon>
+                        <span class="badge" id="bellBadge" style="display:none;">0</span>
+                    </button>
+                    <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
+                        <div class="alerts-header">
+                            <div class="alerts-header-title">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                                <span>Activity Feed</span>
+                            </div>
+                            <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
+                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                Clear
+                            </button>
+                        </div>
+                        <div class="alerts-list" id="activityFeedList">
+                            <!-- Filled dynamically by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. User Profile Nav / 👤 Sign In -->
+                <div class="user-profile-nav" id="userProfileNav">
+                    <a href="login.html" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <span>Sign In</span>
+                    </a>
+
+                    <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
+                        <div class="user-avatar-wrap">
+                            <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <div class="user-avatar-initials" id="userAvatarInitials">U</div>
+                            <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
+                        </div>
+                        <div class="user-name-wrap">
+                            <span class="user-display-name" id="userDisplayName">Commuter</span>
+                            <span class="user-saved-home-icon" id="userSavedHomeIcon" title="Home: Saved">
+                                <svg width="14" height="14" fill="none" stroke="#16A34A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </span>
+                        </div>
+                        <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
+                    </div>
+
+                    <!-- Establishment Focus Profile Dropdown Menu -->
+                    <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
+                        <!-- User Info Header -->
+                        <div class="profile-header-card">
+                            <div class="profile-header-avatar">
+                                <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                                <div class="profile-header-initials" id="profileHeaderInitials">U</div>
+                            </div>
+                            <div class="profile-header-details">
+                                <div class="profile-name" id="profileDisplayName">User</div>
+                                <div class="profile-email" id="profileEmail">user@gmail.com</div>
+                            </div>
+                        </div>
+
+                        <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
+                        <div class="exploration-stats-section" id="explorationStatsSection">
+                            <div class="stats-section-label">Your Exploration Stats</div>
+                            <div class="exploration-stats-row">
+                                <button type="button" class="stat-pill-btn" id="statVisitsBtn" title="View Visited Establishments">
+                                    <span class="stat-icon">
+                                        <svg width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    </span>
+                                    <span class="stat-value" id="statVisitsCount">0</span>
+                                    <span class="stat-name">Visits</span>
+                                </button>
+                                <div class="stat-divider"></div>
+                                <button type="button" class="stat-pill-btn" id="statSavesBtn" title="View Saved Places">
+                                    <span class="stat-icon">
+                                        <svg width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                    </span>
+                                    <span class="stat-value" id="statSavesCount">0</span>
+                                    <span class="stat-name">Saves</span>
+                                </button>
+                                <div class="stat-divider"></div>
+                                <button type="button" class="stat-pill-btn" id="statBadgesBtn" title="View Achievements">
+                                    <span class="stat-icon">
+                                        <svg width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                                    </span>
+                                    <span class="stat-value" id="statBadgesCount">0</span>
+                                    <span class="stat-name">Badges</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Anonymous Banner (For Guest/Anonymous Users) -->
+                        <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
+                            <span>Guest Mode</span>
+                            <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
+                        </div>
+
+                        <div class="profile-menu-divider"></div>
+
+                        <!-- Menu Items with Outline Heroicons SVGs (Strictly No Emojis) -->
+                        <div class="profile-nav-list">
+                            <!-- 1. My Visits -->
+                            <button type="button" class="profile-nav-btn" id="menuMyVisits">
+                                <span class="nav-btn-icon">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </span>
+                                <span class="nav-btn-title">My Visits</span>
+                            </button>
+
+                            <!-- 2. Saved Places -->
+                            <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
+                                <span class="nav-btn-icon">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                </span>
+                                <span class="nav-btn-title">Saved Places</span>
+                                <span class="saved-count-pill" id="menuSavedCount">(8)</span>
+                            </button>
+
+                            <!-- 3. My Achievements -->
+                            <button type="button" class="profile-nav-btn" id="menuMyAchievements">
+                                <span class="nav-btn-icon">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                                </span>
+                                <span class="nav-btn-title">My Achievements</span>
+                            </button>
+
+                            <!-- 4. Account Settings -->
+                            <button type="button" class="profile-nav-btn" id="menuAccountSettings">
+                                <span class="nav-btn-icon">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </span>
+                                <span class="nav-btn-title">Account Settings</span>
+                            </button>
+                        </div>
+
+                        <div class="profile-menu-divider"></div>
+
+                        <!-- 5. Log Out -->
+                        <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
+                            <span class="nav-btn-icon">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            </span>
+                            <span class="nav-btn-title">Log Out</span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
@@ -196,7 +427,6 @@
     <main class="hero-section">
         <!-- Flat, solid-color pale blue circles layered behind content -->
         <div class="hero-flat-shape hero-shape-1"></div>
-        <div class="hero-flat-shape hero-shape-2"></div>
         <div class="hero-flat-shape hero-shape-3"></div>
 
         <div class="hero-container">
@@ -209,16 +439,31 @@
                     Your local guide to spots worth the trip.
                 </p>
 
-                <!-- Search Bar -->
+                <!-- Upgraded Hybrid Search + Voice + GPS Bar -->
                 <div class="search-container">
-                    <div class="search-bar" id="searchBar">
+                    <div class="search-bar hybrid-search-bar" id="searchBar">
                         <ion-icon name="search-outline" class="search-prefix-icon"></ion-icon>
-                        <input type="text" data-i18n="hero.search.placeholder" data-i18n-attr="placeholder"
-                            placeholder="Where do you want to go?" class="search-input" id="searchInput" autocomplete="off"
+                        <input type="text"
+                            placeholder="Where to go?" class="search-input" id="searchInput" autocomplete="off"
                             autocorrect="off" autocapitalize="off" spellcheck="false">
-                        <button class="search-button" aria-label="Search" id="searchBtn">
-                            <ion-icon name="arrow-forward-outline"></ion-icon>
-                        </button>
+                        
+                        <div class="search-actions-group">
+                            <!-- Voice Search Button (Hands-free) -->
+                            <button class="search-action-btn voice-btn" id="heroVoiceBtn" type="button" aria-label="Voice Search" title="Voice Search (Hands-free)">
+                                <ion-icon name="mic-outline" id="heroMicIcon"></ion-icon>
+                                <span class="voice-pulse-ring" id="heroVoicePulse"></span>
+                            </button>
+
+                            <!-- GPS Near Me Button (Finds places within 2km) -->
+                            <button class="search-action-btn near-me-btn" id="heroNearMeBtn" type="button" aria-label="Near Me" title="Find places near me (within 2km)">
+                                <ion-icon name="navigate-outline"></ion-icon>
+                            </button>
+
+                            <!-- Search Submit Button -->
+                            <button class="search-button" aria-label="Search" id="searchBtn" type="button">
+                                <ion-icon name="arrow-forward-outline"></ion-icon>
+                            </button>
+                        </div>
                     </div>
                     <div class="search-results-dropdown" id="searchResults"></div>
                 </div>
@@ -321,52 +566,86 @@
             </div>
         </section>
 
-        <!-- Section: News & Traffic -->
-        <section class="news-section reveal">
-            <span class="section-num">02 — Updates</span>
-            <div class="section-header reveal-delay-1">
-                <h2><ion-icon name="newspaper-outline"></ion-icon> Latest News & Traffic</h2>
-                <div class="header-line"></div>
+        <!-- Section: Scroll-Driven 3D Tilt Reveal (Planner Mockup) -->
+        <section class="scroll-reveal-section">
+            <div class="scroll-reveal-header">
+                <h2>See it in action.</h2>
+                <p>Search a place, compare your options, and get moving — right from the app.</p>
             </div>
-            <div class="news-grid">
-                <div class="news-card reveal-delay-2">
-                    <span class="news-tag closure">Construction</span>
-                    <h3>NSCR Station Works Active</h3>
-                    <p>Patuloy ang elevated civil works para sa bagong NSCR station malapit sa Jose Rizal Coliseum. Pinapayuhan ang mga motorista na mag-ingat sa heavy vehicle movement.</p>
-                    <span class="news-date">Updated: Active Now</span>
-                </div>
-                <div class="news-card reveal-delay-3">
-                    <span class="news-tag alert">Lane Narrowing</span>
-                    <h3>Banlic Depot Road Advisory</h3>
-                    <p>Asahan ang masikip na daloy ng trapiko sa Real-Turbina bypass areas dahil sa pansamantalang pagpapakipot ng daan dala ng banlic depot construction.</p>
-                    <span class="news-date">Updated: 2 hours ago</span>
+            <div class="scroll-reveal-card">
+                <div class="scroll-reveal-card-inner">
+                    <img src="../assets/planner-mockup.png" alt="Calzada Planner screenshot" />
                 </div>
             </div>
         </section>
 
-        <!-- Section: Fare & LTFRB Updates -->
-        <section class="fare-section reveal">
-            <span class="section-num">03 — Fares</span>
-            <div class="section-header reveal-delay-1">
-                <h2><ion-icon name="cash-outline"></ion-icon> Pamasahe & LTFRB Updates</h2>
-                <div class="header-line"></div>
+        <!-- Section: Featured Places Hover-Expand Gallery -->
+        <section class="featured-gallery">
+            <div class="featured-gallery-header">
+                <h2>Discover Calamba</h2>
+                <p>A few places worth checking out, picked from what commuters are exploring.</p>
             </div>
-            <div class="news-grid">
-                <div class="news-card reveal-delay-2">
-                    <span class="news-tag fare">Fare Update</span>
-                    <h3>₱14.00 Provisional Fare Hike</h3>
-                    <p>Inaprubahan ng LTFRB ang bagong provisional minimum fare: ₱14.00 para sa traditional jeepneys at ₱17.00 para sa modern jeepneys sa buong Calabarzon.</p>
-                    <span class="news-date">Source: LTFRB Official (2026)</span>
+            <div class="featured-gallery-row" id="featuredGalleryRow">
+                <!-- Place 1: SM City Calamba (Mall) -->
+                <div class="gallery-item" onclick="window.location.href='places.html?q=SM City Calamba'">
+                    <img src="https://evendo-location-media.s3.amazonaws.com/ShoppingImages/6267eb28-343f-4cc5-a08f-8f6022fcba2b" alt="SM City Calamba" loading="lazy" />
+                    <div class="gallery-item-label">
+                        <span class="gallery-item-category">Mall</span>
+                        <span class="gallery-item-name">SM City Calamba</span>
+                    </div>
                 </div>
-                <div class="news-card reveal-delay-3">
-                    <span class="news-tag announcement">Integration</span>
-                    <h3>New Terminal Alignments</h3>
-                    <p>Katuwang ang TMO Calamba, nagtakda ng panibagong drop-off at pick-up points malapit sa terminal zones upang maiwasan ang obstruction sa daan.</p>
-                    <span class="news-date">Source: TMO Calamba</span>
+
+                <!-- Place 2: Moonbucks (Coffee Shop) -->
+                <div class="gallery-item" onclick="window.location.href='places.html?q=Moonbucks'">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5SF7ZvAMmCMYah6b2qjK4ziOySSiP8JzzCg&s" alt="Moonbucks" loading="lazy" />
+                    <div class="gallery-item-label">
+                        <span class="gallery-item-category">Coffee Shop</span>
+                        <span class="gallery-item-name">Moonbucks</span>
+                    </div>
                 </div>
+
+                <!-- Place 3: Bahay ni Rizal (Historic Landmark) -->
+                <div class="gallery-item" onclick="window.location.href='places.html?q=Rizal Shrine'">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_EEk4rCx1aWAAIKLD-D9dGvcre4MjbxKdFQ&s" alt="Bahay ni Rizal" loading="lazy" />
+                    <div class="gallery-item-label">
+                        <span class="gallery-item-category">Historic</span>
+                        <span class="gallery-item-name">Bahay ni Rizal</span>
+                    </div>
+                </div>
+
+                <!-- Place 4: Calamba City Hall (Establishment) -->
+                <div class="gallery-item" onclick="window.location.href='places.html?q=Calamba City Hall'">
+                    <img src="https://lh3.googleusercontent.com/pw/AP1GczM1DDQ8qkvS-5Yc_dvrpnI5HAwRSuj5zofc7zFnSeoqvrNcP1lBLZRsQv-GuutdVIb96tE83_WyDHGHxYviOh7JlUiUZNWnKJRuEOC4cyb6If3r669AS8ZN9iJB6fo_itMSwMNjVPSPmAvzo7Fe6Xw5zw=w2734-h2050-s-no-gm?authuser=0" alt="Calamba City Hall" loading="lazy" />
+                    <div class="gallery-item-label">
+                        <span class="gallery-item-category">Establishment</span>
+                        <span class="gallery-item-name">Calamba City Hall</span>
+                    </div>
+                </div>
+
+                <!-- Place 5: Nuvali (Leisure / Nature) -->
+                <div class="gallery-item" onclick="window.location.href='places.html?q=Nuvali'">
+                    <img src="https://images.squarespace-cdn.com/content/v1/5fa1522044bdda192713063c/1694433501371-TZH3WMEXP477B0IUHAGU/20230910_095936-v2.jpg" alt="Nuvali (Sta. Rosa)" loading="lazy" />
+                    <div class="gallery-item-label">
+                        <span class="gallery-item-category">Leisure</span>
+                        <span class="gallery-item-name">Nuvali (Sta. Rosa)</span>
+                    </div>
+                </div>
+
+                <!-- Place 6: City College of Calamba (School) -->
+                <div class="gallery-item" onclick="window.location.href='places.html?q=City College of Calamba'">
+                    <img src="https://static.where-e.com/Philippines/City-College-Of-Calamba_ba2dfbc35e249893367f22e7076f4a27.jpg" alt="City College of Calamba" loading="lazy" />
+                    <div class="gallery-item-label">
+                        <span class="gallery-item-category">School</span>
+                        <span class="gallery-item-name">City College of Calamba</span>
+                    </div>
+                </div>
+            </div>
+            <div class="featured-gallery-action">
+                <a href="places.html" class="gallery-view-all-link">View All Places →</a>
             </div>
         </section>
-    </div>
+
+    </div><!-- end .scrollable-content -->
 
     <!-- Floating Chat Widget (Routie Pill) -->
     <div class="chat-widget-container">
@@ -454,9 +733,11 @@
             <div class="footer-column nav-column">
                 <h3 data-i18n="footer.nav.heading">Navigation</h3>
                 <a href="index.html" data-i18n="footer.nav.home">Home</a>
-                <a href="#" data-i18n="footer.nav.submit">Submit a Route</a>
                 <a href="about.html" data-i18n="footer.nav.about">About Us</a>
-                <a href="faq.html" data-i18n="footer.nav.faq">FAQ</a>
+                <a href="places.html" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="planner.html" data-i18n="footer.nav.planner">Planner</a>
+                <a href="faq.html" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="feedback.html" data-i18n="footer.nav.feedback">Feedback</a>
             </div>
             <div class="footer-column contact-column">
                 <h3 data-i18n="footer.contact.heading">Contact Us</h3>
@@ -478,7 +759,7 @@
     ============================================= -->
     <script>
         (function () {
-            // â”€â”€ Scroll Progress Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // Scroll Progress Bar
             const progressBar = document.getElementById('scrollProgress');
             const updateProgress = () => {
                 const scrolled = window.scrollY;
@@ -486,7 +767,7 @@
                 if (progressBar) progressBar.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
             };
 
-            // â”€â”€ IntersectionObserver for reveal animations â”€â”€
+            // IntersectionObserver for reveal animations
             const revealEls = document.querySelectorAll(
                 '.reveal, .reveal-left, .reveal-right, .reveal-scale, .features-bar, .news-section, .fare-section, .steps-section'
             );
@@ -494,21 +775,17 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('active');
-                        // Don't unobserve â€” keep active once triggered
                     }
                 });
             }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
             revealEls.forEach(el => observer.observe(el));
 
-            // ——— Parallax on hero content —————————————————————
+            // Parallax on hero content
             const heroContent = document.querySelector('.hero-content');
-
             const handleScroll = () => {
                 updateProgress();
                 const sy = window.scrollY;
-
-                // Hero content subtle upward drift
                 if (heroContent) {
                     heroContent.style.transform = `translateY(${sy * 0.18}px)`;
                     heroContent.style.opacity = Math.max(0, 1 - sy / 480);
@@ -516,16 +793,15 @@
             };
 
             window.addEventListener('scroll', handleScroll, { passive: true });
-            updateProgress(); // init
+            updateProgress();
 
-            // â”€â”€ Stagger step cards on steps-section reveal â”€â”€
+            // Stagger step cards
             const stepsSection = document.querySelector('.steps-section');
             if (stepsSection) {
                 const stepsObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting) {
                             entry.target.classList.add('active');
-                            // Trigger step cards individually
                             const cards = entry.target.querySelectorAll('.step-card');
                             cards.forEach((card, i) => {
                                 setTimeout(() => {
@@ -539,7 +815,7 @@
                 stepsObserver.observe(stepsSection);
             }
 
-            // â”€â”€ News cards stagger on parent reveal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // News cards stagger
             document.querySelectorAll('.news-section, .fare-section').forEach(section => {
                 const newsObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
@@ -556,30 +832,101 @@
                 }, { threshold: 0.1 });
                 newsObserver.observe(section);
             });
-
         })();
     </script>
 
     <!-- =============================================
-         LANDING PAGE SEARCH â†’ PLANNER NAVIGATION
-         Geocodes the typed destination and passes
-         destName + destLat + destLng to planner.html
+         SCROLL-DRIVEN 3D TILT REVEAL ENGINE
+    ============================================= -->
+    <script>
+        (function () {
+            const revealSection = document.querySelector('.scroll-reveal-section');
+            const revealCard = document.querySelector('.scroll-reveal-card');
+            if (!revealSection || !revealCard) return;
+
+            const isMobile = () => window.innerWidth <= 768;
+            let ticking = false;
+
+            function updateScrollReveal() {
+                const rect = revealSection.getBoundingClientRect();
+                const sectionHeight = rect.height;
+                const viewportHeight = window.innerHeight;
+
+                let progress = (viewportHeight - rect.top) / (sectionHeight + viewportHeight);
+                progress = Math.min(Math.max(progress, 0), 1);
+
+                const rotate = 20 * (1 - progress);
+                const scaleRange = isMobile() ? [0.75, 0.95] : [1.05, 1];
+                const scale = scaleRange[0] + (scaleRange[1] - scaleRange[0]) * progress;
+                const translateY = -15 * progress;
+
+                revealCard.style.transform = `translateY(${translateY}px) rotateX(${rotate}deg) scale(${scale})`;
+                ticking = false;
+            }
+
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateScrollReveal);
+                    ticking = true;
+                }
+            }
+
+            window.addEventListener('scroll', requestTick, { passive: true });
+            window.addEventListener('resize', requestTick);
+            updateScrollReveal();
+        })();
+    </script>
+
+    <!-- =============================================
+         HERO SEARCH: ROTATING PLACEHOLDER, VOICE & GPS NEAR ME
     ============================================= -->
     <script>
         (function () {
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
             const resultsBox = document.getElementById('searchResults');
+            const heroVoiceBtn = document.getElementById('heroVoiceBtn');
+            const heroNearMeBtn = document.getElementById('heroNearMeBtn');
 
             let debounceTimer = null;
-            let activeSuggestions = []; // [{name, address, lat, lng, isSuggestion}]
+            let activeSuggestions = [];
 
-            // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // 1. ROTATING PLACEHOLDER LOGIC
+            const placeholders = [
+                "Where to go?",
+                "Try SM Calamba?",
+                "Try Moonbucks?",
+                "Try Bahay ni Rizal?",
+                "Try cheap karinderya near me?"
+            ];
+            let currentPlaceIdx = 0;
+            let isUserInteracting = false;
+            let placeholderInterval = null;
+
+            function startPlaceholderRotation() {
+                if (placeholderInterval) clearInterval(placeholderInterval);
+                placeholderInterval = setInterval(() => {
+                    if (isUserInteracting || document.activeElement === searchInput || searchInput.value.length > 0) return;
+                    currentPlaceIdx = (currentPlaceIdx + 1) % placeholders.length;
+                    searchInput.setAttribute('placeholder', placeholders[currentPlaceIdx]);
+                }, 3500);
+            }
+
+            searchInput.addEventListener('focus', () => { isUserInteracting = true; });
+            searchInput.addEventListener('blur', () => {
+                isUserInteracting = false;
+                if (!searchInput.value) {
+                    searchInput.setAttribute('placeholder', placeholders[currentPlaceIdx]);
+                }
+            });
+            startPlaceholderRotation();
+
+            // 2. HELPERS & SEARCH NAVIGATION
             const goToPlanner = (name, lat, lng) => {
                 const params = new URLSearchParams({
                     destName: name,
-                    destLat: lat,
-                    destLng: lng
+                    destLat: lat || '',
+                    destLng: lng || ''
                 });
                 window.location.href = `planner.html?${params.toString()}`;
             };
@@ -588,7 +935,7 @@
                 resultsBox.innerHTML = '';
                 if (!items.length) { resultsBox.style.display = 'none'; return; }
                 activeSuggestions = items;
-                items.forEach((item, i) => {
+                items.forEach((item) => {
                     const row = document.createElement('div');
                     row.className = 'search-result-item';
                     row.innerHTML = `
@@ -607,11 +954,9 @@
                 resultsBox.style.display = 'none';
                 searchInput.value = item.name;
                 if (!item.isSuggestion) {
-                    // Already has coords (Nominatim result)
                     goToPlanner(item.name, item.lat, item.lng);
                     return;
                 }
-                // ESRI suggestion â€” resolve to coordinates first
                 try {
                     const url = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(item.address)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&maxLocations=1&f=json`;
                     const res = await fetch(url);
@@ -621,8 +966,8 @@
                         goToPlanner(item.name, c.location.y, c.location.x);
                         return;
                     }
-                } catch (e) { /* fall through to Nominatim */ }
-                // Nominatim fallback
+                } catch (e) { }
+
                 try {
                     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(item.address)},+Laguna,+Philippines&format=json&limit=1&countrycodes=ph`;
                     const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
@@ -632,11 +977,10 @@
                         return;
                     }
                 } catch (e) { }
-                // Last resort â€” go without coords (planner will prompt user to pick manually)
+
                 goToPlanner(item.name, '', '');
             };
 
-            // â”€â”€ search (ESRI suggest â†’ Nominatim fallback) â”€â”€â”€â”€â”€â”€â”€
             const doSearch = async (query) => {
                 if (query.length < 2) { resultsBox.style.display = 'none'; return; }
                 try {
@@ -652,7 +996,7 @@
                         return;
                     }
                 } catch (e) { }
-                // Nominatim fallback
+
                 try {
                     const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)},+Laguna,+Philippines&format=json&addressdetails=1&limit=5&countrycodes=ph&viewbox=120.8,14.5,121.5,13.9&bounded=1`;
                     const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
@@ -671,7 +1015,6 @@
                 showResults([]);
             };
 
-            // â”€â”€ event listeners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(debounceTimer);
                 debounceTimer = setTimeout(() => doSearch(e.target.value.trim()), 400);
@@ -682,7 +1025,6 @@
                     clearTimeout(debounceTimer);
                     const q = searchInput.value.trim();
                     if (!q) return;
-                    // If suggestions visible, pick first
                     if (activeSuggestions.length) { selectItem(activeSuggestions[0]); return; }
                     doSearch(q);
                 }
@@ -696,6 +1038,93 @@
                 doSearch(q);
             });
 
+            // 3. VOICE SEARCH (Hands-Free)
+            if (heroVoiceBtn && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const voiceRecognition = new SpeechRecognition();
+                voiceRecognition.continuous = false;
+                voiceRecognition.interimResults = false;
+                voiceRecognition.lang = 'fil-PH';
+
+                let isListening = false;
+
+                heroVoiceBtn.addEventListener('click', () => {
+                    if (isListening) {
+                        voiceRecognition.stop();
+                        return;
+                    }
+                    try {
+                        voiceRecognition.start();
+                        heroVoiceBtn.classList.add('listening');
+                        isListening = true;
+                        searchInput.setAttribute('placeholder', 'Listening... Speak your destination');
+                    } catch (e) {
+                        console.error('Speech recognition error:', e);
+                    }
+                });
+
+                voiceRecognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    if (transcript) {
+                        searchInput.value = transcript;
+                        doSearch(transcript);
+                    }
+                };
+
+                voiceRecognition.onend = () => {
+                    heroVoiceBtn.classList.remove('listening');
+                    isListening = false;
+                    searchInput.setAttribute('placeholder', placeholders[currentPlaceIdx]);
+                };
+
+                voiceRecognition.onerror = () => {
+                    heroVoiceBtn.classList.remove('listening');
+                    isListening = false;
+                    searchInput.setAttribute('placeholder', placeholders[currentPlaceIdx]);
+                };
+            } else if (heroVoiceBtn) {
+                heroVoiceBtn.style.display = 'none';
+            }
+
+            // 4. GPS NEAR ME (Places within 2km)
+            if (heroNearMeBtn) {
+                heroNearMeBtn.addEventListener('click', () => {
+                    if (!navigator.geolocation) {
+                        alert('Geolocation is not supported by your browser.');
+                        return;
+                    }
+
+                    heroNearMeBtn.classList.add('loading');
+                    heroNearMeBtn.innerHTML = '<ion-icon name="sync-outline"></ion-icon>';
+
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            heroNearMeBtn.classList.remove('loading');
+                            heroNearMeBtn.innerHTML = '<ion-icon name="navigate-outline"></ion-icon>';
+
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+
+                            // Direct to planner with user's GPS as origin
+                            const params = new URLSearchParams({
+                                originName: 'My Location',
+                                originLat: lat,
+                                originLng: lng
+                            });
+                            window.location.href = `planner.html?${params.toString()}`;
+                        },
+                        (error) => {
+                            heroNearMeBtn.classList.remove('loading');
+                            heroNearMeBtn.innerHTML = '<ion-icon name="navigate-outline"></ion-icon>';
+                            console.warn('GPS Error:', error);
+                            // Fallback to Places page Near Me
+                            window.location.href = 'places.html';
+                        },
+                        { timeout: 10000, enableHighAccuracy: true }
+                    );
+                });
+            }
+
             // Close dropdown when clicking outside
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('.search-container')) {
@@ -707,34 +1136,178 @@
 
     <script src="../js/transitions.js"></script>
 
-    <!-- Firebase Auth State Check -->
+    <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module">
         import { auth, onAuthStateChanged, signOut } from '../js/firebase-init.js';
+        import { fetchUserStats, setupProfileUI, renderSettingsModal } from '../js/user-stats.js';
 
         const authNavBtn = document.getElementById('authNavBtn');
+        const userAvatarPill = document.getElementById('userAvatarPill');
+        const userAvatarInitials = document.getElementById('userAvatarInitials');
+        const userAvatarImg = document.getElementById('userAvatarImg');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userBadgeCounter = document.getElementById('userBadgeCounter');
+        const userSavedHomeIcon = document.getElementById('userSavedHomeIcon');
+        const userProfileMenu = document.getElementById('userProfileMenu');
+        const logoutBtn = document.getElementById('logoutBtn');
 
-        if (authNavBtn) {
-            onAuthStateChanged(auth, (user) => {
+        // Elements inside new Establishment Dropdown
+        const profileHeaderImg = document.getElementById('profileHeaderImg');
+        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+        const profileDisplayName = document.getElementById('profileDisplayName');
+        const profileEmail = document.getElementById('profileEmail');
+        const statVisitsCount = document.getElementById('statVisitsCount');
+        const statSavesCount = document.getElementById('statSavesCount');
+        const statBadgesCount = document.getElementById('statBadgesCount');
+        const menuSavedCount = document.getElementById('menuSavedCount');
+        const anonProfileBanner = document.getElementById('anonProfileBanner');
+        const explorationStatsSection = document.getElementById('explorationStatsSection');
+
+        // Settings modal previews
+        const settingsAvatarLarge = document.getElementById('settingsAvatarLarge');
+        const settingsDisplayName = document.getElementById('settingsDisplayName');
+        const settingsEmail = document.getElementById('settingsEmail');
+
+        // Initialize modals and UI triggers
+        setupProfileUI();
+
+        // Bell Alerts toggle
+        const bellAlertsBtn = document.getElementById('bellAlertsBtn');
+        const alertsDropdownMenu = document.getElementById('alertsDropdownMenu');
+
+        // Explore Dropdown toggle for click/touch devices
+        const exploreDropdown = document.getElementById('exploreDropdown');
+        const exploreDropdownBtn = document.getElementById('exploreDropdownBtn');
+
+        /** Close every navbar dropdown/panel at once */
+        function closeAllDropdowns() {
+            if (alertsDropdownMenu) alertsDropdownMenu.classList.remove('open');
+            if (exploreDropdown) exploreDropdown.classList.remove('open');
+            if (userAvatarPill) userAvatarPill.classList.remove('open');
+            if (userProfileMenu) userProfileMenu.classList.remove('open');
+        }
+
+        // Bell — close others first, then toggle bell
+        if (bellAlertsBtn && alertsDropdownMenu) {
+            bellAlertsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = alertsDropdownMenu.classList.contains('open');
+                closeAllDropdowns();
+                if (!isOpen) {
+                    alertsDropdownMenu.classList.add('open');
+                    // Mark all as read when panel is opened (clears red unread badge)
+                    if (typeof window._calzadaMarkActivityAsRead === 'function') {
+                        window._calzadaMarkActivityAsRead();
+                    }
+                }
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.alerts-dropdown-container')) {
+                    alertsDropdownMenu.classList.remove('open');
+                }
+            });
+        }
+
+        // Clear button inside activity feed panel
+        const bellClearBtn = document.getElementById('bellClearBtn');
+        if (bellClearBtn) {
+            bellClearBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (typeof window._calzadaClearActivity === 'function') {
+                    window._calzadaClearActivity();
+                }
+            });
+        }
+
+        // Explore — close others first, then toggle explore
+        if (exploreDropdown && exploreDropdownBtn) {
+            exploreDropdownBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = exploreDropdown.classList.contains('open');
+                closeAllDropdowns();
+                if (!isOpen) exploreDropdown.classList.add('open');
+            });
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#exploreDropdown')) {
+                    exploreDropdown.classList.remove('open');
+                }
+            });
+        }
+
+        // Expose helper so setupProfileUI can also call closeAllDropdowns
+        window._calzadaCloseAllDropdowns = closeAllDropdowns;
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await signOut(auth);
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error("Logout Error:", error);
+                }
+            });
+        }
+
+        if (authNavBtn && userAvatarPill) {
+            onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Logged in: Change to Logout
-                    authNavBtn.innerText = 'Log Out';
-                    authNavBtn.href = '#';
-                    authNavBtn.removeAttribute('data-i18n'); // prevent i18n from overriding text
-                    authNavBtn.onclick = async (e) => {
-                        e.preventDefault();
-                        try {
-                            await signOut(auth);
-                            window.location.reload(); // Refresh to update UI
-                        } catch (error) {
-                            console.error("Logout Error:", error);
-                        }
-                    };
+                    authNavBtn.style.display = 'none';
+                    userAvatarPill.style.display = 'flex';
+
+                    const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Herman Ruedas');
+                    const email = user.email || (user.isAnonymous ? 'guest@calzada.ph' : 'herman@gmail.com');
+                    const initial = name.charAt(0).toUpperCase();
+
+                    // 1. Navbar avatar pill
+                    if (userDisplayName) userDisplayName.textContent = name;
+                    if (user.photoURL && userAvatarImg) {
+                        userAvatarImg.src = user.photoURL;
+                        userAvatarImg.style.display = 'block';
+                        if (userAvatarInitials) userAvatarInitials.style.display = 'none';
+                    } else if (userAvatarInitials) {
+                        userAvatarInitials.textContent = initial;
+                        userAvatarInitials.style.display = 'block';
+                        if (userAvatarImg) userAvatarImg.style.display = 'none';
+                    }
+
+                    // 2. Dropdown Header
+                    if (profileDisplayName) profileDisplayName.textContent = name;
+                    if (profileEmail) profileEmail.textContent = email;
+                    if (profileHeaderInitials) profileHeaderInitials.textContent = initial;
+                    if (user.photoURL && profileHeaderImg) {
+                        profileHeaderImg.src = user.photoURL;
+                        profileHeaderImg.style.display = 'block';
+                        if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
+                    }
+
+                    // 3. Settings modal previews & inputs
+                    renderSettingsModal();
+
+                    // 4. Fetch dynamic stats (Visits, Saves, Badges)
+                    const stats = await fetchUserStats(user);
+
+                    if (statVisitsCount) statVisitsCount.textContent = stats.visits;
+                    if (statSavesCount) statSavesCount.textContent = stats.saves;
+                    if (statBadgesCount) statBadgesCount.textContent = stats.badges;
+                    if (menuSavedCount) menuSavedCount.textContent = `(${stats.saves})`;
+                    if (userBadgeCounter) {
+                        userBadgeCounter.textContent = stats.badges;
+                        userBadgeCounter.style.display = stats.badges > 0 ? 'flex' : 'none';
+                    }
+
+                    // Anonymous/Guest Mode vs Full Account
+                    if (user.isAnonymous) {
+                        if (anonProfileBanner) anonProfileBanner.style.display = 'flex';
+                        if (explorationStatsSection) explorationStatsSection.style.opacity = '0.7';
+                    } else {
+                        if (anonProfileBanner) anonProfileBanner.style.display = 'none';
+                        if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
+                    }
                 } else {
-                    // Not logged in: Revert to Sign In
-                    authNavBtn.innerText = 'Sign In';
-                    authNavBtn.href = 'login.html';
-                    authNavBtn.setAttribute('data-i18n', 'login.signin');
-                    authNavBtn.onclick = null;
+                    authNavBtn.style.display = 'inline-flex';
+                    userAvatarPill.style.display = 'none';
+                    if (userProfileMenu) userProfileMenu.classList.remove('open');
                 }
             });
         }

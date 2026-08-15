@@ -104,17 +104,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // === NAVBAR SCROLL EFFECT ===
+    // === NAVBAR SCROLL EFFECT (Floating Pill on Scroll) ===
     const navbar = document.getElementById('navbar');
-    window.addEventListener('scroll', () => {
-        if (navbar) {
-            if (window.scrollY > 20) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
+    function handleNavbarScroll() {
+        if (!navbar) return;
+        if (window.scrollY > 10) {
+            navbar.classList.add('navbar-scrolled');
+            navbar.classList.add('scrolled');
+        } else {
+            navbar.classList.remove('navbar-scrolled');
+            navbar.classList.remove('scrolled');
         }
-    });
+    }
+    window.addEventListener('scroll', handleNavbarScroll, { passive: true });
+    handleNavbarScroll(); // Initial check
 
     // === FAQ ACCORDION LOGIC & FILTERING ===
     const faqItems = document.querySelectorAll('.faq-item');
@@ -313,27 +316,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === MOBILE MENU TOGGLE ===
+    // === MOBILE MENU TOGGLE WITH SCROLL-LOCK ===
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const navLinks = document.getElementById('navLinks');
-    if (mobileMenuBtn && navLinks) {
-        mobileMenuBtn.addEventListener('click', () => {
-            const isMenuOpen = navLinks.classList.toggle('active');
+    
+    function setMobileMenuState(isOpen) {
+        if (!navLinks) return;
+        navLinks.classList.toggle('active', isOpen);
+        if (mobileMenuBtn) {
             const menuIcon = mobileMenuBtn.querySelector('.menu-toggle-icon');
             if (menuIcon) {
-                menuIcon.classList.toggle('open', isMenuOpen);
+                menuIcon.classList.toggle('open', isOpen);
             }
+        }
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (mobileMenuBtn && navLinks) {
+        mobileMenuBtn.addEventListener('click', () => {
+            const willOpen = !navLinks.classList.contains('active');
+            setMobileMenuState(willOpen);
         });
-        navLinks.querySelectorAll('.nav-link, .btn-plan-route').forEach(link => {
+
+        navLinks.querySelectorAll('.nav-link, .btn-plan-route, a').forEach(link => {
             link.addEventListener('click', () => {
-                navLinks.classList.remove('active');
-                const menuIcon = mobileMenuBtn.querySelector('.menu-toggle-icon');
-                if (menuIcon) {
-                    menuIcon.classList.remove('open');
-                }
+                setMobileMenuState(false);
             });
         });
+
+        // Close mobile drawer on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navLinks.classList.contains('active')) {
+                setMobileMenuState(false);
+            }
+        });
     }
+
+    // Ensure body scroll lock is cleared if navigating away
+    window.addEventListener('pagehide', () => {
+        document.body.style.overflow = '';
+    });
+    window.addEventListener('beforeunload', () => {
+        document.body.style.overflow = '';
+    });
 
     // === VIRTUAL KEYBOARD DETECT (Mobile UI Fix) ===
     const focusableInputs = document.querySelectorAll('input, textarea');
@@ -420,6 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => {
+            interruptTyping();
             document.body.classList.remove('chat-active');
             if (chatWindow) chatWindow.classList.remove('open');
             if (chatToggleBtn) {
@@ -433,11 +463,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Chat History Persistence
+    // Chat History Persistence & Typing Effect State
     let chatHistory = JSON.parse(sessionStorage.getItem('calzadaChatHistory')) || [];
+    let currentTypingState = null;
 
-    function addMessage(text, isUser = false, save = true) {
+    // Interrupt typing effect: instantly jump to full content and stop cursor
+    function interruptTyping() {
+        if (!currentTypingState) return;
+
+        const { timerId, fullText, textNode, msgDiv, cursorSpan, save } = currentTypingState;
+        if (timerId) clearTimeout(timerId);
+
+        if (textNode) {
+            textNode.nodeValue = fullText;
+        } else if (msgDiv) {
+            msgDiv.textContent = fullText;
+        }
+
+        if (cursorSpan && cursorSpan.parentNode) {
+            cursorSpan.parentNode.removeChild(cursorSpan);
+        }
+
+        if (save) {
+            chatHistory.push({ text: fullText, isUser: false });
+            sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
+        }
+
+        currentTypingState = null;
+
+        if (chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+
+    function addMessage(text, isUser = false, save = true, animate = true) {
         if (!chatMessages) return;
+
+        // Immediately complete any ongoing bot typing when user sends message or history is restored
+        if (isUser || !animate) {
+            interruptTyping();
+        }
+
+        if (!isUser && animate) {
+            addBotMessageWithTyping(text, save);
+            return;
+        }
 
         const wrapper = document.createElement('div');
         wrapper.className = `message-wrapper ${isUser ? 'user-wrapper' : 'bot-wrapper'}`;
@@ -462,12 +532,92 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Load History on Startup
+    function addBotMessageWithTyping(fullText, save = true, speed = 35) {
+        if (!chatMessages) return;
+
+        // Ensure any previous bot typing is resolved first
+        interruptTyping();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'message-wrapper bot-wrapper';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'bot-avatar';
+        avatar.innerHTML = '<img src="../assets/DyipTok-icon.png" alt="Routie">';
+        wrapper.appendChild(avatar);
+
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message bot-message';
+
+        const textNode = document.createTextNode('');
+        const cursorSpan = document.createElement('span');
+        cursorSpan.className = 'typing-cursor';
+
+        msgDiv.appendChild(textNode);
+        msgDiv.appendChild(cursorSpan);
+        wrapper.appendChild(msgDiv);
+        chatMessages.appendChild(wrapper);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        let currentIndex = 0;
+        const punctuationChars = new Set(['.', ',', '\n', '?', '!', ':', ';']);
+
+        currentTypingState = {
+            timerId: null,
+            fullText,
+            msgDiv,
+            textNode,
+            cursorSpan,
+            save
+        };
+
+        function typeNextChar() {
+            if (!currentTypingState) return;
+
+            if (currentIndex >= fullText.length) {
+                // Completed typing out full text
+                if (cursorSpan && cursorSpan.parentNode) {
+                    cursorSpan.parentNode.removeChild(cursorSpan);
+                }
+                if (save) {
+                    chatHistory.push({ text: fullText, isUser: false });
+                    sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
+                }
+                currentTypingState = null;
+                if (chatMessages) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+                return;
+            }
+
+            const char = fullText[currentIndex];
+            currentIndex++;
+
+            textNode.nodeValue = fullText.substring(0, currentIndex);
+
+            // Auto-scroll on every character addition
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            // Punctuation Pause (150ms delay for punctuation, default configurable ~35ms)
+            let delay = speed;
+            if (punctuationChars.has(char)) {
+                delay = 150;
+            }
+
+            currentTypingState.timerId = setTimeout(typeNextChar, delay);
+        }
+
+        typeNextChar();
+    }
+
+    // Load History on Startup (Instant rendering without animation)
     function loadChatHistory() {
         if (!chatMessages) return;
         if (chatHistory.length === 0) return;
         chatMessages.innerHTML = '';
-        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false));
+        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false, false));
     }
     loadChatHistory();
 
@@ -501,6 +651,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleChatSend() {
         const text = chatInput.value.trim();
         if (!text) return;
+
+        interruptTyping();
 
         addMessage(text, true);
         chatInput.value = '';

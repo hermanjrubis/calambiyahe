@@ -45,205 +45,136 @@
 <body>
 
 
-    <!-- Header / Navigation (Seamless Light Theme) -->
-    <header class="navbar" id="navbar">
-        <div class="nav-container">
-            <!-- Left: Logo -->
-            <div class="nav-left">
-                <a href="index.html" class="brand-logo">
-                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+    <!-- Split-Screen Auth Layout -->
+    <div class="auth-split-layout">
+        <!-- Left Panel: Brand & Visuals -->
+        <div class="auth-brand-panel">
+            <div class="auth-brand-accent-circle" aria-hidden="true"></div>
+            <div class="auth-brand-content">
+                <a href="index.html" class="auth-brand-logo" title="Back to Homepage">
+                    <img src="../assets/logo-header.png" alt="Calzada Logo" class="auth-brand-logo-img">
                 </a>
+                <h1 class="auth-brand-headline">Your next stop in Calamba starts here.</h1>
+                <p class="auth-brand-subtext">Discover places worth visiting, and get there by jeepney or tricycle — all in one app.</p>
             </div>
-
-            <!-- Center: Floating Nav Links Group -->
-            <nav class="nav-center" id="navLinks">
-                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
-                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
-                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
-
-                <!-- Mobile Language Row -->
-                <div class="mobile-lang-row">
-                    <span class="mobile-lang-label">Language / Wika</span>
-                    <div class="lang-dropdown-container mobile-lang-container">
-                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
-                            <span class="lang-flag">🌐</span>
-                            <span class="lang-active">EN</span>
-                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
-                        </button>
-                        <div class="lang-dropdown-menu">
-                            <button class="lang-dropdown-item" type="button" data-lang="en">
-                                <span class="lang-flag">🇺🇸</span>
-                                <span class="lang-name">English</span>
-                                <span class="lang-code">EN</span>
-                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                            </button>
-                            <button class="lang-dropdown-item" type="button" data-lang="tl">
-                                <span class="lang-flag">🇵🇭</span>
-                                <span class="lang-name">Tagalog</span>
-                                <span class="lang-code">TL</span>
-                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </nav>
-
-            <!-- Right: Language Toggle & Sign In -->
-            <div class="nav-right">
-                <div class="lang-dropdown-container">
-                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
-                        <span class="lang-flag">🌐</span>
-                        <span class="lang-active">EN</span>
-                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
-                    </button>
-                    <div class="lang-dropdown-menu">
-                        <button class="lang-dropdown-item" type="button" data-lang="en">
-                            <span class="lang-flag">🇺🇸</span>
-                            <span class="lang-name">English</span>
-                            <span class="lang-code">EN</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                        </button>
-                        <button class="lang-dropdown-item" type="button" data-lang="tl">
-                            <span class="lang-flag">🇵🇭</span>
-                            <span class="lang-name">Tagalog</span>
-                            <span class="lang-code">TL</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                        </button>
-                    </div>
-                </div>
-                <a href="login.html" id="authNavBtn" class="btn-nav-auth" data-i18n="login.signin">Sign In</a>
-            </div>
-
-            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
-                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
-                <path class="menu-toggle-line" d="M7 16 27 16" />
-            </svg>
-            </button>
         </div>
-    </header>
 
-    <main class="auth-page-container">
-        <img src="../assets/Calzada - Blue.png"
-             alt=""
-             aria-hidden="true"
-             class="auth-watermark">
-        <div class="auth-card">
+        <!-- Right Panel: Existing Form Content (Left-Aligned, Vertically Centered) -->
+        <div class="auth-form-panel">
+            <div class="auth-form-container">
+                <!-- Auth Tabs (Login / Register) -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')"
+                        data-i18n="login.title">Login</button>
+                    <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')"
+                        data-i18n="login.register">Register</button>
+                </div>
 
-            <!-- Auth Tabs -->
-            <div class="auth-tabs">
-                <button class="auth-tab active" id="tabLogin" onclick="switchAuth('login')"
-                    data-i18n="login.title">Login</button>
-                <button class="auth-tab" id="tabRegister" onclick="switchAuth('register')"
-                    data-i18n="login.register">Register</button>
-            </div>
+                <div class="auth-content">
+                    <!-- LOGIN FORM -->
+                    <form id="formLogin" class="auth-form active">
+                        <h2 class="auth-title" data-i18n="login.welcome">Welcome Back!</h2>
+                        <p class="auth-subtitle" data-i18n="login.subtitle">Log in to continue navigating Calamba.</p>
+                        <p id="loginError" class="auth-subtitle" style="color: #ff4d4f; display: none;"></p>
 
-            <div class="auth-content">
-                <!-- LOGIN FORM -->
-                <form id="formLogin" class="auth-form active">
-                    <h2 class="auth-title" data-i18n="login.welcome">Welcome Back!</h2>
-                    <p class="auth-subtitle" data-i18n="login.subtitle">Log in to continue navigating Calamba.</p>
-                    <p id="loginError" class="auth-subtitle" style="color: #ff4d4f; display: none;"></p>
-
-                    <div class="input-group">
-                        <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" id="loginEmail" data-i18n="login.email_placeholder" data-i18n-attr="placeholder"
-                            placeholder="Email Address" autocomplete="username" required>
-                    </div>
-
-                    <div class="input-group">
-                        <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" placeholder="Password" id="loginPass" autocomplete="current-password" required>
-                        <ion-icon name="eye-outline" class="btn-toggle-pass"
-                            onclick="togglePassword('loginPass')"></ion-icon>
-                    </div>
-
-                    <div class="auth-options">
-                        <label class="remember-me">
-                            <input type="checkbox"> Remember me
-                        </label>
-                        <a href="#" class="forgot-pass">Forgot Password?</a>
-                    </div>
-
-                    <button type="submit" id="loginSubmitBtn" class="btn-auth-primary">Sign in</button>
-
-                    <div class="auth-divider">
-                        <span>Or continue with</span>
-                    </div>
-
-                    <button type="button" id="googleLoginBtn" class="btn-social-auth">
-                        <img src="https://www.google.com/favicon.ico" alt="Google">
-                        Sign in with Google
-                    </button>
-                </form>
-
-                <!-- REGISTER FORM -->
-                <form id="formRegister" class="auth-form">
-                    <h2 class="auth-title">Create an Account</h2>
-                    <p class="auth-subtitle">Join us and streamline your daily commute.</p>
-                    <p id="regError" class="auth-subtitle" style="color: #ff4d4f; display: none;"></p>
-
-                    <div class="input-group">
-                        <ion-icon name="mail-outline"></ion-icon>
-                        <input type="email" id="regEmail" placeholder="Email Address" autocomplete="off" required>
-                    </div>
-
-                    <div class="input-group">
-                        <ion-icon name="lock-closed-outline"></ion-icon>
-                        <input type="password" placeholder="Create Password" id="regPass" autocomplete="new-password"
-                            oninput="checkPasswordStrength()" required>
-                        <ion-icon name="eye-outline" class="btn-toggle-pass"
-                            onclick="togglePassword('regPass')"></ion-icon>
-                    </div>
-
-                    <!-- Modern Security Requirements Display -->
-                    <div class="password-requirements">
-                        <div class="req-item" id="req-length">
-                            <ion-icon name="close-circle-outline"></ion-icon> At least 8 characters
+                        <div class="input-group">
+                            <ion-icon name="mail-outline"></ion-icon>
+                            <input type="email" id="loginEmail" data-i18n="login.email_placeholder" data-i18n-attr="placeholder"
+                                placeholder="Email Address" autocomplete="username" required>
                         </div>
-                        <div class="req-item" id="req-number">
-                            <ion-icon name="close-circle-outline"></ion-icon> Contains a number
+
+                        <div class="input-group">
+                            <ion-icon name="lock-closed-outline"></ion-icon>
+                            <input type="password" placeholder="Password" id="loginPass" autocomplete="current-password" required>
+                            <ion-icon name="eye-outline" class="btn-toggle-pass"
+                                onclick="togglePassword('loginPass')"></ion-icon>
                         </div>
-                        <div class="req-item" id="req-special">
-                            <ion-icon name="close-circle-outline"></ion-icon> Contains a special character (!@#)
+
+                        <div class="auth-options">
+                            <label class="remember-me">
+                                <input type="checkbox"> Remember me
+                            </label>
+                            <a href="#" class="forgot-pass">Forgot Password?</a>
                         </div>
-                    </div>
 
-                    <div class="input-group">
-                        <ion-icon name="shield-checkmark-outline"></ion-icon>
-                        <input type="password" placeholder="Confirm Password" id="regPassConfirm" autocomplete="new-password" required>
-                    </div>
+                        <button type="submit" id="loginSubmitBtn" class="btn-auth-primary">Sign in</button>
 
-                    <div class="auth-options" style="margin-bottom: 20px;">
-                        <label class="remember-me">
-                            <input type="checkbox" required> I agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms</a> &amp; <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
-                        </label>
-                    </div>
+                        <div class="auth-divider">
+                            <span>Or continue with</span>
+                        </div>
 
-                    <button type="submit" id="regSubmitBtn" class="btn-auth-primary">Create Account</button>
+                        <button type="button" id="googleLoginBtn" class="btn-social-auth">
+                            <img src="https://www.google.com/favicon.ico" alt="Google">
+                            Sign in with Google
+                        </button>
+                    </form>
 
-                    <div class="auth-divider">
-                        <span>Or register with</span>
-                    </div>
+                    <!-- REGISTER FORM -->
+                    <form id="formRegister" class="auth-form">
+                        <h2 class="auth-title">Create an Account</h2>
+                        <p class="auth-subtitle">Join us and streamline your daily commute.</p>
+                        <p id="regError" class="auth-subtitle" style="color: #ff4d4f; display: none;"></p>
 
-                    <button type="button" id="googleRegBtn" class="btn-social-auth">
-                        <img src="https://www.google.com/favicon.ico" alt="Google">
-                        Sign up with Google
-                    </button>
-                </form>
+                        <div class="input-group">
+                            <ion-icon name="mail-outline"></ion-icon>
+                            <input type="email" id="regEmail" placeholder="Email Address" autocomplete="off" required>
+                        </div>
+
+                        <div class="input-group">
+                            <ion-icon name="lock-closed-outline"></ion-icon>
+                            <input type="password" placeholder="Create Password" id="regPass" autocomplete="new-password"
+                                oninput="checkPasswordStrength()" required>
+                            <ion-icon name="eye-outline" class="btn-toggle-pass"
+                                onclick="togglePassword('regPass')"></ion-icon>
+                        </div>
+
+                        <!-- Modern Security Requirements Display -->
+                        <div class="password-requirements">
+                            <div class="req-item" id="req-length">
+                                <ion-icon name="close-circle-outline"></ion-icon> At least 8 characters
+                            </div>
+                            <div class="req-item" id="req-number">
+                                <ion-icon name="close-circle-outline"></ion-icon> Contains a number
+                            </div>
+                            <div class="req-item" id="req-special">
+                                <ion-icon name="close-circle-outline"></ion-icon> Contains a special character (!@#)
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <ion-icon name="shield-checkmark-outline"></ion-icon>
+                            <input type="password" placeholder="Confirm Password" id="regPassConfirm" autocomplete="new-password" required>
+                        </div>
+
+                        <div class="auth-options" style="margin-bottom: 20px;">
+                            <label class="remember-me">
+                                <input type="checkbox" required> I agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms</a> &amp; <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="regSubmitBtn" class="btn-auth-primary">Create Account</button>
+
+                        <div class="auth-divider">
+                            <span>Or register with</span>
+                        </div>
+
+                        <button type="button" id="googleRegBtn" class="btn-social-auth">
+                            <img src="https://www.google.com/favicon.ico" alt="Google">
+                            Sign up with Google
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Security Trust Badge Assurance -->
+                <div class="security-assurance">
+                    <ion-icon name="lock-closed"></ion-icon>
+                    <span data-i18n="login.secure_access"><strong>Secure Access:</strong> Your data is encrypted and
+                        securely stored. We never sell your personal information.</span>
+                </div>
+                <a href="index.html" class="guest-link" data-i18n="login.guest">Continue as Guest</a>
             </div>
-
-            <!-- Security Trust Badge Assurance -->
-            <div class="security-assurance">
-                <ion-icon name="lock-closed"></ion-icon>
-                <span data-i18n="login.secure_access"><strong>Secure Access:</strong> Your data is encrypted and
-                    securely stored. We never sell your personal information.</span>
-            </div>
-            <a href="index.html" class="guest-link" data-i18n="login.guest">Continue as Guest</a>
         </div>
-    </main>
+    </div>
 
     <!-- Terms Modal -->
     <div class="modal" id="termsModal" style="align-items: center; justify-content: center;">
@@ -310,12 +241,7 @@
         if (formLogin) formLogin.reset();
         if (formRegister) formRegister.reset();
 
-        // Check if already logged in -> Redirect
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                window.location.href = 'index.html';
-            }
-        });
+
 
         // Helper: Show Error
         const showError = (element, message) => {
@@ -359,7 +285,7 @@
 
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-                await logActivity(userCredential.user.uid, "login", "email");
+                logActivity(userCredential.user.uid, "login", "email"); // fire-and-forget
                 window.location.href = 'index.html';
             } catch (err) {
                 showError(loginError, err.message);
@@ -380,7 +306,7 @@
 
             try {
                 const userCredential = await signInWithPopup(auth, provider);
-                await logActivity(userCredential.user.uid, "login", "google");
+                logActivity(userCredential.user.uid, "login", "google"); // fire-and-forget
                 window.location.href = 'index.html';
             } catch (err) {
                 showError(loginError, err.message);
@@ -402,7 +328,7 @@
 
                 try {
                     const userCredential = await signInWithPopup(auth, provider);
-                    await logActivity(userCredential.user.uid, "register", "google");
+                    logActivity(userCredential.user.uid, "register", "google"); // fire-and-forget
                     window.location.href = 'index.html';
                 } catch (err) {
                     showError(regError, err.message);
@@ -434,8 +360,7 @@
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                await logActivity(userCredential.user.uid, "register", "email");
-                // Note: If you want to save the user's name, you can update their profile or write to a user document here.
+                logActivity(userCredential.user.uid, "register", "email"); // fire-and-forget
                 window.location.href = 'index.html';
             } catch (err) {
                 showError(regError, err.message);

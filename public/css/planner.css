@@ -118,8 +118,8 @@ html, body {
 
 @media (min-width: 768px) {
     .recenter-btn {
-        bottom: 30px;
-        right: 30px;
+        bottom: 120px;
+        right: 24px;
         left: auto;
     }
 }
@@ -196,6 +196,199 @@ html, body {
 .map-top-pill ion-icon {
     font-size: 1.1rem;
     color: var(--primary);
+}
+
+/* Category Filter Pill Bar (Google Maps Style) */
+.map-category-bar-wrapper {
+    position: fixed;
+    top: 16px;
+    left: 360px;
+    right: 320px;
+    z-index: 500;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.map-category-bar {
+    pointer-events: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 3px 6px;
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(230, 238, 247, 0.9);
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.map-category-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.map-cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    background: transparent;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #5F5E5A;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.map-cat-pill ion-icon {
+    font-size: 14px;
+    color: #5F5E5A;
+    transition: color 0.2s ease;
+}
+
+.map-cat-pill:hover {
+    background: #F1F5F9;
+    color: #1E293B;
+}
+
+.map-cat-pill:hover ion-icon {
+    color: #1E293B;
+}
+
+.map-cat-pill.active {
+    background: #E6F1FB;
+    color: #378ADD;
+    border-color: rgba(55, 138, 221, 0.25);
+}
+
+.map-cat-pill.active ion-icon {
+    color: #378ADD;
+}
+
+/* User Profile Nav inside Floating map-top-right */
+.map-top-right .user-profile-nav {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.map-top-right .btn-nav-signin {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 16px;
+    height: 40px;
+    background: var(--primary);
+    color: #FFFFFF !important;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 10px rgba(55, 138, 221, 0.3);
+    text-decoration: none;
+    border: none;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.map-top-right .btn-nav-signin:hover {
+    background: var(--primary-dark);
+    transform: scale(1.02);
+}
+
+.map-top-right .user-avatar-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(230, 238, 247, 0.9);
+    border-radius: 999px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-dark);
+}
+
+.map-top-right .user-profile-menu {
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+}
+
+/* Leaflet Custom Bottom Zoom Controls */
+.leaflet-bottom.leaflet-right {
+    bottom: 24px !important;
+    right: 24px !important;
+    z-index: 550 !important;
+    margin: 0 !important;
+}
+
+.leaflet-control-zoom {
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(230, 238, 247, 0.8) !important;
+    margin: 0 !important;
+}
+
+.leaflet-control-zoom a {
+    width: 38px !important;
+    height: 38px !important;
+    line-height: 38px !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    color: #1E293B !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+    transition: all 0.2s ease !important;
+}
+
+.leaflet-control-zoom a:last-child {
+    border-bottom: none !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: #F1F5F9 !important;
+    color: #378ADD !important;
+}
+
+.leaflet-control-zoom a:active {
+    background: #E2E8F0 !important;
+}
+
+@media (max-width: 900px) {
+    .map-category-bar-wrapper {
+        left: 340px;
+        right: 280px;
+    }
+}
+
+@media (max-width: 768px) {
+    .map-category-bar-wrapper {
+        top: 66px;
+        left: 12px;
+        right: 12px;
+        justify-content: flex-start;
+        max-width: none;
+    }
+    .leaflet-bottom.leaflet-right {
+        bottom: 80px !important;
+        right: 16px !important;
+    }
 }
 
 .map-top-icon-btn {
@@ -337,12 +530,6 @@ html, body {
         flex-direction: column;
     }
 
-    /* Move Leaflet zoom controls to the right of the 340px sidebar */
-    .leaflet-top.leaflet-left {
-        top: 16px !important;
-        left: 355px !important;
-    }
-
     /* Map stays full width — overlapped by sidebar visually, not in DOM */
     .planner-map {
         position: fixed;
@@ -350,10 +537,10 @@ html, body {
         z-index: 1;
     }
 
-    /* Recenter button stays on the right */
+    /* Recenter button sits above the bottom zoom controls */
     .recenter-btn {
-        right: 30px;
-        bottom: 30px;
+        right: 24px;
+        bottom: 120px;
         left: auto;
     }
 

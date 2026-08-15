@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('orientationchange', () => setTimeout(setVh, 100));
 
 
-    const map = L.map('map').setView([14.2045, 121.1641], 13);
+    const map = L.map('map', { zoomControl: false }).setView([14.2045, 121.1641], 13);
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         subdomains: 'abcd',
         maxZoom: 20,
@@ -50,6 +51,121 @@ document.addEventListener('DOMContentLoaded', () => {
     let originMarker = null, destMarker = null, userMarker = null, gpsCircle = null;
     let walkPolyline = null, transitPolyline = null, completedTransitPolyline = null;
     let midpointBubbleMarker = null;
+
+    // =============================================
+    // CATEGORY FILTER PILLS & MAP PLACES CONTROLLER
+    // =============================================
+    const CALAMBA_PLACES_DATA = [
+        // Malls
+        { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.2039, lng: 121.1554, address: 'Brgy. Real, Calamba City' },
+        { id: 'waltermart-calamba', name: 'WalterMart Calamba', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.2052, lng: 121.1448, address: 'Brgy. Real, Calamba City' },
+        { id: 'checkpoint-mall', name: 'Checkpoint Mall', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.2120, lng: 121.1610, address: 'Brgy. Paciano Rizal, Calamba City' },
+        { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.1915, lng: 121.1512, address: 'Brgy. Halang, Calamba City' },
+
+        // Eateries
+        { id: 'moonbucks', name: 'Moonbucks Calamba', category: 'eateries', categoryLabel: 'Cafe', icon: 'cafe-outline', color: '#D97706', lat: 14.2131, lng: 121.1662, address: 'Elepaño Subd, Brgy. 3, Calamba City' },
+        { id: 'starbucks-crossing', name: 'Starbucks Crossing Calamba', category: 'eateries', categoryLabel: 'Coffee', icon: 'cafe-outline', color: '#D97706', lat: 14.2065, lng: 121.1565, address: 'Crossing, Brgy. Uno, Calamba City' },
+        { id: 'jollibee-crossing', name: 'Jollibee Calamba Crossing', category: 'eateries', categoryLabel: 'Fast Food', icon: 'restaurant-outline', color: '#D97706', lat: 14.2078, lng: 121.1542, address: 'Calamba Crossing, Calamba City' },
+        { id: 'mang-inasal-sm', name: 'Mang Inasal SM Calamba', category: 'eateries', categoryLabel: 'Fast Food', icon: 'restaurant-outline', color: '#D97706', lat: 14.2041, lng: 121.1558, address: 'SM City Calamba, Calamba City' },
+        { id: 'claypot-cafe', name: 'Calamba Claypot Cafe', category: 'eateries', categoryLabel: 'Restaurant', icon: 'cafe-outline', color: '#D97706', lat: 14.2140, lng: 121.1660, address: 'Brgy. 5 Poblacion, Calamba City' },
+
+        // Schools
+        { id: 'ccc', name: 'City College of Calamba (CCC)', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.2135, lng: 121.1645, address: 'Brgy. 7 (Poblacion), Calamba City' },
+        { id: 'sti-calamba', name: 'STI College Calamba', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.1895, lng: 121.1620, address: 'Brgy. Halang, Calamba City' },
+        { id: 'letran-calamba', name: 'Colegio de San Juan de Letran', category: 'schools', categoryLabel: 'University', icon: 'school-outline', color: '#059669', lat: 14.1882, lng: 121.1658, address: 'Bucal, Calamba City' },
+        { id: 'lcba', name: 'Laguna College of Business and Arts', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.2128, lng: 121.1633, address: 'Brgy. Uno, Calamba City' },
+        { id: 'calamba-institute', name: 'Calamba Institute', category: 'schools', categoryLabel: 'School', icon: 'school-outline', color: '#059669', lat: 14.2148, lng: 121.1655, address: 'Chipeco Ave, Poblacion, Calamba City' },
+
+        // Hospitals
+        { id: 'cmc', name: 'Calamba Medical Center (CMC)', category: 'hospitals', categoryLabel: 'Hospital', icon: 'medkit-outline', color: '#DC2626', lat: 14.2068, lng: 121.1539, address: 'Crossing, Brgy. Uno, Calamba City' },
+        { id: 'pamana-hospital', name: 'Pamana Golden Care Hospital', category: 'hospitals', categoryLabel: 'Hospital', icon: 'medkit-outline', color: '#DC2626', lat: 14.1985, lng: 121.1578, address: 'Brgy. Halang, Calamba City' },
+        { id: 'calamba-doctors', name: "Calamba Doctors' Hospital", category: 'hospitals', categoryLabel: 'Hospital', icon: 'medkit-outline', color: '#DC2626', lat: 14.2155, lng: 121.1402, address: 'Km. 49 National Hwy, Parian, Calamba City' },
+        { id: 'st-john-medical', name: 'St. John the Baptist Medical Center', category: 'hospitals', categoryLabel: 'Medical Center', icon: 'medkit-outline', color: '#DC2626', lat: 14.2105, lng: 121.1618, address: 'Brgy. Parian, Calamba City' },
+
+        // Landmarks
+        { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'landmarks', categoryLabel: 'Heritage Site', icon: 'landmark-outline', color: '#7C3AED', lat: 14.2142, lng: 121.1668, address: 'Brgy. 5 (Poblacion), Calamba City' },
+        { id: 'city-hall', name: 'Calamba City Hall', category: 'landmarks', categoryLabel: 'Government', icon: 'business-outline', color: '#7C3AED', lat: 14.2122, lng: 121.1482, address: 'Brgy. Real, Calamba City' },
+        { id: 'calamba-claypot', name: 'Calamba Giant Claypot (Banga)', category: 'landmarks', categoryLabel: 'Monument', icon: 'trophy-outline', color: '#7C3AED', lat: 14.2139, lng: 121.1664, address: 'Calamba City Plaza, Poblacion' },
+        { id: 'st-john-church', name: 'St. John the Baptist Parish Church', category: 'landmarks', categoryLabel: 'Church', icon: 'trail-sign-outline', color: '#7C3AED', lat: 14.2140, lng: 121.1671, address: 'Brgy. 5 Poblacion, Calamba City' },
+
+        // Terminals
+        { id: 'central-terminal', name: 'Calamba Central Terminal', category: 'terminals', categoryLabel: 'Transport Hub', icon: 'bus-outline', color: '#0284C7', lat: 14.2045, lng: 121.1550, address: 'Crossing / Turbina Access, Calamba City' },
+        { id: 'crossing-terminal', name: 'Calamba Crossing Jeepney Terminal', category: 'terminals', categoryLabel: 'Jeep Terminal', icon: 'bus-outline', color: '#0284C7', lat: 14.2072, lng: 121.1548, address: 'Crossing, Calamba City' },
+        { id: 'turbina-terminal', name: 'Turbina Bus Terminal', category: 'terminals', categoryLabel: 'Bus Terminal', icon: 'bus-outline', color: '#0284C7', lat: 14.1812, lng: 121.1445, address: 'Brgy. Turbina, Calamba City' },
+        { id: 'sm-transport-terminal', name: 'SM Calamba Transport Terminal', category: 'terminals', categoryLabel: 'Jeep & UV Terminal', icon: 'car-outline', color: '#0284C7', lat: 14.2035, lng: 121.1560, address: 'SM City Calamba Ground Level' }
+    ];
+
+    const categoryPlacesLayer = L.layerGroup().addTo(map);
+
+    function renderCategoryPlaces(selectedCategory = 'all') {
+        categoryPlacesLayer.clearLayers();
+
+        const filtered = selectedCategory === 'all'
+            ? CALAMBA_PLACES_DATA
+            : CALAMBA_PLACES_DATA.filter(p => p.category === selectedCategory);
+
+        filtered.forEach(place => {
+            const iconHtml = `
+                <div class="category-map-pin" style="background:${place.color}; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,0.25); border:2px solid #FFFFFF; color:#FFFFFF;">
+                    <ion-icon name="${place.icon}" style="font-size:15px;"></ion-icon>
+                </div>
+            `;
+            const customIcon = L.divIcon({
+                html: iconHtml,
+                className: 'custom-cat-pin',
+                iconSize: [28, 28],
+                iconAnchor: [14, 14],
+                popupAnchor: [0, -14]
+            });
+
+            const marker = L.marker([place.lat, place.lng], { icon: customIcon });
+
+            const popupContent = `
+                <div style="font-family:'Outfit',sans-serif; min-width:180px; padding:4px;">
+                    <div style="font-size:11px; font-weight:700; color:${place.color}; text-transform:uppercase; margin-bottom:2px;">${place.categoryLabel}</div>
+                    <div style="font-size:14px; font-weight:800; color:#0F172A; margin-bottom:4px; line-height:1.2;">${place.name}</div>
+                    <div style="font-size:12px; color:#64748B; margin-bottom:10px;">${place.address}</div>
+                    <button type="button" class="category-pin-route-btn" style="width:100%; background:#378ADD; color:#FFF; border:none; border-radius:6px; padding:7px 10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="window._setPlannerDestination('${place.name.replace(/'/g, "\\'")}', ${place.lat}, ${place.lng})">
+                        <ion-icon name="navigate-outline"></ion-icon> Set as Destination
+                    </button>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+            categoryPlacesLayer.addLayer(marker);
+        });
+    }
+
+    // Expose global helper for popup button
+    window._setPlannerDestination = (name, lat, lng) => {
+        const destInput = document.getElementById('destInput');
+        if (destInput) {
+            destInput.value = name;
+        }
+        destPlaceName = name;
+        selectedCoords.destination = { lat, lng };
+        map.closePopup();
+        if (typeof calculateAndDisplayRoute === 'function') {
+            calculateAndDisplayRoute();
+        }
+    };
+
+    // Category Filter Bar Click Listeners
+    const categoryBar = document.getElementById('mapCategoryBar');
+    if (categoryBar) {
+        const pills = categoryBar.querySelectorAll('.map-cat-pill');
+        pills.forEach(pill => {
+            pill.addEventListener('click', () => {
+                pills.forEach(p => p.classList.remove('active'));
+                pill.classList.add('active');
+                const cat = pill.getAttribute('data-category') || 'all';
+                renderCategoryPlaces(cat);
+            });
+        });
+    }
+
+    // Initial render of places
+    renderCategoryPlaces('all');
 
     // Routing State
     let currentWalkDist = 0, currentWalkDur = 0, currentTransitDist = 0, currentTransitDur = 0;
