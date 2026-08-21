@@ -112,6 +112,29 @@
 
 
 
+    <!-- Mobile Search Overlay (Fix 2) -->
+    <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
+        <div class="mobile-search-backdrop" id="mobileSearchBackdrop"></div>
+        <div class="mobile-search-card">
+            <div class="mobile-search-topbar">
+                <span class="mobile-search-label">Search a place</span>
+                <button class="mobile-search-close" id="mobileSearchClose" aria-label="Close search">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="mobile-search-input-wrap">
+                <ion-icon name="search-outline" class="mobile-search-prefix"></ion-icon>
+                <input type="text" id="mobileSearchInput" class="mobile-search-input"
+                    placeholder="Where to go?" autocomplete="off" autocorrect="off"
+                    autocapitalize="off" spellcheck="false">
+                <button class="mobile-search-submit" id="mobileSearchSubmit" aria-label="Search">
+                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="search-results-dropdown" id="mobileSearchResults"></div>
+        </div>
+    </div>
+
     <!-- Header / Navigation (Seamless Light Theme) -->
     <header class="navbar" id="navbar">
         <div class="nav-container">
@@ -268,27 +291,12 @@
                     </div>
                 </div>
 
-                <!-- 2. Bell — Dynamic Activity Feed (driven by user actions) -->
+                <!-- 2. Bell Button (Desktop) -->
                 <div class="alerts-dropdown-container">
                     <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed" title="Your recent activity">
                         <ion-icon name="notifications-outline"></ion-icon>
                         <span class="badge" id="bellBadge" style="display:none;">0</span>
                     </button>
-                    <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
-                        <div class="alerts-header">
-                            <div class="alerts-header-title">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                                <span>Activity Feed</span>
-                            </div>
-                            <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
-                                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                                Clear
-                            </button>
-                        </div>
-                        <div class="alerts-list" id="activityFeedList">
-                            <!-- Filled dynamically by JS -->
-                        </div>
-                    </div>
                 </div>
 
                 <!-- 3. User Profile Nav / 👤 Sign In -->
@@ -312,114 +320,154 @@
                         </div>
                         <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
                     </div>
-
-                    <!-- Establishment Focus Profile Dropdown Menu -->
-                    <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
-                        <!-- User Info Header -->
-                        <div class="profile-header-card">
-                            <div class="profile-header-avatar">
-                                <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
-                                <div class="profile-header-initials" id="profileHeaderInitials">U</div>
-                            </div>
-                            <div class="profile-header-details">
-                                <div class="profile-name" id="profileDisplayName">User</div>
-                                <div class="profile-email" id="profileEmail">user@gmail.com</div>
-                            </div>
-                        </div>
-
-                        <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
-                        <div class="exploration-stats-section" id="explorationStatsSection">
-                            <div class="stats-section-label">Your Exploration Stats</div>
-                            <div class="exploration-stats-row">
-                                <button type="button" class="stat-pill-btn" id="statVisitsBtn" title="View Visited Establishments">
-                                    <span class="stat-icon">
-                                        <svg width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                    </span>
-                                    <span class="stat-value" id="statVisitsCount">0</span>
-                                    <span class="stat-name">Visits</span>
-                                </button>
-                                <div class="stat-divider"></div>
-                                <button type="button" class="stat-pill-btn" id="statSavesBtn" title="View Saved Places">
-                                    <span class="stat-icon">
-                                        <svg width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                                    </span>
-                                    <span class="stat-value" id="statSavesCount">0</span>
-                                    <span class="stat-name">Saves</span>
-                                </button>
-                                <div class="stat-divider"></div>
-                                <button type="button" class="stat-pill-btn" id="statBadgesBtn" title="View Achievements">
-                                    <span class="stat-icon">
-                                        <svg width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                                    </span>
-                                    <span class="stat-value" id="statBadgesCount">0</span>
-                                    <span class="stat-name">Badges</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Anonymous Banner (For Guest/Anonymous Users) -->
-                        <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
-                            <span>Guest Mode</span>
-                            <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
-                        </div>
-
-                        <div class="profile-menu-divider"></div>
-
-                        <!-- Menu Items with Outline Heroicons SVGs (Strictly No Emojis) -->
-                        <div class="profile-nav-list">
-                            <!-- 1. My Visits -->
-                            <button type="button" class="profile-nav-btn" id="menuMyVisits">
-                                <span class="nav-btn-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </span>
-                                <span class="nav-btn-title">My Visits</span>
-                            </button>
-
-                            <!-- 2. Saved Places -->
-                            <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
-                                <span class="nav-btn-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                                </span>
-                                <span class="nav-btn-title">Saved Places</span>
-                                <span class="saved-count-pill" id="menuSavedCount">(8)</span>
-                            </button>
-
-                            <!-- 3. My Achievements -->
-                            <button type="button" class="profile-nav-btn" id="menuMyAchievements">
-                                <span class="nav-btn-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
-                                </span>
-                                <span class="nav-btn-title">My Achievements</span>
-                            </button>
-
-                            <!-- 4. Account Settings -->
-                            <button type="button" class="profile-nav-btn" id="menuAccountSettings">
-                                <span class="nav-btn-icon">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                </span>
-                                <span class="nav-btn-title">Account Settings</span>
-                            </button>
-                        </div>
-
-                        <div class="profile-menu-divider"></div>
-
-                        <!-- 5. Log Out -->
-                        <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
-                            <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                            </span>
-                            <span class="nav-btn-title">Log Out</span>
-                        </button>
-                    </div>
                 </div>
             </div>
 
-            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
-                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
-                <path class="menu-toggle-line" d="M7 16 27 16" />
-            </svg>
-            </button>
+            <!-- Activity Feed / Alerts Dropdown Menu (Top level nav-container child for Desktop + Mobile) -->
+            <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
+                <div class="alerts-header">
+                    <div class="alerts-header-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Activity Feed</span>
+                    </div>
+                    <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Clear
+                    </button>
+                </div>
+                <div class="alerts-list" id="activityFeedList">
+                    <!-- Filled dynamically by JS -->
+                </div>
+            </div>
+
+            <!-- Establishment Focus Profile Dropdown Menu (Top level nav-container child for Desktop + Mobile) -->
+            <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
+                <!-- User Info Header -->
+                <div class="profile-header-card">
+                    <div class="profile-header-avatar">
+                        <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <div class="profile-header-initials" id="profileHeaderInitials">U</div>
+                    </div>
+                    <div class="profile-header-details">
+                        <div class="profile-name" id="profileDisplayName">User</div>
+                        <div class="profile-email" id="profileEmail">user@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
+                <div class="exploration-stats-section" id="explorationStatsSection">
+                    <div class="stats-section-label">Your Exploration Stats</div>
+                    <div class="exploration-stats-row">
+                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" title="View Visited Establishments">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </span>
+                            <span class="stat-value" id="statVisitsCount">0</span>
+                            <span class="stat-name">Visits</span>
+                        </button>
+                        <div class="stat-divider"></div>
+                        <button type="button" class="stat-pill-btn" id="statSavesBtn" title="View Saved Places">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            </span>
+                            <span class="stat-value" id="statSavesCount">0</span>
+                            <span class="stat-name">Saves</span>
+                        </button>
+                        <div class="stat-divider"></div>
+                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" title="View Achievements">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                            </span>
+                            <span class="stat-value" id="statBadgesCount">0</span>
+                            <span class="stat-name">Badges</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Anonymous Banner (For Guest/Anonymous Users) -->
+                <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
+                    <span>Guest Mode</span>
+                    <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+
+                <!-- Menu Items with Outline Heroicons SVGs (Strictly No Emojis) -->
+                <div class="profile-nav-list">
+                    <!-- 1. My Visits -->
+                    <button type="button" class="profile-nav-btn" id="menuMyVisits">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                        <span class="nav-btn-title">My Visits</span>
+                    </button>
+
+                    <!-- 2. Saved Places -->
+                    <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        </span>
+                        <span class="nav-btn-title">Saved Places</span>
+                        <span class="saved-count-pill" id="menuSavedCount">(8)</span>
+                    </button>
+
+                    <!-- 3. My Achievements -->
+                    <button type="button" class="profile-nav-btn" id="menuMyAchievements">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                        </span>
+                        <span class="nav-btn-title">My Achievements</span>
+                    </button>
+
+                    <!-- 4. Account Settings -->
+                    <button type="button" class="profile-nav-btn" id="menuAccountSettings">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </span>
+                        <span class="nav-btn-title">Account Settings</span>
+                    </button>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+
+                <!-- 5. Log Out -->
+                <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
+                    <span class="nav-btn-icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </span>
+                    <span class="nav-btn-title">Log Out</span>
+                </button>
+            </div>
+            <!-- [Mobile-only]: icon cluster: search, bell, sign-in/avatar, hamburger -->
+            <div class="mobile-nav-icons" id="mobileNavIcons">
+                <!-- Search icon -->
+                <button class="mobile-nav-icon-btn" id="mobileSearchBtn" aria-label="Search places" type="button">
+                    <ion-icon name="search-outline"></ion-icon>
+                </button>
+                <!-- Bell / Activity Feed -->
+                <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
+                    <ion-icon name="notifications-outline"></ion-icon>
+                    <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
+                </button>
+                <!-- Sign In (Logged out) -->
+                <a href="login.html" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
+                    <ion-icon name="person-outline"></ion-icon>
+                </a>
+                <!-- Profile Avatar (Logged in) -->
+                <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
+                    <div class="mobile-avatar-wrap">
+                        <img src="../assets/default-avatar.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
+                    </div>
+                </button>
+                <!-- Hamburger Menu Button -->
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                    <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                        <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                        <path class="menu-toggle-line" d="M7 16 27 16" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -439,8 +487,8 @@
                     Your local guide to spots worth the trip.
                 </p>
 
-                <!-- Upgraded Hybrid Search + Voice + GPS Bar -->
-                <div class="search-container">
+                <!-- Upgraded Hybrid Search + Voice + GPS Bar (hidden at mobile — use navbar search icon) -->
+                <div class="search-container hero-search-desktop">
                     <div class="search-bar hybrid-search-bar" id="searchBar">
                         <ion-icon name="search-outline" class="search-prefix-icon"></ion-icon>
                         <input type="text"
@@ -545,39 +593,167 @@
 
                 <div class="steps-grid">
                     <div class="step-card reveal-delay-1">
-                        <div class="step-ghost-num">01</div>
                         <div class="step-icon"><i class="ti ti-search"></i></div>
                         <h3 data-i18n="steps.1.title">Search Your Destination</h3>
                         <p data-i18n="steps.1.desc">Type where you're headed. Calzada picks up on landmarks, barangays, and common stops around Calamba.</p>
                     </div>
                     <div class="step-card reveal-delay-2">
-                        <div class="step-ghost-num">02</div>
                         <div class="step-icon"><i class="ti ti-route"></i></div>
                         <h3 data-i18n="steps.2.title">See Your Options</h3>
                         <p data-i18n="steps.2.desc">Compare routes with fare estimates, travel time, and how many rides you'll need.</p>
                     </div>
                     <div class="step-card reveal-delay-3">
-                        <div class="step-ghost-num">03</div>
                         <div class="step-icon"><i class="ti ti-steering-wheel"></i></div>
                         <h3 data-i18n="steps.3.title">Ride with Confidence</h3>
                         <p data-i18n="steps.3.desc">Get simple directions to get there — by jeepney, tricycle, or a quick transfer between the two.</p>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- Section: Scroll-Driven 3D Tilt Reveal (Planner Mockup) -->
-        <section class="scroll-reveal-section">
-            <div class="scroll-reveal-header">
-                <h2>See it in action.</h2>
-                <p>Search a place, compare your options, and get moving — right from the app.</p>
-            </div>
-            <div class="scroll-reveal-card">
-                <div class="scroll-reveal-card-inner">
-                    <img src="../assets/planner-mockup.png" alt="Calzada Planner screenshot" />
+                <!-- Steps CTA Button -->
+                <div class="steps-cta-wrap reveal-delay-3">
+                    <button type="button" class="steps-cta-btn" id="stepsCtaBtn" data-i18n="steps.cta">Try it now →</button>
                 </div>
             </div>
         </section>
+
+        <!-- Section: What Calzada Offers (Stacking Cards - React Component Port) -->
+        <section class="sc-section" id="cardsSection">
+
+            <!-- Hero header on dark background -->
+            <div class="sc-hero">
+                <div class="sc-hero-grid"></div>
+                <div class="sc-hero-content">
+                    <span class="sc-pill">✨ FEATURES</span>
+                    <h2 class="sc-hero-title">Everything you need<br>to explore Calamba</h2>
+                    <p class="sc-hero-sub">Five powerful features, one seamless experience.</p>
+                </div>
+            </div>
+
+            <!-- Card 1: Ask Routie (#5196fd) -->
+            <div class="card-wrapper" data-index="0" style="--i: 0;">
+                <div class="card" style="background-color:#5196fd;">
+                    <h2 class="card-title">Ask Routie – Your AI Assistant</h2>
+                    <div class="card-body">
+                        <div class="card-text">
+                            <p class="card-description">Originally hailing from Austria, Routie understands natural language. Get personalized place recommendations and commute tips just by asking!</p>
+                            <a href="planner.html" class="card-link">
+                                See more
+                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
+                            </a>
+                        </div>
+                        <div class="card-image">
+                            <div class="card-image-inner">
+                                <img src="https://images.unsplash.com/photo-1605106702842-01a887a31122?q=80&w=700&auto=format&fit=crop" alt="Ask Routie" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Smart Route Planning (#8f89ff) -->
+            <div class="card-wrapper" data-index="1" style="--i: 1;">
+                <div class="card" style="background-color:#8f89ff;">
+                    <h2 class="card-title">Smart Route Planning</h2>
+                    <div class="card-body">
+                        <div class="card-text">
+                            <p class="card-description">Compare jeepney and tricycle routes side-by-side. See fare estimates, travel time, and step-by-step directions — all in one place.</p>
+                            <a href="planner.html" class="card-link">
+                                See more
+                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
+                            </a>
+                        </div>
+                        <div class="card-image">
+                            <div class="card-image-inner">
+                                <img src="https://images.unsplash.com/photo-1605106250963-ffda6d2a4b32?w=700&auto=format&fit=crop&q=60" alt="Route Planning" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Save & Track Your Favorites (#13006c) -->
+            <div class="card-wrapper" data-index="2" style="--i: 2;">
+                <div class="card" style="background-color:#13006c;">
+                    <h2 class="card-title">Save &amp; Track Your Favorites</h2>
+                    <div class="card-body">
+                        <div class="card-text">
+                            <p class="card-description">Bookmark places you want to visit. Keep a history of where you've been. Unlock achievements as you explore more of Calamba!</p>
+                            <a href="places.html" class="card-link">
+                                See more
+                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
+                            </a>
+                        </div>
+                        <div class="card-image">
+                            <div class="card-image-inner">
+                                <img src="https://images.unsplash.com/photo-1605106901227-991bd663255c?w=700&auto=format&fit=crop" alt="Save & Track" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: Discover Places to Visit (#ed649e) -->
+            <div class="card-wrapper" data-index="3" style="--i: 3;">
+                <div class="card" style="background-color:#ed649e;">
+                    <h2 class="card-title">Discover Places to Visit</h2>
+                    <div class="card-body">
+                        <div class="card-text">
+                            <p class="card-description">Browse Malls, Eateries, Schools, Landmarks, and Hospitals across Calamba. Find new spots recommended by fellow explorers.</p>
+                            <a href="places.html" class="card-link">
+                                See more
+                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
+                            </a>
+                        </div>
+                        <div class="card-image">
+                            <div class="card-image-inner">
+                                <img src="https://images.unsplash.com/photo-1605106715994-18d3fecffb98?w=700&auto=format&fit=crop&q=60" alt="Discover Places" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 5: Real-Time Commuter Alerts (#fd521a) -->
+            <div class="card-wrapper" data-index="4" style="--i: 4;">
+                <div class="card" style="background-color:#fd521a;">
+                    <h2 class="card-title">Real-Time Commuter Alerts</h2>
+                    <div class="card-body">
+                        <div class="card-text">
+                            <p class="card-description">Stay updated on fare changes and terminal availability. Get notified before you head out so you're never caught off guard.</p>
+                            <a href="planner.html" class="card-link">
+                                See more
+                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
+                            </a>
+                        </div>
+                        <div class="card-image">
+                            <div class="card-image-inner">
+                                <img src="https://images.unsplash.com/photo-1506792006437-256b665541e2?w=700&auto=format&fit=crop" alt="Commuter Alerts" loading="lazy">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Section: 3D Tablet Scroll Showcase (Aceternity UI ContainerScroll Component Port) -->
+        <section class="cs-container-section" id="mockupScrollSection">
+            <div class="cs-wrapper">
+                <div class="cs-header" id="csHeader">
+                    <h2 class="cs-heading">
+                        Unleash the power of <br>
+                        <span class="cs-sub-heading">Calzada Planner</span>
+                    </h2>
+                </div>
+                <div class="cs-card-3d" id="csCard3D">
+                    <div class="cs-screen-inner">
+                        <img src="../assets/planner-mockup.png" alt="Calzada Planner Tablet Showcase" draggable="false" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
 
         <!-- Section: Featured Places Hover-Expand Gallery -->
         <section class="featured-gallery">
@@ -587,7 +763,7 @@
             </div>
             <div class="featured-gallery-row" id="featuredGalleryRow">
                 <!-- Place 1: SM City Calamba (Mall) -->
-                <div class="gallery-item" onclick="window.location.href='places.html?q=SM City Calamba'">
+                <div class="gallery-item" data-href="places.html?q=SM City Calamba">
                     <img src="https://evendo-location-media.s3.amazonaws.com/ShoppingImages/6267eb28-343f-4cc5-a08f-8f6022fcba2b" alt="SM City Calamba" loading="lazy" />
                     <div class="gallery-item-label">
                         <span class="gallery-item-category">Mall</span>
@@ -596,7 +772,7 @@
                 </div>
 
                 <!-- Place 2: Moonbucks (Coffee Shop) -->
-                <div class="gallery-item" onclick="window.location.href='places.html?q=Moonbucks'">
+                <div class="gallery-item" data-href="places.html?q=Moonbucks">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5SF7ZvAMmCMYah6b2qjK4ziOySSiP8JzzCg&s" alt="Moonbucks" loading="lazy" />
                     <div class="gallery-item-label">
                         <span class="gallery-item-category">Coffee Shop</span>
@@ -605,7 +781,7 @@
                 </div>
 
                 <!-- Place 3: Bahay ni Rizal (Historic Landmark) -->
-                <div class="gallery-item" onclick="window.location.href='places.html?q=Rizal Shrine'">
+                <div class="gallery-item" data-href="places.html?q=Rizal Shrine">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_EEk4rCx1aWAAIKLD-D9dGvcre4MjbxKdFQ&s" alt="Bahay ni Rizal" loading="lazy" />
                     <div class="gallery-item-label">
                         <span class="gallery-item-category">Historic</span>
@@ -614,7 +790,7 @@
                 </div>
 
                 <!-- Place 4: Calamba City Hall (Establishment) -->
-                <div class="gallery-item" onclick="window.location.href='places.html?q=Calamba City Hall'">
+                <div class="gallery-item" data-href="places.html?q=Calamba City Hall">
                     <img src="https://lh3.googleusercontent.com/pw/AP1GczM1DDQ8qkvS-5Yc_dvrpnI5HAwRSuj5zofc7zFnSeoqvrNcP1lBLZRsQv-GuutdVIb96tE83_WyDHGHxYviOh7JlUiUZNWnKJRuEOC4cyb6If3r669AS8ZN9iJB6fo_itMSwMNjVPSPmAvzo7Fe6Xw5zw=w2734-h2050-s-no-gm?authuser=0" alt="Calamba City Hall" loading="lazy" />
                     <div class="gallery-item-label">
                         <span class="gallery-item-category">Establishment</span>
@@ -623,7 +799,7 @@
                 </div>
 
                 <!-- Place 5: Nuvali (Leisure / Nature) -->
-                <div class="gallery-item" onclick="window.location.href='places.html?q=Nuvali'">
+                <div class="gallery-item" data-href="places.html?q=Nuvali">
                     <img src="https://images.squarespace-cdn.com/content/v1/5fa1522044bdda192713063c/1694433501371-TZH3WMEXP477B0IUHAGU/20230910_095936-v2.jpg" alt="Nuvali (Sta. Rosa)" loading="lazy" />
                     <div class="gallery-item-label">
                         <span class="gallery-item-category">Leisure</span>
@@ -632,7 +808,7 @@
                 </div>
 
                 <!-- Place 6: City College of Calamba (School) -->
-                <div class="gallery-item" onclick="window.location.href='places.html?q=City College of Calamba'">
+                <div class="gallery-item" data-href="places.html?q=City College of Calamba">
                     <img src="https://static.where-e.com/Philippines/City-College-Of-Calamba_ba2dfbc35e249893367f22e7076f4a27.jpg" alt="City College of Calamba" loading="lazy" />
                     <div class="gallery-item-label">
                         <span class="gallery-item-category">School</span>
@@ -642,6 +818,15 @@
             </div>
             <div class="featured-gallery-action">
                 <a href="places.html" class="gallery-view-all-link">View All Places →</a>
+            </div>
+        </section>
+
+        <!-- Section: Closing CTA (Fix 6) -->
+        <section class="closing-cta-section">
+            <div class="closing-cta-card">
+                <h2>Ready to explore Calamba?</h2>
+                <p>Search a place and start your trip in seconds.</p>
+                <a href="places.html" class="closing-cta-btn">Start Searching</a>
             </div>
         </section>
 
@@ -806,13 +991,38 @@
                             cards.forEach((card, i) => {
                                 setTimeout(() => {
                                     card.style.opacity = '1';
-                                    card.style.transform = 'translateY(0) scale(1)';
+                                    card.style.transform = '';
                                 }, 80 + i * 130);
                             });
                         }
                     });
                 }, { threshold: 0.15 });
                 stepsObserver.observe(stepsSection);
+            }
+
+            // Steps CTA button: smooth scroll back to hero search bar
+            const stepsCtaBtn = document.getElementById('stepsCtaBtn');
+            if (stepsCtaBtn) {
+                stepsCtaBtn.addEventListener('click', () => {
+                    const searchBar = document.getElementById('searchBar');
+                    const searchInput = document.getElementById('searchInput');
+                    const heroSection = document.querySelector('.hero-section');
+                    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+
+                    if (window.innerWidth <= 768 && mobileSearchBtn) {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        setTimeout(() => {
+                            mobileSearchBtn.click();
+                        }, 400);
+                    } else if (searchBar) {
+                        searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => {
+                            if (searchInput) searchInput.focus();
+                        }, 450);
+                    } else if (heroSection) {
+                        heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
             }
 
             // News cards stagger
@@ -856,7 +1066,7 @@
                 progress = Math.min(Math.max(progress, 0), 1);
 
                 const rotate = 20 * (1 - progress);
-                const scaleRange = isMobile() ? [0.75, 0.95] : [1.05, 1];
+                const scaleRange = isMobile() ? [0.9, 1.05] : [1.05, 1];
                 const scale = scaleRange[0] + (scaleRange[1] - scaleRange[0]) * progress;
                 const translateY = -15 * progress;
 
@@ -874,6 +1084,195 @@
             window.addEventListener('scroll', requestTick, { passive: true });
             window.addEventListener('resize', requestTick);
             updateScrollReveal();
+        })();
+    </script>
+
+    <!-- =============================================
+         FIX 5: GALLERY CLICK HANDLER (data-href, mobile 2-tap)
+    ============================================= -->
+    <script>
+        (function () {
+            const galleryItems = document.querySelectorAll('.gallery-item');
+            const isMobileGallery = () => window.innerWidth <= 768;
+
+            galleryItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    const dest = item.dataset.href;
+                    if (!dest) return;
+
+                    if (!isMobileGallery()) {
+                        // Desktop: navigate immediately on any click
+                        window.location.href = dest;
+                        return;
+                    }
+
+                    // Mobile: first tap → expand (show label), stop propagation so
+                    // the document listener doesn't immediately collapse it
+                    if (item.classList.contains('active-mobile')) {
+                        // Second tap on already-expanded card → navigate
+                        window.location.href = dest;
+                    } else {
+                        // Collapse any other active items, expand this one
+                        galleryItems.forEach(i => i.classList.remove('active-mobile'));
+                        item.classList.add('active-mobile');
+                        e.stopPropagation();
+                    }
+                });
+            });
+
+            // Tap anywhere outside a gallery item collapses all
+            document.addEventListener('click', function () {
+                galleryItems.forEach(i => i.classList.remove('active-mobile'));
+            });
+        })();
+    </script>
+
+    <!-- =============================================
+         FIX 1/2/3: MOBILE NAV ICONS (search overlay, bell, sign-in sync)
+    ============================================= -->
+    <script>
+        (function () {
+            // --- Mobile Search Overlay ---
+            const overlay = document.getElementById('mobileSearchOverlay');
+            const openBtn = document.getElementById('mobileSearchBtn');
+            const closeBtn = document.getElementById('mobileSearchClose');
+            const backdrop = document.getElementById('mobileSearchBackdrop');
+            const mobileInput = document.getElementById('mobileSearchInput');
+            const mobileResults = document.getElementById('mobileSearchResults');
+            const mobileSubmit = document.getElementById('mobileSearchSubmit');
+
+            function openOverlay() {
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+                setTimeout(() => mobileInput && mobileInput.focus(), 120);
+            }
+            function closeOverlay() {
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+                if (mobileInput) mobileInput.value = '';
+                if (mobileResults) { mobileResults.innerHTML = ''; mobileResults.style.display = 'none'; }
+            }
+
+            if (openBtn) openBtn.addEventListener('click', openOverlay);
+            if (closeBtn) closeBtn.addEventListener('click', closeOverlay);
+            if (backdrop) backdrop.addEventListener('click', closeOverlay);
+
+            // Submit: navigate to places.html with query
+            function doMobileSearch() {
+                const q = mobileInput ? mobileInput.value.trim() : '';
+                if (q) window.location.href = 'places.html?q=' + encodeURIComponent(q);
+            }
+            if (mobileSubmit) mobileSubmit.addEventListener('click', doMobileSearch);
+            if (mobileInput) {
+                mobileInput.addEventListener('keydown', e => { if (e.key === 'Enter') doMobileSearch(); });
+
+                // Wire autocomplete: reuse the same place search logic from hero search
+                // by delegating keyup events to the same handler via input events
+                let mobileDebounce = null;
+                mobileInput.addEventListener('input', function () {
+                    clearTimeout(mobileDebounce);
+                    const q = this.value.trim();
+                    if (!q) { mobileResults.innerHTML = ''; mobileResults.style.display = 'none'; return; }
+                    mobileDebounce = setTimeout(async () => {
+                        try {
+                            const res = await fetch('/api/places/search?q=' + encodeURIComponent(q));
+                            const data = await res.json();
+                            const places = Array.isArray(data) ? data : (data.places || data.results || []);
+                            if (!places.length) { mobileResults.style.display = 'none'; return; }
+                            mobileResults.innerHTML = places.slice(0, 6).map(p => `
+                                <div class="search-result-item" data-href="places.html?q=${encodeURIComponent(p.name || p.place_name || '')}">
+                                    <ion-icon name="location-outline"></ion-icon>
+                                    <div>
+                                        <div class="result-name">${p.name || p.place_name || ''}</div>
+                                        <div class="result-addr">${p.address || p.barangay || ''}</div>
+                                    </div>
+                                </div>`).join('');
+                            mobileResults.querySelectorAll('.search-result-item').forEach(el => {
+                                el.addEventListener('click', () => { window.location.href = el.dataset.href; });
+                            });
+                            mobileResults.style.display = 'block';
+                        } catch (_) { mobileResults.style.display = 'none'; }
+                    }, 280);
+                });
+            }
+
+            // Close overlay on Escape key
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay(); });
+
+            // --- Universal Dropdown & Bell Handler (Desktop + Mobile) ---
+            const mobileBell = document.getElementById('mobileBellBtn');
+            const desktopBell = document.getElementById('bellAlertsBtn');
+            const alertsMenu = document.getElementById('alertsDropdownMenu');
+            const mobileBellBadge = document.getElementById('mobileBellBadge');
+            const desktopBadge = document.getElementById('bellBadge');
+            const exploreDropdown = document.getElementById('exploreDropdown');
+            const exploreDropdownBtn = document.getElementById('exploreDropdownBtn');
+
+            function closeAllNavDropdowns() {
+                if (alertsMenu) alertsMenu.classList.remove('open');
+                if (exploreDropdown) exploreDropdown.classList.remove('open');
+                const userPill = document.getElementById('userAvatarPill');
+                const userMenu = document.getElementById('userProfileMenu');
+                if (userPill) userPill.classList.remove('open');
+                if (userMenu) userMenu.classList.remove('open');
+            }
+            window._calzadaCloseAllDropdowns = closeAllNavDropdowns;
+
+            // Bell dropdown click listeners managed globally via event delegation in user-stats.js
+
+            // Explore dropdown toggle for click
+            if (exploreDropdown && exploreDropdownBtn) {
+                exploreDropdownBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = exploreDropdown.classList.contains('open');
+                    closeAllNavDropdowns();
+                    if (!isOpen) exploreDropdown.classList.add('open');
+                });
+            }
+
+            // Click outside closes bell & explore
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.alerts-dropdown-container') && !e.target.closest('#mobileBellBtn')) {
+                    if (alertsMenu) alertsMenu.classList.remove('open');
+                }
+                if (!e.target.closest('#exploreDropdown')) {
+                    if (exploreDropdown) exploreDropdown.classList.remove('open');
+                }
+            });
+
+            // Activity feed clear button
+            const bellClearBtn = document.getElementById('bellClearBtn');
+            if (bellClearBtn) {
+                bellClearBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (typeof window._calzadaClearActivity === 'function') {
+                        window._calzadaClearActivity();
+                    }
+                });
+            }
+
+            // Sync mobile bell badge count with desktop badge
+            if (desktopBadge && mobileBellBadge) {
+                const syncBadge = () => {
+                    const count = desktopBadge.textContent.trim();
+                    const visible = desktopBadge.style.display !== 'none' && count !== '0';
+                    mobileBellBadge.style.display = visible ? 'flex' : 'none';
+                };
+                new MutationObserver(syncBadge).observe(desktopBadge, { childList: true, attributes: true, attributeFilter: ['style'] });
+                syncBadge();
+            }
+
+            // --- Mobile Sign In: hide icon when user is logged in (show avatar instead) ---
+            const mobileSignIn = document.getElementById('mobileSignInBtn');
+            const userAvatarPill = document.getElementById('userAvatarPill');
+            if (mobileSignIn && userAvatarPill) {
+                const checkAuth = () => {
+                    const loggedIn = userAvatarPill.style.display !== 'none';
+                    mobileSignIn.style.display = loggedIn ? 'none' : 'flex';
+                };
+                new MutationObserver(checkAuth).observe(userAvatarPill, { attributes: true, attributeFilter: ['style'] });
+                checkAuth();
+            }
         })();
     </script>
 
@@ -1171,72 +1570,6 @@
         // Initialize modals and UI triggers
         setupProfileUI();
 
-        // Bell Alerts toggle
-        const bellAlertsBtn = document.getElementById('bellAlertsBtn');
-        const alertsDropdownMenu = document.getElementById('alertsDropdownMenu');
-
-        // Explore Dropdown toggle for click/touch devices
-        const exploreDropdown = document.getElementById('exploreDropdown');
-        const exploreDropdownBtn = document.getElementById('exploreDropdownBtn');
-
-        /** Close every navbar dropdown/panel at once */
-        function closeAllDropdowns() {
-            if (alertsDropdownMenu) alertsDropdownMenu.classList.remove('open');
-            if (exploreDropdown) exploreDropdown.classList.remove('open');
-            if (userAvatarPill) userAvatarPill.classList.remove('open');
-            if (userProfileMenu) userProfileMenu.classList.remove('open');
-        }
-
-        // Bell — close others first, then toggle bell
-        if (bellAlertsBtn && alertsDropdownMenu) {
-            bellAlertsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = alertsDropdownMenu.classList.contains('open');
-                closeAllDropdowns();
-                if (!isOpen) {
-                    alertsDropdownMenu.classList.add('open');
-                    // Mark all as read when panel is opened (clears red unread badge)
-                    if (typeof window._calzadaMarkActivityAsRead === 'function') {
-                        window._calzadaMarkActivityAsRead();
-                    }
-                }
-            });
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.alerts-dropdown-container')) {
-                    alertsDropdownMenu.classList.remove('open');
-                }
-            });
-        }
-
-        // Clear button inside activity feed panel
-        const bellClearBtn = document.getElementById('bellClearBtn');
-        if (bellClearBtn) {
-            bellClearBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (typeof window._calzadaClearActivity === 'function') {
-                    window._calzadaClearActivity();
-                }
-            });
-        }
-
-        // Explore — close others first, then toggle explore
-        if (exploreDropdown && exploreDropdownBtn) {
-            exploreDropdownBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = exploreDropdown.classList.contains('open');
-                closeAllDropdowns();
-                if (!isOpen) exploreDropdown.classList.add('open');
-            });
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('#exploreDropdown')) {
-                    exploreDropdown.classList.remove('open');
-                }
-            });
-        }
-
-        // Expose helper so setupProfileUI can also call closeAllDropdowns
-        window._calzadaCloseAllDropdowns = closeAllDropdowns;
-
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -1311,6 +1644,110 @@
                 }
             });
         }
+    </script>
+
+    <!-- Stacking Cards (stacking-card.tsx) & 3D Container Scroll (container-scroll-animation.tsx) Scripts -->
+    <script>
+    (function () {
+        'use strict';
+
+        // ==============================================
+        // 1. STACKING CARDS ANIMATION (stacking-card.tsx)
+        // ==============================================
+        const wrappers = Array.from(document.querySelectorAll('#cardsSection .card-wrapper'));
+        const cards    = wrappers.map(w => w.querySelector('.card'));
+        const imgInners = wrappers.map(w => w.querySelector('.card-image-inner'));
+        const total    = wrappers.length;
+        const section  = document.getElementById('cardsSection');
+
+        wrappers.forEach((w, index) => {
+            w.style.zIndex = index + 1;
+        });
+
+        function updateStackingCards() {
+            if (!section) return;
+            const scrollY = window.scrollY || window.pageYOffset;
+            const vh = window.innerHeight;
+            const sectionRect = section.getBoundingClientRect();
+            const sectionTop = sectionRect.top + scrollY;
+            const sectionHeight = sectionRect.height;
+
+            // Overall progress through cards section (0 to 1)
+            let overallProgress = (scrollY - sectionTop) / (sectionHeight - vh);
+            overallProgress = Math.max(0, Math.min(1, overallProgress));
+
+            cards.forEach((card, i) => {
+                if (!card) return;
+                const wrapper = wrappers[i];
+                const rect = wrapper.getBoundingClientRect();
+
+                // Target scale for this card when fully stacked
+                const targetScale = 1 - (total - i) * 0.05;
+                const startRange = i * 0.20;
+
+                let cardProgress = (overallProgress - startRange) / (1 - startRange);
+                cardProgress = Math.max(0, Math.min(1, cardProgress));
+
+                const scale = 1 - (1 - targetScale) * cardProgress;
+                card.style.transform = `scale(${scale})`;
+
+                // Image scale effect (scale from 2 down to 1 as card enters viewport)
+                const imgInner = imgInners[i];
+                if (imgInner) {
+                    let enterProgress = (vh - rect.top) / vh;
+                    enterProgress = Math.max(0, Math.min(1, enterProgress));
+                    const imgScale = 2 - (1 * enterProgress);
+                    imgInner.style.transform = `scale(${imgScale})`;
+                }
+            });
+        }
+
+        // ==============================================
+        // 2. 3D CONTAINER SCROLL MOCKUP (container-scroll-animation.tsx)
+        // ==============================================
+        const mockupSection = document.getElementById('mockupScrollSection');
+        const csHeader      = document.getElementById('csHeader');
+        const csCard3D      = document.getElementById('csCard3D');
+
+        function update3DMockup() {
+            if (!mockupSection || !csCard3D) return;
+            const vh = window.innerHeight;
+            const rect = mockupSection.getBoundingClientRect();
+
+            // Progress as section scrolls up
+            let progress = (vh - rect.top) / (vh + rect.height * 0.4);
+            progress = Math.max(0, Math.min(1, progress));
+
+            // rotateX: 20deg -> 0deg
+            const rotateX = 20 * (1 - progress);
+            // scale: 1.05 -> 1.0
+            const scale = 1.05 - 0.05 * progress;
+
+            csCard3D.style.transform = `rotateX(${rotateX}deg) scale(${scale})`;
+        }
+
+        // Combine on scroll listener
+        let ticking = false;
+        function onScroll() {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateStackingCards();
+                    update3DMockup();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('load', () => {
+            updateStackingCards();
+            update3DMockup();
+        });
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+
+        console.log('✅ Stacking Cards & 3D Container Scroll initialized!');
+    })();
     </script>
 </body>
 

@@ -198,22 +198,100 @@
 
 <body>
 
-    <!-- Header / Navigation -->
+    <!-- Mobile Search Overlay -->
+    <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
+        <div class="mobile-search-backdrop" id="mobileSearchBackdrop"></div>
+        <div class="mobile-search-card">
+            <div class="mobile-search-topbar">
+                <span class="mobile-search-label">Search a place</span>
+                <button class="mobile-search-close" id="mobileSearchClose" aria-label="Close search">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="mobile-search-input-wrap">
+                <ion-icon name="search-outline" class="mobile-search-prefix"></ion-icon>
+                <input type="text" id="mobileSearchInput" class="mobile-search-input"
+                    placeholder="Where to go?" autocomplete="off" autocorrect="off"
+                    autocapitalize="off" spellcheck="false">
+                <button class="mobile-search-submit" id="mobileSearchSubmit" aria-label="Search">
+                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                </button>
+            </div>
+            <div class="search-results-dropdown" id="mobileSearchResults"></div>
+        </div>
+    </div>
+
+    <!-- Header / Navigation (Seamless Light Theme) -->
     <header class="navbar" id="navbar">
         <div class="nav-container">
+            <!-- [Left Side]: Logo -->
             <div class="nav-left">
                 <a href="index.html" class="brand-logo">
                     <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
                 </a>
             </div>
 
+            <!-- [Center]: About Us | Explore ▼ | FAQs | My Trips -->
             <nav class="nav-center" id="navLinks">
                 <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
-                <a href="places.html" class="nav-link" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
-                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
 
+                <!-- Explore Dropdown -->
+                <div class="nav-dropdown" id="exploreDropdown">
+                    <button class="nav-link nav-dropdown-btn" id="exploreDropdownBtn" type="button" aria-expanded="false">
+                        <span data-i18n="footer.nav.explore">Explore</span>
+                        <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
+                    </button>
+                    <div class="nav-dropdown-menu" id="exploreDropdownMenu">
+                        <a href="places.html?category=establishments&q=mall" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-mall">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                            </span>
+                            <span>Malls</span>
+                        </a>
+                        <a href="places.html?category=coffee&q=food" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-eatery">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                            </span>
+                            <span>Eateries</span>
+                        </a>
+                        <a href="places.html?category=schools" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-school">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                            </span>
+                            <span>Schools</span>
+                        </a>
+                        <a href="places.html?category=establishments&q=hospital" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-hospital">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M12 8v8M8 12h8"></path></svg>
+                            </span>
+                            <span>Hospitals</span>
+                        </a>
+                        <a href="places.html?category=establishments&q=landmark" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-landmark">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7 12 2"></polygon></svg>
+                            </span>
+                            <span>Landmarks</span>
+                        </a>
+                        <a href="places.html?category=establishments&q=terminal" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-terminal">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M8 19v2M16 19v2"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>
+                            </span>
+                            <span>Terminals</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <a href="places.html" class="nav-dropdown-item view-all">
+                            <span class="nav-drop-icon icon-all">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            </span>
+                            <span>View All Places →</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.trips">My Trips</a>
+
+                <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
                     <span class="mobile-lang-label">Language / Wika</span>
                     <div class="lang-dropdown-container mobile-lang-container">
@@ -240,6 +318,7 @@
                 </div>
             </nav>
 
+            <!-- [Right Side]: Language, Activity Feed Bell, User Profile / Sign In -->
             <div class="nav-right">
                 <div class="lang-dropdown-container">
                     <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
@@ -262,15 +341,77 @@
                         </button>
                     </div>
                 </div>
-                <a href="login.html" id="authNavBtn" class="btn-nav-auth">Sign In</a>
+
+                <div class="alerts-dropdown-container">
+                    <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed" title="Your recent activity">
+                        <ion-icon name="notifications-outline"></ion-icon>
+                        <span class="badge" id="bellBadge" style="display:none;">0</span>
+                    </button>
+                </div>
+
+                <div class="user-profile-nav" id="userProfileNav">
+                    <a href="login.html" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <span>Sign In</span>
+                    </a>
+
+                    <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
+                        <div class="user-avatar-wrap">
+                            <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <div class="user-avatar-initials" id="userAvatarInitials">U</div>
+                            <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
+                        </div>
+                        <div class="user-name-wrap">
+                            <span class="user-display-name" id="userDisplayName">Commuter</span>
+                        </div>
+                        <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile-only icon cluster -->
+            <div class="mobile-nav-icons" id="mobileNavIcons">
+                <button class="mobile-nav-icon-btn" id="mobileSearchBtn" aria-label="Search places" type="button">
+                    <ion-icon name="search-outline"></ion-icon>
+                </button>
+                <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
+                    <ion-icon name="notifications-outline"></ion-icon>
+                    <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
+                </button>
+                <a href="login.html" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
+                    <ion-icon name="person-outline"></ion-icon>
+                </a>
+                <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
+                    <div class="mobile-avatar-wrap">
+                        <img src="../assets/default-avatar.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
+                    </div>
+                </button>
             </div>
 
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
-                <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
-                <path class="menu-toggle-line" d="M7 16 27 16" />
-            </svg>
+                    <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                    <path class="menu-toggle-line" d="M7 16 27 16" />
+                </svg>
             </button>
+
+            <!-- Activity Feed Dropdown Menu -->
+            <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
+                <div class="alerts-header">
+                    <div class="alerts-header-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Activity Feed</span>
+                    </div>
+                    <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Clear
+                    </button>
+                </div>
+                <div class="alerts-list" id="activityFeedList">
+                    <!-- Filled dynamically by JS -->
+                </div>
+            </div>
         </div>
     </header>
 

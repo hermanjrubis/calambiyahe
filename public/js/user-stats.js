@@ -20,7 +20,9 @@ import {
     orderBy, 
     serverTimestamp,
     onAuthStateChanged,
-    signOut
+    signOut,
+    updateProfile,
+    sendPasswordResetEmail
 } from "./firebase-init.js";
 
 // Badge criteria definitions with pure SVGs
@@ -407,30 +409,246 @@ export function setupProfileUI() {
     createProfileModals();
 
     const avatarBtn = document.getElementById('userAvatarPill');
+    const authNavBtn = document.getElementById('authNavBtn');
     const dropdownMenu = document.getElementById('userProfileMenu');
 
-    if (avatarBtn && dropdownMenu) {
-        avatarBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isOpen = avatarBtn.classList.contains('open');
-            // Close every other dropdown first (bell, explore, etc.)
-            if (typeof window._calzadaCloseAllDropdowns === 'function') {
-                window._calzadaCloseAllDropdowns();
-            }
-            // Then toggle self
-            if (!isOpen) {
-                avatarBtn.classList.add('open');
-                dropdownMenu.classList.add('open');
-            }
-        });
+    // ─────────────────────────────────────────────────────────────────────────────
+    // 1. GLOBAL FIREBASE AUTH STATE SYNC (Profile Pill vs Sign In Button)
+    // ─────────────────────────────────────────────────────────────────────────────
+    // Instant local storage check to prevent UI flash
+    const wasLoggedIn = localStorage.getItem('calzada_logged_in') === 'true';
+    if (wasLoggedIn && userAvatarPill && authNavBtn) {
+        userAvatarPill.style.display = 'flex';
+        authNavBtn.style.display = 'none';
+        const cachedName = localStorage.getItem('calzada_pref_name') || localStorage.getItem('calzada_user_name');
+        if (cachedName) {
+            const nameEl = document.getElementById('userDisplayName');
+            const initialsEl = document.getElementById('userAvatarInitials');
+            const profNameEl = document.getElementById('profileDisplayName');
+            if (nameEl) nameEl.textContent = cachedName;
+            if (profNameEl) profNameEl.textContent = cachedName;
+            if (initialsEl) initialsEl.textContent = cachedName.charAt(0).toUpperCase();
+        }
+    }
 
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#userProfileNav') && !e.target.closest('.profile-modal-overlay')) {
-                avatarBtn.classList.remove('open');
-                dropdownMenu.classList.remove('open');
+    onAuthStateChanged(auth, async (user) => {
+        const userAvatarInitials = document.getElementById('userAvatarInitials');
+        const userAvatarImg = document.getElementById('userAvatarImg');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userBadgeCounter = document.getElementById('userBadgeCounter');
+        const profileHeaderImg = document.getElementById('profileHeaderImg');
+        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+        const profileDisplayName = document.getElementById('profileDisplayName');
+        const profileEmail = document.getElementById('profileEmail');
+        const statVisitsCount = document.getElementById('statVisitsCount');
+        const statSavesCount = document.getElementById('statSavesCount');
+        const statBadgesCount = document.getElementById('statBadgesCount');
+        const menuSavedCount = document.getElementById('menuSavedCount');
+        const anonProfileBanner = document.getElementById('anonProfileBanner');
+        const explorationStatsSection = document.getElementById('explorationStatsSection');
+
+        // Mobile icon elements
+        const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+        const mobileAvatarBtn = document.getElementById('mobileAvatarBtn');
+        const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
+        const mobileAvatarImg = document.getElementById('mobileAvatarImg');
+
+        if (user) {
+            localStorage.setItem('calzada_logged_in', 'true');
+            if (user.email) localStorage.setItem('calzada_user_email', user.email);
+            if (authNavBtn) authNavBtn.style.display = 'none';
+            if (avatarBtn) avatarBtn.style.display = 'flex';
+            if (mobileSignInBtn) mobileSignInBtn.style.display = 'none';
+            if (mobileAvatarBtn) mobileAvatarBtn.style.display = 'flex';
+
+            const customName = localStorage.getItem('calzada_pref_name');
+            const name = customName || user.displayName || (user.email ? user.email.split('@')[0] : 'Commuter');
+            const email = user.email || (user.isAnonymous ? 'guest@calzada.ph' : 'herman@gmail.com');
+            const initial = name.charAt(0).toUpperCase();
+            localStorage.setItem('calzada_user_name', name);
+
+            // 1. Navbar avatar pill
+            if (userDisplayName) userDisplayName.textContent = name;
+            const customPhoto = localStorage.getItem('calzada_pref_photo') || user.photoURL;
+            if (customPhoto && userAvatarImg) {
+                userAvatarImg.src = customPhoto;
+                userAvatarImg.style.display = 'block';
+                if (userAvatarInitials) userAvatarInitials.style.display = 'none';
+            } else if (userAvatarInitials) {
+                userAvatarInitials.textContent = initial;
+                userAvatarInitials.style.display = 'block';
+                if (userAvatarImg) userAvatarImg.style.display = 'none';
+            }
+
+            // 1b. Mobile avatar button
+            if (customPhoto && mobileAvatarImg) {
+                mobileAvatarImg.src = customPhoto;
+                mobileAvatarImg.style.display = 'block';
+                if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'none';
+            } else if (mobileAvatarInitials) {
+                mobileAvatarInitials.textContent = initial;
+                mobileAvatarInitials.style.display = 'block';
+                if (mobileAvatarImg) mobileAvatarImg.style.display = 'none';
+            }
+
+            // 2. Dropdown Header
+            if (profileDisplayName) profileDisplayName.textContent = name;
+            if (profileEmail) profileEmail.textContent = email;
+            if (profileHeaderInitials) profileHeaderInitials.textContent = initial;
+            if (customPhoto && profileHeaderImg) {
+                profileHeaderImg.src = customPhoto;
+                profileHeaderImg.style.display = 'block';
+                if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
+            }
+
+            // 3. Settings modal previews & inputs
+            renderSettingsModal();
+
+            // 4. Fetch dynamic stats (Visits, Saves, Badges)
+            try {
+                const stats = await fetchUserStats(user);
+                if (statVisitsCount) statVisitsCount.textContent = stats.visits;
+                if (statSavesCount) statSavesCount.textContent = stats.saves;
+                if (statBadgesCount) statBadgesCount.textContent = stats.badges;
+                if (menuSavedCount) menuSavedCount.textContent = `(${stats.saves})`;
+                if (userBadgeCounter) {
+                    userBadgeCounter.textContent = stats.badges;
+                    userBadgeCounter.style.display = stats.badges > 0 ? 'flex' : 'none';
+                }
+            } catch (err) {
+                console.warn("Could not fetch user stats:", err);
+            }
+
+            // Anonymous/Guest Mode vs Full Account
+            if (user.isAnonymous) {
+                if (anonProfileBanner) anonProfileBanner.style.display = 'flex';
+                if (explorationStatsSection) explorationStatsSection.style.opacity = '0.7';
+            } else {
+                if (anonProfileBanner) anonProfileBanner.style.display = 'none';
+                if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
+            }
+        } else {
+            localStorage.removeItem('calzada_logged_in');
+            localStorage.removeItem('calzada_user_email');
+            localStorage.removeItem('calzada_user_name');
+            if (authNavBtn) authNavBtn.style.display = 'inline-flex';
+            if (avatarBtn) avatarBtn.style.display = 'none';
+            if (mobileSignInBtn) mobileSignInBtn.style.display = 'flex';
+            if (mobileAvatarBtn) mobileAvatarBtn.style.display = 'none';
+            if (dropdownMenu) dropdownMenu.classList.remove('open');
+        }
+    });
+
+    // Handle Log Out Button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                localStorage.removeItem('calzada_logged_in');
+                localStorage.removeItem('calzada_user_email');
+                localStorage.removeItem('calzada_user_name');
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error("Logout Error:", error);
             }
         });
     }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // 2. DROPDOWN TOGGLES & EVENT DELEGATION (Desktop + Mobile)
+    // ─────────────────────────────────────────────────────────────────────────────
+    window._calzadaRenderActivityFeed = renderActivityFeed;
+
+    document.addEventListener('click', (e) => {
+        // A. Bell Icon Click (Desktop or Mobile)
+        const bellBtn = e.target.closest('#bellAlertsBtn') || e.target.closest('#mobileBellBtn');
+        if (bellBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const alertsMenu = document.getElementById('alertsDropdownMenu');
+            if (!alertsMenu) return;
+            const isOpen = alertsMenu.classList.contains('open');
+
+            // Close other dropdowns
+            const userMenu = document.getElementById('userProfileMenu');
+            const pill = document.getElementById('userAvatarPill');
+            const exploreMenu = document.getElementById('exploreDropdown');
+            if (userMenu) userMenu.classList.remove('open');
+            if (pill) pill.classList.remove('open');
+            if (exploreMenu) exploreMenu.classList.remove('open');
+
+            if (!isOpen) {
+                alertsMenu.classList.add('open');
+                renderActivityFeed();
+                if (typeof window._calzadaMarkActivityAsRead === 'function') {
+                    window._calzadaMarkActivityAsRead();
+                }
+            } else {
+                alertsMenu.classList.remove('open');
+            }
+            return;
+        }
+
+        // B. Profile Avatar Click (Desktop or Mobile)
+        const avatarClickBtn = e.target.closest('#userAvatarPill') || e.target.closest('#mobileAvatarBtn');
+        if (avatarClickBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const userMenu = document.getElementById('userProfileMenu');
+            if (!userMenu) return;
+            const isOpen = userMenu.classList.contains('open');
+
+            // Close other dropdowns
+            const alertsMenu = document.getElementById('alertsDropdownMenu');
+            const exploreMenu = document.getElementById('exploreDropdown');
+            if (alertsMenu) alertsMenu.classList.remove('open');
+            if (exploreMenu) exploreMenu.classList.remove('open');
+
+            if (!isOpen) {
+                userMenu.classList.add('open');
+                const pill = document.getElementById('userAvatarPill');
+                if (pill) pill.classList.add('open');
+            } else {
+                userMenu.classList.remove('open');
+                const pill = document.getElementById('userAvatarPill');
+                if (pill) pill.classList.remove('open');
+            }
+            return;
+        }
+
+        // C. Bell Clear Button Click
+        const clearBtn = e.target.closest('#bellClearBtn');
+        if (clearBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof window._calzadaClearActivity === 'function') {
+                window._calzadaClearActivity();
+            }
+            return;
+        }
+
+        // D. Click outside closes profile & bell dropdowns
+        if (!e.target.closest('#alertsDropdownMenu') &&
+            !e.target.closest('#userProfileMenu') &&
+            !e.target.closest('#userProfileNav') &&
+            !e.target.closest('#mobileAvatarBtn') &&
+            !e.target.closest('#mobileBellBtn') &&
+            !e.target.closest('#bellAlertsBtn') &&
+            !e.target.closest('.profile-modal-overlay') &&
+            !e.target.closest('.profile-modal-container')) {
+            const alertsMenu = document.getElementById('alertsDropdownMenu');
+            const userMenu = document.getElementById('userProfileMenu');
+            const pill = document.getElementById('userAvatarPill');
+            if (alertsMenu) alertsMenu.classList.remove('open');
+            if (userMenu) userMenu.classList.remove('open');
+            if (pill) pill.classList.remove('open');
+        }
+    });
+
+    // Ensure activity feed is rendered initially
+    renderActivityFeed();
 
     // Modal Triggers
     document.addEventListener('click', (e) => {
@@ -467,6 +685,23 @@ export function setupProfileUI() {
             closeDropdown();
             renderSettingsModal();
             openModal('modalAccountSettings');
+            return;
+        }
+
+        // Change Photo button triggers hidden file input
+        const changePhotoBtn = e.target.closest('#btnChangePhotoText');
+        if (changePhotoBtn) {
+            e.preventDefault();
+            const fileInput = document.getElementById('avatarFileInput');
+            if (fileInput) fileInput.click();
+            return;
+        }
+
+        // Change Password button
+        const changePasswordBtn = e.target.closest('#btnChangePassword');
+        if (changePasswordBtn) {
+            e.preventDefault();
+            handlePasswordReset();
             return;
         }
 
@@ -700,22 +935,25 @@ function escapeHtml(str = '') {
     );
 }
 
+let pendingAvatarDataUrl = null;
+
 export function renderSettingsModal() {
     const user = auth.currentUser || activeUser;
     const nameEl = document.getElementById('settingsDisplayName');
     const emailEl = document.getElementById('settingsEmail');
-    const avatarEl = document.getElementById('settingsAvatarLarge');
+    const avatarLargeEl = document.getElementById('settingsAvatarLarge');
+    const avatarImgEl = document.getElementById('settingsAvatarImg');
     const nameInput = document.getElementById('prefDisplayNameInput');
-    const homeInput = document.getElementById('prefHomeInput');
-    const workInput = document.getElementById('prefWorkInput');
     const feedbackEl = document.getElementById('settingsFeedbackBanner');
+    const fileInput = document.getElementById('avatarFileInput');
 
     if (feedbackEl) feedbackEl.style.display = 'none';
+    if (fileInput) fileInput.value = '';
+    pendingAvatarDataUrl = null;
 
-    // Retrieve saved custom display name, home, work
+    // Retrieve saved custom display name and photo
     const savedName = localStorage.getItem('calzada_pref_name');
-    const savedHome = localStorage.getItem('calzada_pref_home');
-    const savedWork = localStorage.getItem('calzada_pref_work');
+    const savedPhoto = localStorage.getItem('calzada_pref_photo') || user?.photoURL;
 
     const displayName = savedName || user?.displayName || (user?.email ? user.email.split('@')[0] : 'Commuter');
     const email = user?.email || (user?.isAnonymous ? 'guest@calzada.ph' : 'hermanjohnph@gmail.com');
@@ -723,29 +961,88 @@ export function renderSettingsModal() {
 
     if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = email;
-    if (avatarEl) {
-        if (user?.photoURL) {
-            avatarEl.innerHTML = `<img src="${user.photoURL}" alt="${escapeHtml(displayName)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-        } else {
-            avatarEl.textContent = initial;
-        }
+
+    if (savedPhoto && avatarImgEl && avatarLargeEl) {
+        avatarImgEl.src = savedPhoto;
+        avatarImgEl.style.display = 'block';
+        avatarLargeEl.style.display = 'none';
+    } else if (avatarLargeEl) {
+        avatarLargeEl.textContent = initial;
+        avatarLargeEl.style.display = 'flex';
+        if (avatarImgEl) avatarImgEl.style.display = 'none';
     }
 
     if (nameInput) nameInput.value = displayName;
-    if (homeInput) homeInput.value = savedHome || '';
-    if (workInput) workInput.value = savedWork || '';
+
+    // Wire file input listener once
+    if (fileInput && !fileInput._wired) {
+        fileInput._wired = true;
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                if (file.size > 3 * 1024 * 1024) {
+                    alert('Please select an image smaller than 3MB.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    pendingAvatarDataUrl = event.target.result;
+                    if (avatarImgEl && avatarLargeEl) {
+                        avatarImgEl.src = pendingAvatarDataUrl;
+                        avatarImgEl.style.display = 'block';
+                        avatarLargeEl.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+}
+
+async function handlePasswordReset() {
+    const user = auth.currentUser || activeUser;
+    const email = user?.email || localStorage.getItem('calzada_user_email');
+    const feedbackEl = document.getElementById('settingsFeedbackBanner');
+    const feedbackText = document.getElementById('settingsFeedbackText');
+
+    if (!email || user?.isAnonymous) {
+        if (feedbackEl && feedbackText) {
+            feedbackEl.style.display = 'flex';
+            feedbackEl.style.background = '#FEF2F2';
+            feedbackEl.style.borderColor = '#FECACA';
+            feedbackEl.style.color = '#DC2626';
+            feedbackText.textContent = 'Please sign in with a registered email account to reset password.';
+        }
+        return;
+    }
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        if (feedbackEl && feedbackText) {
+            feedbackEl.style.display = 'flex';
+            feedbackEl.style.background = '#F0FDF4';
+            feedbackEl.style.borderColor = '#BBF7D0';
+            feedbackEl.style.color = '#16A34A';
+            feedbackText.textContent = `Password reset link sent to ${email}! Check your inbox.`;
+        }
+    } catch (err) {
+        console.warn('Password reset error:', err);
+        if (feedbackEl && feedbackText) {
+            feedbackEl.style.display = 'flex';
+            feedbackEl.style.background = '#FEF2F2';
+            feedbackEl.style.borderColor = '#FECACA';
+            feedbackEl.style.color = '#DC2626';
+            feedbackText.textContent = err.message || 'Could not send reset link. Please try again.';
+        }
+    }
 }
 
 function saveUserSettings() {
     const nameInput = document.getElementById('prefDisplayNameInput');
-    const homeInput = document.getElementById('prefHomeInput');
-    const workInput = document.getElementById('prefWorkInput');
     const feedbackEl = document.getElementById('settingsFeedbackBanner');
     const feedbackText = document.getElementById('settingsFeedbackText');
 
     const newName = nameInput ? nameInput.value.trim() : '';
-    const newHome = homeInput ? homeInput.value.trim() : '';
-    const newWork = workInput ? workInput.value.trim() : '';
 
     if (newName) {
         localStorage.setItem('calzada_pref_name', newName);
@@ -757,32 +1054,39 @@ function saveUserSettings() {
         if (settingsDisplayName) settingsDisplayName.textContent = newName;
     }
 
-    if (newHome !== undefined) {
-        if (newHome) {
-            localStorage.setItem('calzada_pref_home', newHome);
-        } else {
-            localStorage.removeItem('calzada_pref_home');
+    if (pendingAvatarDataUrl) {
+        localStorage.setItem('calzada_pref_photo', pendingAvatarDataUrl);
+        // Update all avatars across the interface
+        const userAvatarImg = document.getElementById('userAvatarImg');
+        const userAvatarInitials = document.getElementById('userAvatarInitials');
+        const profileHeaderImg = document.getElementById('profileHeaderImg');
+        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+
+        if (userAvatarImg) {
+            userAvatarImg.src = pendingAvatarDataUrl;
+            userAvatarImg.style.display = 'block';
         }
-        const homeIcon = document.getElementById('userSavedHomeIcon');
-        if (homeIcon) homeIcon.style.display = newHome ? 'inline-flex' : 'none';
+        if (userAvatarInitials) userAvatarInitials.style.display = 'none';
+        if (profileHeaderImg) {
+            profileHeaderImg.src = pendingAvatarDataUrl;
+            profileHeaderImg.style.display = 'block';
+        }
+        if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
     }
 
-    if (newWork !== undefined) {
-        if (newWork) {
-            localStorage.setItem('calzada_pref_work', newWork);
-        } else {
-            localStorage.removeItem('calzada_pref_work');
-        }
-    }
-
-    // Try persisting to Firestore if logged in
+    // Try persisting to Firebase Auth profile and Firestore if logged in
     const user = auth.currentUser || activeUser;
     if (user && !user.isAnonymous) {
         try {
+            const updates = {};
+            if (newName) updates.displayName = newName;
+            if (pendingAvatarDataUrl) updates.photoURL = pendingAvatarDataUrl;
+            if (Object.keys(updates).length > 0) {
+                updateProfile(user, updates).catch(() => {});
+            }
             setDoc(doc(db, `users/${user.uid}/preferences`, 'commute'), {
                 displayName: newName || user.displayName || '',
-                preferredHome: newHome || '',
-                preferredWork: newWork || '',
+                photoURL: pendingAvatarDataUrl || user.photoURL || '',
                 updatedAt: serverTimestamp()
             }, { merge: true }).catch(() => {});
         } catch (e) {}
@@ -898,15 +1202,23 @@ function createProfileModals() {
                     <!-- Success Banner -->
                     <div class="settings-feedback-banner" id="settingsFeedbackBanner">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <span id="settingsFeedbackText">Preferences saved successfully!</span>
+                        <span id="settingsFeedbackText">Settings saved successfully!</span>
                     </div>
 
-                    <!-- User Identity Preview -->
+                    <!-- User Identity & Photo Control -->
                     <div class="settings-profile-preview">
-                        <div class="settings-avatar-large" id="settingsAvatarLarge">U</div>
+                        <div class="settings-avatar-wrapper">
+                            <div class="settings-avatar-large" id="settingsAvatarLarge">U</div>
+                            <img src="" alt="Profile Photo" class="settings-avatar-img" id="settingsAvatarImg" style="display:none;">
+                            <label for="avatarFileInput" class="settings-avatar-edit-badge" title="Change Photo">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            </label>
+                            <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+                        </div>
                         <div class="settings-user-info-text">
                             <h4 id="settingsDisplayName">User</h4>
                             <p id="settingsEmail">user@example.com</p>
+                            <button type="button" class="btn-change-photo-text" id="btnChangePhotoText">Change Photo</button>
                         </div>
                     </div>
 
@@ -916,16 +1228,21 @@ function createProfileModals() {
                         <input type="text" id="prefDisplayNameInput" placeholder="Your name or nickname" class="settings-input" />
                     </div>
 
-                    <!-- Preferred Home Field -->
-                    <div class="settings-form-group">
-                        <label for="prefHomeInput">Preferred Home Location in Calamba</label>
-                        <input type="text" id="prefHomeInput" placeholder="e.g. Brgy. Bucal, Calamba City" class="settings-input" />
-                    </div>
-
-                    <!-- Preferred Work / School Field -->
-                    <div class="settings-form-group">
-                        <label for="prefWorkInput">Preferred Work / School Location</label>
-                        <input type="text" id="prefWorkInput" placeholder="e.g. SM City Calamba / Canlubang" class="settings-input" />
+                    <!-- Security & Password Card -->
+                    <div class="settings-card-group">
+                        <div class="settings-card-label">Security & Password</div>
+                        <div class="settings-security-card">
+                            <div class="security-card-left">
+                                <div class="security-card-icon">
+                                    <svg width="18" height="18" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                                </div>
+                                <div>
+                                    <div class="security-card-title">Change Password</div>
+                                    <div class="security-card-desc">Send a secure password reset link to your email</div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-change-password" id="btnChangePassword">Send Reset Link</button>
+                        </div>
                     </div>
 
                     <!-- Modal Actions -->
