@@ -187,28 +187,6 @@
                             </span>
                             <span>Schools</span>
                         </a>
-                        <a href="places.html?category=establishments&q=hospital" class="nav-dropdown-item">
-                            <span class="nav-drop-icon icon-hospital">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="18" height="18" rx="4"></rect>
-                                    <path d="M12 8v8M8 12h8"></path>
-                                </svg>
-                            </span>
-                            <span>Hospitals</span>
-                        </a>
-                        <a href="places.html?category=establishments&q=landmark" class="nav-dropdown-item">
-                            <span class="nav-drop-icon icon-landmark">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="3" y1="22" x2="21" y2="22"></line>
-                                    <line x1="6" y1="18" x2="6" y2="11"></line>
-                                    <line x1="10" y1="18" x2="10" y2="11"></line>
-                                    <line x1="14" y1="18" x2="14" y2="11"></line>
-                                    <line x1="18" y1="18" x2="18" y2="11"></line>
-                                    <polygon points="12 2 20 7 4 7 12 2"></polygon>
-                                </svg>
-                            </span>
-                            <span>Landmarks</span>
-                        </a>
                         <a href="places.html?category=establishments&q=terminal" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-terminal">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -237,7 +215,8 @@
                 </div>
 
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.trips">My Trips</a>
+                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.maps">Maps</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
@@ -487,33 +466,9 @@
                     Your local guide to spots worth the trip.
                 </p>
 
-                <!-- Upgraded Hybrid Search + Voice + GPS Bar (hidden at mobile — use navbar search icon) -->
-                <div class="search-container hero-search-desktop">
-                    <div class="search-bar hybrid-search-bar" id="searchBar">
-                        <ion-icon name="search-outline" class="search-prefix-icon"></ion-icon>
-                        <input type="text"
-                            placeholder="Where to go?" class="search-input" id="searchInput" autocomplete="off"
-                            autocorrect="off" autocapitalize="off" spellcheck="false">
-                        
-                        <div class="search-actions-group">
-                            <!-- Voice Search Button (Hands-free) -->
-                            <button class="search-action-btn voice-btn" id="heroVoiceBtn" type="button" aria-label="Voice Search" title="Voice Search (Hands-free)">
-                                <ion-icon name="mic-outline" id="heroMicIcon"></ion-icon>
-                                <span class="voice-pulse-ring" id="heroVoicePulse"></span>
-                            </button>
-
-                            <!-- GPS Near Me Button (Finds places within 2km) -->
-                            <button class="search-action-btn near-me-btn" id="heroNearMeBtn" type="button" aria-label="Near Me" title="Find places near me (within 2km)">
-                                <ion-icon name="navigate-outline"></ion-icon>
-                            </button>
-
-                            <!-- Search Submit Button -->
-                            <button class="search-button" aria-label="Search" id="searchBtn" type="button">
-                                <ion-icon name="arrow-forward-outline"></ion-icon>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="search-results-dropdown" id="searchResults"></div>
+                <!-- Get Started CTA Button -->
+                <div class="hero-cta-wrap">
+                    <a href="places.html" class="hero-get-started-btn">Get Started</a>
                 </div>
             </div>
 
@@ -530,22 +485,19 @@
     <div class="scrollable-content">
         <!-- Section: About Calzada -->
         <section class="about-card reveal" id="about-section">
-            <div class="about-split">
-                <div class="about-split-text">
-                    <div class="section-header reveal-delay-1">
-                        <h2 data-i18n="about.heading">More than just directions.</h2>
-                        <div class="header-line"></div>
-                    </div>
+            <div class="about-centered-container">
+                <div class="about-header-centered reveal-delay-1">
+                    <span class="about-eyebrow">ABOUT CALZADA</span>
+                    <h2 data-i18n="about.heading">More than just directions.</h2>
                     <p data-i18n="about.body" class="reveal-delay-2">
                         Calzada helps you discover places worth visiting around Calamba, then get you there. Search a spot, see how to reach it, and pick from a jeepney or tricycle — with fares and directions in one place.
                     </p>
-                    <a href="about.html" class="btn-learn-more reveal-delay-3" data-i18n="about.learn_more">Learn More →</a>
                 </div>
 
-                <!-- Right Column: 2x2 Feature Grid -->
-                <div class="about-feature-grid reveal-delay-2">
+                <!-- 4-Column Feature Grid Row -->
+                <div class="about-feature-row reveal-delay-2">
                     <div class="about-feature-card">
-                        <div class="feature-card-icon">
+                        <div class="feature-card-badge">
                             <i class="ti ti-map-pin"></i>
                         </div>
                         <h3 class="feature-card-label" data-i18n="about.card1.title">Find places</h3>
@@ -553,7 +505,7 @@
                     </div>
 
                     <div class="about-feature-card">
-                        <div class="feature-card-icon">
+                        <div class="feature-card-badge">
                             <i class="ti ti-coin"></i>
                         </div>
                         <h3 class="feature-card-label" data-i18n="about.card2.title">Live fares</h3>
@@ -561,7 +513,7 @@
                     </div>
 
                     <div class="about-feature-card">
-                        <div class="feature-card-icon">
+                        <div class="feature-card-badge">
                             <i class="ti ti-steering-wheel"></i>
                         </div>
                         <h3 class="feature-card-label" data-i18n="about.card3.title">Jeep or tricycle</h3>
@@ -569,12 +521,16 @@
                     </div>
 
                     <div class="about-feature-card">
-                        <div class="feature-card-icon">
+                        <div class="feature-card-badge">
                             <i class="ti ti-map-pin-search"></i>
                         </div>
                         <h3 class="feature-card-label" data-i18n="about.card4.title">Nearest stop</h3>
                         <p class="feature-card-desc" data-i18n="about.card4.desc">Find the closest pickup point to you</p>
                     </div>
+                </div>
+
+                <div class="about-cta-center reveal-delay-3">
+                    <a href="about.html" class="btn-learn-more" data-i18n="about.learn_more">Learn More →</a>
                 </div>
             </div>
         </section>
@@ -616,124 +572,153 @@
             </div>
         </section>
 
-        <!-- Section: What Calzada Offers (Stacking Cards - React Component Port) -->
-        <section class="sc-section" id="cardsSection">
-
-            <!-- Hero header on dark background -->
-            <div class="sc-hero">
-                <div class="sc-hero-grid"></div>
-                <div class="sc-hero-content">
-                    <span class="sc-pill">✨ FEATURES</span>
-                    <h2 class="sc-hero-title">Everything you need<br>to explore Calamba</h2>
-                    <p class="sc-hero-sub">Five powerful features, one seamless experience.</p>
+        <!-- Section: Features List (Alternating Zigzag Layout) -->
+        <section class="features-zigzag-section" id="featuresSection">
+            <div class="features-zigzag-container">
+                <!-- Section Header -->
+                <div class="features-header">
+                    <span class="features-pill">CALZADA FEATURES</span>
+                    <h2 class="features-header-title">Everything you need to explore Calamba</h2>
+                    <p class="features-header-subtitle">Five powerful features, one seamless experience.</p>
                 </div>
-            </div>
 
-            <!-- Card 1: Ask Routie (#5196fd) -->
-            <div class="card-wrapper" data-index="0" style="--i: 0;">
-                <div class="card" style="background-color:#5196fd;">
-                    <h2 class="card-title">Ask Routie – Your AI Assistant</h2>
-                    <div class="card-body">
-                        <div class="card-text">
-                            <p class="card-description">Originally hailing from Austria, Routie understands natural language. Get personalized place recommendations and commute tips just by asking!</p>
-                            <a href="planner.html" class="card-link">
-                                See more
-                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
-                            </a>
+                <!-- Feature 1: Ask Routie (Text Left / Visual Right) -->
+                <div class="feature-row">
+                    <div class="feature-text-block">
+                        <span class="feature-tag">AI ASSISTANT</span>
+                        <h3 class="feature-title">Ask Routie – Your AI Assistant</h3>
+                        <p class="feature-desc">
+                            Originally hailing from Austria, Routie understands natural language. Get personalized place recommendations, intelligent transit suggestions, and local commute tips tailored to your destination just by asking in plain Tagalog or English.
+                        </p>
+                        <a href="planner.html" class="feature-link-btn">See more →</a>
+                    </div>
+                    <div class="feature-visual-block routie-visual">
+                        <div class="routie-mascot-card">
+                            <div class="routie-halo"></div>
+                            <video class="routie-demo-video" autoplay muted loop playsinline poster="../assets/routie-demo-poster.png">
+                                <source src="../assets/routie-demo.webm" type="video/webm">
+                                <source src="../assets/routie-demo.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
                         </div>
-                        <div class="card-image">
-                            <div class="card-image-inner">
-                                <img src="https://images.unsplash.com/photo-1605106702842-01a887a31122?q=80&w=700&auto=format&fit=crop" alt="Ask Routie" loading="lazy">
+                    </div>
+                </div>
+
+                <!-- Feature 2: Smart Route Planning (Visual Left / Text Right via reverse) -->
+                <div class="feature-row reverse">
+                    <div class="feature-text-block">
+                        <span class="feature-tag">NAVIGATION</span>
+                        <h3 class="feature-title">Smart Route Planning</h3>
+                        <p class="feature-desc">
+                            Compare jeepney and tricycle routes side-by-side. See live fare estimates, expected travel times, transfer points, and step-by-step directions all in one unified, clear view so you can choose the optimal trip every time.
+                        </p>
+                        <a href="planner.html" class="feature-link-btn">See more →</a>
+                    </div>
+                    <div class="feature-visual-block route-visual">
+                        <div class="geo-pattern-card route-card">
+                            <div class="card-mockup-badge">
+                                <ion-icon name="navigate-outline"></ion-icon>
+                                <span>Multi-Modal Routing</span>
+                            </div>
+                            <div class="mockup-route-preview">
+                                <div class="route-step-item">
+                                    <div class="step-badge jeep">JEEP</div>
+                                    <div class="step-info">
+                                        <span class="step-name">Calamba Crossing → Crossing Bayan</span>
+                                        <span class="step-fare">₱13.00 • 12 mins</span>
+                                    </div>
+                                </div>
+                                <div class="route-step-divider"></div>
+                                <div class="route-step-item">
+                                    <div class="step-badge trike">TRIKE</div>
+                                    <div class="step-info">
+                                        <span class="step-name">Transfer → Target Destination</span>
+                                        <span class="step-fare">₱25.00 • 5 mins</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 3: See It Before You Go — 360° Street View (Text Left / Visual Right) -->
+                <div class="feature-row">
+                    <div class="feature-text-block">
+                        <span class="feature-tag">STREET VIEW</span>
+                        <h3 class="feature-title">See It Before You Go — 360° Street View</h3>
+                        <p class="feature-desc">
+                            Get a full 360-degree look at any destination before you head out. Inspect the entrance, preview landmark surroundings, verify parking spots, and locate exact pickup points across Calamba directly on place pages.
+                        </p>
+                        <a href="places.html" class="feature-link-btn">Try it now →</a>
+                    </div>
+                    <div class="feature-visual-block streetview-visual">
+                        <div class="navy-streetview-card">
+                            <div class="streetview-deco-circle"></div>
+                            <div class="streetview-icon-badge">
+                                <ion-icon name="scan-outline"></ion-icon>
+                            </div>
+                            <div class="streetview-preview-text">360° Interactive Panoramic Preview</div>
+                            <a href="places.html" class="streetview-cta-btn">Try it now →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 4: Save & Track Your Favorites (Visual Left / Text Right via reverse) -->
+                <div class="feature-row reverse">
+                    <div class="feature-text-block">
+                        <span class="feature-tag">EXPLORATION</span>
+                        <h3 class="feature-title">Save &amp; Track Your Favorites</h3>
+                        <p class="feature-desc">
+                            Bookmark places you want to visit and build your personal collection of favorite spots. Keep a complete history of places you have visited around Calamba, track your exploration statistics, and unlock achievements as you discover new destinations.
+                        </p>
+                        <a href="places.html" class="feature-link-btn">See more →</a>
+                    </div>
+                    <div class="feature-visual-block save-visual">
+                        <div class="geo-pattern-card save-card">
+                            <div class="saved-preview-header">
+                                <ion-icon name="bookmark-outline"></ion-icon>
+                                <span>Saved Places &amp; Achievements</span>
+                            </div>
+                            <div class="saved-preview-list">
+                                <div class="saved-place-chip">
+                                    <ion-icon name="bookmark-outline"></ion-icon>
+                                    <span>SM City Calamba</span>
+                                </div>
+                                <div class="saved-place-chip">
+                                    <ion-icon name="bookmark-outline"></ion-icon>
+                                    <span>Rizal Shrine</span>
+                                </div>
+                                <div class="saved-achievement-chip">
+                                    <ion-icon name="ribbon-outline"></ion-icon>
+                                    <span>Calamba Explorer Badge</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 5: Discover Places to Visit (Text Left / Visual Right) -->
+                <div class="feature-row">
+                    <div class="feature-text-block">
+                        <span class="feature-tag">DISCOVERY</span>
+                        <h3 class="feature-title">Discover Places to Visit</h3>
+                        <p class="feature-desc">
+                            Browse Malls, Eateries, Schools, and Terminals across Calamba. Filter spots by category, read place profiles, view operational hours, and find new local favorites recommended by fellow commuters.
+                        </p>
+                        <a href="places.html" class="feature-link-btn">See more →</a>
+                    </div>
+                    <div class="feature-visual-block discover-visual">
+                        <div class="geo-pattern-card discover-card">
+                            <div class="discover-category-grid">
+                                <div class="cat-badge-item"><ion-icon name="storefront-outline"></ion-icon><span>Malls</span></div>
+                                <div class="cat-badge-item"><ion-icon name="restaurant-outline"></ion-icon><span>Eateries</span></div>
+                                <div class="cat-badge-item"><ion-icon name="school-outline"></ion-icon><span>Schools</span></div>
+                                <div class="cat-badge-item"><ion-icon name="bus-outline"></ion-icon><span>Terminals</span></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Card 2: Smart Route Planning (#8f89ff) -->
-            <div class="card-wrapper" data-index="1" style="--i: 1;">
-                <div class="card" style="background-color:#8f89ff;">
-                    <h2 class="card-title">Smart Route Planning</h2>
-                    <div class="card-body">
-                        <div class="card-text">
-                            <p class="card-description">Compare jeepney and tricycle routes side-by-side. See fare estimates, travel time, and step-by-step directions — all in one place.</p>
-                            <a href="planner.html" class="card-link">
-                                See more
-                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
-                            </a>
-                        </div>
-                        <div class="card-image">
-                            <div class="card-image-inner">
-                                <img src="https://images.unsplash.com/photo-1605106250963-ffda6d2a4b32?w=700&auto=format&fit=crop&q=60" alt="Route Planning" loading="lazy">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3: Save & Track Your Favorites (#13006c) -->
-            <div class="card-wrapper" data-index="2" style="--i: 2;">
-                <div class="card" style="background-color:#13006c;">
-                    <h2 class="card-title">Save &amp; Track Your Favorites</h2>
-                    <div class="card-body">
-                        <div class="card-text">
-                            <p class="card-description">Bookmark places you want to visit. Keep a history of where you've been. Unlock achievements as you explore more of Calamba!</p>
-                            <a href="places.html" class="card-link">
-                                See more
-                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
-                            </a>
-                        </div>
-                        <div class="card-image">
-                            <div class="card-image-inner">
-                                <img src="https://images.unsplash.com/photo-1605106901227-991bd663255c?w=700&auto=format&fit=crop" alt="Save & Track" loading="lazy">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 4: Discover Places to Visit (#ed649e) -->
-            <div class="card-wrapper" data-index="3" style="--i: 3;">
-                <div class="card" style="background-color:#ed649e;">
-                    <h2 class="card-title">Discover Places to Visit</h2>
-                    <div class="card-body">
-                        <div class="card-text">
-                            <p class="card-description">Browse Malls, Eateries, Schools, Landmarks, and Hospitals across Calamba. Find new spots recommended by fellow explorers.</p>
-                            <a href="places.html" class="card-link">
-                                See more
-                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
-                            </a>
-                        </div>
-                        <div class="card-image">
-                            <div class="card-image-inner">
-                                <img src="https://images.unsplash.com/photo-1605106715994-18d3fecffb98?w=700&auto=format&fit=crop&q=60" alt="Discover Places" loading="lazy">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 5: Real-Time Commuter Alerts (#fd521a) -->
-            <div class="card-wrapper" data-index="4" style="--i: 4;">
-                <div class="card" style="background-color:#fd521a;">
-                    <h2 class="card-title">Real-Time Commuter Alerts</h2>
-                    <div class="card-body">
-                        <div class="card-text">
-                            <p class="card-description">Stay updated on fare changes and terminal availability. Get notified before you head out so you're never caught off guard.</p>
-                            <a href="planner.html" class="card-link">
-                                See more
-                                <svg viewBox="0 0 22 12" fill="none" width="22" height="12"><path d="M21.5303 6.53033C21.8232 6.23744 21.8232 5.76256 21.5303 5.46967L16.7574 0.696699C16.4645 0.403806 15.9896 0.403806 15.6967 0.696699C15.4038 0.989592 15.4038 1.46447 15.6967 1.75736L19.9393 6L15.6967 10.2426C15.4038 10.5355 15.4038 11.0104 15.6967 11.3033C15.9896 11.5962 16.4645 11.5962 16.7574 11.3033L21.5303 6.53033ZM0 6.75L21 6.75V5.25L0 5.25L0 6.75Z" fill="currentColor"/></svg>
-                            </a>
-                        </div>
-                        <div class="card-image">
-                            <div class="card-image-inner">
-                                <img src="https://images.unsplash.com/photo-1506792006437-256b665541e2?w=700&auto=format&fit=crop" alt="Commuter Alerts" loading="lazy">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
         </section>
 
         <!-- Section: 3D Tablet Scroll Showcase (Aceternity UI ContainerScroll Component Port) -->
@@ -1220,26 +1205,6 @@
 
             // Bell dropdown click listeners managed globally via event delegation in user-stats.js
 
-            // Explore dropdown toggle for click
-            if (exploreDropdown && exploreDropdownBtn) {
-                exploreDropdownBtn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const isOpen = exploreDropdown.classList.contains('open');
-                    closeAllNavDropdowns();
-                    if (!isOpen) exploreDropdown.classList.add('open');
-                });
-            }
-
-            // Click outside closes bell & explore
-            document.addEventListener('click', (e) => {
-                if (!e.target.closest('.alerts-dropdown-container') && !e.target.closest('#mobileBellBtn')) {
-                    if (alertsMenu) alertsMenu.classList.remove('open');
-                }
-                if (!e.target.closest('#exploreDropdown')) {
-                    if (exploreDropdown) exploreDropdown.classList.remove('open');
-                }
-            });
-
             // Activity feed clear button
             const bellClearBtn = document.getElementById('bellClearBtn');
             if (bellClearBtn) {
@@ -1654,56 +1619,8 @@
         // ==============================================
         // 1. STACKING CARDS ANIMATION (stacking-card.tsx)
         // ==============================================
-        const wrappers = Array.from(document.querySelectorAll('#cardsSection .card-wrapper'));
-        const cards    = wrappers.map(w => w.querySelector('.card'));
-        const imgInners = wrappers.map(w => w.querySelector('.card-image-inner'));
-        const total    = wrappers.length;
-        const section  = document.getElementById('cardsSection');
-
-        wrappers.forEach((w, index) => {
-            w.style.zIndex = index + 1;
-        });
-
-        function updateStackingCards() {
-            if (!section) return;
-            const scrollY = window.scrollY || window.pageYOffset;
-            const vh = window.innerHeight;
-            const sectionRect = section.getBoundingClientRect();
-            const sectionTop = sectionRect.top + scrollY;
-            const sectionHeight = sectionRect.height;
-
-            // Overall progress through cards section (0 to 1)
-            let overallProgress = (scrollY - sectionTop) / (sectionHeight - vh);
-            overallProgress = Math.max(0, Math.min(1, overallProgress));
-
-            cards.forEach((card, i) => {
-                if (!card) return;
-                const wrapper = wrappers[i];
-                const rect = wrapper.getBoundingClientRect();
-
-                // Target scale for this card when fully stacked
-                const targetScale = 1 - (total - i) * 0.05;
-                const startRange = i * 0.20;
-
-                let cardProgress = (overallProgress - startRange) / (1 - startRange);
-                cardProgress = Math.max(0, Math.min(1, cardProgress));
-
-                const scale = 1 - (1 - targetScale) * cardProgress;
-                card.style.transform = `scale(${scale})`;
-
-                // Image scale effect (scale from 2 down to 1 as card enters viewport)
-                const imgInner = imgInners[i];
-                if (imgInner) {
-                    let enterProgress = (vh - rect.top) / vh;
-                    enterProgress = Math.max(0, Math.min(1, enterProgress));
-                    const imgScale = 2 - (1 * enterProgress);
-                    imgInner.style.transform = `scale(${imgScale})`;
-                }
-            });
-        }
-
         // ==============================================
-        // 2. 3D CONTAINER SCROLL MOCKUP (container-scroll-animation.tsx)
+        // 3D CONTAINER SCROLL MOCKUP (container-scroll-animation.tsx)
         // ==============================================
         const mockupSection = document.getElementById('mockupScrollSection');
         const csHeader      = document.getElementById('csHeader');
@@ -1731,7 +1648,6 @@
         function onScroll() {
             if (!ticking) {
                 window.requestAnimationFrame(() => {
-                    updateStackingCards();
                     update3DMockup();
                     ticking = false;
                 });
@@ -1740,7 +1656,6 @@
         }
 
         window.addEventListener('load', () => {
-            updateStackingCards();
             update3DMockup();
         });
         window.addEventListener('scroll', onScroll, { passive: true });

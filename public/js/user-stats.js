@@ -60,7 +60,7 @@ export const BADGE_DEFINITIONS = [
     {
         id: "explorer",
         name: "Calamba Explorer",
-        description: "Visited at least 1 place across Malls, Eateries, Schools & Landmarks",
+        description: "Visited at least 1 place across Malls, Eateries, Schools & Terminals",
         reqCategory: "All Categories",
         reqCount: 4,
         icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>`,
@@ -69,8 +69,8 @@ export const BADGE_DEFINITIONS = [
             const hasMall = visits.some(v => (v.category || '').toLowerCase().includes('mall'));
             const hasEatery = visits.some(v => (v.category || '').toLowerCase().includes('eatery') || (v.category || '').toLowerCase().includes('food') || (v.category || '').toLowerCase().includes('coffee'));
             const hasSchool = visits.some(v => (v.category || '').toLowerCase().includes('school') || (v.category || '').toLowerCase().includes('college') || (v.category || '').toLowerCase().includes('university'));
-            const hasLandmark = visits.some(v => (v.category || '').toLowerCase().includes('landmark') || (v.category || '').toLowerCase().includes('heritage') || (v.placeName || '').toLowerCase().includes('rizal'));
-            return hasMall && hasEatery && hasSchool && hasLandmark;
+            const hasTerminal = visits.some(v => (v.category || '').toLowerCase().includes('terminal') || (v.category || '').toLowerCase().includes('transport') || (v.placeName || '').toLowerCase().includes('crossing'));
+            return hasMall && hasEatery && hasSchool && hasTerminal;
         }
     }
 ];
@@ -1128,9 +1128,8 @@ function createProfileModals() {
                         <select id="quickVisitCat" class="modal-quick-select">
                             <option value="Mall">Mall</option>
                             <option value="Eatery">Eatery</option>
-                            <option value="Landmark">Landmark</option>
                             <option value="School">School</option>
-                            <option value="Hospital">Hospital</option>
+                            <option value="Terminal">Terminal</option>
                         </select>
                         <button type="button" class="modal-quick-btn" id="btnLogNewVisit">+ Log Visit</button>
                     </div>
@@ -1154,13 +1153,12 @@ function createProfileModals() {
                 <div class="profile-modal-body">
                     <!-- Quick Bookmark Bar -->
                     <div class="modal-quick-bar">
-                        <input type="text" id="quickSaveInput" placeholder="Bookmark a spot (e.g. Rizal Shrine)..." class="modal-quick-input" />
+                        <input type="text" id="quickSaveInput" placeholder="Bookmark a spot..." class="modal-quick-input" />
                         <select id="quickSaveCat" class="modal-quick-select">
-                            <option value="Landmark">Landmark</option>
                             <option value="Mall">Mall</option>
                             <option value="Eatery">Eatery</option>
                             <option value="School">School</option>
-                            <option value="Hospital">Hospital</option>
+                            <option value="Terminal">Terminal</option>
                         </select>
                         <button type="button" class="modal-quick-btn save" id="btnLogNewSave">+ Save Spot</button>
                     </div>

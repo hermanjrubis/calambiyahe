@@ -76,18 +76,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'lcba', name: 'Laguna College of Business and Arts', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.2128, lng: 121.1633, address: 'Brgy. Uno, Calamba City' },
         { id: 'calamba-institute', name: 'Calamba Institute', category: 'schools', categoryLabel: 'School', icon: 'school-outline', color: '#059669', lat: 14.2148, lng: 121.1655, address: 'Chipeco Ave, Poblacion, Calamba City' },
 
-        // Hospitals
-        { id: 'cmc', name: 'Calamba Medical Center (CMC)', category: 'hospitals', categoryLabel: 'Hospital', icon: 'medkit-outline', color: '#DC2626', lat: 14.2068, lng: 121.1539, address: 'Crossing, Brgy. Uno, Calamba City' },
-        { id: 'pamana-hospital', name: 'Pamana Golden Care Hospital', category: 'hospitals', categoryLabel: 'Hospital', icon: 'medkit-outline', color: '#DC2626', lat: 14.1985, lng: 121.1578, address: 'Brgy. Halang, Calamba City' },
-        { id: 'calamba-doctors', name: "Calamba Doctors' Hospital", category: 'hospitals', categoryLabel: 'Hospital', icon: 'medkit-outline', color: '#DC2626', lat: 14.2155, lng: 121.1402, address: 'Km. 49 National Hwy, Parian, Calamba City' },
-        { id: 'st-john-medical', name: 'St. John the Baptist Medical Center', category: 'hospitals', categoryLabel: 'Medical Center', icon: 'medkit-outline', color: '#DC2626', lat: 14.2105, lng: 121.1618, address: 'Brgy. Parian, Calamba City' },
-
-        // Landmarks
-        { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'landmarks', categoryLabel: 'Heritage Site', icon: 'landmark-outline', color: '#7C3AED', lat: 14.2142, lng: 121.1668, address: 'Brgy. 5 (Poblacion), Calamba City' },
-        { id: 'city-hall', name: 'Calamba City Hall', category: 'landmarks', categoryLabel: 'Government', icon: 'business-outline', color: '#7C3AED', lat: 14.2122, lng: 121.1482, address: 'Brgy. Real, Calamba City' },
-        { id: 'calamba-claypot', name: 'Calamba Giant Claypot (Banga)', category: 'landmarks', categoryLabel: 'Monument', icon: 'trophy-outline', color: '#7C3AED', lat: 14.2139, lng: 121.1664, address: 'Calamba City Plaza, Poblacion' },
-        { id: 'st-john-church', name: 'St. John the Baptist Parish Church', category: 'landmarks', categoryLabel: 'Church', icon: 'trail-sign-outline', color: '#7C3AED', lat: 14.2140, lng: 121.1671, address: 'Brgy. 5 Poblacion, Calamba City' },
-
         // Terminals
         { id: 'central-terminal', name: 'Calamba Central Terminal', category: 'terminals', categoryLabel: 'Transport Hub', icon: 'bus-outline', color: '#0284C7', lat: 14.2045, lng: 121.1550, address: 'Crossing / Turbina Access, Calamba City' },
         { id: 'crossing-terminal', name: 'Calamba Crossing Jeepney Terminal', category: 'terminals', categoryLabel: 'Jeep Terminal', icon: 'bus-outline', color: '#0284C7', lat: 14.2072, lng: 121.1548, address: 'Crossing, Calamba City' },

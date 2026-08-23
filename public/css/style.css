@@ -329,7 +329,6 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
 
 .nav-link:hover::after,
 .nav-link.active::after,
-.nav-dropdown:hover .nav-link::after,
 .nav-dropdown.open .nav-link::after {
     transform: scaleX(1);
 }
@@ -856,9 +855,39 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
     align-items: center;
     justify-content: space-between;
     gap: 3rem;
-    max-width: 1200px;
+    max-width: 1280px;
     width: 100%;
     margin: 0 auto;
+    padding: 0 64px;
+    box-sizing: border-box;
+}
+
+.hero-cta-wrap {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+}
+
+.hero-get-started-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #378ADD;
+    color: #ffffff;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    padding: 14px 36px;
+    border-radius: 999px;
+    text-decoration: none;
+    box-shadow: 0 4px 16px rgba(55, 138, 221, 0.28);
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hero-get-started-btn:hover {
+    background-color: #2b77c5;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(55, 138, 221, 0.35);
 }
 
 .hero-left-col {
@@ -2481,10 +2510,11 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
     display: flex;
     flex-direction: column;
     gap: 80px;
-    padding: 40px 20px 120px;
-    max-width: 900px;
+    padding: 40px 64px 120px;
+    max-width: 1280px;
     margin: 0 auto;
     width: 100%;
+    box-sizing: border-box;
     background: transparent;
     border: none;
     box-shadow: none;
@@ -3913,9 +3943,9 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
 
 /* Inner content stays centered */
 .steps-section .steps-content {
-    max-width: 1100px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 64px;
     position: relative;
     z-index: 2;
 }
@@ -4651,8 +4681,8 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
 
 .about-float-logo {
     float: right;
-    width: 160px;
-    margin: 6px 0 15px 25px;
+    width: 260px;
+    margin: 6px 0 20px 35px;
     object-fit: contain;
 }
 
@@ -4671,7 +4701,7 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
         float: none;
         display: block;
         margin: 0 auto 20px;
-        width: 140px;
+        width: 180px;
     }
     .about-float-mockup {
         float: none;
@@ -4683,77 +4713,127 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
 }
 
 /* =============================================
-   ABOUT SECTION – 2X2 FEATURE GRID LAYOUT
+/* =============================================
+   ABOUT SECTION – CENTERED HEADER & STATIC 4-COLUMN ROW
    ============================================= */
 .about-card {
     padding: 40px 0;
 }
 
-.about-split {
+.about-centered-container {
+    width: 100%;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
-    gap: 48px;
 }
 
-.about-split-text {
-    flex: 1 1 50%;
-    max-width: 50%;
-    min-width: 0;
+.about-eyebrow {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #378ADD;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
 }
 
-.about-feature-grid {
-    flex: 1 1 50%;
-    max-width: 50%;
+.about-header-centered {
+    max-width: 600px;
+    text-align: center;
+    margin: 0 auto 36px auto;
+}
+
+.about-header-centered h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #042C53;
+    margin-bottom: 12px;
+    line-height: 1.2;
+}
+
+.about-header-centered p {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    color: #5F5E5A;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.about-feature-row {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 36px;
 }
 
 .about-feature-card {
     background: #ffffff;
     border: 0.5px solid #E6EEF7;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 16px rgba(4, 44, 83, 0.04);
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    border-radius: 14px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    box-shadow: none;
+    /* Fully static — no hover effects */
 }
 
-.about-feature-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(55, 138, 221, 0.12);
-    border-color: #B5D4F4;
-}
-
-.feature-card-icon {
-    font-size: 22px;
-    color: #378ADD;
-    margin-bottom: 10px;
+.feature-card-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #E6F1FB;
     display: flex;
     align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: #378ADD;
+    font-size: 22px;
+    flex-shrink: 0;
 }
 
-.feature-card-icon ion-icon,
-.feature-card-icon i {
+.feature-card-badge i,
+.feature-card-badge ion-icon {
     font-size: 22px;
     color: #378ADD;
 }
 
 .feature-card-label {
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 700;
     color: #042C53;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     line-height: 1.3;
 }
 
 .feature-card-desc {
     font-family: 'Outfit', sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     color: #5F5E5A;
     line-height: 1.4;
     margin: 0;
+}
+
+.about-cta-center {
+    text-align: center;
+    width: 100%;
+}
+
+@media (max-width: 900px) {
+    .about-feature-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 540px) {
+    .about-feature-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 768px) {
@@ -7260,11 +7340,6 @@ input#searchInput,
     color: #16A34A;
 }
 
-.hospital-icon {
-    background: #FEF2F2;
-    color: #DC2626;
-}
-
 .cat-pill-label {
     letter-spacing: -0.2px;
 }
@@ -7288,7 +7363,6 @@ input#searchInput,
     transition: transform 0.25s ease;
 }
 
-.nav-dropdown:hover .nav-dropdown-chevron,
 .nav-dropdown.open .nav-dropdown-chevron {
     transform: rotate(180deg);
 }
@@ -7310,7 +7384,6 @@ input#searchInput,
     z-index: 250;
 }
 
-.nav-dropdown:hover .nav-dropdown-menu,
 .nav-dropdown.open .nav-dropdown-menu {
     display: flex;
     transform: translateX(-50%) translateY(0);
@@ -7359,8 +7432,6 @@ input#searchInput,
 .icon-mall { background: #EFF6FF; color: #2563EB; }
 .icon-eatery { background: #FFF7ED; color: #EA580C; }
 .icon-school { background: #F0FDF4; color: #16A34A; }
-.icon-hospital { background: #FEF2F2; color: #DC2626; }
-.icon-landmark { background: #F5F3FF; color: #7C3AED; }
 .icon-terminal { background: #F0F9FF; color: #0284C7; }
 .icon-all { background: #EBF3FB; color: #378ADD; }
 
@@ -8199,179 +8270,477 @@ input#searchInput,
 }
 
 /* ==============================================
-   STACKING CARDS SECTION (React stacking-card.tsx Port)
+   FEATURES ZIGZAG SECTION (Alternating Row Layout)
    ============================================== */
 
-.sc-section {
-    background-color: transparent;
-    padding: 0;
+.features-zigzag-section {
     position: relative;
-}
-
-.sc-hero {
-    height: 60vh;
-    width: 100%;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    width: 100vw;
     background-color: transparent;
-    display: grid;
-    place-content: center;
-    text-align: center;
-    position: relative;
+    padding: 100px 0;
     overflow: hidden;
+    box-sizing: border-box;
+    border: none;
 }
 
-.sc-hero-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-    background-size: 54px 54px;
-    -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);
-    mask-image: radial-gradient(ellipse 60% 50% at 50% 0%, #000 70%, transparent 100%);
+.features-zigzag-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 64px;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
-.sc-hero-content {
-    position: relative;
-    z-index: 10;
-    padding: 0 20px;
+.features-header {
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto 88px;
+    background: transparent !important;
 }
 
-.sc-pill {
+.features-pill {
     display: inline-block;
     padding: 6px 18px;
     border-radius: 999px;
-    background: rgba(28, 110, 242, 0.1);
+    background: rgba(28, 110, 242, 0.08);
     color: #1C6EF2;
-    border: 1px solid rgba(28, 110, 242, 0.25);
+    border: 1px solid rgba(28, 110, 242, 0.2);
     font-family: 'Outfit', sans-serif;
     font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     margin-bottom: 16px;
+    text-transform: uppercase;
 }
 
-.sc-hero-title {
+.features-header-title {
     font-family: 'Outfit', sans-serif;
-    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
     font-weight: 800;
-    color: #0f172a;
+    color: #042C53;
     letter-spacing: -0.02em;
     line-height: 1.2;
     margin: 0 0 16px;
 }
 
-.sc-hero-sub {
+.features-header-subtitle {
     font-family: 'Inter', sans-serif;
-    font-size: clamp(1rem, 1.5vw, 1.4rem);
+    font-size: clamp(1rem, 1.3vw, 1.25rem);
     color: #64748b;
     margin: 0;
+    line-height: 1.6;
 }
 
-/* Card wrapper: sticky top-0, h-screen */
-.card-wrapper {
-    height: 100vh;
+/* Feature Rows & Alternating Zigzag Layout */
+.feature-row {
     display: flex;
     align-items: center;
-    justify-content: center;
-    position: sticky;
-    top: 0;
-    z-index: 1;
+    justify-content: space-between;
+    gap: 72px;
+    margin-bottom: 96px;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
-/* Card element matching stacking-card.tsx — enlarged size (88% width, 520px height) */
-.card {
-    width: 88%;
-    max-width: 1100px;
-    height: 520px;
-    border-radius: 20px;
-    padding: 44px 56px;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    top: -10%;
-    transform-origin: top center;
-    will-change: transform;
-    box-shadow: 0 25px 65px rgba(0, 0, 0, 0.28);
-    transition: transform 0.1s ease-out;
+.feature-row:last-child {
+    margin-bottom: 0;
 }
 
-.card-title {
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(1.6rem, 2.8vw, 2.2rem);
-    font-weight: 700;
-    color: #ffffff;
-    text-align: center;
-    margin: 0 0 20px 0;
-    letter-spacing: -0.01em;
+.feature-row.reverse {
+    flex-direction: row-reverse;
 }
 
-.card-body {
-    display: flex;
-    height: 100%;
-    gap: 48px;
-    margin-top: 10px;
-    min-height: 0;
-}
-
-.card-text {
-    width: 44%;
-    position: relative;
-    top: 4%;
+/* Text Block: Text-heavy focus */
+.feature-text-block {
+    flex: 1 1 50%;
+    max-width: 520px;
     display: flex;
     flex-direction: column;
     gap: 16px;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
 }
 
-.card-description {
+.feature-tag {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #378ADD;
+    text-transform: uppercase;
+}
+
+.feature-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(1.8rem, 2.5vw, 2.3rem);
+    font-weight: 800;
+    color: #042C53;
+    line-height: 1.25;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+.feature-desc {
     font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    color: rgba(255, 255, 255, 0.93);
-    line-height: 1.65;
+    font-size: 1.05rem;
+    color: #475569;
+    line-height: 1.7;
     margin: 0;
 }
 
-.card-link {
+.feature-link-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding-top: 8px;
-    color: #ffffff;
+    color: #1C6EF2;
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.2s ease;
+    width: fit-content;
+    margin-top: 8px;
+}
+
+.feature-link-btn:hover {
+    color: #0A2E4D;
+    transform: translateX(4px);
+}
+
+/* Visual Block Containers (Outer Wrapper - Clean transparent container frame with no background, padding, border, or box-shadow) */
+.feature-visual-block {
+    flex: 1 1 50%;
+    height: 380px;
+    position: relative;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Inner Visual Cards - Direct visible blue/dark rounded cards flush against section background */
+.routie-mascot-card,
+.geo-pattern-card,
+.navy-streetview-card {
+    width: 100%;
+    height: 100%;
+    border-radius: 24px;
+    box-shadow: 0 16px 40px rgba(4, 44, 83, 0.08);
+}
+
+/* Visual 1: Ask Routie Mascot Card */
+.routie-mascot-card {
+    background: linear-gradient(135deg, #378ADD 0%, #185FA5 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.routie-halo {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    filter: blur(20px);
+}
+
+.routie-demo-video {
+    width: 88%;
+    max-width: 480px;
+    height: 85%;
+    max-height: 320px;
+    object-fit: contain;
+    border-radius: 16px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Visual 2, 4, 5: Geo Pattern Cards */
+.geo-pattern-card {
+    width: 100%;
+    height: 100%;
+    padding: 32px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.route-card {
+    background: linear-gradient(135deg, #2A6BB0 0%, #0A2E4D 100%);
+    color: #ffffff;
+}
+
+.card-mockup-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
     font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
-    transition: opacity 0.2s;
+    margin-bottom: 20px;
     width: fit-content;
 }
 
-.card-link:hover {
-    opacity: 0.75;
+.mockup-route-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
 }
 
-.card-image {
-    position: relative;
-    width: 54%;
-    height: 100%;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+.route-step-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
-.card-image-inner {
+.step-badge {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+}
+
+.step-badge.jeep {
+    background: #378ADD;
+    color: #ffffff;
+}
+
+.step-badge.trike {
+    background: #38bdf8;
+    color: #0f172a;
+}
+
+.step-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.step-name {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.step-fare {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.route-step-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Visual 3: Navy 360 Street View Card */
+.navy-streetview-card {
     width: 100%;
     height: 100%;
+    background: #0A2E4D;
+    padding: 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     position: relative;
     overflow: hidden;
-    will-change: transform;
 }
 
-.card-image-inner img {
+.streetview-deco-circle {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    top: -50px;
+    right: -50px;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: rgba(55, 138, 221, 0.2);
+    pointer-events: none;
+}
+
+.streetview-icon-badge {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #ffffff;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+}
+
+.streetview-preview-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 2;
+}
+
+.streetview-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    color: #0A2E4D;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 999px;
+    text-decoration: none;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.streetview-cta-btn:hover {
+    background: #f8fafc;
+    transform: translateY(-2px);
+}
+
+/* Visual 4: Save Card */
+.save-card {
+    background: linear-gradient(135deg, #185FA5 0%, #124373 100%);
+    color: #ffffff;
+}
+
+.saved-preview-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.saved-preview-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.saved-place-chip, .saved-achievement-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.saved-place-chip ion-icon,
+.saved-achievement-chip ion-icon {
+    font-size: 1.15rem;
+    color: #38bdf8;
+}
+
+/* Visual 5: Discover Card */
+.discover-card {
+    background: linear-gradient(135deg, #124373 0%, #0e365c 100%);
+    color: #ffffff;
+}
+
+.discover-category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.cat-badge-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.cat-badge-item ion-icon {
+    font-size: 1.3rem;
+    color: #38bdf8;
+}
+
+/* Desktop Alternating Zigzag Layout */
+@media (min-width: 901px) {
+    .feature-row.reverse {
+        flex-direction: row-reverse !important;
+    }
+}
+
+/* Responsive Zigzag Layout (< 900px) */
+@media (max-width: 900px) {
+    .features-zigzag-section {
+        padding: 60px 0;
+    }
+
+    .features-zigzag-container {
+        padding: 0 24px;
+    }
+
+    .features-header {
+        margin-bottom: 48px;
+    }
+
+    .feature-row, .feature-row.reverse {
+        flex-direction: column !important;
+        gap: 32px;
+        margin-bottom: 64px;
+    }
+
+    .feature-text-block {
+        max-width: 100%;
+    }
+
+    .feature-visual-block {
+        width: 100%;
+        height: 300px;
+    }
 }
 
 /* ==============================================
@@ -8426,8 +8795,10 @@ input#searchInput,
 /* Sleek Tablet / Device Frame with Zero Shadow */
 .cs-card-3d {
     max-width: 1020px;
+    width: 100%;
+    aspect-ratio: 1784 / 985;
+    height: auto;
     margin: 0 auto;
-    height: 520px;
     border: 1px solid rgba(15, 23, 42, 0.12);
     padding: 12px;
     background: #0f172a;
@@ -8438,6 +8809,7 @@ input#searchInput,
     transform-origin: top center;
     will-change: transform;
     transform: rotateX(20deg) scale(1.05);
+    box-sizing: border-box;
 }
 
 .cs-screen-inner {
@@ -8451,8 +8823,7 @@ input#searchInput,
 .cs-screen-inner img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    object-position: top center;
+    object-fit: contain;
     display: block;
 }
 
