@@ -193,9 +193,6 @@
 
             <!-- Mobile-only icon cluster -->
             <div class="mobile-nav-icons" id="mobileNavIcons">
-                <button class="mobile-nav-icon-btn" id="mobileSearchBtn" aria-label="Search places" type="button">
-                    <ion-icon name="search-outline"></ion-icon>
-                </button>
                 <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
                     <ion-icon name="notifications-outline"></ion-icon>
                     <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
@@ -220,149 +217,168 @@
         </div>
     </header>
 
-    <!-- Reference Hero Section -->
-    <section class="ref-hero">
-        <h1 data-i18n="places.hero_title">Saan ka sasakay, saan ka bababa?</h1>
-        <p data-i18n="places.hero_subtitle">From sakayan to galaan — your smart guide to Calamba's must-visit places</p>
-
-        <!-- Local Search Bar -->
-        <div class="search-container" style="margin: 35px auto 0; animation: none; width: 100%; max-width: 600px;">
-            <div class="search-bar" id="searchBar">
-                <ion-icon name="location-outline" class="search-prefix-icon"></ion-icon>
-                <input type="text" data-i18n="places.search_placeholder" data-i18n-attr="placeholder"
-                    placeholder="Maghanap ng lugar..." class="search-input" id="placeSearchInput">
-                <button class="search-button" aria-label="Search" id="placeSearchBtn">
-                    <ion-icon name="search-outline"></ion-icon>
-                </button>
-            </div>
-        </div>
-    </section>
-
     <main class="places-page">
-        <div class="category-nav-wrapper">
-            <button class="category-scroll-btn left" id="catScrollLeft" aria-label="Scroll Left">
-                <ion-icon name="chevron-back-outline"></ion-icon>
-            </button>
-            <div class="category-tabs" id="categoryTabs">
-                <button class="category-tab active" data-category="all"><ion-icon name="grid-outline"></ion-icon> <span
-                        data-i18n="places.cat_all">All Places</span></button>
-                <button class="category-tab" data-category="establishments"><ion-icon
-                        name="business-outline"></ion-icon> <span
-                        data-i18n="places.cat_est">Establishments</span></button>
-                <button class="category-tab" data-category="coffee"><ion-icon name="cafe-outline"></ion-icon> <span
-                        data-i18n="places.cat_coffee">Coffee Shops</span></button>
-                <button class="category-tab" data-category="schools"><ion-icon name="school-outline"></ion-icon> <span
-                        data-i18n="places.cat_schools">Schools</span></button>
+        <div class="places-layout">
+            <!-- Persistent Left Sidebar Category Navigation (7 Categories) -->
+            <aside class="places-sidebar">
+                <h3 class="sidebar-title">Categories</h3>
+                <nav class="sidebar-category-list" id="categoryTabs">
+                    <button class="category-tab active" data-category="all">
+                        <span data-i18n="places.cat_all">All Places</span>
+                    </button>
+                    <button class="category-tab" data-category="malls">
+                        <span>Malls</span>
+                    </button>
+                    <button class="category-tab" data-category="eateries">
+                        <span>Eateries</span>
+                    </button>
+                    <button class="category-tab" data-category="schools">
+                        <span data-i18n="places.cat_schools">Schools</span>
+                    </button>
+                    <button class="category-tab" data-category="terminals">
+                        <span>Terminals</span>
+                    </button>
+                    <button class="category-tab" data-category="coffee">
+                        <span data-i18n="places.cat_coffee">Coffee Shops</span>
+                    </button>
+                    <button class="category-tab" data-category="establishments">
+                        <span data-i18n="places.cat_est">Establishments</span>
+                    </button>
+                </nav>
+            </aside>
+
+            <!-- Main Content Area: Content Header + 4-Column Card Grid -->
+            <div class="places-content">
+                <!-- Page Content Header with Search Input -->
+                <div class="places-content-header">
+                    <div class="content-search-wrap">
+                        <ion-icon name="search-outline" class="content-search-icon"></ion-icon>
+                        <input type="text" id="placeSearchInput" class="content-search-input" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Search for a place..." autocomplete="off">
+                    </div>
+                </div>
+
+                <!-- No Results State -->
+                <div class="no-results" id="noResults">
+                    <ion-icon name="search-outline"></ion-icon>
+                    <p>No places found in this category.</p>
+                </div>
+
+                <div class="places-grid">
+                    <!-- Place Card 1 -->
+                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Calamba City Hall')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>Calamba City Hall</h3>
+                            <p class="card-subtitle">Public Office • Real St, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 2 -->
+                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Rizal Shrine')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>Bahay ni Rizal</h3>
+                            <p class="card-subtitle">Historical Shrine • Mercado St, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 3 -->
+                    <div class="ref-card" data-category="coffee eateries" onclick="openPlacePanel('Moonbucks')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>Moonbucks</h3>
+                            <p class="card-subtitle">Café & Bakery • Crossing, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 4 -->
+                    <div class="ref-card" data-category="malls establishments" onclick="openPlacePanel('SM City Calamba')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>SM City Calamba</h3>
+                            <p class="card-subtitle">Shopping Mall • National Rd, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 5 -->
+                    <div class="ref-card" data-category="schools" onclick="openPlacePanel('City College of Calamba')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>City College of Calamba</h3>
+                            <p class="card-subtitle">Local College • Old National Rd, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 6 -->
+                    <div class="ref-card" data-category="schools" onclick="openPlacePanel('STI College Calamba')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>STI College Calamba</h3>
+                            <p class="card-subtitle">Higher Education • National Hwy, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 7 -->
+                    <div class="ref-card" data-category="coffee eateries" onclick="openPlacePanel('Sample Coffee House')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>Sample Coffee House</h3>
+                            <p class="card-subtitle">Artisan Coffee • Bucal, Calamba</p>
+                        </div>
+                    </div>
+
+                    <!-- Place Card 8 -->
+                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Calamba Town Plaza')" style="cursor:pointer;">
+                        <div class="ref-img-container">
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>Calamba Town Plaza</h3>
+                            <p class="card-subtitle">Public Park • Plaza, Calamba</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button class="category-scroll-btn right" id="catScrollRight" aria-label="Scroll Right">
-                <ion-icon name="chevron-forward-outline"></ion-icon>
-            </button>
         </div>
-
-        <!-- No Results State -->
-        <div class="no-results" id="noResults">
-            <ion-icon name="search-outline"></ion-icon>
-            <p>No places found in this category.</p>
-        </div>
-
-        <!-- Section: CALAMBA / NEARBY PLACES -->
-        <h2 class="section-label" data-i18n="places.calamba_label">CALAMBA</h2>
-        <div class="places-grid">
-            <!-- Place Card 1 -->
-            <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Calamba City Hall')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://lh3.googleusercontent.com/pw/AP1GczM1DDQ8qkvS-5Yc_dvrpnI5HAwRSuj5zofc7zFnSeoqvrNcP1lBLZRsQv-GuutdVIb96tE83_WyDHGHxYviOh7JlUiUZNWnKJRuEOC4cyb6If3r669AS8ZN9iJB6fo_itMSwMNjVPSPmAvzo7Fe6Xw5zw=w2734-h2050-s-no-gm?authuser=0"
-                        alt="Calamba City Hall">
-                </div>
-                <h3>Calamba City Hall</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Establishment</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Calamba City Hall'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Place Card 2 -->
-            <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Rizal Shrine')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_EEk4rCx1aWAAIKLD-D9dGvcre4MjbxKdFQ&s"
-                        alt="Bahay ni Rizal">
-                </div>
-                <h3>Bahay ni Rizal</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Historic</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Rizal Shrine'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Place Card: Moonbucks -->
-            <div class="ref-card" data-category="coffee" onclick="openPlacePanel('Moonbucks')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ5SF7ZvAMmCMYah6b2qjK4ziOySSiP8JzzCg&s"
-                        alt="Moonbucks">
-                </div>
-                <h3>Moonbucks</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Coffee Shop</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=Moonbucks'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Place Card 4 -->
-            <div class="ref-card" data-category="establishments" onclick="openPlacePanel('SM City Calamba')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://evendo-location-media.s3.amazonaws.com/ShoppingImages/6267eb28-343f-4cc5-a08f-8f6022fcba2b"
-                        alt="SM City Calamba">
-                </div>
-                <h3>SM City Calamba</h3>
-                <div class="card-meta">
-                    <span class="card-tag">Mall</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=SM City Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Place Card 6: School -->
-            <div class="ref-card" data-category="schools" onclick="openPlacePanel('City College of Calamba')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://static.where-e.com/Philippines/City-College-Of-Calamba_ba2dfbc35e249893367f22e7076f4a27.jpg"
-                        alt="CCC">
-                </div>
-                <h3>City College of Calamba</h3>
-                <div class="card-meta">
-                    <span class="card-tag">School</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=City College of Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <!-- Place Card 7: STI College -->
-            <div class="ref-card" data-category="schools" onclick="openPlacePanel('STI College Calamba')" style="cursor:pointer;">
-                <div class="ref-img-container">
-                    <img src="https://www.sti.edu/cms/images/school/all/calamba.jpg"
-                        alt="STI College Calamba">
-                </div>
-                <h3>STI College Calamba</h3>
-                <div class="card-meta">
-                    <span class="card-tag">School</span>
-                </div>
-                <div class="card-footer">
-                    <button class="plan-btn" style="border:none;background:transparent;" onclick="event.stopPropagation(); window.location.href='planner.html?dest=STI College Calamba'">Plan Route <ion-icon name="arrow-forward-outline"></ion-icon></button>
-                </div>
-            </div>
-        </div>
-
     </main>
-
-        </div>
-    </div>
 
     <script src="../js/script.js"></script>
     <script src="../js/i18n.js"></script>
@@ -371,42 +387,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
             const cards = document.querySelectorAll('.ref-card');
-            const sections = document.querySelectorAll('.section-label');
-            const categoryTabs = document.getElementById('categoryTabs');
-            const scrollLeftBtn = document.getElementById('catScrollLeft');
-            const scrollRightBtn = document.getElementById('catScrollRight');
             const noResults = document.getElementById('noResults');
             const searchInput = document.getElementById('placeSearchInput');
-
-            // Scroll Buttons Logic
-            const updateScrollButtons = () => {
-                if (!categoryTabs || !scrollLeftBtn || !scrollRightBtn) return;
-
-                const showLeft = categoryTabs.scrollLeft > 10;
-                const showRight = categoryTabs.scrollLeft < (categoryTabs.scrollWidth - categoryTabs.clientWidth - 10);
-
-                scrollLeftBtn.classList.toggle('visible', showLeft);
-                scrollRightBtn.classList.toggle('visible', showRight);
-            };
-
-            if (categoryTabs) {
-                categoryTabs.addEventListener('scroll', updateScrollButtons);
-                window.addEventListener('resize', updateScrollButtons);
-                // Initial check
-                setTimeout(updateScrollButtons, 100);
-            }
-
-            if (scrollLeftBtn) {
-                scrollLeftBtn.addEventListener('click', () => {
-                    categoryTabs.scrollBy({ left: -200, behavior: 'smooth' });
-                });
-            }
-
-            if (scrollRightBtn) {
-                scrollRightBtn.addEventListener('click', () => {
-                    categoryTabs.scrollBy({ left: 200, behavior: 'smooth' });
-                });
-            }
 
             function filterPlaces() {
                 const category = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
@@ -417,15 +399,14 @@
                 document.querySelectorAll('.places-grid').forEach(grid => {
                     let gridVisibleCount = 0;
                     const gridCards = grid.querySelectorAll('.ref-card');
-                    const sectionLabel = grid.previousElementSibling;
 
                     gridCards.forEach(card => {
                         const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
+                        const cardSubtitle = card.querySelector('.card-subtitle')?.textContent.toLowerCase() || '';
                         const cardCats = card.getAttribute('data-category') || '';
-                        const cardTags = Array.from(card.querySelectorAll('.card-tag')).map(t => t.textContent.toLowerCase()).join(' ');
 
                         const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
-                        const matchesSearch = (cardName.includes(searchTerm) || cardTags.includes(searchTerm));
+                        const matchesSearch = (cardName.includes(searchTerm) || cardSubtitle.includes(searchTerm));
 
                         if (matchesCategory && matchesSearch) {
                             card.style.display = 'flex';
@@ -435,22 +416,26 @@
                             card.style.display = 'none';
                         }
                     });
-
-                    // Show/hide section label based on whether it has visible cards
-                    if (sectionLabel && sectionLabel.classList.contains('section-label')) {
-                        sectionLabel.style.display = gridVisibleCount > 0 ? 'flex' : 'none';
-                    }
                 });
 
-                // Handle Global No Results
                 if (noResults) {
                     noResults.style.display = totalVisible === 0 ? 'block' : 'none';
                 }
             }
 
+            // Check URL query parameters for category
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialCat = urlParams.get('category');
+            if (initialCat) {
+                const targetTab = Array.from(tabs).find(t => t.getAttribute('data-category')?.toLowerCase() === initialCat.toLowerCase());
+                if (targetTab) {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    targetTab.classList.add('active');
+                }
+            }
+
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // Update tabs UI
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     filterPlaces();
@@ -461,7 +446,10 @@
                 searchInput.addEventListener('input', filterPlaces);
             }
 
-            // Initial animation for cards
+            // Run initial filter
+            filterPlaces();
+
+            // Card entrance animation
             cards.forEach((card, index) => {
                 card.style.animation = `heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + (index * 0.05)}s both`;
             });

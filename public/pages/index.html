@@ -417,12 +417,8 @@
                     <span class="nav-btn-title">Log Out</span>
                 </button>
             </div>
-            <!-- [Mobile-only]: icon cluster: search, bell, sign-in/avatar, hamburger -->
+            <!-- [Mobile-only]: icon cluster: bell, sign-in/avatar, hamburger -->
             <div class="mobile-nav-icons" id="mobileNavIcons">
-                <!-- Search icon -->
-                <button class="mobile-nav-icon-btn" id="mobileSearchBtn" aria-label="Search places" type="button">
-                    <ion-icon name="search-outline"></ion-icon>
-                </button>
                 <!-- Bell / Activity Feed -->
                 <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
                     <ion-icon name="notifications-outline"></ion-icon>
@@ -452,12 +448,8 @@
 
     <!-- Main Hero Section -->
     <main class="hero-section">
-        <!-- Flat, solid-color pale blue circles layered behind content -->
-        <div class="hero-flat-shape hero-shape-1"></div>
-        <div class="hero-flat-shape hero-shape-3"></div>
-
         <div class="hero-container">
-            <!-- Left Column: Headline, Subtext, Search Bar -->
+            <!-- Headline, Subtext, Get Started CTA Button -->
             <div class="hero-left-col">
                 <h1 class="hero-title" data-i18n="hero.title">
                     Find places you can explore in <span class="title-accent">Calamba.</span>
@@ -469,13 +461,6 @@
                 <!-- Get Started CTA Button -->
                 <div class="hero-cta-wrap">
                     <a href="places.html" class="hero-get-started-btn">Get Started</a>
-                </div>
-            </div>
-
-            <!-- Right Column: Phone / App Mockup Asset -->
-            <div class="hero-right-col">
-                <div class="hero-mockup-frame">
-                    <img src="../assets/app-mockup.png" alt="Calzada App Mockup" class="hero-mockup-img">
                 </div>
             </div>
         </div>
@@ -1628,19 +1613,23 @@
 
         function update3DMockup() {
             if (!mockupSection || !csCard3D) return;
+            if (window.innerWidth < 768) {
+                csCard3D.style.transform = 'none';
+                return;
+            }
             const vh = window.innerHeight;
             const rect = mockupSection.getBoundingClientRect();
 
-            // Progress as section scrolls up
-            let progress = (vh - rect.top) / (vh + rect.height * 0.4);
+            // Progress as section scrolls up through center viewport
+            let progress = (vh - rect.top) / (vh * 0.75);
             progress = Math.max(0, Math.min(1, progress));
 
             // rotateX: 20deg -> 0deg
-            const rotateX = 20 * (1 - progress);
+            const rotateX = (20 * (1 - progress)).toFixed(2);
             // scale: 1.05 -> 1.0
-            const scale = 1.05 - 0.05 * progress;
+            const scale = (1.05 - 0.05 * progress).toFixed(3);
 
-            csCard3D.style.transform = `rotateX(${rotateX}deg) scale(${scale})`;
+            csCard3D.style.transform = `perspective(1000px) rotateX(${rotateX}deg) scale(${scale})`;
         }
 
         // Combine on scroll listener
