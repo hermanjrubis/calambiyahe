@@ -22,11 +22,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const map = L.map('map', { zoomControl: false }).setView([14.2045, 121.1641], 13);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-    }).addTo(map);
+
+    let activeTileLayer = null;
+    const loadBasemap = async () => {
+        let cartoKey = '';
+        try {
+            const cfgRes = await fetch('/api/config');
+            if (cfgRes.ok) {
+                const cfg = await cfgRes.json();
+                cartoKey = cfg.cartoApiKey || '';
+            }
+        } catch (err) {
+            console.warn('Could not load /api/config for CARTO key:', err.message);
+        }
+
+        const tileUrl = cartoKey
+            ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoKey)}`
+            : 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+
+        activeTileLayer = L.tileLayer(tileUrl, {
+            subdomains: 'abcd',
+            maxZoom: 20,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
+        }).addTo(map);
+    };
+    loadBasemap();
 
     // Guarantee Leaflet recalculates container size after the timeout delay
     setTimeout(() => map.invalidateSize(), 0);
@@ -55,73 +75,101 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // CATEGORY FILTER PILLS & MAP PLACES CONTROLLER
     // =============================================
-    const CALAMBA_PLACES_DATA = [
-        // Malls
-        { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.2039, lng: 121.1554, address: 'Brgy. Real, Calamba City' },
-        { id: 'waltermart-calamba', name: 'WalterMart Calamba', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.2052, lng: 121.1448, address: 'Brgy. Real, Calamba City' },
-        { id: 'checkpoint-mall', name: 'Checkpoint Mall', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.2120, lng: 121.1610, address: 'Brgy. Paciano Rizal, Calamba City' },
-        { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', categoryLabel: 'Mall', icon: 'storefront-outline', color: '#2563EB', lat: 14.1915, lng: 121.1512, address: 'Brgy. Halang, Calamba City' },
 
-        // Eateries
-        { id: 'moonbucks', name: 'Moonbucks Calamba', category: 'eateries', categoryLabel: 'Cafe', icon: 'cafe-outline', color: '#D97706', lat: 14.2131, lng: 121.1662, address: 'Elepaño Subd, Brgy. 3, Calamba City' },
-        { id: 'starbucks-crossing', name: 'Starbucks Crossing Calamba', category: 'eateries', categoryLabel: 'Coffee', icon: 'cafe-outline', color: '#D97706', lat: 14.2065, lng: 121.1565, address: 'Crossing, Brgy. Uno, Calamba City' },
-        { id: 'jollibee-crossing', name: 'Jollibee Calamba Crossing', category: 'eateries', categoryLabel: 'Fast Food', icon: 'restaurant-outline', color: '#D97706', lat: 14.2078, lng: 121.1542, address: 'Calamba Crossing, Calamba City' },
-        { id: 'mang-inasal-sm', name: 'Mang Inasal SM Calamba', category: 'eateries', categoryLabel: 'Fast Food', icon: 'restaurant-outline', color: '#D97706', lat: 14.2041, lng: 121.1558, address: 'SM City Calamba, Calamba City' },
-        { id: 'claypot-cafe', name: 'Calamba Claypot Cafe', category: 'eateries', categoryLabel: 'Restaurant', icon: 'cafe-outline', color: '#D97706', lat: 14.2140, lng: 121.1660, address: 'Brgy. 5 Poblacion, Calamba City' },
+    // Category metadata: icon, color, label mappings
+    const CATEGORY_META = {
+        malls:     { icon: 'storefront-outline', color: '#2563EB', label: 'Mall' },
+        eateries:  { icon: 'cafe-outline',       color: '#D97706', label: 'Eatery' },
+        schools:   { icon: 'school-outline',     color: '#059669', label: 'School' },
+        terminals: { icon: 'bus-outline',         color: '#0284C7', label: 'Terminal' },
+    };
 
-        // Schools
-        { id: 'ccc', name: 'City College of Calamba (CCC)', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.2135, lng: 121.1645, address: 'Brgy. 7 (Poblacion), Calamba City' },
-        { id: 'sti-calamba', name: 'STI College Calamba', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.1895, lng: 121.1620, address: 'Brgy. Halang, Calamba City' },
-        { id: 'letran-calamba', name: 'Colegio de San Juan de Letran', category: 'schools', categoryLabel: 'University', icon: 'school-outline', color: '#059669', lat: 14.1882, lng: 121.1658, address: 'Bucal, Calamba City' },
-        { id: 'lcba', name: 'Laguna College of Business and Arts', category: 'schools', categoryLabel: 'College', icon: 'school-outline', color: '#059669', lat: 14.2128, lng: 121.1633, address: 'Brgy. Uno, Calamba City' },
-        { id: 'calamba-institute', name: 'Calamba Institute', category: 'schools', categoryLabel: 'School', icon: 'school-outline', color: '#059669', lat: 14.2148, lng: 121.1655, address: 'Chipeco Ave, Poblacion, Calamba City' },
-
-        // Terminals
-        { id: 'central-terminal', name: 'Calamba Central Terminal', category: 'terminals', categoryLabel: 'Transport Hub', icon: 'bus-outline', color: '#0284C7', lat: 14.2045, lng: 121.1550, address: 'Crossing / Turbina Access, Calamba City' },
-        { id: 'crossing-terminal', name: 'Calamba Crossing Jeepney Terminal', category: 'terminals', categoryLabel: 'Jeep Terminal', icon: 'bus-outline', color: '#0284C7', lat: 14.2072, lng: 121.1548, address: 'Crossing, Calamba City' },
-        { id: 'turbina-terminal', name: 'Turbina Bus Terminal', category: 'terminals', categoryLabel: 'Bus Terminal', icon: 'bus-outline', color: '#0284C7', lat: 14.1812, lng: 121.1445, address: 'Brgy. Turbina, Calamba City' },
-        { id: 'sm-transport-terminal', name: 'SM Calamba Transport Terminal', category: 'terminals', categoryLabel: 'Jeep & UV Terminal', icon: 'car-outline', color: '#0284C7', lat: 14.2035, lng: 121.1560, address: 'SM City Calamba Ground Level' }
+    // Fallback hardcoded data (used when API is unavailable)
+    const CALAMBA_PLACES_FALLBACK = [
+        { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', lat: 14.203928, lng: 121.1545159, full_address: 'National Road, Brgy. Real, Calamba City Triangle, 4027 Laguna' },
+        { id: 'citymall-calamba', name: 'CityMall - Calamba', category: 'malls', lat: 14.1986374, lng: 121.1604888, full_address: '4027 National Highway, Calamba, 4027 Laguna' },
+        { id: 'south-supermarket', name: 'South Supermarket', category: 'malls', lat: 14.2030841, lng: 121.1584071, full_address: 'Manila S Rd, Calamba, 4027 Laguna' },
+        { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', lat: 14.2025089, lng: 121.1583962, full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '/assets/places/sti-college/sti-1.jpg' },
+        { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba) Real Campus', category: 'schools', lat: 14.1987583, lng: 121.1519236, full_address: 'Real, Calamba, 4027 Laguna' },
+        { id: 'real-elementary', name: 'Real Elementary School', category: 'schools', lat: 14.1987874, lng: 121.1492457, full_address: '336 Real Rd, Real, Calamba, 4027 Laguna' },
+        { id: 'pwu-cdcec', name: 'PWU CDCEC Calamba', category: 'schools', lat: 14.2052421, lng: 121.1562636, full_address: '6544+3HW, Bridge, Calamba, 4027 Laguna' },
     ];
 
     const categoryPlacesLayer = L.layerGroup().addTo(map);
 
-    function renderCategoryPlaces(selectedCategory = 'all') {
+    function renderPlacesOnMap(places) {
         categoryPlacesLayer.clearLayers();
 
-        const filtered = selectedCategory === 'all'
-            ? CALAMBA_PLACES_DATA
-            : CALAMBA_PLACES_DATA.filter(p => p.category === selectedCategory);
+        places.forEach(place => {
+            const meta = CATEGORY_META[place.category] || { icon: 'location-outline', color: '#6366F1', label: place.category };
+            const lat = parseFloat(place.lat);
+            const lng = parseFloat(place.lng);
+            if (isNaN(lat) || isNaN(lng)) return;
 
-        filtered.forEach(place => {
+            const addr = place.full_address || place.barangay || '';
+
             const iconHtml = `
-                <div class="category-map-pin" style="background:${place.color}; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,0.25); border:2px solid #FFFFFF; color:#FFFFFF;">
-                    <ion-icon name="${place.icon}" style="font-size:15px;"></ion-icon>
+                <div class="calzada-pin-wrapper" style="--pin-color: ${meta.color};">
+                    <div class="calzada-pin-body">
+                        <ion-icon name="${meta.icon}"></ion-icon>
+                    </div>
                 </div>
             `;
             const customIcon = L.divIcon({
                 html: iconHtml,
-                className: 'custom-cat-pin',
-                iconSize: [28, 28],
-                iconAnchor: [14, 14],
-                popupAnchor: [0, -14]
+                className: 'calzada-custom-marker',
+                iconSize: [32, 38],
+                iconAnchor: [16, 38],
+                popupAnchor: [0, -38]
             });
 
-            const marker = L.marker([place.lat, place.lng], { icon: customIcon });
+            const marker = L.marker([lat, lng], { icon: customIcon });
+
+            const imageHtml = place.image_path
+                ? `<div class="popup-img-container"><img src="${place.image_path}" alt="${place.name}" class="popup-place-img" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'><ion-icon name=\\'image-outline\\'></ion-icon><span>No image yet</span></div>';"></div>`
+                : `<div class="popup-img-container"><div class="img-placeholder"><ion-icon name="image-outline"></ion-icon><span>No image yet</span></div></div>`;
 
             const popupContent = `
-                <div style="font-family:'Outfit',sans-serif; min-width:180px; padding:4px;">
-                    <div style="font-size:11px; font-weight:700; color:${place.color}; text-transform:uppercase; margin-bottom:2px;">${place.categoryLabel}</div>
-                    <div style="font-size:14px; font-weight:800; color:#0F172A; margin-bottom:4px; line-height:1.2;">${place.name}</div>
-                    <div style="font-size:12px; color:#64748B; margin-bottom:10px;">${place.address}</div>
-                    <button type="button" class="category-pin-route-btn" style="width:100%; background:#378ADD; color:#FFF; border:none; border-radius:6px; padding:7px 10px; font-size:12px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;" onclick="window._setPlannerDestination('${place.name.replace(/'/g, "\\'")}', ${place.lat}, ${place.lng})">
-                        <ion-icon name="navigate-outline"></ion-icon> Set as Destination
-                    </button>
+                <div class="calzada-marker-popup">
+                    ${imageHtml}
+                    <div class="popup-body-content">
+                        <div class="popup-cat-badge" style="color: ${meta.color};">${meta.label}</div>
+                        <div class="popup-place-name">${place.name}</div>
+                        <div class="popup-place-addr">${addr}</div>
+                        <button type="button" class="popup-action-btn" onclick="window._setPlannerDestination('${place.name.replace(/'/g, "\\'")}', ${lat}, ${lng})">
+                            <ion-icon name="navigate-outline"></ion-icon> Set as Destination
+                        </button>
+                    </div>
                 </div>
             `;
 
             marker.bindPopup(popupContent);
             categoryPlacesLayer.addLayer(marker);
         });
+    }
+
+    async function renderCategoryPlaces(selectedCategory = 'none') {
+        categoryPlacesLayer.clearLayers();
+        // If 'none' or empty: render NO markers (keep map clean)
+        if (!selectedCategory || selectedCategory === 'none') {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/places?category=${encodeURIComponent(selectedCategory)}`);
+            if (!response.ok) throw new Error('API error');
+            const places = await response.json();
+            if (places.length > 0) {
+                renderPlacesOnMap(places);
+                return;
+            }
+        } catch (err) {
+            console.warn('Failed to fetch places from API, using fallback data:', err.message);
+        }
+
+        // Fallback: use hardcoded data
+        const fallback = CALAMBA_PLACES_FALLBACK.filter(p => p.category === selectedCategory);
+        renderPlacesOnMap(fallback);
     }
 
     // Expose global helper for popup button
@@ -144,16 +192,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const pills = categoryBar.querySelectorAll('.map-cat-pill');
         pills.forEach(pill => {
             pill.addEventListener('click', () => {
+                const wasActive = pill.classList.contains('active');
                 pills.forEach(p => p.classList.remove('active'));
-                pill.classList.add('active');
-                const cat = pill.getAttribute('data-category') || 'all';
-                renderCategoryPlaces(cat);
+
+                if (wasActive) {
+                    renderCategoryPlaces('none');
+                } else {
+                    pill.classList.add('active');
+                    const cat = pill.getAttribute('data-category') || 'none';
+                    renderCategoryPlaces(cat);
+                }
             });
         });
     }
 
-    // Initial render of places
-    renderCategoryPlaces('all');
+    // Initial load: do NOT render any category markers on the map
+    renderCategoryPlaces('none');
 
     // Routing State
     let currentWalkDist = 0, currentWalkDur = 0, currentTransitDist = 0, currentTransitDur = 0;

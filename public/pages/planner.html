@@ -21,8 +21,6 @@
     <link rel="stylesheet" href="../css/planner.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css">
     <style>
         body { opacity: 0; }
@@ -205,9 +203,9 @@
     <!-- Category Filter Pill Bar (Google Maps Style) -->
     <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
         <div class="map-category-bar" id="mapCategoryBar">
-            <button class="map-cat-pill active" data-category="all" type="button">
-                <ion-icon name="grid-outline"></ion-icon>
-                <span>All Places</span>
+            <button class="map-cat-pill" data-category="none" type="button">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                <span>Clear Map</span>
             </button>
             <button class="map-cat-pill" data-category="malls" type="button">
                 <ion-icon name="storefront-outline"></ion-icon>
@@ -686,88 +684,8 @@
     <script src="../js/i18n.js"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
-    <script type="module">
-        import { auth, onAuthStateChanged, signOut } from '../js/firebase-init.js';
-        import { fetchUserStats, setupProfileUI, renderSettingsModal } from '../js/user-stats.js';
-
-        const authNavBtn = document.getElementById('authNavBtn');
-        const userAvatarPill = document.getElementById('userAvatarPill');
-        const userAvatarInitials = document.getElementById('userAvatarInitials');
-        const userAvatarImg = document.getElementById('userAvatarImg');
-        const userDisplayName = document.getElementById('userDisplayName');
-        const userBadgeCounter = document.getElementById('userBadgeCounter');
-        const userProfileMenu = document.getElementById('userProfileMenu');
-
-        const profileHeaderImg = document.getElementById('profileHeaderImg');
-        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
-        const profileDisplayName = document.getElementById('profileDisplayName');
-        const profileEmail = document.getElementById('profileEmail');
-        const statVisitsCount = document.getElementById('statVisitsCount');
-        const statSavesCount = document.getElementById('statSavesCount');
-        const statBadgesCount = document.getElementById('statBadgesCount');
-        const menuSavedCount = document.getElementById('menuSavedCount');
-        const anonProfileBanner = document.getElementById('anonProfileBanner');
-        const explorationStatsSection = document.getElementById('explorationStatsSection');
-
-        setupProfileUI();
-
-        if (auth) {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    if (authNavBtn) authNavBtn.style.display = 'none';
-                    if (userAvatarPill) userAvatarPill.style.display = 'flex';
-
-                    const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Herman Ruedas');
-                    const email = user.email || (user.isAnonymous ? 'guest@calzada.ph' : 'herman@gmail.com');
-                    const initial = name.charAt(0).toUpperCase();
-
-                    if (userDisplayName) userDisplayName.textContent = name;
-                    if (user.photoURL && userAvatarImg) {
-                        userAvatarImg.src = user.photoURL;
-                        userAvatarImg.style.display = 'block';
-                        if (userAvatarInitials) userAvatarInitials.style.display = 'none';
-                    } else if (userAvatarInitials) {
-                        userAvatarInitials.textContent = initial;
-                        userAvatarInitials.style.display = 'block';
-                        if (userAvatarImg) userAvatarImg.style.display = 'none';
-                    }
-
-                    if (profileDisplayName) profileDisplayName.textContent = name;
-                    if (profileEmail) profileEmail.textContent = email;
-                    if (profileHeaderInitials) profileHeaderInitials.textContent = initial;
-                    if (user.photoURL && profileHeaderImg) {
-                        profileHeaderImg.src = user.photoURL;
-                        profileHeaderImg.style.display = 'block';
-                        if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
-                    }
-
-                    renderSettingsModal();
-
-                    const stats = await fetchUserStats(user);
-                    if (statVisitsCount) statVisitsCount.textContent = stats.visits;
-                    if (statSavesCount) statSavesCount.textContent = stats.saves;
-                    if (statBadgesCount) statBadgesCount.textContent = stats.badges;
-                    if (menuSavedCount) menuSavedCount.textContent = `(${stats.saves})`;
-                    if (userBadgeCounter) {
-                        userBadgeCounter.textContent = stats.badges;
-                        userBadgeCounter.style.display = stats.badges > 0 ? 'flex' : 'none';
-                    }
-
-                    if (user.isAnonymous) {
-                        if (anonProfileBanner) anonProfileBanner.style.display = 'flex';
-                        if (explorationStatsSection) explorationStatsSection.style.opacity = '0.7';
-                    } else {
-                        if (anonProfileBanner) anonProfileBanner.style.display = 'none';
-                        if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
-                    }
-                } else {
-                    if (authNavBtn) authNavBtn.style.display = 'inline-flex';
-                    if (userAvatarPill) userAvatarPill.style.display = 'none';
-                    if (userProfileMenu) userProfileMenu.classList.remove('open');
-                }
-            });
-        }
-    </script>
+    <script type="module" src="../js/firebase-init.js"></script>
+    <script type="module" src="../js/user-stats.js"></script>
 </body>
 
 </html>

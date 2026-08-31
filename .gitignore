@@ -1,7 +1,12 @@
 .env
+.env.*
 node_modules/
 .DS_Store
 dist/
 .vscode/
-test-db.js
+test-*.js
+test_*.js
+*.log
 *.zip
+*serviceAccountKey*.json
+

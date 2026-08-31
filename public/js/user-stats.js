@@ -1255,3 +1255,11 @@ function createProfileModals() {
 
     document.body.appendChild(modalRoot);
 }
+
+// Auto-initialize setupProfileUI when user-stats.js is loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setupProfileUI());
+} else {
+    setupProfileUI();
+}
+

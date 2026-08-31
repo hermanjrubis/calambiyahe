@@ -1,11 +1,14 @@
-{
+﻿{
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "chrome",
+            "type": "node",
             "request": "launch",
-            "name": "Open index.html",
-            "file": "c:\\Users\\63951\\Documents\\BSIT 3RD YEAR\\2ND SEM\\CAPSTONE\\SAKAY\\calambiyahe - project\\index.html"
+            "name": "Run Server (Node)",
+            "program": "${workspaceFolder}/server/server.js",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "restart": true
         }
     ]
 }

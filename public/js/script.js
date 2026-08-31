@@ -343,7 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         navLinks.querySelectorAll('.nav-link, .btn-plan-route, a').forEach(link => {
-            link.addEventListener('click', () => {
+            link.addEventListener('click', (e) => {
+                if (link.id === 'exploreDropdownBtn' || link.closest('#exploreDropdownBtn')) {
+                    return;
+                }
                 setMobileMenuState(false);
             });
         });
@@ -384,19 +387,119 @@ document.addEventListener('DOMContentLoaded', () => {
     let inactivityTimer;
     const INACTIVITY_LIMIT = 120000;
 
+    // === ROUTIE ATTENTION WIGGLE ANIMATION ===
+    let routieAttentionInterval = null;
+    const routieAvatar = chatToggleBtn ? chatToggleBtn.querySelector('.chat-pill-avatar') : null;
+
+    function triggerRoutieAttention() {
+        if (!routieAvatar) return;
+        if (chatWindow && chatWindow.classList.contains('open')) return;
+        routieAvatar.classList.remove('attention-wiggle');
+        void routieAvatar.offsetWidth; // Force CSS reflow to retrigger cleanly
+        routieAvatar.classList.add('attention-wiggle');
+        setTimeout(() => {
+            if (routieAvatar) routieAvatar.classList.remove('attention-wiggle');
+        }, 650);
+    }
+
+    function startRoutieAttentionLoop() {
+        stopRoutieAttentionLoop();
+        // Trigger periodic attention wiggle every 7 seconds while chat is closed
+        routieAttentionInterval = setInterval(triggerRoutieAttention, 7000);
+    }
+
+    function stopRoutieAttentionLoop() {
+        if (routieAttentionInterval) {
+            clearInterval(routieAttentionInterval);
+            routieAttentionInterval = null;
+        }
+        if (routieAvatar) {
+            routieAvatar.classList.remove('attention-wiggle');
+        }
+    }
+
+    startRoutieAttentionLoop();
+
+    // === AUTO-CLOSE ON OUTSIDE CLICK & PAGE SCROLL ===
+    let isAutoCloseAttached = false;
+
+    function handleOutsideClick(e) {
+        if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        // If clicked element is inside chatWindow, chatToggleBtn, or any routie open trigger, do not close
+        if (chatWindow.contains(e.target) || 
+            (chatToggleBtn && chatToggleBtn.contains(e.target)) ||
+            (e.target.closest && (
+                e.target.closest('#chatToggleBtn') || 
+                e.target.closest('#routieLink') || 
+                e.target.closest('#drawerRoutieLink') || 
+                e.target.closest('#routieBannerBtn') || 
+                e.target.closest('#faqRoutieCtaBtn') || 
+                e.target.closest('#routieFeatureBtn')
+            ))) {
+            return;
+        }
+        closeChat();
+    }
+
+    function handlePageScroll(e) {
+        // If scroll originated from within the chat window (e.g. scrolling messages), ignore it
+        if (e.target && chatWindow && chatWindow.contains(e.target)) return;
+        if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        closeChat();
+    }
+
+    function attachAutoCloseListeners() {
+        if (isAutoCloseAttached) return;
+        isAutoCloseAttached = true;
+        // Delay slightly so the triggering click doesn't close the chat immediately
+        setTimeout(() => {
+            if (!isAutoCloseAttached) return;
+            document.addEventListener('pointerdown', handleOutsideClick, true);
+            window.addEventListener('scroll', handlePageScroll, { passive: true });
+        }, 120);
+    }
+
+    function detachAutoCloseListeners() {
+        isAutoCloseAttached = false;
+        document.removeEventListener('pointerdown', handleOutsideClick, true);
+        window.removeEventListener('scroll', handlePageScroll);
+    }
+
+    // Stop internal chat scroll from bubbling up as a window scroll
+    if (chatWindow) {
+        chatWindow.addEventListener('scroll', (e) => e.stopPropagation(), { passive: true });
+    }
+    if (chatMessages) {
+        chatMessages.addEventListener('scroll', (e) => e.stopPropagation(), { passive: true });
+    }
+
+    const closeChat = () => {
+        if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        interruptTyping();
+        document.body.classList.remove('chat-active');
+        chatWindow.classList.remove('open');
+        if (chatToggleBtn) {
+            const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
+            if (pulseRing) pulseRing.style.animation = '';
+        }
+        if (typeof inactivityTimer !== 'undefined' && inactivityTimer) {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = null;
+        }
+        detachAutoCloseListeners();
+        startRoutieAttentionLoop();
+    };
+
+    window.closeChat = closeChat;
+
     function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
         if (chatWindow && chatWindow.classList.contains('open')) {
             inactivityTimer = setTimeout(() => {
-                chatWindow.classList.remove('open');
-                document.body.classList.remove('chat-active');
-                if (chatToggleBtn) {
-                    const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
-                    if (pulseRing) pulseRing.style.animation = '';
-                }
                 const cancelBtn = document.getElementById('cancelMicBtn');
                 if (cancelBtn) cancelBtn.click();
                 addMessage(window.t('js.session_ended'), false);
+                closeChat();
             }, INACTIVITY_LIMIT);
         }
     }
@@ -406,31 +509,19 @@ document.addEventListener('DOMContentLoaded', () => {
         chatWindow.addEventListener('input', resetInactivityTimer);
     }
 
-    if (chatToggleBtn) {
-        const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
-        chatToggleBtn.addEventListener('click', () => {
-            // Pre-warm the server when button is clicked
-            fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
-            
-            document.body.classList.add('chat-active');
-            if (chatWindow) chatWindow.classList.add('open');
-            if (pulseRing) pulseRing.style.animation = 'none';
-            if (chatInput) setTimeout(() => chatInput.focus(), 350);
-            resetInactivityTimer();
-        });
-    }
-
     const openChat = (e) => {
         if (e) e.preventDefault();
         
-        // Pre-warm the server when chat is opened from other links
+        // Pre-warm the server when chat is opened
         fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
 
+        stopRoutieAttentionLoop();
         document.body.classList.add('chat-active');
         if (chatWindow) {
             chatWindow.classList.add('open');
             if (chatInput) setTimeout(() => chatInput.focus(), 350);
             resetInactivityTimer();
+            attachAutoCloseListeners();
         }
         const sideDrawer = document.getElementById('sideDrawer');
         const overlay = document.getElementById('sideDrawerOverlay');
@@ -440,26 +531,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.openChat = openChat;
 
+    if (chatToggleBtn) {
+        chatToggleBtn.addEventListener('click', (e) => {
+            if (chatWindow && chatWindow.classList.contains('open')) {
+                closeChat();
+            } else {
+                openChat(e);
+            }
+        });
+    }
+
     if (routieLink) routieLink.addEventListener('click', openChat);
     if (drawerRoutieLink) drawerRoutieLink.addEventListener('click', openChat);
     const routieBannerBtn = document.getElementById('routieBannerBtn');
     if (routieBannerBtn) routieBannerBtn.addEventListener('click', openChat);
     const faqRoutieCtaBtn = document.getElementById('faqRoutieCtaBtn');
     if (faqRoutieCtaBtn) faqRoutieCtaBtn.addEventListener('click', openChat);
+    const routieFeatureBtn = document.getElementById('routieFeatureBtn');
+    if (routieFeatureBtn) routieFeatureBtn.addEventListener('click', openChat);
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => {
-            interruptTyping();
-            document.body.classList.remove('chat-active');
-            if (chatWindow) chatWindow.classList.remove('open');
-            if (chatToggleBtn) {
-                const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
-                if (pulseRing) pulseRing.style.animation = '';
-            }
-            if (typeof inactivityTimer !== 'undefined' && inactivityTimer) {
-                clearTimeout(inactivityTimer);
-                inactivityTimer = null;
-            }
+            closeChat();
         });
     }
 
@@ -532,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addBotMessageWithTyping(fullText, save = true, speed = 35) {
+    function addBotMessageWithTyping(fullText, save = true, speed = 18) {
         if (!chatMessages) return;
 
         // Ensure any previous bot typing is resolved first
@@ -600,10 +693,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
-            // Punctuation Pause (150ms delay for punctuation, default configurable ~35ms)
+            // Punctuation Pause (natural cadence: 65ms for punctuation, 18ms per character)
             let delay = speed;
             if (punctuationChars.has(char)) {
-                delay = 150;
+                delay = 65;
             }
 
             currentTypingState.timerId = setTimeout(typeNextChar, delay);
@@ -1100,11 +1193,18 @@ function checkPasswordStrength() {
                 e.stopPropagation();
                 const isOpen = exploreDropdown.classList.contains('open');
                 closeAllNavDropdowns();
-                if (!isOpen) exploreDropdown.classList.add('open');
+                if (!isOpen) {
+                    exploreDropdown.classList.add('open');
+                    exploreBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    exploreDropdown.classList.remove('open');
+                    exploreBtn.setAttribute('aria-expanded', 'false');
+                }
             });
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('#exploreDropdown')) {
                     exploreDropdown.classList.remove('open');
+                    if (exploreBtn) exploreBtn.setAttribute('aria-expanded', 'false');
                 }
             });
         }

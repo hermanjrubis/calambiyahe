@@ -22,7 +22,7 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css">
-    <link rel="stylesheet" href="../css/place-panel.css">
+    <link rel="stylesheet" href="../css/place-panel.css?v=7">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -383,39 +383,158 @@
     <script src="../js/script.js"></script>
     <script src="../js/i18n.js"></script>
     <script>
-        // Category selection & Filtering
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
-            const cards = document.querySelectorAll('.ref-card');
             const noResults = document.getElementById('noResults');
             const searchInput = document.getElementById('placeSearchInput');
+            const placesGrid = document.querySelector('.places-grid');
 
-            function filterPlaces() {
-                const category = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
-                const searchTerm = searchInput?.value.toLowerCase() || '';
+            let allFetchedPlaces = [];
 
-                let totalVisible = 0;
+            // Render places array into .places-grid
+            function renderPlaces(places, searchTerm = '') {
+                if (!placesGrid) return;
+                placesGrid.innerHTML = '';
+                let visibleCount = 0;
 
-                document.querySelectorAll('.places-grid').forEach(grid => {
-                    let gridVisibleCount = 0;
-                    const gridCards = grid.querySelectorAll('.ref-card');
+                places.forEach((place, index) => {
+                    const name = place.name || 'Unnamed Place';
+                    const category = place.category || '';
+                    const barangay = place.barangay || '';
+                    const municipality = place.municipality || 'Calamba';
+                    const imagePath = place.image_path ? place.image_path.trim() : '';
+                    const description = place.description || '';
 
-                    gridCards.forEach(card => {
-                        const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
-                        const cardSubtitle = card.querySelector('.card-subtitle')?.textContent.toLowerCase() || '';
-                        const cardCats = card.getAttribute('data-category') || '';
+                    // Local search filtering
+                    const matchesSearch = !searchTerm ||
+                        name.toLowerCase().includes(searchTerm) ||
+                        category.toLowerCase().includes(searchTerm) ||
+                        barangay.toLowerCase().includes(searchTerm) ||
+                        municipality.toLowerCase().includes(searchTerm) ||
+                        description.toLowerCase().includes(searchTerm);
 
-                        const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
-                        const matchesSearch = (cardName.includes(searchTerm) || cardSubtitle.includes(searchTerm));
+                    if (!matchesSearch) return;
 
-                        if (matchesCategory && matchesSearch) {
-                            card.style.display = 'flex';
-                            gridVisibleCount++;
-                            totalVisible++;
-                        } else {
-                            card.style.display = 'none';
+                    visibleCount++;
+
+                    // Subtitle text format
+                    let subtitle = category;
+                    if (barangay || municipality) {
+                        const locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
+                        subtitle = subtitle ? `${subtitle} • ${locStr}` : locStr;
+                    }
+
+                    // Register into place-panel data dictionary if available
+                    if (typeof window.placesData !== 'undefined') {
+                        window.placesData[name] = {
+                            name: name,
+                            category: category || 'Destination',
+                            image: imagePath || '../assets/hero-places-bg.png',
+                            barangay: barangay ? `Brgy. ${barangay}, ${municipality}` : municipality,
+                            landmarks: [description || 'Destination in Calamba'],
+                            howToGetThere: 'Use the Route Planner for detailed directions to this location.',
+                            about: description || `Located in ${barangay ? 'Brgy. ' + barangay + ', ' : ''}${municipality}.`,
+                            fare: 'Depends',
+                            travelTime: 'Depends',
+                            transport: 'Jeepney / Tricycle'
+                        };
+                    }
+
+                    // Image container vs placeholder
+                    let imgContainerHTML = '';
+                    if (imagePath) {
+                        imgContainerHTML = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    } else {
+                        imgContainerHTML = `
+                            <div class="img-placeholder">
+                                <ion-icon name="image-outline"></ion-icon>
+                                <span>No image yet</span>
+                            </div>
+                        `;
+                    }
+
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'ref-card';
+                    cardEl.setAttribute('data-category', category);
+                    cardEl.style.cursor = 'pointer';
+                    cardEl.style.animation = `heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.05 * index}s both`;
+                    cardEl.onclick = () => {
+                        if (typeof window.openPlacePanel === 'function') {
+                            window.openPlacePanel(name);
                         }
-                    });
+                    };
+
+                    cardEl.innerHTML = `
+                        <div class="ref-img-container">
+                            ${imgContainerHTML}
+                        </div>
+                        <div class="ref-card-body">
+                            <h3>${escapeHtml(name)}</h3>
+                            <p class="card-subtitle">${escapeHtml(subtitle)}</p>
+                        </div>
+                    `;
+
+                    placesGrid.appendChild(cardEl);
+                });
+
+                if (noResults) {
+                    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+                }
+            }
+
+            async function fetchPlacesFromAPI() {
+                const activeTab = document.querySelector('.category-tab.active');
+                const category = activeTab ? activeTab.getAttribute('data-category') : 'all';
+                const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+                let endpoint = '/api/places';
+                if (category && category.toLowerCase() !== 'all') {
+                    endpoint += `?category=${encodeURIComponent(category)}`;
+                }
+
+                try {
+                    const response = await fetch(endpoint);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        allFetchedPlaces = data;
+                        renderPlaces(allFetchedPlaces, searchTerm);
+                        return;
+                    }
+                } catch (error) {
+                    console.warn('[Places] API fetch failed or database unavailable, falling back to static filter:', error);
+                }
+
+                filterStaticCards(category, searchTerm);
+            }
+
+            function filterStaticCards(category, searchTerm) {
+                let totalVisible = 0;
+                const gridCards = document.querySelectorAll('.places-grid .ref-card');
+                gridCards.forEach(card => {
+                    const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
+                    const cardSubtitle = card.querySelector('.card-subtitle')?.textContent.toLowerCase() || '';
+                    const cardCats = card.getAttribute('data-category') || '';
+
+                    const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
+                    const matchesSearch = (!searchTerm || cardName.includes(searchTerm) || cardSubtitle.includes(searchTerm));
+
+                    if (matchesCategory && matchesSearch) {
+                        card.style.display = 'flex';
+                        totalVisible++;
+                    } else {
+                        card.style.display = 'none';
+                    }
                 });
 
                 if (noResults) {
@@ -438,25 +557,40 @@
                 tab.addEventListener('click', () => {
                     tabs.forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
-                    filterPlaces();
+
+                    const newCat = tab.getAttribute('data-category') || 'all';
+                    const url = new URL(window.location);
+                    if (newCat !== 'all') {
+                        url.searchParams.set('category', newCat);
+                    } else {
+                        url.searchParams.delete('category');
+                    }
+                    window.history.pushState({}, '', url);
+
+                    fetchPlacesFromAPI();
                 });
             });
 
             if (searchInput) {
-                searchInput.addEventListener('input', filterPlaces);
+                searchInput.addEventListener('input', () => {
+                    const searchTerm = searchInput.value.trim().toLowerCase();
+                    if (allFetchedPlaces.length > 0) {
+                        renderPlaces(allFetchedPlaces, searchTerm);
+                    } else {
+                        const activeCat = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
+                        filterStaticCards(activeCat, searchTerm);
+                    }
+                });
             }
 
-            // Run initial filter
-            filterPlaces();
-
-            // Card entrance animation
-            cards.forEach((card, index) => {
-                card.style.animation = `heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 + (index * 0.05)}s both`;
-            });
+            // Initial fetch from API
+            fetchPlacesFromAPI();
         });
     </script>
-    <script src="../js/place-panel.js"></script>
+    <script type="module" src="../js/firebase-init.js"></script>
+    <script type="module" src="../js/user-stats.js"></script>
+    <script src="../js/place-panel.js?v=8"></script>
     <script src="../js/transitions.js"></script>
 </body>
 
-</html>
+</html>

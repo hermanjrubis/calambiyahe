@@ -15,10 +15,14 @@
     <meta name="description"
         content="Find jeepney routes, fares, and transit connections in Calamba City. Your smart commuting companion.">
     <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <link rel="stylesheet" href="../css/style.css">
     <!-- Search dropdown styles -->
     <style>
@@ -198,6 +202,28 @@
                                 </svg>
                             </span>
                             <span>Terminals</span>
+                        </a>
+                        <a href="places.html?category=coffee" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-coffee">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
+                                    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="2" x2="6" y2="4"></line>
+                                    <line x1="10" y1="2" x2="10" y2="4"></line>
+                                    <line x1="14" y1="2" x2="14" y2="4"></line>
+                                </svg>
+                            </span>
+                            <span>Coffee Shops</span>
+                        </a>
+                        <a href="places.html?category=establishments" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                                    <path d="M9 22v-4h6v4"></path>
+                                    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"></path>
+                                </svg>
+                            </span>
+                            <span>Establishments</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
                         <a href="places.html" class="nav-dropdown-item view-all">
@@ -575,7 +601,7 @@
                         <p class="feature-desc">
                             Originally hailing from Austria, Routie understands natural language. Get personalized place recommendations, intelligent transit suggestions, and local commute tips tailored to your destination just by asking in plain Tagalog or English.
                         </p>
-                        <a href="planner.html" class="feature-link-btn">See more →</a>
+                        <a href="javascript:void(0)" class="feature-link-btn" id="routieFeatureBtn" role="button" aria-label="Ask Routie">See more →</a>
                     </div>
                     <div class="feature-visual-block routie-visual">
                         <div class="routie-mascot-card">
@@ -637,14 +663,7 @@
                         <a href="places.html" class="feature-link-btn">Try it now →</a>
                     </div>
                     <div class="feature-visual-block streetview-visual">
-                        <div class="navy-streetview-card">
-                            <div class="streetview-deco-circle"></div>
-                            <div class="streetview-icon-badge">
-                                <ion-icon name="scan-outline"></ion-icon>
-                            </div>
-                            <div class="streetview-preview-text">360° Interactive Panoramic Preview</div>
-                            <a href="places.html" class="streetview-cta-btn">Try it now →</a>
-                        </div>
+                        <div id="panorama-viewer" class="navy-streetview-card"></div>
                     </div>
                 </div>
 
@@ -804,9 +823,11 @@
 
     <!-- Floating Chat Widget (Routie Pill) -->
     <div class="chat-widget-container">
-        <button class="chat-toggle-pill" id="chatToggleBtn">
+        <button class="chat-toggle-pill" id="chatToggleBtn" type="button" aria-label="Ask Routie">
             <img src="../assets/DyipTok-icon.png" alt="Routie" class="chat-pill-avatar">
-            <span class="chat-label" data-i18n="chat.label">Ask Routie</span>
+            <div class="chat-pill-text-wrap">
+                <span class="chat-label" data-i18n="chat.label">Ask Routie</span>
+            </div>
         </button>
     </div>
 
@@ -1486,115 +1507,8 @@
     <script src="../js/transitions.js"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
-    <script type="module">
-        import { auth, onAuthStateChanged, signOut } from '../js/firebase-init.js';
-        import { fetchUserStats, setupProfileUI, renderSettingsModal } from '../js/user-stats.js';
-
-        const authNavBtn = document.getElementById('authNavBtn');
-        const userAvatarPill = document.getElementById('userAvatarPill');
-        const userAvatarInitials = document.getElementById('userAvatarInitials');
-        const userAvatarImg = document.getElementById('userAvatarImg');
-        const userDisplayName = document.getElementById('userDisplayName');
-        const userBadgeCounter = document.getElementById('userBadgeCounter');
-        const userSavedHomeIcon = document.getElementById('userSavedHomeIcon');
-        const userProfileMenu = document.getElementById('userProfileMenu');
-        const logoutBtn = document.getElementById('logoutBtn');
-
-        // Elements inside new Establishment Dropdown
-        const profileHeaderImg = document.getElementById('profileHeaderImg');
-        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
-        const profileDisplayName = document.getElementById('profileDisplayName');
-        const profileEmail = document.getElementById('profileEmail');
-        const statVisitsCount = document.getElementById('statVisitsCount');
-        const statSavesCount = document.getElementById('statSavesCount');
-        const statBadgesCount = document.getElementById('statBadgesCount');
-        const menuSavedCount = document.getElementById('menuSavedCount');
-        const anonProfileBanner = document.getElementById('anonProfileBanner');
-        const explorationStatsSection = document.getElementById('explorationStatsSection');
-
-        // Settings modal previews
-        const settingsAvatarLarge = document.getElementById('settingsAvatarLarge');
-        const settingsDisplayName = document.getElementById('settingsDisplayName');
-        const settingsEmail = document.getElementById('settingsEmail');
-
-        // Initialize modals and UI triggers
-        setupProfileUI();
-
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                try {
-                    await signOut(auth);
-                    window.location.href = 'login.html';
-                } catch (error) {
-                    console.error("Logout Error:", error);
-                }
-            });
-        }
-
-        if (authNavBtn && userAvatarPill) {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    authNavBtn.style.display = 'none';
-                    userAvatarPill.style.display = 'flex';
-
-                    const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Herman Ruedas');
-                    const email = user.email || (user.isAnonymous ? 'guest@calzada.ph' : 'herman@gmail.com');
-                    const initial = name.charAt(0).toUpperCase();
-
-                    // 1. Navbar avatar pill
-                    if (userDisplayName) userDisplayName.textContent = name;
-                    if (user.photoURL && userAvatarImg) {
-                        userAvatarImg.src = user.photoURL;
-                        userAvatarImg.style.display = 'block';
-                        if (userAvatarInitials) userAvatarInitials.style.display = 'none';
-                    } else if (userAvatarInitials) {
-                        userAvatarInitials.textContent = initial;
-                        userAvatarInitials.style.display = 'block';
-                        if (userAvatarImg) userAvatarImg.style.display = 'none';
-                    }
-
-                    // 2. Dropdown Header
-                    if (profileDisplayName) profileDisplayName.textContent = name;
-                    if (profileEmail) profileEmail.textContent = email;
-                    if (profileHeaderInitials) profileHeaderInitials.textContent = initial;
-                    if (user.photoURL && profileHeaderImg) {
-                        profileHeaderImg.src = user.photoURL;
-                        profileHeaderImg.style.display = 'block';
-                        if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
-                    }
-
-                    // 3. Settings modal previews & inputs
-                    renderSettingsModal();
-
-                    // 4. Fetch dynamic stats (Visits, Saves, Badges)
-                    const stats = await fetchUserStats(user);
-
-                    if (statVisitsCount) statVisitsCount.textContent = stats.visits;
-                    if (statSavesCount) statSavesCount.textContent = stats.saves;
-                    if (statBadgesCount) statBadgesCount.textContent = stats.badges;
-                    if (menuSavedCount) menuSavedCount.textContent = `(${stats.saves})`;
-                    if (userBadgeCounter) {
-                        userBadgeCounter.textContent = stats.badges;
-                        userBadgeCounter.style.display = stats.badges > 0 ? 'flex' : 'none';
-                    }
-
-                    // Anonymous/Guest Mode vs Full Account
-                    if (user.isAnonymous) {
-                        if (anonProfileBanner) anonProfileBanner.style.display = 'flex';
-                        if (explorationStatsSection) explorationStatsSection.style.opacity = '0.7';
-                    } else {
-                        if (anonProfileBanner) anonProfileBanner.style.display = 'none';
-                        if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
-                    }
-                } else {
-                    authNavBtn.style.display = 'inline-flex';
-                    userAvatarPill.style.display = 'none';
-                    if (userProfileMenu) userProfileMenu.classList.remove('open');
-                }
-            });
-        }
-    </script>
+    <script type="module" src="../js/firebase-init.js"></script>
+    <script type="module" src="../js/user-stats.js"></script>
 
     <!-- Stacking Cards (stacking-card.tsx) & 3D Container Scroll (container-scroll-animation.tsx) Scripts -->
     <script>
@@ -1652,6 +1566,19 @@
 
         console.log('✅ Stacking Cards & 3D Container Scroll initialized!');
     })();
+    </script>
+    <script>
+        pannellum.viewer('panorama-viewer', {
+            type: 'equirectangular',
+            panorama: '../assets/360/sti-front.jpg',
+            autoLoad: true,
+            autoRotate: -2,
+            compass: false,
+            showControls: true,
+            title: 'STI Academic Center',
+            author: 'National Highway, Calamba',
+            caption: 'National Highway, Calamba'
+        });
     </script>
 </body>
 
