@@ -33,8 +33,7 @@ export const BADGE_DEFINITIONS = [
         description: "Visited at least 3 Eateries or Cafes in Calamba",
         reqCategory: "Eateries",
         reqCount: 3,
-        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>`,
-        badgeColor: "#FFF7ED",
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>`,
         checkUnlocked: (visits) => visits.filter(v => (v.category || '').toLowerCase().includes('eatery') || (v.category || '').toLowerCase().includes('food') || (v.category || '').toLowerCase().includes('coffee') || (v.category || '').toLowerCase().includes('cafe')).length >= 3
     },
     {
@@ -43,8 +42,7 @@ export const BADGE_DEFINITIONS = [
         description: "Visited at least 2 Landmarks or Cultural Heritage Sites",
         reqCategory: "Landmarks",
         reqCount: 2,
-        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7 12 2"></polygon></svg>`,
-        badgeColor: "#F5F3FF",
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="22" x2="21" y2="22"></line><line x1="6" y1="18" x2="6" y2="11"></line><line x1="10" y1="18" x2="10" y2="11"></line><line x1="14" y1="18" x2="14" y2="11"></line><line x1="18" y1="18" x2="18" y2="11"></line><polygon points="12 2 20 7 4 7 12 2"></polygon></svg>`,
         checkUnlocked: (visits) => visits.filter(v => (v.category || '').toLowerCase().includes('landmark') || (v.category || '').toLowerCase().includes('heritage') || (v.placeName || '').toLowerCase().includes('rizal') || (v.placeName || '').toLowerCase().includes('shrine') || (v.placeName || '').toLowerCase().includes('plaza')).length >= 2
     },
     {
@@ -53,8 +51,7 @@ export const BADGE_DEFINITIONS = [
         description: "Visited at least 2 Malls or Commercial Establishments",
         reqCategory: "Malls",
         reqCount: 2,
-        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>`,
-        badgeColor: "#EFF6FF",
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>`,
         checkUnlocked: (visits) => visits.filter(v => (v.category || '').toLowerCase().includes('mall') || (v.category || '').toLowerCase().includes('shopping') || (v.placeName || '').toLowerCase().includes('sm') || (v.placeName || '').toLowerCase().includes('waltermart') || (v.placeName || '').toLowerCase().includes('mall')).length >= 2
     },
     {
@@ -63,8 +60,7 @@ export const BADGE_DEFINITIONS = [
         description: "Visited at least 1 place across Malls, Eateries, Schools & Terminals",
         reqCategory: "All Categories",
         reqCount: 4,
-        icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>`,
-        badgeColor: "#F0FDF4",
+        icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>`,
         checkUnlocked: (visits) => {
             const hasMall = visits.some(v => (v.category || '').toLowerCase().includes('mall'));
             const hasEatery = visits.some(v => (v.category || '').toLowerCase().includes('eatery') || (v.category || '').toLowerCase().includes('food') || (v.category || '').toLowerCase().includes('coffee'));
@@ -82,14 +78,14 @@ let currentBadges = [];
 let activeUser = null;
 
 // ─── Activity Feed Engine ────────────────────────────────────────────────────
-let activityFeed = JSON.parse(localStorage.getItem('calzada_activity_feed') || '[]');
-let unreadCount = activityFeed.filter(a => !a.read).length;
+let activityFeed = [];
+let unreadCount = 0;
 
 const ACTIVITY_ICONS = {
-    visit:  `<svg width="15" height="15" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>`,
-    save:   `<svg width="15" height="15" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>`,
+    visit:  `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>`,
+    save:   `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>`,
     unsave: `<svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`,
-    badge:  `<svg width="15" height="15" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>`,
+    badge:  `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
 };
 
 function timeAgo(timestamp) {
@@ -101,10 +97,17 @@ function timeAgo(timestamp) {
 }
 
 function addActivity(type, message) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return; // Skip recording activity for guest/unauthenticated users
+
     const item = { id: Date.now(), type, message, timestamp: Date.now(), read: false };
     activityFeed.unshift(item);
     if (activityFeed.length > 30) activityFeed = activityFeed.slice(0, 30);
-    localStorage.setItem('calzada_activity_feed', JSON.stringify(activityFeed));
+    
+    try {
+        localStorage.setItem(`calzada_activity_feed_${user.uid}`, JSON.stringify(activityFeed));
+    } catch (_) {}
+
     unreadCount++;
     updateBellBadge();
     renderActivityFeed();
@@ -112,18 +115,40 @@ function addActivity(type, message) {
 
 function updateBellBadge() {
     const badge = document.getElementById('bellBadge');
-    if (!badge) return;
-    if (unreadCount > 0) {
-        badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+    const mobileBadge = document.getElementById('mobileBellBadge');
+    const user = auth.currentUser;
+
+    if (!user || unreadCount <= 0) {
+        if (badge) badge.style.display = 'none';
+        if (mobileBadge) mobileBadge.style.display = 'none';
+        return;
+    }
+
+    const text = unreadCount > 9 ? '9+' : String(unreadCount);
+    if (badge) {
+        badge.textContent = text;
         badge.style.display = 'flex';
-    } else {
-        badge.style.display = 'none';
+    }
+    if (mobileBadge) {
+        mobileBadge.textContent = text;
+        mobileBadge.style.display = 'flex';
     }
 }
 
 function renderActivityFeed() {
     const list = document.getElementById('activityFeedList');
     if (!list) return;
+
+    const user = auth.currentUser;
+
+    if (!user) {
+        list.innerHTML = `<div class="activity-empty-state">
+            <svg width="28" height="28" fill="none" stroke="#CBD5E1" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <p>No activity yet.<br><a href="login.html" style="color: #378ADD; font-weight: 600; text-decoration: underline;">Sign in</a> to see your activity updates.</p>
+        </div>`;
+        return;
+    }
+
     if (!activityFeed.length) {
         list.innerHTML = `<div class="activity-empty-state">
             <svg width="28" height="28" fill="none" stroke="#CBD5E1" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -131,6 +156,7 @@ function renderActivityFeed() {
         </div>`;
         return;
     }
+
     list.innerHTML = activityFeed.map(item => `
         <div class="activity-feed-item${item.read ? '' : ' unread'}" data-actid="${item.id}">
             <span class="activity-feed-icon">${ACTIVITY_ICONS[item.type] || ACTIVITY_ICONS.visit}</span>
@@ -145,17 +171,29 @@ function renderActivityFeed() {
 
 // Mark all notifications as read (clears badge count)
 window._calzadaMarkActivityAsRead = function () {
+    const user = auth.currentUser;
     activityFeed = activityFeed.map(a => ({ ...a, read: true }));
     unreadCount = 0;
-    localStorage.setItem('calzada_activity_feed', JSON.stringify(activityFeed));
+    if (user && !user.isAnonymous) {
+        try {
+            localStorage.setItem(`calzada_activity_feed_${user.uid}`, JSON.stringify(activityFeed));
+        } catch (_) {}
+    }
+    localStorage.removeItem('calzada_activity_feed');
     updateBellBadge();
     renderActivityFeed();
 };
 
 // Completely wipe / clear the activity feed list
 window._calzadaClearActivity = function () {
+    const user = auth.currentUser;
     activityFeed = [];
     unreadCount = 0;
+    if (user && !user.isAnonymous) {
+        try {
+            localStorage.removeItem(`calzada_activity_feed_${user.uid}`);
+        } catch (_) {}
+    }
     localStorage.removeItem('calzada_activity_feed');
     updateBellBadge();
     renderActivityFeed();
@@ -163,17 +201,135 @@ window._calzadaClearActivity = function () {
 
 // Delete single activity item
 window._calzadaDeleteActivityItem = function (id) {
+    const user = auth.currentUser;
     activityFeed = activityFeed.filter(a => String(a.id) !== String(id));
     unreadCount = activityFeed.filter(a => !a.read).length;
-    localStorage.setItem('calzada_activity_feed', JSON.stringify(activityFeed));
+    if (user && !user.isAnonymous) {
+        try {
+            localStorage.setItem(`calzada_activity_feed_${user.uid}`, JSON.stringify(activityFeed));
+        } catch (_) {}
+    }
     updateBellBadge();
     renderActivityFeed();
 };
 
-// Kick off on page load
-setTimeout(() => { updateBellBadge(); renderActivityFeed(); }, 200);
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Reset all user-specific state, cached data, DOM displays, and modal contents on logout/guest state.
+ */
+export function clearUserState() {
+    activeUser = null;
+    currentVisits = [];
+    currentSaved = [];
+    currentBadges = [];
+    activityFeed = [];
+    unreadCount = 0;
+
+    // 1. Thoroughly wipe all localStorage & sessionStorage user data
+    try {
+        localStorage.removeItem('calzada_logged_in');
+        localStorage.removeItem('calzada_user_email');
+        localStorage.removeItem('calzada_user_name');
+        localStorage.removeItem('calzada_activity_feed');
+        localStorage.removeItem('calzadaSavedPlaces');
+        localStorage.removeItem('calzadaLocalVisits');
+        localStorage.removeItem('calzada_pref_name');
+        localStorage.removeItem('calzada_pref_photo');
+        sessionStorage.removeItem('calzadaChatHistory');
+        
+        // Remove any orphan user-scoped keys
+        Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('calzada_activity_feed_') || k.startsWith('calzada_visits_') || k.startsWith('calzada_saved_')) {
+                localStorage.removeItem(k);
+            }
+        });
+    } catch (_) {}
+
+    // 2. Reset Notification Bell & Activity Feed UI
+    updateBellBadge();
+    renderActivityFeed();
+
+    // 3. Reset Navbar & Avatar elements back to guest / "Sign in"
+    const authNavBtn = document.getElementById('authNavBtn');
+    const avatarBtn = document.getElementById('userAvatarPill');
+    const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+    const mobileAvatarBtn = document.getElementById('mobileAvatarBtn');
+    const userDisplayName = document.getElementById('userDisplayName');
+    const userAvatarInitials = document.getElementById('userAvatarInitials');
+    const userAvatarImg = document.getElementById('userAvatarImg');
+    const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
+    const mobileAvatarImg = document.getElementById('mobileAvatarImg');
+    const profileDisplayName = document.getElementById('profileDisplayName');
+    const profileEmail = document.getElementById('profileEmail');
+    const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+    const profileHeaderImg = document.getElementById('profileHeaderImg');
+    const userBadgeCounter = document.getElementById('userBadgeCounter');
+    const statVisitsCount = document.getElementById('statVisitsCount');
+    const statSavesCount = document.getElementById('statSavesCount');
+    const statBadgesCount = document.getElementById('statBadgesCount');
+    const menuSavedCount = document.getElementById('menuSavedCount');
+    const anonProfileBanner = document.getElementById('anonProfileBanner');
+    const dropdownMenu = document.getElementById('userProfileMenu');
+    const alertsMenu = document.getElementById('alertsDropdownMenu');
+
+    if (authNavBtn) authNavBtn.style.display = 'inline-flex';
+    if (avatarBtn) avatarBtn.style.display = 'none';
+    if (mobileSignInBtn) mobileSignInBtn.style.display = 'flex';
+    if (mobileAvatarBtn) mobileAvatarBtn.style.display = 'none';
+
+    if (userDisplayName) userDisplayName.textContent = '';
+    if (userAvatarInitials) {
+        userAvatarInitials.textContent = '';
+        userAvatarInitials.style.display = 'none';
+    }
+    if (userAvatarImg) {
+        userAvatarImg.src = '';
+        userAvatarImg.style.display = 'none';
+    }
+    if (mobileAvatarInitials) {
+        mobileAvatarInitials.textContent = '';
+        mobileAvatarInitials.style.display = 'none';
+    }
+    if (mobileAvatarImg) {
+        mobileAvatarImg.src = '';
+        mobileAvatarImg.style.display = 'none';
+    }
+
+    if (profileDisplayName) profileDisplayName.textContent = '';
+    if (profileEmail) profileEmail.textContent = '';
+    if (profileHeaderInitials) {
+        profileHeaderInitials.textContent = '';
+        profileHeaderInitials.style.display = 'none';
+    }
+    if (profileHeaderImg) {
+        profileHeaderImg.src = '';
+        profileHeaderImg.style.display = 'none';
+    }
+
+    if (userBadgeCounter) {
+        userBadgeCounter.textContent = '0';
+        userBadgeCounter.style.display = 'none';
+    }
+    if (statVisitsCount) statVisitsCount.textContent = '0';
+    if (statSavesCount) statSavesCount.textContent = '0';
+    if (statBadgesCount) statBadgesCount.textContent = '0';
+    if (menuSavedCount) menuSavedCount.textContent = '(0)';
+    if (anonProfileBanner) anonProfileBanner.style.display = 'none';
+
+    if (dropdownMenu) dropdownMenu.classList.remove('open');
+    if (alertsMenu) alertsMenu.classList.remove('open');
+
+    // 4. Re-render empty lists in modals so stale places/visits/badges are wiped
+    renderSavedList();
+    renderVisitsList();
+    renderAchievementsList();
+
+    // 5. Close any open modal overlays
+    document.querySelectorAll('.profile-modal-overlay.active').forEach(m => m.classList.remove('active'));
+}
+
+window._calzadaClearUserState = clearUserState;
 
 /**
  * Fetch 100% Real Live User Stats from Firestore
@@ -335,49 +491,52 @@ export async function recordVisit(placeName, category) {
 
 /**
  * Real Live Save / Bookmark Toggle
+ * Document ID in users/{userId}/savedPlaces/{placeId} is placeId
  */
-export async function toggleSavePlace(placeName, category) {
-    if (!placeName) return;
+export async function toggleSavePlace(placeName, category, placeId = null) {
+    if (!placeName && !placeId) return;
     const user = auth.currentUser;
-    const existingIndex = currentSaved.findIndex(s => s.placeName?.toLowerCase() === placeName.toLowerCase());
+    const cleanPlaceName = placeName || placeId;
+    const cleanPlaceId = String(placeId || cleanPlaceName.toLowerCase().replace(/\s+/g, '-')).trim();
+
+    const existingIndex = currentSaved.findIndex(s => 
+        (s.id && String(s.id) === cleanPlaceId) || 
+        (s.placeName && s.placeName.toLowerCase() === cleanPlaceName.toLowerCase())
+    );
 
     if (existingIndex > -1) {
         // Remove save
         const removed = currentSaved.splice(existingIndex, 1)[0];
-        addActivity('unsave', `Removed "${placeName}" from Saved Places`);
+        addActivity('unsave', `Removed "${cleanPlaceName}" from Saved Places`);
         if (user && !user.isAnonymous) {
             localStorage.setItem(`calzada_saved_${user.uid}`, JSON.stringify(currentSaved));
-            if (removed.id && !removed.id.startsWith('saved_') && !removed.id.startsWith('local_')) {
+            const targetId = removed.id || cleanPlaceId;
+            if (targetId && !targetId.startsWith('saved_') && !targetId.startsWith('local_')) {
                 try {
-                    await deleteDoc(doc(db, `users/${user.uid}/savedPlaces`, removed.id));
-                } catch (e) {
-                    console.warn("Firestore delete save error:", e);
-                }
+                    await deleteDoc(doc(db, `users/${user.uid}/savedPlaces`, targetId));
+                } catch (_) {}
             }
         }
     } else {
         // Add save
-        const newSave = { id: `save_${Date.now()}`, placeName, category: category || "Establishment" };
+        const newSave = { id: cleanPlaceId, placeName: cleanPlaceName, category: category || "Establishment" };
         currentSaved.unshift(newSave);
-        addActivity('save', `Saved "${placeName}" (${category || 'Establishment'})`);
+        addActivity('save', `Saved "${cleanPlaceName}" (${category || 'Establishment'})`);
 
         if (user && !user.isAnonymous) {
             localStorage.setItem(`calzada_saved_${user.uid}`, JSON.stringify(currentSaved));
             try {
-                const docRef = await addDoc(collection(db, `users/${user.uid}/savedPlaces`), {
-                    placeName,
+                await setDoc(doc(db, `users/${user.uid}/savedPlaces`, cleanPlaceId), {
+                    placeName: cleanPlaceName,
                     category: category || "Establishment",
                     savedAt: serverTimestamp()
-                });
-                newSave.id = docRef.id;
-            } catch (e) {
-                console.warn("Firestore save write error (saved locally):", e);
-            }
+                }, { merge: true });
+            } catch (_) {}
         }
     }
 
     // Keep global localStorage in sync
-    localStorage.setItem('calzadaSavedPlaces', JSON.stringify(currentSaved.map(s => ({ name: s.placeName, category: s.category }))));
+    localStorage.setItem('calzadaSavedPlaces', JSON.stringify(currentSaved.map(s => ({ name: s.placeName, category: s.category, id: s.id }))));
     updateUINumbers();
     renderSavedList();
 }
@@ -417,8 +576,8 @@ export function setupProfileUI() {
     // ─────────────────────────────────────────────────────────────────────────────
     // Instant local storage check to prevent UI flash
     const wasLoggedIn = localStorage.getItem('calzada_logged_in') === 'true';
-    if (wasLoggedIn && userAvatarPill && authNavBtn) {
-        userAvatarPill.style.display = 'flex';
+    if (wasLoggedIn && avatarBtn && authNavBtn) {
+        avatarBtn.style.display = 'flex';
         authNavBtn.style.display = 'none';
         const cachedName = localStorage.getItem('calzada_pref_name') || localStorage.getItem('calzada_user_name');
         if (cachedName) {
@@ -432,30 +591,44 @@ export function setupProfileUI() {
     }
 
     onAuthStateChanged(auth, async (user) => {
-        const userAvatarInitials = document.getElementById('userAvatarInitials');
-        const userAvatarImg = document.getElementById('userAvatarImg');
-        const userDisplayName = document.getElementById('userDisplayName');
-        const userBadgeCounter = document.getElementById('userBadgeCounter');
-        const profileHeaderImg = document.getElementById('profileHeaderImg');
-        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
-        const profileDisplayName = document.getElementById('profileDisplayName');
-        const profileEmail = document.getElementById('profileEmail');
-        const statVisitsCount = document.getElementById('statVisitsCount');
-        const statSavesCount = document.getElementById('statSavesCount');
-        const statBadgesCount = document.getElementById('statBadgesCount');
-        const menuSavedCount = document.getElementById('menuSavedCount');
-        const anonProfileBanner = document.getElementById('anonProfileBanner');
-        const explorationStatsSection = document.getElementById('explorationStatsSection');
-
-        // Mobile icon elements
-        const mobileSignInBtn = document.getElementById('mobileSignInBtn');
-        const mobileAvatarBtn = document.getElementById('mobileAvatarBtn');
-        const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
-        const mobileAvatarImg = document.getElementById('mobileAvatarImg');
-
         if (user) {
+            activeUser = user;
             localStorage.setItem('calzada_logged_in', 'true');
             if (user.email) localStorage.setItem('calzada_user_email', user.email);
+
+            // Load user-specific activity feed
+            try {
+                const userFeedKey = `calzada_activity_feed_${user.uid}`;
+                activityFeed = JSON.parse(localStorage.getItem(userFeedKey) || localStorage.getItem('calzada_activity_feed') || '[]');
+                unreadCount = activityFeed.filter(a => !a.read).length;
+            } catch (_) {
+                activityFeed = [];
+                unreadCount = 0;
+            }
+            updateBellBadge();
+            renderActivityFeed();
+
+            const authNavBtn = document.getElementById('authNavBtn');
+            const avatarBtn = document.getElementById('userAvatarPill');
+            const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+            const mobileAvatarBtn = document.getElementById('mobileAvatarBtn');
+            const userDisplayName = document.getElementById('userDisplayName');
+            const userAvatarInitials = document.getElementById('userAvatarInitials');
+            const userAvatarImg = document.getElementById('userAvatarImg');
+            const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
+            const mobileAvatarImg = document.getElementById('mobileAvatarImg');
+            const profileDisplayName = document.getElementById('profileDisplayName');
+            const profileEmail = document.getElementById('profileEmail');
+            const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+            const profileHeaderImg = document.getElementById('profileHeaderImg');
+            const userBadgeCounter = document.getElementById('userBadgeCounter');
+            const statVisitsCount = document.getElementById('statVisitsCount');
+            const statSavesCount = document.getElementById('statSavesCount');
+            const statBadgesCount = document.getElementById('statBadgesCount');
+            const menuSavedCount = document.getElementById('menuSavedCount');
+            const anonProfileBanner = document.getElementById('anonProfileBanner');
+            const explorationStatsSection = document.getElementById('explorationStatsSection');
+
             if (authNavBtn) authNavBtn.style.display = 'none';
             if (avatarBtn) avatarBtn.style.display = 'flex';
             if (mobileSignInBtn) mobileSignInBtn.style.display = 'none';
@@ -528,14 +701,7 @@ export function setupProfileUI() {
                 if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
             }
         } else {
-            localStorage.removeItem('calzada_logged_in');
-            localStorage.removeItem('calzada_user_email');
-            localStorage.removeItem('calzada_user_name');
-            if (authNavBtn) authNavBtn.style.display = 'inline-flex';
-            if (avatarBtn) avatarBtn.style.display = 'none';
-            if (mobileSignInBtn) mobileSignInBtn.style.display = 'flex';
-            if (mobileAvatarBtn) mobileAvatarBtn.style.display = 'none';
-            if (dropdownMenu) dropdownMenu.classList.remove('open');
+            clearUserState();
         }
     });
 
@@ -545,13 +711,13 @@ export function setupProfileUI() {
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             try {
-                localStorage.removeItem('calzada_logged_in');
-                localStorage.removeItem('calzada_user_email');
-                localStorage.removeItem('calzada_user_name');
+                clearUserState();
                 await signOut(auth);
                 window.location.href = 'login.html';
             } catch (error) {
                 console.error("Logout Error:", error);
+                clearUserState();
+                window.location.href = 'login.html';
             }
         });
     }
@@ -745,33 +911,30 @@ export function setupProfileUI() {
             return;
         }
 
-        // Quick bookmark button in modal
-        const logSaveBtn = e.target.closest('#btnLogNewSave');
-        if (logSaveBtn) {
-            const input = document.getElementById('quickSaveInput');
-            const catSelect = document.getElementById('quickSaveCat');
-            if (input && input.value.trim()) {
-                toggleSavePlace(input.value.trim(), catSelect ? catSelect.value : 'Establishment');
-                input.value = '';
+        // Remove bookmark button inside saved list (micro-interaction with smooth fade + height-collapse)
+        const removeSaveBtn = e.target.closest('.saved-remove-btn') || e.target.closest('.remove-save-action-btn');
+        if (removeSaveBtn) {
+            const name = removeSaveBtn.dataset.placename;
+            if (name) {
+                const card = removeSaveBtn.closest('.saved-stop-row') || removeSaveBtn.closest('.saved-place-card') || removeSaveBtn.closest('.visit-item-card');
+                if (card) {
+                    card.classList.add('removing');
+                    setTimeout(() => toggleSavePlace(name), 200);
+                } else {
+                    toggleSavePlace(name);
+                }
             }
             return;
         }
 
-        // Remove bookmark button inside saved list
-        const removeSaveBtn = e.target.closest('.remove-save-action-btn');
-        if (removeSaveBtn) {
-            const name = removeSaveBtn.dataset.placename;
-            if (name) {
-                // Animate the card out before removing from data
-                const card = removeSaveBtn.closest('.visit-item-card');
-                if (card) {
-                    card.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
-                    card.style.opacity = '0';
-                    card.style.transform = 'scale(0.92)';
-                    setTimeout(() => toggleSavePlace(name), 230);
-                } else {
-                    toggleSavePlace(name);
-                }
+        // Empty state explore places button
+        const exploreEmptyBtn = e.target.closest('#emptyStateExploreBtn') || e.target.closest('.saved-empty-explore-btn');
+        if (exploreEmptyBtn) {
+            closeModal('modalSavedPlaces');
+            if (window.location.pathname.includes('places.html')) {
+                e.preventDefault();
+                const grid = document.getElementById('placesGrid') || document.querySelector('.places-page');
+                if (grid) grid.scrollIntoView({ behavior: 'smooth' });
             }
             return;
         }
@@ -820,12 +983,18 @@ function renderVisitsList() {
 
     if (!currentVisits.length) {
         container.innerHTML = `
-            <div class="empty-state-card">
-                <div class="empty-state-icon">
-                    <svg width="32" height="32" fill="none" stroke="#94A3B8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="saved-empty-state">
+                <div class="saved-empty-icon-box">
+                    <svg width="34" height="34" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
                 </div>
-                <h4 class="empty-state-title">No visits recorded yet</h4>
-                <p class="empty-state-desc">When you search or navigate to malls, eateries, and spots in Calamba, they will appear here automatically.</p>
+                <h4 class="saved-empty-title">No visits recorded yet</h4>
+                <p class="saved-empty-desc">When you search or navigate to malls, eateries, and spots in Calamba, they will appear here automatically.</p>
+                <a href="places.html" class="saved-empty-explore-btn" id="emptyStateVisitsBtn">
+                    <span>Explore Places</span>
+                    <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
+                </a>
             </div>
         `;
         return;
@@ -833,19 +1002,35 @@ function renderVisitsList() {
 
     container.innerHTML = currentVisits.map(v => `
         <div class="visit-item-card">
-            <div class="visit-icon-wrap">
-                ${getCategoryIcon(v.category)}
-            </div>
             <div class="visit-item-info">
-                <h4 class="visit-item-name">${escapeHtml(v.placeName)}</h4>
-                <span class="visit-item-meta">${escapeHtml(v.category)} • ${v.date || 'Visited'}</span>
+                <h4 class="visit-item-name" title="${escapeHtml(v.placeName)}">${escapeHtml(v.placeName)}</h4>
+                <span class="visit-item-subtitle">${escapeHtml(v.category || 'Establishment')}${v.date ? ' • ' + escapeHtml(v.date) : ''}</span>
             </div>
-            <a href="planner.html?destName=${encodeURIComponent(v.placeName)}" class="visit-go-btn" title="Plan route again">
-                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                <span>Route</span>
-            </a>
+            <div class="visit-item-actions">
+                <a href="planner.html?destName=${encodeURIComponent(v.placeName)}" class="saved-route-pill-btn" title="Plan route to ${escapeHtml(v.placeName)}">
+                    <span>Route</span>
+                    <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
+                </a>
+            </div>
         </div>
     `).join('');
+}
+
+function getCategoryIconSvg(category = '') {
+    const c = (category || '').toLowerCase();
+    if (c.includes('mall') || c.includes('shopping')) {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>`;
+    } else if (c.includes('coffee') || c.includes('cafe')) {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>`;
+    } else if (c.includes('eat') || c.includes('food') || c.includes('restaurant') || c.includes('eatery')) {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`;
+    } else if (c.includes('school') || c.includes('univ') || c.includes('college')) {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`;
+    } else if (c.includes('term') || c.includes('station') || c.includes('transit')) {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 17h10"/><path d="M7 7h10"/><path d="M7 12h10"/></svg>`;
+    } else {
+        return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 7v14M21 7v14M6 21V7l6-4 6 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1"/></svg>`;
+    }
 }
 
 function renderSavedList() {
@@ -854,36 +1039,52 @@ function renderSavedList() {
 
     if (!currentSaved.length) {
         container.innerHTML = `
-            <div class="empty-state-card">
-                <div class="empty-state-icon">
-                    <svg width="32" height="32" fill="none" stroke="#94A3B8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            <div class="saved-empty-state">
+                <div class="saved-empty-icon-box">
+                    <svg width="34" height="34" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                    </svg>
                 </div>
-                <h4 class="empty-state-title">No saved establishments yet</h4>
-                <p class="empty-state-desc">Bookmark your favorite hangout places, schools, or cafes in Calamba for quick route planning.</p>
+                <h4 class="saved-empty-title">No saved spots yet</h4>
+                <p class="saved-empty-desc">No saved spots yet — start exploring and save your favorites!</p>
+                <a href="places.html" class="saved-empty-explore-btn" id="emptyStateExploreBtn">
+                    <span>Explore Places</span>
+                    <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
+                </a>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = currentSaved.map(s => `
-        <div class="visit-item-card">
-            <div class="visit-icon-wrap saved">
-                <svg width="18" height="18" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-            </div>
-            <div class="visit-item-info">
-                <h4 class="visit-item-name">${escapeHtml(s.placeName)}</h4>
-                <span class="visit-item-meta">${escapeHtml(s.category || 'Saved Place')}</span>
-            </div>
-            <div class="saved-item-actions">
-                <a href="planner.html?destName=${encodeURIComponent(s.placeName)}" class="visit-go-btn">
-                    <span>Route</span>
-                </a>
-                <button type="button" class="remove-save-action-btn" data-placename="${escapeHtml(s.placeName)}" title="Remove Bookmark">
-                    <svg width="14" height="14" fill="none" stroke="#94A3B8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+    container.innerHTML = `
+        <div class="saved-timeline-track-wrap">
+            <div class="saved-timeline-track" aria-hidden="true"></div>
+            <div class="saved-timeline-items">
+                ${currentSaved.map(s => `
+                    <div class="saved-stop-row" data-placename="${escapeHtml(s.placeName)}">
+                        <div class="saved-stop-node-wrap">
+                            <div class="saved-stop-node" title="Route stop"></div>
+                        </div>
+                        <div class="saved-stop-card">
+                            <div class="saved-stop-info">
+                                <h4 class="saved-stop-name" title="${escapeHtml(s.placeName)}">${escapeHtml(s.placeName)}</h4>
+                                <span class="saved-stop-subtitle">${escapeHtml(s.category || 'Establishment')}</span>
+                            </div>
+                            <div class="saved-stop-actions">
+                                <a href="planner.html?destName=${encodeURIComponent(s.placeName)}" class="saved-route-pill-btn" title="Plan route to ${escapeHtml(s.placeName)}">
+                                    <span>Route</span>
+                                    <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
+                                </a>
+                                <button type="button" class="saved-remove-btn" data-placename="${escapeHtml(s.placeName)}" aria-label="Remove ${escapeHtml(s.placeName)} from saved spots" title="Remove Bookmark">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         </div>
-    `).join('');
+    `;
 }
 
 function renderAchievementsList() {
@@ -893,19 +1094,18 @@ function renderAchievementsList() {
     container.innerHTML = BADGE_DEFINITIONS.map(b => {
         const isUnlocked = currentBadges.some(cb => cb.id === b.id);
         return `
-            <div class="badge-item-card ${isUnlocked ? 'unlocked' : 'locked'}">
-                <div class="badge-icon-box" style="background: ${isUnlocked ? b.badgeColor : '#F1F5F9'}">
+            <div class="achievement-card ${isUnlocked ? 'unlocked' : 'locked'}">
+                <div class="achievement-icon-wrap ${isUnlocked ? 'unlocked' : 'locked'}">
                     ${b.icon}
                 </div>
-                <div class="badge-info">
-                    <div class="badge-name-row">
-                        <h4 class="badge-title">${escapeHtml(b.name)}</h4>
-                        <span class="badge-status-tag ${isUnlocked ? 'earned' : ''}">
-                            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="${isUnlocked ? 'M5 13l4 4L19 7' : 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'}"/></svg>
-                            ${isUnlocked ? 'Unlocked' : 'In Progress'}
-                        </span>
-                    </div>
-                    <p class="badge-desc">${escapeHtml(b.description)}</p>
+                <div class="achievement-info">
+                    <h4 class="achievement-title">${escapeHtml(b.name)}</h4>
+                    <p class="achievement-subtitle">${escapeHtml(b.description)}</p>
+                </div>
+                <div class="achievement-status-wrap">
+                    <span class="achievement-status ${isUnlocked ? 'unlocked' : 'locked'}">
+                        ${isUnlocked ? 'Unlocked' : 'In Progress'}
+                    </span>
                 </div>
             </div>
         `;
@@ -1116,24 +1316,14 @@ function createProfileModals() {
             <div class="profile-modal-box">
                 <div class="profile-modal-header">
                     <div class="modal-header-title">
-                        <svg width="22" height="22" fill="none" stroke="#2563EB" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <h3>My Establishment Visits</h3>
+                        <div class="modal-header-icon-box">
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <h3 class="modal-header-heading">My Establishment Visits</h3>
                     </div>
-                    <button class="modal-close-btn" type="button">&times;</button>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
                 </div>
                 <div class="profile-modal-body">
-                    <!-- Quick Log Bar to easily test & record visits -->
-                    <div class="modal-quick-bar">
-                        <input type="text" id="quickVisitInput" placeholder="Log a place you visited (e.g. SM Calamba)..." class="modal-quick-input" />
-                        <select id="quickVisitCat" class="modal-quick-select">
-                            <option value="Mall">Mall</option>
-                            <option value="Eatery">Eatery</option>
-                            <option value="School">School</option>
-                            <option value="Terminal">Terminal</option>
-                        </select>
-                        <button type="button" class="modal-quick-btn" id="btnLogNewVisit">+ Log Visit</button>
-                    </div>
-
                     <p class="modal-subtitle">Places you have searched, navigated to, and visited in Calamba City.</p>
                     <div class="visits-list-wrap" id="visitsListContainer"></div>
                 </div>
@@ -1142,29 +1332,19 @@ function createProfileModals() {
 
         <!-- Modal: Saved Places -->
         <div class="profile-modal-overlay" id="modalSavedPlaces">
-            <div class="profile-modal-box">
-                <div class="profile-modal-header">
-                    <div class="modal-header-title">
-                        <svg width="22" height="22" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
-                        <h3>Saved Establishments</h3>
+            <div class="profile-modal-box saved-places-modal-box">
+                <div class="profile-modal-header saved-modal-header">
+                    <div class="modal-header-title saved-header-title">
+                        <div class="modal-header-icon-box saved-header-icon-box">
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        </div>
+                        <h3 class="modal-header-heading saved-modal-heading">Saved Establishments</h3>
                     </div>
-                    <button class="modal-close-btn" type="button">&times;</button>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
                 </div>
-                <div class="profile-modal-body">
-                    <!-- Quick Bookmark Bar -->
-                    <div class="modal-quick-bar">
-                        <input type="text" id="quickSaveInput" placeholder="Bookmark a spot..." class="modal-quick-input" />
-                        <select id="quickSaveCat" class="modal-quick-select">
-                            <option value="Mall">Mall</option>
-                            <option value="Eatery">Eatery</option>
-                            <option value="School">School</option>
-                            <option value="Terminal">Terminal</option>
-                        </select>
-                        <button type="button" class="modal-quick-btn save" id="btnLogNewSave">+ Save Spot</button>
-                    </div>
-
-                    <p class="modal-subtitle">Your bookmarked spots for quick commute planning and discovery.</p>
-                    <div class="visits-list-wrap" id="savedListContainer"></div>
+                <div class="profile-modal-body saved-modal-body">
+                    <p class="modal-subtitle saved-modal-subtitle">Your bookmarked spots for quick commute planning and discovery across Calamba.</p>
+                    <div class="saved-list-wrap" id="savedListContainer"></div>
                 </div>
             </div>
         </div>
@@ -1174,13 +1354,15 @@ function createProfileModals() {
             <div class="profile-modal-box">
                 <div class="profile-modal-header">
                     <div class="modal-header-title">
-                        <svg width="22" height="22" fill="none" stroke="#D97706" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                        <h3>Exploration Achievements</h3>
+                        <div class="modal-header-icon-box">
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                        </div>
+                        <h3 class="modal-header-heading">Exploration Achievements</h3>
                     </div>
-                    <button class="modal-close-btn" type="button">&times;</button>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
                 </div>
                 <div class="profile-modal-body">
-                    <p class="modal-subtitle">Earn badges by visiting local malls, eateries, schools, and historic landmarks.</p>
+                    <p class="modal-subtitle">Milestones earned by discovering local spots, eateries, schools, and landmarks.</p>
                     <div class="achievements-list-wrap" id="achievementsListContainer"></div>
                 </div>
             </div>
@@ -1191,10 +1373,12 @@ function createProfileModals() {
             <div class="profile-modal-box settings-box">
                 <div class="profile-modal-header">
                     <div class="modal-header-title">
-                        <svg width="22" height="22" fill="none" stroke="#2563EB" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        <h3>Account Settings</h3>
+                        <div class="modal-header-icon-box">
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <h3 class="modal-header-heading">Account Settings</h3>
                     </div>
-                    <button class="modal-close-btn" type="button">&times;</button>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
                 </div>
                 <div class="profile-modal-body">
                     <!-- Success Banner -->
@@ -1207,54 +1391,47 @@ function createProfileModals() {
                     <div class="settings-profile-preview">
                         <div class="settings-avatar-wrapper">
                             <div class="settings-avatar-large" id="settingsAvatarLarge">U</div>
-                            <img src="" alt="Profile Photo" class="settings-avatar-img" id="settingsAvatarImg" style="display:none;">
-                            <label for="avatarFileInput" class="settings-avatar-edit-badge" title="Change Photo">
+                            <img src="" alt="Profile Photo" id="settingsAvatarImg" class="settings-avatar-img" style="display: none;" />
+                            <label for="settingsPhotoUploadInput" class="avatar-edit-badge" title="Change profile photo">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </label>
-                            <input type="file" id="avatarFileInput" accept="image/*" style="display:none;">
+                            <input type="file" id="settingsPhotoUploadInput" accept="image/*" style="display: none;" />
                         </div>
-                        <div class="settings-user-info-text">
-                            <h4 id="settingsDisplayName">User</h4>
-                            <p id="settingsEmail">user@example.com</p>
-                            <button type="button" class="btn-change-photo-text" id="btnChangePhotoText">Change Photo</button>
-                        </div>
-                    </div>
-
-                    <!-- Display Name Field -->
-                    <div class="settings-form-group">
-                        <label for="prefDisplayNameInput">Display Name / Alias</label>
-                        <input type="text" id="prefDisplayNameInput" placeholder="Your name or nickname" class="settings-input" />
-                    </div>
-
-                    <!-- Security & Password Card -->
-                    <div class="settings-card-group">
-                        <div class="settings-card-label">Security & Password</div>
-                        <div class="settings-security-card">
-                            <div class="security-card-left">
-                                <div class="security-card-icon">
-                                    <svg width="18" height="18" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                                </div>
-                                <div>
-                                    <div class="security-card-title">Change Password</div>
-                                    <div class="security-card-desc">Send a secure password reset link to your email</div>
-                                </div>
-                            </div>
-                            <button type="button" class="btn-change-password" id="btnChangePassword">Send Reset Link</button>
+                        <div class="settings-user-meta">
+                            <h4 id="settingsDisplayName" class="settings-name-text">Commuter</h4>
+                            <p id="settingsEmail" class="settings-email-text">user@example.com</p>
                         </div>
                     </div>
 
-                    <!-- Modal Actions -->
-                    <div class="settings-actions">
-                        <button type="button" class="settings-cancel-btn" id="btnCancelUserSettings">Cancel</button>
-                        <button type="button" class="settings-save-btn" id="btnSaveUserSettings">Save Changes</button>
-                    </div>
+                    <!-- Profile Edit Form -->
+                    <form id="settingsProfileForm" class="settings-form">
+                        <div class="settings-form-group">
+                            <label for="prefDisplayNameInput" class="settings-label">Display Name</label>
+                            <input type="text" id="prefDisplayNameInput" class="settings-input" placeholder="Your name or commuter handle" maxlength="40" />
+                        </div>
+
+                        <div class="settings-form-group">
+                            <label class="settings-label">Account Security</label>
+                            <button type="button" class="settings-secondary-btn" id="btnSendPasswordReset">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+                                <span>Send Password Reset Email</span>
+                            </button>
+                        </div>
+
+                        <div class="settings-actions">
+                            <button type="submit" class="settings-save-btn" id="btnSaveProfileSettings">Save Changes</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 
     document.body.appendChild(modalRoot);
 }
+
+// Expose helpers on window
+window.toggleSavePlace = toggleSavePlace;
+window.recordVisit = recordVisit;
 
 // Auto-initialize setupProfileUI when user-stats.js is loaded
 if (document.readyState === 'loading') {

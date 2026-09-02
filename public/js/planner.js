@@ -78,21 +78,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Category metadata: icon, color, label mappings
     const CATEGORY_META = {
-        malls:     { icon: 'storefront-outline', color: '#2563EB', label: 'Mall' },
-        eateries:  { icon: 'cafe-outline',       color: '#D97706', label: 'Eatery' },
-        schools:   { icon: 'school-outline',     color: '#059669', label: 'School' },
-        terminals: { icon: 'bus-outline',         color: '#0284C7', label: 'Terminal' },
+        malls:          { icon: 'storefront-outline', color: '#2563EB', label: 'Mall' },
+        eateries:       { icon: 'restaurant-outline', color: '#D97706', label: 'Eatery' },
+        schools:        { icon: 'school-outline',     color: '#059669', label: 'School' },
+        terminals:      { icon: 'bus-outline',        color: '#0284C7', label: 'Terminal' },
+        Terminal:       { icon: 'bus-outline',        color: '#0284C7', label: 'Terminal' },
+        Stop:           { icon: 'pin-outline',        color: '#64748B', label: 'Transit Stop' },
+        coffee:         { icon: 'cafe-outline',       color: '#854D0E', label: 'Coffee Shop' },
+        establishments: { icon: 'business-outline',   color: '#4F46E5', label: 'Establishment' },
+        all:            { icon: 'location-outline',   color: '#378ADD', label: 'Place' },
     };
 
-    // Fallback hardcoded data (used when API is unavailable)
+    // Fallback hardcoded data (used when API is unavailable or offline)
     const CALAMBA_PLACES_FALLBACK = [
+        // Malls
         { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', lat: 14.203928, lng: 121.1545159, full_address: 'National Road, Brgy. Real, Calamba City Triangle, 4027 Laguna' },
         { id: 'citymall-calamba', name: 'CityMall - Calamba', category: 'malls', lat: 14.1986374, lng: 121.1604888, full_address: '4027 National Highway, Calamba, 4027 Laguna' },
         { id: 'south-supermarket', name: 'South Supermarket', category: 'malls', lat: 14.2030841, lng: 121.1584071, full_address: 'Manila S Rd, Calamba, 4027 Laguna' },
+        // Schools
         { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', lat: 14.2025089, lng: 121.1583962, full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '/assets/places/sti-college/sti-1.jpg' },
         { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba) Real Campus', category: 'schools', lat: 14.1987583, lng: 121.1519236, full_address: 'Real, Calamba, 4027 Laguna' },
         { id: 'real-elementary', name: 'Real Elementary School', category: 'schools', lat: 14.1987874, lng: 121.1492457, full_address: '336 Real Rd, Real, Calamba, 4027 Laguna' },
         { id: 'pwu-cdcec', name: 'PWU CDCEC Calamba', category: 'schools', lat: 14.2052421, lng: 121.1562636, full_address: '6544+3HW, Bridge, Calamba, 4027 Laguna' },
+        // Terminals
+        { id: 'calamba-crossing-term', name: 'Calamba Crossing / Central Terminal', category: 'terminals', lat: 14.19821, lng: 121.16315, full_address: 'Calamba Crossing, Brgy. Real, Calamba City' },
+        { id: 'sm-transport-term', name: 'SM City Calamba / SM Transport Terminal', category: 'terminals', lat: 14.19895, lng: 121.16335, full_address: 'SM City Calamba Complex, Calamba City' },
+        { id: 'turbina-bus-term', name: 'Turbina Bus Terminal', category: 'terminals', lat: 14.18888, lng: 121.14444, full_address: 'Turbina, Calamba City' },
+        // Eateries
+        { id: 'rose-grace', name: 'Rose and Grace Restaurant', category: 'eateries', lat: 14.2012, lng: 121.1568, full_address: 'Maharlika Highway, Brgy. Real, Calamba City' },
+        { id: 'ding-hao', name: 'Ding Hao Chinese Cuisine', category: 'eateries', lat: 14.1925, lng: 121.1620, full_address: 'National Highway, Brgy. Halang, Calamba City' },
+        // Coffee Shops
+        { id: 'moonbucks', name: 'Moonbucks', category: 'coffee', lat: 14.2104, lng: 121.1648, full_address: 'Elepaño Subdivision, Brgy. 3 (Bayan), Calamba City' },
+        { id: 'sample-coffee', name: 'Sample Coffee House', category: 'coffee', lat: 14.1843, lng: 121.1625, full_address: 'National Highway, Brgy. Bucal, Calamba City' },
+        { id: 'starbucks-crossing', name: 'Starbucks Calamba Crossing', category: 'coffee', lat: 14.2040, lng: 121.1546, full_address: 'Crossing, Brgy. Real, Calamba City' },
+        // Establishments
+        { id: 'calamba-city-hall', name: 'Calamba City Hall', category: 'establishments', lat: 14.2115, lng: 121.1558, full_address: 'Bacnotan Rd, Brgy. Real, Calamba City' },
+        { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'establishments', lat: 14.2140, lng: 121.1670, full_address: 'J.P. Rizal St, Brgy. 5 Poblacion, Calamba City' },
+        { id: 'calamba-plaza', name: 'Calamba Town Plaza', category: 'establishments', lat: 14.2135, lng: 121.1662, full_address: 'Rizal St, Poblacion, Calamba City' },
+        { id: 'calamba-medical', name: 'Calamba Medical Center', category: 'establishments', lat: 14.2065, lng: 121.1575, full_address: 'National Highway, Crossing, Calamba City' },
     ];
 
     const categoryPlacesLayer = L.layerGroup().addTo(map);
@@ -155,11 +178,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        let queryCat = selectedCategory;
+        if (selectedCategory === 'terminals') {
+            queryCat = 'terminal';
+        }
+
+        let endpoint = '/api/places';
+        if (selectedCategory !== 'all') {
+            endpoint += `?category=${encodeURIComponent(queryCat)}`;
+        }
+
         try {
-            const response = await fetch(`/api/places?category=${encodeURIComponent(selectedCategory)}`);
+            const response = await fetch(endpoint);
             if (!response.ok) throw new Error('API error');
-            const places = await response.json();
-            if (places.length > 0) {
+            let places = await response.json();
+            if (Array.isArray(places) && places.length > 0) {
+                if (selectedCategory === 'terminals') {
+                    places = places.filter(p => (p.category || '').toLowerCase().includes('terminal') || (p.category || '').toLowerCase() === 'stop');
+                }
                 renderPlacesOnMap(places);
                 return;
             }
@@ -168,7 +204,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Fallback: use hardcoded data
-        const fallback = CALAMBA_PLACES_FALLBACK.filter(p => p.category === selectedCategory);
+        let fallback = CALAMBA_PLACES_FALLBACK;
+        if (selectedCategory !== 'all') {
+            fallback = CALAMBA_PLACES_FALLBACK.filter(p => {
+                const c = (p.category || '').toLowerCase();
+                if (selectedCategory === 'terminals') {
+                    return c.includes('terminal');
+                }
+                return c === selectedCategory.toLowerCase();
+            });
+        }
         renderPlacesOnMap(fallback);
     }
 
@@ -186,24 +231,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Category Filter Bar Click Listeners
+    // Category Filter Segmented Control & Contextual Clear Logic
     const categoryBar = document.getElementById('mapCategoryBar');
-    if (categoryBar) {
-        const pills = categoryBar.querySelectorAll('.map-cat-pill');
-        pills.forEach(pill => {
-            pill.addEventListener('click', () => {
-                const wasActive = pill.classList.contains('active');
-                pills.forEach(p => p.classList.remove('active'));
+    const catClearBtn = document.getElementById('mapCatClearBtn');
 
-                if (wasActive) {
-                    renderCategoryPlaces('none');
+    if (categoryBar) {
+        const segments = categoryBar.querySelectorAll('.map-segment-btn');
+
+        const setCategoryActive = (category) => {
+            let activeFound = false;
+            segments.forEach(btn => {
+                const btnCat = btn.getAttribute('data-category');
+                if (btnCat === category && category !== 'none') {
+                    btn.classList.add('active');
+                    btn.setAttribute('aria-selected', 'true');
+                    activeFound = true;
                 } else {
-                    pill.classList.add('active');
-                    const cat = pill.getAttribute('data-category') || 'none';
-                    renderCategoryPlaces(cat);
+                    btn.classList.remove('active');
+                    btn.setAttribute('aria-selected', 'false');
+                }
+            });
+
+            if (catClearBtn) {
+                if (activeFound) {
+                    catClearBtn.classList.add('visible');
+                } else {
+                    catClearBtn.classList.remove('visible');
+                }
+            }
+
+            renderCategoryPlaces(activeFound ? category : 'none');
+        };
+
+        segments.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const wasActive = btn.classList.contains('active');
+                if (wasActive) {
+                    // Toggle off if already active
+                    setCategoryActive('none');
+                } else {
+                    const cat = btn.getAttribute('data-category') || 'none';
+                    setCategoryActive(cat);
                 }
             });
         });
+
+        if (catClearBtn) {
+            catClearBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                setCategoryActive('none');
+            });
+        }
     }
 
     // Initial load: do NOT render any category markers on the map

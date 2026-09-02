@@ -381,7 +381,13 @@ function initPlacePanelDOM() {
 
             // Sync with Calzada User Stats / Firestore / localStorage
             if (typeof window.toggleSavePlace === 'function') {
-                window.toggleSavePlace(placeName, category);
+                window.toggleSavePlace(placeName, category, currentPlaceId);
+            } else if (window.CalzadaActivity) {
+                if (isCurrentlySaved) {
+                    window.CalzadaActivity.unsavePlace(currentPlaceId || placeName);
+                } else {
+                    window.CalzadaActivity.savePlace(currentPlaceId || placeName, placeName, { category });
+                }
             } else {
                 // Fallback direct localStorage toggle
                 let saved = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
@@ -389,7 +395,7 @@ function initPlacePanelDOM() {
                 if (idx > -1) {
                     saved.splice(idx, 1);
                 } else {
-                    saved.unshift({ name: placeName, category });
+                    saved.unshift({ name: placeName, category, id: currentPlaceId });
                 }
                 localStorage.setItem('calzadaSavedPlaces', JSON.stringify(saved));
             }
@@ -1447,6 +1453,13 @@ window.openPlacePanel = async function(placeName) {
     } else {
         await setupRatingAndReviews(null);
     }
+
+    // 13. Record recentlyViewed activity (silently skipped if unauthenticated/guest)
+    try {
+        if (window.CalzadaActivity && typeof window.CalzadaActivity.addRecentlyViewed === 'function') {
+            window.CalzadaActivity.addRecentlyViewed(placeId || data.id || data.name, data.name || placeName);
+        }
+    } catch (_) {}
 };
 
 

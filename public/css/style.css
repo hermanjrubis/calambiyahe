@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap');
+
 /* =============================================
    CALZADA - UI/UX
    ============================================= */
@@ -1167,25 +1169,16 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
     line-height: 1;
 }
 
-/* Pulse ring animation */
-.pulse-ring {
-    display: none;
-}
-
-@keyframes pulseRing {
-    0% {
-        opacity: 0.6;
-        transform: scale(0.95);
-    }
-
-    100% {
-        opacity: 0;
-        transform: scale(1.45);
-    }
+/* Launcher Button Inverse Animation when Chat is Active */
+body.chat-active .chat-toggle-pill {
+    transform: scale(0.85) translateY(6px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 }
 
 /* =============================================
-   CHAT WINDOW
+   CHAT WINDOW - FLUID LAUNCHER POP ANIMATION
    ============================================= */
 .chat-window {
     position: fixed;
@@ -1227,12 +1220,19 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
 }
 
 .chat-header {
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
+    background: #FFFFFF;
+    background-image: 
+        radial-gradient(circle, rgba(55, 138, 221, 0.07) 1px, transparent 1px),
+        linear-gradient(145deg, #FFFFFF 0%, #FAFCFF 55%, #F4F8FC 100%);
+    background-size: 24px 24px, 100% 100%;
+    color: #042C53;
     padding: 16px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
 }
 
 .chat-header-info {
@@ -1241,51 +1241,70 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
     gap: 12px;
 }
 
-.chat-avatar {
-    width: 44px;
-    /* Slightly larger since no circle */
-    height: 44px;
-    background: transparent;
+.chat-avatar,
+.chat-header .bot-avatar {
+    width: 38px;
+    height: 38px;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    padding: 0 !important;
     overflow: visible;
 }
 
-.chat-avatar img {
+.chat-avatar img,
+.chat-header .bot-avatar img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    /* Use contain to ensure the whole icon is visible */
+    border-radius: 0 !important;
+}
+
+.chat-title-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    text-align: left;
 }
 
 .chat-name {
-    font-family: 'Outfit', sans-serif;
-    font-weight: 700;
-    font-size: 1rem;
+    font-family: 'Sora', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    color: #042C53 !important;
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
 }
 
 .chat-status {
-    font-size: 0.75rem;
-    opacity: 0.85;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.3;
     display: flex;
     align-items: center;
-    gap: 5px;
-    margin-top: 1px;
+    background: transparent;
+    border: none;
+    padding: 0;
 }
 
 .status-dot {
-    width: 7px;
-    height: 7px;
-    background: #6df09a;
-    border-radius: 50%;
-    display: inline-block;
+    display: none;
 }
 
 .close-chat-btn {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
+    background: transparent !important;
+    border: none !important;
+    color: #64748B !important;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -6654,17 +6673,32 @@ input#searchInput,
     color: #B91C1C;
 }
 
-/* Profile Modal Overlays (My Visits, Saved Places, Achievements, Settings) */
+/* ==========================================================================
+   CALZADA UNIFIED MODAL & CARD DESIGN SYSTEM
+   Standard visual language for Saved Establishments, Achievements, Visits, & Settings:
+   - Single Brand Blue accent (#378ADD)
+   - Zero colored pill backgrounds for metadata/status (plain typography only)
+   - Solid fill reserved exclusively for primary actions (e.g. Route pill)
+   - Sora font (700 weight) for all primary titles
+   - Two-line text pattern (Title + Subtitle)
+   - Plain SVGs without colored background containers
+   - Consistent card chips (#F8F9FC, 14px radius, 16px 20px padding)
+   ========================================================================== */
+
 .profile-modal-overlay {
     position: fixed;
-    inset: 0;
-    background: rgba(4, 44, 83, 0.45);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(4, 44, 83, 0.55);
     backdrop-filter: blur(6px);
-    z-index: 9999;
+    z-index: 99999;
     display: none;
     align-items: center;
     justify-content: center;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 .profile-modal-overlay.active {
@@ -6677,39 +6711,70 @@ input#searchInput,
     to { opacity: 1; transform: scale(1); }
 }
 
-.profile-modal-box {
-    background: #FFFFFF;
-    border-radius: 20px;
-    max-width: 520px;
-    width: 100%;
-    max-height: 85vh;
+/* Modal Window Shell - Blueprint Texture & Soft Gradient */
+.profile-modal-box,
+.saved-places-modal-box,
+.settings-box {
+    background-color: #FFFFFF;
+    background-image: 
+        radial-gradient(circle, rgba(55, 138, 221, 0.07) 1px, transparent 1px),
+        linear-gradient(145deg, #FFFFFF 0%, #FAFCFF 55%, #F4F8FC 100%);
+    background-size: 24px 24px, 100% 100%;
+    border-radius: 24px;
+    max-width: 680px;
+    width: 92%;
+    max-height: 88vh;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(4, 44, 83, 0.25);
-    border: 1px solid #E2E8F0;
+    box-shadow: 0 24px 64px rgba(4, 44, 83, 0.22), 0 4px 16px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(226, 232, 240, 0.95);
     font-family: 'Outfit', sans-serif;
+    position: relative;
 }
 
-.profile-modal-header {
+/* Modal Header - Frosted Blur, Sora 700 Title, Soft Brand Blue Icon Circle */
+.profile-modal-header,
+.saved-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 24px;
-    border-bottom: 1px solid #F1F5F9;
+    padding: 22px 28px 20px 28px;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.9);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
 }
 
-.modal-header-title {
+.modal-header-title,
+.saved-header-title {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
 }
 
+.modal-header-icon-box,
+.saved-header-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(55, 138, 221, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #378ADD;
+    box-shadow: inset 0 0 0 1px rgba(55, 138, 221, 0.15);
+}
+
+.modal-header-heading,
+.saved-modal-heading,
 .modal-header-title h3 {
     margin: 0;
-    font-size: 1.15rem;
-    color: #042C53;
-    font-weight: 700;
+    font-family: 'Sora', sans-serif !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    color: #042C53 !important;
+    letter-spacing: -0.01em;
 }
 
 .modal-close-btn {
@@ -6733,275 +6798,389 @@ input#searchInput,
     color: #042C53;
 }
 
-.profile-modal-body {
-    padding: 20px 24px;
+/* Modal Body */
+.profile-modal-body,
+.saved-modal-body {
+    padding: 24px 28px 28px 28px;
     overflow-y: auto;
 }
 
-.modal-subtitle {
-    margin: 0 0 16px;
+.modal-subtitle,
+.saved-modal-subtitle {
+    margin: 0 0 22px 0;
+    font-family: 'Outfit', sans-serif;
     font-size: 0.88rem;
     color: #64748B;
+    line-height: 1.5;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   UNIFIED CARD CHIP SYSTEM (Saved Stops, Visits, Achievements)
+   ───────────────────────────────────────────────────────────────────────────── */
 
 .visits-list-wrap,
-.achievements-list-wrap {
+.achievements-list-wrap,
+.saved-timeline-items {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
 }
 
-.visit-item-card {
+/* Base List Card Styling */
+.visit-item-card,
+.achievement-card,
+.saved-stop-card {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-    background: #F8FAFC;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: #F8F9FC;
     border: 1px solid #E2E8F0;
     border-radius: 14px;
-    transition: all 0.15s ease;
+    transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    gap: 16px;
+    text-align: left;
 }
 
-.visit-item-card:hover {
+.visit-item-card:hover,
+.achievement-card:hover,
+.saved-stop-card:hover {
     background: #FFFFFF;
-    box-shadow: 0 4px 12px rgba(4, 44, 83, 0.06);
-    border-color: #378ADD;
+    border-color: #CBD5E1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
 }
 
-.visit-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: #EFF6FF;
+/* Two-Line Text Hierarchy: Title (Sora 700) + Subtitle (Outfit regular gray) */
+.visit-item-info,
+.achievement-info,
+.saved-stop-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.visit-item-name,
+.achievement-title,
+.saved-stop-name {
+    font-family: 'Sora', sans-serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    color: #042C53 !important;
+    margin: 0;
+    line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: -0.01em;
+}
+
+.visit-item-subtitle,
+.achievement-subtitle,
+.saved-stop-subtitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 400;
+    color: #64748B;
+    line-height: 1.35;
+    margin: 0;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   EXPLORATION ACHIEVEMENTS SPECIFIC RULES
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.achievement-card.locked {
+    opacity: 0.72;
+}
+
+/* Plain icon without background container */
+.achievement-icon-wrap {
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-}
-
-.visit-icon-wrap.saved {
-    background: #FEF2F2;
-}
-
-.visit-item-info {
-    flex: 1;
-    overflow: hidden;
-    text-align: left;
-}
-
-.visit-item-name {
-    margin: 0;
-    font-size: 0.94rem;
-    font-weight: 600;
-    color: #042C53;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.visit-item-meta {
-    font-size: 0.78rem;
-    color: #64748B;
-}
-
-.visit-go-btn {
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #EBF3FB;
     color: #378ADD;
-    text-decoration: none;
+    background: transparent !important;
+    border: none !important;
+    transition: all 150ms ease;
+}
+
+.achievement-icon-wrap.locked {
+    color: #94A3B8;
+}
+
+/* Plain typography status (Zero badge/pill backgrounds) */
+.achievement-status-wrap {
+    flex-shrink: 0;
+}
+
+.achievement-status {
+    font-family: 'Outfit', sans-serif;
     font-size: 0.82rem;
-    font-weight: 600;
-    display: inline-flex;
+    line-height: 1;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.achievement-status.unlocked {
+    color: #378ADD;
+    font-weight: 700;
+}
+
+.achievement-status.locked {
+    color: #94A3B8;
+    font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SAVED ESTABLISHMENTS TRANSIT TRACK SPECIFICS
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.saved-timeline-track-wrap {
+    position: relative;
+    padding-left: 28px;
+}
+
+.saved-timeline-track {
+    position: absolute;
+    left: 8px;
+    top: 18px;
+    bottom: 24px;
+    width: 2px;
+    background: linear-gradient(180deg, #378ADD 0%, rgba(55, 138, 221, 0.45) 70%, rgba(203, 213, 225, 0.4) 100%);
+    border-radius: 999px;
+}
+
+.saved-stop-row {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    transition: opacity 180ms ease, transform 180ms ease, max-height 200ms ease, margin 200ms ease;
+    max-height: 140px;
+    opacity: 1;
+}
+
+.saved-stop-node-wrap {
+    position: absolute;
+    left: -28px;
+    top: 24px;
+    width: 18px;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 4px;
-    transition: all 0.15s ease;
+    z-index: 2;
 }
 
-.visit-go-btn:hover {
+.saved-stop-node {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid #378ADD;
+    box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.18);
+    transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.saved-stop-row:hover .saved-stop-node {
+    transform: scale(1.3);
     background: #378ADD;
-    color: #FFFFFF;
+    border-color: #FFFFFF;
+    box-shadow: 0 0 0 5px rgba(55, 138, 221, 0.32);
 }
 
-.saved-item-actions {
+.saved-stop-row.removing {
+    opacity: 0 !important;
+    transform: scale(0.94) translateX(-10px) !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+    transition: opacity 180ms ease, transform 180ms ease, max-height 200ms ease, margin 200ms ease !important;
+}
+
+/* Actions Section */
+.visit-item-actions,
+.saved-stop-actions {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 10px;
+    flex-shrink: 0;
 }
 
-.remove-save-action-btn {
-    background: #F1F5F9;
+/* Primary Action: Solid Brand Blue Pill ("Route") */
+.saved-route-pill-btn {
+    background: linear-gradient(135deg, #378ADD 0%, #256bb8 100%);
+    color: #FFFFFF !important;
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 3px 10px rgba(55, 138, 221, 0.32);
+    transition: all 150ms ease;
+    line-height: 1;
+}
+
+.saved-route-pill-btn:hover {
+    background: linear-gradient(135deg, #256bb8 0%, #1d528f 100%);
+    box-shadow: 0 5px 14px rgba(55, 138, 221, 0.42);
+    transform: translateY(-1px);
+    color: #FFFFFF !important;
+}
+
+.saved-route-pill-btn:active {
+    transform: translateY(0);
+}
+
+.calzada-route-arrow {
+    transition: transform 150ms ease;
+}
+
+.saved-route-pill-btn:hover .calzada-route-arrow {
+    transform: translate(1.5px, -1.5px);
+}
+
+/* Secondary Action: Low-Emphasis Gray Icon ("Remove" X) */
+.saved-remove-btn {
+    background: transparent;
     border: none;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     color: #94A3B8;
-    transition: all 0.15s ease;
-}
-
-.remove-save-action-btn:hover {
-    background: #FEE2E2;
-    color: #DC2626;
-}
-
-/* Quick Bar inside Modals */
-.modal-quick-bar {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 14px;
-    background: #F8FAFC;
-    padding: 8px;
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
-}
-
-.modal-quick-input {
-    flex: 1;
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 0.84rem;
-    font-family: inherit;
-}
-
-.modal-quick-select {
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
-    padding: 6px 8px;
-    font-size: 0.82rem;
-    font-family: inherit;
-    background: #FFFFFF;
-    color: #334155;
-}
-
-.modal-quick-btn {
-    background: #378ADD;
-    color: #FFFFFF;
-    border: none;
-    border-radius: 8px;
-    padding: 6px 12px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.15s ease;
-}
-
-.modal-quick-btn:hover {
-    background: #256bb8;
-}
-
-.modal-quick-btn.save {
-    background: #DC2626;
-}
-
-.modal-quick-btn.save:hover {
-    background: #B91C1C;
-}
-
-/* Empty States */
-.empty-state-card {
-    text-align: center;
-    padding: 32px 20px;
-    background: #F8FAFC;
-    border-radius: 16px;
-    border: 1px dashed #CBD5E1;
-}
-
-.empty-state-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: #F1F5F9;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
-}
-
-.empty-state-title {
-    margin: 0 0 6px;
-    font-size: 0.98rem;
-    font-weight: 700;
-    color: #334155;
-}
-
-.empty-state-desc {
-    margin: 0;
-    font-size: 0.84rem;
-    color: #64748B;
-    max-width: 320px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Badges / Achievements Cards */
-.badge-item-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px;
-    border-radius: 16px;
-    border: 1px solid #E2E8F0;
-    background: #FFFFFF;
-    text-align: left;
-}
-
-.badge-item-card.locked {
-    opacity: 0.65;
-    background: #F8FAFC;
-}
-
-.badge-icon-box {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: all 150ms ease;
     flex-shrink: 0;
+    padding: 0;
 }
 
-.badge-info {
-    flex: 1;
+.saved-remove-btn:hover {
+    background: #FEE2E2;
+    color: #EF4444;
 }
 
-.badge-name-row {
+/* Empty State */
+.saved-empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(6px);
+    border-radius: 18px;
+    border: 1.5px dashed #CBD5E1;
+    margin: 8px 0;
+}
+
+.saved-empty-icon-box {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: #EFF6FF;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
+    justify-content: center;
+    margin: 0 auto 16px;
+    color: #378ADD;
+    box-shadow: 0 4px 12px rgba(55, 138, 221, 0.15);
 }
 
-.badge-title {
-    margin: 0;
-    font-size: 0.98rem;
+.saved-empty-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.12rem;
     font-weight: 700;
     color: #042C53;
+    margin: 0 0 8px 0;
 }
 
-.badge-status-tag {
-    font-size: 0.72rem;
-    font-weight: 700;
-    padding: 2px 8px;
+.saved-empty-desc {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    color: #64748B;
+    max-width: 340px;
+    margin: 0 auto 20px;
+    line-height: 1.5;
+}
+
+.saved-empty-explore-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #378ADD 0%, #256bb8 100%);
+    color: #FFFFFF !important;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 10px 22px;
     border-radius: 999px;
-    background: #F1F5F9;
-    color: #64748B;
+    text-decoration: none;
+    box-shadow: 0 3px 10px rgba(55, 138, 221, 0.32);
+    transition: all 150ms ease;
 }
 
-.badge-status-tag.earned {
-    background: #FEF3C7;
-    color: #D97706;
+.saved-empty-explore-btn:hover {
+    background: linear-gradient(135deg, #256bb8 0%, #1d528f 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(55, 138, 221, 0.42);
+    color: #FFFFFF !important;
 }
 
-.badge-desc {
-    margin: 0;
-    font-size: 0.82rem;
-    color: #64748B;
+.saved-empty-explore-btn:hover .calzada-route-arrow {
+    transform: translate(1.5px, -1.5px);
+}
+
+@media (max-width: 640px) {
+    .profile-modal-box,
+    .saved-places-modal-box,
+    .settings-box {
+        width: 95%;
+        max-height: 90vh;
+    }
+    .profile-modal-header,
+    .saved-modal-header {
+        padding: 18px 20px;
+    }
+    .profile-modal-body,
+    .saved-modal-body {
+        padding: 18px 16px 22px 16px;
+    }
+    .saved-timeline-track-wrap {
+        padding-left: 22px;
+    }
+    .saved-timeline-track {
+        left: 6px;
+    }
+    .saved-stop-node-wrap {
+        left: -22px;
+    }
+    .visit-item-card,
+    .achievement-card,
+    .saved-stop-card {
+        padding: 14px 14px;
+        gap: 12px;
+    }
+    .saved-route-pill-btn {
+        padding: 7px 14px;
+        font-size: 0.8rem;
+    }
 }
 
 /* Settings Box */
@@ -9159,3 +9338,157 @@ input#searchInput,
     }
 }
 
+/* =============================================
+   SIDE NAVIGATION DRAWER - CALZADA REDESIGN
+   ============================================= */
+.drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 44, 83, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 10400;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+}
+
+.drawer-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.side-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 295px;
+    max-width: 82vw;
+    z-index: 10500;
+    transform: translateX(100%);
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    background-color: #FFFFFF;
+    background-image: 
+        radial-gradient(circle, rgba(55, 138, 221, 0.06) 1px, transparent 1px),
+        linear-gradient(180deg, #FFFFFF 0%, #FAFCFF 100%);
+    background-size: 20px 20px, 100% 100%;
+    border-left: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: -10px 0 36px rgba(4, 44, 83, 0.14), -2px 0 10px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 768px) {
+    .side-drawer {
+        width: 310px;
+    }
+}
+
+.side-drawer.open {
+    transform: translateX(0);
+}
+
+.drawer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 22px 18px 24px;
+    border-bottom: 1px solid rgba(241, 245, 249, 0.95);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+.drawer-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.drawer-logo {
+    height: 34px;
+    max-width: 140px;
+    object-fit: contain;
+    display: block;
+}
+
+.drawer-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #F1F5F9;
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #64748B;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+}
+
+.drawer-close:hover {
+    background: #E2E8F0;
+    color: #042C53;
+}
+
+.drawer-links {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+    overflow-y: auto;
+}
+
+.drawer-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.drawer-links a,
+.drawer-nav-item {
+    display: flex;
+    align-items: center;
+    padding: 14px 24px;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-size: 1.12rem;
+    font-weight: 600;
+    color: #042C53;
+    text-decoration: none;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    border-left: 3.5px solid transparent;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-links a:hover,
+.drawer-nav-item:hover {
+    color: #378ADD;
+    background: rgba(55, 138, 221, 0.05);
+    border-left-color: #378ADD;
+    padding-left: 28px;
+}
+
+.drawer-links a.active,
+.drawer-nav-item.active {
+    color: #378ADD;
+    font-weight: 700;
+    background: rgba(55, 138, 221, 0.08);
+    border-left-color: #378ADD;
+}
+
+.drawer-separator {
+    height: 1px;
+    background: rgba(226, 232, 240, 0.85);
+    margin: 14px 24px;
+}
+
+.drawer-footer-text {
+    padding: 18px 24px 24px 24px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    color: #94A3B8;
+    text-align: left;
+}

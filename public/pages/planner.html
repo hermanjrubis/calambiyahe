@@ -200,28 +200,24 @@
         </div>
     </div>
 
-    <!-- Category Filter Pill Bar (Google Maps Style) -->
+    <!-- Category Filter Segmented Control Bar -->
     <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
-        <div class="map-category-bar" id="mapCategoryBar">
-            <button class="map-cat-pill" data-category="none" type="button">
-                <ion-icon name="close-circle-outline"></ion-icon>
-                <span>Clear Map</span>
-            </button>
-            <button class="map-cat-pill" data-category="malls" type="button">
-                <ion-icon name="storefront-outline"></ion-icon>
-                <span>Malls</span>
-            </button>
-            <button class="map-cat-pill" data-category="eateries" type="button">
-                <ion-icon name="cafe-outline"></ion-icon>
-                <span>Eateries</span>
-            </button>
-            <button class="map-cat-pill" data-category="schools" type="button">
-                <ion-icon name="school-outline"></ion-icon>
-                <span>Schools</span>
-            </button>
-            <button class="map-cat-pill" data-category="terminals" type="button">
-                <ion-icon name="bus-outline"></ion-icon>
-                <span>Terminals</span>
+        <div class="map-category-container">
+            <div class="map-segmented-control" id="mapCategoryBar" role="tablist" aria-label="Place Categories">
+                <button class="map-segment-btn" data-category="all" type="button" role="tab" aria-selected="false">All Places</button>
+                <button class="map-segment-btn" data-category="malls" type="button" role="tab" aria-selected="false">Malls</button>
+                <button class="map-segment-btn" data-category="eateries" type="button" role="tab" aria-selected="false">Eateries</button>
+                <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false">Schools</button>
+                <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false">Terminals</button>
+                <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false">Coffee Shops</button>
+                <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false">Establishments</button>
+            </div>
+            <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button" aria-label="Clear active category filter">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span>Clear</span>
             </button>
         </div>
     </div>
@@ -491,19 +487,25 @@
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
-    <div class="side-drawer glass-panel" id="sideDrawer">
+    <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
-            <button class="drawer-close" id="drawerCloseBtn"><ion-icon name="close-outline"></ion-icon></button>
-            <img src="../assets/logo-new.png" alt="Calzada" class="drawer-logo" onerror="this.src='assets/logo-blue.png'">
+            <a href="index.html" class="drawer-brand" aria-label="Calzada Home">
+                <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+            </a>
+            <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
         </div>
         <nav class="drawer-links">
-            <a href="index.html"><ion-icon name="home-outline"></ion-icon> <span data-i18n="footer.nav.home">Home</span></a>
-            <a href="about.html"><ion-icon name="information-circle-outline"></ion-icon> <span data-i18n="footer.nav.about">About Us</span></a>
-            <a href="places.html"><ion-icon name="compass-outline"></ion-icon> <span data-i18n="footer.nav.places">Place Finder</span></a>
-            <a href="planner.html" class="active"><ion-icon name="map-outline"></ion-icon> <span data-i18n="footer.nav.planner">Planner</span></a>
-            <a href="faq.html"><ion-icon name="help-circle-outline"></ion-icon> <span data-i18n="footer.nav.faq">FAQs</span></a>
-            <a href="feedback.html"><ion-icon name="chatbox-ellipses-outline"></ion-icon> <span data-i18n="footer.nav.feedback">Feedback</span></a>
-            <a href="#" id="drawerRoutieLink"><ion-icon name="chatbubble-outline"></ion-icon> <span data-i18n="footer.nav.routie">Ask Routie</span></a>
+            <div class="drawer-nav-group">
+                <a href="index.html" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="about.html" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="places.html" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="planner.html" class="drawer-nav-item active"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="faq.html" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="feedback.html" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+                <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
+            </div>
 
             <div class="drawer-separator"></div>
 
@@ -518,7 +520,7 @@
                     </button>
                     <div class="lang-dropdown-menu">
                         <button class="lang-dropdown-item" type="button" data-lang="en">
-                            <span class="lang-flag">🇺🇸</span>
+                            <span class="lang-flag">🌐</span>
                             <span class="lang-name">English</span>
                             <span class="lang-code">EN</span>
                             <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>

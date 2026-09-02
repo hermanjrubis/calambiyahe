@@ -537,7 +537,7 @@ function applyLang(lang) {
         const flag   = btn.querySelector('.lang-flag');
         if (active) active.textContent = lang === 'en' ? 'EN' : 'TL';
         if (other)  other.textContent  = lang === 'en' ? 'TL' : 'EN';
-        if (flag)   flag.textContent   = lang === 'en' ? '🇺🇸' : '🇵🇭';
+        if (flag)   flag.textContent   = lang === 'en' ? '🌐' : '🇵🇭';
         
         // Visual indicator
         btn.classList.remove('en-mode', 'tl-mode');

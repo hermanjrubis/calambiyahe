@@ -746,8 +746,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!text) return;
 
         interruptTyping();
-
         addMessage(text, true);
+        try {
+            if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
+                window.CalzadaActivity.addChatMessage('user', text);
+            }
+        } catch (_) {}
+
         chatInput.value = '';
         chatInput.style.height = 'auto';
         chatInput.classList.remove('scrolling');
@@ -792,6 +797,11 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 
             if (botReply) {
                 addMessage(botReply, false);
+                try {
+                    if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
+                        window.CalzadaActivity.addChatMessage('routie', botReply);
+                    }
+                } catch (_) {}
             } else {
                 if (isDev) console.error("API Error:", data);
                 let errMsg = window.t('js.error_system');
@@ -1102,7 +1112,14 @@ function checkPasswordStrength() {
 
         function doMobileSearch() {
             const q = mobileInput ? mobileInput.value.trim() : '';
-            if (q) window.location.href = 'places.html?q=' + encodeURIComponent(q);
+            if (q) {
+                try {
+                    if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
+                        window.CalzadaActivity.addSearchHistory(q);
+                    }
+                } catch (_) {}
+                window.location.href = 'places.html?q=' + encodeURIComponent(q);
+            }
         }
         if (mobileSubmit) mobileSubmit.addEventListener('click', doMobileSearch);
         if (mobileInput) {
@@ -1120,7 +1137,7 @@ function checkPasswordStrength() {
                         if (!places.length) { if (mobileResults) mobileResults.style.display = 'none'; return; }
                         if (mobileResults) {
                             mobileResults.innerHTML = places.slice(0, 6).map(p => `
-                                <div class="search-result-item" data-href="places.html?q=${encodeURIComponent(p.name || p.place_name || '')}">
+                                <div class="search-result-item" data-name="${(p.name || p.place_name || '').replace(/"/g, '&quot;')}" data-href="places.html?q=${encodeURIComponent(p.name || p.place_name || '')}">
                                     <ion-icon name="location-outline"></ion-icon>
                                     <div>
                                         <div class="result-name">${p.name || p.place_name || ''}</div>
@@ -1128,7 +1145,17 @@ function checkPasswordStrength() {
                                     </div>
                                 </div>`).join('');
                             mobileResults.querySelectorAll('.search-result-item').forEach(el => {
-                                el.addEventListener('click', () => { window.location.href = el.dataset.href; });
+                                el.addEventListener('click', () => {
+                                    const placeQuery = el.getAttribute('data-name') || '';
+                                    if (placeQuery) {
+                                        try {
+                                            if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
+                                                window.CalzadaActivity.addSearchHistory(placeQuery);
+                                            }
+                                        } catch (_) {}
+                                    }
+                                    window.location.href = el.dataset.href;
+                                });
                             });
                             mobileResults.style.display = 'block';
                         }
@@ -1138,52 +1165,18 @@ function checkPasswordStrength() {
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') closeOverlay(); });
 
-        // --- Mobile Bell & Desktop Bell Toggle ---
-        const mobileBell = document.getElementById('mobileBellBtn');
-        const desktopBell = document.getElementById('bellAlertsBtn');
-        const alertsMenu = document.getElementById('alertsDropdownMenu');
-        const mobileBellBadge = document.getElementById('mobileBellBadge');
-        const desktopBadge = document.getElementById('bellBadge');
-
+        // --- Universal Close Helper ---
         const closeAllNavDropdowns = () => {
+            const alertsMenu = document.getElementById('alertsDropdownMenu');
             if (alertsMenu) alertsMenu.classList.remove('open');
             const exploreMenu = document.getElementById('exploreDropdown');
             if (exploreMenu) exploreMenu.classList.remove('open');
+            const userPill = document.getElementById('userAvatarPill');
+            const userMenu = document.getElementById('userProfileMenu');
+            if (userPill) userPill.classList.remove('open');
+            if (userMenu) userMenu.classList.remove('open');
         };
-
-        if (desktopBell && alertsMenu) {
-            desktopBell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = alertsMenu.classList.contains('open');
-                closeAllNavDropdowns();
-                if (!isOpen) {
-                    alertsMenu.classList.add('open');
-                    if (typeof window._calzadaMarkActivityAsRead === 'function') {
-                        window._calzadaMarkActivityAsRead();
-                    }
-                }
-            });
-        }
-
-        if (mobileBell && alertsMenu) {
-            mobileBell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isOpen = alertsMenu.classList.contains('open');
-                closeAllNavDropdowns();
-                if (!isOpen) {
-                    alertsMenu.classList.add('open');
-                    if (typeof window._calzadaMarkActivityAsRead === 'function') {
-                        window._calzadaMarkActivityAsRead();
-                    }
-                }
-            });
-        }
-
-        document.addEventListener('click', (e) => {
-            if (alertsMenu && !e.target.closest('.alerts-dropdown-container') && !e.target.closest('#mobileBellBtn') && !e.target.closest('#alertsDropdownMenu')) {
-                alertsMenu.classList.remove('open');
-            }
-        });
+        window._calzadaCloseAllDropdowns = closeAllNavDropdowns;
 
         // --- Explore Dropdown Toggle ---
         const exploreDropdown = document.getElementById('exploreDropdown');
