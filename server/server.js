@@ -4,6 +4,9 @@ const cors = require('cors');
 const https = require('https');
 const { Pool } = require('pg');
 const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const multer = require('multer');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 if (!process.env.GROQ_API_KEY) {
@@ -42,6 +45,7 @@ const staticOptions = {
 app.use(express.static(staticPublicPath, staticOptions));
 app.use('/public', express.static(staticPublicPath, staticOptions));
 app.use('/pages', express.static(path.join(staticPublicPath, 'pages'), staticOptions));
+app.use('/uploads', express.static(path.join(staticPublicPath, 'uploads'), staticOptions));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(staticPublicPath, 'pages/index.html'));
@@ -262,6 +266,7 @@ app.get('/api/places/:id/images', async (req, res) => {
 });
 
 const { createAuthMiddleware, getAuth } = require('./auth');
+const { getFirestore } = require('firebase-admin/firestore');
 const requireAuth = createAuthMiddleware(pool);
 
 // GET /api/places/:id/rating - Return average rating and total count for a place (Public)
@@ -521,6 +526,394 @@ app.post('/api/chat', async (req, res) => {
         res.status(500).json({ error: 'May problema sa AI assistant. Subukan ulit mamaya.' });
     }
 });
+
+/**
+ * Dev API to save per-node northOffset calibration to manifest.json
+ */
+app.post('/api/360/calibrate', (req, res) => {
+    try {
+        const fs = require('fs');
+        const manifestFile = path.join(__dirname, '../public/assets/360/manifest.json');
+        const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+        const { nodeId, northOffset, updates } = req.body;
+
+        if (Array.isArray(updates)) {
+            updates.forEach(u => {
+                const node = manifest.nodes.find(n => n.id === u.id);
+                if (node) node.northOffset = Number(Number(u.northOffset).toFixed(1));
+            });
+        } else if (nodeId && typeof northOffset === 'number') {
+            const node = manifest.nodes.find(n => n.id === nodeId);
+            if (node) {
+                node.northOffset = Number(northOffset.toFixed(1));
+            } else {
+                return res.status(404).json({ error: `Node ${nodeId} not found` });
+            }
+        }
+
+        fs.writeFileSync(manifestFile, JSON.stringify(manifest, null, 2), 'utf8');
+        console.log('[360 Calibrate API] Saved calibration to manifest.json');
+        res.json({ success: true, manifest });
+    } catch (err) {
+        console.error('[360 Calibrate API Error]', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * Detect image MIME type from binary magic numbers (prevents fake extension bypasses)
+ */
+function detectImageMimeType(buffer) {
+    if (!buffer || buffer.length < 12) return null;
+    // JPEG: FF D8 FF
+    if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) {
+        return 'image/jpeg';
+    }
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if (
+        buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47 &&
+        buffer[4] === 0x0D && buffer[5] === 0x0A && buffer[6] === 0x1A && buffer[7] === 0x0A
+    ) {
+        return 'image/png';
+    }
+    // WebP: 'RIFF' .... 'WEBP'
+    if (
+        buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+        buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50
+    ) {
+        return 'image/webp';
+    }
+    return null;
+}
+
+const submissionUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB limit
+        files: 5
+    }
+}).array('photos', 5);
+
+// POST /api/submissions/upload - Authenticated photo upload for submit.html
+app.post('/api/submissions/upload', requireAuth, (req, res) => {
+    submissionUpload(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size exceeds 50MB limit.' });
+            }
+            if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+                return res.status(400).json({ error: 'Maximum 5 photos allowed per submission.' });
+            }
+            return res.status(400).json({ error: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ error: err.message || 'File upload error' });
+        }
+
+        const submissionId = req.body ? req.body.submissionId : null;
+        if (!submissionId || !/^[a-zA-Z0-9_-]{1,128}$/.test(submissionId)) {
+            return res.status(400).json({ error: 'Invalid or missing submissionId. Must be alphanumeric.' });
+        }
+
+        const files = req.files;
+        if (!files || !Array.isArray(files) || files.length === 0) {
+            return res.status(400).json({ error: 'At least one photo file is required.' });
+        }
+
+        const photoUrls = [];
+        const uploadDir = path.join(staticPublicPath, 'uploads', 'submissions', submissionId);
+
+        try {
+            fs.mkdirSync(uploadDir, { recursive: true });
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                // Verify genuine image mimetype via magic bytes
+                const realMime = detectImageMimeType(file.buffer);
+                if (!realMime) {
+                    return res.status(400).json({ 
+                        error: `File "${file.originalname}" is not a valid image. Only JPEG, PNG, and WebP are allowed.` 
+                    });
+                }
+
+                const ext = realMime === 'image/jpeg' ? '.jpg' : (realMime === 'image/png' ? '.png' : '.webp');
+                const safeRandomName = crypto.randomBytes(8).toString('hex') + ext;
+                const safeFileName = `${i}-${safeRandomName}`;
+                const destinationPath = path.join(uploadDir, safeFileName);
+
+                fs.writeFileSync(destinationPath, file.buffer);
+
+                const fileUrl = `/uploads/submissions/${submissionId}/${safeFileName}`;
+                photoUrls.push(fileUrl);
+            }
+
+            return res.json({
+                success: true,
+                submissionId,
+                photoUrls
+            });
+        } catch (writeErr) {
+            console.error('Error saving uploaded files:', writeErr);
+            return res.status(500).json({ error: 'Failed to save uploaded photos to server disk.' });
+        }
+    });
+});
+
+/**
+ * Shared helper: verify that a business exists, belongs to the authenticated user, and is approved.
+ * Returns { error, status } on failure or { businessData } on success.
+ */
+async function verifyApprovedBusinessOwner(businessId, uid) {
+    const adminDb = getFirestore();
+    const businessDocRef = adminDb.collection('businesses').doc(businessId);
+    const businessDoc = await businessDocRef.get();
+
+    if (!businessDoc.exists) {
+        return { error: 'Business not found.', status: 404 };
+    }
+
+    const businessData = businessDoc.data();
+    if (businessData.ownerId !== uid) {
+        return { error: 'Forbidden: You do not own this business.', status: 403 };
+    }
+
+    if (businessData.status !== 'approved') {
+        return { error: 'Forbidden: Business is not approved.', status: 403 };
+    }
+
+    return { businessData };
+}
+
+const businessPhotoUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit for single profile photo
+        files: 1
+    }
+}).single('photo');
+
+// POST /api/businesses/upload-photo - Authenticated profile photo upload for my-business.html
+app.post('/api/businesses/upload-photo', requireAuth, (req, res) => {
+    businessPhotoUpload(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size exceeds 10MB limit.' });
+            }
+            return res.status(400).json({ error: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ error: err.message || 'File upload error' });
+        }
+
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId. Must be alphanumeric.' });
+        }
+
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ error: 'A photo file is required.' });
+        }
+
+        // Verify genuine image mimetype via magic bytes
+        const realMime = detectImageMimeType(file.buffer);
+        if (!realMime) {
+            return res.status(400).json({ 
+                error: `File "${file.originalname}" is not a valid image. Only JPEG, PNG, and WebP are allowed.` 
+            });
+        }
+
+        // Server-side Admin SDK verification: fetch business doc and verify ownership and approved status
+        let businessData = null;
+        try {
+            const check = await verifyApprovedBusinessOwner(businessId, req.user.uid);
+            if (check.error) {
+                return res.status(check.status).json({ error: check.error });
+            }
+            businessData = check.businessData;
+        } catch (dbErr) {
+            console.error('Error verifying business document with Admin SDK:', dbErr);
+            return res.status(500).json({ error: 'Failed to verify business details.' });
+        }
+
+        const uploadDir = path.join(staticPublicPath, 'uploads', 'businesses', businessId);
+
+        try {
+            fs.mkdirSync(uploadDir, { recursive: true });
+
+            const ext = realMime === 'image/jpeg' ? '.jpg' : (realMime === 'image/png' ? '.png' : '.webp');
+            const safeFileName = `${crypto.randomBytes(8).toString('hex')}${ext}`;
+            const destinationPath = path.join(uploadDir, safeFileName);
+
+            fs.writeFileSync(destinationPath, file.buffer);
+
+            const fileUrl = `/uploads/businesses/${businessId}/${safeFileName}`;
+
+            // Clean up old local profile photo if it exists and points to our uploads folder
+            if (businessData && businessData.profilePhotoUrl && typeof businessData.profilePhotoUrl === 'string') {
+                const oldUrl = businessData.profilePhotoUrl;
+                if (oldUrl.startsWith(`/uploads/businesses/${businessId}/`)) {
+                    try {
+                        const relativeOldPath = oldUrl.replace(/^\//, '');
+                        const absoluteOldPath = path.join(staticPublicPath, relativeOldPath);
+                        if (fs.existsSync(absoluteOldPath) && absoluteOldPath !== destinationPath) {
+                            fs.unlinkSync(absoluteOldPath);
+                            console.log(`Deleted old profile photo: ${absoluteOldPath}`);
+                        }
+                    } catch (cleanupErr) {
+                        console.warn('Failed to delete old profile photo from disk:', cleanupErr.message);
+                    }
+                }
+            }
+
+            return res.json({
+                success: true,
+                businessId,
+                photoUrl: fileUrl
+            });
+        } catch (writeErr) {
+            console.error('Error saving uploaded business photo:', writeErr);
+            return res.status(500).json({ error: 'Failed to save uploaded photo to server disk.' });
+        }
+    });
+});
+
+const postPhotosUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit per file
+        files: 5
+    }
+}).array('photos', 5);
+
+// POST /api/posts/upload-photo - Authenticated multi-photo upload for business posts (1-5 photos)
+app.post('/api/posts/upload-photo', requireAuth, (req, res) => {
+    postPhotosUpload(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'One or more files exceed the 10MB size limit.' });
+            }
+            if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+                return res.status(400).json({ error: 'Maximum 5 photos allowed per post.' });
+            }
+            return res.status(400).json({ error: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ error: err.message || 'File upload error' });
+        }
+
+        const postId = req.body ? req.body.postId : null;
+        if (!postId || !/^[a-zA-Z0-9_-]{1,128}$/.test(postId)) {
+            return res.status(400).json({ error: 'Invalid or missing postId. Must be alphanumeric.' });
+        }
+
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId. Must be alphanumeric.' });
+        }
+
+        const files = req.files;
+        if (!files || !Array.isArray(files) || files.length === 0) {
+            return res.status(400).json({ error: 'At least one photo file is required.' });
+        }
+
+        if (files.length > 5) {
+            return res.status(400).json({ error: 'Maximum 5 photos allowed per post.' });
+        }
+
+        // Verify genuine image mimetype via magic bytes for ALL files before saving any to disk
+        const validatedMimes = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const realMime = detectImageMimeType(file.buffer);
+            if (!realMime) {
+                return res.status(400).json({ 
+                    error: `File "${file.originalname}" is not a valid image. Only JPEG, PNG, and WebP are allowed.` 
+                });
+            }
+            validatedMimes.push(realMime);
+        }
+
+        // Server-side Admin SDK verification: verify business ownership and approved status
+        try {
+            const check = await verifyApprovedBusinessOwner(businessId, req.user.uid);
+            if (check.error) {
+                return res.status(check.status).json({ error: check.error });
+            }
+        } catch (dbErr) {
+            console.error('Error verifying business document with Admin SDK:', dbErr);
+            return res.status(500).json({ error: 'Failed to verify business details.' });
+        }
+
+        const uploadDir = path.join(staticPublicPath, 'uploads', 'posts', postId);
+
+        try {
+            fs.mkdirSync(uploadDir, { recursive: true });
+
+            const photoUrls = [];
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const realMime = validatedMimes[i];
+                const ext = realMime === 'image/jpeg' ? '.jpg' : (realMime === 'image/png' ? '.png' : '.webp');
+                const safeFileName = `${i}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+                const destinationPath = path.join(uploadDir, safeFileName);
+
+                fs.writeFileSync(destinationPath, file.buffer);
+                photoUrls.push(`/uploads/posts/${postId}/${safeFileName}`);
+            }
+
+            return res.json({
+                success: true,
+                postId,
+                photoUrls
+            });
+        } catch (writeErr) {
+            console.error('Error saving uploaded post photos:', writeErr);
+            return res.status(500).json({ error: 'Failed to save uploaded photos to server disk.' });
+        }
+    });
+});
+
+// DELETE /api/posts/:postId/photo - Authenticated deletion of post photo from disk
+app.delete('/api/posts/:postId/photo', requireAuth, async (req, res) => {
+    const postId = req.params ? req.params.postId : null;
+    if (!postId || !/^[a-zA-Z0-9_-]{1,128}$/.test(postId)) {
+        return res.status(400).json({ error: 'Invalid postId parameter.' });
+    }
+
+    try {
+        const adminDb = getFirestore();
+        const postDocRef = adminDb.collection('posts').doc(postId);
+        const postDoc = await postDocRef.get();
+
+        if (postDoc.exists) {
+            const postData = postDoc.data();
+            const isOwner = postData.ownerId === req.user.uid;
+            const isAdmin = req.user.admin === true;
+            if (!isOwner && !isAdmin) {
+                return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this post photo.' });
+            }
+        } else {
+            // Post doc not found in Firestore. Only allow admin to delete unreferenced disk directories
+            if (req.user.admin !== true) {
+                return res.status(404).json({ error: 'Post not found.' });
+            }
+        }
+
+        const postDir = path.join(staticPublicPath, 'uploads', 'posts', postId);
+        if (fs.existsSync(postDir)) {
+            fs.rmSync(postDir, { recursive: true, force: true });
+            console.log(`Deleted post upload directory: ${postDir}`);
+        }
+
+        return res.json({
+            success: true,
+            message: 'Post photo deleted successfully.'
+        });
+    } catch (err) {
+        console.error('Error deleting post photo:', err);
+        return res.status(500).json({ error: 'Failed to delete post photo from server disk.' });
+    }
+});
+
 
 const PORT = process.env.PORT || 5000;
 

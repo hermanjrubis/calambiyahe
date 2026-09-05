@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Discover - Calzada</title>
+    <meta name="description" content="Discover local businesses, updates, and moments across Calamba City on Calzada.">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+
+    <!-- Google Fonts: Sora & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <style>
+        :root {
+            --primary: #378ADD;
+            --primary-dark: #185FA5;
+            --primary-light: #F0F7FF;
+            --navy-dark: #042C53;
+            --navy-muted: #64748B;
+            --navy-subtle: #94A3B8;
+            --bg-page: #F8F9FC;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --border-subtle: #F1F5F9;
+            --danger: #DC2626;
+            --danger-bg: #FEF2F2;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-pill: 999px;
+            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--navy-dark);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 1. Top Bar Navigation */
+        .discover-topbar {
+            height: 60px;
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .topbar-logo {
+            height: 24px;
+            width: auto;
+        }
+
+        .topbar-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+        }
+
+        .breadcrumb-root {
+            color: var(--navy-subtle);
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .breadcrumb-root:hover {
+            color: var(--navy-dark);
+        }
+
+        .breadcrumb-sep {
+            color: #CBD5E1;
+            font-size: 0.8rem;
+        }
+
+        .breadcrumb-current {
+            color: var(--navy-dark);
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .topbar-nav-link {
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--navy-muted);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .topbar-nav-link:hover {
+            color: var(--navy-dark);
+        }
+
+        .topbar-auth-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #FFFFFF;
+            color: var(--navy-dark);
+            border: 1px solid var(--border-color);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .topbar-auth-btn:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+            color: var(--primary);
+        }
+
+        .topbar-user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .topbar-user-email {
+            font-size: 0.84rem;
+            color: var(--navy-muted);
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .topbar-logout-btn {
+            background: transparent;
+            border: none;
+            color: var(--navy-subtle);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            transition: color 0.15s ease;
+        }
+
+        .topbar-logout-btn:hover {
+            color: var(--danger);
+        }
+
+        /* 2. Main Page Layout */
+        .discover-container {
+            max-width: 470px;
+            margin: 0 auto;
+            padding: 32px 16px 64px;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .page-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            font-size: 0.95rem;
+            color: var(--navy-muted);
+            margin-top: 4px;
+            line-height: 1.4;
+        }
+
+        /* 3. Feed & Post Card */
+        .discover-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .discover-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: border-color 0.15s ease;
+        }
+
+        .discover-card:hover {
+            border-color: #CBD5E1;
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .card-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .card-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #F8FAFC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .card-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-avatar-placeholder {
+            font-size: 1.25rem;
+            color: var(--navy-subtle);
+            line-height: 1;
+        }
+
+        .card-bus-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .card-bus-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-bus-category {
+            font-size: 0.78rem;
+            color: var(--navy-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 1px;
+        }
+
+        .card-timestamp {
+            font-size: 0.8rem;
+            color: var(--navy-subtle);
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        /* Photo / Carousel Area: Standard Instagram 4:5 Portrait Ratio */
+        .card-media-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            background: #000000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .card-media-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy-dark);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            z-index: 2;
+        }
+
+        .carousel-btn:hover {
+            background: #FFFFFF;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .carousel-btn.carousel-prev {
+            left: 10px;
+        }
+
+        .carousel-btn.carousel-next {
+            right: 10px;
+        }
+
+        .carousel-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 0 2px;
+        }
+
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #CBD5E1;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+
+        .carousel-dot.active {
+            background: var(--primary);
+        }
+
+        /* Card Content & Action Area */
+        .card-body {
+            padding: 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .card-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-like-post {
+            background: transparent;
+            border: none;
+            color: var(--navy-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            margin-left: -8px;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s ease;
+        }
+
+        .btn-like-post i {
+            font-size: 1.25rem;
+            color: var(--navy-subtle);
+            transition: color 0.15s ease, transform 0.15s ease;
+        }
+
+        .btn-like-post.liked i {
+            color: var(--primary);
+        }
+
+        .btn-like-post.liked {
+            color: var(--primary);
+        }
+
+        .btn-like-post:hover:not(:disabled) {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-like-post:hover:not(:disabled) i {
+            color: var(--primary);
+        }
+
+        .btn-like-post:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .card-caption {
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        /* 4. Pagination / Load More */
+        .pagination-wrap {
+            margin-top: 28px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .btn-load-more {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            color: var(--navy-dark);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-load-more:hover:not(:disabled) {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+            color: var(--primary);
+        }
+
+        .btn-load-more:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* 5. Empty State */
+        .feed-empty-state {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--navy-muted);
+            font-size: 0.95rem;
+        }
+
+        /* 6. Loading Skeleton / Spinner */
+        .feed-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 0;
+            gap: 14px;
+            color: var(--navy-muted);
+            font-size: 0.9rem;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #E2E8F0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 640px) {
+            .discover-topbar {
+                padding: 0 16px;
+            }
+            .breadcrumb-root,
+            .breadcrumb-sep {
+                display: none;
+            }
+            .topbar-nav-link {
+                display: none;
+            }
+            .topbar-user-email {
+                display: none;
+            }
+            .discover-container {
+                padding: 20px 16px 48px;
+            }
+            .discover-card {
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Top Bar Navigation -->
+    <header class="discover-topbar">
+        <div class="topbar-left">
+            <a href="index.html" class="topbar-brand">
+                <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="topbar-logo">
+            </a>
+            <div class="topbar-breadcrumb">
+                <a href="index.html" class="breadcrumb-root">Home</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">Discover</span>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <a href="places.html" class="topbar-nav-link">Explore Places</a>
+            <a href="planner.html" class="topbar-nav-link">Maps</a>
+            
+            <div id="authNavContainer">
+                <a href="login.html?redirect=discover.html" class="topbar-auth-btn" id="navSignInBtn">
+                    <i class="ti ti-user"></i>
+                    <span>Sign In</span>
+                </a>
+                <div class="topbar-user-pill" id="navUserPill" style="display: none;">
+                    <a href="my-business.html" class="topbar-nav-link" style="font-weight: 600; color: var(--primary);">My Business</a>
+                    <span class="topbar-user-email" id="navUserEmail"></span>
+                    <button type="button" class="topbar-logout-btn" id="navLogoutBtn" title="Log Out" aria-label="Log Out">
+                        <i class="ti ti-logout"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="discover-container">
+        <div class="page-header">
+            <h1 class="page-title">Discover</h1>
+            <p class="page-subtitle">Local businesses and moments around Calamba.</p>
+        </div>
+
+        <!-- Feed List -->
+        <div class="discover-feed" id="discoverFeed">
+            <!-- Populated via JS -->
+        </div>
+
+        <!-- Loading State -->
+        <div class="feed-loading" id="feedLoading">
+            <div class="spinner"></div>
+            <span>Loading feed...</span>
+        </div>
+
+        <!-- Empty State -->
+        <div class="feed-empty-state" id="feedEmptyState" style="display: none;">
+            No posts yet. Check back soon.
+        </div>
+
+        <!-- Pagination Load More -->
+        <div class="pagination-wrap" id="paginationWrap" style="display: none;">
+            <button type="button" class="btn-load-more" id="btnLoadMore">Load more</button>
+        </div>
+    </main>
+
+    <!-- Firebase SDK Logic -->
+    <script type="module">
+        import { 
+            auth, 
+            db, 
+            onAuthStateChanged, 
+            signOut,
+            collection, 
+            doc, 
+            getDoc, 
+            getDocs, 
+            query, 
+            where, 
+            orderBy, 
+            limit, 
+            startAfter,
+            documentId,
+            serverTimestamp,
+            runTransaction 
+        } from '../js/firebase-init.js';
+
+        let currentUser = null;
+        let postsData = [];
+        let postCarouselIndices = new Map();
+        let lastDocSnapshot = null;
+        let hasMorePosts = false;
+        let isFetching = false;
+        const PAGE_SIZE = 12;
+
+        const discoverFeed = document.getElementById('discoverFeed');
+        const feedLoading = document.getElementById('feedLoading');
+        const feedEmptyState = document.getElementById('feedEmptyState');
+        const paginationWrap = document.getElementById('paginationWrap');
+        const btnLoadMore = document.getElementById('btnLoadMore');
+
+        const navSignInBtn = document.getElementById('navSignInBtn');
+        const navUserPill = document.getElementById('navUserPill');
+        const navUserEmail = document.getElementById('navUserEmail');
+        const navLogoutBtn = document.getElementById('navLogoutBtn');
+
+        // Category formatting helper
+        function formatCategoryName(cat) {
+            if (!cat) return 'Local Business';
+            const map = {
+                'malls': 'Malls & Shopping',
+                'eateries': 'Eateries & Dining',
+                'resorts': 'Resorts & Hot Springs',
+                'landmarks': 'Landmarks & Culture',
+                'recreation': 'Parks & Recreation',
+                'services': 'Services & Utilities',
+                'establishments': 'Commercial Establishment'
+            };
+            return map[cat] || (cat.charAt(0).toUpperCase() + cat.slice(1));
+        }
+
+        // Relative timestamp formatter
+        function formatRelativeDate(timestamp) {
+            if (!timestamp) return '';
+            let date = null;
+            if (timestamp.toDate) date = timestamp.toDate();
+            else if (timestamp.seconds) date = new Date(timestamp.seconds * 1000);
+            else if (timestamp instanceof Date) date = timestamp;
+            else return '';
+
+            const now = new Date();
+            const diffSeconds = Math.floor((now - date) / 1000);
+            if (diffSeconds < 60) return 'Just now';
+            const diffMinutes = Math.floor(diffSeconds / 60);
+            if (diffMinutes < 60) return `${diffMinutes}m ago`;
+            const diffHours = Math.floor(diffMinutes / 60);
+            if (diffHours < 24) return `${diffHours}h ago`;
+            const diffDays = Math.floor(diffHours / 24);
+            if (diffDays < 7) return `${diffDays}d ago`;
+
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        // HTML escaping helper
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // 1. Auth State Monitoring
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            if (user) {
+                if (navSignInBtn) navSignInBtn.style.display = 'none';
+                if (navUserPill) navUserPill.style.display = 'flex';
+                if (navUserEmail) navUserEmail.textContent = user.email || 'User';
+
+                // Sync like state for already rendered posts
+                await syncLikeStatesForLoadedPosts();
+            } else {
+                if (navSignInBtn) navSignInBtn.style.display = 'inline-flex';
+                if (navUserPill) navUserPill.style.display = 'none';
+            }
+        });
+
+        if (navLogoutBtn) {
+            navLogoutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.reload();
+                } catch (err) {
+                    console.error('Logout failed:', err);
+                }
+            });
+        }
+
+        // 2. Fetch Business Profile Photos in Single Batched Query
+        async function fetchBatchedBusinessPhotos(businessIds) {
+            const photoMap = new Map();
+            const uniqueIds = Array.from(new Set(businessIds.filter(id => Boolean(id))));
+            if (uniqueIds.length === 0) return photoMap;
+
+            try {
+                // Single batched 'in' query across unique businessIds (supports up to 30)
+                const q = query(
+                    collection(db, 'businesses'),
+                    where(documentId(), 'in', uniqueIds)
+                );
+                const snapshot = await getDocs(q);
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    photoMap.set(docSnap.id, data.profilePhotoUrl || null);
+                });
+            } catch (err) {
+                // Fallback B resilience: If batched collection query omits or errors on revoked docs
+                await Promise.all(uniqueIds.map(async (busId) => {
+                    try {
+                        const snap = await getDoc(doc(db, 'businesses', busId));
+                        if (snap.exists()) photoMap.set(busId, snap.data().profilePhotoUrl || null);
+                        else photoMap.set(busId, null);
+                    } catch (_) {
+                        photoMap.set(busId, null);
+                    }
+                }));
+            }
+
+            return photoMap;
+        }
+
+        // 3. Load Feed Posts
+        async function loadDiscoverFeed(isLoadMore = false) {
+            if (isFetching) return;
+            isFetching = true;
+
+            if (!isLoadMore) {
+                feedLoading.style.display = 'flex';
+                feedEmptyState.style.display = 'none';
+                paginationWrap.style.display = 'none';
+            } else {
+                btnLoadMore.disabled = true;
+                btnLoadMore.textContent = 'Loading...';
+            }
+
+            try {
+                let postsQuery;
+                if (isLoadMore && lastDocSnapshot) {
+                    postsQuery = query(
+                        collection(db, 'posts'),
+                        orderBy('createdAt', 'desc'),
+                        startAfter(lastDocSnapshot),
+                        limit(PAGE_SIZE)
+                    );
+                } else {
+                    postsQuery = query(
+                        collection(db, 'posts'),
+                        orderBy('createdAt', 'desc'),
+                        limit(PAGE_SIZE)
+                    );
+                }
+
+                const snapshot = await getDocs(postsQuery);
+                const docsCount = snapshot.docs.length;
+
+                if (docsCount > 0) {
+                    lastDocSnapshot = snapshot.docs[docsCount - 1];
+                    hasMorePosts = docsCount === PAGE_SIZE;
+
+                    const newPosts = snapshot.docs
+                        .filter(docSnap => docSnap.data().status === 'active')
+                        .map(docSnap => {
+                            const d = docSnap.data();
+                            let photos = [];
+                            if (Array.isArray(d.photoUrls)) {
+                                photos = d.photoUrls;
+                            } else if (d.photoUrl) {
+                                photos = [d.photoUrl];
+                            }
+                            return {
+                                id: docSnap.id,
+                                ...d,
+                                photoUrls: photos,
+                                likeCount: typeof d.likeCount === 'number' ? d.likeCount : 0,
+                                isLiked: false,
+                                profilePhotoUrl: null // will be populated via batch fetch
+                            };
+                        });
+
+                    // Batched fresh profile photo fetch
+                    const busIds = newPosts.map(p => p.businessId);
+                    const photoMap = await fetchBatchedBusinessPhotos(busIds);
+
+                    newPosts.forEach(p => {
+                        // Safe fallback handling:
+                        // Case a: doc returned but profilePhotoUrl is null
+                        // Case b: doc missing (e.g. revoked status) -> photoMap.get(p.businessId) returns undefined
+                        p.profilePhotoUrl = photoMap.get(p.businessId) || null;
+                    });
+
+                    if (isLoadMore) {
+                        postsData = postsData.concat(newPosts);
+                        appendPostsToFeed(newPosts);
+                    } else {
+                        postsData = newPosts;
+                        renderFullFeed();
+                    }
+
+                    if (currentUser) {
+                        await syncLikeStatesForLoadedPosts();
+                    }
+
+                } else {
+                    hasMorePosts = false;
+                    if (!isLoadMore) {
+                        postsData = [];
+                        discoverFeed.innerHTML = '';
+                        feedEmptyState.style.display = 'block';
+                    }
+                }
+
+                if (paginationWrap) {
+                    paginationWrap.style.display = hasMorePosts ? 'flex' : 'none';
+                }
+
+            } catch (err) {
+                console.error('Error loading discover feed:', err);
+                if (!isLoadMore) {
+                    discoverFeed.innerHTML = `
+                        <div class="feed-empty-state" style="color: var(--danger);">
+                            Unable to load feed at this time. Please try again later.
+                        </div>
+                    `;
+                }
+            } finally {
+                isFetching = false;
+                feedLoading.style.display = 'none';
+                btnLoadMore.disabled = false;
+                btnLoadMore.textContent = 'Load more';
+            }
+        }
+
+        // 4. Like state synchronizer for authenticated viewer
+        async function syncLikeStatesForLoadedPosts() {
+            if (!currentUser || postsData.length === 0) return;
+            await Promise.all(postsData.map(async (post) => {
+                try {
+                    const likeSnap = await getDoc(doc(db, 'posts', post.id, 'likes', currentUser.uid));
+                    const isLiked = likeSnap.exists();
+                    post.isLiked = isLiked;
+                    const btn = document.querySelector(`.btn-like-post[data-post-id="${post.id}"]`);
+                    if (btn) {
+                        btn.classList.toggle('liked', isLiked);
+                        const icon = btn.querySelector('i');
+                        if (icon) icon.className = `ti ${isLiked ? 'ti-heart-filled' : 'ti-heart'}`;
+                    }
+                } catch (e) {
+                    console.warn('Could not sync like state for post', post.id, e);
+                }
+            }));
+        }
+
+        // 5. Render single card HTML
+        function generatePostCardHtml(post) {
+            const photos = post.photoUrls || [];
+            const currentIdx = postCarouselIndices.get(post.id) || 0;
+            const isMulti = photos.length > 1;
+            const currentPhoto = photos[currentIdx] || photos[0] || '';
+
+            // Avatar rendering with fallback icon
+            let avatarHtml = '';
+            if (post.profilePhotoUrl) {
+                avatarHtml = `<img src="${post.profilePhotoUrl}" alt="${escapeHtml(post.businessName || 'Business')}" class="card-avatar-img">`;
+            } else {
+                avatarHtml = `<i class="ti ti-building-store card-avatar-placeholder"></i>`;
+            }
+
+            // Media / Carousel rendering at 4:5 frame
+            let mediaHtml = '';
+            if (isMulti) {
+                let dotsHtml = '';
+                for (let i = 0; i < photos.length; i++) {
+                    dotsHtml += `<button type="button" class="carousel-dot ${i === currentIdx ? 'active' : ''}" data-post-id="${post.id}" data-dot-index="${i}" aria-label="Go to photo ${i + 1}"></button>`;
+                }
+
+                mediaHtml = `
+                    <div class="card-media-wrap" id="media-wrap-${post.id}">
+                        <img src="${currentPhoto}" alt="Post photo" class="card-media-img" id="media-img-${post.id}">
+                        <button type="button" class="carousel-btn carousel-prev" data-post-id="${post.id}" aria-label="Previous photo">
+                            <i class="ti ti-chevron-left"></i>
+                        </button>
+                        <button type="button" class="carousel-btn carousel-next" data-post-id="${post.id}" aria-label="Next photo">
+                            <i class="ti ti-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="carousel-dots" id="dots-${post.id}">
+                        ${dotsHtml}
+                    </div>
+                `;
+            } else if (photos.length === 1) {
+                mediaHtml = `
+                    <div class="card-media-wrap" id="media-wrap-${post.id}">
+                        <img src="${currentPhoto}" alt="Post photo" class="card-media-img" id="media-img-${post.id}">
+                    </div>
+                `;
+            }
+
+            return `
+            <article class="discover-card" id="card-${post.id}" data-post-id="${post.id}">
+                <div class="card-header">
+                    <div class="card-header-left">
+                        <div class="card-avatar" id="avatar-${post.id}">
+                            ${avatarHtml}
+                        </div>
+                        <div class="card-bus-info">
+                            <span class="card-bus-name">${escapeHtml(post.businessName || 'Local Business')}</span>
+                            <span class="card-bus-category">${formatCategoryName(post.businessCategory)}</span>
+                        </div>
+                    </div>
+                    <time class="card-timestamp">${formatRelativeDate(post.createdAt)}</time>
+                </div>
+
+                ${mediaHtml}
+
+                <div class="card-body">
+                    <div class="card-actions-row">
+                        <button type="button" class="btn-like-post ${post.isLiked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like post">
+                            <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
+                            <span class="like-count">${post.likeCount || 0}</span>
+                        </button>
+                    </div>
+                    ${post.caption ? `<p class="card-caption">${escapeHtml(post.caption)}</p>` : ''}
+                </div>
+            </article>
+            `;
+        }
+
+        // 6. Attach Card Event Listeners (Carousels & Likes)
+        function attachCardListeners(container) {
+            // Carousel Prev
+            container.querySelectorAll('.carousel-prev').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = postsData.find(p => p.id === postId);
+                    if (!post || !post.photoUrls || post.photoUrls.length <= 1) return;
+
+                    let idx = postCarouselIndices.get(postId) || 0;
+                    idx = (idx - 1 + post.photoUrls.length) % post.photoUrls.length;
+                    postCarouselIndices.set(postId, idx);
+                    updateCarouselCard(postId, post.photoUrls, idx);
+                });
+            });
+
+            // Carousel Next
+            container.querySelectorAll('.carousel-next').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = postsData.find(p => p.id === postId);
+                    if (!post || !post.photoUrls || post.photoUrls.length <= 1) return;
+
+                    let idx = postCarouselIndices.get(postId) || 0;
+                    idx = (idx + 1) % post.photoUrls.length;
+                    postCarouselIndices.set(postId, idx);
+                    updateCarouselCard(postId, post.photoUrls, idx);
+                });
+            });
+
+            // Carousel Dots
+            container.querySelectorAll('.carousel-dot').forEach(dot => {
+                dot.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const postId = dot.getAttribute('data-post-id');
+                    const targetIdx = parseInt(dot.getAttribute('data-dot-index'), 10);
+                    const post = postsData.find(p => p.id === postId);
+                    if (!post || !post.photoUrls || isNaN(targetIdx)) return;
+
+                    postCarouselIndices.set(postId, targetIdx);
+                    updateCarouselCard(postId, post.photoUrls, targetIdx);
+                });
+            });
+
+            // Atomic Like Button with Unauthenticated Client-Side Redirect
+            container.querySelectorAll('.btn-like-post').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+
+                    // Unauthenticated Guard: Fail-fast redirect to login
+                    if (!currentUser) {
+                        window.location.href = 'login.html?redirect=discover.html';
+                        return;
+                    }
+
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = postsData.find(p => p.id === postId);
+                    if (!post) return;
+
+                    btn.disabled = true;
+
+                    try {
+                        const postRef = doc(db, 'posts', postId);
+                        const likeRef = doc(db, 'posts', postId, 'likes', currentUser.uid);
+
+                        const result = await runTransaction(db, async (transaction) => {
+                            const postDoc = await transaction.get(postRef);
+                            if (!postDoc.exists()) {
+                                throw new Error('Post does not exist.');
+                            }
+
+                            const likeDoc = await transaction.get(likeRef);
+                            const currentlyLiked = likeDoc.exists();
+                            const currentCount = typeof postDoc.data().likeCount === 'number' ? postDoc.data().likeCount : 0;
+
+                            if (currentlyLiked) {
+                                transaction.delete(likeRef);
+                                const newCount = Math.max(0, currentCount - 1);
+                                transaction.update(postRef, { likeCount: newCount });
+                                return { liked: false, count: newCount };
+                            } else {
+                                transaction.set(likeRef, { likedAt: serverTimestamp() });
+                                const newCount = currentCount + 1;
+                                transaction.update(postRef, { likeCount: newCount });
+                                return { liked: true, count: newCount };
+                            }
+                        });
+
+                        post.isLiked = result.liked;
+                        post.likeCount = result.count;
+
+                        btn.classList.toggle('liked', result.liked);
+                        const icon = btn.querySelector('i');
+                        if (icon) {
+                            icon.className = `ti ${result.liked ? 'ti-heart-filled' : 'ti-heart'}`;
+                        }
+                        const countSpan = btn.querySelector('.like-count');
+                        if (countSpan) {
+                            countSpan.textContent = result.count;
+                        }
+
+                    } catch (err) {
+                        console.error('Error updating like:', err);
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+            });
+        }
+
+        // 7. Update Carousel Image and Dot state on slide change
+        function updateCarouselCard(postId, photos, activeIdx) {
+            const imgEl = document.getElementById(`media-img-${postId}`);
+            if (imgEl && photos[activeIdx]) {
+                imgEl.src = photos[activeIdx];
+            }
+
+            const dotsContainer = document.getElementById(`dots-${postId}`);
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.carousel-dot');
+                dots.forEach((dot, idx) => {
+                    dot.classList.toggle('active', idx === activeIdx);
+                });
+            }
+        }
+
+        // 8. Full Feed Render
+        function renderFullFeed() {
+            if (!discoverFeed) return;
+            if (postsData.length === 0) {
+                discoverFeed.innerHTML = '';
+                feedEmptyState.style.display = 'block';
+                return;
+            }
+
+            feedEmptyState.style.display = 'none';
+            let html = '';
+            postsData.forEach(post => {
+                html += generatePostCardHtml(post);
+            });
+
+            discoverFeed.innerHTML = html;
+            attachCardListeners(discoverFeed);
+        }
+
+        // 9. Append newly fetched batch for pagination
+        function appendPostsToFeed(newPosts) {
+            if (!discoverFeed || newPosts.length === 0) return;
+            const tempContainer = document.createElement('div');
+            let html = '';
+            newPosts.forEach(post => {
+                html += generatePostCardHtml(post);
+            });
+            tempContainer.innerHTML = html;
+
+            while (tempContainer.firstChild) {
+                const child = tempContainer.firstChild;
+                discoverFeed.appendChild(child);
+            }
+
+            attachCardListeners(discoverFeed);
+        }
+
+        // 10. Load More Button Listener
+        if (btnLoadMore) {
+            btnLoadMore.addEventListener('click', () => {
+                loadDiscoverFeed(true);
+            });
+        }
+
+        // Initial Load
+        loadDiscoverFeed(false);
+    </script>
+</body>
+
+</html>

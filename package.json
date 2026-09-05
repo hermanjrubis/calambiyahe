@@ -5,7 +5,10 @@
   "main": "server/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "generate:360": "node scripts/generate-360-manifest.js",
+    "manifest:360": "node scripts/generate-360-manifest.js",
+    "link:360": "node scripts/link-places-to-360.js"
   },
   "repository": {
     "type": "git",
@@ -25,6 +28,7 @@
     "express": "^5.2.1",
     "firebase-admin": "^14.3.0",
     "groq-sdk": "^1.2.0",
+    "multer": "^2.3.0",
     "pg": "^8.20.0"
   },
   "devDependencies": {

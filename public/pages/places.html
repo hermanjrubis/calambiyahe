@@ -14,12 +14,15 @@
     <meta name="description" content="Explore destinations, food spots, coffee shops, and local establishments across Calamba. Find great places to visit with Calzada.">
     <!-- Modern Fonts -->
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- MapLibre & Pannellum 360 Street View Styles -->
+    <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <link rel="stylesheet" href="../css/streetview-viewer.css">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css">
     <link rel="stylesheet" href="../css/place-panel.css?v=7">
@@ -402,115 +405,64 @@
                 </div>
 
                 <div class="places-grid">
-                    <!-- Place Card 1 -->
-                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Calamba City Hall')" style="cursor:pointer;">
+                    <!-- Initial Static Cards (Places with photos) -->
+                    <div class="ref-card" data-category="schools" onclick="openPlacePanel('STI College - Calamba')" style="cursor:pointer;">
                         <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
+                            <img src="/assets/places/sti-college/sti-1.jpg" alt="STI College - Calamba" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
-                            <h3>Calamba City Hall</h3>
-                            <p class="card-subtitle">Public Office • Real St, Calamba</p>
+                            <h3>STI College - Calamba</h3>
+                            <p class="card-subtitle">schools • Real, Calamba</p>
                         </div>
                     </div>
 
-                    <!-- Place Card 2 -->
-                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Rizal Shrine')" style="cursor:pointer;">
+                    <div class="ref-card" data-category="terminals" onclick="openPlacePanel('SM City Calamba Transport Terminal')" style="cursor:pointer;">
                         <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
+                            <img src="/assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.jpg" alt="SM City Calamba Transport Terminal" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
-                            <h3>Bahay ni Rizal</h3>
-                            <p class="card-subtitle">Historical Shrine • Mercado St, Calamba</p>
+                            <h3>SM City Calamba Transport Terminal</h3>
+                            <p class="card-subtitle">terminals • Real, Calamba</p>
                         </div>
                     </div>
 
-                    <!-- Place Card 3 -->
-                    <div class="ref-card" data-category="coffee eateries" onclick="openPlacePanel('Moonbucks')" style="cursor:pointer;">
+                    <div class="ref-card" data-category="schools" onclick="openPlacePanel('Saint Benilde International School (Calamba), Inc.')" style="cursor:pointer;">
                         <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
+                            <img src="/assets/places/saint-benilde-international-school/saint-benilde-international-school-1.jpg" alt="Saint Benilde International School (Calamba), Inc." class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
-                            <h3>Moonbucks</h3>
-                            <p class="card-subtitle">Café & Bakery • Crossing, Calamba</p>
+                            <h3>Saint Benilde International School (Calamba), Inc.</h3>
+                            <p class="card-subtitle">schools • Real, Calamba</p>
                         </div>
                     </div>
 
-                    <!-- Place Card 4 -->
-                    <div class="ref-card" data-category="malls establishments" onclick="openPlacePanel('SM City Calamba')" style="cursor:pointer;">
+                    <div class="ref-card" data-category="eateries" onclick="openPlacePanel('Jollibee – Real, Calamba City')" style="cursor:pointer;">
                         <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
+                            <img src="/assets/places/jollibee-real-calamba/jollibee-real-calamba-1.jpg" alt="Jollibee – Real, Calamba City" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
-                            <h3>SM City Calamba</h3>
-                            <p class="card-subtitle">Shopping Mall • National Rd, Calamba</p>
+                            <h3>Jollibee – Real, Calamba City</h3>
+                            <p class="card-subtitle">eateries • Real, Calamba</p>
                         </div>
                     </div>
 
-                    <!-- Place Card 5 -->
-                    <div class="ref-card" data-category="schools" onclick="openPlacePanel('City College of Calamba')" style="cursor:pointer;">
+                    <div class="ref-card" data-category="eateries" onclick="openPlacePanel('Uncle John\'s')" style="cursor:pointer;">
                         <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
+                            <img src="/assets/places/uncle-johns/uncle-johns-1.jpg" alt="Uncle John's" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
-                            <h3>City College of Calamba</h3>
-                            <p class="card-subtitle">Local College • Old National Rd, Calamba</p>
+                            <h3>Uncle John's</h3>
+                            <p class="card-subtitle">eateries • Real, Calamba</p>
                         </div>
                     </div>
 
-                    <!-- Place Card 6 -->
-                    <div class="ref-card" data-category="schools" onclick="openPlacePanel('STI College Calamba')" style="cursor:pointer;">
+                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('CARD SME Bank – Calamba Branch')" style="cursor:pointer;">
                         <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
+                            <img src="/assets/places/card-sme-bank/card-sme-bank-1.jpg" alt="CARD SME Bank – Calamba Branch" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
-                            <h3>STI College Calamba</h3>
-                            <p class="card-subtitle">Higher Education • National Hwy, Calamba</p>
-                        </div>
-                    </div>
-
-                    <!-- Place Card 7 -->
-                    <div class="ref-card" data-category="coffee eateries" onclick="openPlacePanel('Sample Coffee House')" style="cursor:pointer;">
-                        <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
-                        </div>
-                        <div class="ref-card-body">
-                            <h3>Sample Coffee House</h3>
-                            <p class="card-subtitle">Artisan Coffee • Bucal, Calamba</p>
-                        </div>
-                    </div>
-
-                    <!-- Place Card 8 -->
-                    <div class="ref-card" data-category="establishments" onclick="openPlacePanel('Calamba Town Plaza')" style="cursor:pointer;">
-                        <div class="ref-img-container">
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
-                        </div>
-                        <div class="ref-card-body">
-                            <h3>Calamba Town Plaza</h3>
-                            <p class="card-subtitle">Public Park • Plaza, Calamba</p>
+                            <h3>CARD SME Bank – Calamba Branch</h3>
+                            <p class="card-subtitle">establishments • Real, Calamba</p>
                         </div>
                     </div>
                 </div>
@@ -539,18 +491,21 @@
 
             let allFetchedPlaces = [];
 
-            // Render places array into .places-grid
+            // Render places array into .places-grid (ONLY places with a valid, non-empty image)
             function renderPlaces(places, searchTerm = '') {
                 if (!placesGrid) return;
                 placesGrid.innerHTML = '';
                 let visibleCount = 0;
 
-                places.forEach((place, index) => {
+                // Exclude any place records without a real photo
+                const validPlaces = (places || []).filter(p => p && p.image_path && typeof p.image_path === 'string' && p.image_path.trim() !== '');
+
+                validPlaces.forEach((place, index) => {
                     const name = place.name || 'Unnamed Place';
                     const category = place.category || '';
                     const barangay = place.barangay || '';
                     const municipality = place.municipality || 'Calamba';
-                    const imagePath = place.image_path ? place.image_path.trim() : '';
+                    const imagePath = place.image_path.trim();
                     const description = place.description || '';
 
                     // Local search filtering
@@ -588,19 +543,6 @@
                         };
                     }
 
-                    // Image container vs placeholder
-                    let imgContainerHTML = '';
-                    if (imagePath) {
-                        imgContainerHTML = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">`;
-                    } else {
-                        imgContainerHTML = `
-                            <div class="img-placeholder">
-                                <ion-icon name="image-outline"></ion-icon>
-                                <span>No image yet</span>
-                            </div>
-                        `;
-                    }
-
                     const cardEl = document.createElement('div');
                     cardEl.className = 'ref-card';
                     cardEl.setAttribute('data-category', category);
@@ -614,7 +556,7 @@
 
                     cardEl.innerHTML = `
                         <div class="ref-img-container">
-                            ${imgContainerHTML}
+                            <img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;">
                         </div>
                         <div class="ref-card-body">
                             <h3>${escapeHtml(name)}</h3>
@@ -645,7 +587,8 @@
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     if (Array.isArray(data)) {
-                        allFetchedPlaces = data;
+                        // Filter out places with no image globally
+                        allFetchedPlaces = data.filter(p => p && p.image_path && typeof p.image_path === 'string' && p.image_path.trim() !== '');
                         renderPlaces(allFetchedPlaces, searchTerm);
                         return;
                     }
@@ -663,11 +606,12 @@
                     const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
                     const cardSubtitle = card.querySelector('.card-subtitle')?.textContent.toLowerCase() || '';
                     const cardCats = card.getAttribute('data-category') || '';
+                    const hasImg = !!card.querySelector('img');
 
                     const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
                     const matchesSearch = (!searchTerm || cardName.includes(searchTerm) || cardSubtitle.includes(searchTerm));
 
-                    if (matchesCategory && matchesSearch) {
+                    if (hasImg && matchesCategory && matchesSearch) {
                         card.style.display = 'flex';
                         totalVisible++;
                     } else {
@@ -781,6 +725,9 @@
     </script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script src="../js/streetview-viewer.js"></script>
     <script src="../js/place-panel.js?v=8"></script>
     <script src="../js/transitions.js"></script>
 </body>

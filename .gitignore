@@ -9,4 +9,6 @@ test_*.js
 *.log
 *.zip
 *serviceAccountKey*.json
+public/uploads/
+scratch/
 

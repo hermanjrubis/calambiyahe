@@ -67,24 +67,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === HIDE ROUTIE ON SCROLL (Desktop & Mobile) ===
-    const heroSection = document.querySelector('.hero-section');
+    // === PERSISTENT ROUTIE FLOATING CHATBOT ===
     const chatWidget = document.querySelector('.chat-widget-container');
-    
-    if (chatWidget && heroSection) {
-        const heroObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (!entry.isIntersecting) {
-                    if (chatWidget) chatWidget.classList.add('hide-on-scroll');
-                } else {
-                    if (chatWidget) chatWidget.classList.remove('hide-on-scroll');
-                }
-            });
-        }, {
-            threshold: 0.95
-        });
-
-        heroObserver.observe(heroSection);
+    if (chatWidget) {
+        chatWidget.classList.remove('hide-on-scroll');
     }
 
     // === AUTO-COLLAPSE FEATURES BAR WHEN CLICKING OUTSIDE (Mobile only) ===
@@ -1060,9 +1046,25 @@ function switchAuth(type) {
 function togglePassword(inputId) {
     const input = document.getElementById(inputId);
     if (!input) return;
-    const icon = input.nextElementSibling;
-    if (input.type === 'password') { input.type = 'text'; icon.name = 'eye-off-outline'; }
-    else { input.type = 'password'; icon.name = 'eye-outline'; }
+    const icon = input.parentElement
+        ? input.parentElement.querySelector('.btn-toggle-pass')
+        : input.nextElementSibling;
+
+    if (input.type === 'password') {
+        // Switch to visible plain text: icon must be OPEN
+        input.type = 'text';
+        if (icon) {
+            icon.setAttribute('name', 'eye-outline');
+            icon.name = 'eye-outline';
+        }
+    } else {
+        // Switch to hidden dots: icon must be CLOSED/SLASHED
+        input.type = 'password';
+        if (icon) {
+            icon.setAttribute('name', 'eye-off-outline');
+            icon.name = 'eye-off-outline';
+        }
+    }
 }
 
 function checkPasswordStrength() {

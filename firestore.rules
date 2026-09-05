@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // User profiles & activity data
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Submissions collection security rules (Legacy / Preserved)
+    match /submissions/{submissionId} {
+      allow create: if request.auth != null
+        && request.resource.data.submittedBy == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow read: if request.auth != null
+        && (resource.data.submittedBy == request.auth.uid || resource.data.status == 'approved' || request.auth.token.admin == true);
+      allow update: if request.auth != null && request.auth.token.admin == true;
+      allow delete: if request.auth != null
+        && resource.data.submittedBy == request.auth.uid && resource.data.status == 'pending';
+    }
+
+    // Businesses collection security rules (Instagram Business model)
+    match /businesses/{businessId} {
+      // Create: Authenticated owner only, status forced to pending, email matches auth token, profilePhotoUrl & approvedAt forced to null
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.ownerEmail == request.auth.token.email
+        && request.resource.data.status == 'pending'
+        && request.resource.data.profilePhotoUrl == null
+        && request.resource.data.approvedAt == null;
+
+      // Read: Public read if approved; Owner can read own doc regardless of status; Admins can read all
+      allow read: if resource.data.status == 'approved'
+        || (request.auth != null && (resource.data.ownerId == request.auth.uid || request.auth.token.admin == true));
+
+      // Update:
+      // 1. Admin: explicit moderation/content field allowlist
+      // 2. Owner: explicit profile field allowlist, ONLY when existing doc is approved
+      allow update: if request.auth != null && (
+        (
+          request.auth.token.admin == true
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'approvedAt', 'rejectionReason', 'adminNotes', 'name', 
+            'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt'
+          ])
+        ) || (
+          resource.data.ownerId == request.auth.uid
+          && resource.data.status == 'approved'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profilePhotoUrl', 'description', 'updatedAt'])
+        )
+      );
+
+      // Delete: Admins only
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Posts collection security rules (Phase 4.5)
+    match /posts/{postId} {
+      // Create: Authenticated user who owns the post, status forced to 'active',
+      // likeCount forced to 0, photoUrls list with 1 to 5 items,
+      // with a cross-lookup verifying that the referenced business exists,
+      // belongs to the requester, and is admin-approved.
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.likeCount == 0
+        && request.resource.data.businessId is string
+        && request.resource.data.photoUrls is list
+        && request.resource.data.photoUrls.size() >= 1
+        && request.resource.data.photoUrls.size() <= 5
+        && (!('caption' in request.resource.data) || request.resource.data.caption == null || request.resource.data.caption is string)
+        && exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId))
+        && get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.status == 'approved'
+        && request.resource.data.businessName == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.name
+        && request.resource.data.businessCategory == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.category;
+
+      // Read: Public (no gate) for all posts
+      allow read: if true;
+
+      // Update:
+      // Branch 1: Owner editing ONLY caption and updatedAt
+      // Branch 2: Any authenticated user atomically toggling their own like (+1/-1 synchronized with like doc)
+      // Branch 3: Admin moderation
+      allow update: if request.auth != null && (
+        (
+          resource.data.ownerId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['caption', 'updatedAt'])
+          && (request.resource.data.caption == null || request.resource.data.caption is string)
+        ) || (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount'])
+          && (
+            (
+              request.resource.data.likeCount == resource.data.likeCount + 1
+              && existsAfter(/databases/$(database)/documents/posts/$(postId)/likes/$(request.auth.uid))
+            ) || (
+              request.resource.data.likeCount == resource.data.likeCount - 1
+              && request.resource.data.likeCount >= 0
+              && !existsAfter(/databases/$(database)/documents/posts/$(postId)/likes/$(request.auth.uid))
+            )
+          )
+        ) || (
+          request.auth.token.admin == true
+        )
+      );
+
+      // Delete: The post's own owner OR admin
+      allow delete: if request.auth != null
+        && (resource.data.ownerId == request.auth.uid || request.auth.token.admin == true);
+
+      // Likes subcollection: Each user manages ONLY their own like document
+      match /likes/{uid} {
+        allow create: if request.auth != null && request.auth.uid == uid;
+        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow update: if false;
+      }
+    }
+  }
+}

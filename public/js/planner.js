@@ -20,40 +20,136 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('orientationchange', () => setTimeout(setVh, 100));
 
 
-    const map = L.map('map', { zoomControl: false }).setView([14.2045, 121.1641], 13);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    // =============================================
+    // MAP ENGINE (MapLibre GL JS + OpenFreeMap Liberty)
+    // =============================================
+    // NOTE ON BASEMAP VS. DATABASE LABELING:
+    // OpenFreeMap Liberty provides vector basemap tiles with general road, highway,
+    // neighborhood, and major OpenStreetMap landmark labeling. It does NOT automatically
+    // render Calzada's own establishment database as basemap labels. Calzada's establishments
+    // continue to be surfaced via the application's own custom marker pins and interactive
+    // popups sourced from the database/API.
 
-    let activeTileLayer = null;
-    const loadBasemap = async () => {
-        let cartoKey = '';
-        try {
-            const cfgRes = await fetch('/api/config');
-            if (cfgRes.ok) {
-                const cfg = await cfgRes.json();
-                cartoKey = cfg.cartoApiKey || '';
-            }
-        } catch (err) {
-            console.warn('Could not load /api/config for CARTO key:', err.message);
+    // Coordinate Converters: MapLibre uses [lng, lat], standard LatLng uses [lat, lng]
+    const toLngLat = (pt) => {
+        if (!pt) return null;
+        if (Array.isArray(pt)) {
+            return [Number(pt[1]), Number(pt[0])];
+        }
+        if (typeof pt === 'object') {
+            const lat = pt.lat !== undefined ? pt.lat : pt[1];
+            const lng = pt.lng !== undefined ? pt.lng : (pt.lon !== undefined ? pt.lon : pt[0]);
+            return [Number(lng), Number(lat)];
+        }
+        return null;
+    };
+
+    const toLatLng = (pt) => {
+        if (!pt) return null;
+        if (Array.isArray(pt)) {
+            return [Number(pt[0]), Number(pt[1])];
+        }
+        if (typeof pt === 'object') {
+            const lat = pt.lat !== undefined ? pt.lat : pt[0];
+            const lng = pt.lng !== undefined ? pt.lng : (pt.lon !== undefined ? pt.lon : pt[1]);
+            return [Number(lat), Number(lng)];
+        }
+        return null;
+    };
+
+    const map = new maplibregl.Map({
+        container: 'map',
+        style: 'https://tiles.openfreemap.org/styles/liberty',
+        center: [121.1652, 14.2117], // Calamba coordinates [lng, lat]
+        zoom: 13
+    });
+    window._calzadaMap = map;
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+
+    window.addEventListener('resize', () => map.resize());
+    setTimeout(() => map.resize(), 0);
+    setTimeout(() => map.resize(), 200);
+    map.on('load', () => map.resize());
+
+    // GeoJSON Route line layers setup
+    let routeLayersInitialized = false;
+    const initRouteLayers = () => {
+        if (routeLayersInitialized || !map.isStyleLoaded()) return;
+
+        if (!map.getSource('walk-route')) {
+            map.addSource('walk-route', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] }
+            });
+            map.addLayer({
+                id: 'walk-route-layer',
+                type: 'line',
+                source: 'walk-route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': '#3b82f6',
+                    'line-width': 5,
+                    'line-dasharray': [2, 2]
+                }
+            });
         }
 
-        const tileUrl = cartoKey
-            ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${encodeURIComponent(cartoKey)}`
-            : 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
+        if (!map.getSource('transit-route')) {
+            map.addSource('transit-route', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] }
+            });
+            map.addLayer({
+                id: 'transit-route-layer',
+                type: 'line',
+                source: 'transit-route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': '#1a8fff',
+                    'line-width': 6
+                }
+            });
+        }
 
-        activeTileLayer = L.tileLayer(tileUrl, {
-            subdomains: 'abcd',
-            maxZoom: 20,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>'
-        }).addTo(map);
+        if (!map.getSource('completed-route')) {
+            map.addSource('completed-route', {
+                type: 'geojson',
+                data: { type: 'FeatureCollection', features: [] }
+            });
+            map.addLayer({
+                id: 'completed-route-layer',
+                type: 'line',
+                source: 'completed-route',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: {
+                    'line-color': '#9ca3af',
+                    'line-width': 5
+                }
+            });
+        }
+
+        routeLayersInitialized = true;
     };
-    loadBasemap();
 
-    // Guarantee Leaflet recalculates container size after the timeout delay
-    setTimeout(() => map.invalidateSize(), 0);
-    setTimeout(() => map.invalidateSize(), 200);
-    map.whenReady(() => map.invalidateSize());
+    map.on('load', initRouteLayers);
 
-    window.addEventListener('resize', () => map.invalidateSize());
+    const updateRouteSource = (sourceId, coordsLngLat) => {
+        initRouteLayers();
+        const src = map.getSource(sourceId);
+        if (!src) return;
+        if (!coordsLngLat || coordsLngLat.length < 2) {
+            src.setData({ type: 'FeatureCollection', features: [] });
+        } else {
+            src.setData({
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                    type: 'LineString',
+                    coordinates: coordsLngLat
+                }
+            });
+        }
+    };
 
     // NATIONAL_HIGHWAY_COORDS removed — OSRM handles road routing universally.
 
@@ -65,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // URL parameters parsed later
     let isTrackingArrival = false;
     let mapAutoFollow = true;
-    let selectedMode = 'modern-jeepney';
+    let selectedMode = 'jeepney';
+    let userExplicitMode = false;
     
     // Map objects
     let originMarker = null, destMarker = null, userMarker = null, gpsCircle = null;
@@ -93,20 +190,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const CALAMBA_PLACES_FALLBACK = [
         // Malls
         { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', lat: 14.203928, lng: 121.1545159, full_address: 'National Road, Brgy. Real, Calamba City Triangle, 4027 Laguna' },
-        { id: 'citymall-calamba', name: 'CityMall - Calamba', category: 'malls', lat: 14.1986374, lng: 121.1604888, full_address: '4027 National Highway, Calamba, 4027 Laguna' },
+        { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', lat: 14.1986374, lng: 121.1604888, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '/assets/places/citymall-calamba/citymall-calamba-1.jpg' },
+        { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', lat: 14.1930, lng: 121.1625, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '/assets/places/puregold-halang-calamba/puregold-halang-calamba-1.jpg' },
         { id: 'south-supermarket', name: 'South Supermarket', category: 'malls', lat: 14.2030841, lng: 121.1584071, full_address: 'Manila S Rd, Calamba, 4027 Laguna' },
         // Schools
         { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', lat: 14.2025089, lng: 121.1583962, full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '/assets/places/sti-college/sti-1.jpg' },
-        { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba) Real Campus', category: 'schools', lat: 14.1987583, lng: 121.1519236, full_address: 'Real, Calamba, 4027 Laguna' },
+        { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', lat: 14.1987583, lng: 121.1519236, full_address: 'Real, Calamba, 4027 Laguna', image_path: '/assets/places/saint-benilde-international-school/saint-benilde-international-school-1.jpg' },
         { id: 'real-elementary', name: 'Real Elementary School', category: 'schools', lat: 14.1987874, lng: 121.1492457, full_address: '336 Real Rd, Real, Calamba, 4027 Laguna' },
         { id: 'pwu-cdcec', name: 'PWU CDCEC Calamba', category: 'schools', lat: 14.2052421, lng: 121.1562636, full_address: '6544+3HW, Bridge, Calamba, 4027 Laguna' },
         // Terminals
         { id: 'calamba-crossing-term', name: 'Calamba Crossing / Central Terminal', category: 'terminals', lat: 14.19821, lng: 121.16315, full_address: 'Calamba Crossing, Brgy. Real, Calamba City' },
-        { id: 'sm-transport-term', name: 'SM City Calamba / SM Transport Terminal', category: 'terminals', lat: 14.19895, lng: 121.16335, full_address: 'SM City Calamba Complex, Calamba City' },
+        { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', lat: 14.19895, lng: 121.16335, full_address: 'SM City Calamba Complex, Calamba City', image_path: '/assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.jpg' },
         { id: 'turbina-bus-term', name: 'Turbina Bus Terminal', category: 'terminals', lat: 14.18888, lng: 121.14444, full_address: 'Turbina, Calamba City' },
         // Eateries
         { id: 'rose-grace', name: 'Rose and Grace Restaurant', category: 'eateries', lat: 14.2012, lng: 121.1568, full_address: 'Maharlika Highway, Brgy. Real, Calamba City' },
-        { id: 'ding-hao', name: 'Ding Hao Chinese Cuisine', category: 'eateries', lat: 14.1925, lng: 121.1620, full_address: 'National Highway, Brgy. Halang, Calamba City' },
+        { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', lat: 14.1925, lng: 121.1620, full_address: 'National Highway, Brgy. Halang, Calamba City', image_path: '/assets/places/ding-hao/ding-hao-1.jpg' },
+        { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', lat: 14.2035, lng: 121.1560, full_address: 'Manila S Rd, Calamba City, Laguna', image_path: '/assets/places/uncle-johns/uncle-johns-1.jpg' },
+        { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', lat: 14.2028, lng: 121.1565, full_address: 'Calamba City, Laguna', image_path: '/assets/places/teng-tengs/teng-tengs-1.jpg' },
+        { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', lat: 14.2018, lng: 121.1578, full_address: 'Calamba City, Laguna', image_path: '/assets/places/mariz-food-town/mariz-food-town-1.jpg' },
+        { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', lat: 14.2020, lng: 121.1565, full_address: 'Calamba City, Laguna', image_path: '/assets/places/ton-tons-sisig/ton-tons-sisig-1.jpg' },
         // Coffee Shops
         { id: 'moonbucks', name: 'Moonbucks', category: 'coffee', lat: 14.2104, lng: 121.1648, full_address: 'Elepaño Subdivision, Brgy. 3 (Bayan), Calamba City' },
         { id: 'sample-coffee', name: 'Sample Coffee House', category: 'coffee', lat: 14.1843, lng: 121.1625, full_address: 'National Highway, Brgy. Bucal, Calamba City' },
@@ -116,14 +218,202 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'establishments', lat: 14.2140, lng: 121.1670, full_address: 'J.P. Rizal St, Brgy. 5 Poblacion, Calamba City' },
         { id: 'calamba-plaza', name: 'Calamba Town Plaza', category: 'establishments', lat: 14.2135, lng: 121.1662, full_address: 'Rizal St, Poblacion, Calamba City' },
         { id: 'calamba-medical', name: 'Calamba Medical Center', category: 'establishments', lat: 14.2065, lng: 121.1575, full_address: 'National Highway, Crossing, Calamba City' },
+        { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', lat: 14.2020, lng: 121.1570, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '/assets/places/card-sme-bank/card-sme-bank-1.jpg' },
+        { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', lat: 14.1950, lng: 121.1550, full_address: 'National Highway, Calamba City, Laguna', image_path: '/assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.jpg' },
+        { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', lat: 14.1990, lng: 121.1595, full_address: 'Barangay 1 (Uno), Calamba City, Laguna', image_path: '/assets/places/barangay-uno-hall/barangay-uno-hall-1.jpg' },
+        { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', lat: 14.1960, lng: 121.1510, full_address: 'Calamba City, Laguna', image_path: '/assets/places/laguna-logistics/laguna-logistics-1.jpg' },
+        { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', lat: 14.2005, lng: 121.1540, full_address: 'Calamba City, Laguna', image_path: '/assets/places/rj-auto-shop/rj-auto-shop-1.jpg' },
+        { id: 'news-star', name: 'News Star', category: 'establishments', lat: 14.2120, lng: 121.1650, full_address: 'Calamba City, Laguna', image_path: '/assets/places/news-star/news-star-1.jpg' },
+        // Schools
+        { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', lat: 14.1880, lng: 121.1650, full_address: 'Ipil-ipil St., Bucal, Calamba City, Laguna', image_path: '/assets/places/letran-calamba/letran-calamba-1.jpg' },
+        { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', lat: 14.1910, lng: 121.1620, full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '/assets/places/halang-elementary-school/halang-elementary-school-1.jpg' },
+        // Eateries
+        { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', lat: 14.2025, lng: 121.1575, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '/assets/places/jollibee-real-calamba/jollibee-real-calamba-1.jpg' },
+        { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', lat: 14.1920, lng: 121.1625, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '/assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.jpg' },
+        { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', lat: 14.1905, lng: 121.1615, full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '/assets/places/creekside-halang/creekside-halang-1.jpg' },
+        { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', lat: 14.2030, lng: 121.1570, full_address: 'Calamba City, Laguna', image_path: '/assets/places/dear-hotpot-unlimited-japanese-hotpot/dear-hotpot-unlimited-japanese-hotpot-1.jpg' },
+        { id: 'd-fresco', name: "D' Fresco", category: 'eateries', lat: 14.2022, lng: 121.1555, full_address: 'Calamba City, Laguna', image_path: '/assets/places/d-fresco/d-fresco-1.jpg' },
+        { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', lat: 14.2008, lng: 121.1562, full_address: 'Brgy. Real, Calamba City, Laguna', image_path: '/assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.jpg' },
+        // Coffee Shops
+        { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', lat: 14.2015, lng: 121.1560, full_address: 'Calamba City, Laguna', image_path: '/assets/places/krav-cafe/krav-cafe-1.jpg' },
+        // Establishments
+        { id: 'd-and-q', name: 'D & Q', category: 'establishments', lat: 14.2010, lng: 121.1580, full_address: 'Calamba City, Laguna', image_path: '/assets/places/d-and-q/d-and-q-1.jpg' },
+        { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', lat: 14.2045, lng: 121.1585, full_address: 'Calamba City, Laguna', image_path: '/assets/places/morales-bercasio/morales-bercasio-1.jpg' },
     ];
 
-    const categoryPlacesLayer = L.layerGroup().addTo(map);
+    let categoryMarkers = [];
+
+    // 360 Photosphere Links Cache & Integration
+    const place360LinksMap = new Map();
+    const manifestNodesMap = new Map();
+    // Reverse index: nodeId -> { placeId, placeName } (used by the category-independent
+    // proximity click handler below, so we don't need a place record to show a 360 popup)
+    const nodeIdToPlaceMap = new Map();
+    let load360LinksPromise = null;
+
+    function load360Links() {
+        if (!load360LinksPromise) {
+            load360LinksPromise = (async () => {
+                try {
+                    const [linksRes, manifestRes] = await Promise.allSettled([
+                        fetch('/assets/360/place-links.json'),
+                        fetch('/assets/360/manifest.json')
+                    ]);
+                    if (manifestRes.status === 'fulfilled' && manifestRes.value.ok) {
+                        const mData = await manifestRes.value.json();
+                        (mData.nodes || []).forEach(n => manifestNodesMap.set(n.id, n));
+                    }
+                    if (linksRes.status === 'fulfilled' && linksRes.value.ok) {
+                        const lData = await linksRes.value.json();
+                        (lData.links || []).forEach(link => {
+                            if (link.placeId) {
+                                place360LinksMap.set(String(link.placeId).trim(), link);
+                            }
+                            if (link.placeName) {
+                                place360LinksMap.set(link.placeName.trim().toLowerCase(), link);
+                            }
+                            if (link.nodeId) {
+                                nodeIdToPlaceMap.set(link.nodeId, { placeId: link.placeId, placeName: link.placeName });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.warn('[360 Links] Error loading 360 data in planner:', err);
+                }
+
+                // Once both datasets are in memory, wire up the always-on proximity click
+                // handler so 360 popups no longer depend on a category tab being active.
+                setupGlobal360ProximityClick();
+            })();
+        }
+        return load360LinksPromise;
+    }
+
+    // Preload 360 links on startup
+    load360Links();
+
+    /**
+     * ISSUE FIX: previously, the only way to see a "View 360°" popup was to
+     * 1) click a category tab (e.g. "Schools") so its markers render, then
+     * 2) click the exact marker.
+     * This meant 360 points attached to Eateries/Terminals/etc. (or any spot the
+     * user taps that is merely NEAR a 360 node, not exactly on it) were unreachable.
+     *
+     * This handler listens on the map itself, independent of any category filter,
+     * finds the nearest 360 node/place within NEARBY_360_THRESHOLD_METERS of the
+     * clicked point, and shows a lightweight popup with the same "View 360°" action.
+     */
+    const NEARBY_360_THRESHOLD_METERS = 35;
+    let global360ClickBound = false;
+
+    function findNearest360Node(lat, lng) {
+        let nearest = null;
+        let nearestDist = Infinity;
+        manifestNodesMap.forEach((node) => {
+            const d = getHaversineDist(lat, lng, node.lat, node.lng) * 1000; // km -> m
+            if (d < nearestDist) {
+                nearestDist = d;
+                nearest = node;
+            }
+        });
+        if (!nearest || nearestDist > NEARBY_360_THRESHOLD_METERS) return null;
+        return { node: nearest, distance: nearestDist };
+    }
+
+    function build360OnlyPopupHtml(node, distance, placeInfo) {
+        const photoUrl = `/assets/360/${encodeURIComponent(node.file)}`;
+        const title = placeInfo && placeInfo.placeName ? placeInfo.placeName : 'Street-level 360° view';
+        const subtitle = placeInfo && placeInfo.placeName
+            ? `${Math.round(distance)}m away`
+            : `Nearest 360° photo · ${Math.round(distance)}m away`;
+
+        return `
+            <div class="calzada-marker-popup calzada-360-only-popup">
+                <div class="popup-360-container" style="margin-top:0;">
+                    <div class="popup-360-thumb-wrap" onclick="window._open360Viewer('${node.id}')" title="Click to view 360° photo">
+                        <img src="${photoUrl}" alt="360° view" class="popup-360-thumb" loading="lazy">
+                        <span class="popup-360-badge">360°</span>
+                    </div>
+                    <div class="popup-body-content" style="padding-top:8px;">
+                        <div class="popup-place-name">${title}</div>
+                        <div class="popup-place-addr">${subtitle}</div>
+                        <div class="popup-360-action-wrap">
+                            <button type="button" class="popup-360-btn" onclick="window._open360Viewer('${node.id}')">
+                                <svg class="popup-360-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                                </svg>
+                                <span>View 360°</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function setupGlobal360ProximityClick() {
+        if (global360ClickBound || !map) return;
+        global360ClickBound = true;
+
+        map.on('click', (e) => {
+            // Don't hijack clicks that already landed on an existing marker/popup —
+            // those already have their own (richer) popup with the 360 thumbnail.
+            const targetEl = e.originalEvent && e.originalEvent.target;
+            if (targetEl && targetEl.closest && (targetEl.closest('.calzada-custom-marker') || targetEl.closest('.maplibregl-popup'))) {
+                return;
+            }
+
+            const { lat, lng } = e.lngLat;
+            const match = findNearest360Node(lat, lng);
+            if (!match) return; // nothing 360-capable close enough to this tap
+
+            const placeInfo = nodeIdToPlaceMap.get(match.node.id);
+
+            // Close any existing plain popups before opening this one
+            document.querySelectorAll('.calzada-360-only-popup').forEach(p => {
+                const wrap = p.closest('.maplibregl-popup');
+                if (wrap) wrap.remove();
+            });
+
+            new maplibregl.Popup({
+                offset: [0, 0],
+                closeButton: true,
+                className: 'calzada-maplibre-popup'
+            })
+                .setLngLat([match.node.lng, match.node.lat])
+                .setHTML(build360OnlyPopupHtml(match.node, match.distance, placeInfo))
+                .addTo(map);
+        });
+    }
+
+    function getPlace360Link(place) {
+        if (!place) return null;
+        if (place.id && place360LinksMap.has(String(place.id).trim())) {
+            return place360LinksMap.get(String(place.id).trim());
+        }
+        if (place.name && place360LinksMap.has(place.name.trim().toLowerCase())) {
+            return place360LinksMap.get(place.name.trim().toLowerCase());
+        }
+        return null;
+    }
 
     function renderPlacesOnMap(places) {
-        categoryPlacesLayer.clearLayers();
+        // Clear existing markers
+        categoryMarkers.forEach(m => m.remove());
+        categoryMarkers = [];
 
-        places.forEach(place => {
+        // TEMPORARY RESTRICTION: Only render markers for Malls and Schools categories.
+        // Skip Eateries, Terminals, Coffee Shops, and Establishments entirely for now.
+        // NOTE: This is a temporary data restriction; to re-enable other categories, remove this filter.
+        const allowedCategories = ['malls', 'schools'];
+        const filteredPlaces = (places || []).filter(place => {
+            const cat = (place.category || '').trim().toLowerCase();
+            return allowedCategories.includes(cat);
+        });
+
+        filteredPlaces.forEach(place => {
             const meta = CATEGORY_META[place.category] || { icon: 'location-outline', color: '#6366F1', label: place.category };
             const lat = parseFloat(place.lat);
             const lng = parseFloat(place.lng);
@@ -131,26 +421,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const addr = place.full_address || place.barangay || '';
 
-            const iconHtml = `
+            const iconEl = document.createElement('div');
+            iconEl.className = 'calzada-custom-marker';
+            iconEl.innerHTML = `
                 <div class="calzada-pin-wrapper" style="--pin-color: ${meta.color};">
                     <div class="calzada-pin-body">
                         <ion-icon name="${meta.icon}"></ion-icon>
                     </div>
                 </div>
             `;
-            const customIcon = L.divIcon({
-                html: iconHtml,
-                className: 'calzada-custom-marker',
-                iconSize: [32, 38],
-                iconAnchor: [16, 38],
-                popupAnchor: [0, -38]
-            });
-
-            const marker = L.marker([lat, lng], { icon: customIcon });
 
             const imageHtml = place.image_path
-                ? `<div class="popup-img-container"><img src="${place.image_path}" alt="${place.name}" class="popup-place-img" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'><ion-icon name=\\'image-outline\\'></ion-icon><span>No image yet</span></div>';"></div>`
-                : `<div class="popup-img-container"><div class="img-placeholder"><ion-icon name="image-outline"></ion-icon><span>No image yet</span></div></div>`;
+                ? `<div class="popup-img-container"><img src="${place.image_path}" alt="${place.name}" class="popup-place-img" onerror="this.parentElement.remove();"></div>`
+                : '';
+
+            // 360 Photosphere Thumbnail & "View 360°" Action (omitted if no link exists)
+            const link360 = getPlace360Link(place);
+            let place360Html = '';
+            if (link360 && link360.nodeId) {
+                const node = manifestNodesMap.get(link360.nodeId);
+                const photoFilename = node ? node.file : `${link360.nodeId.replace('_', ', ')}.jpg`;
+                const photoUrl = `/assets/360/${encodeURIComponent(photoFilename)}`;
+
+                place360Html = `
+                    <div class="popup-360-container">
+                        <div class="popup-360-thumb-wrap" onclick="window._open360Viewer('${link360.nodeId}')" title="Click to view 360° photo">
+                            <img src="${photoUrl}" alt="${place.name} 360°" class="popup-360-thumb" loading="lazy">
+                            <span class="popup-360-badge">360°</span>
+                        </div>
+                        <div class="popup-360-action-wrap">
+                            <button type="button" class="popup-360-btn" onclick="window._open360Viewer('${link360.nodeId}')">
+                                <svg class="popup-360-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                                </svg>
+                                <span>View 360°</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
 
             const popupContent = `
                 <div class="calzada-marker-popup">
@@ -159,6 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="popup-cat-badge" style="color: ${meta.color};">${meta.label}</div>
                         <div class="popup-place-name">${place.name}</div>
                         <div class="popup-place-addr">${addr}</div>
+                        ${place360Html}
                         <button type="button" class="popup-action-btn" onclick="window._setPlannerDestination('${place.name.replace(/'/g, "\\'")}', ${lat}, ${lng})">
                             <ion-icon name="navigate-outline"></ion-icon> Set as Destination
                         </button>
@@ -166,17 +478,35 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            marker.bindPopup(popupContent);
-            categoryPlacesLayer.addLayer(marker);
+            const popup = new maplibregl.Popup({
+                offset: [0, -32],
+                closeButton: true,
+                className: 'calzada-maplibre-popup'
+            }).setHTML(popupContent);
+
+            const marker = new maplibregl.Marker({
+                element: iconEl,
+                anchor: 'bottom'
+            })
+                .setLngLat([lng, lat])
+                .setPopup(popup)
+                .addTo(map);
+
+            categoryMarkers.push(marker);
         });
     }
 
     async function renderCategoryPlaces(selectedCategory = 'none') {
-        categoryPlacesLayer.clearLayers();
+        categoryMarkers.forEach(m => m.remove());
+        categoryMarkers = [];
+
         // If 'none' or empty: render NO markers (keep map clean)
         if (!selectedCategory || selectedCategory === 'none') {
             return;
         }
+
+        // Ensure 360 link mappings are loaded
+        await load360Links();
 
         let queryCat = selectedCategory;
         if (selectedCategory === 'terminals') {
@@ -224,19 +554,127 @@ document.addEventListener('DOMContentLoaded', () => {
             destInput.value = name;
         }
         destPlaceName = name;
-        selectedCoords.destination = { lat, lng };
-        map.closePopup();
+        selectedCoords.destination = [lat, lng];
+        const openPopups = document.querySelectorAll('.maplibregl-popup');
+        openPopups.forEach(p => p.remove());
         if (typeof calculateAndDisplayRoute === 'function') {
             calculateAndDisplayRoute();
         }
     };
 
+    // Global helper for opening full-screen 360 viewer starting at linked nodeId
+    window._open360Viewer = function(nodeId) {
+        if (!nodeId) return;
+        console.log('[Calzada 360] Requesting 360° viewer at node:', nodeId);
+
+        // Dispatch custom event for upcoming full-screen viewer module
+        window.dispatchEvent(new CustomEvent('calzada:open-360', {
+            detail: { nodeId }
+        }));
+
+        // If a dedicated full-screen viewer launcher function is mounted
+        if (typeof window.launch360Viewer === 'function') {
+            return window.launch360Viewer(nodeId);
+        }
+
+        // Build/display responsive modal preview shell
+        let viewerModal = document.getElementById('calzada360ViewerModal');
+        if (!viewerModal) {
+            viewerModal = document.createElement('div');
+            viewerModal.id = 'calzada360ViewerModal';
+            viewerModal.className = 'calzada-360-modal-overlay';
+            viewerModal.innerHTML = `
+                <div class="calzada-360-modal-container">
+                    <div class="calzada-360-modal-header">
+                        <div class="calzada-360-modal-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                                <path d="M11.5 3a17 17 0 0 1 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                            </svg>
+                            <span id="calzada360ModalNodeText">360° Photosphere Viewer</span>
+                        </div>
+                        <button type="button" class="calzada-360-close-btn" id="calzada360CloseBtn" aria-label="Close 360 Viewer">&times;</button>
+                    </div>
+                    <div class="calzada-360-preview-viewport" id="calzada360Viewport">
+                        <img id="calzada360ModalImg" src="" alt="360 Photosphere" class="calzada-360-full-img" />
+                        <div class="calzada-360-status-pill" id="calzada360StatusPill">
+                            <span class="calzada-360-pulse-dot"></span>
+                            <span id="calzada360PillText">Node: ${nodeId}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(viewerModal);
+
+            const closeBtn = document.getElementById('calzada360CloseBtn');
+            if (closeBtn) {
+                closeBtn.onclick = () => viewerModal.classList.remove('active');
+            }
+            viewerModal.onclick = (e) => {
+                if (e.target === viewerModal) viewerModal.classList.remove('active');
+            };
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && viewerModal.classList.contains('active')) {
+                    viewerModal.classList.remove('active');
+                }
+            });
+        }
+
+        const modalImg = document.getElementById('calzada360ModalImg');
+        const nodeText = document.getElementById('calzada360ModalNodeText');
+        const pillText = document.getElementById('calzada360PillText');
+        const photoFilename = `${nodeId.replace('_', ', ')}.jpg`;
+        const photoUrl = `/assets/360/${encodeURIComponent(photoFilename)}`;
+
+        if (modalImg) modalImg.src = photoUrl;
+        if (nodeText) nodeText.textContent = `360° Photosphere · ${nodeId}`;
+        if (pillText) pillText.textContent = `Node: ${nodeId}`;
+
+        viewerModal.classList.add('active');
+    };
+
+
     // Category Filter Segmented Control & Contextual Clear Logic
     const categoryBar = document.getElementById('mapCategoryBar');
     const catClearBtn = document.getElementById('mapCatClearBtn');
+    const catFadeOverlay = document.getElementById('categoryScrollFade');
 
     if (categoryBar) {
         const segments = categoryBar.querySelectorAll('.map-segment-btn');
+
+        // Toggle fade overlay visibility based on horizontal scroll position
+        const updateCategoryScrollFade = () => {
+            if (!catFadeOverlay) return;
+            const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
+            // Disappear if contents fit or when fully scrolled to the right (within 2px tolerance)
+            if (maxScroll <= 2 || categoryBar.scrollLeft >= maxScroll - 2) {
+                catFadeOverlay.classList.remove('visible');
+            } else {
+                catFadeOverlay.classList.add('visible');
+            }
+        };
+
+        // Standard scroll event listener (broadly supported across all browsers)
+        categoryBar.addEventListener('scroll', updateCategoryScrollFade, { passive: true });
+        window.addEventListener('resize', updateCategoryScrollFade, { passive: true });
+
+        // Wheel handler: support trackpad and mouse-wheel horizontal scrolling in desktop/emulation mode
+        categoryBar.addEventListener('wheel', (e) => {
+            if (e.deltaX === 0 && Math.abs(e.deltaY) > 0) {
+                const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
+                if (maxScroll > 2) {
+                    categoryBar.scrollLeft += e.deltaY;
+                    e.preventDefault();
+                }
+            }
+        }, { passive: false });
+
+        // Initial check and deferred checks for layout/webfonts settling
+        updateCategoryScrollFade();
+        setTimeout(updateCategoryScrollFade, 100);
+        setTimeout(updateCategoryScrollFade, 400);
 
         const setCategoryActive = (category) => {
             let activeFound = false;
@@ -259,6 +697,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     catClearBtn.classList.remove('visible');
                 }
             }
+
+            // Recalculate fade overlay visibility in case Clear button appearing/disappearing resized the container
+            requestAnimationFrame(updateCategoryScrollFade);
 
             renderCategoryPlaces(activeFound ? category : 'none');
         };
@@ -294,10 +735,51 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCorridor = 'unknown'; // FIX: was referenced but never declared
 
     // ── CONSTANTS ──────────────────────────────────────────────────────────
-    const WALK_SPEED_KPH      = 4;     // realistic Filipino commute walk pace
+    const WALK_SPEED_KPH      = 4.6;   // realistic commute walk pace (~13 min/km or ~4.6 km/h)
     const JEEPNEY_SPEED_KPH   = 20;    // avg jeepney speed (km/h)
     const BOARDING_BUFFER_SEC = 180;   // 3-min boarding buffer added to transit ETA
     const STORAGE_KEY         = 'calzada_journey';
+
+    // Helper: compute realistic walking duration in minutes from kilometers (minimum 1 min)
+        // Helper: deduplicate consecutive identical navigation steps and merge distances
+    const deduplicateSteps = (steps) => {
+        if (!steps || !steps.length) return [];
+        const res = [];
+        for (let i = 0; i < steps.length; i++) {
+            const curr = steps[i];
+            if (res.length > 0) {
+                const prev = res[res.length - 1];
+                const sameType = prev.maneuver?.type === curr.maneuver?.type;
+                const sameMod  = (prev.maneuver?.modifier || '') === (curr.maneuver?.modifier || '');
+                const sameName = (prev.name || '').trim().toLowerCase() === (curr.name || '').trim().toLowerCase();
+                const sameMode = prev.mode === curr.mode;
+                if (sameType && sameMod && sameName && sameMode) {
+                    prev.distance = (prev.distance || 0) + (curr.distance || 0);
+                    continue;
+                }
+            }
+            res.push({ ...curr });
+        }
+        return res;
+    };
+
+    // Helper: update bottom pill fare display (shows "Free" with no PHP label in Walk mode)
+    const updatePillFareUI = () => {
+        const pillPhp = document.getElementById('pillPhp');
+        const pillPhpLbl = document.getElementById('pillPhpLbl');
+        if (!pillPhp) return;
+        if (selectedMode === 'walking') {
+            pillPhp.textContent = 'Free';
+            if (pillPhpLbl) pillPhpLbl.textContent = '';
+        } else {
+            pillPhp.textContent = `₱${currentFare}`;
+            if (pillPhpLbl) pillPhpLbl.textContent = 'php';
+        }
+    };
+
+    const computeWalkDurationMin = (distKm) => {
+        return Math.max(1, Math.round((distKm / WALK_SPEED_KPH) * 60));
+    };
 
     // Real-Time Tracking State
     let watchId = null;
@@ -497,10 +979,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!b) return;
         if (show && transitRouteGeojson) {
             b.style.display = 'block';
-            if (midpointBubbleMarker) map.addLayer(midpointBubbleMarker);
+            if (midpointBubbleMarker) midpointBubbleMarker.addTo(map);
         } else {
             b.style.display = 'none';
-            if (midpointBubbleMarker) map.removeLayer(midpointBubbleMarker);
+            if (midpointBubbleMarker) midpointBubbleMarker.remove();
         }
     };
 
@@ -531,22 +1013,25 @@ document.addEventListener('DOMContentLoaded', () => {
     locationModalOverlay.addEventListener('click', closeLocationModal);
 
     document.getElementById('closeDirectionsBtn').addEventListener('click', () => {
+        userExplicitMode = false;
         selectedCoords.origin = null;
         selectedCoords.destination = null;
         originPlaceName = '';
         destPlaceName = '';
         updateODDisplay();
         
-        if (originMarker) { map.removeLayer(originMarker); originMarker = null; }
-        if (destMarker) { map.removeLayer(destMarker); destMarker = null; }
-        if (walkPolyline) { map.removeLayer(walkPolyline); walkPolyline = null; }
-        if (transitPolyline) { map.removeLayer(transitPolyline); transitPolyline = null; }
-        if (completedTransitPolyline) { map.removeLayer(completedTransitPolyline); completedTransitPolyline = null; }
-        if (midpointBubbleMarker) { map.removeLayer(midpointBubbleMarker); midpointBubbleMarker = null; }
-        if (boardingMarker) { map.removeLayer(boardingMarker); boardingMarker = null; }
+        if (originMarker) { originMarker.remove(); originMarker = null; }
+        if (destMarker) { destMarker.remove(); destMarker = null; }
+        updateRouteSource('walk-route', []);
+        updateRouteSource('transit-route', []);
+        updateRouteSource('completed-route', []);
+        if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
+        if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
         
         document.getElementById('transportModesBlock').style.display = 'none';
         document.getElementById('routeSummaryBlock').style.display = 'none';
+        const walkHintEl = document.getElementById('walkableTripHint');
+        if (walkHintEl) walkHintEl.style.display = 'none';
         document.getElementById('startJourneyBtn').disabled = true;
         document.getElementById('closeDirectionsBtn').style.display = 'none';
         
@@ -556,9 +1041,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMidpointBubbleVisibility(false);
         
         if (currentLocation && currentLocation.lat && currentLocation.lng) {
-            map.setView([currentLocation.lat, currentLocation.lng], 14);
+            map.flyTo({ center: [currentLocation.lng, currentLocation.lat], zoom: 14 });
         } else {
-            map.setView([14.2045, 121.1641], 13);
+            map.flyTo({ center: [121.1652, 14.2117], zoom: 13 });
         }
     });
 
@@ -635,26 +1120,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Mode Selection
+    // Mode Selection (Single source of truth for all mode-toggle UI elements)
     const setModeUI = (mode) => {
         document.querySelectorAll('.segment-btn[data-mode]').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.mode === mode);
+            const isActive = btn.dataset.mode === mode;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
+        const amtWalk = document.getElementById('amtWalk');
+        const amtJeep = document.getElementById('amtJeep');
+        if (amtWalk) {
+            amtWalk.classList.toggle('active', mode === 'walking');
+            amtWalk.setAttribute('aria-selected', mode === 'walking' ? 'true' : 'false');
+        }
+        if (amtJeep) {
+            amtJeep.classList.toggle('active', mode === 'jeepney');
+            amtJeep.setAttribute('aria-selected', mode === 'jeepney' ? 'true' : 'false');
+        }
     };
 
     document.getElementById('modeWalking').addEventListener('click', () => {
+        userExplicitMode = true;
         selectedMode = 'walking';
         setModeUI('walking');
         executeRouteQuery();
     });
-    document.getElementById('modeJeepney').addEventListener('click', (e) => {
+    document.getElementById('modeJeepney').addEventListener('click', () => {
+        userExplicitMode = true;
         selectedMode = 'jeepney';
         setModeUI('jeepney');
-        executeRouteQuery();
-    });
-    document.getElementById('modeModernJeepney').addEventListener('click', (e) => {
-        selectedMode = 'modern-jeepney';
-        setModeUI('modern-jeepney');
         executeRouteQuery();
     });
 
@@ -806,6 +1300,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!selectedCoords.origin || !selectedCoords.destination) {
             document.getElementById('transportModesBlock').style.display = 'none';
             document.getElementById('routeSummaryBlock').style.display = 'none';
+            const walkHintEl = document.getElementById('walkableTripHint');
+            if (walkHintEl) walkHintEl.style.display = 'none';
             document.getElementById('startJourneyBtn').disabled = true;
             return;
         }
@@ -819,77 +1315,99 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const oPt = selectedCoords.origin;
         const dPt = selectedCoords.destination;
+        const straightDistM = getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000;
 
-        // Always show all mode buttons
-        document.getElementById('modeWalking').style.display  = 'flex';
-        document.getElementById('modeJeepney').style.display  = 'flex';
-        document.getElementById('modeModernJeepney').style.display = 'flex';
+        // Intelligent default: for very short trips under ~800m, default to walking unless user explicitly chose a mode
+        if (!userExplicitMode) {
+            selectedMode = (straightDistM < 800) ? 'walking' : 'jeepney';
+        }
+        setModeUI(selectedMode);
+
+        // Always show mode buttons
+        document.getElementById('modeWalking').style.display  = 'inline-flex';
+        document.getElementById('modeJeepney').style.display  = 'inline-flex';
 
         // Draw Markers
-        if (originMarker) map.removeLayer(originMarker);
-        if (destMarker)   map.removeLayer(destMarker);
+        if (originMarker) { originMarker.remove(); originMarker = null; }
+        if (destMarker)   { destMarker.remove();   destMarker = null; }
 
-        originMarker = L.marker([oPt[0], oPt[1]], {
-            icon: L.divIcon({
-                className: '',
-                html: `<div style="width:16px;height:16px;background:#1C6EF2;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(28,110,242,0.5);"></div>`,
-                iconSize: [16, 16], iconAnchor: [8, 8]
-            })
-        }).addTo(map);
+        const oEl = document.createElement('div');
+        oEl.innerHTML = `<div style="width:16px;height:16px;background:#1C6EF2;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(28,110,242,0.5);"></div>`;
+        originMarker = new maplibregl.Marker({
+            element: oEl.firstElementChild || oEl,
+            anchor: 'center'
+        }).setLngLat(toLngLat(oPt)).addTo(map);
 
-        destMarker = L.marker([dPt[0], dPt[1]], {
-            icon: L.divIcon({
-                className: '',
-                html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
-                    <circle cx="14" cy="14" r="6" fill="white"/>
-                </svg>`,
-                iconSize: [28, 36], iconAnchor: [14, 36]
-            })
-        }).addTo(map);
+        const dEl = document.createElement('div');
+        dEl.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
+            <circle cx="14" cy="14" r="6" fill="white"/>
+        </svg>`;
+        destMarker = new maplibregl.Marker({
+            element: dEl.firstElementChild || dEl,
+            anchor: 'bottom'
+        }).setLngLat(toLngLat(dPt)).addTo(map);
 
-        // ── WALKING MODE: pure foot route, no transit ──────────────────────────
+        // ── WALKING MODE: pure foot route from origin to destination ───────────
         if (selectedMode === 'walking') {
+            if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
+
             let wRes = null;
             try {
                 wRes = await fetchOSRMRouteCoords(oPt, dPt, 'foot');
             } catch (e) { console.error('Walk OSRM error:', e); }
 
-            if (!wRes) {
+            if (!wRes || !wRes.coordinates || wRes.coordinates.length < 2) {
                 const dist = getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000;
-                wRes = { coordinates: [oPt, dPt], distance: dist, duration: (dist / 1000 / 4) * 3600, steps: [] };
+                wRes = { coordinates: [oPt, dPt], distance: dist, duration: (dist / 1000 / WALK_SPEED_KPH) * 3600, steps: [] };
             }
 
             walkRouteGeojson    = wRes;
-            transitRouteGeojson = { coordinates: [dPt, dPt], distance: 0, duration: 0, steps: [] };
+            transitRouteGeojson = { coordinates: [], distance: 0, duration: 0, steps: [] };
 
-            currentWalkDist = wRes.distance / 1000;
-            // FIX #7: use OSRM duration when available; fall back to speed heuristic
-            currentWalkDur  = wRes.duration
-                ? Math.ceil(wRes.duration / 60)
-                : Math.ceil((wRes.distance / 1000 / WALK_SPEED_KPH) * 60);
+            currentWalkDist    = wRes.distance / 1000;
+            currentWalkDur     = computeWalkDurationMin(currentWalkDist);
             currentTransitDist = 0;
             currentTransitDur  = 0;
             currentFare        = 0;
 
             drawRoutes(wRes.coordinates, []);
+            
+            // Populate Guide turn-by-turn steps immediately for Walk mode
+            window.activeRouteSteps = deduplicateSteps((wRes.steps || []).map(s => ({ ...s, mode: 'foot' })));
+            window.currentStepIndex = 0;
+            updateGuideStepsUI();
+
             updateSummaryRow();
+            updatePillFareUI();
             saveJourneyState();
 
+            // Subtle walkable distance indicator
+            const walkHintEl = document.getElementById('walkableTripHint');
+            if (walkHintEl) {
+                const totalWalkM = Math.round(wRes.distance || straightDistM);
+                if (totalWalkM < 800) {
+                    walkHintEl.innerHTML = `<ion-icon name="walk-outline"></ion-icon><span>This distance is walkable (~${totalWalkM < 1000 ? totalWalkM + 'm' : (totalWalkM / 1000).toFixed(1) + 'km'})</span>`;
+                    walkHintEl.style.display = 'inline-flex';
+                } else {
+                    walkHintEl.style.display = 'none';
+                }
+            }
+
+            document.getElementById('startJourneyBtn').disabled = false;
             document.getElementById('transportModesBlock').style.display = 'flex';
             document.getElementById('routeSummaryBlock').style.display  = 'block';
             return;
         }
 
-        // ── TRANSIT MODE (Jeepney / M. Jeepney): 2-leg routing ────────────────
-        let tRes = null;
+        // ── JEEPNEY MODE: walk to boarding point + transit on highway ───────────
+        let fullCarRes = null;
         try {
-            tRes = await fetchOSRMRouteCoords(oPt, dPt, 'car');
-        } catch (e) { console.error('Transit OSRM error:', e); }
+            fullCarRes = await fetchOSRMRouteCoords(oPt, dPt, 'car');
+        } catch (e) { console.error('Transit preliminary OSRM error:', e); }
 
-        if (!tRes) {
-            showToast('Route not found — check connection');
-            tRes = {
+        if (!fullCarRes) {
+            fullCarRes = {
                 coordinates: [oPt, dPt],
                 distance: getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000,
                 duration: (getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) / 20) * 3600,
@@ -897,49 +1415,63 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         }
 
-        // ── FIND HIGHWAY BOARDING POINT ──────────────────────────────────────────
-        // Strategy: walk the car route steps looking for a step whose road name
-        // contains "Highway", "National", or "Maharlika". That intersection is
-        // where the commuter actually boards. Fallback to the first road-snapped
-        // point that is at least 80 m from origin.
-
+        // Strategy: find step containing "Highway", "National", or "Maharlika"
         const HIGHWAY_KEYWORDS = ['national highway', 'maharlika', 'highway', 'diversion', 'road 1'];
-
         const findHighwayBoardingPoint = (routeResult) => {
             const steps = routeResult.steps || [];
             for (let i = 0; i < steps.length; i++) {
                 const name = (steps[i].name || '').toLowerCase();
                 if (HIGHWAY_KEYWORDS.some(k => name.includes(k))) {
-                    // Return the starting coordinate of this step
                     const geom = steps[i].geometry?.coordinates;
                     if (geom && geom.length > 0) return [geom[0][1], geom[0][0]]; // [lat, lng]
                 }
             }
-            // Fallback: find first coord that is >80 m from origin
             for (let i = 1; i < routeResult.coordinates.length; i++) {
                 const d = getHaversineDist(oPt[0], oPt[1],
                     routeResult.coordinates[i][0], routeResult.coordinates[i][1]) * 1000;
                 if (d > 80) return routeResult.coordinates[i];
             }
-            return routeResult.coordinates[0]; // last-resort original snap
+            return routeResult.coordinates[0];
         };
 
-        const boardingPt = findHighwayBoardingPoint(tRes);
+        const boardingPt = findHighwayBoardingPoint(fullCarRes);
         const walkDistM  = getHaversineDist(oPt[0], oPt[1], boardingPt[0], boardingPt[1]) * 1000;
 
-        // Always fetch a real foot route to the boarding point regardless of distance
+        // Fetch walking leg from origin to highway boarding point
         let wRes = null;
         try {
             wRes = await fetchOSRMRouteCoords(oPt, boardingPt, 'foot');
-        } catch (e) { console.error('Walk OSRM error:', e); }
+        } catch (e) { console.error('Walk to boarding point OSRM error:', e); }
 
         if (!wRes || !wRes.coordinates || wRes.coordinates.length < 2) {
-            // Fallback: straight line with estimated distance
             wRes = {
                 coordinates: [oPt, boardingPt],
                 distance: Math.max(walkDistM, 50),
-                duration: Math.max(30, (Math.max(walkDistM, 50) / 1000 / 4) * 3600),
+                duration: Math.max(30, (Math.max(walkDistM, 50) / 1000 / WALK_SPEED_KPH) * 3600),
                 steps: []
+            };
+        }
+
+        // Fetch transit leg directly from boarding point to destination (avoids duplicate walking steps)
+        let tRes = null;
+        try {
+            tRes = await fetchOSRMRouteCoords(boardingPt, dPt, 'car');
+        } catch (e) { console.error('Transit leg OSRM error:', e); }
+
+        if (!tRes || !tRes.coordinates || tRes.coordinates.length < 2) {
+            // Fallback: trim fullCarRes from boarding point
+            let trimIdx = 0;
+            let minTrimDist = Infinity;
+            for (let i = 0; i < fullCarRes.coordinates.length; i++) {
+                const d = getHaversineDist(boardingPt[0], boardingPt[1],
+                    fullCarRes.coordinates[i][0], fullCarRes.coordinates[i][1]) * 1000;
+                if (d < minTrimDist) { minTrimDist = d; trimIdx = i; }
+            }
+            tRes = {
+                coordinates: fullCarRes.coordinates.slice(trimIdx),
+                distance: Math.max(100, fullCarRes.distance - (wRes.distance || walkDistM || 0)),
+                duration: Math.max(60, fullCarRes.duration),
+                steps: fullCarRes.steps || []
             };
         }
 
@@ -947,34 +1479,42 @@ document.addEventListener('DOMContentLoaded', () => {
         transitRouteGeojson = tRes;
 
         currentWalkDist = wRes.distance / 1000;
-        // FIX ∗7: Use OSRM duration if available; fall back to speed heuristic
-        currentWalkDur  = wRes.duration
-            ? Math.ceil(wRes.duration / 60)
-            : Math.ceil((wRes.distance / 1000 / WALK_SPEED_KPH) * 60);
+        currentWalkDur  = computeWalkDurationMin(currentWalkDist);
         currentTransitDist = tRes.distance / 1000;
-        // Jeepney speed correction: real jeepney avg + boarding buffer
+
+        // Jeepney speed correction: real jeepney avg (~20 km/h) + boarding buffer
         const correctedTransitDur = (currentTransitDist / JEEPNEY_SPEED_KPH) * 3600 + BOARDING_BUFFER_SEC;
-        currentTransitDur  = Math.ceil(correctedTransitDur / 60);
+        currentTransitDur = Math.ceil(correctedTransitDur / 60);
 
-        currentFare = computeLTFRBFare(currentTransitDist, selectedMode);
-
-        // Trim transit route to start from the boarding point (highway), not the origin
-        // Find the closest coordinate in tRes to boardingPt and slice from there
-        let trimIdx = 0;
-        let minTrimDist = Infinity;
-        for (let i = 0; i < tRes.coordinates.length; i++) {
-            const d = getHaversineDist(boardingPt[0], boardingPt[1],
-                tRes.coordinates[i][0], tRes.coordinates[i][1]) * 1000;
-            if (d < minTrimDist) { minTrimDist = d; trimIdx = i; }
-        }
-        tRes.coordinates = tRes.coordinates.slice(trimIdx);
+        // Single centralized fare calculation based on actual transit distance
+        currentFare = computeLTFRBFare(currentTransitDist);
 
         drawRoutes(wRes.coordinates, tRes.coordinates);
-        updateSummaryRow();
 
-        // Persist route state for recovery on refresh/reconnect
+        // Populate Guide turn-by-turn steps immediately for Jeepney multi-leg
+        const walkStepsClean = (wRes.steps || []).filter(s => s.maneuver?.type !== 'arrive').map(s => ({ ...s, mode: 'foot' }));
+        const transitStepsClean = (tRes.steps || []).map(s => ({ ...s, mode: 'driving' }));
+        window.activeRouteSteps = deduplicateSteps([...walkStepsClean, ...transitStepsClean]);
+        window.currentStepIndex = 0;
+        updateGuideStepsUI();
+
+        updateSummaryRow();
+        updatePillFareUI();
         saveJourneyState();
 
+        // Subtle note for short trips if Jeepney mode is selected
+        const walkHintEl = document.getElementById('walkableTripHint');
+        if (walkHintEl) {
+            const totalTripM = Math.round((currentWalkDist + currentTransitDist) * 1000 || straightDistM);
+            if (totalTripM < 800) {
+                walkHintEl.innerHTML = `<ion-icon name="information-circle-outline"></ion-icon><span>Short trip (~${totalTripM < 1000 ? totalTripM + 'm' : (totalTripM / 1000).toFixed(1) + 'km'}) · Walk is walkable</span>`;
+                walkHintEl.style.display = 'inline-flex';
+            } else {
+                walkHintEl.style.display = 'none';
+            }
+        }
+
+        document.getElementById('startJourneyBtn').disabled = false;
         document.getElementById('transportModesBlock').style.display = 'flex';
         document.getElementById('routeSummaryBlock').style.display  = 'block';
     };
@@ -1007,10 +1547,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const json = await req.json();
             if (json.code === 'Ok' && json.routes && json.routes.length > 0) {
                 const rt = json.routes[0];
+                const distM = rt.distance;
+                // Note: OSRM public demo server returns vehicle-speed durations (~22 km/h) for 'foot'.
+                // For walking routes, compute realistic duration using WALK_SPEED_KPH (~4.6 km/h / ~13 min/km).
+                const realisticDuration = profile === 'foot'
+                    ? (distM / 1000 / WALK_SPEED_KPH) * 3600
+                    : rt.duration;
                 return {
                     coordinates: rt.geometry.coordinates.map(c => [c[1], c[0]]),
-                    distance: rt.distance,
-                    duration: rt.duration,
+                    distance: distM,
+                    duration: realisticDuration,
                     steps: rt.legs[0]?.steps || []
                 };
             }
@@ -1018,77 +1564,68 @@ document.addEventListener('DOMContentLoaded', () => {
         return null;
     };
 
-    const computeLTFRBFare = (distKm, mode) => {
-        let base = 14, perKm = 2.00; // Default Traditional Jeep
-        if (mode === 'modern-jeepney') { base = 17; perKm = 2.40; }
-        if (distKm <= 4) return base;
+    const computeLTFRBFare = (distKm) => {
+        const base = 14, perKm = 2.00; // Traditional Jeepney LTFRB fare: ₱14 for first 4 km, +₱2.00/km excess
+        if (!distKm || distKm <= 4) return base;
         const total = base + (distKm - 4) * perKm;
         return Math.round(total); // rounded to nearest whole peso
     };
 
     const drawRoutes = (walkCoords, transitCoords) => {
-        if (walkPolyline) { map.removeLayer(walkPolyline); walkPolyline = null; }
-        if (transitPolyline) { map.removeLayer(transitPolyline); transitPolyline = null; }
-        if (completedTransitPolyline) { map.removeLayer(completedTransitPolyline); completedTransitPolyline = null; }
-        if (midpointBubbleMarker) { map.removeLayer(midpointBubbleMarker); midpointBubbleMarker = null; }
+        if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
+        if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
 
-        const modeColor = selectedMode === 'modern-jeepney' ? '#7c3aed'
-                        : selectedMode === 'walking'         ? '#10b981'
-                        : '#1a8fff';
+        const modeColor = selectedMode === 'walking' ? '#10b981' : '#378ADD';
         const isWalkOnly = selectedMode === 'walking';
 
-        // Walk leg: always dashed blue, minimum weight 5 so it's visible even for short distances
-        // For walk-only mode: solid green
-        walkPolyline = L.polyline(walkCoords.length >= 2 ? walkCoords : [walkCoords[0], walkCoords[0]], {
-            color: isWalkOnly ? '#10b981' : '#3b82f6',
-            weight: 5,
-            dashArray: isWalkOnly ? null : '12, 8',
-            dashOffset: '0',
-            opacity: 0.95,
-            lineCap: 'round',
-            lineJoin: 'round'
-        }).addTo(map);
+        const safeWalkCoords = (walkCoords && walkCoords.length >= 2) ? walkCoords : (walkCoords && walkCoords.length === 1 ? [walkCoords[0], walkCoords[0]] : []);
+        const walkLngLat = safeWalkCoords.map(c => [c[1], c[0]]);
+        const transitLngLat = (transitCoords && transitCoords.length > 0) ? transitCoords.map(c => [c[1], c[0]]) : [];
+
+        updateRouteSource('walk-route', walkLngLat);
+        updateRouteSource('transit-route', isWalkOnly ? [] : transitLngLat);
+        updateRouteSource('completed-route', []);
+
+        if (map.getLayer('walk-route-layer')) {
+            map.setPaintProperty('walk-route-layer', 'line-color', isWalkOnly ? '#10b981' : '#3b82f6');
+            map.setPaintProperty('walk-route-layer', 'line-dasharray', isWalkOnly ? [1, 0] : [2, 2]);
+        }
+        if (map.getLayer('transit-route-layer')) {
+            map.setPaintProperty('transit-route-layer', 'line-color', modeColor);
+        }
 
         if (!isWalkOnly && transitCoords && transitCoords.length > 1) {
-            // Transit leg: solid, mode-colored
-            transitPolyline = L.polyline(transitCoords, {
-                color: modeColor,
-                weight: 6,
-                opacity: 1,
-                lineCap: 'round',
-                lineJoin: 'round'
-            }).addTo(map);
-
-            // Boarding point marker at junction — FIX ∗8: remove old before adding new
-            if (boardingMarker) { map.removeLayer(boardingMarker); boardingMarker = null; }
-            boardingMarker = L.circleMarker(transitCoords[0], {
-                radius: 7,
-                color: '#3b82f6',
-                weight: 3,
-                fillColor: '#ffffff',
-                fillOpacity: 1
-            }).bindTooltip('Board here', { permanent: false, direction: 'top' }).addTo(map);
+            // Boarding point marker
+            const bEl = document.createElement('div');
+            bEl.innerHTML = `<div style="width:14px;height:14px;background:#ffffff;border:3px solid #3b82f6;border-radius:50%;box-shadow:0 1px 6px rgba(0,0,0,0.25);"></div>`;
+            boardingMarker = new maplibregl.Marker({ element: bEl.firstElementChild || bEl, anchor: 'center' })
+                .setLngLat(toLngLat(transitCoords[0]))
+                .addTo(map);
 
             // Midpoint bubble
             const midNode = transitCoords[Math.floor(transitCoords.length / 2)];
-            midpointBubbleMarker = L.marker(midNode, {
-                icon: L.divIcon({
-                    className: 'custom-mid-bubble',
-                    html: `<div class="route-bubble">${currentWalkDur + currentTransitDur} min</div>`,
-                    iconSize: [0, 0],
-                    iconAnchor: [0, 0]
-                })
-            });
-            if (directionsCard.classList.contains('collapsed')) midpointBubbleMarker.addTo(map);
+            const bubbleEl = document.createElement('div');
+            bubbleEl.className = 'custom-mid-bubble';
+            bubbleEl.innerHTML = `<div class="route-bubble">${currentWalkDur + currentTransitDur} min</div>`;
+            midpointBubbleMarker = new maplibregl.Marker({ element: bubbleEl, anchor: 'center' })
+                .setLngLat(toLngLat(midNode));
+            if (directionsCard.classList.contains('collapsed')) {
+                midpointBubbleMarker.addTo(map);
+            }
         }
 
-        const layers = [walkPolyline, transitPolyline, originMarker, destMarker].filter(Boolean);
-        const group = L.featureGroup(layers);
-        map.fitBounds(group.getBounds(), { padding: [60, 60] });
+        const bounds = new maplibregl.LngLatBounds();
+        if (selectedCoords.origin) bounds.extend(toLngLat(selectedCoords.origin));
+        if (selectedCoords.destination) bounds.extend(toLngLat(selectedCoords.destination));
+        walkLngLat.forEach(pt => bounds.extend(pt));
+        transitLngLat.forEach(pt => bounds.extend(pt));
+        if (!bounds.isEmpty()) {
+            map.fitBounds(bounds, { padding: 60, maxZoom: 16 });
+        }
 
         document.getElementById('startJourneyBtn').disabled = false;
         document.getElementById('closeDirectionsBtn').style.display = 'flex';
-        setTimeout(() => map.invalidateSize(), 200);
+        setTimeout(() => map.resize(), 200);
     };
 
     const renderItinerary = () => {
@@ -1097,34 +1634,34 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
 
         const isWalkOnly = selectedMode === 'walking';
-        const modeLabel  = selectedMode === 'modern-jeepney' ? 'MJEEP' : 'JEEP';
-        const sidebarCls = selectedMode === 'modern-jeepney' ? 'mjeep-sidebar' : 'jeep-sidebar';
 
         // Helper: format meters
         const fmtM = (m) => m < 1000 ? `${Math.round(m / 50) * 50} m` : `${(m / 1000).toFixed(1)} km`;
 
         // ── WALK CARD ───────────────────────────────────────────────────────────
-        // Derive road name from last walk step if available
         const walkSteps  = walkRouteGeojson?.steps || [];
         const highwayName = walkSteps.length > 0
             ? (walkSteps[walkSteps.length - 1]?.name || 'National Highway')
             : 'National Highway';
 
+        const walkTargetName = isWalkOnly ? (destPlaceName || 'Destination') : highwayName;
+        const walkTitle = isWalkOnly
+            ? `Walk to <strong>${walkTargetName}</strong>`
+            : `Walk towards <strong>${walkTargetName}</strong>`;
+
         const walkCard = document.createElement('div');
         walkCard.className = 'leg-card';
         walkCard.innerHTML = `
-            <div class="leg-sidebar walk-sidebar">
-                <div class="leg-sidebar-icon">
-                   <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                       <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
-                   </svg>
+            <div class="leg-icon-wrap">
+                <div class="leg-icon-circle walk-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                    </svg>
                 </div>
-                <div class="leg-sidebar-label">Walk</div>
             </div>
-            <div class="leg-body">
-                <div class="leg-title">Walk towards <strong>${highwayName}</strong></div>
-                <div class="leg-detail">${fmtM(currentWalkDist * 1000)}</div>
-                <div class="leg-meta">${currentWalkDur} min</div>
+            <div class="leg-content">
+                <div class="leg-title">${walkTitle}</div>
+                <div class="leg-sub">${fmtM(currentWalkDist * 1000)} · ${currentWalkDur} min</div>
             </div>`;
         container.appendChild(walkCard);
 
@@ -1132,7 +1669,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── TRANSIT CARD ─────────────────────────────────────────────────────────
         const tSteps   = transitRouteGeojson?.steps || [];
-        // Board at = name of first transit step; Alight at = name of step before arrive
         const boardAt  = tSteps.length > 0 ? (tSteps[0]?.name || highwayName) : highwayName;
         const alightStep = tSteps.length > 1
             ? tSteps.slice(0, -1).reverse().find(s => s.name && s.name !== '') : null;
@@ -1141,36 +1677,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const transitCard = document.createElement('div');
         transitCard.className = 'leg-card';
         transitCard.innerHTML = `
-            <div class="leg-sidebar ${sidebarCls}">
-                <div class="leg-sidebar-icon">
-                    ${selectedMode === 'jeepney'
-                      ? '<img src="../assets/icons/jeepney-icon.png" style="width:28px;height:28px;object-fit:contain;">'
-                      : '<img src="../assets/icons/bus-icon.png" style="width:28px;height:28px;object-fit:contain;">'}
+            <div class="leg-icon-wrap">
+                <div class="leg-icon-circle jeep-icon">
+                    <img src="../assets/icons/jeepney-icon.png" alt="Jeepney" class="leg-icon-img">
                 </div>
-                <div class="leg-sidebar-label">${modeLabel}</div>
             </div>
-            <div class="leg-body">
-                <div style="display:flex;align-items:center;">
-                    <div class="leg-title">${selectedMode === 'modern-jeepney' ? 'Modern Jeepney' : 'Jeepney'}</div>
-                    <div class="leg-fare-badge">₱${currentFare}</div>
+            <div class="leg-content">
+                <div class="leg-title-row">
+                    <span class="leg-title">Jeepney</span>
+                    <span class="leg-fare-badge">₱${currentFare}</span>
                 </div>
-                <div class="leg-meta">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km</div>
-                <div class="leg-route-info">
-                    <div class="leg-route-row">
-                        <div class="leg-stop-line">
-                            <div class="leg-stop-dot filled"></div>
-                            <div class="leg-stop-connector"></div>
-                            <div class="leg-stop-dot"></div>
+                <div class="leg-sub">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km</div>
+                <div class="leg-route-stops">
+                    <div class="leg-stop-line">
+                        <div class="leg-stop-dot filled"></div>
+                        <div class="leg-stop-connector"></div>
+                        <div class="leg-stop-dot"></div>
+                    </div>
+                    <div class="leg-stop-details">
+                        <div class="leg-stop-group">
+                            <span class="leg-stop-tag">GET ON</span>
+                            <span class="leg-stop-name">${boardAt}</span>
                         </div>
-                        <div style="display:flex;flex-direction:column;gap:8px;">
-                            <div>
-                                <div class="leg-route-label">GET ON</div>
-                                <div style="font-size:0.8rem;font-weight:600;color:#0f172a;">${boardAt}</div>
-                            </div>
-                            <div>
-                                <div class="leg-route-label">GET OFF</div>
-                                <div style="font-size:0.8rem;font-weight:600;color:#0f172a;">${alightAt}</div>
-                            </div>
+                        <div class="leg-stop-group">
+                            <span class="leg-stop-tag">GET OFF</span>
+                            <span class="leg-stop-name">${alightAt}</span>
                         </div>
                     </div>
                 </div>
@@ -1257,7 +1788,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (step.maneuver.type === 'depart') {
                 return mode === 'foot'
                     ? `Walk towards ${name}`
-                    : `Board ${selectedMode === 'modern-jeepney' ? 'Modern Jeepney' : 'Jeepney'} towards ${name}`;
+                    : `Board Jeepney towards ${name}`;
             } else if (step.maneuver.type === 'turn') {
                 const mod = step.maneuver.modifier || '';
                 if (mod.includes('right')) return `Turn right onto ${name}`;
@@ -1293,6 +1824,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startJourneyBtn').addEventListener('click', () => {
         if (!selectedCoords.origin || !selectedCoords.destination) return;
         
+        // Single source of truth: sync active mode UI and pill fare immediately
+        setModeUI(selectedMode);
+        updatePillFareUI();
+
         // Hide Directions Card
         directionsCard.classList.add('journey-active-hidden');
 
@@ -1300,11 +1835,21 @@ document.addEventListener('DOMContentLoaded', () => {
         activeGuideCard.style.display = 'flex';
         bottomStatusPill.style.display = 'flex';
         
-        document.getElementById('remindersPillBtn').style.display = 'none';
-        document.getElementById('hamburgerBtn').style.display = 'none';
+        const elReminders = document.getElementById('remindersPillBtn');
+        if (elReminders) elReminders.style.display = 'none';
+        const elHamburger = document.getElementById('hamburgerBtn');
+        if (elHamburger) elHamburger.style.display = 'none';
+        const elCategoryBar = document.getElementById('mapCategoryBarWrapper');
+        if (elCategoryBar) elCategoryBar.style.display = 'none';
+        const elGoogleSignIn = document.getElementById('googleSignInBtn');
+        if (elGoogleSignIn) elGoogleSignIn.style.display = 'none';
+        const elUserProfileNav = document.getElementById('userProfileNav');
+        if (elUserProfileNav) elUserProfileNav.style.display = 'none';
+        const elAuthNavBtn = document.getElementById('authNavBtn');
+        if (elAuthNavBtn) elAuthNavBtn.style.display = 'none';
 
         // Clean map markers, center on origin
-        map.setView(selectedCoords.origin, 17);
+        map.flyTo({ center: toLngLat(selectedCoords.origin), zoom: 17 });
         mapAutoFollow = true;
         isTrackingArrival = true;
         document.getElementById('reCenterBtn').style.display = 'none';
@@ -1312,20 +1857,21 @@ document.addEventListener('DOMContentLoaded', () => {
         startLiveTracking();
         // Persist active journey state immediately
         saveJourneyState();
-        map.invalidateSize();
+        map.resize();
     });
 
     document.getElementById('cancelRouteBtn').addEventListener('click', () => {
         stopLiveTracking();
         
-        if (walkPolyline)             { map.removeLayer(walkPolyline);             walkPolyline = null; }
-        if (transitPolyline)          { map.removeLayer(transitPolyline);          transitPolyline = null; }
-        if (completedTransitPolyline) { map.removeLayer(completedTransitPolyline); completedTransitPolyline = null; }
-        if (midpointBubbleMarker)     { map.removeLayer(midpointBubbleMarker);     midpointBubbleMarker = null; }
-        if (boardingMarker)           { map.removeLayer(boardingMarker);           boardingMarker = null; }
-        if (originMarker)             { map.removeLayer(originMarker);             originMarker = null; }
-        if (destMarker)               { map.removeLayer(destMarker);               destMarker = null; }
+        updateRouteSource('walk-route', []);
+        updateRouteSource('transit-route', []);
+        updateRouteSource('completed-route', []);
+        if (midpointBubbleMarker)     { midpointBubbleMarker.remove();     midpointBubbleMarker = null; }
+        if (boardingMarker)           { boardingMarker.remove();           boardingMarker = null; }
+        if (originMarker)             { originMarker.remove();             originMarker = null; }
+        if (destMarker)               { destMarker.remove();               destMarker = null; }
 
+        userExplicitMode = false;
         selectedCoords.origin = null;
         selectedCoords.destination = null;
         originPlaceName = '';
@@ -1333,6 +1879,8 @@ document.addEventListener('DOMContentLoaded', () => {
         updateODDisplay();
         document.getElementById('transportModesBlock').style.display = 'none';
         document.getElementById('routeSummaryBlock').style.display = 'none';
+        const walkHintEl = document.getElementById('walkableTripHint');
+        if (walkHintEl) walkHintEl.style.display = 'none';
         document.getElementById('startJourneyBtn').disabled = true;
         document.getElementById('closeDirectionsBtn').style.display = 'none';
         window._calzadaRouteContext = null;
@@ -1347,21 +1895,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('reCenterBtn').style.display = 'none';
 
         // Explicitly remove user markers on cancel
-        if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
-        if (gpsCircle)  { map.removeLayer(gpsCircle);  gpsCircle = null; }
+        if (userMarker) { userMarker.remove(); userMarker = null; }
+        if (gpsCircle)  { gpsCircle = null; }
         // Restore origin marker if present
         if (originMarker) originMarker.addTo(map);
 
         // Reset map bearing to north
-        if (typeof map.setBearing === 'function') map.setBearing(0);
-        else map.getContainer().style.transform = '';
+        map.setBearing(0);
         
         // Hide Active
         activeGuideCard.style.display = 'none';
         bottomStatusPill.style.display = 'none';
         
-        document.getElementById('remindersPillBtn').style.display = '';
-        document.getElementById('hamburgerBtn').style.display = '';
+        const elReminders = document.getElementById('remindersPillBtn');
+        if (elReminders) elReminders.style.display = '';
+        const elHamburger = document.getElementById('hamburgerBtn');
+        if (elHamburger) elHamburger.style.display = '';
+        const elCategoryBar = document.getElementById('mapCategoryBarWrapper');
+        if (elCategoryBar) elCategoryBar.style.display = '';
+        const elGoogleSignIn = document.getElementById('googleSignInBtn');
+        if (elGoogleSignIn) elGoogleSignIn.style.display = '';
+        const elUserProfileNav = document.getElementById('userProfileNav');
+        if (elUserProfileNav) elUserProfileNav.style.display = '';
+        const elAuthNavBtn = document.getElementById('authNavBtn');
+        if (elAuthNavBtn) elAuthNavBtn.style.display = '';
         
         // Restore Directions
         directionsCard.classList.remove('journey-active-hidden');
@@ -1372,13 +1929,13 @@ document.addEventListener('DOMContentLoaded', () => {
         directionsCard.classList.remove('collapsed');
         document.getElementById('dsPeekInfo').style.display = 'none';
         updateMidpointBubbleVisibility(false);
-        map.invalidateSize();
+        map.resize();
     });
 
     // Expand bottom pill to show cancel button — only when clicking the pill body, not mode buttons
     bottomStatusPill.addEventListener('click', (e) => {
         if (e.target.closest('.btn-cancel-route')) return;
-        if (e.target.closest('#amtJeep') || e.target.closest('#amtMJeep')) return; // let mode buttons handle themselves
+        if (e.target.closest('#amtJeep') || e.target.closest('#amtWalk')) return; // let mode buttons handle themselves
         bottomStatusPill.classList.toggle('expanded');
     });
 
@@ -1438,8 +1995,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentLocation) return;
         // Re-enable auto-follow and snap back to user location
         mapAutoFollow = true;
-        map.flyTo([currentLocation.lat, currentLocation.lng], 17, { animate: true, duration: 0.6, easeLinearity: 0.5 });
-        if (typeof map.setBearing === 'function') map.setBearing(0);
+        map.flyTo({ center: [currentLocation.lng, currentLocation.lat], zoom: 17, duration: 600, essential: true });
+        map.setBearing(0);
         document.getElementById('reCenterBtn').style.display = 'none';
     });
 
@@ -1461,7 +2018,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.currentStepIndex = 0;
         updateGuideStepsUI();
 
-        document.getElementById('pillPhp').textContent = selectedMode === 'walking' ? '🚶' : `₱${currentFare}`;
+        updatePillFareUI();
         cachedRemainingSeconds = (currentWalkDur + currentTransitDur) * 60;
         updateDynamicBottomPill();
 
@@ -1489,9 +2046,8 @@ document.addEventListener('DOMContentLoaded', () => {
             enableHighAccuracy: true, maximumAge: 10000, timeout: 5000
         });
 
-        if (userMarker) map.removeLayer(userMarker);
-        if (gpsCircle) map.removeLayer(gpsCircle);
-        if (originMarker) map.removeLayer(originMarker); // Hide origin circle so it doesn't sit under the pointer
+        if (userMarker) { userMarker.remove(); userMarker = null; }
+        if (originMarker) originMarker.remove(); // Hide origin circle so it doesn't sit under the pointer
         
         // ── NAV CURSOR SVG — flat chevron arrowhead, tip points UP at 0° ─────────
         const POINTER_SVG = `
@@ -1522,15 +2078,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <circle cx="24" cy="27" r="4" fill="white" opacity="0.9"/>
         </svg>`;
 
-        userMarker = L.marker([currentLocation.lat, currentLocation.lng], {
-            icon: L.divIcon({
-                className: '',
-                html: `<div class="nav-cursor-wrapper">${POINTER_SVG}</div>`,
-                iconSize: [48, 48],
-                iconAnchor: [24, 24]   // anchor at center (rotation pivot)
-            }),
-            zIndexOffset: 1000
-        }).addTo(map);
+        const uEl = document.createElement('div');
+        uEl.innerHTML = `<div class="nav-cursor-wrapper">${POINTER_SVG}</div>`;
+        userMarker = new maplibregl.Marker({
+            element: uEl.firstElementChild || uEl,
+            anchor: 'center',
+            rotationAlignment: 'map'
+        }).setLngLat([currentLocation.lng, currentLocation.lat]).addTo(map);
 
         // compass rotated in handleLocationUpdate
         
@@ -1547,19 +2101,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (remainingTransitDurationStrRawTimer) { clearInterval(remainingTransitDurationStrRawTimer); remainingTransitDurationStrRawTimer = null; }
 
         // Remove the user location marker when tracking stops
-        if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
-        if (gpsCircle)  { map.removeLayer(gpsCircle);  gpsCircle = null; }
+        if (userMarker) { userMarker.remove(); userMarker = null; }
+        if (gpsCircle)  { gpsCircle = null; }
     };
 
     const handleLocationUpdate = async (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
         currentLocation = { lat: latitude, lng: longitude };
         
-        // Set location without transition on Leaflet's container to prevent drifting when panning
-        userMarker.setLatLng([latitude, longitude]);
+        userMarker.setLngLat([longitude, latitude]);
         // Auto-follow: fly smoothly to user location while mapAutoFollow is true
         if (mapAutoFollow) {
-            map.flyTo([latitude, longitude], 17, { animate: true, duration: 0.8, easeLinearity: 0.5, noMoveStart: true });
+            map.flyTo({ center: [longitude, latitude], zoom: 17, duration: 800, essential: true });
         }
 
         // Keep step index current in session
@@ -1572,12 +2125,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const pointerEl = userMarker.getElement()?.querySelector('.nav-cursor-wrapper');
             if (pointerEl) {
-                if (typeof map.setBearing === 'function' && window.innerWidth <= 768) {
+                if (window.innerWidth <= 768) {
                     map.setBearing(heading);
                     // Map is rotating — counter-rotate marker to stay upright on screen
                     pointerEl.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
                     pointerEl.style.transform = `rotate(${-heading}deg)`;
                 } else {
+                    map.setBearing(0);
                     // Map is north-up — rotate marker to face heading direction
                     pointerEl.style.transition = 'transform 0.5s cubic-bezier(0.4,0,0.2,1)';
                     pointerEl.style.transform = `rotate(${heading}deg)`;
@@ -1645,46 +2199,32 @@ document.addEventListener('DOMContentLoaded', () => {
             const remFare = computeLTFRBFare(remainingDist, selectedMode);
             document.getElementById('pillPhp').textContent = `₱${remFare}`;
 
-            const passCoords = transitRouteGeojson.coordinates.slice(0, closestIdx + 1);
-            const remainCoords = transitRouteGeojson.coordinates.slice(closestIdx);
+            const passCoords = transitRouteGeojson.coordinates.slice(0, closestIdx + 1).map(c => [c[1], c[0]]);
+            const remainCoords = transitRouteGeojson.coordinates.slice(closestIdx).map(c => [c[1], c[0]]);
             
-            if (completedTransitPolyline) map.removeLayer(completedTransitPolyline);
-            if (transitPolyline) map.removeLayer(transitPolyline);
-
             // Sakay-style: completed = gray, remaining = mode color
-            completedTransitPolyline = L.polyline(passCoords, {
-                color: '#9ca3af', weight: 6, opacity: 0.7
-            }).addTo(map);
-            transitPolyline = L.polyline(remainCoords, {
-                color: selectedMode === 'modern-jeepney' ? '#7c3aed' : '#1a8fff',
-                weight: 6, opacity: 1
-            }).addTo(map);
+            updateRouteSource('completed-route', passCoords);
+            updateRouteSource('transit-route', remainCoords);
 
             remainingTimeSecs = (remainingDist / JEEPNEY_SPEED_KPH) * 3600; // jeepney ~20 km/h
         } else {
             // Walk leg: walk remaining + full transit time ahead
             const remFare = computeLTFRBFare(currentTransitDist, selectedMode);
-            document.getElementById('pillPhp').textContent = selectedMode === 'walking' ? '🚶' : `₱${remFare}`;
+            updatePillFareUI();
 
             const walkRemainingSecs = (remainingDist / WALK_SPEED_KPH) * 3600;   // 4 km/h realistic walk
             const transitAheadSecs  = currentTransitDur * 60;        // full transit duration
             remainingTimeSecs = walkRemainingSecs + transitAheadSecs;
 
             // Dim the walk polyline as user progresses
-            if (walkPolyline) {
-                const walkCoords = walkRouteGeojson.coordinates;
-                const doneCoords = walkCoords.slice(0, closestIdx + 1);
-                const aheadCoords = walkCoords.slice(closestIdx);
-                if (doneCoords.length > 1) {
-                    if (!completedTransitPolyline) {
-                        completedTransitPolyline = L.polyline(doneCoords, {
-                            color: '#9ca3af', weight: 5, dashArray: '8,10', opacity: 0.5
-                        }).addTo(map);
-                    } else {
-                        completedTransitPolyline.setLatLngs(doneCoords);
-                    }
-                }
-                if (aheadCoords.length > 1) walkPolyline.setLatLngs(aheadCoords);
+            const walkCoords = walkRouteGeojson.coordinates;
+            const doneCoords = walkCoords.slice(0, closestIdx + 1).map(c => [c[1], c[0]]);
+            const aheadCoords = walkCoords.slice(closestIdx).map(c => [c[1], c[0]]);
+            if (doneCoords.length > 1) {
+                updateRouteSource('completed-route', doneCoords);
+            }
+            if (aheadCoords.length > 1) {
+                updateRouteSource('walk-route', aheadCoords);
             }
         }
 
@@ -1710,12 +2250,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (activeLegIndex === 0) {
                             walkRouteGeojson.coordinates = res.coordinates;
                             walkRouteGeojson.steps = res.steps;
-                            if (walkPolyline) walkPolyline.setLatLngs(res.coordinates);
+                            updateRouteSource('walk-route', res.coordinates.map(c => [c[1], c[0]]));
                         } else {
                             transitRouteGeojson.coordinates = res.coordinates;
                             transitRouteGeojson.steps = res.steps;
-                            if (completedTransitPolyline) map.removeLayer(completedTransitPolyline);
-                            if (transitPolyline) transitPolyline.setLatLngs(res.coordinates);
+                            updateRouteSource('completed-route', []);
+                            updateRouteSource('transit-route', res.coordinates.map(c => [c[1], c[0]]));
                         }
                         showToast('Route updated');
                     }
@@ -1752,11 +2292,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const triggerArrival = () => {
         stopLiveTracking();
         sessionStorage.removeItem('calzada_journey');
-        if (userMarker)  { map.removeLayer(userMarker);  userMarker = null; }
-        if (gpsCircle)   { map.removeLayer(gpsCircle);   gpsCircle = null; }
+        if (userMarker)  { userMarker.remove();  userMarker = null; }
+        if (gpsCircle)   { gpsCircle = null; }
         if (originMarker) originMarker.addTo(map);
-        if (typeof map.setBearing === 'function') map.setBearing(0);
-        else map.getContainer().style.transform = '';
+        map.setBearing(0);
 
         const now      = new Date();
         const startMs  = now.getTime() - ((currentWalkDur + currentTransitDur) * 60 * 1000);
@@ -1782,8 +2321,8 @@ document.addEventListener('DOMContentLoaded', () => {
         itemsEl.appendChild(walkItem);
 
         if (selectedMode !== 'walking') {
-          const modeLabel = selectedMode === 'modern-jeepney' ? 'MOD. JEEPNEY' : 'JEEPNEY';
-          const modeEmoji = selectedMode === 'modern-jeepney' ? '🚌' : '🚐';
+          const modeLabel = 'JEEPNEY';
+          const modeEmoji = '🚐';
           const transitItem = document.createElement('div');
           transitItem.className = 'receipt-item';
           transitItem.innerHTML = `
@@ -2003,21 +2542,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isNaN(destLat) && !isNaN(destLng)) {
                 // Coordinates provided
                 selectedCoords.destination = [destLat, destLng];
-                if (destMarker) map.removeLayer(destMarker);
-                destMarker = L.marker([destLat, destLng], {
-                    icon: L.divIcon({
-                        className: '',
-                        html: `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
-                <circle cx="14" cy="14" r="6" fill="white"/>
-            </svg>`,
-                        iconSize: [28, 36],
-                        iconAnchor: [14, 36]
-                    })
-                }).addTo(map);
+                if (destMarker) { destMarker.remove(); destMarker = null; }
+                const dEl = document.createElement('div');
+                dEl.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
+                    <circle cx="14" cy="14" r="6" fill="white"/>
+                </svg>`;
+                destMarker = new maplibregl.Marker({
+                    element: dEl.firstElementChild || dEl,
+                    anchor: 'bottom'
+                }).setLngLat([destLng, destLat]).addTo(map);
 
-                map.setView([destLat, destLng], 16);
-                setTimeout(() => map.invalidateSize(), 300);
+                map.flyTo({ center: [destLng, destLat], zoom: 16 });
+                setTimeout(() => map.resize(), 300);
 
                 // Auto-open origin picker so user can complete the route
                 setTimeout(() => openLocationModal('origin'), 400);
@@ -2073,33 +2610,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('amtJeep').addEventListener('click', () => switchActiveMode('jeepney'));
-    document.getElementById('amtMJeep').addEventListener('click', () => switchActiveMode('modern-jeepney'));
     document.getElementById('amtWalk').addEventListener('click', () => switchActiveMode('walking'));
 
-    const switchActiveMode = (newMode) => {
+    const switchActiveMode = async (newMode) => {
         if (selectedMode === newMode) return;
+        userExplicitMode = true;
         selectedMode = newMode;
-        
-        ['amtWalk','amtJeep','amtMJeep'].forEach(id => {
-            document.getElementById(id)?.classList.remove('active');
-        });
-        const activeId = newMode === 'walking' ? 'amtWalk' : newMode === 'jeepney' ? 'amtJeep' : 'amtMJeep';
-        document.getElementById(activeId)?.classList.add('active');
+        setModeUI(newMode);
 
-        const remainingRatio = window.activeRouteSteps.length > 0
-            ? 1 - (window.currentStepIndex / window.activeRouteSteps.length)
-            : 1;
-        const remainingDistKm = Math.max(0, currentTransitDist * remainingRatio);
-        const newFare = newMode === 'walking' ? 0 : computeLTFRBFare(remainingDistKm, newMode);
-        currentFare = newFare;
-
-        // Update polyline color
-        const modeColor = newMode === 'modern-jeepney' ? '#7c3aed' : newMode === 'walking' ? '#10b981' : '#1a8fff';
-        if (transitPolyline) transitPolyline.setStyle({ color: modeColor });
-
-        document.getElementById('pillPhp').textContent = newMode === 'walking' ? '🚶' : `₱${currentFare}`;
-        
-        renderItinerary();
+        // Trigger full route recalculation per mode
+        await executeRouteQuery();
     };
 
     // =============================================
@@ -2147,7 +2667,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedCoords.destination = state.destination;
         originPlaceName = state.originName || '';
         destPlaceName   = state.destName   || '';
-        selectedMode    = state.selectedMode || 'modern-jeepney';
+        selectedMode    = (state.selectedMode === 'walking' ? 'walking' : 'jeepney');
         updateODDisplay();
 
         // Re-fetch fresh OSRM route (never use stale saved polylines)
@@ -2165,8 +2685,19 @@ document.addEventListener('DOMContentLoaded', () => {
                             directionsCard.classList.add('journey-active-hidden');
                             activeGuideCard.style.display = 'flex';
                             bottomStatusPill.style.display = 'flex';
-                            document.getElementById('remindersPillBtn').style.display = 'none';
-                            document.getElementById('hamburgerBtn').style.display = 'none';
+                            setModeUI(selectedMode);
+                            const elReminders = document.getElementById('remindersPillBtn');
+                            if (elReminders) elReminders.style.display = 'none';
+                            const elHamburger = document.getElementById('hamburgerBtn');
+                            if (elHamburger) elHamburger.style.display = 'none';
+                            const elCategoryBar = document.getElementById('mapCategoryBarWrapper');
+                            if (elCategoryBar) elCategoryBar.style.display = 'none';
+                            const elGoogleSignIn = document.getElementById('googleSignInBtn');
+                            if (elGoogleSignIn) elGoogleSignIn.style.display = 'none';
+                            const elUserProfileNav = document.getElementById('userProfileNav');
+                            if (elUserProfileNav) elUserProfileNav.style.display = 'none';
+                            const elAuthNavBtn = document.getElementById('authNavBtn');
+                            if (elAuthNavBtn) elAuthNavBtn.style.display = 'none';
                             mapAutoFollow = true;
                             isTrackingArrival = true;
                             document.getElementById('reCenterBtn').style.display = 'none';
@@ -2174,7 +2705,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             activeLegIndex = Math.min(state.activeLegIndex || 0, 1);
                             window.currentStepIndex = 0; // always restart from step 0 on recovery
                             startLiveTracking();
-                            map.invalidateSize();
+                            map.resize();
                         });
                     },
                     () => {

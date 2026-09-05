@@ -5,6 +5,8 @@ import {
     createUserWithEmailAndPassword, 
     signInWithPopup, 
     GoogleAuthProvider, 
+    FacebookAuthProvider, 
+    fetchSignInMethodsForEmail,
     onAuthStateChanged, 
     signOut, 
     updateProfile, 
@@ -23,7 +25,11 @@ import {
     where, 
     orderBy, 
     limit, 
-    serverTimestamp 
+    updateDoc,
+    serverTimestamp,
+    runTransaction,
+    startAfter,
+    documentId
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 // Default Firebase configuration fallback for pages that do not define window.FIREBASE_CONFIG in HTML
@@ -327,6 +333,8 @@ export {
     createUserWithEmailAndPassword, 
     signInWithPopup, 
     GoogleAuthProvider, 
+    FacebookAuthProvider,
+    fetchSignInMethodsForEmail,
     onAuthStateChanged, 
     collection, 
     doc, 
@@ -334,12 +342,16 @@ export {
     getDoc,
     getDocs,
     addDoc,
+    updateDoc,
     deleteDoc,
     query,
     where,
     orderBy,
     limit,
     serverTimestamp,
+    runTransaction,
+    startAfter,
+    documentId,
     signOut,
     updateProfile,
     sendPasswordResetEmail,

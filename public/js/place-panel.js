@@ -5,7 +5,31 @@
 
 const placesData = {
     "STI College Calamba": {
-        name: "STI College Calamba",
+        name: "STI College - Calamba",
+        category: "School",
+        image: "/assets/places/sti-college/sti-1.jpg",
+        full_address: "Manila S Rd, Calamba, 4027 Laguna",
+        phone: "(049) 502 8225",
+        website: "sti.edu",
+        opening_hours: {
+            "mon": "8:00 AM - 5:00 PM",
+            "tue": "8:00 AM - 5:00 PM",
+            "wed": "8:00 AM - 5:00 PM",
+            "thu": "8:00 AM - 5:00 PM",
+            "fri": "8:00 AM - 5:00 PM",
+            "sat": "8:00 AM - 12:00 PM",
+            "sun": "Closed"
+        },
+        barangay: "Brgy. Halang, Calamba City",
+        landmarks: ["Near Robinsons Calamba", "Along National Highway", "Beside LTO Calamba"],
+        howToGetThere: "Ride any jeepney going to Crossing or Halang. Fare starts at ₱13. Travel time approx. 10–15 mins.",
+        about: "STI College Calamba offers tech and business programs. It is one of the major schools along the National Highway in Halang.",
+        fare: "₱13–₱20",
+        travelTime: "10–15 mins",
+        transport: "Jeepney / Tricycle"
+    },
+    "STI College - Calamba": {
+        name: "STI College - Calamba",
         category: "School",
         image: "/assets/places/sti-college/sti-1.jpg",
         full_address: "Manila S Rd, Calamba, 4027 Laguna",
@@ -175,6 +199,26 @@ function initPlacePanelDOM() {
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
                     </button>
+                </div>
+
+                <!-- 360 Photosphere Preview Section (Rendered only if placeId has linked 360 photo) -->
+                <div class="panel-360-section" id="pp360Section" style="display:none;">
+                    <div class="panel-360-container">
+                        <div class="popup-360-thumb-wrap" id="pp360ThumbWrap" title="Click to view 360° photo">
+                            <img src="" alt="360 View" class="popup-360-thumb" id="pp360Thumb">
+                            <span class="popup-360-badge">360°</span>
+                        </div>
+                        <div class="popup-360-action-wrap">
+                            <button type="button" class="popup-360-btn" id="pp360Btn">
+                                <svg class="popup-360-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                                </svg>
+                                <span>View 360°</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 2. Info Block with Hairline Dividers -->
@@ -1257,10 +1301,12 @@ window.openPlacePanel = async function(placeName) {
     document.body.style.overflow = 'hidden';
 
     // 3. Find base data or construct fallback
+    const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const normalizedKey = Object.keys(placesData).find(
-        k => k.toLowerCase().trim() === placeName.toLowerCase().trim()
+        k => k.toLowerCase().trim() === placeName.toLowerCase().trim() ||
+             k.toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm
     );
-    let data = placesData[normalizedKey] || null;
+    let data = normalizedKey ? placesData[normalizedKey] : null;
     
     if (!data) {
         data = {
@@ -1407,7 +1453,9 @@ window.openPlacePanel = async function(placeName) {
         const searchRes = await fetch(`/api/places?category=all`);
         if (searchRes.ok) {
             const allPlaces = await searchRes.json();
-            const match = allPlaces.find(p => p.name.toLowerCase().trim() === placeName.toLowerCase().trim() || (placeName.toLowerCase().includes('sti') && p.name.toLowerCase().includes('sti')));
+            const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const match = allPlaces.find(p => p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) ||
+                          allPlaces.find(p => (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm);
             if (match) {
                 placeId = match.id;
                 currentPlaceId = match.id;
@@ -1460,8 +1508,136 @@ window.openPlacePanel = async function(placeName) {
             window.CalzadaActivity.addRecentlyViewed(placeId || data.id || data.name, data.name || placeName);
         }
     } catch (_) {}
+
+    // 14. Check and render 360 photosphere section if linked
+    try {
+        await loadPlacePanel360Links();
+        const link360 = getPlacePanel360Link(placeId, data.name || placeName);
+        const sec360 = document.getElementById('pp360Section');
+        const thumb360 = document.getElementById('pp360Thumb');
+        const thumbWrap360 = document.getElementById('pp360ThumbWrap');
+        const btn360 = document.getElementById('pp360Btn');
+
+        if (link360 && link360.nodeId && sec360) {
+            const photoFilename = `${link360.nodeId.replace('_', ', ')}.jpg`;
+            const photoUrl = `/assets/360/${encodeURIComponent(photoFilename)}`;
+            if (thumb360) thumb360.src = photoUrl;
+            if (thumbWrap360) thumbWrap360.onclick = () => window._open360Viewer(link360.nodeId);
+            if (btn360) btn360.onclick = () => window._open360Viewer(link360.nodeId);
+            sec360.style.display = 'block';
+        } else if (sec360) {
+            sec360.style.display = 'none';
+        }
+    } catch (e) {
+        console.warn('Error displaying 360 link in place-panel:', e);
+    }
 };
 
+// 360 Photosphere Place Links Integration for Place Panel
+let placePanel360LinksMap = new Map();
+let placePanel360LoadPromise = null;
+
+function loadPlacePanel360Links() {
+    if (!placePanel360LoadPromise) {
+        placePanel360LoadPromise = (async () => {
+            try {
+                const res = await fetch('/assets/360/place-links.json');
+                if (res.ok) {
+                    const data = await res.json();
+                    (data.links || []).forEach(link => {
+                        if (link.placeId) placePanel360LinksMap.set(String(link.placeId).trim(), link);
+                        if (link.placeName) placePanel360LinksMap.set(link.placeName.trim().toLowerCase(), link);
+                    });
+                }
+            } catch (err) {
+                console.warn('[360 Links] Could not load place-links in place-panel:', err);
+            }
+        })();
+    }
+    return placePanel360LoadPromise;
+}
+
+loadPlacePanel360Links();
+
+function getPlacePanel360Link(placeId, placeName) {
+    if (placeId && placePanel360LinksMap.has(String(placeId).trim())) {
+        return placePanel360LinksMap.get(String(placeId).trim());
+    }
+    if (placeName && placePanel360LinksMap.has(placeName.trim().toLowerCase())) {
+        return placePanel360LinksMap.get(placeName.trim().toLowerCase());
+    }
+    return null;
+}
+
+// Fallback global handler for opening 360 viewer if not already provided
+if (!window._open360Viewer) {
+    window._open360Viewer = function(nodeId) {
+        if (!nodeId) return;
+        console.log('[Calzada 360] Requesting 360° viewer at node:', nodeId);
+
+        window.dispatchEvent(new CustomEvent('calzada:open-360', {
+            detail: { nodeId }
+        }));
+
+        if (typeof window.launch360Viewer === 'function') {
+            window.launch360Viewer(nodeId);
+            return;
+        }
+
+        let viewerModal = document.getElementById('calzada360ViewerModal');
+        if (!viewerModal) {
+            viewerModal = document.createElement('div');
+            viewerModal.id = 'calzada360ViewerModal';
+            viewerModal.className = 'calzada-360-modal-overlay';
+            viewerModal.innerHTML = `
+                <div class="calzada-360-modal-container">
+                    <div class="calzada-360-modal-header">
+                        <div class="calzada-360-modal-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                                <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                            </svg>
+                            <span id="calzada360ModalNodeText">360° Photosphere Viewer</span>
+                        </div>
+                        <button type="button" class="calzada-360-close-btn" id="calzada360CloseBtn" aria-label="Close 360 Viewer">&times;</button>
+                    </div>
+                    <div class="calzada-360-preview-viewport" id="calzada360Viewport">
+                        <img id="calzada360ModalImg" src="" alt="360 Photosphere" class="calzada-360-full-img" />
+                        <div class="calzada-360-status-pill" id="calzada360StatusPill">
+                            <span class="calzada-360-pulse-dot"></span>
+                            <span id="calzada360PillText">Node: ${nodeId}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(viewerModal);
+
+            const closeBtn = document.getElementById('calzada360CloseBtn');
+            if (closeBtn) closeBtn.onclick = () => viewerModal.classList.remove('active');
+            viewerModal.onclick = (e) => {
+                if (e.target === viewerModal) viewerModal.classList.remove('active');
+            };
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && viewerModal.classList.contains('active')) {
+                    viewerModal.classList.remove('active');
+                }
+            });
+        }
+
+        const modalImg = document.getElementById('calzada360ModalImg');
+        const nodeText = document.getElementById('calzada360ModalNodeText');
+        const pillText = document.getElementById('calzada360PillText');
+        const photoFilename = `${nodeId.replace('_', ', ')}.jpg`;
+        const photoUrl = `/assets/360/${encodeURIComponent(photoFilename)}`;
+
+        if (modalImg) modalImg.src = photoUrl;
+        if (nodeText) nodeText.textContent = `360° Photosphere · ${nodeId}`;
+        if (pillText) pillText.textContent = `Node: ${nodeId}`;
+
+        viewerModal.classList.add('active');
+    };
+}
 
 window.closePlacePanel = function(updateHistory = true) {
     const backdrop = document.getElementById('placePanelBackdrop');

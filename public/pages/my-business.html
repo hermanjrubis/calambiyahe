@@ -1,0 +1,2205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Business - Calzada</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+
+    <!-- Google Fonts: Sora & Outfit (Exact same font stack as submit.html & admin.html) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <style>
+        :root {
+            --primary: #378ADD;
+            --primary-dark: #185FA5;
+            --primary-light: #F0F7FF;
+            --navy-dark: #042C53;
+            --navy-muted: #64748B;
+            --navy-subtle: #94A3B8;
+            --bg-page: #F8F9FC;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --border-subtle: #F1F5F9;
+            --danger: #DC2626;
+            --danger-bg: #FEF2F2;
+            --danger-border: #FCA5A5;
+            --success: #16A34A;
+            --success-bg: #F0FDF4;
+            --success-border: #BBF7D0;
+            --amber: #D97706;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --shadow-card: none;
+            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--navy-dark);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 1. Loading & Auth Checking */
+        .loading-overlay {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            gap: 16px;
+            color: var(--navy-muted);
+        }
+
+        .spinner {
+            width: 38px;
+            height: 38px;
+            border: 3px solid #E2E8F0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 2. Top Bar (Identical to submit.html) */
+        .mybus-topbar {
+            height: 60px;
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .topbar-logo {
+            height: 24px;
+            width: auto;
+        }
+
+        .topbar-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+        }
+
+        .breadcrumb-root {
+            color: var(--navy-subtle);
+            font-weight: 500;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .breadcrumb-root:hover {
+            color: var(--navy-dark);
+        }
+
+        .breadcrumb-sep {
+            color: #CBD5E1;
+            font-size: 0.8rem;
+        }
+
+        .breadcrumb-current {
+            color: var(--navy-dark);
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 0.88rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .topbar-user-email {
+            font-size: 0.84rem;
+            color: var(--navy-muted);
+            font-weight: 500;
+        }
+
+        .topbar-link-btn {
+            background: transparent;
+            color: var(--primary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+
+        .topbar-link-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .btn-signout {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--navy-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-signout:hover {
+            background: #FEF2F2;
+            color: var(--danger);
+            border-color: var(--danger-border);
+        }
+
+        /* 3. Main Container */
+        .mybus-container {
+            max-width: 680px;
+            margin: 36px auto 72px;
+            padding: 0 20px;
+            display: none; /* revealed once auth & business queried */
+        }
+
+        .section-header {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+            letter-spacing: -0.025em;
+            margin-bottom: 6px;
+        }
+
+        .section-subtitle {
+            font-size: 0.96rem;
+            color: var(--navy-muted);
+            line-height: 1.5;
+        }
+
+        /* 4. Flat Content Card (Exact admin.html Card Component) */
+        .flat-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .card-header-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .card-business-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+            letter-spacing: -0.02em;
+        }
+
+        /* Plain text status labels (Exact Admin Overview style — NO PILL/BADGE) */
+        .status-label {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding-top: 4px;
+        }
+
+        .status-pending {
+            color: var(--amber);
+        }
+
+        .status-approved {
+            color: var(--success);
+        }
+
+        .status-rejected {
+            color: var(--danger);
+        }
+
+        /* 5. Key-Value Readonly Spec Rows */
+        .spec-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+
+        .spec-label {
+            color: var(--navy-muted);
+            font-weight: 500;
+            flex-shrink: 0;
+            width: 140px;
+        }
+
+        .spec-value {
+            color: var(--navy-dark);
+            font-weight: 600;
+            text-align: right;
+            flex: 1;
+            word-break: break-word;
+            line-height: 1.45;
+        }
+
+        .spec-value.empty {
+            color: var(--navy-subtle);
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        /* 6. Notice / Inline Info Box */
+        .info-notice {
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-top: 20px;
+            font-size: 0.88rem;
+            color: var(--navy-muted);
+            line-height: 1.5;
+        }
+
+        .rejection-notice {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-top: 20px;
+            font-size: 0.88rem;
+            color: var(--danger);
+            line-height: 1.5;
+        }
+
+        .rejection-notice-label {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        /* 7. Compact Photo Control */
+        .photo-control-group {
+            margin-bottom: 22px;
+        }
+
+        .photo-control-wrap {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .photo-thumbnail {
+            width: 68px;
+            height: 68px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #F8FAFC;
+            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .photo-thumbnail-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-thumbnail-placeholder {
+            font-size: 1.8rem;
+            color: var(--navy-subtle);
+            line-height: 1;
+        }
+
+        .photo-action-col {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .btn-change-photo {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            color: var(--navy-dark);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 600;
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+        }
+
+        .btn-change-photo:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+        }
+
+        .photo-hint {
+            font-size: 0.78rem;
+            color: var(--navy-subtle);
+        }
+
+        .photo-selected-status {
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 500;
+            display: none;
+        }
+
+        .photo-selected-status.visible {
+            display: block;
+        }
+
+        /* 8. Form Inputs & Actions */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--navy-dark);
+            margin-bottom: 6px;
+        }
+
+        .form-label .opt {
+            font-size: 0.8rem;
+            color: var(--navy-subtle);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            background: #FFFFFF;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            resize: vertical;
+        }
+
+        .form-textarea:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+        }
+
+        .field-hint {
+            font-size: 0.8rem;
+            color: var(--navy-subtle);
+            margin-top: 4px;
+        }
+
+        .form-actions {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: #FFFFFF;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 10px 24px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            color: var(--navy-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 10px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-cancel:hover:not(:disabled) {
+            background: #F8FAFC;
+            color: var(--navy-dark);
+        }
+
+        .btn-cancel:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        /* 9. Feedback Banners */
+        .feedback-banner {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+            font-size: 0.88rem;
+            line-height: 1.45;
+            display: none;
+        }
+
+        .feedback-banner.error {
+            background: var(--danger-bg);
+            border: 1px solid var(--danger-border);
+            color: var(--danger);
+        }
+
+        .feedback-banner.success {
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
+            color: var(--success);
+        }
+
+        /* 9b. Posts Section & Multi-Photo Feed List */
+        .photo-strip-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .photo-strip-item {
+            position: relative;
+            width: 68px;
+            height: 68px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #F1F5F9;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .photo-strip-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-strip-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(4, 44, 83, 0.75);
+            color: #FFFFFF;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .photo-strip-remove:hover {
+            background: var(--danger);
+        }
+
+        .post-item {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 16px;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: border-color 0.15s ease;
+        }
+
+        .post-item:hover {
+            border-color: #CBD5E1;
+        }
+
+        .post-media-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .post-carousel {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .post-media-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            user-select: none;
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy-dark);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            z-index: 2;
+        }
+
+        .carousel-btn:hover {
+            background: #FFFFFF;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .carousel-btn.carousel-prev {
+            left: 10px;
+        }
+
+        .carousel-btn.carousel-next {
+            right: 10px;
+        }
+
+        .carousel-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #CBD5E1;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+
+        .carousel-dot.active {
+            background: var(--primary);
+        }
+
+        .post-content-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .post-caption {
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .post-caption.empty {
+            color: var(--navy-subtle);
+            font-style: italic;
+        }
+
+        .post-edit-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .post-edit-textarea {
+            width: 100%;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+        }
+
+        .post-edit-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .btn-save-caption {
+            background: var(--primary);
+            color: #FFFFFF;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-save-caption:hover:not(:disabled) {
+            background: var(--primary-dark);
+        }
+
+        .btn-save-caption:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel-edit {
+            background: transparent;
+            color: var(--navy-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-cancel-edit:hover {
+            background: #F8FAFC;
+            color: var(--navy-dark);
+        }
+
+        .post-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 4px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .post-meta-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .post-meta-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-like-post {
+            background: transparent;
+            border: none;
+            color: var(--navy-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s ease;
+        }
+
+        .btn-like-post i {
+            font-size: 1.15rem;
+            color: var(--navy-subtle);
+            transition: color 0.15s ease;
+        }
+
+        .btn-like-post.liked i {
+            color: var(--primary);
+        }
+
+        .btn-like-post.liked {
+            color: var(--primary);
+        }
+
+        .btn-like-post:hover:not(:disabled) {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .btn-like-post:hover:not(:disabled) i {
+            color: var(--primary);
+        }
+
+        .btn-like-post:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .btn-edit-caption {
+            background: transparent;
+            border: none;
+            color: var(--navy-subtle);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-edit-caption:hover:not(:disabled) {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-delete-post {
+            background: transparent;
+            border: none;
+            color: var(--navy-subtle);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-delete-post:hover:not(:disabled) {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        .btn-delete-post:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .posts-empty-hint {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--navy-muted);
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #F8FAFC;
+        }
+
+        /* 10. Empty State (No business) */
+        .empty-state-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 48px 24px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 14px;
+            line-height: 1;
+        }
+
+        .empty-state-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+            margin-bottom: 8px;
+        }
+
+        .empty-state-desc {
+            font-size: 0.95rem;
+            color: var(--navy-muted);
+            max-width: 440px;
+            margin: 0 auto 24px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 640px) {
+            .mybus-topbar {
+                padding: 0 16px;
+            }
+            .breadcrumb-root,
+            .breadcrumb-sep {
+                display: none;
+            }
+            .topbar-user-email {
+                display: none;
+            }
+            .flat-card {
+                padding: 22px 18px;
+            }
+            .card-header-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .spec-row {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .spec-label {
+                width: 100%;
+            }
+            .spec-value {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 1. Checking Auth State & Loading Spinner -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingMsg">Loading business details...</p>
+    </div>
+
+    <!-- 2. Application Top Bar -->
+    <header class="mybus-topbar" id="mybusTopbar" style="display: none;">
+        <div class="topbar-left">
+            <a href="index.html" class="topbar-brand" title="Calzada Homepage">
+                <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="topbar-logo">
+            </a>
+            <div class="topbar-breadcrumb">
+                <a href="index.html" class="breadcrumb-root">Home</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current">My Business</span>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            <span class="topbar-user-email" id="topbarUserEmail">--</span>
+            <a href="submit.html" class="topbar-link-btn" title="Register Business">
+                <i class="ti ti-plus"></i>
+                <span>Register</span>
+            </a>
+            <button type="button" class="btn-signout" id="mybusSignOutBtn" title="Sign Out">
+                <i class="ti ti-logout"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 3. Main Content Container -->
+    <main class="mybus-container" id="mybusContainer">
+
+        <!-- Banner for messages -->
+        <div class="feedback-banner" id="globalBanner" role="alert"></div>
+
+        <!-- ====================================================
+             STATE A: NO BUSINESS FOUND
+             ==================================================== -->
+        <div id="stateNoBusiness" style="display: none;">
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
+                    <i class="ti ti-building-store"></i>
+                </div>
+                <h1 class="empty-state-title">You haven't registered a business yet.</h1>
+                <p class="empty-state-desc">
+                    Register your business on Calzada to establish your place in Calamba. Once approved by our team, you'll be able to customize your profile and post updates.
+                </p>
+                <a href="submit.html" class="btn-submit">
+                    <i class="ti ti-plus"></i>
+                    <span>Register your business</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- ====================================================
+             STATE B: STATUS PENDING REVIEW
+             ==================================================== -->
+        <div id="statePending" style="display: none;">
+            <div class="section-header">
+                <h1 class="section-title">My Business</h1>
+                <p class="section-subtitle">Your business registration has been received and is waiting for review.</p>
+            </div>
+
+            <div class="flat-card">
+                <div class="card-header-row">
+                    <h2 class="card-business-title" id="pendingBusinessName">--</h2>
+                    <span class="status-label status-pending">
+                        <i class="ti ti-clock"></i>
+                        <span>Pending review</span>
+                    </span>
+                </div>
+
+                <div class="spec-list">
+                    <div class="spec-row">
+                        <span class="spec-label">Category</span>
+                        <span class="spec-value" id="pendingCategory">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Address</span>
+                        <span class="spec-value" id="pendingAddress">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Contact Number</span>
+                        <span class="spec-value" id="pendingContact">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Description</span>
+                        <span class="spec-value" id="pendingDescription">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Reference ID</span>
+                        <span class="spec-value" id="pendingDocId" style="font-family: monospace; font-size: 0.85rem;">--</span>
+                    </div>
+                </div>
+
+                <div class="info-notice">
+                    You'll be able to add a description and profile photo once your business is approved.
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================
+             STATE C: STATUS APPROVED (Profile Editor)
+             ==================================================== -->
+        <div id="stateApproved" style="display: none;">
+            <div class="section-header">
+                <h1 class="section-title">My Business</h1>
+                <p class="section-subtitle">Manage your business profile and public listing details.</p>
+            </div>
+
+            <!-- Read-only Overview Card -->
+            <div class="flat-card">
+                <div class="card-header-row">
+                    <h2 class="card-business-title" id="approvedBusinessName">--</h2>
+                    <span class="status-label status-approved">
+                        <i class="ti ti-circle-check"></i>
+                        <span>Approved · Live</span>
+                    </span>
+                </div>
+
+                <div class="spec-list">
+                    <div class="spec-row">
+                        <span class="spec-label">Category</span>
+                        <span class="spec-value" id="approvedCategory">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Address</span>
+                        <span class="spec-value" id="approvedAddress">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Contact Number</span>
+                        <span class="spec-value" id="approvedContact">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Reference ID</span>
+                        <span class="spec-value" id="approvedDocId" style="font-family: monospace; font-size: 0.85rem;">--</span>
+                    </div>
+                </div>
+
+                <p class="field-hint" style="margin-top: 16px;">
+                    Registered name, category, and address are verified by Calzada and cannot be changed here.
+                </p>
+            </div>
+
+            <!-- Profile Editor Card (Owner Editable Fields: Photo & Description) -->
+            <form class="flat-card" id="profileEditorForm" novalidate>
+                <div class="card-header-row" style="margin-bottom: 24px; padding-bottom: 14px;">
+                    <h2 class="card-business-title" style="font-size: 1.15rem;">Edit Profile</h2>
+                    <span class="field-hint">Updates reflect immediately on your public page</span>
+                </div>
+
+                <!-- Compact Photo Control -->
+                <div class="photo-control-group">
+                    <label class="form-label">
+                        Profile Photo <span class="opt">(Optional)</span>
+                    </label>
+                    <div class="photo-control-wrap">
+                        <div class="photo-thumbnail" id="photoThumbnail">
+                            <i class="ti ti-building-store photo-thumbnail-placeholder" id="photoPlaceholder"></i>
+                            <img src="" alt="Profile preview" class="photo-thumbnail-img" id="photoImg" style="display: none;">
+                        </div>
+                        <div class="photo-action-col">
+                            <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                            <button type="button" class="btn-change-photo" id="btnChangePhoto">
+                                <i class="ti ti-photo-up"></i>
+                                <span>Change photo</span>
+                            </button>
+                            <span class="photo-hint">JPEG, PNG, or WebP. Max 10MB.</span>
+                            <span class="photo-selected-status" id="photoSelectedStatus">New photo selected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Field -->
+                <div class="form-group">
+                    <label class="form-label" for="editDescription">
+                        Description <span class="opt">(Optional)</span>
+                    </label>
+                    <textarea id="editDescription" class="form-textarea" rows="4" placeholder="Tell commuters what your business offers, popular items, or visiting hours..."></textarea>
+                    <div class="field-hint">Brief overview displayed on your business listing.</div>
+                </div>
+
+                <!-- Form Actions (Disabled until changed) -->
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" id="resetChangesBtn" disabled>Reset</button>
+                    <button type="submit" class="btn-submit" id="saveChangesBtn" disabled>
+                        <i class="ti ti-check"></i>
+                        <span id="saveBtnText">Save Changes</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Posts Section (Approved State Only) -->
+            <div class="flat-card" id="postsCard">
+                <div class="card-header-row" style="margin-bottom: 20px; padding-bottom: 14px;">
+                    <div>
+                        <h2 class="card-business-title" style="font-size: 1.15rem;">Posts</h2>
+                        <p class="field-hint" style="margin-top: 2px;">Share updates, photos, or announcements for your business</p>
+                    </div>
+                </div>
+
+                <!-- Create Post Form (1 to 5 Photos) -->
+                <form id="createPostForm" novalidate style="margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid var(--border-color);">
+                    <!-- Multi-Photo Control -->
+                    <div class="photo-control-group">
+                        <label class="form-label">
+                            Photos <span style="color: var(--danger);">*</span> <span class="opt">(1 to 5 photos)</span>
+                        </label>
+                        <div class="photo-control-wrap" style="align-items: flex-start;">
+                            <div class="photo-action-col" style="width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                    <input type="file" id="postPhotoInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+                                    <button type="button" class="btn-change-photo" id="btnSelectPostPhoto">
+                                        <i class="ti ti-photo-plus"></i>
+                                        <span id="selectPostPhotoBtnText">Select photos</span>
+                                    </button>
+                                    <span class="photo-hint">JPEG, PNG, or WebP. Max 10MB per photo. Max 5 photos.</span>
+                                </div>
+                                <div id="postPhotosLimitNotice" class="field-hint" style="color: var(--amber); display: none; font-weight: 500; margin-top: 6px;">
+                                    <i class="ti ti-info-circle"></i> Only the first 5 photos were added.
+                                </div>
+                                <!-- Horizontal thumbnail preview strip with (x) buttons -->
+                                <div id="postThumbnailsStrip" class="photo-strip-wrap" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Caption Field -->
+                    <div class="form-group" style="margin-top: 16px;">
+                        <label class="form-label" for="postCaptionInput">
+                            Caption <span class="opt">(Optional)</span>
+                        </label>
+                        <textarea id="postCaptionInput" class="form-textarea" rows="3" placeholder="Share what's new, daily specials, or upcoming events..."></textarea>
+                        <div class="field-hint">Add a note to describe your photos.</div>
+                    </div>
+
+                    <!-- Post Submit Button (Disabled until at least 1 photo is selected) -->
+                    <div style="margin-top: 18px; display: flex; justify-content: flex-end; align-items: center;">
+                        <button type="submit" class="btn-submit" id="btnCreatePost" disabled>
+                            <i class="ti ti-send"></i>
+                            <span id="btnCreatePostText">Post</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Existing Posts List -->
+                <div class="posts-section-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                    <h3 style="font-family: 'Sora', sans-serif; font-size: 1rem; font-weight: 700; color: var(--navy-dark);">
+                        Your Posts
+                    </h3>
+                    <span id="postsCountLabel" style="font-size: 0.82rem; color: var(--navy-muted); font-weight: 500;"></span>
+                </div>
+
+                <!-- Posts Feed Container -->
+                <div id="postsListContainer">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ====================================================
+             STATE D: STATUS REJECTED
+             ==================================================== -->
+        <div id="stateRejected" style="display: none;">
+            <div class="section-header">
+                <h1 class="section-title">My Business</h1>
+                <p class="section-subtitle">Your business registration was not approved.</p>
+            </div>
+
+            <div class="flat-card">
+                <div class="card-header-row">
+                    <h2 class="card-business-title" id="rejectedBusinessName">--</h2>
+                    <span class="status-label status-rejected">
+                        <i class="ti ti-alert-circle"></i>
+                        <span>Application rejected</span>
+                    </span>
+                </div>
+
+                <div class="spec-list">
+                    <div class="spec-row">
+                        <span class="spec-label">Category</span>
+                        <span class="spec-value" id="rejectedCategory">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Address</span>
+                        <span class="spec-value" id="rejectedAddress">--</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Reference ID</span>
+                        <span class="spec-value" id="rejectedDocId" style="font-family: monospace; font-size: 0.85rem;">--</span>
+                    </div>
+                </div>
+
+                <div class="rejection-notice" id="rejectionNoticeBox">
+                    <div class="rejection-notice-label">Reason for rejection:</div>
+                    <div id="rejectionReasonText">No specific reason provided.</div>
+                </div>
+
+                <div class="form-actions" style="margin-top: 24px; border-top: 1px solid var(--border-color);">
+                    <a href="submit.html" class="btn-submit">
+                        <i class="ti ti-plus"></i>
+                        <span>Submit a new registration</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import {
+            auth,
+            db,
+            collection,
+            doc,
+            setDoc,
+            getDoc,
+            deleteDoc,
+            getDocs,
+            query,
+            where,
+            limit,
+            updateDoc,
+            serverTimestamp,
+            runTransaction,
+            onAuthStateChanged,
+            signOut,
+            getFirebaseIdToken
+        } from "../js/firebase-init.js";
+
+        const CATEGORY_NAMES = {
+            malls: 'Malls',
+            eateries: 'Eateries & Dining',
+            coffee: 'Coffee Shops',
+            schools: 'Schools & Universities',
+            terminals: 'Terminals & Transit',
+            establishments: 'Commercial Establishments & Services'
+        };
+
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mybusTopbar = document.getElementById('mybusTopbar');
+        const mybusContainer = document.getElementById('mybusContainer');
+        const topbarUserEmail = document.getElementById('topbarUserEmail');
+        const mybusSignOutBtn = document.getElementById('mybusSignOutBtn');
+        const globalBanner = document.getElementById('globalBanner');
+
+        const stateNoBusiness = document.getElementById('stateNoBusiness');
+        const statePending = document.getElementById('statePending');
+        const stateApproved = document.getElementById('stateApproved');
+        const stateRejected = document.getElementById('stateRejected');
+
+        const pendingBusinessName = document.getElementById('pendingBusinessName');
+        const pendingCategory = document.getElementById('pendingCategory');
+        const pendingAddress = document.getElementById('pendingAddress');
+        const pendingContact = document.getElementById('pendingContact');
+        const pendingDescription = document.getElementById('pendingDescription');
+        const pendingDocId = document.getElementById('pendingDocId');
+
+        const approvedBusinessName = document.getElementById('approvedBusinessName');
+        const approvedCategory = document.getElementById('approvedCategory');
+        const approvedAddress = document.getElementById('approvedAddress');
+        const approvedContact = document.getElementById('approvedContact');
+        const approvedDocId = document.getElementById('approvedDocId');
+
+        const profileEditorForm = document.getElementById('profileEditorForm');
+        const photoThumbnail = document.getElementById('photoThumbnail');
+        const photoPlaceholder = document.getElementById('photoPlaceholder');
+        const photoImg = document.getElementById('photoImg');
+        const profilePhotoInput = document.getElementById('profilePhotoInput');
+        const btnChangePhoto = document.getElementById('btnChangePhoto');
+        const photoSelectedStatus = document.getElementById('photoSelectedStatus');
+        const editDescription = document.getElementById('editDescription');
+        const resetChangesBtn = document.getElementById('resetChangesBtn');
+        const saveChangesBtn = document.getElementById('saveChangesBtn');
+        const saveBtnText = document.getElementById('saveBtnText');
+
+        const rejectedBusinessName = document.getElementById('rejectedBusinessName');
+        const rejectedCategory = document.getElementById('rejectedCategory');
+        const rejectedAddress = document.getElementById('rejectedAddress');
+        const rejectedDocId = document.getElementById('rejectedDocId');
+        const rejectionReasonText = document.getElementById('rejectionReasonText');
+
+        let currentUser = null;
+        let activeBusiness = null;
+        let activeBusinessId = null;
+
+        let initialDescription = '';
+        let initialPhotoUrl = '';
+        let selectedPhotoFile = null;
+        let localPreviewUrl = null;
+
+        const postsCard = document.getElementById('postsCard');
+        const createPostForm = document.getElementById('createPostForm');
+        const postPhotoInput = document.getElementById('postPhotoInput');
+        const btnSelectPostPhoto = document.getElementById('btnSelectPostPhoto');
+        const selectPostPhotoBtnText = document.getElementById('selectPostPhotoBtnText');
+        const postPhotosLimitNotice = document.getElementById('postPhotosLimitNotice');
+        const postThumbnailsStrip = document.getElementById('postThumbnailsStrip');
+        const postCaptionInput = document.getElementById('postCaptionInput');
+        const btnCreatePost = document.getElementById('btnCreatePost');
+        const btnCreatePostText = document.getElementById('btnCreatePostText');
+        const postsCountLabel = document.getElementById('postsCountLabel');
+        const postsListContainer = document.getElementById('postsListContainer');
+
+        let selectedPostPhotoFiles = [];
+        let businessPosts = [];
+        const postCarouselIndices = new Map();
+
+        function showBanner(msg, type = 'error') {
+            globalBanner.textContent = msg;
+            globalBanner.className = `feedback-banner ${type}`;
+            globalBanner.style.display = 'block';
+            globalBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function hideBanner() {
+            globalBanner.style.display = 'none';
+            globalBanner.textContent = '';
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "login.html?redirect=my-business.html";
+                return;
+            }
+
+            currentUser = user;
+            topbarUserEmail.textContent = user.email || 'Business Owner';
+
+            await loadUserBusiness(user.uid);
+        });
+
+        if (mybusSignOutBtn) {
+            mybusSignOutBtn.addEventListener('click', async () => {
+                try {
+                    await signOut(auth);
+                    window.location.href = "login.html";
+                } catch (err) {
+                    console.error('Sign out error:', err);
+                    showBanner('Failed to sign out. Please try again.', 'error');
+                }
+            });
+        }
+
+        async function loadUserBusiness(uid) {
+            try {
+                const busRef = collection(db, "businesses");
+                const q = query(
+                    busRef,
+                    where("ownerId", "==", uid),
+                    limit(1)
+                );
+
+                const querySnapshot = await getDocs(q);
+
+                loadingOverlay.style.display = 'none';
+                mybusTopbar.style.display = 'flex';
+                mybusContainer.style.display = 'block';
+
+                if (querySnapshot.empty) {
+                    activeBusiness = null;
+                    activeBusinessId = null;
+                    renderState('none');
+                } else {
+                    const docSnap = querySnapshot.docs[0];
+                    activeBusiness = docSnap.data();
+                    activeBusinessId = docSnap.id;
+
+                    const status = activeBusiness.status || 'pending';
+                    if (status === 'approved') {
+                        renderState('approved');
+                    } else if (status === 'rejected') {
+                        renderState('rejected');
+                    } else {
+                        renderState('pending');
+                    }
+                }
+
+            } catch (err) {
+                console.error('Error loading business:', err);
+                loadingOverlay.style.display = 'none';
+                mybusTopbar.style.display = 'flex';
+                mybusContainer.style.display = 'block';
+                showBanner(`Failed to load business details: ${err.message || 'Please try again later.'}`, 'error');
+            }
+        }
+
+        function renderState(stateKey) {
+            stateNoBusiness.style.display = 'none';
+            statePending.style.display = 'none';
+            stateApproved.style.display = 'none';
+            stateRejected.style.display = 'none';
+            profileEditorForm.style.display = (stateKey === 'approved') ? 'block' : 'none';
+            if (postsCard) postsCard.style.display = (stateKey === 'approved') ? 'block' : 'none';
+            hideBanner();
+
+            if (stateKey === 'none') {
+                stateNoBusiness.style.display = 'block';
+                return;
+            }
+
+            const categoryLabel = CATEGORY_NAMES[activeBusiness.category] || activeBusiness.category || 'General';
+
+            if (stateKey === 'pending') {
+                pendingBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+                pendingCategory.textContent = categoryLabel;
+                pendingAddress.textContent = activeBusiness.address || '--';
+                pendingContact.textContent = activeBusiness.contactNumber || 'None provided';
+                pendingDescription.textContent = activeBusiness.description || 'None provided';
+                pendingDocId.textContent = activeBusinessId;
+                statePending.style.display = 'block';
+            } else if (stateKey === 'approved') {
+                approvedBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+                approvedCategory.textContent = categoryLabel;
+                approvedAddress.textContent = activeBusiness.address || '--';
+                approvedContact.textContent = activeBusiness.contactNumber || 'None provided';
+                approvedDocId.textContent = activeBusinessId;
+
+                initialDescription = activeBusiness.description || '';
+                initialPhotoUrl = activeBusiness.profilePhotoUrl || '';
+                editDescription.value = initialDescription;
+
+                resetPhotoPreview();
+                updateSaveButtonState();
+                resetPostForm();
+                loadBusinessPosts(activeBusinessId);
+
+                stateApproved.style.display = 'block';
+            } else if (stateKey === 'rejected') {
+                rejectedBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+                rejectedCategory.textContent = categoryLabel;
+                rejectedAddress.textContent = activeBusiness.address || '--';
+                rejectedDocId.textContent = activeBusinessId;
+                rejectionReasonText.textContent = activeBusiness.rejectionReason || 'No specific reason provided.';
+                stateRejected.style.display = 'block';
+            }
+        }
+
+        function setPhotoThumbnail(url) {
+            if (url) {
+                photoImg.src = url;
+                photoImg.style.display = 'block';
+                photoPlaceholder.style.display = 'none';
+            } else {
+                photoImg.src = '';
+                photoImg.style.display = 'none';
+                photoPlaceholder.style.display = 'block';
+            }
+        }
+
+        function resetPhotoPreview() {
+            if (localPreviewUrl) {
+                URL.revokeObjectURL(localPreviewUrl);
+                localPreviewUrl = null;
+            }
+            selectedPhotoFile = null;
+            profilePhotoInput.value = '';
+            photoSelectedStatus.classList.remove('visible');
+            photoSelectedStatus.textContent = '';
+            setPhotoThumbnail(initialPhotoUrl);
+        }
+
+        function updateSaveButtonState() {
+            const currentDesc = editDescription.value.trim();
+            const descChanged = currentDesc !== initialDescription.trim();
+            const photoChanged = selectedPhotoFile !== null;
+            const hasChanges = descChanged || photoChanged;
+            saveChangesBtn.disabled = !hasChanges;
+            resetChangesBtn.disabled = !hasChanges;
+        }
+
+        editDescription.addEventListener('input', updateSaveButtonState);
+
+        btnChangePhoto.addEventListener('click', () => { profilePhotoInput.click(); });
+
+        profilePhotoInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                showBanner(`Selected photo exceeds 10MB limit.`, 'error');
+                profilePhotoInput.value = '';
+                return;
+            }
+            hideBanner();
+            selectedPhotoFile = file;
+            if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+            localPreviewUrl = URL.createObjectURL(file);
+            setPhotoThumbnail(localPreviewUrl);
+            photoSelectedStatus.textContent = `Ready: ${file.name}`;
+            photoSelectedStatus.classList.add('visible');
+            updateSaveButtonState();
+        });
+
+        resetChangesBtn.addEventListener('click', () => {
+            editDescription.value = initialDescription;
+            resetPhotoPreview();
+            updateSaveButtonState();
+            hideBanner();
+        });
+
+        profileEditorForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideBanner();
+            saveChangesBtn.disabled = true;
+            resetChangesBtn.disabled = true;
+            saveBtnText.textContent = 'Saving...';
+            try {
+                let updatedPhotoUrl = initialPhotoUrl || null;
+                if (selectedPhotoFile) {
+                    const token = await getFirebaseIdToken();
+                    const formData = new FormData();
+                    formData.append('businessId', activeBusinessId);
+                    formData.append('photo', selectedPhotoFile);
+                    const uploadRes = await fetch('/api/businesses/upload-photo', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (!uploadRes.ok) throw new Error(uploadData.error);
+                    updatedPhotoUrl = uploadData.photoUrl;
+                }
+                const busDocRef = doc(db, "businesses", activeBusinessId);
+                const newDescription = editDescription.value.trim() || null;
+                await updateDoc(busDocRef, {
+                    profilePhotoUrl: updatedPhotoUrl,
+                    description: newDescription,
+                    updatedAt: serverTimestamp()
+                });
+                activeBusiness.profilePhotoUrl = updatedPhotoUrl;
+                activeBusiness.description = newDescription;
+                initialPhotoUrl = updatedPhotoUrl || '';
+                initialDescription = newDescription || '';
+                resetPhotoPreview();
+                updateSaveButtonState();
+                saveBtnText.textContent = 'Save Changes';
+                showBanner('Business profile updated successfully.', 'success');
+            } catch (err) {
+                saveChangesBtn.disabled = false;
+                resetChangesBtn.disabled = false;
+                saveBtnText.textContent = 'Save Changes';
+                showBanner(`Failed to save: ${err.message}`, 'error');
+            }
+        });
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatPostDate(val) {
+            if (!val) return 'Just now';
+            let d;
+            if (val && typeof val.toDate === 'function') {
+                d = val.toDate();
+            } else if (val instanceof Date) {
+                d = val;
+            } else if (typeof val === 'number' || typeof val === 'string') {
+                d = new Date(val);
+            } else {
+                return 'Just now';
+            }
+            if (isNaN(d.getTime())) return 'Recently';
+
+            const now = Date.now();
+            const diffMs = now - d.getTime();
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+
+            if (diffSec < 45) return 'Just now';
+            if (diffMin < 60) return `${diffMin}m ago`;
+            if (diffHour < 24) return `${diffHour}h ago`;
+            if (diffDay < 7) return `${diffDay}d ago`;
+            return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderPhotoThumbnailsStrip() {
+            if (!postThumbnailsStrip) return;
+            if (selectedPostPhotoFiles.length === 0) {
+                postThumbnailsStrip.style.display = 'none';
+                postThumbnailsStrip.innerHTML = '';
+                if (btnCreatePost) btnCreatePost.disabled = true;
+                return;
+            }
+            postThumbnailsStrip.style.display = 'flex';
+            if (btnCreatePost) btnCreatePost.disabled = false;
+
+            let html = '';
+            selectedPostPhotoFiles.forEach((item, idx) => {
+                html += `
+                <div class="photo-strip-item" data-index="${idx}">
+                    <img src="${item.previewUrl}" alt="Thumbnail preview ${idx + 1}" class="photo-strip-img">
+                    <button type="button" class="photo-strip-remove" data-remove-index="${idx}" title="Remove photo" aria-label="Remove photo ${idx + 1}">
+                        <i class="ti ti-x"></i>
+                    </button>
+                </div>`;
+            });
+            postThumbnailsStrip.innerHTML = html;
+
+            postThumbnailsStrip.querySelectorAll('.photo-strip-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const removeIdx = parseInt(btn.getAttribute('data-remove-index'), 10);
+                    const removed = selectedPostPhotoFiles.splice(removeIdx, 1)[0];
+                    if (removed && removed.previewUrl) {
+                        URL.revokeObjectURL(removed.previewUrl);
+                    }
+                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'none';
+                    renderPhotoThumbnailsStrip();
+                });
+            });
+        }
+
+        function resetPostForm() {
+            selectedPostPhotoFiles.forEach(item => {
+                if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+            });
+            selectedPostPhotoFiles = [];
+            if (postPhotoInput) postPhotoInput.value = '';
+            if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'none';
+            if (postCaptionInput) postCaptionInput.value = '';
+            if (btnCreatePost) btnCreatePost.disabled = true;
+            renderPhotoThumbnailsStrip();
+        }
+
+        if (btnSelectPostPhoto && postPhotoInput) {
+            btnSelectPostPhoto.addEventListener('click', () => {
+                postPhotoInput.click();
+            });
+
+            postPhotoInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files || []);
+                if (files.length === 0) return;
+
+                const validFiles = files.filter(f => f.size <= 10 * 1024 * 1024);
+                const invalidSize = files.some(f => f.size > 10 * 1024 * 1024);
+                if (invalidSize) {
+                    showBanner('One or more selected photos exceed the 10MB limit and were skipped.', 'error');
+                }
+
+                const availableSlots = 5 - selectedPostPhotoFiles.length;
+                if (availableSlots <= 0) {
+                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'block';
+                    postPhotoInput.value = '';
+                    return;
+                }
+
+                if (validFiles.length > availableSlots) {
+                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'block';
+                } else {
+                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'none';
+                }
+
+                const toAdd = validFiles.slice(0, availableSlots);
+                toAdd.forEach(file => {
+                    selectedPostPhotoFiles.push({
+                        file,
+                        previewUrl: URL.createObjectURL(file)
+                    });
+                });
+
+                postPhotoInput.value = '';
+                renderPhotoThumbnailsStrip();
+            });
+        }
+
+        if (createPostForm) {
+            createPostForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (selectedPostPhotoFiles.length === 0) return;
+
+                btnCreatePost.disabled = true;
+                const originalText = btnCreatePostText ? btnCreatePostText.textContent : 'Post';
+                if (btnCreatePostText) btnCreatePostText.textContent = 'Uploading...';
+                hideBanner();
+
+                try {
+                    const token = await getFirebaseIdToken();
+                    const newPostRef = doc(collection(db, 'posts'));
+                    const newPostId = newPostRef.id;
+
+                    const formData = new FormData();
+                    formData.append('postId', newPostId);
+                    formData.append('businessId', activeBusinessId);
+                    selectedPostPhotoFiles.forEach(item => {
+                        formData.append('photos', item.file);
+                    });
+
+                    const uploadRes = await fetch('/api/posts/upload-photo', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: formData
+                    });
+
+                    const uploadData = await uploadRes.json();
+                    if (!uploadRes.ok) {
+                        throw new Error(uploadData.error || 'Failed to upload post photos.');
+                    }
+
+                    const postData = {
+                        businessId: activeBusinessId,
+                        businessName: activeBusiness ? activeBusiness.name : '',
+                        businessCategory: activeBusiness ? activeBusiness.category : '',
+                        ownerId: currentUser.uid,
+                        photoUrls: uploadData.photoUrls,
+                        caption: (postCaptionInput ? postCaptionInput.value.trim() : '') || null,
+                        likeCount: 0,
+                        createdAt: serverTimestamp(),
+                        updatedAt: null,
+                        status: 'active'
+                    };
+
+                    await setDoc(newPostRef, postData);
+
+                    businessPosts.unshift({
+                        id: newPostId,
+                        ...postData,
+                        createdAt: new Date(),
+                        isLiked: false
+                    });
+
+                    resetPostForm();
+                    renderPostsList();
+                    showBanner('Post published successfully.', 'success');
+
+                } catch (err) {
+                    console.error('Error creating post:', err);
+                    showBanner(`Failed to create post: ${err.message}`, 'error');
+                } finally {
+                    btnCreatePost.disabled = selectedPostPhotoFiles.length === 0;
+                    if (btnCreatePostText) btnCreatePostText.textContent = originalText;
+                }
+            });
+        }
+
+        async function loadBusinessPosts(busId) {
+            if (!postsListContainer) return;
+            try {
+                const postsQuery = query(
+                    collection(db, 'posts'),
+                    where('businessId', '==', busId),
+                    where('status', '==', 'active')
+                );
+
+                const snap = await getDocs(postsQuery);
+                const loaded = snap.docs.map(docSnap => {
+                    const d = docSnap.data();
+                    let photos = [];
+                    if (Array.isArray(d.photoUrls)) {
+                        photos = d.photoUrls;
+                    } else if (d.photoUrl) {
+                        photos = [d.photoUrl];
+                    }
+                    return {
+                        id: docSnap.id,
+                        ...d,
+                        photoUrls: photos,
+                        likeCount: typeof d.likeCount === 'number' ? d.likeCount : 0,
+                        isLiked: false
+                    };
+                });
+
+                if (currentUser) {
+                    await Promise.all(loaded.map(async (p) => {
+                        try {
+                            const likeSnap = await getDoc(doc(db, 'posts', p.id, 'likes', currentUser.uid));
+                            p.isLiked = likeSnap.exists();
+                        } catch (likeErr) {
+                            console.warn('Could not load like state for post', p.id, likeErr);
+                        }
+                    }));
+                }
+
+                loaded.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
+                    const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
+                    return timeB - timeA;
+                });
+
+                businessPosts = loaded;
+                renderPostsList();
+
+            } catch (err) {
+                console.error('Error loading business posts:', err);
+            }
+        }
+
+        function updateCarouselDisplay(postId, photos, activeIdx) {
+            const imgEl = document.getElementById(`media-img-${postId}`);
+            if (imgEl && photos[activeIdx]) {
+                imgEl.src = photos[activeIdx];
+            }
+
+            const dotsContainer = document.getElementById(`dots-${postId}`);
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.carousel-dot');
+                dots.forEach((dot, idx) => {
+                    dot.classList.toggle('active', idx === activeIdx);
+                });
+            }
+        }
+
+        function renderPostsList() {
+            if (!postsListContainer) return;
+
+            if (postsCountLabel) {
+                postsCountLabel.textContent = businessPosts.length === 0 ? '' : `(${businessPosts.length})`;
+            }
+
+            if (businessPosts.length === 0) {
+                postsListContainer.innerHTML = `
+                    <div class="posts-empty-hint">
+                        You haven't published any posts yet. Add your first photo update above!
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            businessPosts.forEach(post => {
+                const photos = Array.isArray(post.photoUrls) ? post.photoUrls : (post.photoUrl ? [post.photoUrl] : []);
+                const currentIdx = postCarouselIndices.get(post.id) || 0;
+                const isMulti = photos.length > 1;
+                const currentPhoto = photos[currentIdx] || photos[0] || '';
+
+                let carouselMediaHtml = '';
+                if (isMulti) {
+                    let dotsHtml = '';
+                    for (let i = 0; i < photos.length; i++) {
+                        dotsHtml += `<button type="button" class="carousel-dot ${i === currentIdx ? 'active' : ''}" data-post-id="${post.id}" data-dot-index="${i}" aria-label="Go to photo ${i + 1}"></button>`;
+                    }
+
+                    carouselMediaHtml = `
+                        <div class="post-carousel">
+                            <img src="${currentPhoto}" alt="Post image" class="post-media-img" id="media-img-${post.id}">
+                            <button type="button" class="carousel-btn carousel-prev" data-post-id="${post.id}" aria-label="Previous photo">
+                                <i class="ti ti-chevron-left"></i>
+                            </button>
+                            <button type="button" class="carousel-btn carousel-next" data-post-id="${post.id}" aria-label="Next photo">
+                                <i class="ti ti-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="carousel-dots" id="dots-${post.id}">
+                            ${dotsHtml}
+                        </div>
+                    `;
+                } else if (photos.length === 1) {
+                    carouselMediaHtml = `
+                        <div class="post-carousel">
+                            <img src="${currentPhoto}" alt="Post image" class="post-media-img" id="media-img-${post.id}">
+                        </div>
+                    `;
+                }
+
+                html += `
+                <div class="post-item" id="post-${post.id}">
+                    <div class="post-media-container">
+                        ${carouselMediaHtml}
+                    </div>
+
+                    <div class="post-content-col">
+                        <p class="post-caption ${!post.caption ? 'empty' : ''}" id="caption-text-${post.id}">
+                            ${post.caption ? escapeHtml(post.caption) : 'No caption'}
+                        </p>
+
+                        <div class="post-edit-wrap" id="edit-wrap-${post.id}" style="display: none;">
+                            <textarea class="form-textarea post-edit-textarea" id="edit-textarea-${post.id}" rows="3" placeholder="Write a caption..."></textarea>
+                            <div class="post-edit-actions">
+                                <button type="button" class="btn-cancel-edit" data-post-id="${post.id}">Cancel</button>
+                                <button type="button" class="btn-save-caption" data-post-id="${post.id}">
+                                    <i class="ti ti-check"></i>
+                                    <span>Save</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="post-meta-row">
+                            <div class="post-meta-left">
+                                <button type="button" class="btn-like-post ${post.isLiked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like post">
+                                    <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
+                                    <span class="like-count">${post.likeCount || 0}</span>
+                                </button>
+                                <span class="field-hint" style="margin: 0;">${formatPostDate(post.createdAt)}</span>
+                            </div>
+                            <div class="post-meta-right">
+                                <button type="button" class="btn-edit-caption" data-post-id="${post.id}" aria-label="Edit caption">
+                                    <i class="ti ti-edit"></i>
+                                    <span>Edit caption</span>
+                                </button>
+                                <button type="button" class="btn-delete-post" data-post-id="${post.id}" aria-label="Delete post">
+                                    <i class="ti ti-trash"></i>
+                                    <span>Delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            });
+
+            postsListContainer.innerHTML = html;
+
+            // 1. Setup carousel navigation buttons & dots
+            postsListContainer.querySelectorAll('.carousel-prev').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post || !post.photoUrls || post.photoUrls.length <= 1) return;
+
+                    let idx = postCarouselIndices.get(postId) || 0;
+                    idx = (idx - 1 + post.photoUrls.length) % post.photoUrls.length;
+                    postCarouselIndices.set(postId, idx);
+                    updateCarouselDisplay(postId, post.photoUrls, idx);
+                });
+            });
+
+            postsListContainer.querySelectorAll('.carousel-next').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post || !post.photoUrls || post.photoUrls.length <= 1) return;
+
+                    let idx = postCarouselIndices.get(postId) || 0;
+                    idx = (idx + 1) % post.photoUrls.length;
+                    postCarouselIndices.set(postId, idx);
+                    updateCarouselDisplay(postId, post.photoUrls, idx);
+                });
+            });
+
+            postsListContainer.querySelectorAll('.carousel-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const postId = dot.getAttribute('data-post-id');
+                    const targetIdx = parseInt(dot.getAttribute('data-dot-index'), 10);
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post || !post.photoUrls || isNaN(targetIdx)) return;
+
+                    postCarouselIndices.set(postId, targetIdx);
+                    updateCarouselDisplay(postId, post.photoUrls, targetIdx);
+                });
+            });
+
+            // 2. Setup caption editing
+            postsListContainer.querySelectorAll('.btn-edit-caption').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post) return;
+
+                    const captionEl = document.getElementById(`caption-text-${postId}`);
+                    const editWrap = document.getElementById(`edit-wrap-${postId}`);
+                    const textarea = document.getElementById(`edit-textarea-${postId}`);
+
+                    if (captionEl) captionEl.style.display = 'none';
+                    if (editWrap) {
+                        editWrap.style.display = 'flex';
+                        if (textarea) {
+                            textarea.value = post.caption || '';
+                            textarea.focus();
+                        }
+                    }
+                });
+            });
+
+            postsListContainer.querySelectorAll('.btn-cancel-edit').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const postId = btn.getAttribute('data-post-id');
+                    const captionEl = document.getElementById(`caption-text-${postId}`);
+                    const editWrap = document.getElementById(`edit-wrap-${postId}`);
+
+                    if (editWrap) editWrap.style.display = 'none';
+                    if (captionEl) captionEl.style.display = 'block';
+                });
+            });
+
+            postsListContainer.querySelectorAll('.btn-save-caption').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post) return;
+
+                    const captionEl = document.getElementById(`caption-text-${postId}`);
+                    const editWrap = document.getElementById(`edit-wrap-${postId}`);
+                    const textarea = document.getElementById(`edit-textarea-${postId}`);
+                    const cancelBtn = editWrap?.querySelector('.btn-cancel-edit');
+
+                    const newCaption = textarea ? textarea.value.trim() || null : null;
+
+                    btn.disabled = true;
+                    if (cancelBtn) cancelBtn.disabled = true;
+
+                    try {
+                        const postDocRef = doc(db, 'posts', postId);
+                        await updateDoc(postDocRef, {
+                            caption: newCaption,
+                            updatedAt: serverTimestamp()
+                        });
+
+                        post.caption = newCaption;
+                        if (captionEl) {
+                            captionEl.textContent = newCaption || 'No caption';
+                            captionEl.className = `post-caption ${!newCaption ? 'empty' : ''}`;
+                            captionEl.style.display = 'block';
+                        }
+                        if (editWrap) editWrap.style.display = 'none';
+                        showBanner('Caption updated.', 'success');
+
+                    } catch (err) {
+                        console.error('Failed to update caption:', err);
+                        showBanner(`Failed to update caption: ${err.message}`, 'error');
+                    } finally {
+                        btn.disabled = false;
+                        if (cancelBtn) cancelBtn.disabled = false;
+                    }
+                });
+            });
+
+            // 3. Setup atomic like button with runTransaction
+            postsListContainer.querySelectorAll('.btn-like-post').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!currentUser) return; // Defensive check for public feeds
+
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post) return;
+
+                    // Disable button during in-flight transaction to guard against double submission
+                    btn.disabled = true;
+
+                    try {
+                        const postRef = doc(db, 'posts', postId);
+                        const likeRef = doc(db, 'posts', postId, 'likes', currentUser.uid);
+
+                        const result = await runTransaction(db, async (transaction) => {
+                            const postDoc = await transaction.get(postRef);
+                            if (!postDoc.exists()) {
+                                throw new Error('Post does not exist.');
+                            }
+
+                            const likeDoc = await transaction.get(likeRef);
+                            const currentlyLiked = likeDoc.exists();
+                            const currentCount = typeof postDoc.data().likeCount === 'number' ? postDoc.data().likeCount : 0;
+
+                            if (currentlyLiked) {
+                                transaction.delete(likeRef);
+                                const newCount = Math.max(0, currentCount - 1);
+                                transaction.update(postRef, { likeCount: newCount });
+                                return { liked: false, count: newCount };
+                            } else {
+                                transaction.set(likeRef, { likedAt: serverTimestamp() });
+                                const newCount = currentCount + 1;
+                                transaction.update(postRef, { likeCount: newCount });
+                                return { liked: true, count: newCount };
+                            }
+                        });
+
+                        post.isLiked = result.liked;
+                        post.likeCount = result.count;
+
+                        btn.classList.toggle('liked', result.liked);
+                        const icon = btn.querySelector('i');
+                        if (icon) {
+                            icon.className = `ti ${result.liked ? 'ti-heart-filled' : 'ti-heart'}`;
+                        }
+                        const countSpan = btn.querySelector('.like-count');
+                        if (countSpan) {
+                            countSpan.textContent = result.count;
+                        }
+
+                    } catch (err) {
+                        console.error('Error toggling like:', err);
+                        showBanner(`Could not update like: ${err.message}`, 'error');
+                    } finally {
+                        btn.disabled = false;
+                    }
+                });
+            });
+
+            // 4. Setup post delete
+            postsListContainer.querySelectorAll('.btn-delete-post').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const postId = btn.getAttribute('data-post-id');
+                    const post = businessPosts.find(p => p.id === postId);
+                    if (!post) return;
+
+                    if (!window.confirm('Are you sure you want to delete this post? This cannot be undone.')) {
+                        return;
+                    }
+
+                    btn.disabled = true;
+                    hideBanner();
+
+                    try {
+                        const token = await getFirebaseIdToken();
+
+                        const res = await fetch(`/api/posts/${postId}/photo`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        const delData = await res.json();
+                        if (!res.ok) {
+                            throw new Error(delData.error || 'Failed to delete post photos on server.');
+                        }
+
+                        await deleteDoc(doc(db, 'posts', postId));
+
+                        businessPosts = businessPosts.filter(p => p.id !== postId);
+                        postCarouselIndices.delete(postId);
+                        renderPostsList();
+                        showBanner('Post deleted successfully.', 'success');
+
+                    } catch (err) {
+                        console.error('Error deleting post:', err);
+                        btn.disabled = false;
+                        showBanner(`Failed to delete post: ${err.message}`, 'error');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+
+</html>
+
