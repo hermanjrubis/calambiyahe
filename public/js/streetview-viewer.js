@@ -78,8 +78,8 @@
 
         try {
             const [mRes, pRes] = await Promise.all([
-                fetch('/assets/360/manifest.json'),
-                fetch('/assets/360/place-links.json')
+                fetch('../assets/360/manifest.json'),
+                fetch('../assets/360/place-links.json')
             ]);
 
             if (mRes.ok) {
@@ -588,7 +588,7 @@
 
             scenesConfig[node.id] = {
                 type: 'equirectangular',
-                panorama: `/assets/360/${encodeURIComponent(node.file)}`,
+                panorama: `../assets/360/${encodeURIComponent(node.file)}`,
                 title: title,
                 autoLoad: true,
                 showControls: true,

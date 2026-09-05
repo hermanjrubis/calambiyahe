@@ -3,11 +3,46 @@
  * Handles the Side-by-Side Place Overview Panel logic for places.html
  */
 
+function resolvePlaceImageUrl(path) {
+    if (!path || typeof path !== 'string') return '../assets/hero-places-bg.png';
+    const trimmed = path.trim();
+    if (!trimmed) return '../assets/hero-places-bg.png';
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+        return trimmed;
+    }
+    if (trimmed.startsWith('../assets/')) {
+        return trimmed;
+    }
+    if (trimmed.startsWith('/assets/')) {
+        return '..' + trimmed;
+    }
+    if (trimmed.startsWith('assets/')) {
+        return '../' + trimmed;
+    }
+    if (trimmed.startsWith('/public/assets/')) {
+        return '..' + trimmed.slice('/public'.length);
+    }
+    if (trimmed.startsWith('public/assets/')) {
+        return '../' + trimmed.slice('public'.length);
+    }
+    if (trimmed.startsWith('./assets/')) {
+        return '.' + trimmed;
+    }
+    return trimmed;
+}
+window.resolvePlaceImageUrl = resolvePlaceImageUrl;
+
 const placesData = {
     "STI College Calamba": {
         name: "STI College - Calamba",
         category: "School",
-        image: "/assets/places/sti-college/sti-1.jpg",
+        image: "../assets/places/sti-college/sti-1.jpg",
+        images: [
+            "../assets/places/sti-college/sti-1.jpg",
+            "../assets/places/sti-college/sti-2.jpg",
+            "../assets/places/sti-college/sti-3.jpg",
+            "../assets/places/sti-college/sti-4.jpg"
+        ],
         full_address: "Manila S Rd, Calamba, 4027 Laguna",
         phone: "(049) 502 8225",
         website: "sti.edu",
@@ -31,7 +66,13 @@ const placesData = {
     "STI College - Calamba": {
         name: "STI College - Calamba",
         category: "School",
-        image: "/assets/places/sti-college/sti-1.jpg",
+        image: "../assets/places/sti-college/sti-1.jpg",
+        images: [
+            "../assets/places/sti-college/sti-1.jpg",
+            "../assets/places/sti-college/sti-2.jpg",
+            "../assets/places/sti-college/sti-3.jpg",
+            "../assets/places/sti-college/sti-4.jpg"
+        ],
         full_address: "Manila S Rd, Calamba, 4027 Laguna",
         phone: "(049) 502 8225",
         website: "sti.edu",
@@ -527,7 +568,9 @@ function setupCarousel(images) {
     carouselImagesList.forEach((imgObj, idx) => {
         const imgEl = document.createElement('img');
         imgEl.className = 'carousel-slide';
-        imgEl.src = imgObj.image_path || imgObj.image || '../assets/hero-places-bg.png';
+        const rawSrc = imgObj && (imgObj.image_path || imgObj.image || imgObj);
+        imgEl.src = resolvePlaceImageUrl(typeof rawSrc === 'string' ? rawSrc : '');
+        imgEl.onerror = function() { this.src = '../assets/hero-places-bg.png'; };
         imgEl.alt = `Place Image ${idx + 1}`;
         slidesContainer.appendChild(imgEl);
 
@@ -1436,7 +1479,10 @@ window.openPlacePanel = async function(placeName) {
     }
 
     // 10. Initial setup with hero image
-    setupCarousel([{ image_path: data.image_path || data.image || '../assets/hero-places-bg.png' }]);
+    const initialImages = Array.isArray(data.images) && data.images.length > 0
+        ? data.images.map(img => typeof img === 'string' ? { image_path: resolvePlaceImageUrl(img) } : { ...img, image_path: resolvePlaceImageUrl(img.image_path || img.image) })
+        : [{ image_path: resolvePlaceImageUrl(data.image_path || data.image || '../assets/hero-places-bg.png') }];
+    setupCarousel(initialImages);
 
     // Update URL history
     try {
@@ -1520,7 +1566,7 @@ window.openPlacePanel = async function(placeName) {
 
         if (link360 && link360.nodeId && sec360) {
             const photoFilename = `${link360.nodeId.replace('_', ', ')}.jpg`;
-            const photoUrl = `/assets/360/${encodeURIComponent(photoFilename)}`;
+            const photoUrl = `../assets/360/${encodeURIComponent(photoFilename)}`;
             if (thumb360) thumb360.src = photoUrl;
             if (thumbWrap360) thumbWrap360.onclick = () => window._open360Viewer(link360.nodeId);
             if (btn360) btn360.onclick = () => window._open360Viewer(link360.nodeId);
@@ -1541,7 +1587,7 @@ function loadPlacePanel360Links() {
     if (!placePanel360LoadPromise) {
         placePanel360LoadPromise = (async () => {
             try {
-                const res = await fetch('/assets/360/place-links.json');
+                const res = await fetch('../assets/360/place-links.json');
                 if (res.ok) {
                     const data = await res.json();
                     (data.links || []).forEach(link => {
@@ -1629,7 +1675,7 @@ if (!window._open360Viewer) {
         const nodeText = document.getElementById('calzada360ModalNodeText');
         const pillText = document.getElementById('calzada360PillText');
         const photoFilename = `${nodeId.replace('_', ', ')}.jpg`;
-        const photoUrl = `/assets/360/${encodeURIComponent(photoFilename)}`;
+        const photoUrl = `../assets/360/${encodeURIComponent(photoFilename)}`;
 
         if (modalImg) modalImg.src = photoUrl;
         if (nodeText) nodeText.textContent = `360° Photosphere · ${nodeId}`;
