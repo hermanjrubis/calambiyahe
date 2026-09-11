@@ -248,7 +248,7 @@
 
         .form-label .opt {
             font-size: 0.8rem;
-            color: var(--navy-subtle);
+            color: #9CA3AF;
             font-weight: 400;
             margin-left: 4px;
         }
@@ -266,6 +266,131 @@
             background: #FFFFFF;
             outline: none;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: #9CA3AF;
+            opacity: 1; /* Firefox default lowers opacity, override it */
+        }
+
+        /* Custom Category Dropdown */
+        .custom-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .custom-select-trigger {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            background: #FFFFFF;
+            outline: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            text-align: left;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .custom-select-trigger.placeholder-active .custom-select-label {
+            color: #9CA3AF;
+        }
+
+        .custom-select-trigger:focus,
+        .custom-select-wrapper.open .custom-select-trigger {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+        }
+
+        .custom-select-trigger.invalid {
+            border-color: var(--danger);
+            background: #FFFDFD;
+        }
+
+        .custom-select-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .custom-select-chevron {
+            color: var(--navy-subtle);
+            flex-shrink: 0;
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .custom-select-wrapper.open .custom-select-chevron {
+            transform: rotate(180deg);
+            color: var(--primary);
+        }
+
+        .custom-select-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 10px 25px -5px rgba(4, 44, 83, 0.1), 0 4px 6px -2px rgba(4, 44, 83, 0.05);
+            padding: 6px;
+            margin: 0;
+            list-style: none;
+            z-index: 50;
+            display: none;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .custom-select-wrapper.open .custom-select-menu {
+            display: block;
+        }
+
+        .custom-select-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 9px 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--navy-dark);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+            user-select: none;
+        }
+
+        /* Hover state: light blue tint (~8-10%), text remains dark */
+        .custom-select-option:hover {
+            background: rgba(55, 138, 221, 0.08);
+            color: var(--navy-dark);
+        }
+
+        /* Selected state: light blue tint (~8-10%), text remains dark, with checkmark */
+        .custom-select-option.selected {
+            background: rgba(55, 138, 221, 0.08);
+            color: var(--navy-dark);
+            font-weight: 600;
+        }
+
+        .custom-select-option .option-check {
+            display: none;
+            flex-shrink: 0;
+            color: var(--primary);
+            margin-left: 8px;
+        }
+
+        .custom-select-option.selected .option-check {
+            display: inline-flex;
         }
 
         .form-input:focus,
@@ -295,8 +420,108 @@
 
         .field-hint {
             font-size: 0.8rem;
-            color: var(--navy-subtle);
+            color: #9CA3AF;
             margin-top: 4px;
+            cursor: default;
+            user-select: none;
+            text-decoration: none;
+        }
+
+        /* Contact Number Toggle & Prefix Input */
+        .contact-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .contact-type-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .contact-type-btn {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 3px 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--navy-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            line-height: 1.4;
+        }
+
+        .contact-type-btn:hover:not(.active) {
+            border-color: #CBD5E1;
+            color: var(--navy-dark);
+        }
+
+        .contact-type-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+            background: rgba(55, 138, 221, 0.06);
+        }
+
+        .phone-input-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #FFFFFF;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .phone-input-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+        }
+
+        .phone-input-wrapper.invalid {
+            border-color: var(--danger);
+            background: #FFFDFD;
+        }
+
+        .phone-prefix {
+            padding: 10px 0 10px 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--navy-dark);
+            user-select: none;
+            letter-spacing: 0.02em;
+        }
+
+        .phone-divider {
+            width: 1px;
+            height: 18px;
+            background: var(--border-color);
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .phone-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 10px 14px 10px 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            background: transparent;
+            width: 100%;
+        }
+
+        .phone-input::placeholder {
+            color: #9CA3AF;
+            opacity: 1;
         }
 
         /* 6. Feedback Banner */
@@ -509,16 +734,17 @@
                 <label class="form-label" for="businessName">
                     Business or Place Name <span class="req">*</span>
                 </label>
-                <input type="text" id="businessName" class="form-input" placeholder="Cafe Rizal" autocomplete="off">
+                <input type="text" id="businessName" class="form-input" placeholder="e.g., Cafe Rizal" autocomplete="off">
                 <div class="field-error-msg" id="errBusinessName">Please provide a business or place name.</div>
             </div>
 
             <!-- Category -->
             <div class="form-group">
-                <label class="form-label" for="businessCategory">
+                <label class="form-label" id="categoryLabel" for="categoryTrigger">
                     Category <span class="req">*</span>
                 </label>
-                <select id="businessCategory" class="form-select">
+                <!-- Hidden native select for form serialization & fallback -->
+                <select id="businessCategory" style="display: none;" tabindex="-1" aria-hidden="true">
                     <option value="">Select a category...</option>
                     <option value="malls">Malls</option>
                     <option value="eateries">Eateries & Dining</option>
@@ -527,6 +753,60 @@
                     <option value="terminals">Terminals & Transit</option>
                     <option value="establishments">Commercial Establishments & Services</option>
                 </select>
+
+                <!-- Custom Dropdown Container -->
+                <div class="custom-select-wrapper" id="categoryDropdownWrapper">
+                    <button type="button" 
+                            class="custom-select-trigger placeholder-active" 
+                            id="categoryTrigger" 
+                            aria-haspopup="listbox" 
+                            aria-expanded="false" 
+                            aria-labelledby="categoryLabel categoryTrigger">
+                        <span class="custom-select-label" id="categorySelectedText">Select a category...</span>
+                        <svg class="custom-select-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <ul class="custom-select-menu" id="categoryMenu" role="listbox" aria-labelledby="categoryLabel">
+                        <li class="custom-select-option" role="option" data-value="malls" aria-selected="false">
+                            <span class="option-text">Malls</span>
+                            <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </li>
+                        <li class="custom-select-option" role="option" data-value="eateries" aria-selected="false">
+                            <span class="option-text">Eateries & Dining</span>
+                            <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </li>
+                        <li class="custom-select-option" role="option" data-value="coffee" aria-selected="false">
+                            <span class="option-text">Coffee Shops</span>
+                            <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </li>
+                        <li class="custom-select-option" role="option" data-value="schools" aria-selected="false">
+                            <span class="option-text">Schools & Universities</span>
+                            <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </li>
+                        <li class="custom-select-option" role="option" data-value="terminals" aria-selected="false">
+                            <span class="option-text">Terminals & Transit</span>
+                            <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </li>
+                        <li class="custom-select-option" role="option" data-value="establishments" aria-selected="false">
+                            <span class="option-text">Commercial Establishments & Services</span>
+                            <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        </li>
+                    </ul>
+                </div>
                 <div class="field-error-msg" id="errBusinessCategory">Please select a category.</div>
             </div>
 
@@ -535,7 +815,7 @@
                 <label class="form-label" for="businessAddress">
                     Address or Location <span class="req">*</span>
                 </label>
-                <input type="text" id="businessAddress" class="form-input" placeholder="J.P. Rizal St., Brgy. 5 (Poblacion), Calamba City" autocomplete="off">
+                <input type="text" id="businessAddress" class="form-input" placeholder="e.g., J.P. Rizal St., Brgy. Real, Calamba City" autocomplete="off">
                 <div class="field-error-msg" id="errBusinessAddress">Please provide an address or landmark location.</div>
             </div>
 
@@ -549,11 +829,27 @@
 
             <!-- Contact Number -->
             <div class="form-group">
-                <label class="form-label" for="businessContact">
-                    Contact Number <span class="opt">(Optional)</span>
-                </label>
-                <input type="text" id="businessContact" class="form-input" autocomplete="off">
-                <div class="field-hint">Format: (049) XXX-XXXX or 09XX XXX XXXX</div>
+                <div class="contact-label-row">
+                    <label class="form-label" for="businessContact" style="margin-bottom: 0;">
+                        Contact Number <span class="opt">(Optional)</span>
+                    </label>
+                    <div class="contact-type-toggle" role="group" aria-label="Contact number type">
+                        <button type="button" class="contact-type-btn active" id="typeMobileBtn" data-type="mobile">
+                            Mobile
+                        </button>
+                        <button type="button" class="contact-type-btn" id="typeLandlineBtn" data-type="landline">
+                            Landline
+                        </button>
+                    </div>
+                </div>
+
+                <div class="phone-input-wrapper" id="phoneInputWrapper">
+                    <span class="phone-prefix" id="phonePrefix">+63</span>
+                    <span class="phone-divider"></span>
+                    <input type="tel" id="businessContact" class="phone-input" placeholder="917 123 4567" autocomplete="off">
+                </div>
+                <div class="field-error-msg" id="errBusinessContact">Please enter a valid mobile number.</div>
+                <div class="field-hint" id="contactHint">Format: +63 9XX XXX XXXX</div>
             </div>
 
             <!-- Form Actions -->
@@ -682,29 +978,193 @@
             });
         }
 
-        // --- 2. VALIDATION ---
+        // --- 2. CUSTOM CATEGORY DROPDOWN & VALIDATION ---
+        const categoryWrapper = document.getElementById('categoryDropdownWrapper');
+        const categoryTrigger = document.getElementById('categoryTrigger');
+        const categorySelectedText = document.getElementById('categorySelectedText');
+        const categoryOptions = document.querySelectorAll('.custom-select-option');
+        let selectedCategoryValue = null;
+
+        function setCategoryValue(val) {
+            selectedCategoryValue = val || null;
+            if (businessCategory) businessCategory.value = val || '';
+
+            categoryOptions.forEach(opt => {
+                const isSel = Boolean(val && opt.dataset.value === val);
+                opt.classList.toggle('selected', isSel);
+                opt.setAttribute('aria-selected', isSel ? 'true' : 'false');
+            });
+
+            if (val) {
+                const selectedOpt = Array.from(categoryOptions).find(opt => opt.dataset.value === val);
+                const labelText = selectedOpt ? selectedOpt.querySelector('.option-text').textContent : val;
+                if (categorySelectedText) categorySelectedText.textContent = labelText;
+                if (categoryTrigger) {
+                    categoryTrigger.classList.remove('placeholder-active');
+                    categoryTrigger.classList.remove('invalid');
+                }
+                if (errBusinessCategory) errBusinessCategory.classList.remove('visible');
+            } else {
+                if (categorySelectedText) categorySelectedText.textContent = 'Select a category...';
+                if (categoryTrigger) categoryTrigger.classList.add('placeholder-active');
+            }
+
+            validateForm();
+        }
+
+        function toggleCategoryDropdown(force) {
+            if (!categoryWrapper || !categoryTrigger) return;
+            const isOpen = typeof force === 'boolean' ? force : !categoryWrapper.classList.contains('open');
+            categoryWrapper.classList.toggle('open', isOpen);
+            categoryTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        }
+
+        if (categoryTrigger) {
+            categoryTrigger.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleCategoryDropdown();
+            });
+        }
+
+        categoryOptions.forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setCategoryValue(opt.dataset.value);
+                toggleCategoryDropdown(false);
+            });
+        });
+
+        document.addEventListener('click', (e) => {
+            if (categoryWrapper && !categoryWrapper.contains(e.target)) {
+                toggleCategoryDropdown(false);
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && categoryWrapper && categoryWrapper.classList.contains('open')) {
+                toggleCategoryDropdown(false);
+                categoryTrigger.focus();
+            }
+        });
+
+        // Contact Number Type & Validation
+        const typeMobileBtn = document.getElementById('typeMobileBtn');
+        const typeLandlineBtn = document.getElementById('typeLandlineBtn');
+        const phoneInputWrapper = document.getElementById('phoneInputWrapper');
+        const errBusinessContact = document.getElementById('errBusinessContact');
+        const contactHint = document.getElementById('contactHint');
+        let contactType = 'mobile';
+
+        function setContactType(type) {
+            contactType = type;
+            if (type === 'mobile') {
+                if (typeMobileBtn) typeMobileBtn.classList.add('active');
+                if (typeLandlineBtn) typeLandlineBtn.classList.remove('active');
+                if (businessContact) businessContact.placeholder = '917 123 4567';
+                if (contactHint) contactHint.textContent = 'Format: +63 9XX XXX XXXX';
+            } else {
+                if (typeLandlineBtn) typeLandlineBtn.classList.add('active');
+                if (typeMobileBtn) typeMobileBtn.classList.remove('active');
+                if (businessContact) businessContact.placeholder = '545 1234 or (049) 545 1234';
+                if (contactHint) contactHint.textContent = 'Format: +63 (049) XXX-XXXX or local 7-digit number';
+            }
+            if (errBusinessContact) errBusinessContact.classList.remove('visible');
+            if (phoneInputWrapper) phoneInputWrapper.classList.remove('invalid');
+            validateForm();
+        }
+
+        if (typeMobileBtn) {
+            typeMobileBtn.addEventListener('click', () => setContactType('mobile'));
+        }
+        if (typeLandlineBtn) {
+            typeLandlineBtn.addEventListener('click', () => setContactType('landline'));
+        }
+
+        function getFormattedContactNumber() {
+            if (!businessContact) return { isValid: true, errorMsg: null, formattedValue: null };
+            const raw = businessContact.value.trim();
+            if (!raw) {
+                return { isValid: true, errorMsg: null, formattedValue: null };
+            }
+
+            let digits = raw.replace(/\D/g, '');
+
+            if (contactType === 'mobile') {
+                // Strip leading 0 or international 63
+                if (digits.startsWith('0')) digits = digits.slice(1);
+                else if (digits.startsWith('63') && digits.length === 12) digits = digits.slice(2);
+
+                if (/^9\d{9}$/.test(digits)) {
+                    return {
+                        isValid: true,
+                        errorMsg: null,
+                        formattedValue: `+63 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
+                    };
+                } else {
+                    return {
+                        isValid: false,
+                        errorMsg: 'Please enter a valid 10-digit mobile number starting with 9 (e.g. 917 123 4567).',
+                        formattedValue: null
+                    };
+                }
+            } else {
+                // Landline
+                if (digits.startsWith('0')) digits = digits.slice(1);
+                else if (digits.startsWith('63') && digits.length >= 9) digits = digits.slice(2);
+
+                if (digits.length >= 7 && digits.length <= 10) {
+                    let formatted = '';
+                    if (digits.length === 7) {
+                        formatted = `+63 49 ${digits.slice(0, 3)} ${digits.slice(3)}`;
+                    } else if (digits.length === 9 && digits.startsWith('49')) {
+                        formatted = `+63 49 ${digits.slice(2, 5)} ${digits.slice(5)}`;
+                    } else {
+                        formatted = `+63 ${digits}`;
+                    }
+                    return {
+                        isValid: true,
+                        errorMsg: null,
+                        formattedValue: formatted
+                    };
+                } else {
+                    return {
+                        isValid: false,
+                        errorMsg: 'Please enter a valid landline number (e.g. 545 1234 or (049) 545 1234).',
+                        formattedValue: null
+                    };
+                }
+            }
+        }
+
         function clearFieldErrors() {
             errBusinessName.classList.remove('visible');
             errBusinessCategory.classList.remove('visible');
             errBusinessAddress.classList.remove('visible');
+            if (errBusinessContact) errBusinessContact.classList.remove('visible');
 
             businessName.classList.remove('invalid');
             businessCategory.classList.remove('invalid');
+            if (categoryTrigger) categoryTrigger.classList.remove('invalid');
             businessAddress.classList.remove('invalid');
+            if (phoneInputWrapper) phoneInputWrapper.classList.remove('invalid');
         }
 
         function validateForm() {
             const hasName = (businessName.value || '').trim().length > 0;
-            const hasCat = (businessCategory.value || '').trim().length > 0;
+            const hasCat = Boolean(selectedCategoryValue && selectedCategoryValue.trim().length > 0);
             const hasAddr = (businessAddress.value || '').trim().length > 0;
+            const contactCheck = getFormattedContactNumber();
 
-            const isValid = hasName && hasCat && hasAddr;
+            const isValid = hasName && hasCat && hasAddr && contactCheck.isValid;
             submitBtn.disabled = !isValid;
             return isValid;
         }
 
+        // Initialize category dropdown to placeholder state
+        setCategoryValue(null);
+
         // Real-time input listeners for validation
-        [businessName, businessCategory, businessAddress].forEach(el => {
+        [businessName, businessAddress].forEach(el => {
             if (el) {
                 el.addEventListener('input', () => {
                     el.classList.remove('invalid');
@@ -716,6 +1176,28 @@
                 });
             }
         });
+
+        if (businessContact) {
+            businessContact.addEventListener('input', () => {
+                const check = getFormattedContactNumber();
+                if (check.isValid || !businessContact.value.trim()) {
+                    if (errBusinessContact) errBusinessContact.classList.remove('visible');
+                    if (phoneInputWrapper) phoneInputWrapper.classList.remove('invalid');
+                }
+                validateForm();
+            });
+
+            businessContact.addEventListener('blur', () => {
+                const check = getFormattedContactNumber();
+                if (!check.isValid && businessContact.value.trim()) {
+                    if (errBusinessContact) {
+                        errBusinessContact.textContent = check.errorMsg;
+                        errBusinessContact.classList.add('visible');
+                    }
+                    if (phoneInputWrapper) phoneInputWrapper.classList.add('invalid');
+                }
+            });
+        }
 
         // --- 3. FORM SUBMISSION (FIRESTORE WRITE TO businesses) ---
         function showErrorBanner(msg) {
@@ -738,14 +1220,26 @@
                     errBusinessName.classList.add('visible');
                     businessName.classList.add('invalid');
                 }
-                if (!businessCategory.value) {
+                if (!selectedCategoryValue) {
                     errBusinessCategory.classList.add('visible');
                     businessCategory.classList.add('invalid');
+                    if (categoryTrigger) categoryTrigger.classList.add('invalid');
+                    hasErrors = true;
                 }
                 if (!businessAddress.value.trim()) {
                     errBusinessAddress.classList.add('visible');
                     businessAddress.classList.add('invalid');
                 }
+                return;
+            }
+
+            const contactCheck = getFormattedContactNumber();
+            if (!contactCheck.isValid) {
+                if (errBusinessContact) {
+                    errBusinessContact.textContent = contactCheck.errorMsg;
+                    errBusinessContact.classList.add('visible');
+                }
+                if (phoneInputWrapper) phoneInputWrapper.classList.add('invalid');
                 return;
             }
 
@@ -764,7 +1258,7 @@
                     category: businessCategory.value,
                     address: businessAddress.value.trim(),
                     description: businessDescription.value.trim() || null,
-                    contactNumber: businessContact.value.trim() || null,
+                    contactNumber: contactCheck.formattedValue,
                     ownerId: currentUser.uid,
                     ownerEmail: currentUser.email || null,
                     status: 'pending',
@@ -799,6 +1293,9 @@
         // --- 4. SUBMIT ANOTHER ---
         btnSubmitAnother.addEventListener('click', () => {
             submissionForm.reset();
+            setCategoryValue(null);
+            setContactType('mobile');
+            if (businessContact) businessContact.value = '';
             clearFieldErrors();
             hideErrorBanner();
 

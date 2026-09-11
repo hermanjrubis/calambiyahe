@@ -364,6 +364,16 @@
         </div>
 
         <div class="feedback-card" id="feedbackFormCard">
+            <!-- Inline Auth Gate Prompt (Visible when NOT logged in) -->
+            <div class="feedback-auth-gate" id="feedbackAuthGate" style="display: none;">
+                <ion-icon name="lock-closed-outline" class="auth-gate-icon"></ion-icon>
+                <h2>Sign in to leave feedback</h2>
+                <p>To help us prevent spam and follow up on your suggestions or bug reports, please sign in with your Calzada account.</p>
+                <a href="login.html?redirect=feedback.html" class="btn-feedback-signin">
+                    <ion-icon name="log-in-outline"></ion-icon> Sign in to Continue
+                </a>
+            </div>
+
             <form id="feedbackForm" class="feedback-form" novalidate>
                 <div class="feedback-cols-wrapper">
                     <!-- LEFT COLUMN: Category Cards & Emoji Scale -->
@@ -413,15 +423,15 @@
                     <!-- RIGHT COLUMN: Name, Email, Message, Submit -->
                     <div class="feedback-col-right">
                         <div class="form-group">
-                            <label for="feedbackName">Name <span style="font-weight:400; color:#64748B; font-size:0.8rem;">(optional)</span></label>
+                            <label for="feedbackName">Name</label>
                             <input type="text" id="feedbackName" placeholder="e.g. Maria Santos">
                         </div>
 
                         <div class="form-group">
-                            <label for="feedbackEmail">Email Address <span style="color:#EF4444;">*</span></label>
+                            <label for="feedbackEmail">Email Address</label>
                             <div class="input-group">
                                 <ion-icon name="mail-outline"></ion-icon>
-                                <input type="email" id="feedbackEmail" required placeholder="name@example.com">
+                                <input type="email" id="feedbackEmail" required readonly class="is-readonly" placeholder="name@example.com">
                             </div>
                         </div>
 
@@ -432,6 +442,8 @@
                                 <span class="char-counter" id="charCounter">0/500</span>
                             </div>
                         </div>
+
+                        <div id="feedbackErrorNotice" class="feedback-error-notice" style="display:none;" role="alert"></div>
 
                         <button type="submit" class="btn-submit-feedback">
                             <i class="ti ti-send"></i> Submit Feedback
@@ -504,21 +516,30 @@
         </div>
         <div class="footer-bottom">
             <p data-i18n="footer.copyright">&copy; 2026 Calzada. All rights reserved.</p>
+            <div class="footer-legal-links">
+                <a href="terms.html">Terms of Service</a>
+                <span class="footer-legal-divider" aria-hidden="true">&bull;</span>
+                <a href="privacy.html">Privacy Policy</a>
+            </div>
         </div>
     </footer>
 
     <!-- i18n & Client-side Script -->
     <script src="../js/i18n.js"></script>
-    <script>
+    <script type="module">
+        import { auth, onAuthStateChanged } from "../js/firebase-init.js";
+
         document.addEventListener('DOMContentLoaded', () => {
             // Skeleton loader fouc handler
             document.body.classList.add('fouc-ready');
 
             let selectedCategory = null;
             let selectedRating = null;
+            let currentUser = null;
 
             const feedbackForm = document.getElementById('feedbackForm');
             const feedbackFormCard = document.getElementById('feedbackFormCard');
+            const feedbackAuthGate = document.getElementById('feedbackAuthGate');
             const feedbackConfirmation = document.getElementById('feedbackConfirmation');
             const btnFeedbackReset = document.getElementById('btnFeedbackReset');
 
@@ -527,7 +548,35 @@
             const helperTextEl = document.getElementById('categoryHelperText');
             const messageInput = document.getElementById('feedbackMessage');
             const charCounterEl = document.getElementById('charCounter');
+            const nameInput = document.getElementById('feedbackName');
             const emailInput = document.getElementById('feedbackEmail');
+            const errorNoticeEl = document.getElementById('feedbackErrorNotice');
+
+            // --- 1. FIREBASE AUTH GUARD & INLINE STATE SWAP ---
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (!user) {
+                    // Not signed in: hide form, show inline sign-in prompt
+                    feedbackForm.style.display = 'none';
+                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'block';
+                } else {
+                    // Signed in: show form, hide prompt
+                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'none';
+                    feedbackForm.style.display = 'block';
+
+                    // Pre-fill display name (editable)
+                    if (nameInput) {
+                        nameInput.value = user.displayName || '';
+                    }
+
+                    // Pre-fill email address (read-only verified account email)
+                    if (emailInput) {
+                        emailInput.value = user.email || '';
+                        emailInput.readOnly = true;
+                        emailInput.classList.add('is-readonly');
+                    }
+                }
+            });
 
             const helpers = {
                 'Bug Report': "Something's not working right? Let us know what happened.",
@@ -579,9 +628,37 @@
                 charCounterEl.textContent = `${len}/500`;
             });
 
+            // Helper to show/hide submission error notices
+            function showFeedbackError(msg) {
+                if (errorNoticeEl) {
+                    errorNoticeEl.textContent = msg;
+                    errorNoticeEl.style.display = 'block';
+                } else {
+                    alert(msg);
+                }
+            }
+
+            function hideFeedbackError() {
+                if (errorNoticeEl) {
+                    errorNoticeEl.style.display = 'none';
+                    errorNoticeEl.textContent = '';
+                }
+            }
+
+            if (emailInput) emailInput.addEventListener('input', hideFeedbackError);
+            if (messageInput) messageInput.addEventListener('input', hideFeedbackError);
+
             // 4. Form Submission & Validation
-            feedbackForm.addEventListener('submit', (e) => {
+            feedbackForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                hideFeedbackError();
+
+                if (!currentUser) {
+                    showFeedbackError('Please sign in to your account before submitting feedback.');
+                    feedbackForm.style.display = 'none';
+                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'block';
+                    return;
+                }
 
                 let isValid = true;
 
@@ -591,14 +668,6 @@
                     isValid = false;
                 } else {
                     categoryCardsGrid.style.outline = 'none';
-                }
-
-                // Validate Email
-                if (!emailInput.value.trim() || !emailInput.value.includes('@') || !emailInput.value.includes('.')) {
-                    emailInput.style.borderColor = '#EF4444';
-                    isValid = false;
-                } else {
-                    emailInput.style.borderColor = '#CBD5E1';
                 }
 
                 // Validate Message
@@ -611,17 +680,84 @@
 
                 if (!isValid) return;
 
+                // Obtain fresh Firebase ID token for Authorization header
+                let idToken = null;
+                try {
+                    idToken = await currentUser.getIdToken();
+                } catch (tokenErr) {
+                    console.error('Failed to get auth token:', tokenErr);
+                    showFeedbackError('Your sign-in session has expired. Please sign in again.');
+                    return;
+                }
+
+                const payload = {
+                    category: selectedCategory,
+                    rating: selectedRating || null,
+                    name: nameInput ? nameInput.value.trim() : (currentUser.displayName || ''),
+                    message: messageInput.value.trim()
+                };
+
                 // Show Loader Overlay & Blur Form
                 const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
                 feedbackForm.classList.add('is-loading');
                 if (loaderWrapper) loaderWrapper.style.display = 'flex';
 
-                setTimeout(() => {
+                try {
+                    const response = await fetch('/api/feedback', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            throw new Error('Your sign-in session has expired. Please sign in again.');
+                        }
+                        throw new Error(result.error || 'Failed to submit feedback. Please try again.');
+                    }
+
+                    // Success: Stop loader, reset form, and switch to confirmation view
                     if (loaderWrapper) loaderWrapper.style.display = 'none';
                     feedbackForm.classList.remove('is-loading');
+
+                    // Reset form fields and selection state
+                    feedbackForm.reset();
+                    selectedCategory = null;
+                    selectedRating = null;
+                    categoryCards.forEach(c => c.classList.remove('is-selected'));
+                    categoryCardsGrid.style.outline = 'none';
+                    helperTextEl.textContent = '';
+                    emojiOptions.forEach(o => o.classList.remove('is-selected'));
+                    emojiLabelEl.textContent = '';
+                    messageInput.placeholder = placeholders['General'];
+                    charCounterEl.textContent = '0/500';
+                    emailInput.style.borderColor = '#CBD5E1';
+                    messageInput.style.borderColor = '#CBD5E1';
+                    hideFeedbackError();
+
+                    // Restore user's authenticated credentials
+                    if (currentUser) {
+                        if (nameInput) nameInput.value = currentUser.displayName || '';
+                        if (emailInput) {
+                            emailInput.value = currentUser.email || '';
+                            emailInput.readOnly = true;
+                            emailInput.classList.add('is-readonly');
+                        }
+                    }
+
                     feedbackFormCard.style.display = 'none';
                     feedbackConfirmation.classList.add('active');
-                }, 1400);
+                } catch (err) {
+                    console.error('Error submitting feedback:', err);
+                    if (loaderWrapper) loaderWrapper.style.display = 'none';
+                    feedbackForm.classList.remove('is-loading');
+                    showFeedbackError(err.message || 'Something went wrong while submitting your feedback. Please check your connection and try again.');
+                }
             });
 
             // 5. Reset Handler
@@ -642,6 +778,17 @@
 
                 emailInput.style.borderColor = '#CBD5E1';
                 messageInput.style.borderColor = '#CBD5E1';
+                hideFeedbackError();
+
+                // Restore user's authenticated credentials
+                if (currentUser) {
+                    if (nameInput) nameInput.value = currentUser.displayName || '';
+                    if (emailInput) {
+                        emailInput.value = currentUser.email || '';
+                        emailInput.readOnly = true;
+                        emailInput.classList.add('is-readonly');
+                    }
+                }
 
                 const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
                 if (loaderWrapper) loaderWrapper.style.display = 'none';

@@ -327,6 +327,9 @@ export function clearUserState() {
 
     // 5. Close any open modal overlays
     document.querySelectorAll('.profile-modal-overlay.active').forEach(m => m.classList.remove('active'));
+
+    // 6. Ensure Admin link is removed
+    renderAdminMenuLink(false);
 }
 
 window._calzadaClearUserState = clearUserState;
@@ -700,6 +703,18 @@ export function setupProfileUI() {
                 if (anonProfileBanner) anonProfileBanner.style.display = 'none';
                 if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
             }
+
+            // 5. Check Admin Custom Claim & Conditionally Render Link
+            let isAdmin = false;
+            if (!user.isAnonymous) {
+                try {
+                    const idTokenResult = await user.getIdTokenResult();
+                    isAdmin = Boolean(idTokenResult && idTokenResult.claims && idTokenResult.claims.admin === true);
+                } catch (claimErr) {
+                    console.warn('Could not verify admin claims:', claimErr);
+                }
+            }
+            renderAdminMenuLink(isAdmin);
         } else {
             clearUserState();
         }
@@ -854,17 +869,57 @@ export function setupProfileUI() {
             return;
         }
 
+        const adminItem = e.target.closest('#menuAdminPanel');
+        if (adminItem) {
+            closeDropdown();
+            return;
+        }
+
         // Change Photo button triggers hidden file input
-        const changePhotoBtn = e.target.closest('#btnChangePhotoText');
+        const changePhotoBtn = e.target.closest('#btnChangePhotoText') || e.target.closest('#lblChangePhoto');
         if (changePhotoBtn) {
             e.preventDefault();
-            const fileInput = document.getElementById('avatarFileInput');
+            const fileInput = document.getElementById('settingsPhotoUploadInput') || document.getElementById('avatarFileInput');
             if (fileInput) fileInput.click();
             return;
         }
 
-        // Change Password button
-        const changePasswordBtn = e.target.closest('#btnChangePassword');
+        // Remove Photo link click -> show inline confirmation
+        const removePhotoBtn = e.target.closest('#btnRemovePhoto');
+        if (removePhotoBtn) {
+            e.preventDefault();
+            const actionsRow = document.getElementById('settingsAvatarActions');
+            const confirmRow = document.getElementById('settingsRemoveConfirm');
+            if (actionsRow && confirmRow) {
+                actionsRow.style.display = 'none';
+                confirmRow.style.display = 'flex';
+            }
+            return;
+        }
+
+        // Cancel Remove Photo
+        const cancelRemoveBtn = e.target.closest('#btnConfirmRemoveCancel');
+        if (cancelRemoveBtn) {
+            e.preventDefault();
+            const actionsRow = document.getElementById('settingsAvatarActions');
+            const confirmRow = document.getElementById('settingsRemoveConfirm');
+            if (actionsRow && confirmRow) {
+                confirmRow.style.display = 'none';
+                actionsRow.style.display = 'flex';
+            }
+            return;
+        }
+
+        // Confirm Remove Photo
+        const confirmRemoveBtn = e.target.closest('#btnConfirmRemoveYes');
+        if (confirmRemoveBtn) {
+            e.preventDefault();
+            handleRemovePhoto();
+            return;
+        }
+
+        // Change Password / Password Reset button
+        const changePasswordBtn = e.target.closest('#btnSendPasswordReset') || e.target.closest('#btnChangePassword');
         if (changePasswordBtn) {
             e.preventDefault();
             handlePasswordReset();
@@ -872,7 +927,7 @@ export function setupProfileUI() {
         }
 
         // Save account settings button
-        const saveSettingsBtn = e.target.closest('#btnSaveUserSettings');
+        const saveSettingsBtn = e.target.closest('#btnSaveProfileSettings') || e.target.closest('#btnSaveUserSettings');
         if (saveSettingsBtn) {
             e.preventDefault();
             saveUserSettings();
@@ -958,6 +1013,54 @@ export function setupProfileUI() {
             document.querySelectorAll('.profile-modal-overlay.active').forEach(m => m.classList.remove('active'));
         }
     });
+
+    // Form submit listener for Account Settings
+    document.addEventListener('submit', (e) => {
+        if (e.target && e.target.id === 'settingsProfileForm') {
+            e.preventDefault();
+            saveUserSettings();
+        }
+    });
+}
+
+/**
+ * Conditionally render "Admin Panel" link in the account dropdown menu
+ * Only rendered if idTokenResult.claims.admin === true.
+ * Positioned between "My Business" and "Log Out".
+ */
+export function renderAdminMenuLink(isAdmin) {
+    const existing = document.getElementById('menuAdminPanel');
+    if (!isAdmin) {
+        if (existing) existing.remove();
+        return;
+    }
+
+    if (existing) return; // Already present in DOM
+
+    const navList = document.querySelector('.profile-nav-list');
+    const myBusinessBtn = document.getElementById('menuMyBusiness');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const adminLink = document.createElement('a');
+    adminLink.id = 'menuAdminPanel';
+    adminLink.className = 'profile-nav-btn';
+    const isPagesDir = window.location.pathname.includes('/pages/');
+    adminLink.href = isPagesDir ? 'admin.html' : '/pages/admin.html';
+    adminLink.style.textDecoration = 'none';
+    adminLink.innerHTML = `
+        <span class="nav-btn-icon" style="color: #378ADD;">
+            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </span>
+        <span class="nav-btn-title">Admin Panel</span>
+    `;
+
+    if (myBusinessBtn && myBusinessBtn.parentNode) {
+        myBusinessBtn.insertAdjacentElement('afterend', adminLink);
+    } else if (navList) {
+        navList.appendChild(adminLink);
+    } else if (logoutBtn && logoutBtn.parentNode) {
+        logoutBtn.parentNode.insertBefore(adminLink, logoutBtn);
+    }
 }
 
 function closeDropdown() {
@@ -1136,6 +1239,173 @@ function escapeHtml(str = '') {
 }
 
 let pendingAvatarDataUrl = null;
+let pendingAvatarRemoved = false;
+let initialLoadedDisplayName = '';
+let initialHadCustomPhoto = false;
+let isSavingSettings = false;
+let isRemovingPhoto = false;
+let passwordResetCooldownTimer = null;
+
+function updateAvatarActionState() {
+    const user = auth.currentUser || activeUser;
+    const savedPhoto = localStorage.getItem('calzada_pref_photo') || user?.photoURL;
+    const hasPhoto = Boolean(!pendingAvatarRemoved && (pendingAvatarDataUrl || savedPhoto));
+
+    const sep = document.getElementById('settingsPhotoSep');
+    const removeBtn = document.getElementById('btnRemovePhoto');
+    const actionsRow = document.getElementById('settingsAvatarActions');
+    const confirmRow = document.getElementById('settingsRemoveConfirm');
+
+    if (confirmRow) confirmRow.style.display = 'none';
+    if (actionsRow) actionsRow.style.display = 'flex';
+
+    if (sep) sep.style.display = hasPhoto ? 'inline' : 'none';
+    if (removeBtn) {
+        removeBtn.style.display = hasPhoto ? 'inline' : 'none';
+        removeBtn.disabled = false;
+        removeBtn.textContent = 'Remove';
+    }
+}
+
+function updateSaveButtonState() {
+    const saveBtn = document.getElementById('btnSaveProfileSettings') || document.getElementById('btnSaveUserSettings');
+    const nameInput = document.getElementById('prefDisplayNameInput');
+    if (!saveBtn) return;
+    if (isSavingSettings || isRemovingPhoto) return;
+
+    const currentName = nameInput ? nameInput.value.trim() : '';
+    const nameChanged = currentName !== initialLoadedDisplayName && currentName.length > 0;
+    const avatarChanged = Boolean(pendingAvatarDataUrl) || (pendingAvatarRemoved && initialHadCustomPhoto);
+
+    const hasChanges = nameChanged || avatarChanged;
+    saveBtn.disabled = !hasChanges;
+}
+
+async function handleRemovePhoto() {
+    if (isRemovingPhoto) return;
+    isRemovingPhoto = true;
+
+    const confirmRow = document.getElementById('settingsRemoveConfirm');
+    const actionsRow = document.getElementById('settingsAvatarActions');
+    const avatarImgEl = document.getElementById('settingsAvatarImg');
+    const avatarLargeEl = document.getElementById('settingsAvatarLarge');
+    const nameInput = document.getElementById('prefDisplayNameInput');
+    const avatarErr = document.getElementById('settingsAvatarError');
+    const fileInput = document.getElementById('settingsPhotoUploadInput') || document.getElementById('avatarFileInput');
+
+    if (avatarErr) {
+        avatarErr.style.display = 'none';
+        avatarErr.textContent = '';
+    }
+
+    if (confirmRow) {
+        confirmRow.innerHTML = '<span style="color:#64748B;">Removing...</span>';
+    }
+
+    const user = auth.currentUser || activeUser;
+    const currentPhoto = pendingAvatarDataUrl || localStorage.getItem('calzada_pref_photo') || user?.photoURL;
+
+    try {
+        // 1. Delete photo from Node.js/Express local disk storage
+        const token = user && typeof user.getIdToken === 'function' ? await user.getIdToken().catch(() => null) : null;
+        await fetch('/api/user/photo', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+            },
+            body: JSON.stringify({
+                photoUrl: currentPhoto,
+                uid: user?.uid
+            })
+        }).catch(err => console.warn('Backend avatar delete warning:', err));
+
+        // 2. Clear/null photoURL field on Firebase Auth profile & Firestore
+        if (user && !user.isAnonymous) {
+            try {
+                if (typeof updateProfile === 'function') {
+                    await updateProfile(user, { photoURL: '' });
+                }
+            } catch (authErr) {
+                console.warn('updateProfile clear photo error:', authErr);
+            }
+
+            try {
+                if (typeof setDoc === 'function' && typeof doc === 'function' && db) {
+                    const prefDoc = doc(db, 'users/' + user.uid + '/preferences', 'commute');
+                    await setDoc(prefDoc, {
+                        photoURL: null,
+                        updatedAt: typeof serverTimestamp === 'function' ? serverTimestamp() : new Date()
+                    }, { merge: true });
+                }
+            } catch (dbErr) {
+                console.warn('Firestore clear photo error:', dbErr);
+            }
+        }
+
+        // 3. Clear local storage & pending states
+        localStorage.removeItem('calzada_pref_photo');
+        pendingAvatarDataUrl = null;
+        pendingAvatarRemoved = true;
+        if (fileInput) fileInput.value = '';
+
+        // 4. Revert avatar to default colored circle + initial letter
+        const currentName = nameInput ? nameInput.value.trim() : '';
+        const initial = (currentName || initialLoadedDisplayName || 'U').charAt(0).toUpperCase();
+
+        if (avatarImgEl) {
+            avatarImgEl.src = '';
+            avatarImgEl.style.display = 'none';
+        }
+        if (avatarLargeEl) {
+            avatarLargeEl.textContent = initial;
+            avatarLargeEl.style.display = 'flex';
+        }
+
+        // Sync avatars across the UI
+        const userAvatarImg = document.getElementById('userAvatarImg');
+        const userAvatarInitials = document.getElementById('userAvatarInitials');
+        const profileHeaderImg = document.getElementById('profileHeaderImg');
+        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+        const mobileAvatarImg = document.getElementById('mobileAvatarImg');
+        const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
+
+        if (userAvatarImg) userAvatarImg.style.display = 'none';
+        if (userAvatarInitials) {
+            userAvatarInitials.textContent = initial;
+            userAvatarInitials.style.display = 'block';
+        }
+        if (profileHeaderImg) profileHeaderImg.style.display = 'none';
+        if (profileHeaderInitials) {
+            profileHeaderInitials.textContent = initial;
+            profileHeaderInitials.style.display = 'block';
+        }
+        if (mobileAvatarImg) mobileAvatarImg.style.display = 'none';
+        if (mobileAvatarInitials) {
+            mobileAvatarInitials.textContent = initial;
+            mobileAvatarInitials.style.display = 'block';
+        }
+
+        addActivity('save', 'Removed profile photo');
+
+    } catch (err) {
+        console.error('Failed to remove photo:', err);
+        if (avatarErr) {
+            avatarErr.textContent = 'Could not remove photo. Please try again.';
+            avatarErr.style.display = 'block';
+        }
+    } finally {
+        isRemovingPhoto = false;
+        if (confirmRow) {
+            confirmRow.innerHTML = '<span>Remove photo?</span><button type="button" class="settings-confirm-btn" id="btnConfirmRemoveYes">Yes</button><span class="settings-photo-sep">·</span><button type="button" class="settings-confirm-btn" id="btnConfirmRemoveCancel">Cancel</button>';
+            confirmRow.style.display = 'none';
+        }
+        if (actionsRow) actionsRow.style.display = 'flex';
+
+        updateAvatarActionState();
+        updateSaveButtonState();
+    }
+}
 
 export function renderSettingsModal() {
     const user = auth.currentUser || activeUser;
@@ -1144,20 +1414,39 @@ export function renderSettingsModal() {
     const avatarLargeEl = document.getElementById('settingsAvatarLarge');
     const avatarImgEl = document.getElementById('settingsAvatarImg');
     const nameInput = document.getElementById('prefDisplayNameInput');
-    const feedbackEl = document.getElementById('settingsFeedbackBanner');
-    const fileInput = document.getElementById('avatarFileInput');
+    const saveBtn = document.getElementById('btnSaveProfileSettings') || document.getElementById('btnSaveUserSettings');
+    const fileInput = document.getElementById('settingsPhotoUploadInput') || document.getElementById('avatarFileInput');
 
-    if (feedbackEl) feedbackEl.style.display = 'none';
-    if (fileInput) fileInput.value = '';
+    // Reset errors & pending state
     pendingAvatarDataUrl = null;
+    pendingAvatarRemoved = false;
+    isSavingSettings = false;
+    isRemovingPhoto = false;
+    if (fileInput) fileInput.value = '';
+
+    const avatarErrorEl = document.getElementById('settingsAvatarError');
+    const nameErrorEl = document.getElementById('settingsDisplayNameError');
+    const resetErrorEl = document.getElementById('settingsResetError');
+    const saveErrorEl = document.getElementById('settingsSaveError');
+    const bannerEl = document.getElementById('settingsFeedbackBanner');
+
+    if (avatarErrorEl) { avatarErrorEl.style.display = 'none'; avatarErrorEl.textContent = ''; }
+    if (nameErrorEl) { nameErrorEl.style.display = 'none'; nameErrorEl.textContent = ''; }
+    if (resetErrorEl) { resetErrorEl.style.display = 'none'; resetErrorEl.textContent = ''; }
+    if (saveErrorEl) { saveErrorEl.style.display = 'none'; saveErrorEl.textContent = ''; }
+    if (bannerEl) { bannerEl.style.display = 'none'; }
 
     // Retrieve saved custom display name and photo
     const savedName = localStorage.getItem('calzada_pref_name');
     const savedPhoto = localStorage.getItem('calzada_pref_photo') || user?.photoURL;
 
+    initialHadCustomPhoto = Boolean(savedPhoto);
+
     const displayName = savedName || user?.displayName || (user?.email ? user.email.split('@')[0] : 'Commuter');
     const email = user?.email || (user?.isAnonymous ? 'guest@calzada.ph' : 'hermanjohnph@gmail.com');
     const initial = (displayName || 'U').charAt(0).toUpperCase();
+
+    initialLoadedDisplayName = displayName;
 
     if (nameEl) nameEl.textContent = displayName;
     if (emailEl) emailEl.textContent = email;
@@ -1172,137 +1461,279 @@ export function renderSettingsModal() {
         if (avatarImgEl) avatarImgEl.style.display = 'none';
     }
 
-    if (nameInput) nameInput.value = displayName;
+    if (nameInput) {
+        nameInput.value = displayName;
+    }
+
+    // Default Save Changes button to visually disabled/muted state on modal open
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = 'Save Changes';
+    }
+
+    // Update avatar action links (Change photo · Remove)
+    updateAvatarActionState();
+
+    // Wire Display Name input listener once
+    if (nameInput && !nameInput._wired) {
+        nameInput._wired = true;
+        nameInput.addEventListener('input', () => {
+            if (nameErrorEl) {
+                nameErrorEl.style.display = 'none';
+                nameErrorEl.textContent = '';
+            }
+            if (saveErrorEl) {
+                saveErrorEl.style.display = 'none';
+                saveErrorEl.textContent = '';
+            }
+            updateSaveButtonState();
+        });
+    }
 
     // Wire file input listener once
     if (fileInput && !fileInput._wired) {
         fileInput._wired = true;
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files && e.target.files[0];
-            if (file) {
-                if (file.size > 3 * 1024 * 1024) {
-                    alert('Please select an image smaller than 3MB.');
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    pendingAvatarDataUrl = event.target.result;
-                    if (avatarImgEl && avatarLargeEl) {
-                        avatarImgEl.src = pendingAvatarDataUrl;
-                        avatarImgEl.style.display = 'block';
-                        avatarLargeEl.style.display = 'none';
-                    }
-                };
-                reader.readAsDataURL(file);
+            const avatarErr = document.getElementById('settingsAvatarError');
+            if (avatarErr) {
+                avatarErr.style.display = 'none';
+                avatarErr.textContent = '';
             }
+
+            if (!file) {
+                pendingAvatarDataUrl = null;
+                updateAvatarActionState();
+                updateSaveButtonState();
+                return;
+            }
+
+            // Client-side validation: JPG and PNG only
+            const validMimeTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            const fileName = (file.name || '').toLowerCase();
+            const hasValidExt = fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png');
+
+            if (!validMimeTypes.includes(file.type) && !hasValidExt) {
+                if (avatarErr) {
+                    avatarErr.textContent = 'Please select a JPG or PNG image.';
+                    avatarErr.style.display = 'block';
+                }
+                fileInput.value = '';
+                pendingAvatarDataUrl = null;
+                updateAvatarActionState();
+                updateSaveButtonState();
+                return;
+            }
+
+            // Client-side validation: Max 2MB
+            if (file.size > 2 * 1024 * 1024) {
+                if (avatarErr) {
+                    avatarErr.textContent = 'Image size must be 2MB or less.';
+                    avatarErr.style.display = 'block';
+                }
+                fileInput.value = '';
+                pendingAvatarDataUrl = null;
+                updateAvatarActionState();
+                updateSaveButtonState();
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                pendingAvatarDataUrl = event.target.result;
+                pendingAvatarRemoved = false;
+                if (avatarImgEl && avatarLargeEl) {
+                    avatarImgEl.src = pendingAvatarDataUrl;
+                    avatarImgEl.style.display = 'block';
+                    avatarLargeEl.style.display = 'none';
+                }
+                updateAvatarActionState();
+                updateSaveButtonState();
+            };
+            reader.readAsDataURL(file);
         });
     }
 }
 
 async function handlePasswordReset() {
+    const btn = document.getElementById('btnSendPasswordReset') || document.getElementById('btnChangePassword');
+    const errorEl = document.getElementById('settingsResetError');
+    if (errorEl) {
+        errorEl.style.display = 'none';
+        errorEl.textContent = '';
+    }
+
+    if (!btn || btn.disabled) return;
+
     const user = auth.currentUser || activeUser;
     const email = user?.email || localStorage.getItem('calzada_user_email');
-    const feedbackEl = document.getElementById('settingsFeedbackBanner');
-    const feedbackText = document.getElementById('settingsFeedbackText');
 
     if (!email || user?.isAnonymous) {
-        if (feedbackEl && feedbackText) {
-            feedbackEl.style.display = 'flex';
-            feedbackEl.style.background = '#FEF2F2';
-            feedbackEl.style.borderColor = '#FECACA';
-            feedbackEl.style.color = '#DC2626';
-            feedbackText.textContent = 'Please sign in with a registered email account to reset password.';
+        if (errorEl) {
+            errorEl.textContent = 'Please sign in with a registered email account to reset password.';
+            errorEl.style.display = 'block';
         }
         return;
     }
 
+    const defaultLabel = 'Send Password Reset Email';
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
     try {
         await sendPasswordResetEmail(auth, email);
-        if (feedbackEl && feedbackText) {
-            feedbackEl.style.display = 'flex';
-            feedbackEl.style.background = '#F0FDF4';
-            feedbackEl.style.borderColor = '#BBF7D0';
-            feedbackEl.style.color = '#16A34A';
-            feedbackText.textContent = `Password reset link sent to ${email}! Check your inbox.`;
-        }
+        btn.textContent = 'Email sent — check your inbox';
+        btn.disabled = true;
+
+        if (passwordResetCooldownTimer) clearTimeout(passwordResetCooldownTimer);
+        passwordResetCooldownTimer = setTimeout(() => {
+            const currentBtn = document.getElementById('btnSendPasswordReset') || document.getElementById('btnChangePassword');
+            if (currentBtn) {
+                currentBtn.disabled = false;
+                currentBtn.textContent = defaultLabel;
+            }
+        }, 30000);
     } catch (err) {
         console.warn('Password reset error:', err);
-        if (feedbackEl && feedbackText) {
-            feedbackEl.style.display = 'flex';
-            feedbackEl.style.background = '#FEF2F2';
-            feedbackEl.style.borderColor = '#FECACA';
-            feedbackEl.style.color = '#DC2626';
-            feedbackText.textContent = err.message || 'Could not send reset link. Please try again.';
+        btn.disabled = false;
+        btn.textContent = defaultLabel;
+        if (errorEl) {
+            errorEl.textContent = err.message || 'Could not send reset email. Please try again.';
+            errorEl.style.display = 'block';
         }
     }
 }
 
-function saveUserSettings() {
+async function saveUserSettings() {
+    const saveBtn = document.getElementById('btnSaveProfileSettings') || document.getElementById('btnSaveUserSettings');
     const nameInput = document.getElementById('prefDisplayNameInput');
-    const feedbackEl = document.getElementById('settingsFeedbackBanner');
-    const feedbackText = document.getElementById('settingsFeedbackText');
+    const nameErrorEl = document.getElementById('settingsDisplayNameError');
+    const saveErrorEl = document.getElementById('settingsSaveError');
+
+    if (isSavingSettings || isRemovingPhoto) return;
+    if (saveBtn && saveBtn.disabled) return;
+
+    if (nameErrorEl) { nameErrorEl.style.display = 'none'; nameErrorEl.textContent = ''; }
+    if (saveErrorEl) { saveErrorEl.style.display = 'none'; saveErrorEl.textContent = ''; }
 
     const newName = nameInput ? nameInput.value.trim() : '';
 
-    if (newName) {
-        localStorage.setItem('calzada_pref_name', newName);
-        const navDisplayName = document.getElementById('userDisplayName');
-        const profileDisplayName = document.getElementById('profileDisplayName');
-        const settingsDisplayName = document.getElementById('settingsDisplayName');
-        if (navDisplayName) navDisplayName.textContent = newName;
-        if (profileDisplayName) profileDisplayName.textContent = newName;
-        if (settingsDisplayName) settingsDisplayName.textContent = newName;
+    if (!newName && !pendingAvatarDataUrl && !pendingAvatarRemoved) {
+        if (nameErrorEl) {
+            nameErrorEl.textContent = 'Display name cannot be empty.';
+            nameErrorEl.style.display = 'block';
+        }
+        return;
     }
 
-    if (pendingAvatarDataUrl) {
-        localStorage.setItem('calzada_pref_photo', pendingAvatarDataUrl);
-        // Update all avatars across the interface
-        const userAvatarImg = document.getElementById('userAvatarImg');
-        const userAvatarInitials = document.getElementById('userAvatarInitials');
-        const profileHeaderImg = document.getElementById('profileHeaderImg');
-        const profileHeaderInitials = document.getElementById('profileHeaderInitials');
-
-        if (userAvatarImg) {
-            userAvatarImg.src = pendingAvatarDataUrl;
-            userAvatarImg.style.display = 'block';
-        }
-        if (userAvatarInitials) userAvatarInitials.style.display = 'none';
-        if (profileHeaderImg) {
-            profileHeaderImg.src = pendingAvatarDataUrl;
-            profileHeaderImg.style.display = 'block';
-        }
-        if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
+    isSavingSettings = true;
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="settings-btn-spinner" aria-hidden="true"></span><span>Saving...</span>';
     }
 
-    // Try persisting to Firebase Auth profile and Firestore if logged in
-    const user = auth.currentUser || activeUser;
-    if (user && !user.isAnonymous) {
-        try {
+    try {
+        const user = auth.currentUser || activeUser;
+        const promises = [];
+
+        if (newName) {
+            localStorage.setItem('calzada_pref_name', newName);
+            const navDisplayName = document.getElementById('userDisplayName');
+            const profileDisplayName = document.getElementById('profileDisplayName');
+            const settingsDisplayName = document.getElementById('settingsDisplayName');
+            if (navDisplayName) navDisplayName.textContent = newName;
+            if (profileDisplayName) profileDisplayName.textContent = newName;
+            if (settingsDisplayName) settingsDisplayName.textContent = newName;
+        }
+
+        if (pendingAvatarRemoved) {
+            localStorage.removeItem('calzada_pref_photo');
+        } else if (pendingAvatarDataUrl) {
+            localStorage.setItem('calzada_pref_photo', pendingAvatarDataUrl);
+            const userAvatarImg = document.getElementById('userAvatarImg');
+            const userAvatarInitials = document.getElementById('userAvatarInitials');
+            const profileHeaderImg = document.getElementById('profileHeaderImg');
+            const profileHeaderInitials = document.getElementById('profileHeaderInitials');
+            const mobileAvatarImg = document.getElementById('mobileAvatarImg');
+            const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
+
+            if (userAvatarImg) {
+                userAvatarImg.src = pendingAvatarDataUrl;
+                userAvatarImg.style.display = 'block';
+            }
+            if (userAvatarInitials) userAvatarInitials.style.display = 'none';
+            if (profileHeaderImg) {
+                profileHeaderImg.src = pendingAvatarDataUrl;
+                profileHeaderImg.style.display = 'block';
+            }
+            if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
+            if (mobileAvatarImg) {
+                mobileAvatarImg.src = pendingAvatarDataUrl;
+                mobileAvatarImg.style.display = 'block';
+            }
+            if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'none';
+        }
+
+        if (user && !user.isAnonymous) {
             const updates = {};
             if (newName) updates.displayName = newName;
-            if (pendingAvatarDataUrl) updates.photoURL = pendingAvatarDataUrl;
-            if (Object.keys(updates).length > 0) {
-                updateProfile(user, updates).catch(() => {});
+            if (pendingAvatarRemoved) {
+                updates.photoURL = '';
+            } else if (pendingAvatarDataUrl) {
+                updates.photoURL = pendingAvatarDataUrl;
             }
-            setDoc(doc(db, `users/${user.uid}/preferences`, 'commute'), {
-                displayName: newName || user.displayName || '',
-                photoURL: pendingAvatarDataUrl || user.photoURL || '',
-                updatedAt: serverTimestamp()
-            }, { merge: true }).catch(() => {});
-        } catch (e) {}
+
+            if (Object.keys(updates).length > 0 && typeof updateProfile === 'function') {
+                promises.push(updateProfile(user, updates));
+            }
+            if (typeof setDoc === 'function' && typeof doc === 'function' && db) {
+                promises.push(setDoc(doc(db, 'users/' + user.uid + '/preferences', 'commute'), {
+                    displayName: newName || user.displayName || '',
+                    photoURL: pendingAvatarRemoved ? null : (pendingAvatarDataUrl || user.photoURL || ''),
+                    updatedAt: typeof serverTimestamp === 'function' ? serverTimestamp() : new Date()
+                }, { merge: true }));
+            }
+        }
+
+        if (promises.length > 0) {
+            await Promise.all(promises);
+        }
+
+        addActivity('save', 'Updated account preferences');
+
+        // Success state: checkmark + "Saved" (~1.5s)
+        if (saveBtn) {
+            saveBtn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" style="flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg><span>Saved</span>';
+        }
+
+        initialLoadedDisplayName = newName || initialLoadedDisplayName;
+        initialHadCustomPhoto = !pendingAvatarRemoved && Boolean(pendingAvatarDataUrl || localStorage.getItem('calzada_pref_photo'));
+        pendingAvatarDataUrl = null;
+        pendingAvatarRemoved = false;
+        const fileInput = document.getElementById('settingsPhotoUploadInput') || document.getElementById('avatarFileInput');
+        if (fileInput) fileInput.value = '';
+
+        setTimeout(() => {
+            closeModal('modalAccountSettings');
+            isSavingSettings = false;
+            if (saveBtn) {
+                saveBtn.innerHTML = 'Save Changes';
+                saveBtn.disabled = true;
+            }
+        }, 1500);
+
+    } catch (err) {
+        console.error('Save user settings error:', err);
+        isSavingSettings = false;
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = 'Save Changes';
+        }
+        if (saveErrorEl) {
+            saveErrorEl.textContent = err.message || 'Failed to save changes. Please try again.';
+            saveErrorEl.style.display = 'block';
+        }
     }
-
-    addActivity('save', `Updated account preferences`);
-
-    if (feedbackEl) {
-        if (feedbackText) feedbackText.textContent = 'Preferences saved successfully!';
-        feedbackEl.style.display = 'flex';
-    }
-
-    setTimeout(() => {
-        closeModal('modalAccountSettings');
-        if (feedbackEl) feedbackEl.style.display = 'none';
-    }, 1200);
 }
 
 function createProfileModals() {
@@ -1373,53 +1804,60 @@ function createProfileModals() {
             <div class="profile-modal-box settings-box">
                 <div class="profile-modal-header">
                     <div class="modal-header-title">
-                        <div class="modal-header-icon-box">
-                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </div>
                         <h3 class="modal-header-heading">Account Settings</h3>
                     </div>
                     <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
                 </div>
                 <div class="profile-modal-body">
-                    <!-- Success Banner -->
-                    <div class="settings-feedback-banner" id="settingsFeedbackBanner">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        <span id="settingsFeedbackText">Settings saved successfully!</span>
-                    </div>
-
                     <!-- User Identity & Photo Control -->
                     <div class="settings-profile-preview">
-                        <div class="settings-avatar-wrapper">
-                            <div class="settings-avatar-large" id="settingsAvatarLarge">U</div>
-                            <img src="" alt="Profile Photo" id="settingsAvatarImg" class="settings-avatar-img" style="display: none;" />
-                            <label for="settingsPhotoUploadInput" class="avatar-edit-badge" title="Change profile photo">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            </label>
-                            <input type="file" id="settingsPhotoUploadInput" accept="image/*" style="display: none;" />
+                        <div class="settings-avatar-col">
+                            <div class="settings-avatar-wrapper">
+                                <div class="settings-avatar-large" id="settingsAvatarLarge">U</div>
+                                <img src="" alt="Profile Photo" id="settingsAvatarImg" class="settings-avatar-img" style="display: none;" />
+                                <label for="settingsPhotoUploadInput" class="settings-camera-badge" title="Change profile photo" aria-label="Change profile photo">
+                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                </label>
+                            </div>
+                            <div class="settings-avatar-actions" id="settingsAvatarActions">
+                                <label for="settingsPhotoUploadInput" class="settings-change-photo-btn" id="lblChangePhoto">Change photo</label>
+                                <span class="settings-photo-sep" id="settingsPhotoSep" style="display: none;">·</span>
+                                <button type="button" class="settings-remove-photo-btn" id="btnRemovePhoto" style="display: none;">Remove</button>
+                            </div>
+                            <div class="settings-remove-confirm" id="settingsRemoveConfirm" style="display: none;">
+                                <span>Remove photo?</span>
+                                <button type="button" class="settings-confirm-btn" id="btnConfirmRemoveYes">Yes</button>
+                                <span class="settings-photo-sep">·</span>
+                                <button type="button" class="settings-confirm-btn" id="btnConfirmRemoveCancel">Cancel</button>
+                            </div>
+                            <input type="file" id="settingsPhotoUploadInput" accept="image/jpeg,image/png,image/jpg" style="display: none;" />
                         </div>
                         <div class="settings-user-meta">
                             <h4 id="settingsDisplayName" class="settings-name-text">Commuter</h4>
                             <p id="settingsEmail" class="settings-email-text">user@example.com</p>
                         </div>
                     </div>
+                    <div id="settingsAvatarError" class="settings-inline-error" style="display: none;"></div>
 
                     <!-- Profile Edit Form -->
-                    <form id="settingsProfileForm" class="settings-form">
+                    <form id="settingsProfileForm" class="settings-form" novalidate>
                         <div class="settings-form-group">
                             <label for="prefDisplayNameInput" class="settings-label">Display Name</label>
-                            <input type="text" id="prefDisplayNameInput" class="settings-input" placeholder="Your name or commuter handle" maxlength="40" />
+                            <input type="text" id="prefDisplayNameInput" class="settings-input" placeholder="Your name or commuter handle" maxlength="40" autocomplete="off" />
+                            <div id="settingsDisplayNameError" class="settings-inline-error" style="display: none;"></div>
                         </div>
 
-                        <div class="settings-form-group">
+                        <div class="settings-form-group settings-security-group">
                             <label class="settings-label">Account Security</label>
-                            <button type="button" class="settings-secondary-btn" id="btnSendPasswordReset">
-                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-                                <span>Send Password Reset Email</span>
-                            </button>
+                            <div class="settings-reset-wrapper">
+                                <button type="button" class="settings-text-link" id="btnSendPasswordReset">Send Password Reset Email</button>
+                                <div id="settingsResetError" class="settings-inline-error" style="display: none;"></div>
+                            </div>
                         </div>
 
                         <div class="settings-actions">
-                            <button type="submit" class="settings-save-btn" id="btnSaveProfileSettings">Save Changes</button>
+                            <div id="settingsSaveError" class="settings-inline-error" style="display: none; margin: 0; margin-right: auto;"></div>
+                            <button type="submit" class="settings-save-btn" id="btnSaveProfileSettings" disabled>Save Changes</button>
                         </div>
                     </form>
                 </div>

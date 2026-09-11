@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Profile - Calzada</title>
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    
+    <!-- Google Fonts: Sora & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+    <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
+    <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script>
+        window.FIREBASE_CONFIG = {
+            apiKey: "AIzaSyAKI7xRjkfajArFjWknW4IkvWwlkep5wj4",
+            authDomain: "calzada-web.firebaseapp.com",
+            projectId: "calzada-web",
+            storageBucket: "calzada-web.firebasestorage.app",
+            messagingSenderId: "772241459557",
+            appId: "1:772241459557:web:992e794b2936faa25db98c",
+            measurementId: "G-D6QBPVQVZM"
+        };
+    </script>
+
+    <style>
+        :root {
+            --primary: #378ADD;
+            --primary-dark: #185FA5;
+            --primary-light: #F0F7FF;
+            --navy-dark: #042C53;
+            --navy-muted: #64748B;
+            --navy-subtle: #94A3B8;
+            --bg-page: #F8F9FC;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+            --border-subtle: #F1F5F9;
+            --danger: #DC2626;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-subtle: none;
+            --shadow-card: none;
+            --shadow-modal: 0 20px 48px rgba(4, 44, 83, 0.22);
+            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--navy-dark);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding-top: 76px; /* Offset for fixed global navbar */
+        }
+
+        /* ====================================================
+           SECONDARY SUBNAV BAR (Breadcrumb & Back Link Row)
+           ==================================================== */
+        .subnav-bar {
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            position: sticky;
+            top: 72px; /* Sits right beneath main fixed navbar */
+            z-index: 90;
+        }
+
+        .subnav-container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        /* Back Button: Plain text link in brand blue #378ADD, no background, no border, no pill */
+        .btn-text-back {
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--primary); /* #378ADD */
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.15s ease, text-decoration 0.15s ease;
+        }
+
+        .btn-text-back:hover {
+            text-decoration: underline;
+        }
+
+        .btn-text-back i {
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        .breadcrumb-trail {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.82rem;
+            color: var(--navy-muted);
+        }
+
+        .breadcrumb-link {
+            color: var(--navy-muted);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .breadcrumb-link:hover {
+            color: var(--primary);
+        }
+
+        .breadcrumb-sep {
+            color: var(--navy-subtle);
+            font-size: 0.75rem;
+        }
+
+        .breadcrumb-current {
+            color: var(--navy-dark);
+            font-weight: 600;
+            max-width: 220px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ====================================================
+           MAIN CONTENT CONTAINER (Aligned with my-business.html)
+           ==================================================== */
+        .business-container {
+            max-width: 680px;
+            margin: 28px auto 72px;
+            padding: 0 20px;
+        }
+
+        /* Loading & Error States */
+        .page-loading-state,
+        .page-error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 50vh;
+            text-align: center;
+            gap: 16px;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #E2E8F0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 40px 32px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: none;
+            text-align: center;
+        }
+
+        .error-icon-wrap {
+            font-size: 38px;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .error-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--navy-dark);
+        }
+
+        .error-desc {
+            color: var(--navy-muted);
+            font-size: 0.92rem;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        /* ====================================================
+           PROFILE HERO CARD (Matches Flat-Card System)
+           ==================================================== */
+        .profile-hero-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: none; /* No drop shadow */
+        }
+
+        .profile-hero-top {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .profile-avatar-wrap {
+            width: 76px;
+            height: 76px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #F8FAFC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-avatar-placeholder {
+            font-size: 32px;
+            color: var(--navy-muted);
+        }
+
+        .profile-info-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .profile-business-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--navy-dark);
+            letter-spacing: -0.025em;
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            column-gap: 8px;
+            row-gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        /* Verified indicator - Tabler outline checkmark icon in brand blue #378ADD, inline, no pill, no border */
+        .verified-icon {
+            color: var(--primary); /* #378ADD strictly */
+            font-size: 1.15rem;
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .profile-title-sep {
+            color: var(--navy-subtle);
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 400;
+        }
+
+        /* Category - plain text in muted gray #64748B, no light-blue pill box */
+        .profile-category-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--navy-muted);
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .profile-meta-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 0.88rem;
+            color: var(--navy-muted);
+        }
+
+        .meta-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-detail-item i {
+            color: var(--primary);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .profile-description {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 0.9rem;
+            color: var(--navy-dark);
+            line-height: 1.55;
+            white-space: pre-line;
+        }
+
+        /* ====================================================
+           POSTS SECTION HEADER & FLATTENED COUNTER
+           ==================================================== */
+        .posts-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .posts-heading {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin: 0;
+        }
+
+        /* Flattened posts counter - plain text in muted gray, no rounded pill container */
+        .posts-count-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--navy-muted);
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        /* ====================================================
+           3-COLUMN POSTS GRID
+           ==================================================== */
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .post-card-thumb {
+            aspect-ratio: 1 / 1;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #F1F5F9;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.18s ease, transform 0.18s ease;
+            box-shadow: none; /* No drop shadow */
+        }
+
+        .post-card-thumb:hover {
+            border-color: #94A3B8;
+            transform: translateY(-2px);
+        }
+
+        .post-card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.25s var(--ease-smooth);
+        }
+
+        .post-card-thumb:hover img {
+            transform: scale(1.03);
+        }
+
+        .multi-photo-icon {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(4, 44, 83, 0.7);
+            color: #FFFFFF;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+
+        .thumb-hover-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 44, 83, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            gap: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+        }
+
+        .post-card-thumb:hover .thumb-hover-overlay {
+            opacity: 1;
+        }
+
+        /* Empty State */
+        .posts-empty-state {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 48px 24px;
+            text-align: center;
+            box-shadow: none;
+        }
+
+        .empty-icon-wrap {
+            font-size: 36px;
+            color: var(--navy-subtle);
+            margin-bottom: 10px;
+        }
+
+        .empty-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--navy-dark);
+        }
+
+        .empty-desc {
+            font-size: 0.88rem;
+            color: var(--navy-muted);
+            max-width: 340px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* ====================================================
+           RESPONSIVE INSTAGRAM-STYLE LIGHTBOX
+           ==================================================== */
+        .lightbox-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            animation: fadeIn 0.18s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .lightbox-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(4, 44, 83, 0.7);
+            backdrop-filter: blur(3px);
+            z-index: 1;
+        }
+
+        .lightbox-dialog {
+            position: relative;
+            z-index: 2;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 960px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-modal);
+        }
+
+        /* Close Button */
+        .lightbox-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 20;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            color: var(--navy-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.15rem;
+            transition: all 0.15s ease;
+        }
+
+        .lightbox-close-btn:hover {
+            background: #F1F5F9;
+            color: var(--navy-dark);
+            border-color: #CBD5E1;
+        }
+
+        /* Prev / Next Post Nav Controls (Desktop Only, ≥ 768px, Outer Backdrop Arrows) */
+        .lightbox-nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10000;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            color: var(--primary); /* #378ADD */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: 0 4px 16px rgba(4, 44, 83, 0.18);
+        }
+
+        .lightbox-nav-btn:hover {
+            background: #FFFFFF;
+            border-color: var(--primary);
+            color: var(--primary-dark);
+            transform: translateY(-50%) scale(1.08);
+            box-shadow: 0 6px 20px rgba(4, 44, 83, 0.24);
+        }
+
+        .lightbox-nav-prev { left: 20px; }
+        .lightbox-nav-next { right: 20px; }
+
+        @media (min-width: 1140px) {
+            .lightbox-nav-prev {
+                left: calc(50vw - 460px - 72px);
+            }
+            .lightbox-nav-next {
+                right: calc(50vw - 460px - 72px);
+            }
+        }
+
+        /* Single Flex Container for Photo + Caption */
+        .lightbox-flex-container {
+            display: flex;
+            flex-direction: column; /* mobile default */
+            width: 100%;
+            background: #FFFFFF;
+        }
+
+        /* Media Panel */
+        .lightbox-media-panel {
+            width: 100%;
+            background: #091E33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .lightbox-media-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 55vh;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Inner Carousel Controls for Multi-Photo Posts (Inside Photo, Dark Translucent Pill) */
+        .lightbox-photo-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.45);
+            border: none;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            cursor: pointer;
+            z-index: 5;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .lightbox-photo-nav:hover {
+            background: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
+            transform: translateY(-50%) scale(1.08);
+        }
+
+        .photo-nav-prev { left: 12px; }
+        .photo-nav-next { right: 12px; }
+
+        /* Mobile Swipe Tutorial Hint (First-time only) */
+        .lightbox-swipe-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 25;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .lightbox-swipe-hint.visible {
+            opacity: 1;
+            transform: translate(-50%, -50%);
+        }
+
+        .lightbox-swipe-hint.fade-out {
+            opacity: 0;
+            transform: translate(-50%, -56%);
+        }
+
+        .swipe-hint-pill {
+            background: rgba(4, 44, 83, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: var(--radius-full);
+            padding: 8px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .swipe-hand-track {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #FFFFFF;
+            animation: swipeHandLoop 1.25s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        @keyframes swipeHandLoop {
+            0% {
+                transform: translateX(12px);
+                opacity: 0.3;
+            }
+            20% {
+                opacity: 1;
+            }
+            70% {
+                transform: translateX(-12px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-18px);
+                opacity: 0.15;
+            }
+        }
+
+        .swipe-hand-icon {
+            flex-shrink: 0;
+        }
+
+        .swipe-arrow-left {
+            font-size: 0.95rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .swipe-hint-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #FFFFFF;
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+        }
+
+        .lightbox-photo-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 5;
+        }
+
+        .lightbox-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.15s ease;
+        }
+
+        .lightbox-dot.active {
+            background: #FFFFFF;
+            transform: scale(1.2);
+        }
+
+        /* Caption Panel */
+        .lightbox-caption-panel {
+            width: 100%;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 24px;
+        }
+
+        .lightbox-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-right: 36px;
+        }
+
+        .lightbox-bus-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #F8FAFC;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .lightbox-bus-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .lightbox-bus-avatar i {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        .lightbox-bus-meta {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .lightbox-bus-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .lightbox-bus-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .lightbox-bus-category {
+            font-size: 0.78rem;
+            color: var(--navy-muted);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .lightbox-body {
+            flex: 1;
+            padding: 16px 0;
+        }
+
+        .lightbox-caption-text {
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            line-height: 1.55;
+            white-space: pre-line;
+            word-break: break-word;
+        }
+
+        .lightbox-caption-text.empty {
+            color: var(--navy-subtle);
+            font-style: italic;
+        }
+
+        .lightbox-meta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            font-size: 0.8rem;
+            color: var(--navy-subtle);
+        }
+
+        .lightbox-footer {
+            padding-top: 14px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-like-post {
+            background: transparent;
+            border: none;
+            color: var(--navy-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 0;
+            transition: color 0.15s ease;
+        }
+
+        .btn-like-post i {
+            font-size: 1.25rem;
+            color: var(--navy-subtle);
+            transition: color 0.15s ease;
+        }
+
+        .btn-like-post.liked,
+        .btn-like-post.liked i {
+            color: var(--primary); /* #378ADD strictly */
+        }
+
+        .btn-like-post:hover,
+        .btn-like-post:hover i {
+            color: var(--primary);
+        }
+
+        /* Desktop Viewport (≥ 768px): Side-by-side Layout */
+        @media (min-width: 768px) {
+            .lightbox-dialog {
+                width: calc(100% - 160px);
+                max-width: 920px;
+                height: 600px;
+                max-height: 86vh;
+            }
+
+            .lightbox-flex-container {
+                flex-direction: row;
+                height: 100%;
+            }
+
+            .lightbox-media-panel {
+                width: 62%;
+                height: 100%;
+            }
+
+            .lightbox-img {
+                max-height: 100%;
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+            .lightbox-caption-panel {
+                width: 38%;
+                height: 100%;
+                border-left: 1px solid var(--border-color);
+                padding: 24px;
+            }
+
+            .lightbox-body {
+                overflow-y: auto;
+                padding-right: 4px;
+            }
+        }
+
+        /* Mobile Viewport (< 768px): Stacked Layout */
+        @media (max-width: 767px) {
+            .lightbox-overlay {
+                padding: 12px;
+                align-items: flex-start;
+                overflow-y: auto;
+            }
+
+            .lightbox-dialog {
+                max-height: none;
+                margin: auto 0;
+            }
+
+            .lightbox-media-panel {
+                width: 100%;
+                min-height: 280px;
+            }
+
+            .lightbox-img {
+                width: 100%;
+                height: auto;
+                max-height: 52vh;
+                object-fit: contain;
+            }
+
+            .lightbox-caption-panel {
+                width: 100%;
+                padding: 18px 20px;
+            }
+
+            /* Remove outer post-navigation arrows entirely on mobile (< 768px), rely on swipe */
+            .lightbox-nav-btn {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .subnav-bar {
+                padding: 8px 0;
+            }
+            .breadcrumb-trail {
+                display: none; /* Keep subnav uncluttered on small screens */
+            }
+            .profile-hero-card {
+                padding: 20px;
+            }
+            .profile-hero-top {
+                gap: 16px;
+            }
+            .profile-avatar-wrap {
+                width: 64px;
+                height: 64px;
+            }
+            .profile-business-name {
+                font-size: 1.25rem;
+            }
+            .posts-grid {
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ====================================================
+         GLOBAL SHARED NAVBAR (Universal Calzada Header)
+         ==================================================== -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <!-- [Left Side]: Logo -->
+            <div class="nav-left">
+                <a href="index.html" class="brand-logo">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                </a>
+            </div>
+
+            <!-- [Center]: About Us | Explore ▼ | FAQs | Feedback | Maps -->
+            <nav class="nav-center" id="navLinks">
+                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+
+                <!-- Explore Dropdown with Modern Crisp SVGs -->
+                <div class="nav-dropdown" id="exploreDropdown">
+                    <button class="nav-link nav-dropdown-btn" id="exploreDropdownBtn" type="button" aria-expanded="false">
+                        <span data-i18n="footer.nav.explore">Explore</span>
+                        <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
+                    </button>
+                    <div class="nav-dropdown-menu" id="exploreDropdownMenu">
+                        <a href="places.html?category=malls" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-mall">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
+                            </span>
+                            <span>Malls</span>
+                        </a>
+                        <a href="places.html?category=eateries" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-eatery">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="2" x2="6" y2="4"></line>
+                                    <line x1="10" y1="2" x2="10" y2="4"></line>
+                                    <line x1="14" y1="2" x2="14" y2="4"></line>
+                                </svg>
+                            </span>
+                            <span>Eateries</span>
+                        </a>
+                        <a href="places.html?category=schools" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-school">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                </svg>
+                            </span>
+                            <span>Schools</span>
+                        </a>
+                        <a href="places.html?category=terminals" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-terminal">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+                                    <path d="M4 11h16"></path>
+                                    <path d="M8 19v2M16 19v2"></path>
+                                    <circle cx="8" cy="15" r="1"></circle>
+                                    <circle cx="16" cy="15" r="1"></circle>
+                                </svg>
+                            </span>
+                            <span>Terminals</span>
+                        </a>
+                        <a href="places.html?category=coffee" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-coffee">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
+                                    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="2" x2="6" y2="4"></line>
+                                    <line x1="10" y1="2" x2="10" y2="4"></line>
+                                    <line x1="14" y1="2" x2="14" y2="4"></line>
+                                </svg>
+                            </span>
+                            <span>Coffee Shops</span>
+                        </a>
+                        <a href="places.html?category=establishments" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                                    <path d="M9 22v-4h6v4"></path>
+                                    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"></path>
+                                </svg>
+                            </span>
+                            <span>Establishments</span>
+                        </a>
+                        <div class="nav-dropdown-divider"></div>
+                        <a href="places.html" class="nav-dropdown-item view-all">
+                            <span class="nav-drop-icon icon-all">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
+                            </span>
+                            <span>View All Places →</span>
+                        </a>
+                    </div>
+                </div>
+
+                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.maps">Maps</a>
+
+                <!-- Mobile Language Row -->
+                <div class="mobile-lang-row">
+                    <span class="mobile-lang-label">Language / Wika</span>
+                    <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu">
+                            <button class="lang-dropdown-item" type="button" data-lang="en">
+                                <span class="lang-flag">🌐</span>
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl">
+                                <span class="lang-flag">🇵🇭</span>
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- [Right Side]: Language, Notifications Bell, User Profile -->
+            <div class="nav-right">
+                <!-- 1. Language Toggle (🌐 EN) -->
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Bell Button (Desktop) -->
+                <div class="alerts-dropdown-container">
+                    <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed" title="Your recent activity">
+                        <ion-icon name="notifications-outline"></ion-icon>
+                        <span class="badge" id="bellBadge" style="display:none;">0</span>
+                    </button>
+                </div>
+
+                <!-- 3. User Profile Nav / Sign In -->
+                <div class="user-profile-nav" id="userProfileNav">
+                    <a href="login.html" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <span>Sign In</span>
+                    </a>
+
+                    <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
+                        <div class="user-avatar-wrap">
+                            <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <div class="user-avatar-initials" id="userAvatarInitials">U</div>
+                            <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
+                        </div>
+                        <div class="user-name-wrap">
+                            <span class="user-display-name" id="userDisplayName">Commuter</span>
+                            <span class="user-saved-home-icon" id="userSavedHomeIcon" title="Home: Saved">
+                                <svg width="14" height="14" fill="none" stroke="#16A34A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            </span>
+                        </div>
+                        <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Feed Dropdown Menu -->
+            <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
+                <div class="alerts-header">
+                    <div class="alerts-header-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span>Activity Feed</span>
+                    </div>
+                    <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        Clear
+                    </button>
+                </div>
+                <div class="alerts-list" id="activityFeedList"></div>
+            </div>
+
+            <!-- User Profile Dropdown Menu -->
+            <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
+                <div class="profile-header-card">
+                    <div class="profile-header-avatar">
+                        <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <div class="profile-header-initials" id="profileHeaderInitials">U</div>
+                    </div>
+                    <div class="profile-header-details">
+                        <div class="profile-name" id="profileDisplayName">User</div>
+                        <div class="profile-email" id="profileEmail">user@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- Exploration Stats Row -->
+                <div class="exploration-stats-section" id="explorationStatsSection">
+                    <div class="stats-section-label">Your Exploration Stats</div>
+                    <div class="exploration-stats-row">
+                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" title="View Visited Establishments">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            </span>
+                            <span class="stat-value" id="statVisitsCount">0</span>
+                            <span class="stat-name">Visits</span>
+                        </button>
+                        <div class="stat-divider"></div>
+                        <button type="button" class="stat-pill-btn" id="statSavesBtn" title="View Saved Places">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                            </span>
+                            <span class="stat-value" id="statSavesCount">0</span>
+                            <span class="stat-name">Saves</span>
+                        </button>
+                        <div class="stat-divider"></div>
+                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" title="View Achievements">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                            </span>
+                            <span class="stat-value" id="statBadgesCount">0</span>
+                            <span class="stat-name">Badges</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
+                    <span>Guest Mode</span>
+                    <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+
+                <div class="profile-nav-list">
+                    <button type="button" class="profile-nav-btn" id="menuMyVisits">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </span>
+                        <span class="nav-btn-title">My Visits</span>
+                    </button>
+                    <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                        </span>
+                        <span class="nav-btn-title">Saved Places</span>
+                        <span class="saved-count-pill" id="menuSavedCount">(0)</span>
+                    </button>
+                    <button type="button" class="profile-nav-btn" id="menuMyAchievements">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                        </span>
+                        <span class="nav-btn-title">My Achievements</span>
+                    </button>
+                    <button type="button" class="profile-nav-btn" id="menuAccountSettings">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </span>
+                        <span class="nav-btn-title">Account Settings</span>
+                    </button>
+                    <!-- My Business Link -->
+                    <a href="my-business.html" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </span>
+                        <span class="nav-btn-title">My Business</span>
+                    </a>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+
+                <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
+                    <span class="nav-btn-icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                    </span>
+                    <span class="nav-btn-title">Log Out</span>
+                </button>
+            </div>
+
+            <!-- Mobile-only icon cluster -->
+            <div class="mobile-nav-icons" id="mobileNavIcons">
+                <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
+                    <ion-icon name="notifications-outline"></ion-icon>
+                    <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
+                </button>
+                <a href="login.html" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
+                    <ion-icon name="person-outline"></ion-icon>
+                </a>
+                <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
+                    <div class="mobile-avatar-wrap">
+                        <img src="../assets/default-avatar.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
+                    </div>
+                </button>
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                    <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                        <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                        <path class="menu-toggle-line" d="M7 16 27 16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ====================================================
+         SECONDARY SUBNAV BAR (Back Text Link & Breadcrumb)
+         ==================================================== -->
+    <div class="subnav-bar">
+        <div class="subnav-container">
+            <a href="places.html" class="btn-text-back" id="btnBack">
+                <i class="ti ti-arrow-left"></i>
+                <span>Back</span>
+            </a>
+            <nav class="breadcrumb-trail" aria-label="Breadcrumb">
+                <a href="index.html" class="breadcrumb-link">Home</a>
+                <span class="breadcrumb-sep">/</span>
+                <a href="places.html" class="breadcrumb-link">Places</a>
+                <span class="breadcrumb-sep">/</span>
+                <span class="breadcrumb-current" id="topbarBusinessName">Business Profile</span>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ====================================================
+         MAIN CONTENT CONTAINER (Centered max-width: 680px)
+         ==================================================== -->
+    <main class="business-container">
+
+        <!-- 1. Page Loading State -->
+        <div class="page-loading-state" id="pageLoading">
+            <div class="spinner"></div>
+            <p>Loading business profile...</p>
+        </div>
+
+        <!-- 2. Page Error State (Business Not Found) -->
+        <div class="page-error-state" id="pageError" style="display: none;">
+            <div class="error-card">
+                <div class="error-icon-wrap">
+                    <i class="ti ti-building-store"></i>
+                </div>
+                <h1 class="error-title" id="errorTitle">Business Not Found</h1>
+                <p class="error-desc" id="errorDesc">The requested business profile does not exist or has not been approved yet.</p>
+                <a href="places.html" class="btn-text-back" style="font-size: 0.95rem; font-weight: 600;">
+                    <i class="ti ti-arrow-left"></i>
+                    <span>Browse Places Guide</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Profile Content -->
+        <div id="profileContent" style="display: none;">
+
+            <!-- Business Hero Profile Card -->
+            <div class="profile-hero-card">
+                <div class="profile-hero-top">
+                    <div class="profile-avatar-wrap" id="profileAvatarWrap">
+                        <i class="ti ti-building-store profile-avatar-placeholder" id="avatarPlaceholder"></i>
+                        <img src="" alt="Business Avatar" class="profile-avatar-img" id="avatarImg" style="display: none;">
+                    </div>
+
+                    <div class="profile-info-wrap">
+                        <h1 class="profile-business-name">
+                            <span id="businessName">--</span>
+                            <i class="ti ti-circle-check verified-icon" id="verifiedIcon" title="Verified Business" aria-label="Verified"></i>
+                            <span class="profile-title-sep" id="titleSep">·</span>
+                            <span class="profile-category-text" id="categoryText">--</span>
+                        </h1>
+
+                        <div class="profile-meta-details">
+                            <div class="meta-detail-item" id="addressRow">
+                                <i class="ti ti-map-pin"></i>
+                                <span id="businessAddress">--</span>
+                            </div>
+                            <div class="meta-detail-item" id="contactRow" style="display: none;">
+                                <i class="ti ti-phone"></i>
+                                <span id="businessContact">--</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-description" id="businessDescription" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts Section Header -->
+            <div class="posts-section-header">
+                <h2 class="posts-heading">Posts</h2>
+                <span class="posts-count-text" id="postsCountBadge">0 posts</span>
+            </div>
+
+            <!-- 3-Column Posts Grid -->
+            <div class="posts-grid" id="postsGrid"></div>
+
+            <!-- Quiet Empty State for Zero Posts -->
+            <div class="posts-empty-state" id="postsEmptyState" style="display: none;">
+                <div class="empty-icon-wrap">
+                    <i class="ti ti-photo-off"></i>
+                </div>
+                <h3 class="empty-title">No posts yet</h3>
+                <p class="empty-desc">This business hasn't shared any updates or photos yet.</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ====================================================
+         RESPONSIVE INSTAGRAM-STYLE LIGHTBOX
+         ==================================================== -->
+    <div id="postLightbox" class="lightbox-overlay" aria-modal="true" role="dialog" style="display: none;">
+        <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+
+        <!-- Post Navigation: Previous Post Arrow -->
+        <button type="button" class="lightbox-nav-btn lightbox-nav-prev" id="lightboxPrevPostBtn" aria-label="Previous post" title="Previous post (Left Arrow)">
+            <i class="ti ti-chevron-left"></i>
+        </button>
+
+        <!-- Main Lightbox Dialog -->
+        <div class="lightbox-dialog" id="lightboxDialog">
+            <!-- Close Button -->
+            <button type="button" class="lightbox-close-btn" id="lightboxCloseBtn" aria-label="Close dialog" title="Close (Esc)">
+                <i class="ti ti-x"></i>
+            </button>
+
+            <!-- Single Flex Container (Switches between row & column via media query) -->
+            <div class="lightbox-flex-container">
+                
+                <!-- Left/Top: Media Photo Panel -->
+                <div class="lightbox-media-panel">
+                    <div class="lightbox-media-wrap" id="lightboxMediaWrap">
+                        <img src="" alt="Post media" class="lightbox-img" id="lightboxImg">
+
+                        <!-- Inner Carousel Controls for Multi-Photo Posts -->
+                        <button type="button" class="lightbox-photo-nav photo-nav-prev" id="photoPrevBtn" style="display: none;" aria-label="Previous photo">
+                            <i class="ti ti-chevron-left"></i>
+                        </button>
+                        <button type="button" class="lightbox-photo-nav photo-nav-next" id="photoNextBtn" style="display: none;" aria-label="Next photo">
+                            <i class="ti ti-chevron-right"></i>
+                        </button>
+
+                        <!-- Multi-photo dots -->
+                        <div class="lightbox-photo-dots" id="lightboxPhotoDots" style="display: none;"></div>
+
+                        <!-- Mobile Animated Swipe Hint (first-time only) -->
+                        <div class="lightbox-swipe-hint" id="lightboxSwipeHint" aria-hidden="true" style="display: none;">
+                            <div class="swipe-hint-pill">
+                                <div class="swipe-hand-track">
+                                    <svg class="swipe-hand-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5" />
+                                        <path d="M11 5.5V3.5a1.5 1.5 0 0 1 3 0V12" />
+                                        <path d="M14 7.5a1.5 1.5 0 0 1 3 0v4.5" />
+                                        <path d="M17 10a1.5 1.5 0 0 1 3 0v5a7 7 0 0 1-7 7H11a7 7 0 0 1-6.7-5l-1.3-4.5a1.5 1.5 0 0 1 2.5-1.5l2.5 2.5V5.5a1.5 1.5 0 0 1 3 0" />
+                                    </svg>
+                                    <span class="swipe-arrow-left">←</span>
+                                </div>
+                                <span class="swipe-hint-label">Swipe for next post</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right/Bottom: Caption Panel -->
+                <div class="lightbox-caption-panel">
+                    <!-- Lightbox Header (Avatar + Business Name) -->
+                    <div class="lightbox-header">
+                        <div class="lightbox-bus-avatar" id="lightboxBusAvatar">
+                            <i class="ti ti-building-store"></i>
+                        </div>
+                        <div class="lightbox-bus-meta">
+                            <div class="lightbox-bus-name-row">
+                                <span class="lightbox-bus-name" id="lightboxBusName">Business</span>
+                                <i class="ti ti-circle-check verified-icon" style="font-size: 1rem;"></i>
+                            </div>
+                            <div class="lightbox-bus-category" id="lightboxBusCategory">Category</div>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Caption Body -->
+                    <div class="lightbox-body">
+                        <p class="lightbox-caption-text" id="lightboxCaption">Caption content...</p>
+                        <div class="lightbox-meta-row">
+                            <span class="lightbox-date" id="lightboxDate">--</span>
+                            <span class="lightbox-post-index" id="lightboxPostIndex"></span>
+                        </div>
+                    </div>
+
+                    <!-- Lightbox Footer with Like Counter -->
+                    <div class="lightbox-footer">
+                        <button type="button" class="btn-like-post" id="lightboxLikeBtn" aria-label="Like post">
+                            <i class="ti ti-heart" id="lightboxLikeIcon"></i>
+                            <span class="like-count" id="lightboxLikeCount">0</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Post Navigation: Next Post Arrow -->
+        <button type="button" class="lightbox-nav-btn lightbox-nav-next" id="lightboxNextPostBtn" aria-label="Next post" title="Next post (Right Arrow)">
+            <i class="ti ti-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Scripts: Global scripts for navbar dropdowns and live auth state -->
+    <script src="../js/script.js"></script>
+    <script type="module" src="../js/firebase-init.js"></script>
+    <script type="module" src="../js/user-stats.js"></script>
+
+    <!-- Page Specific Data & Lightbox Logic -->
+    <script type="module">
+        import { 
+            auth, 
+            db, 
+            doc, 
+            getDoc, 
+            getDocs, 
+            collection, 
+            query, 
+            where, 
+            serverTimestamp, 
+            runTransaction, 
+            onAuthStateChanged 
+        } from "../js/firebase-init.js";
+
+        const CATEGORY_NAMES = {
+            malls: 'Malls & Shopping',
+            eateries: 'Eateries & Dining',
+            coffee: 'Coffee Shops',
+            schools: 'Schools & Universities',
+            terminals: 'Terminals & Transit',
+            establishments: 'Commercial Establishments & Services'
+        };
+
+        // DOM References
+        const pageLoading = document.getElementById('pageLoading');
+        const pageError = document.getElementById('pageError');
+        const errorTitle = document.getElementById('errorTitle');
+        const errorDesc = document.getElementById('errorDesc');
+        const profileContent = document.getElementById('profileContent');
+
+        const topbarBusinessName = document.getElementById('topbarBusinessName');
+        const businessName = document.getElementById('businessName');
+        const verifiedIcon = document.getElementById('verifiedIcon');
+        const categoryText = document.getElementById('categoryText');
+        const titleSep = document.getElementById('titleSep');
+        const businessAddress = document.getElementById('businessAddress');
+        const businessContact = document.getElementById('businessContact');
+        const contactRow = document.getElementById('contactRow');
+        const businessDescription = document.getElementById('businessDescription');
+        const avatarImg = document.getElementById('avatarImg');
+        const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+        const btnBack = document.getElementById('btnBack');
+
+        const postsGrid = document.getElementById('postsGrid');
+        const postsEmptyState = document.getElementById('postsEmptyState');
+        const postsCountBadge = document.getElementById('postsCountBadge');
+
+        // Lightbox DOM References
+        const postLightbox = document.getElementById('postLightbox');
+        const lightboxBackdrop = document.getElementById('lightboxBackdrop');
+        const lightboxDialog = document.getElementById('lightboxDialog');
+        const lightboxCloseBtn = document.getElementById('lightboxCloseBtn');
+        const lightboxPrevPostBtn = document.getElementById('lightboxPrevPostBtn');
+        const lightboxNextPostBtn = document.getElementById('lightboxNextPostBtn');
+
+        const lightboxImg = document.getElementById('lightboxImg');
+        const photoPrevBtn = document.getElementById('photoPrevBtn');
+        const photoNextBtn = document.getElementById('photoNextBtn');
+        const lightboxPhotoDots = document.getElementById('lightboxPhotoDots');
+
+        const lightboxBusAvatar = document.getElementById('lightboxBusAvatar');
+        const lightboxBusName = document.getElementById('lightboxBusName');
+        const lightboxBusCategory = document.getElementById('lightboxBusCategory');
+        const lightboxCaption = document.getElementById('lightboxCaption');
+        const lightboxDate = document.getElementById('lightboxDate');
+        const lightboxPostIndex = document.getElementById('lightboxPostIndex');
+        const lightboxLikeBtn = document.getElementById('lightboxLikeBtn');
+        const lightboxLikeIcon = document.getElementById('lightboxLikeIcon');
+        const lightboxLikeCount = document.getElementById('lightboxLikeCount');
+
+        // State variables
+        let currentUser = null;
+        let businessData = null;
+        let businessId = null;
+        let posts = [];
+        let activePostIndex = 0;
+        let activePhotoIndex = 0;
+
+        // Back button smart fallback
+        if (btnBack) {
+            btnBack.addEventListener('click', (e) => {
+                if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+                    e.preventDefault();
+                    window.history.back();
+                }
+            });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        function formatPostDate(ts) {
+            if (!ts) return '';
+            let date = null;
+            if (ts.toDate) date = ts.toDate();
+            else if (ts.seconds) date = new Date(ts.seconds * 1000);
+            else if (ts instanceof Date) date = ts;
+            else date = new Date(ts);
+
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+        }
+
+        // --- 1. INITIALIZE & PARSE URL ---
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (postLightbox.style.display !== 'none' && posts[activePostIndex]) {
+                syncLightboxLikeState();
+            }
+        });
+
+        async function initPage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            businessId = urlParams.get('id');
+
+            if (!businessId) {
+                showError('No Business Specified', 'Please provide a valid business ID in the URL to view its profile.');
+                return;
+            }
+
+            try {
+                // Fetch business document from "businesses" collection
+                const busDocSnap = await getDoc(doc(db, 'businesses', businessId));
+
+                if (!busDocSnap.exists()) {
+                    showError('Business Not Found', 'The requested business could not be found in our database.');
+                    return;
+                }
+
+                businessData = busDocSnap.data();
+
+                // Populate Business Profile Header
+                renderBusinessProfile(businessData);
+
+                // Fetch Posts for this business (strictly by businessId, NO status filter)
+                await loadBusinessPosts(businessId);
+
+                pageLoading.style.display = 'none';
+                profileContent.style.display = 'block';
+
+            } catch (err) {
+                console.error('Error loading business profile:', err);
+                showError('Failed to Load Profile', err.message || 'An unexpected error occurred while loading this business profile.');
+            }
+        }
+
+        function showError(title, desc) {
+            pageLoading.style.display = 'none';
+            profileContent.style.display = 'none';
+            pageError.style.display = 'flex';
+            if (errorTitle) errorTitle.textContent = title;
+            if (errorDesc) errorDesc.textContent = desc;
+        }
+
+        function renderBusinessProfile(bus) {
+            const nameStr = bus.name || 'Local Business';
+            const catLabel = CATEGORY_NAMES[bus.category] || bus.category || '';
+
+            document.title = `${nameStr} - Calzada`;
+            if (topbarBusinessName) topbarBusinessName.textContent = nameStr;
+            if (businessName) businessName.textContent = nameStr;
+
+            // Verified checkmark icon - inline with title, no pill, no border
+            if (verifiedIcon) {
+                const isVerified = bus.status === 'approved' || bus.verified === true;
+                verifiedIcon.style.display = isVerified ? 'inline-flex' : 'none';
+            }
+
+            // Category text - rendered as plain muted gray text separated by a middot
+            if (categoryText) {
+                if (catLabel) {
+                    categoryText.textContent = catLabel;
+                    categoryText.style.display = 'inline';
+                    if (titleSep) titleSep.style.display = 'inline';
+                } else {
+                    categoryText.style.display = 'none';
+                    if (titleSep) titleSep.style.display = 'none';
+                }
+            }
+
+            if (businessAddress) businessAddress.textContent = bus.address || 'Address not provided';
+
+            if (bus.contactNumber && contactRow && businessContact) {
+                businessContact.textContent = bus.contactNumber;
+                contactRow.style.display = 'flex';
+            }
+
+            if (bus.description && businessDescription) {
+                businessDescription.textContent = bus.description;
+                businessDescription.style.display = 'block';
+            }
+
+            // Avatar
+            if (bus.profilePhotoUrl && avatarImg && avatarPlaceholder) {
+                avatarImg.src = bus.profilePhotoUrl;
+                avatarImg.style.display = 'block';
+                avatarPlaceholder.style.display = 'none';
+            }
+        }
+
+        // --- 2. FETCH & RENDER POSTS GRID ---
+        async function loadBusinessPosts(busId) {
+            try {
+                // Query collection("posts").where("businessId", "==", busId)
+                const postsQuery = query(
+                    collection(db, 'posts'),
+                    where('businessId', '==', busId)
+                );
+
+                const snap = await getDocs(postsQuery);
+                const loaded = snap.docs.map(d => {
+                    const data = d.data();
+                    let photos = [];
+                    if (Array.isArray(data.photoUrls)) {
+                        photos = data.photoUrls;
+                    } else if (data.photoUrl) {
+                        photos = [data.photoUrl];
+                    }
+                    return {
+                        id: d.id,
+                        ...data,
+                        photoUrls: photos,
+                        likeCount: typeof data.likeCount === 'number' ? data.likeCount : 0,
+                        isLiked: false
+                    };
+                });
+
+                // Sort descending by createdAt (newest first)
+                loaded.sort((a, b) => {
+                    const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
+                    const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
+                    return timeB - timeA;
+                });
+
+                posts = loaded;
+                renderPostsGrid();
+
+            } catch (err) {
+                console.error('Error querying posts for business:', err);
+                posts = [];
+                renderPostsGrid();
+            }
+        }
+
+        function renderPostsGrid() {
+            if (!postsGrid || !postsEmptyState) return;
+
+            // Plain text post counter - zero pill styling
+            if (postsCountBadge) {
+                postsCountBadge.textContent = `${posts.length} post${posts.length === 1 ? '' : 's'}`;
+            }
+
+            if (posts.length === 0) {
+                postsGrid.innerHTML = '';
+                postsEmptyState.style.display = 'block';
+                return;
+            }
+
+            postsEmptyState.style.display = 'none';
+            postsGrid.innerHTML = posts.map((post, idx) => {
+                const coverPhoto = post.photoUrls[0] || '';
+                const isMulti = post.photoUrls.length > 1;
+
+                return `
+                    <div class="post-card-thumb" data-index="${idx}" title="${escapeHtml(post.caption || 'View post')}">
+                        <img src="${escapeHtml(coverPhoto)}" alt="Post thumbnail" loading="lazy">
+                        ${isMulti ? `
+                            <div class="multi-photo-icon" title="Multiple photos">
+                                <i class="ti ti-stack-2"></i>
+                            </div>
+                        ` : ''}
+                        <div class="thumb-hover-overlay">
+                            <i class="ti ti-heart-filled"></i>
+                            <span>${post.likeCount || 0}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Attach click listeners to thumbnails
+            postsGrid.querySelectorAll('.post-card-thumb').forEach(thumb => {
+                thumb.addEventListener('click', () => {
+                    const idx = parseInt(thumb.getAttribute('data-index'), 10);
+                    openLightbox(idx);
+                });
+            });
+        }
+
+        // --- 3. RESPONSIVE LIGHTBOX LOGIC ---
+        const SWIPE_HINT_STORAGE_KEY = 'calzada_swipe_hint_seen';
+        let swipeHintTimeout = null;
+
+        function checkAndShowSwipeHint() {
+            // Only on mobile viewports (< 768px) and when there is more than 1 post
+            if (window.innerWidth >= 768 || posts.length <= 1) return;
+
+            try {
+                if (localStorage.getItem(SWIPE_HINT_STORAGE_KEY) === 'true') {
+                    return;
+                }
+                localStorage.setItem(SWIPE_HINT_STORAGE_KEY, 'true');
+            } catch (_) {
+                // Ignore storage errors in restricted private contexts
+            }
+
+            const hintEl = document.getElementById('lightboxSwipeHint');
+            if (!hintEl) return;
+
+            if (swipeHintTimeout) {
+                clearTimeout(swipeHintTimeout);
+                swipeHintTimeout = null;
+            }
+
+            hintEl.style.display = 'block';
+            void hintEl.offsetWidth; // Force reflow to trigger transition
+            hintEl.classList.remove('fade-out');
+            hintEl.classList.add('visible');
+
+            // Play quick loop (~2 cycles, ~2.6s total), then fade out automatically
+            swipeHintTimeout = setTimeout(() => {
+                dismissSwipeHint();
+            }, 2600);
+        }
+
+        function dismissSwipeHint() {
+            const hintEl = document.getElementById('lightboxSwipeHint');
+            if (!hintEl) return;
+
+            if (swipeHintTimeout) {
+                clearTimeout(swipeHintTimeout);
+                swipeHintTimeout = null;
+            }
+
+            if (hintEl.classList.contains('visible')) {
+                hintEl.classList.remove('visible');
+                hintEl.classList.add('fade-out');
+                setTimeout(() => {
+                    if (hintEl.classList.contains('fade-out')) {
+                        hintEl.style.display = 'none';
+                        hintEl.classList.remove('fade-out');
+                    }
+                }, 320);
+            } else {
+                hintEl.style.display = 'none';
+            }
+        }
+
+        function openLightbox(postIndex) {
+            if (!posts[postIndex]) return;
+            activePostIndex = postIndex;
+            activePhotoIndex = 0;
+
+            renderActiveLightboxPost();
+            postLightbox.style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // prevent background scrolling
+
+            // Show one-time mobile animated tutorial hint if applicable
+            checkAndShowSwipeHint();
+        }
+
+        function closeLightbox() {
+            postLightbox.style.display = 'none';
+            document.body.style.overflow = '';
+            dismissSwipeHint();
+        }
+
+        function navigatePost(direction) {
+            const nextIdx = activePostIndex + direction;
+            if (nextIdx >= 0 && nextIdx < posts.length) {
+                dismissSwipeHint();
+                activePostIndex = nextIdx;
+                activePhotoIndex = 0;
+                renderActiveLightboxPost();
+            }
+        }
+
+        function navigatePhoto(direction) {
+            const currentPost = posts[activePostIndex];
+            if (!currentPost || currentPost.photoUrls.length <= 1) return;
+
+            const nextPhotoIdx = activePhotoIndex + direction;
+            if (nextPhotoIdx >= 0 && nextPhotoIdx < currentPost.photoUrls.length) {
+                activePhotoIndex = nextPhotoIdx;
+                updateLightboxPhotoDisplay();
+            }
+        }
+
+        function renderActiveLightboxPost() {
+            const post = posts[activePostIndex];
+            if (!post) return;
+
+            // Post nav arrow visibility (Desktop only ≥ 768px, outer backdrop arrows)
+            const isDesktop = window.innerWidth >= 768;
+            if (isDesktop && posts.length > 1) {
+                lightboxPrevPostBtn.style.display = activePostIndex > 0 ? 'flex' : 'none';
+                lightboxNextPostBtn.style.display = activePostIndex < posts.length - 1 ? 'flex' : 'none';
+            } else {
+                lightboxPrevPostBtn.style.display = 'none';
+                lightboxNextPostBtn.style.display = 'none';
+            }
+
+            // Post count index
+            if (lightboxPostIndex) {
+                lightboxPostIndex.textContent = `${activePostIndex + 1} of ${posts.length}`;
+            }
+
+            // Header info (Business Name + Category + Avatar)
+            if (lightboxBusName) {
+                lightboxBusName.textContent = businessData ? businessData.name : (post.businessName || 'Business');
+            }
+            if (lightboxBusCategory) {
+                const cat = businessData ? businessData.category : post.businessCategory;
+                lightboxBusCategory.textContent = CATEGORY_NAMES[cat] || cat || '';
+            }
+            if (lightboxBusAvatar) {
+                const photo = (businessData && businessData.profilePhotoUrl) || post.profilePhotoUrl;
+                if (photo) {
+                    lightboxBusAvatar.innerHTML = `<img src="${escapeHtml(photo)}" alt="Avatar">`;
+                } else {
+                    lightboxBusAvatar.innerHTML = `<i class="ti ti-building-store"></i>`;
+                }
+            }
+
+            // Caption & Date
+            if (lightboxCaption) {
+                if (post.caption && post.caption.trim()) {
+                    lightboxCaption.textContent = post.caption;
+                    lightboxCaption.className = 'lightbox-caption-text';
+                } else {
+                    lightboxCaption.textContent = 'No caption';
+                    lightboxCaption.className = 'lightbox-caption-text empty';
+                }
+            }
+
+            if (lightboxDate) {
+                lightboxDate.textContent = formatPostDate(post.createdAt);
+            }
+
+            // Like status
+            updateLightboxLikeDisplay(post);
+            syncLightboxLikeState();
+
+            // Photo & Multi-photo controls
+            updateLightboxPhotoDisplay();
+        }
+
+        function updateLightboxPhotoDisplay() {
+            const post = posts[activePostIndex];
+            if (!post) return;
+
+            const photos = post.photoUrls || [];
+            const photoUrl = photos[activePhotoIndex] || photos[0] || '';
+            lightboxImg.src = photoUrl;
+
+            const isMulti = photos.length > 1;
+            photoPrevBtn.style.display = isMulti && activePhotoIndex > 0 ? 'flex' : 'none';
+            photoNextBtn.style.display = isMulti && activePhotoIndex < photos.length - 1 ? 'flex' : 'none';
+
+            if (isMulti) {
+                lightboxPhotoDots.style.display = 'flex';
+                lightboxPhotoDots.innerHTML = photos.map((_, i) => `
+                    <button type="button" class="lightbox-dot ${i === activePhotoIndex ? 'active' : ''}" data-photo-idx="${i}" aria-label="Photo ${i + 1}"></button>
+                `).join('');
+
+                lightboxPhotoDots.querySelectorAll('.lightbox-dot').forEach(dot => {
+                    dot.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        activePhotoIndex = parseInt(dot.getAttribute('data-photo-idx'), 10);
+                        updateLightboxPhotoDisplay();
+                    });
+                });
+            } else {
+                lightboxPhotoDots.style.display = 'none';
+            }
+        }
+
+        function updateLightboxLikeDisplay(post) {
+            if (lightboxLikeCount) {
+                lightboxLikeCount.textContent = post.likeCount || 0;
+            }
+            if (lightboxLikeIcon) {
+                lightboxLikeIcon.className = `ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}`;
+            }
+            if (lightboxLikeBtn) {
+                lightboxLikeBtn.classList.toggle('liked', Boolean(post.isLiked));
+            }
+        }
+
+        async function syncLightboxLikeState() {
+            if (!currentUser || !posts[activePostIndex]) return;
+            const post = posts[activePostIndex];
+            try {
+                const likeSnap = await getDoc(doc(db, 'posts', post.id, 'likes', currentUser.uid));
+                post.isLiked = likeSnap.exists();
+                updateLightboxLikeDisplay(post);
+            } catch (_) {}
+        }
+
+        // --- 4. LIGHTBOX EVENTS & INTERACTIONS ---
+        lightboxCloseBtn.addEventListener('click', closeLightbox);
+        lightboxBackdrop.addEventListener('click', closeLightbox);
+
+        lightboxPrevPostBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigatePost(-1);
+        });
+
+        lightboxNextPostBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigatePost(1);
+        });
+
+        photoPrevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigatePhoto(-1);
+        });
+
+        photoNextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigatePhoto(1);
+        });
+
+        // Keyboard Navigation (Esc = close, Left/Right arrows = nav posts)
+        document.addEventListener('keydown', (e) => {
+            if (postLightbox.style.display === 'none') return;
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                navigatePost(-1);
+            } else if (e.key === 'ArrowRight') {
+                navigatePost(1);
+            }
+        });
+
+        // Touch Swipe Navigation for Mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        lightboxDialog.addEventListener('touchstart', (e) => {
+            dismissSwipeHint();
+            if (e.touches.length === 1) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        lightboxDialog.addEventListener('click', () => {
+            dismissSwipeHint();
+        });
+
+        lightboxDialog.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length === 1) {
+                const diffX = e.changedTouches[0].clientX - touchStartX;
+                const diffY = e.changedTouches[0].clientY - touchStartY;
+                if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+                    if (diffX > 0) {
+                        navigatePost(-1);
+                    } else {
+                        navigatePost(1);
+                    }
+                }
+            }
+        }, { passive: true });
+
+        // Responsive resize listener for outer backdrop navigation buttons
+        window.addEventListener('resize', () => {
+            if (postLightbox && postLightbox.style.display !== 'none') {
+                const isDesktop = window.innerWidth >= 768;
+                if (isDesktop && posts.length > 1) {
+                    lightboxPrevPostBtn.style.display = activePostIndex > 0 ? 'flex' : 'none';
+                    lightboxNextPostBtn.style.display = activePostIndex < posts.length - 1 ? 'flex' : 'none';
+                } else {
+                    lightboxPrevPostBtn.style.display = 'none';
+                    lightboxNextPostBtn.style.display = 'none';
+                }
+            }
+        });
+
+        // Atomic Like Toggle in Lightbox
+        lightboxLikeBtn.addEventListener('click', async () => {
+            if (!currentUser) {
+                window.location.href = `login.html?redirect=business.html%3Fid%3D${businessId}`;
+                return;
+            }
+
+            const post = posts[activePostIndex];
+            if (!post) return;
+
+            lightboxLikeBtn.disabled = true;
+
+            try {
+                const postRef = doc(db, 'posts', post.id);
+                const likeRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
+
+                const result = await runTransaction(db, async (transaction) => {
+                    const pDoc = await transaction.get(postRef);
+                    if (!pDoc.exists()) throw new Error('Post does not exist.');
+
+                    const likeDoc = await transaction.get(likeRef);
+                    const currentlyLiked = likeDoc.exists();
+                    const currentCount = typeof pDoc.data().likeCount === 'number' ? pDoc.data().likeCount : 0;
+
+                    if (currentlyLiked) {
+                        transaction.delete(likeRef);
+                        const newCount = Math.max(0, currentCount - 1);
+                        transaction.update(postRef, { likeCount: newCount });
+                        return { liked: false, count: newCount };
+                    } else {
+                        transaction.set(likeRef, { likedAt: serverTimestamp() });
+                        const newCount = currentCount + 1;
+                        transaction.update(postRef, { likeCount: newCount });
+                        return { liked: true, count: newCount };
+                    }
+                });
+
+                post.isLiked = result.liked;
+                post.likeCount = result.count;
+                updateLightboxLikeDisplay(post);
+
+                // Update grid thumbnail like count
+                const thumbOverlay = postsGrid.querySelector(`.post-card-thumb[data-index="${activePostIndex}"] .thumb-hover-overlay span`);
+                if (thumbOverlay) thumbOverlay.textContent = result.count;
+
+            } catch (err) {
+                console.error('Failed to toggle like:', err);
+            } finally {
+                lightboxLikeBtn.disabled = false;
+            }
+        });
+
+        // Initialize on load
+        initPage();
+    </script>
+</body>
+
+</html>

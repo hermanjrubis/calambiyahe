@@ -457,9 +457,9 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
         min-height: calc(100vh - 70px);
         min-height: calc(100dvh - 70px);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: 85px 1.2rem 40px;
+        padding: 72px 1.2rem 32px;
     }
 
     .scrollable-content {
@@ -2326,11 +2326,11 @@ body.chat-active .chat-toggle-pill {
 @media (max-width: 767.98px) {
     .hero-section {
         overflow: hidden;
-        padding: 85px 1.2rem 40px;
+        padding: 72px 1.2rem 32px;
         min-height: calc(100vh - 70px);
         min-height: calc(100dvh - 70px);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
     }
 
@@ -2339,19 +2339,19 @@ body.chat-active .chat-toggle-pill {
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         text-align: center;
-        gap: 1.25rem;
+        gap: 0;
         width: 100%;
         max-width: 100%;
         padding: 0 1.2rem;
-        margin: auto 0;
+        margin: 0 auto;
     }
 
     .hero-right-col {
         order: 1; /* Illustration stacked above text */
         width: 100%;
-        max-width: 380px;
+        max-width: 480px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -2359,18 +2359,21 @@ body.chat-active .chat-toggle-pill {
     }
 
     .hero-graphic-wrap {
-        width: 100%;
-        max-width: 340px;
+        width: calc(100% + 1.2rem);
+        max-width: 460px;
+        margin-left: -0.6rem;
+        margin-right: -0.6rem;
         display: flex;
         align-items: center;
         justify-content: center;
+        position: relative;
     }
 
     .hero-illustration-img {
-        width: 100%;
+        width: clamp(285px, 94%, 440px);
         height: auto;
-        max-width: 320px;
-        max-height: 300px;
+        max-width: 100%;
+        max-height: none;
         object-fit: contain;
         display: block;
         filter: drop-shadow(0 14px 28px rgba(4, 44, 83, 0.1));
@@ -2389,6 +2392,7 @@ body.chat-active .chat-toggle-pill {
         text-align: center;
         position: relative;
         z-index: 5;
+        margin-top: -1.75rem;
     }
 
     .hero-title {
@@ -3052,6 +3056,31 @@ body.chat-active .chat-toggle-pill {
     z-index: 1;
 }
 
+.footer-legal-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+}
+
+.footer-legal-links a {
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-legal-links a:hover {
+    color: #FFFFFF;
+    text-decoration: underline;
+}
+
+.footer-legal-divider {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.65rem;
+}
+
 @media (max-width: 768px) {
     .footer-container {
         grid-template-columns: 1fr;
@@ -3106,19 +3135,6 @@ body.chat-active .chat-toggle-pill {
     background: rgba(10, 46, 77, 0.65);
     z-index: 0;
     pointer-events: none;
-}
-
-.auth-brand-accent-circle {
-    position: absolute;
-    bottom: -90px;
-    right: -90px;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    background: #378ADD;
-    opacity: 0.22;
-    pointer-events: none;
-    z-index: 0;
 }
 
 .auth-brand-content {
@@ -3193,34 +3209,65 @@ body.chat-active .chat-toggle-pill {
     margin: auto 0;
 }
 
-.auth-tabs {
+.auth-step {
+    display: none;
+}
+
+.auth-step.active {
+    display: block;
+}
+
+.auth-email-row {
     display: flex;
-    background: #f1f5f9;
-    padding: 4px;
-    margin: 0 0 20px;
-    border-radius: 8px;
-    position: relative;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px 0;
+    font-size: 0.85rem;
+    color: var(--text-dark);
 }
 
-.auth-tab {
-    flex: 1;
-    text-align: center;
-    padding: 8px 0;
+.auth-email-text {
+    font-weight: 500;
+    word-break: break-all;
+    color: var(--text-dark);
+}
+
+.btn-change-email {
+    background: none;
     border: none;
-    background: transparent;
-    font-size: 0.9rem;
+    padding: 0;
+    margin: 0;
+    color: var(--primary);
+    font-family: inherit;
+    font-size: 0.82rem;
     font-weight: 600;
-    color: var(--text-muted);
     cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    z-index: 2;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    line-height: 1;
+    transition: color 0.2s ease;
 }
 
-.auth-tab.active {
-    background: white;
+.btn-change-email:hover {
     color: var(--primary-dark);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.auth-input-label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 6px;
+    text-align: left;
+}
+
+.auth-error-text {
+    color: #ff4d4f;
+    font-size: 0.8rem;
+    margin: -4px 0 12px;
+    display: none;
+    text-align: left;
+    line-height: 1.35;
 }
 
 .auth-content {
@@ -3305,13 +3352,6 @@ body.chat-active .chat-toggle-pill {
     .auth-brand-subtext {
         font-size: 12px;
         display: none; /* keep mobile compact */
-    }
-
-    .auth-brand-accent-circle {
-        width: 200px;
-        height: 200px;
-        bottom: -60px;
-        right: -60px;
     }
 
     .auth-form-panel {
@@ -3430,15 +3470,41 @@ body.chat-active .chat-toggle-pill {
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 6px 12px rgba(26, 143, 255, 0.25);
+    transition: background 0.2s ease;
+    box-shadow: none;
     margin-bottom: 10px;
 }
 
 .btn-auth-primary:hover {
-    transform: translateY(-2px);
     background: var(--primary-dark);
-    box-shadow: 0 10px 25px rgba(26, 143, 255, 0.35);
+}
+
+.btn-auth-primary:active {
+    background: var(--primary-dark);
+}
+
+.auth-legal-terms {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.73rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.45;
+    margin: 0 0 10px 0;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+.auth-legal-terms a {
+    color: #378ADD;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.auth-legal-terms a:hover {
+    color: #256bb8;
+    text-decoration: underline;
 }
 
 .auth-divider {
@@ -3483,10 +3549,6 @@ body.chat-active .chat-toggle-pill {
     color: var(--text-dark);
     cursor: pointer;
     transition: all 0.2s ease;
-    margin-bottom: 10px;
-}
-
-.btn-social-auth:last-of-type {
     margin-bottom: 15px;
 }
 
@@ -3538,22 +3600,25 @@ body.chat-active .chat-toggle-pill {
 
 /* Security Trust Badge Assurance */
 .security-assurance {
-    background: #e6f2f5;
-    padding: 10px 20px;
+    background: none;
+    padding: 10px 0 6px;
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    border-top: 1px solid #c7e3eb;
-    font-size: 0.7rem;
+    gap: 8px;
+    border: none;
+    font-size: 0.72rem;
     color: var(--text-muted);
-    line-height: 1.3;
+    line-height: 1.35;
 }
 
 .security-assurance ion-icon {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     flex-shrink: 0;
     margin-top: 1px;
     color: var(--primary);
+    background: none;
+    border-radius: 0;
+    padding: 0;
 }
 
 .guest-link {
@@ -3561,15 +3626,20 @@ body.chat-active .chat-toggle-pill {
     text-align: center;
     padding: 8px;
     background: #f8fafc;
-    color: #64748b;
-    font-size: 0.75rem;
-    text-decoration: none;
-    transition: color 0.2s, background 0.2s;
+    border-radius: 6px;
+    color: #334155;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: #cbd5e1;
+    transition: color 0.2s ease, background 0.2s ease, text-decoration-color 0.2s ease;
 }
 
 .guest-link:hover {
     background: #f1f5f9;
     color: var(--primary-dark);
+    text-decoration-color: var(--primary-dark);
 }
 
 /* =============================================
@@ -3630,6 +3700,186 @@ body.chat-active .chat-toggle-pill {
 
 .lang-other {
     opacity: 0.6;
+}
+
+/* =============================================
+   LEGAL PAGES (Terms of Service & Privacy Policy)
+   ============================================= */
+.legal-page {
+    padding: 120px 20px 80px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+}
+
+.legal-container {
+    max-width: 1280px;
+    width: 100%;
+}
+
+.legal-top-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.legal-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    color: #378ADD;
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.15s ease;
+    line-height: 1;
+}
+
+.legal-back-link:hover {
+    opacity: 0.7;
+}
+
+.legal-badge {
+    display: inline-block;
+    color: #378ADD;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+}
+
+.legal-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: #042C53;
+    margin: 0 0 8px 0;
+    line-height: 1.2;
+}
+
+.legal-meta {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    color: #94A3B8;
+    margin-bottom: 20px;
+}
+
+.legal-capstone-note {
+    background: none;
+    border: none;
+    border-left: 3px solid #378ADD;
+    border-radius: 0;
+    padding: 6px 0 6px 16px;
+    margin-bottom: 28px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.875rem;
+    color: #4A607A;
+    line-height: 1.65;
+    display: block;
+}
+
+.legal-card {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0 0 28px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.legal-card:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.legal-card h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #042C53;
+    margin: 0 0 10px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.section-num {
+    display: inline;
+    color: #94A3B8;
+    font-size: 1.05rem;
+    font-weight: 700;
+    background: none;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+    min-width: 0;
+}
+
+.section-num::after {
+    content: '.';
+}
+
+.legal-card p {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: #4A607A;
+    line-height: 1.75;
+    margin: 0;
+}
+
+.legal-card p + p {
+    margin-top: 10px;
+}
+
+.legal-card ul {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: #4A607A;
+    line-height: 1.75;
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+}
+
+.legal-card ul li {
+    margin-bottom: 4px;
+}
+
+.legal-third-party-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #F1F5F9;
+    color: #64748B;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Outfit', sans-serif;
+    vertical-align: middle;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.legal-inline-link {
+    color: #378ADD;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.legal-inline-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+    .legal-title {
+        font-size: 1.8rem;
+    }
 }
 
 /* Mobile Specific Toggle Row */
@@ -6212,6 +6462,78 @@ input#searchInput,
     color: #64748B;
 }
 
+.feedback-error-notice {
+    background-color: #FEF2F2;
+    border: 1px solid #FCA5A5;
+    color: #B91C1C;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.84rem;
+    line-height: 1.4;
+    margin-bottom: 12px;
+}
+
+/* Feedback Auth Gate (Inline Unauthenticated State) */
+.feedback-auth-gate {
+    display: none;
+    text-align: center;
+    padding: 36px 20px 24px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.feedback-auth-gate .auth-gate-icon {
+    font-size: 2.8rem;
+    color: #378ADD;
+    margin-bottom: 12px;
+    display: inline-block;
+}
+
+.feedback-auth-gate h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #042C53;
+    margin-bottom: 8px;
+}
+
+.feedback-auth-gate p {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.92rem;
+    color: #64748B;
+    line-height: 1.55;
+    margin-bottom: 24px;
+}
+
+.btn-feedback-signin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #378ADD;
+    color: #FFFFFF;
+    text-decoration: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: background 0.15s ease;
+}
+
+.btn-feedback-signin:hover {
+    background: #256BBD;
+}
+
+.feedback-form input.is-readonly,
+.feedback-form input[readonly] {
+    background-color: #F1F5F9 !important;
+    color: #64748B !important;
+    cursor: default;
+    border-color: #E2E8F0 !important;
+}
+
 .btn-submit-feedback {
     width: 100%;
     background: #378ADD;
@@ -7450,17 +7772,32 @@ input#searchInput,
     }
 }
 
-/* Settings Box */
+/* Settings Box - Polished Functional States & Micro-UI */
+.settings-box .modal-header-heading {
+    font-family: 'Sora', sans-serif !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #042C53 !important;
+}
+
 .settings-profile-preview {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px;
+    padding: 14px 16px;
     background: #F8FAFC;
     border: 1px solid #E2E8F0;
-    border-radius: 16px;
-    margin-bottom: 18px;
+    border-radius: 12px;
+    margin-bottom: 16px;
     text-align: left;
+}
+
+.settings-avatar-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
 }
 
 .settings-avatar-wrapper {
@@ -7477,12 +7814,11 @@ input#searchInput,
     background: #378ADD;
     color: #FFFFFF;
     font-weight: 700;
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px solid #FFFFFF;
-    box-shadow: 0 4px 12px rgba(4, 44, 83, 0.12);
 }
 
 .settings-avatar-img {
@@ -7491,39 +7827,124 @@ input#searchInput,
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid #FFFFFF;
-    box-shadow: 0 4px 12px rgba(4, 44, 83, 0.12);
 }
 
-.settings-avatar-edit-badge {
+.settings-camera-badge {
     position: absolute;
     bottom: -2px;
     right: -2px;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    background: #042C53;
-    color: #FFFFFF;
+    background: #FFFFFF;
+    color: #64748B;
+    border: 1px solid #CBD5E1;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.settings-avatar-edit-badge:hover {
-    background: #378ADD;
-    transform: scale(1.1);
+.settings-camera-badge:hover {
+    color: #378ADD;
+    border-color: #378ADD;
 }
 
-.settings-user-info-text {
+.settings-avatar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.settings-change-photo-btn {
+    display: inline-block;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.75rem;
+    color: #378ADD;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.2;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+    user-select: none;
+}
+
+.settings-change-photo-btn:hover {
+    text-decoration: underline;
+}
+
+.settings-photo-sep {
+    font-size: 0.75rem;
+    color: #94A3B8;
+    user-select: none;
+    line-height: 1.2;
+}
+
+.settings-remove-photo-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.75rem;
+    color: #64748B;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.2;
+    transition: color 0.15s ease, text-decoration 0.15s ease;
+    user-select: none;
+}
+
+.settings-remove-photo-btn:hover:not(:disabled) {
+    color: #378ADD;
+    text-decoration: underline;
+}
+
+.settings-remove-photo-btn:disabled {
+    color: #94A3B8;
+    cursor: not-allowed;
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+.settings-remove-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin-top: 4px;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.72rem;
+    color: #64748B;
+}
+
+.settings-confirm-btn {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #378ADD;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.settings-confirm-btn:hover {
+    color: #256bb8;
+}
+
+.settings-user-meta {
     flex: 1;
     min-width: 0;
 }
 
-.settings-profile-preview h4 {
+.settings-name-text {
     margin: 0;
+    font-family: 'Sora', sans-serif;
     font-size: 1.05rem;
     font-weight: 700;
     color: #042C53;
@@ -7532,8 +7953,8 @@ input#searchInput,
     text-overflow: ellipsis;
 }
 
-.settings-profile-preview p {
-    margin: 2px 0 6px;
+.settings-email-text {
+    margin: 3px 0 0;
     font-size: 0.82rem;
     color: #64748B;
     white-space: nowrap;
@@ -7541,43 +7962,35 @@ input#searchInput,
     text-overflow: ellipsis;
 }
 
-.btn-change-photo-text {
-    background: none;
-    border: none;
-    padding: 0;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #378ADD;
-    cursor: pointer;
-    text-decoration: underline;
-    display: inline-block;
-}
-
-.btn-change-photo-text:hover {
-    color: #1a73e8;
-}
-
 .settings-form-group {
     margin-bottom: 16px;
     text-align: left;
 }
 
-.settings-form-group label {
+.settings-form-group.settings-security-group {
+    margin-bottom: 18px;
+}
+
+.settings-label {
     display: block;
-    font-size: 0.84rem;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: #334155;
+    color: #042C53;
     margin-bottom: 6px;
 }
 
 .settings-input {
     width: 100%;
     padding: 10px 14px;
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid #CBD5E1;
     font-size: 0.9rem;
     font-family: inherit;
     box-sizing: border-box;
+    background: #FFFFFF;
+    color: #042C53;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .settings-input:focus {
@@ -7586,137 +7999,109 @@ input#searchInput,
     box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.15);
 }
 
-/* Security / Change Password Box */
-.settings-card-group {
-    margin-top: 18px;
-    margin-bottom: 16px;
-    text-align: left;
-}
-
-.settings-card-label {
-    font-size: 0.84rem;
-    font-weight: 600;
-    color: #334155;
-    margin-bottom: 8px;
-}
-
-.settings-security-card {
+.settings-reset-wrapper {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-.security-card-left {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex: 1;
-}
-
-.security-card-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    background: #EFF6FF;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.security-card-title {
+/* Password reset button - Plain text-link style (brand blue #378ADD, no border/box, no pills) */
+.settings-text-link {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
     font-size: 0.88rem;
-    font-weight: 600;
-    color: #042C53;
-}
-
-.security-card-desc {
-    font-size: 0.78rem;
-    color: #64748B;
-}
-
-.btn-change-password {
-    padding: 7px 14px;
-    border-radius: 8px;
-    background: #FFFFFF;
-    border: 1px solid #CBD5E1;
-    color: #042C53;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.btn-change-password:hover {
-    background: #EFF6FF;
-    border-color: #378ADD;
+    font-weight: 500;
     color: #378ADD;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: opacity 0.15s ease, text-decoration 0.15s ease;
 }
 
+.settings-text-link:hover:not(:disabled) {
+    text-decoration: underline;
+}
+
+.settings-text-link:disabled {
+    color: #64748B;
+    cursor: not-allowed;
+    text-decoration: none;
+    opacity: 0.7;
+}
+
+/* Footer layout tightening & 1px subtle divider */
 .settings-actions {
-    margin-top: 24px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #E2E8F0;
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
-.settings-cancel-btn {
-    padding: 10px 18px;
-    border-radius: 999px;
-    background: #F1F5F9;
-    color: #475569;
-    border: 1px solid #E2E8F0;
-    font-weight: 600;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.settings-cancel-btn:hover {
-    background: #E2E8F0;
-    color: #1E293B;
-}
-
+/* Save Changes button - No pills, no drop shadows, clean brand blue */
 .settings-save-btn {
-    padding: 10px 22px;
-    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 20px;
+    border-radius: 8px;
     background: #378ADD;
     color: #FFFFFF;
     border: none;
+    font-family: inherit;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(55, 138, 221, 0.25);
+    box-shadow: none;
+    transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
 }
 
-.settings-save-btn:hover {
+.settings-save-btn:hover:not(:disabled) {
     background: #256bb8;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(55, 138, 221, 0.35);
 }
 
-.settings-feedback-banner {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    background: #F0FDF4;
-    border: 1px solid #BBF7D0;
-    color: #16A34A;
-    font-size: 0.84rem;
-    font-weight: 600;
-    padding: 10px 14px;
-    border-radius: 10px;
-    margin-bottom: 14px;
-    animation: feedItemIn 0.2s ease both;
+.settings-save-btn:active:not(:disabled) {
+    background: #1e5a9c;
+    transform: scale(0.98);
+}
+
+.settings-save-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    background: #378ADD;
+    color: #FFFFFF;
+    pointer-events: none;
+}
+
+/* Inline micro-spinner for saving state */
+.settings-btn-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: settingsSpin 0.7s linear infinite;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+@keyframes settingsSpin {
+    to { transform: rotate(360deg); }
+}
+
+/* Inline minimal feedback error text */
+.settings-inline-error {
+    font-size: 0.8rem;
+    color: #DC2626;
+    margin-top: 6px;
+    line-height: 1.4;
 }
 
 /* Hybrid Search Bar & Actions */

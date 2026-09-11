@@ -5,12 +5,11 @@ import {
     createUserWithEmailAndPassword, 
     signInWithPopup, 
     GoogleAuthProvider, 
-    FacebookAuthProvider, 
-    fetchSignInMethodsForEmail,
     onAuthStateChanged, 
     signOut, 
     updateProfile, 
-    sendPasswordResetEmail 
+    sendPasswordResetEmail,
+    fetchSignInMethodsForEmail 
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { 
     getFirestore, 
@@ -333,8 +332,6 @@ export {
     createUserWithEmailAndPassword, 
     signInWithPopup, 
     GoogleAuthProvider, 
-    FacebookAuthProvider,
-    fetchSignInMethodsForEmail,
     onAuthStateChanged, 
     collection, 
     doc, 
@@ -355,6 +352,6 @@ export {
     signOut,
     updateProfile,
     sendPasswordResetEmail,
+    fetchSignInMethodsForEmail,
     CalzadaActivity
 };
-

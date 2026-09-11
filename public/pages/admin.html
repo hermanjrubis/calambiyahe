@@ -784,6 +784,210 @@
             line-height: 1.5;
         }
 
+        /* --- Queue & Action Badges --- */
+        .queue-count-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 11px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: var(--radius-full);
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid #D0E3F7;
+        }
+
+        .admin-notice-banner {
+            padding: 12px 18px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: panelFade 0.2s ease-out;
+        }
+
+        .admin-notice-banner.success {
+            background: #F0FDF4;
+            border: 1px solid #86EFAC;
+            color: #166534;
+        }
+
+        .admin-notice-banner.error {
+            background: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            color: #991B1B;
+        }
+
+        /* --- Items List & Cards --- */
+        .admin-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .admin-item-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: all 0.18s ease;
+        }
+
+        .admin-item-card:hover {
+            border-color: #CBD5E1;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .admin-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+        }
+
+        .admin-item-main {
+            flex: 1;
+        }
+
+        .admin-item-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-category-badge {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.74rem;
+            font-weight: 600;
+            padding: 2px 9px;
+            border-radius: var(--radius-full);
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid #D0E3F7;
+            text-transform: capitalize;
+        }
+
+        .admin-item-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: var(--navy-muted);
+            margin-top: 4px;
+        }
+
+        .admin-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .admin-meta-item i {
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .admin-item-desc {
+            background: #F8FAFC;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            color: var(--navy-dark);
+            line-height: 1.5;
+        }
+
+        .admin-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--border-subtle);
+            padding-top: 14px;
+        }
+
+        .btn-approve {
+            background: #16A34A;
+            color: #FFFFFF;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-approve:hover {
+            background: #15803D;
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: #FFFFFF;
+            color: var(--danger);
+            border: 1px solid var(--danger-border);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-reject:hover {
+            background: var(--danger-bg);
+        }
+
+        .btn-unpublish {
+            background: #FFFFFF;
+            color: #D97706;
+            border: 1px solid #FCD34D;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-unpublish:hover {
+            background: #FFFBEB;
+        }
+
+        .admin-item-thumb {
+            width: 64px;
+            height: 64px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+
         /* --- Settings Panel Specifics --- */
         .settings-grid {
             display: grid;
@@ -1034,6 +1238,9 @@
             <!-- Main Content Area with Section Panels -->
             <main class="admin-main-content">
 
+                <!-- Admin Notification Banner -->
+                <div id="adminNoticeBanner" class="admin-notice-banner" style="display: none;"></div>
+
                 <!-- PANEL 1: OVERVIEW -->
                 <section class="admin-panel active" id="panel-overview">
                     <div class="section-header">
@@ -1050,8 +1257,8 @@
                                 <span class="metric-label">Pending Reviews</span>
                                 <i class="ti ti-clock-hour-4 metric-icon"></i>
                             </div>
-                            <div class="metric-value">0</div>
-                            <div class="metric-secondary">All caught up</div>
+                            <div class="metric-value" id="metricPendingCount">0</div>
+                            <div class="metric-secondary" id="metricPendingSub">All caught up</div>
                         </div>
 
                         <div class="metric-card">
@@ -1059,8 +1266,8 @@
                                 <span class="metric-label">Approved Places</span>
                                 <i class="ti ti-map-pin metric-icon"></i>
                             </div>
-                            <div class="metric-value">Active</div>
-                            <div class="metric-secondary">Live in public directory</div>
+                            <div class="metric-value" id="metricApprovedCount">0</div>
+                            <div class="metric-secondary" id="metricApprovedSub">Live in public directory</div>
                         </div>
 
                         <div class="metric-card">
@@ -1118,9 +1325,12 @@
                                 <i class="ti ti-clipboard-list"></i>
                                 <span>Submissions Queue</span>
                             </h2>
+                            <span class="queue-count-badge" id="pendingCountBadge">0 pending</span>
                         </div>
 
-                        <div class="empty-state">
+                        <div id="pendingListContainer" class="admin-items-list"></div>
+
+                        <div class="empty-state" id="pendingEmptyState">
                             <div class="empty-icon-wrap">
                                 <i class="ti ti-circle-check"></i>
                             </div>
@@ -1147,15 +1357,18 @@
                                 <i class="ti ti-map-pin"></i>
                                 <span>Live Places Catalog</span>
                             </h2>
+                            <span class="queue-count-badge" id="approvedCountBadge">0 approved</span>
                         </div>
 
-                        <div class="empty-state">
+                        <div id="approvedListContainer" class="admin-items-list"></div>
+
+                        <div class="empty-state" id="approvedEmptyState">
                             <div class="empty-icon-wrap">
                                 <i class="ti ti-building-store"></i>
                             </div>
-                            <h3 class="empty-title">Directory Catalog Synced</h3>
+                            <h3 class="empty-title">No approved places yet</h3>
                             <p class="empty-desc">
-                                Verified places from the Calzada database are active. Place moderation tools and quick unpublish controls will connect here in Phase 2.
+                                Places approved through the review queue will appear here.
                             </p>
                             <div style="margin-top: 18px;">
                                 <a href="places.html" class="btn-admin-secondary" target="_blank">
@@ -1234,7 +1447,19 @@
 
     <!-- Firebase Auth & Client-Side Navigation Script -->
     <script type="module">
-        import { auth, onAuthStateChanged, signOut } from "../js/firebase-init.js";
+        import { 
+            auth, 
+            db, 
+            collection, 
+            doc, 
+            getDocs, 
+            query, 
+            where, 
+            updateDoc, 
+            serverTimestamp, 
+            onAuthStateChanged, 
+            signOut 
+        } from "../js/firebase-init.js";
 
         const loadingState = document.getElementById('loadingState');
         const accessDeniedState = document.getElementById('accessDeniedState');
@@ -1247,11 +1472,52 @@
         const sidebarBackdrop = document.getElementById('sidebarBackdrop');
         const toggleIcon = document.getElementById('toggleIcon');
         const breadcrumbCurrent = document.getElementById('breadcrumbCurrent');
+        const adminNoticeBanner = document.getElementById('adminNoticeBanner');
+
+        const CATEGORY_NAMES = {
+            malls: 'Malls',
+            eateries: 'Eateries & Dining',
+            coffee: 'Coffee Shops',
+            schools: 'Schools & Universities',
+            terminals: 'Terminals & Transit',
+            establishments: 'Commercial Establishments & Services'
+        };
 
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.textContent = str || '';
             return div.innerHTML;
+        }
+
+        function showAdminNotice(msg, type = 'success') {
+            if (!adminNoticeBanner) return;
+            adminNoticeBanner.className = `admin-notice-banner ${type}`;
+            adminNoticeBanner.innerHTML = `
+                <i class="ti ${type === 'success' ? 'ti-check' : 'ti-alert-circle'}"></i>
+                <span>${escapeHtml(msg)}</span>
+            `;
+            adminNoticeBanner.style.display = 'flex';
+            adminNoticeBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            setTimeout(() => {
+                if (adminNoticeBanner) adminNoticeBanner.style.display = 'none';
+            }, 6000);
+        }
+
+        function formatAdminDate(ts) {
+            if (!ts) return 'N/A';
+            try {
+                const date = ts.toDate ? ts.toDate() : new Date(ts);
+                return new Intl.DateTimeFormat('en-PH', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }).format(date);
+            } catch (_) {
+                return 'N/A';
+            }
         }
 
         // --- 1. Client-Side Hash Routing ---
@@ -1329,7 +1595,311 @@
             sidebarCloseBtn.addEventListener('click', () => adminApp.classList.remove('drawer-open'));
         }
 
-        // --- 3. Firebase Auth & Role Verification ---
+        // --- 3. Firestore Business Queue & Catalog ---
+        let pendingBusinesses = [];
+        let approvedBusinesses = [];
+
+        async function loadAdminData() {
+            try {
+                // 1. Pending submissions query - points directly to "businesses" collection
+                const pendingQuery = query(
+                    collection(db, "businesses"),
+                    where("status", "==", "pending")
+                );
+                const pendingSnap = await getDocs(pendingQuery);
+                pendingBusinesses = pendingSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                pendingBusinesses.sort((a, b) => {
+                    const timeA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : 0;
+                    const timeB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+
+                // 2. Approved places query - points directly to "businesses" collection
+                const approvedQuery = query(
+                    collection(db, "businesses"),
+                    where("status", "==", "approved")
+                );
+                const approvedSnap = await getDocs(approvedQuery);
+                approvedBusinesses = approvedSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                approvedBusinesses.sort((a, b) => {
+                    const timeA = a.approvedAt?.toMillis ? a.approvedAt.toMillis() : (a.submittedAt?.toMillis ? a.submittedAt.toMillis() : 0);
+                    const timeB = b.approvedAt?.toMillis ? b.approvedAt.toMillis() : (b.submittedAt?.toMillis ? b.submittedAt.toMillis() : 0);
+                    return timeB - timeA;
+                });
+
+                // 3. Update dashboard counters & badges
+                updateMetrics();
+
+                // 4. Render item queues
+                renderPendingList();
+                renderApprovedList();
+
+            } catch (err) {
+                console.error("Error loading admin business data:", err);
+                showAdminNotice(`Failed to load business records: ${err.message}`, 'error');
+            }
+        }
+
+        function updateMetrics() {
+            const metricPendingCount = document.getElementById('metricPendingCount');
+            const metricPendingSub = document.getElementById('metricPendingSub');
+            if (metricPendingCount) {
+                metricPendingCount.textContent = pendingBusinesses.length;
+            }
+            if (metricPendingSub) {
+                metricPendingSub.textContent = pendingBusinesses.length === 0 
+                    ? 'All caught up' 
+                    : `${pendingBusinesses.length} review${pendingBusinesses.length > 1 ? 's' : ''} awaiting action`;
+            }
+
+            const metricApprovedCount = document.getElementById('metricApprovedCount');
+            const metricApprovedSub = document.getElementById('metricApprovedSub');
+            if (metricApprovedCount) {
+                metricApprovedCount.textContent = approvedBusinesses.length;
+            }
+            if (metricApprovedSub) {
+                metricApprovedSub.textContent = approvedBusinesses.length === 0
+                    ? 'No live places yet'
+                    : `${approvedBusinesses.length} place${approvedBusinesses.length > 1 ? 's' : ''} published`;
+            }
+
+            const pendingCountBadge = document.getElementById('pendingCountBadge');
+            if (pendingCountBadge) {
+                pendingCountBadge.textContent = `${pendingBusinesses.length} pending`;
+            }
+
+            const approvedCountBadge = document.getElementById('approvedCountBadge');
+            if (approvedCountBadge) {
+                approvedCountBadge.textContent = `${approvedBusinesses.length} approved`;
+            }
+        }
+
+        function renderPendingList() {
+            const container = document.getElementById('pendingListContainer');
+            const emptyState = document.getElementById('pendingEmptyState');
+            if (!container || !emptyState) return;
+
+            if (pendingBusinesses.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = pendingBusinesses.map(bus => {
+                const categoryLabel = CATEGORY_NAMES[bus.category] || bus.category || 'General';
+                const dateStr = formatAdminDate(bus.submittedAt);
+                const hasPhoto = Boolean(bus.profilePhotoUrl);
+
+                return `
+                    <div class="admin-item-card" id="card-${bus.id}">
+                        <div class="admin-item-header">
+                            <div class="admin-item-main">
+                                <div class="admin-item-name">
+                                    <span>${escapeHtml(bus.name || 'Unnamed Business')}</span>
+                                    <span class="admin-category-badge">${escapeHtml(categoryLabel)}</span>
+                                </div>
+                                <div class="admin-item-meta-row">
+                                    <div class="admin-meta-item" title="Address">
+                                        <i class="ti ti-map-pin"></i>
+                                        <span>${escapeHtml(bus.address || 'No address provided')}</span>
+                                    </div>
+                                    <div class="admin-meta-item" title="Contact Number">
+                                        <i class="ti ti-phone"></i>
+                                        <span>${escapeHtml(bus.contactNumber || 'No contact provided')}</span>
+                                    </div>
+                                    <div class="admin-meta-item" title="Submitted By">
+                                        <i class="ti ti-user"></i>
+                                        <span>${escapeHtml(bus.ownerEmail || bus.ownerId || 'Unknown')}</span>
+                                    </div>
+                                    <div class="admin-meta-item" title="Submitted Date">
+                                        <i class="ti ti-calendar"></i>
+                                        <span>${dateStr}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            ${hasPhoto ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="${escapeHtml(bus.name)}" class="admin-item-thumb">` : ''}
+                        </div>
+
+                        ${bus.description ? `
+                            <div class="admin-item-desc">
+                                <strong>Description:</strong> ${escapeHtml(bus.description)}
+                            </div>
+                        ` : ''}
+
+                        <div class="admin-item-actions">
+                            <button type="button" class="btn-approve" data-id="${bus.id}" data-name="${escapeHtml(bus.name || 'Business')}">
+                                <i class="ti ti-check"></i>
+                                <span>Approve Business</span>
+                            </button>
+                            <button type="button" class="btn-reject" data-id="${bus.id}" data-name="${escapeHtml(bus.name || 'Business')}">
+                                <i class="ti ti-x"></i>
+                                <span>Reject</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.querySelectorAll('.btn-approve').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const name = btn.getAttribute('data-name');
+                    approveBusiness(id, name);
+                });
+            });
+
+            container.querySelectorAll('.btn-reject').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const name = btn.getAttribute('data-name');
+                    rejectBusiness(id, name);
+                });
+            });
+        }
+
+        function renderApprovedList() {
+            const container = document.getElementById('approvedListContainer');
+            const emptyState = document.getElementById('approvedEmptyState');
+            if (!container || !emptyState) return;
+
+            if (approvedBusinesses.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = approvedBusinesses.map(bus => {
+                const categoryLabel = CATEGORY_NAMES[bus.category] || bus.category || 'General';
+                const dateStr = formatAdminDate(bus.approvedAt || bus.submittedAt);
+                const hasPhoto = Boolean(bus.profilePhotoUrl);
+
+                return `
+                    <div class="admin-item-card" id="card-${bus.id}">
+                        <div class="admin-item-header">
+                            <div class="admin-item-main">
+                                <div class="admin-item-name">
+                                    <span>${escapeHtml(bus.name || 'Unnamed Business')}</span>
+                                    <span class="admin-category-badge">${escapeHtml(categoryLabel)}</span>
+                                </div>
+                                <div class="admin-item-meta-row">
+                                    <div class="admin-meta-item" title="Address">
+                                        <i class="ti ti-map-pin"></i>
+                                        <span>${escapeHtml(bus.address || 'No address provided')}</span>
+                                    </div>
+                                    <div class="admin-meta-item" title="Contact Number">
+                                        <i class="ti ti-phone"></i>
+                                        <span>${escapeHtml(bus.contactNumber || 'No contact provided')}</span>
+                                    </div>
+                                    <div class="admin-meta-item" title="Owner Email">
+                                        <i class="ti ti-user"></i>
+                                        <span>${escapeHtml(bus.ownerEmail || bus.ownerId || 'Unknown')}</span>
+                                    </div>
+                                    <div class="admin-meta-item" title="Approved Date">
+                                        <i class="ti ti-calendar-check"></i>
+                                        <span>Approved: ${dateStr}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            ${hasPhoto ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="${escapeHtml(bus.name)}" class="admin-item-thumb">` : ''}
+                        </div>
+
+                        ${bus.description ? `
+                            <div class="admin-item-desc">
+                                <strong>Description:</strong> ${escapeHtml(bus.description)}
+                            </div>
+                        ` : ''}
+
+                        <div class="admin-item-actions">
+                            <button type="button" class="btn-unpublish" data-id="${bus.id}" data-name="${escapeHtml(bus.name || 'Business')}">
+                                <i class="ti ti-arrow-back-up"></i>
+                                <span>Unpublish / Revert to Pending</span>
+                            </button>
+                            <a href="business.html?id=${bus.id}" class="btn-admin-primary" target="_blank" style="padding: 7px 14px; font-size: 0.84rem;">
+                                <i class="ti ti-external-link"></i>
+                                <span>View Public Profile</span>
+                            </a>
+                            <a href="places.html" class="btn-admin-secondary" target="_blank" style="padding: 7px 14px; font-size: 0.84rem;">
+                                <i class="ti ti-map-pin"></i>
+                                <span>Places Guide</span>
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.querySelectorAll('.btn-unpublish').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const name = btn.getAttribute('data-name');
+                    unpublishBusiness(id, name);
+                });
+            });
+        }
+
+        async function approveBusiness(businessId, businessName) {
+            if (!confirm(`Are you sure you want to approve "${businessName}"? This will publish the business live on Calzada.`)) {
+                return;
+            }
+
+            try {
+                const busRef = doc(db, "businesses", businessId);
+                await updateDoc(busRef, {
+                    status: 'approved',
+                    approvedAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+
+                showAdminNotice(`"${businessName}" has been successfully approved and published!`, 'success');
+                await loadAdminData();
+            } catch (err) {
+                console.error('Error approving business:', err);
+                showAdminNotice(`Failed to approve "${businessName}": ${err.message}`, 'error');
+            }
+        }
+
+        async function rejectBusiness(businessId, businessName) {
+            const reason = prompt(`Enter rejection reason for "${businessName}" (visible to owner):`, 'Information could not be verified.');
+            if (reason === null) return;
+
+            try {
+                const busRef = doc(db, "businesses", businessId);
+                await updateDoc(busRef, {
+                    status: 'rejected',
+                    rejectionReason: reason.trim() || 'Submission rejected by administrator.',
+                    updatedAt: serverTimestamp()
+                });
+
+                showAdminNotice(`"${businessName}" has been rejected.`, 'success');
+                await loadAdminData();
+            } catch (err) {
+                console.error('Error rejecting business:', err);
+                showAdminNotice(`Failed to reject "${businessName}": ${err.message}`, 'error');
+            }
+        }
+
+        async function unpublishBusiness(businessId, businessName) {
+            if (!confirm(`Are you sure you want to unpublish "${businessName}"? It will be returned to pending status and hidden from public view.`)) {
+                return;
+            }
+
+            try {
+                const busRef = doc(db, "businesses", businessId);
+                await updateDoc(busRef, {
+                    status: 'pending',
+                    updatedAt: serverTimestamp()
+                });
+
+                showAdminNotice(`"${businessName}" has been returned to pending.`, 'success');
+                await loadAdminData();
+            } catch (err) {
+                console.error('Error unpublishing business:', err);
+                showAdminNotice(`Failed to unpublish "${businessName}": ${err.message}`, 'error');
+            }
+        }
+
+        // --- 4. Firebase Auth & Role Verification ---
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 // Not logged in -> Show Access Denied clearly
@@ -1382,6 +1952,9 @@
 
                     // Initialize routing
                     setActiveSection(getSectionFromHash());
+
+                    // Load admin business data from businesses collection
+                    await loadAdminData();
                 } else {
                     // Logged in, but NOT an admin
                     loadingState.style.display = 'none';

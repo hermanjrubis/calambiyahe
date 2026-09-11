@@ -85,7 +85,8 @@ function createAuthMiddleware(pool) {
             req.user = {
                 uid: decodedToken.uid,
                 email: decodedToken.email || null,
-                name: decodedToken.name || decodedToken.displayName || (decodedToken.email ? decodedToken.email.split('@')[0] : 'User')
+                name: decodedToken.name || decodedToken.displayName || (decodedToken.email ? decodedToken.email.split('@')[0] : 'User'),
+                admin: decodedToken.admin === true
             };
 
             // Sync user to PostgreSQL users table

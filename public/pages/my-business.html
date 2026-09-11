@@ -900,36 +900,56 @@
             background: #F8FAFC;
         }
 
-        /* 10. Empty State (No business) */
+        /* 10. Empty State (No business registered) */
         .empty-state-card {
             background: #FFFFFF;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            padding: 48px 24px;
+            padding: 56px 32px;
             text-align: center;
-        }
-
-        .empty-state-icon {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 14px;
-            line-height: 1;
+            max-width: 540px;
+            margin: 48px auto 0;
         }
 
         .empty-state-title {
             font-family: 'Sora', sans-serif;
             font-size: 1.35rem;
-            font-weight: 800;
+            font-weight: 700;
             color: var(--navy-dark);
             margin-bottom: 8px;
+            letter-spacing: -0.01em;
+            line-height: 1.35;
         }
 
         .empty-state-desc {
             font-size: 0.95rem;
             color: var(--navy-muted);
             max-width: 440px;
-            margin: 0 auto 24px;
+            margin: 0 auto 28px;
             line-height: 1.5;
+        }
+
+        .btn-register-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary);
+            color: #FFFFFF;
+            font-family: 'Sora', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            transition: background 0.15s ease, transform 0.1s ease;
+        }
+
+        .btn-register-cta:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-register-cta:active {
+            transform: scale(0.99);
         }
 
         @media (max-width: 640px) {
@@ -1009,17 +1029,9 @@
              ==================================================== -->
         <div id="stateNoBusiness" style="display: none;">
             <div class="empty-state-card">
-                <div class="empty-state-icon">
-                    <i class="ti ti-building-store"></i>
-                </div>
-                <h1 class="empty-state-title">You haven't registered a business yet.</h1>
-                <p class="empty-state-desc">
-                    Register your business on Calzada to establish your place in Calamba. Once approved by our team, you'll be able to customize your profile and post updates.
-                </p>
-                <a href="submit.html" class="btn-submit">
-                    <i class="ti ti-plus"></i>
-                    <span>Register your business</span>
-                </a>
+                <h1 class="empty-state-title">You haven't registered a business yet</h1>
+                <p class="empty-state-desc">List your business on Calzada's Discover feed to connect with commuters and visitors across Calamba.</p>
+                <a href="submit.html" class="btn-register-cta">Register Your Business</a>
             </div>
         </div>
 
@@ -1082,11 +1094,17 @@
             <!-- Read-only Overview Card -->
             <div class="flat-card">
                 <div class="card-header-row">
-                    <h2 class="card-business-title" id="approvedBusinessName">--</h2>
-                    <span class="status-label status-approved">
-                        <i class="ti ti-circle-check"></i>
-                        <span>Approved · Live</span>
-                    </span>
+                    <div>
+                        <h2 class="card-business-title" id="approvedBusinessName">--</h2>
+                        <span class="status-label status-approved">
+                            <i class="ti ti-circle-check"></i>
+                            <span>Approved · Live</span>
+                        </span>
+                    </div>
+                    <a href="#" class="topbar-link-btn" id="btnViewPublicProfile" target="_blank" style="margin-left: auto;">
+                        <i class="ti ti-external-link"></i>
+                        <span>View Public Profile</span>
+                    </a>
                 </div>
 
                 <div class="spec-list">
@@ -1390,7 +1408,7 @@
         }
 
         onAuthStateChanged(auth, async (user) => {
-            if (!user) {
+            if (!user || user.isAnonymous) {
                 window.location.href = "login.html?redirect=my-business.html";
                 return;
             }
@@ -1486,6 +1504,10 @@
                 approvedAddress.textContent = activeBusiness.address || '--';
                 approvedContact.textContent = activeBusiness.contactNumber || 'None provided';
                 approvedDocId.textContent = activeBusinessId;
+                const btnViewPublicProfile = document.getElementById('btnViewPublicProfile');
+                if (btnViewPublicProfile) {
+                    btnViewPublicProfile.href = `business.html?id=${encodeURIComponent(activeBusinessId)}`;
+                }
 
                 initialDescription = activeBusiness.description || '';
                 initialPhotoUrl = activeBusiness.profilePhotoUrl || '';

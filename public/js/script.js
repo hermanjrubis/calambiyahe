@@ -390,8 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startRoutieAttentionLoop() {
         stopRoutieAttentionLoop();
-        // Trigger periodic attention wiggle every 7 seconds while chat is closed
-        routieAttentionInterval = setInterval(triggerRoutieAttention, 7000);
+        // Trigger periodic attention wiggle every 5 seconds while chat is closed
+        routieAttentionInterval = setInterval(triggerRoutieAttention, 5000);
     }
 
     function stopRoutieAttentionLoop() {
@@ -1022,26 +1022,6 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 });
 
 // === GLOBAL AUTHENTICATION LOGIC ===
-
-function switchAuth(type) {
-    const tabLogin = document.getElementById('tabLogin');
-    const tabRegister = document.getElementById('tabRegister');
-    const formLogin = document.getElementById('formLogin');
-    const formRegister = document.getElementById('formRegister');
-    if (!tabLogin || !formRegister) return;
-    
-    // Clear forms when switching tabs
-    formLogin.reset();
-    formRegister.reset();
-
-    if (type === 'login') {
-        tabLogin.classList.add('active'); tabRegister.classList.remove('active');
-        formLogin.classList.add('active'); formRegister.classList.remove('active');
-    } else {
-        tabRegister.classList.add('active'); tabLogin.classList.remove('active');
-        formRegister.classList.add('active'); formLogin.classList.remove('active');
-    }
-}
 
 function togglePassword(inputId) {
     const input = document.getElementById(inputId);

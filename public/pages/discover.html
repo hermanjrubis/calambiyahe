@@ -187,7 +187,7 @@
         .discover-container {
             max-width: 470px;
             margin: 0 auto;
-            padding: 32px 16px 64px;
+            padding: 24px 16px 64px;
         }
 
         .page-header {
@@ -214,7 +214,7 @@
         .discover-feed {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
 
         .discover-card {
@@ -222,6 +222,8 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             overflow: hidden;
+            display: flex;
+            flex-direction: column; /* Mobile default: stacked layout */
             transition: border-color 0.15s ease;
         }
 
@@ -229,13 +231,117 @@
             border-color: #CBD5E1;
         }
 
-        /* Card Header */
+        /* Photo / Media Panel */
+        .card-media-panel {
+            width: 100%;
+            background: #091E33;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .card-media-wrap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-media-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Carousel Controls attached inside Photo Panel */
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.45);
+            border: none;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            cursor: pointer;
+            z-index: 5;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .carousel-btn:hover {
+            background: rgba(0, 0, 0, 0.75);
+            color: #FFFFFF;
+            transform: translateY(-50%) scale(1.08);
+        }
+
+        .carousel-btn.carousel-prev {
+            left: 12px;
+        }
+
+        .carousel-btn.carousel-next {
+            right: 12px;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0;
+            z-index: 5;
+        }
+
+        .carousel-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.15s ease;
+        }
+
+        .carousel-dot.active {
+            background: #FFFFFF;
+            transform: scale(1.2);
+        }
+
+        /* Info Panel (Header + Caption + Engagement) */
+        .card-info-panel {
+            width: 100%;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+
         .card-header {
-            padding: 14px 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 14px;
             border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
         }
 
         .card-header-left {
@@ -243,11 +349,12 @@
             align-items: center;
             gap: 12px;
             min-width: 0;
+            flex: 1;
         }
 
         .card-avatar {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
             background: #F8FAFC;
@@ -267,13 +374,21 @@
 
         .card-avatar-placeholder {
             font-size: 1.25rem;
-            color: var(--navy-subtle);
+            color: var(--primary);
             line-height: 1;
         }
 
         .card-bus-info {
             display: flex;
             flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .card-bus-name-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
             min-width: 0;
         }
 
@@ -285,111 +400,71 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .card-bus-name:hover {
+            color: var(--primary);
+        }
+
+        .card-verified-icon {
+            color: var(--primary);
+            font-size: 0.95rem;
+            flex-shrink: 0;
         }
 
         .card-bus-category {
             font-size: 0.78rem;
             color: var(--navy-muted);
+            font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
         .card-timestamp {
             font-size: 0.8rem;
             color: var(--navy-subtle);
             flex-shrink: 0;
-            margin-left: 8px;
+            white-space: nowrap;
         }
 
-        /* Photo / Carousel Area: Standard Instagram 4:5 Portrait Ratio */
-        .card-media-wrap {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 4 / 5;
-            background: #000000;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            user-select: none;
-        }
-
-        .card-media-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid var(--border-color);
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--navy-dark);
-            cursor: pointer;
-            transition: all 0.15s ease;
-            z-index: 2;
-        }
-
-        .carousel-btn:hover {
-            background: #FFFFFF;
-            color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .carousel-btn.carousel-prev {
-            left: 10px;
-        }
-
-        .carousel-btn.carousel-next {
-            right: 10px;
-        }
-
-        .carousel-dots {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 0 2px;
-        }
-
-        .carousel-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #CBD5E1;
-            transition: all 0.15s ease;
-            cursor: pointer;
-            border: none;
-            padding: 0;
-        }
-
-        .carousel-dot.active {
-            background: var(--primary);
-        }
-
-        /* Card Content & Action Area */
         .card-body {
-            padding: 14px 16px;
+            flex: 1;
+            padding: 14px 0;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-        .card-actions-row {
+        .card-body::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .card-body::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        .card-caption {
+            font-size: 0.92rem;
+            color: var(--navy-dark);
+            line-height: 1.5;
+            white-space: pre-line;
+            word-break: break-word;
+        }
+
+        .card-footer {
+            padding-top: 12px;
+            border-top: 1px solid var(--border-subtle);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
+            margin-top: auto;
         }
 
         .btn-like-post {
@@ -435,13 +510,6 @@
         .btn-like-post:disabled {
             opacity: 0.55;
             cursor: not-allowed;
-        }
-
-        .card-caption {
-            font-size: 0.92rem;
-            color: var(--navy-dark);
-            line-height: 1.45;
-            word-break: break-word;
         }
 
         /* 4. Pagination / Load More */
@@ -511,6 +579,60 @@
             to { transform: rotate(360deg); }
         }
 
+        /* 7. Responsive Breakpoints (Matching Lightbox Architecture) */
+        @media (min-width: 768px) {
+            .discover-container {
+                max-width: 880px;
+                padding: 36px 20px 72px;
+            }
+
+            .discover-card {
+                flex-direction: row;
+                height: 520px;
+            }
+
+            .card-media-panel {
+                width: 60%;
+                height: 100%;
+                flex-shrink: 0;
+            }
+
+            .card-info-panel {
+                width: 40%;
+                height: 100%;
+                border-left: 1px solid var(--border-color);
+                padding: 20px 22px;
+            }
+
+            .card-body {
+                overflow-y: auto;
+                padding-right: 4px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .discover-container {
+                max-width: 470px;
+                padding: 20px 16px 48px;
+            }
+
+            .discover-card {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .card-media-panel {
+                width: 100%;
+                aspect-ratio: 4 / 5;
+            }
+
+            .card-info-panel {
+                width: 100%;
+                padding: 16px;
+                border-left: none;
+            }
+        }
+
         @media (max-width: 640px) {
             .discover-topbar {
                 padding: 0 16px;
@@ -524,14 +646,6 @@
             }
             .topbar-user-email {
                 display: none;
-            }
-            .discover-container {
-                padding: 20px 16px 48px;
-            }
-            .discover-card {
-                border: 1px solid var(--border-color);
-                border-radius: var(--radius-md);
-                overflow: hidden;
             }
         }
     </style>
@@ -891,61 +1005,69 @@
                 avatarHtml = `<i class="ti ti-building-store card-avatar-placeholder"></i>`;
             }
 
-            // Media / Carousel rendering at 4:5 frame
-            let mediaHtml = '';
+            // Media / Carousel rendering inside .card-media-panel
+            let mediaInnerHtml = `
+                <img src="${currentPhoto}" alt="Post photo" class="card-media-img" id="media-img-${post.id}">
+            `;
+
             if (isMulti) {
                 let dotsHtml = '';
                 for (let i = 0; i < photos.length; i++) {
                     dotsHtml += `<button type="button" class="carousel-dot ${i === currentIdx ? 'active' : ''}" data-post-id="${post.id}" data-dot-index="${i}" aria-label="Go to photo ${i + 1}"></button>`;
                 }
 
-                mediaHtml = `
-                    <div class="card-media-wrap" id="media-wrap-${post.id}">
-                        <img src="${currentPhoto}" alt="Post photo" class="card-media-img" id="media-img-${post.id}">
-                        <button type="button" class="carousel-btn carousel-prev" data-post-id="${post.id}" aria-label="Previous photo">
-                            <i class="ti ti-chevron-left"></i>
-                        </button>
-                        <button type="button" class="carousel-btn carousel-next" data-post-id="${post.id}" aria-label="Next photo">
-                            <i class="ti ti-chevron-right"></i>
-                        </button>
-                    </div>
+                mediaInnerHtml += `
+                    <button type="button" class="carousel-btn carousel-prev" data-post-id="${post.id}" aria-label="Previous photo">
+                        <i class="ti ti-chevron-left"></i>
+                    </button>
+                    <button type="button" class="carousel-btn carousel-next" data-post-id="${post.id}" aria-label="Next photo">
+                        <i class="ti ti-chevron-right"></i>
+                    </button>
                     <div class="carousel-dots" id="dots-${post.id}">
                         ${dotsHtml}
-                    </div>
-                `;
-            } else if (photos.length === 1) {
-                mediaHtml = `
-                    <div class="card-media-wrap" id="media-wrap-${post.id}">
-                        <img src="${currentPhoto}" alt="Post photo" class="card-media-img" id="media-img-${post.id}">
                     </div>
                 `;
             }
 
             return `
             <article class="discover-card" id="card-${post.id}" data-post-id="${post.id}">
-                <div class="card-header">
-                    <div class="card-header-left">
-                        <div class="card-avatar" id="avatar-${post.id}">
-                            ${avatarHtml}
-                        </div>
-                        <div class="card-bus-info">
-                            <span class="card-bus-name">${escapeHtml(post.businessName || 'Local Business')}</span>
-                            <span class="card-bus-category">${formatCategoryName(post.businessCategory)}</span>
-                        </div>
+                <!-- Left/Top: Media Photo Panel (~60-65% desktop, 100% mobile) -->
+                <div class="card-media-panel">
+                    <div class="card-media-wrap" id="media-wrap-${post.id}">
+                        ${mediaInnerHtml}
                     </div>
-                    <time class="card-timestamp">${formatRelativeDate(post.createdAt)}</time>
                 </div>
 
-                ${mediaHtml}
+                <!-- Right/Bottom: Info Panel (~35-40% desktop, 100% mobile) -->
+                <div class="card-info-panel">
+                    <div class="card-header">
+                        <div class="card-header-left">
+                            <a href="business.html?id=${post.businessId}" class="card-avatar" id="avatar-${post.id}" style="text-decoration: none; color: inherit;" title="View business profile">
+                                ${avatarHtml}
+                            </a>
+                            <div class="card-bus-info">
+                                <div class="card-bus-name-row">
+                                    <a href="business.html?id=${post.businessId}" class="card-bus-name" title="View business profile">
+                                        ${escapeHtml(post.businessName || 'Local Business')}
+                                    </a>
+                                    <i class="ti ti-circle-check card-verified-icon" title="Verified business"></i>
+                                </div>
+                                <span class="card-bus-category">${formatCategoryName(post.businessCategory)}</span>
+                            </div>
+                        </div>
+                        <time class="card-timestamp">${formatRelativeDate(post.createdAt)}</time>
+                    </div>
 
-                <div class="card-body">
-                    <div class="card-actions-row">
+                    <div class="card-body">
+                        ${post.caption ? `<p class="card-caption">${escapeHtml(post.caption)}</p>` : ''}
+                    </div>
+
+                    <div class="card-footer">
                         <button type="button" class="btn-like-post ${post.isLiked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like post">
                             <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
                             <span class="like-count">${post.likeCount || 0}</span>
                         </button>
                     </div>
-                    ${post.caption ? `<p class="card-caption">${escapeHtml(post.caption)}</p>` : ''}
                 </div>
             </article>
             `;

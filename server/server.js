@@ -43,6 +43,7 @@ const staticOptions = {
 };
 
 app.use(express.static(staticPublicPath, staticOptions));
+app.use(express.static(path.join(staticPublicPath, 'pages'), staticOptions));
 app.use('/public', express.static(staticPublicPath, staticOptions));
 app.use('/pages', express.static(path.join(staticPublicPath, 'pages'), staticOptions));
 app.use('/uploads', express.static(path.join(staticPublicPath, 'uploads'), staticOptions));
@@ -913,6 +914,240 @@ app.delete('/api/posts/:postId/photo', requireAuth, async (req, res) => {
         return res.status(500).json({ error: 'Failed to delete post photo from server disk.' });
     }
 });
+
+// DELETE /api/user/photo or /api/users/:uid/photo - Delete user profile photo from local storage & clear profile
+app.delete(['/api/user/photo', '/api/users/:uid/photo'], async (req, res) => {
+    try {
+        let targetUid = req.params.uid;
+        let photoUrl = req.body?.photoUrl || req.query?.photoUrl;
+        const authHeader = req.headers.authorization;
+
+        // Try extracting UID from Bearer token if available
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split('Bearer ')[1];
+            try {
+                const adminAuth = getAuth();
+                if (adminAuth) {
+                    const decoded = await adminAuth.verifyIdToken(token);
+                    if (decoded && decoded.uid) {
+                        targetUid = decoded.uid;
+                    }
+                }
+            } catch (authErr) {
+                // Token verification fallback
+            }
+        }
+
+        if (!targetUid && req.body?.uid) {
+            targetUid = req.body.uid;
+        }
+
+        // 1. Delete physical photo file from local Express uploads if photoUrl points to /uploads/...
+        if (photoUrl && typeof photoUrl === 'string' && photoUrl.startsWith('/uploads/')) {
+            const relativePath = photoUrl.replace(/^\//, '');
+            const absolutePath = path.join(staticPublicPath, relativePath);
+            if (absolutePath.startsWith(staticPublicPath) && fs.existsSync(absolutePath)) {
+                try {
+                    fs.unlinkSync(absolutePath);
+                    console.log(`Deleted user avatar from disk: ${absolutePath}`);
+                } catch (unlinkErr) {
+                    console.warn(`Could not unlink avatar file: ${unlinkErr.message}`);
+                }
+            }
+        }
+
+        // 2. Clean up user-specific uploads folder if existing
+        if (targetUid) {
+            const possibleDirs = [
+                path.join(staticPublicPath, 'uploads', 'users', targetUid),
+                path.join(staticPublicPath, 'uploads', 'avatars', targetUid)
+            ];
+            for (const dir of possibleDirs) {
+                if (fs.existsSync(dir)) {
+                    try {
+                        fs.rmSync(dir, { recursive: true, force: true });
+                        console.log(`Deleted user upload folder: ${dir}`);
+                    } catch (rmErr) {
+                        console.warn(`Could not delete directory ${dir}:`, rmErr.message);
+                    }
+                }
+            }
+        }
+
+        // 3. Update Firebase Auth profile and Firestore user preferences if targetUid available
+        if (targetUid) {
+            try {
+                const adminAuth = getAuth();
+                if (adminAuth) {
+                    await adminAuth.updateUser(targetUid, { photoURL: null });
+                }
+            } catch (err) {
+                console.warn('Could not clear photoURL on Firebase Auth via admin SDK:', err.message);
+            }
+
+            try {
+                const adminDb = getFirestore();
+                if (adminDb) {
+                    const prefDoc = adminDb.doc(`users/${targetUid}/preferences/commute`);
+                    await prefDoc.set({ photoURL: null, updatedAt: new Date() }, { merge: true });
+                }
+            } catch (err) {
+                console.warn('Could not clear photoURL on Firestore via admin SDK:', err.message);
+            }
+        }
+
+        return res.json({
+            success: true,
+            message: 'Profile photo deleted from local storage and user profile cleared.'
+        });
+    } catch (err) {
+        console.error('Error handling user photo deletion:', err);
+        return res.status(500).json({ error: 'Failed to remove user photo.' });
+    }
+});
+
+// =============================================
+// FEEDBACK NOTIFICATION & STORAGE API
+// =============================================
+const nodemailer = require('nodemailer');
+const { generateFeedbackEmailHtml, generateFeedbackThankYouEmailHtml } = require('./email-template');
+
+function getEmailTransporter() {
+    const user = process.env.GMAIL_USER;
+    const pass = process.env.GMAIL_APP_PASSWORD;
+
+    if (!user || !pass) {
+        return null;
+    }
+
+    return nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user, pass }
+    });
+}
+
+// POST /api/feedback - Auth-gated: Submit feedback, save to Firestore, send admin notification & thank-you email
+app.post('/api/feedback', requireAuth, async (req, res) => {
+    const { category, rating, name, message } = req.body || {};
+    const submitterEmail = req.user && req.user.email ? req.user.email.trim() : null;
+
+    if (!submitterEmail) {
+        return res.status(400).json({ error: 'Your account does not have a verified email address.' });
+    }
+
+    // Server-side validation (matching client-side requirements)
+    if (!category || typeof category !== 'string' || !category.trim()) {
+        return res.status(400).json({ error: 'Feedback category is required.' });
+    }
+
+    const trimmedMessage = typeof message === 'string' ? message.trim() : '';
+    if (!trimmedMessage) {
+        return res.status(400).json({ error: 'Feedback message is required.' });
+    }
+
+    const trimmedCategory = category.trim();
+    const trimmedName = typeof name === 'string' && name.trim() ? name.trim() : (req.user.name || '');
+    const cleanRating = rating ? String(rating).trim() : null;
+    const submissionTime = new Date();
+
+    let firestoreSaved = false;
+    let emailSent = false;
+    let firestoreError = null;
+    let emailError = null;
+
+    // 1. Safety net: Write submission to Firestore 'feedback' collection
+    try {
+        const adminDb = getFirestore();
+        if (adminDb) {
+            await adminDb.collection('feedback').add({
+                category: trimmedCategory,
+                rating: cleanRating,
+                name: trimmedName || null,
+                email: submitterEmail,
+                uid: req.user.uid,
+                message: trimmedMessage,
+                timestamp: submissionTime,
+                createdAt: submissionTime.toISOString()
+            });
+            firestoreSaved = true;
+            console.log(`[FEEDBACK] Saved backup record to Firestore for: ${submitterEmail} (UID: ${req.user.uid})`);
+        }
+    } catch (dbErr) {
+        firestoreError = dbErr.message;
+        console.error('[FEEDBACK] Error saving to Firestore:', dbErr);
+    }
+
+    // 2. Primary notification: Send email to thecalzada@gmail.com via Nodemailer
+    const transporter = getEmailTransporter();
+    try {
+        if (!transporter) {
+            console.warn('[FEEDBACK] GMAIL_USER or GMAIL_APP_PASSWORD not configured in .env. Skipping email notification.');
+        } else {
+            const htmlContent = generateFeedbackEmailHtml({
+                category: trimmedCategory,
+                rating: cleanRating,
+                name: trimmedName,
+                email: submitterEmail,
+                message: trimmedMessage,
+                timestamp: submissionTime
+            });
+
+            await transporter.sendMail({
+                from: `"Calzada Feedback" <${process.env.GMAIL_USER}>`,
+                to: 'thecalzada@gmail.com',
+                replyTo: submitterEmail,
+                subject: `[Calzada Feedback] ${trimmedCategory} — from ${trimmedName || 'Authenticated User'}`,
+                html: htmlContent
+            });
+            emailSent = true;
+            console.log(`[FEEDBACK] Notification email dispatched successfully to thecalzada@gmail.com for: ${submitterEmail}`);
+        }
+    } catch (mailErr) {
+        emailError = mailErr.message;
+        console.error('[FEEDBACK] Error sending notification email:', mailErr);
+    }
+
+    // 3. Auto thank-you email to the submitter (non-fatal if it fails)
+    let thankYouEmailSent = false;
+    if (transporter && submitterEmail) {
+        try {
+            const thankYouHtml = generateFeedbackThankYouEmailHtml({
+                name: trimmedName,
+                category: trimmedCategory,
+                message: trimmedMessage
+            });
+
+            await transporter.sendMail({
+                from: `"Calzada" <${process.env.GMAIL_USER}>`,
+                to: submitterEmail,
+                subject: 'Thank you for your feedback! — Calzada',
+                html: thankYouHtml
+            });
+            thankYouEmailSent = true;
+            console.log(`[FEEDBACK] Auto thank-you email sent successfully to submitter: ${submitterEmail}`);
+        } catch (thankYouErr) {
+            console.error('[FEEDBACK] Error sending thank-you email to submitter:', thankYouErr.message);
+            // Do not fail the main submission
+        }
+    }
+
+    // If both Firestore and email fail, return 500 error
+    if (!firestoreSaved && !emailSent) {
+        return res.status(500).json({
+            error: 'Failed to process feedback submission. Please try again later.',
+            details: process.env.NODE_ENV === 'development' ? { firestoreError, emailError } : undefined
+        });
+    }
+
+    return res.json({
+        success: true,
+        message: "Thank you! We've received your feedback.",
+        firestoreSaved,
+        emailSent,
+        thankYouEmailSent
+    });
+});
+
 
 
 const PORT = process.env.PORT || 5000;

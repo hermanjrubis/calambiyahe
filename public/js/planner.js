@@ -669,9 +669,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const categoryBar = document.getElementById('mapCategoryBar');
     const catClearBtn = document.getElementById('mapCatClearBtn');
     const catFadeOverlay = document.getElementById('categoryScrollFade');
+    const chipHighlight = document.getElementById('chipHighlight');
 
     if (categoryBar) {
         const segments = categoryBar.querySelectorAll('.map-segment-btn');
+
+        // ── Single Sliding Highlight Element ──────────────────────────────────
+        function moveHighlightTo(chipElement) {
+            if (!chipHighlight || !chipElement) return;
+            chipHighlight.style.left = chipElement.offsetLeft + 'px';
+            chipHighlight.style.width = chipElement.offsetWidth + 'px';
+            chipHighlight.style.opacity = '1';
+        }
+
+        function hideHighlight() {
+            if (!chipHighlight) return;
+            chipHighlight.style.opacity = '0';
+        }
 
         // Toggle fade overlay visibility based on horizontal scroll position
         const updateCategoryScrollFade = () => {
@@ -687,7 +701,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Standard scroll event listener (broadly supported across all browsers)
         categoryBar.addEventListener('scroll', updateCategoryScrollFade, { passive: true });
-        window.addEventListener('resize', updateCategoryScrollFade, { passive: true });
+        window.addEventListener('resize', () => {
+            updateCategoryScrollFade();
+            const activeBtn = categoryBar.querySelector('.map-segment-btn.active');
+            if (activeBtn) {
+                moveHighlightTo(activeBtn);
+            }
+        }, { passive: true });
 
         // Wheel handler: support trackpad and mouse-wheel horizontal scrolling in desktop/emulation mode
         categoryBar.addEventListener('wheel', (e) => {
@@ -702,25 +722,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Initial check and deferred checks for layout/webfonts settling
         updateCategoryScrollFade();
-        setTimeout(updateCategoryScrollFade, 100);
-        setTimeout(updateCategoryScrollFade, 400);
+        const initialActive = categoryBar.querySelector('.map-segment-btn.active');
+        if (initialActive) {
+            moveHighlightTo(initialActive);
+        } else {
+            hideHighlight();
+        }
 
         const setCategoryActive = (category) => {
-            let activeFound = false;
+            let activeChip = null;
             segments.forEach(btn => {
                 const btnCat = btn.getAttribute('data-category');
                 if (btnCat === category && category !== 'none') {
                     btn.classList.add('active');
                     btn.setAttribute('aria-selected', 'true');
-                    activeFound = true;
+                    activeChip = btn;
                 } else {
                     btn.classList.remove('active');
                     btn.setAttribute('aria-selected', 'false');
                 }
             });
 
+            if (activeChip) {
+                moveHighlightTo(activeChip);
+            } else {
+                hideHighlight();
+            }
+
             if (catClearBtn) {
-                if (activeFound) {
+                if (activeChip) {
                     catClearBtn.classList.add('visible');
                 } else {
                     catClearBtn.classList.remove('visible');
@@ -730,7 +760,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Recalculate fade overlay visibility in case Clear button appearing/disappearing resized the container
             requestAnimationFrame(updateCategoryScrollFade);
 
-            renderCategoryPlaces(activeFound ? category : 'none');
+            renderCategoryPlaces(activeChip ? category : 'none');
         };
 
         segments.forEach(btn => {
