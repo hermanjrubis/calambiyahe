@@ -237,4 +237,89 @@
         window.addEventListener('pageshow', fadeOut);
         window.addEventListener('load', fadeOut);
     }
+
+    // ── PAGE EXIT TRANSITION ────────────────────────────────────────────────
+    // Intercept internal same-origin link clicks to choreograph a smooth exit:
+    // 1. Instantly dismiss any open drawer/overlay (prevents frozen blur artifacts)
+    // 2. Fade out the page body via .page-is-exiting CSS class
+    // 3. Navigate after the fade completes (150ms)
+
+    function isInternalLink(anchor) {
+        if (!anchor || !anchor.href) return false;
+        // Skip hash-only, javascript:, mailto:, tel:, and external links
+        if (anchor.getAttribute('href').startsWith('#')) return false;
+        if (anchor.getAttribute('href').startsWith('javascript:')) return false;
+        if (anchor.getAttribute('href').startsWith('mailto:')) return false;
+        if (anchor.getAttribute('href').startsWith('tel:')) return false;
+        // Must be same origin
+        try {
+            const url = new URL(anchor.href, window.location.origin);
+            if (url.origin !== window.location.origin) return false;
+            // Must link to an .html page (not an asset, API endpoint, etc.)
+            if (!url.pathname.endsWith('.html') && !url.pathname.endsWith('/')) return false;
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    document.addEventListener('click', function (e) {
+        // Find closest <a> ancestor (handles clicks on child spans/icons inside links)
+        const anchor = e.target.closest('a');
+        if (!anchor || !isInternalLink(anchor)) return;
+
+        // Skip if modifier keys are held (open in new tab, etc.)
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+        // Skip if target="_blank"
+        if (anchor.target === '_blank') return;
+
+        e.preventDefault();
+        const href = anchor.href;
+
+        // 1. Instantly dismiss any open drawer/overlay to prevent frozen blur
+        const sd = document.getElementById('sideDrawer');
+        const so = document.getElementById('sideDrawerOverlay');
+        if (sd && sd.classList.contains('open')) {
+            sd.style.transition = 'none';
+            sd.classList.remove('open');
+        }
+        if (so && so.classList.contains('visible')) {
+            so.style.transition = 'none';
+            so.classList.remove('visible');
+        }
+        // Also dismiss nav-center floating card if open
+        const nc = document.getElementById('navLinks');
+        if (nc && nc.classList.contains('active')) {
+            nc.classList.remove('active');
+        }
+        document.body.style.overflow = '';
+
+        // 2. Fade out the page
+        document.body.classList.add('page-is-exiting');
+
+        // 3. Navigate after fade completes
+        setTimeout(function () {
+            window.location.href = href;
+        }, 160);
+    }, true); // Use capture phase to intercept before other handlers
+
+    // ── BFCACHE & VISIBILITY SAFEGUARDS ────────────────────────────────────
+    // Ensure page-is-exiting is always cleared when the page becomes visible again
+
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) {
+            // Restored from bfcache — remove exit class and ensure body is visible
+            document.body.classList.remove('page-is-exiting');
+            document.body.classList.add('fouc-ready');
+            // Remove skeleton overlay if it was left over
+            const skWrap = document.getElementById('skeleton-overlay');
+            if (skWrap) skWrap.remove();
+        }
+    });
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+            document.body.classList.remove('page-is-exiting');
+        }
+    });
 })();

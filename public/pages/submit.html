@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2">
 
     <style>
         :root {
@@ -49,29 +50,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* 1. Loading & Auth Checking */
-        .loading-overlay {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            gap: 16px;
-            color: var(--navy-muted);
-        }
-
-        .spinner {
-            width: 38px;
-            height: 38px;
-            border: 3px solid #E2E8F0;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
 
         /* 2. Top Bar */
         .submit-topbar {
@@ -680,10 +658,10 @@
 
 <body>
 
-    <!-- 1. Checking Auth State Spinner -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="spinner"></div>
-        <p>Checking authentication...</p>
+    <!-- 1. Checking Auth State Gate -->
+    <div class="auth-gate" id="loadingOverlay" role="status" aria-live="polite">
+        <div class="auth-gate-bar"></div>
+        <p class="auth-gate-text">Checking authentication...</p>
     </div>
 
     <!-- 2. Application Top Bar -->
@@ -970,6 +948,18 @@
             submitTopbar.style.display = 'flex';
             submitContainer.style.display = 'block';
         });
+
+        // Quiet timeout fallback if auth check hangs
+        setTimeout(() => {
+            if (loadingOverlay && loadingOverlay.style.display !== 'none' && !currentUser) {
+                loadingOverlay.innerHTML = `
+                    <div class="quiet-error-state">
+                        <p class="quiet-error-text">Couldn't load this right now. Try refreshing.</p>
+                        <button type="button" class="quiet-error-action" onclick="window.location.reload()">Refresh</button>
+                    </div>
+                `;
+            }
+        }, 8000);
 
         if (submitSignOutBtn) {
             submitSignOutBtn.addEventListener('click', async () => {

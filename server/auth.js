@@ -43,32 +43,9 @@ function initFirebaseAdmin() {
 initFirebaseAdmin();
 
 /**
- * Helper to upsert user into PostgreSQL users table on request
+ * Reusable Express Auth Middleware (Firebase Admin Token Verification)
  */
-async function syncUserToDb(pool, user) {
-    if (!pool || !user || !user.uid) return;
-    try {
-        const query = `
-            INSERT INTO users (id, email, display_name)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (id) DO UPDATE 
-            SET email = EXCLUDED.email,
-                display_name = COALESCE(EXCLUDED.display_name, users.display_name);
-        `;
-        await pool.query(query, [
-            user.uid,
-            user.email || null,
-            user.name || null
-        ]);
-    } catch (err) {
-        console.error('Error syncing user to database:', err);
-    }
-}
-
-/**
- * Reusable Express Auth Middleware
- */
-function createAuthMiddleware(pool) {
+function createAuthMiddleware() {
     return async function requireAuth(req, res, next) {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -89,11 +66,6 @@ function createAuthMiddleware(pool) {
                 admin: decodedToken.admin === true
             };
 
-            // Sync user to PostgreSQL users table
-            if (pool) {
-                await syncUserToDb(pool, req.user);
-            }
-
             next();
         } catch (error) {
             console.error('Firebase token verification error:', error.message);
@@ -109,6 +81,6 @@ module.exports = {
     getAuth,
     getApps,
     getApp,
-    createAuthMiddleware,
-    syncUserToDb
+    createAuthMiddleware
 };
+

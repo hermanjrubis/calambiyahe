@@ -1,4 +1,4 @@
-﻿# Calambiyahe (Calzada)
+# Calambiyahe (Calzada)
 
 Commuting guide and AI assistant for Calamba City.
 
@@ -16,9 +16,9 @@ cp .env.example .env
 `
 Open .env and fill in your actual credentials:
 - PORT=5000
-- DATABASE_URL=postgresql://user:password@localhost:5432/calambiyahe
 - GROQ_API_KEY=your_actual_groq_api_key
 - NODE_ENV=development
+
 
 > [!WARNING]
 > Do NOT commit your real .env file to version control. It is automatically ignored in .gitignore.

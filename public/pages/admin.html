@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2">
 
     <style>
         :root {
@@ -57,28 +58,6 @@
         /* ====================================================
            1. INITIAL LOADING & ACCESS DENIED STATES
            ==================================================== */
-        .loading-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80vh;
-            gap: 16px;
-            color: var(--navy-muted);
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #E2E8F0;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
 
         .access-denied-container {
             display: none;
@@ -1130,10 +1109,10 @@
 
 <body>
 
-    <!-- 1. Checking / Loading State -->
-    <div class="loading-state" id="loadingState">
-        <div class="spinner"></div>
-        <p>Verifying administrator credentials...</p>
+    <!-- 1. Checking / Loading Auth Gate -->
+    <div class="auth-gate" id="loadingState" role="status" aria-live="polite">
+        <div class="auth-gate-bar"></div>
+        <p class="auth-gate-text">Verifying administrator credentials...</p>
     </div>
 
     <!-- 2. Access Denied State (Not Logged In OR Non-Admin) -->
@@ -1998,6 +1977,18 @@
                 `;
             }
         });
+
+        // Quiet timeout fallback if admin verification hangs
+        setTimeout(() => {
+            if (loadingState && loadingState.style.display !== 'none') {
+                loadingState.innerHTML = `
+                    <div class="quiet-error-state">
+                        <p class="quiet-error-text">Couldn't load this right now. Try refreshing.</p>
+                        <button type="button" class="quiet-error-action" onclick="window.location.reload()">Refresh</button>
+                    </div>
+                `;
+            }
+        }, 8000);
 
         // Sign out buttons
         const handleSignOut = async () => {

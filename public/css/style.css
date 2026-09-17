@@ -4246,7 +4246,7 @@ body.chat-active .chat-toggle-pill {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 24px;
-    align-items: start;
+    align-items: stretch;
 }
 
 /* Nike-Style Card Design */
@@ -4260,6 +4260,7 @@ body.chat-active .chat-toggle-pill {
     border: 0.5px solid #e2e8f0;
     display: flex;
     flex-direction: column;
+    height: 100%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -4280,6 +4281,16 @@ body.chat-active .chat-toggle-pill {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+}
+
+.ref-img-container img,
+.ref-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
 }
 
 .img-placeholder {
@@ -4311,7 +4322,8 @@ body.chat-active .chat-toggle-pill {
     padding: 16px 16px 18px;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
+    flex: 1 1 auto;
+    justify-content: flex-start;
 }
 
 .ref-card h3 {
@@ -4320,8 +4332,15 @@ body.chat-active .chat-toggle-pill {
     font-weight: 700;
     color: #111827;
     padding: 0;
-    margin: 0 0 4px 0;
-    line-height: 1.25;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 2.6em;
 }
 
 .card-subtitle {
@@ -4330,6 +4349,10 @@ body.chat-active .chat-toggle-pill {
     font-weight: 400;
     margin: 0;
     line-height: 1.35;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
 }
 
 /* Empty State */
@@ -4475,11 +4498,22 @@ body.chat-active .chat-toggle-pill {
         font-size: 0.92rem;
         line-height: 1.25;
         margin-bottom: 4px;
+        min-height: 2.5em;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .card-subtitle {
         font-size: 0.78rem;
         line-height: 1.3;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
     }
 
     .img-placeholder ion-icon {
@@ -7006,23 +7040,26 @@ input#searchInput,
 /* =============================================
    ESTABLISHMENT FOCUS PROFILE DROPDOWN (280px)
    ============================================= */
-.establishment-profile-menu {
-    position: absolute;
+.establishment-profile-menu,
+.user-profile-menu {
+    position: absolute !important;
     top: 64px;
     right: 20px;
-    width: 280px;
-    padding: 14px;
-    border-radius: 20px;
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 16px 40px rgba(4, 44, 83, 0.16), 0 2px 8px rgba(0, 0, 0, 0.04);
+    width: 280px !important;
+    padding: 14px 16px !important;
+    border-radius: 20px !important;
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    box-shadow: 0 16px 40px rgba(4, 44, 83, 0.20), 0 2px 10px rgba(0, 0, 0, 0.08) !important;
     display: none;
-    flex-direction: column;
-    z-index: 250;
+    flex-direction: column !important;
+    z-index: 2000 !important;
     font-family: 'Outfit', sans-serif;
+    box-sizing: border-box !important;
 }
 
-.establishment-profile-menu.open {
+.establishment-profile-menu.open,
+.user-profile-menu.open {
     display: flex !important;
     animation: userMenuFade 0.2s ease forwards;
 }
@@ -7261,6 +7298,36 @@ input#searchInput,
 .profile-nav-btn.logout-btn:hover .nav-btn-icon {
     color: #B91C1C;
 }
+
+/* Global SVG & Utility Size Caps */
+.w-5 {
+    width: 20px !important;
+    max-width: 20px !important;
+}
+
+.h-5 {
+    height: 20px !important;
+    max-height: 20px !important;
+}
+
+.nav-btn-icon svg,
+.profile-nav-btn svg,
+.stat-icon svg,
+.stat-pill-btn svg {
+    width: 20px !important;
+    height: 20px !important;
+    max-width: 20px !important;
+    max-height: 20px !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+.user-profile-menu svg,
+.establishment-profile-menu svg {
+    max-width: 24px !important;
+    max-height: 24px !important;
+}
+
 
 /* ==========================================================================
    CALZADA UNIFIED MODAL & CARD DESIGN SYSTEM
@@ -10023,18 +10090,20 @@ input#searchInput,
 .drawer-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(4, 44, 83, 0.45);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    z-index: 10400;
+    background: rgba(4, 44, 83, 0.45) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    z-index: 10400 !important;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+    pointer-events: none;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.35s !important;
 }
 
 .drawer-overlay.visible {
-    opacity: 1;
-    visibility: visible;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
 }
 
 .side-drawer {
@@ -10044,9 +10113,9 @@ input#searchInput,
     bottom: 0;
     width: 295px;
     max-width: 82vw;
-    z-index: 10500;
+    z-index: 10500 !important;
     transform: translateX(100%);
-    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.42s cubic-bezier(0.32, 0.72, 0, 1) !important;
     display: flex;
     flex-direction: column;
     background-color: #FFFFFF;
@@ -10056,6 +10125,7 @@ input#searchInput,
     background-size: 20px 20px, 100% 100%;
     border-left: 1px solid rgba(226, 232, 240, 0.9);
     box-shadow: -10px 0 36px rgba(4, 44, 83, 0.14), -2px 0 10px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
 }
 
 @media (min-width: 768px) {
@@ -10065,7 +10135,7 @@ input#searchInput,
 }
 
 .side-drawer.open {
-    transform: translateX(0);
+    transform: translateX(0) !important;
 }
 
 .drawer-top {
@@ -10142,20 +10212,30 @@ input#searchInput,
     transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.drawer-links a:hover,
-.drawer-nav-item:hover {
-    color: #378ADD;
-    background: rgba(55, 138, 221, 0.05);
-    border-left-color: #378ADD;
-    padding-left: 28px;
+@media (hover: hover) {
+    .drawer-links a:hover,
+    .drawer-nav-item:hover {
+        color: #378ADD;
+        background: rgba(55, 138, 221, 0.05);
+        border-left-color: #378ADD;
+        padding-left: 28px;
+    }
+}
+
+.drawer-links a:focus:not(.active),
+.drawer-nav-item:focus:not(.active) {
+    color: #042C53 !important;
+    background: transparent !important;
+    border-left-color: transparent !important;
+    outline: none;
 }
 
 .drawer-links a.active,
 .drawer-nav-item.active {
-    color: #378ADD;
-    font-weight: 700;
-    background: rgba(55, 138, 221, 0.08);
-    border-left-color: #378ADD;
+    color: #378ADD !important;
+    font-weight: 700 !important;
+    background: rgba(55, 138, 221, 0.08) !important;
+    border-left-color: #378ADD !important;
 }
 
 .drawer-separator {

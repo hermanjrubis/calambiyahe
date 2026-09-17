@@ -1103,20 +1103,24 @@ function renderVisitsList() {
         return;
     }
 
-    container.innerHTML = currentVisits.map(v => `
+    container.innerHTML = currentVisits.map(v => {
+        const vUrl = (v.lat != null && v.lng != null)
+            ? `planner.html?destLat=${v.lat}&destLng=${v.lng}&destName=${encodeURIComponent(v.placeName)}&dlat=${v.lat}&dlng=${v.lng}&dest=${encodeURIComponent(v.placeName)}`
+            : `planner.html?destName=${encodeURIComponent(v.placeName)}&dest=${encodeURIComponent(v.placeName)}`;
+        return `
         <div class="visit-item-card">
             <div class="visit-item-info">
                 <h4 class="visit-item-name" title="${escapeHtml(v.placeName)}">${escapeHtml(v.placeName)}</h4>
                 <span class="visit-item-subtitle">${escapeHtml(v.category || 'Establishment')}${v.date ? ' • ' + escapeHtml(v.date) : ''}</span>
             </div>
             <div class="visit-item-actions">
-                <a href="planner.html?destName=${encodeURIComponent(v.placeName)}" class="saved-route-pill-btn" title="Plan route to ${escapeHtml(v.placeName)}">
+                <a href="${vUrl}" class="saved-route-pill-btn" title="Plan route to ${escapeHtml(v.placeName)}">
                     <span>Route</span>
                     <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
                 </a>
             </div>
         </div>
-    `).join('');
+    `;}).join('');
 }
 
 function getCategoryIconSvg(category = '') {
@@ -1163,7 +1167,11 @@ function renderSavedList() {
         <div class="saved-timeline-track-wrap">
             <div class="saved-timeline-track" aria-hidden="true"></div>
             <div class="saved-timeline-items">
-                ${currentSaved.map(s => `
+                ${currentSaved.map(s => {
+                    const sUrl = (s.lat != null && s.lng != null)
+                        ? `planner.html?destLat=${s.lat}&destLng=${s.lng}&destName=${encodeURIComponent(s.placeName)}&dlat=${s.lat}&dlng=${s.lng}&dest=${encodeURIComponent(s.placeName)}`
+                        : `planner.html?destName=${encodeURIComponent(s.placeName)}&dest=${encodeURIComponent(s.placeName)}`;
+                    return `
                     <div class="saved-stop-row" data-placename="${escapeHtml(s.placeName)}">
                         <div class="saved-stop-node-wrap">
                             <div class="saved-stop-node" title="Route stop"></div>
@@ -1174,7 +1182,7 @@ function renderSavedList() {
                                 <span class="saved-stop-subtitle">${escapeHtml(s.category || 'Establishment')}</span>
                             </div>
                             <div class="saved-stop-actions">
-                                <a href="planner.html?destName=${encodeURIComponent(s.placeName)}" class="saved-route-pill-btn" title="Plan route to ${escapeHtml(s.placeName)}">
+                                <a href="${sUrl}" class="saved-route-pill-btn" title="Plan route to ${escapeHtml(s.placeName)}">
                                     <span>Route</span>
                                     <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
                                 </a>
@@ -1184,7 +1192,7 @@ function renderSavedList() {
                             </div>
                         </div>
                     </div>
-                `).join('')}
+                `;}).join('')}
             </div>
         </div>
     `;

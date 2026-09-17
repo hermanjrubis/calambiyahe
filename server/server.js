@@ -2,7 +2,6 @@ const express = require('express');
 const { Groq } = require('groq-sdk');
 const cors = require('cors');
 const https = require('https');
-const { Pool } = require('pg');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -13,14 +12,6 @@ if (!process.env.GROQ_API_KEY) {
     console.error('GROO_API_KEY missing in .env');
 }
 
-const isRemoteDb = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('supabase');
-const pool = process.env.DATABASE_URL ? new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: (isRemoteDb || process.env.NODE_ENV === 'production') ? { rejectUnauthorized: false } : false,
-    max: 4,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
-}) : null;
 
 const app = express();
 app.use(cors());
@@ -123,39 +114,51 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// GET /api/places - Query active places with optional category and proximity filters
-app.get('/api/places', async (req, res) => {
-    if (!pool) {
-        return res.status(500).json({ error: 'Database pool is not configured' });
+// In-memory places dataset loaded from server/data/places.json
+const placesDataPath = path.resolve(__dirname, 'data/places.json');
+let cachedPlaces = [];
+function getPlacesData() {
+    if (cachedPlaces.length === 0 && fs.existsSync(placesDataPath)) {
+        try {
+            cachedPlaces = JSON.parse(fs.readFileSync(placesDataPath, 'utf8'));
+        } catch (e) {
+            console.error('Error loading places.json:', e);
+        }
     }
+    return cachedPlaces;
+}
 
+// Distance helper (Haversine formula in meters)
+function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// GET /api/places - Query active places with optional category and proximity filters
+app.get('/api/places', (req, res) => {
     try {
-        const { category, lat, lng, radius } = req.query;
-
-        let query = `
-            SELECT 
-                p.id, 
-                p.name, 
-                p.category, 
-                p.barangay, 
-                p.municipality, 
-                COALESCE(p.image_path, (SELECT pi.image_path FROM place_images pi WHERE pi.place_id = p.id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1)) AS image_path, 
-                p.description,
-                p.full_address,
-                p.phone,
-                p.website,
-                p.opening_hours,
-                ST_Y(p.location::geometry) AS lat,
-                ST_X(p.location::geometry) AS lng
-            FROM places p
-            WHERE p.is_active = TRUE
-        `;
-
-        const queryParams = [];
+        const { category, lat, lng, radius, q } = req.query;
+        let places = [...getPlacesData()];
 
         if (category && category.trim() !== '' && category.trim().toLowerCase() !== 'all') {
-            queryParams.push(`%${category.trim().toLowerCase()}%`);
-            query += ` AND LOWER(p.category) LIKE $${queryParams.length}`;
+            const catNorm = category.trim().toLowerCase();
+            places = places.filter(p => (p.category || '').toLowerCase().includes(catNorm));
+        }
+
+        if (q && q.trim() !== '') {
+            const queryTerm = q.trim().toLowerCase();
+            places = places.filter(p => 
+                (p.name || '').toLowerCase().includes(queryTerm) ||
+                (p.barangay || '').toLowerCase().includes(queryTerm) ||
+                (p.description || '').toLowerCase().includes(queryTerm) ||
+                (p.full_address || '').toLowerCase().includes(queryTerm)
+            );
         }
 
         if (lat !== undefined && lng !== undefined && radius !== undefined) {
@@ -164,74 +167,55 @@ app.get('/api/places', async (req, res) => {
             const parsedRadius = parseFloat(radius);
 
             if (!isNaN(parsedLat) && !isNaN(parsedLng) && !isNaN(parsedRadius)) {
-                queryParams.push(parsedLng);
-                const lngIdx = queryParams.length;
-
-                queryParams.push(parsedLat);
-                const latIdx = queryParams.length;
-
-                queryParams.push(parsedRadius);
-                const radIdx = queryParams.length;
-
-                query += ` AND ST_DWithin(p.location, ST_SetSRID(ST_MakePoint($${lngIdx}, $${latIdx}), 4326)::geography, $${radIdx})`;
+                places = places.filter(p => {
+                    if (p.lat == null || p.lng == null) return false;
+                    const dist = haversineDistanceMeters(parsedLat, parsedLng, p.lat, p.lng);
+                    return dist <= parsedRadius;
+                });
             }
         }
 
-        query += ` ORDER BY p.name ASC`;
-
-        const result = await pool.query(query, queryParams);
-        return res.json(result.rows);
+        places.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        return res.json(places);
     } catch (error) {
         console.error('Error in GET /api/places:', error);
-        return res.status(500).json({ error: 'Failed to fetch places from database' });
+        return res.status(500).json({ error: 'Failed to fetch places' });
     }
+});
+
+// GET /api/places/search - Dedicated search endpoint
+app.get('/api/places/search', (req, res) => {
+    const q = (req.query.q || '').trim().toLowerCase();
+    let places = getPlacesData();
+    if (q) {
+        places = places.filter(p => 
+            (p.name || '').toLowerCase().includes(q) ||
+            (p.barangay || '').toLowerCase().includes(q) ||
+            (p.description || '').toLowerCase().includes(q) ||
+            (p.full_address || '').toLowerCase().includes(q)
+        );
+    }
+    return res.json(places);
 });
 
 // GET /api/places/:id - Return full detail for a single place
-app.get('/api/places/:id', async (req, res) => {
-    if (!pool) return res.status(500).json({ error: 'Database connection error' });
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
+app.get('/api/places/:id', (req, res) => {
+    const rawId = req.params.id;
+    const places = getPlacesData();
+    const place = places.find(p => String(p.id) === String(rawId) || p.slug === rawId || (p.name && p.name.toLowerCase() === rawId.toLowerCase()));
 
-    try {
-        const result = await pool.query(
-            `SELECT 
-                p.id, 
-                p.name, 
-                p.category, 
-                p.barangay, 
-                p.municipality, 
-                COALESCE(p.image_path, (SELECT pi.image_path FROM place_images pi WHERE pi.place_id = p.id ORDER BY pi.display_order ASC, pi.id ASC LIMIT 1)) AS image_path, 
-                p.description,
-                p.full_address,
-                p.phone,
-                p.website,
-                p.opening_hours,
-                ST_Y(p.location::geometry) AS lat,
-                ST_X(p.location::geometry) AS lng
-             FROM places p
-             WHERE p.id = $1 AND p.is_active = TRUE`,
-            [placeId]
-        );
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Place not found' });
-        }
-
-        return res.json(result.rows[0]);
-    } catch (err) {
-        console.error('Error fetching place by ID:', err);
-        return res.status(500).json({ error: 'Failed to fetch place' });
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
     }
+
+    return res.json(place);
 });
 
 // POST /api/places/:id/save - Toggle / Save a place bookmark
-app.post('/api/places/:id/save', async (req, res) => {
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
-    const { userId, saved } = req.body || {};
+app.post('/api/places/:id/save', (req, res) => {
+    const placeId = req.params.id;
+    const { saved } = req.body || {};
 
-    // Calzada uses Firebase Auth / Firestore & localStorage on the client for user bookmarks
     return res.json({ 
         success: true, 
         placeId, 
@@ -241,73 +225,54 @@ app.post('/api/places/:id/save', async (req, res) => {
 });
 
 // GET /api/places/:id/images - Return images for a place
-app.get('/api/places/:id/images', async (req, res) => {
-    if (!pool) return res.status(500).json({ error: 'Database connection error' });
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
+app.get('/api/places/:id/images', (req, res) => {
+    const rawId = req.params.id;
+    const places = getPlacesData();
+    const place = places.find(p => String(p.id) === String(rawId) || p.slug === rawId);
 
-    try {
-        const result = await pool.query(
-            'SELECT id, place_id, image_path, display_order FROM place_images WHERE place_id = $1 ORDER BY display_order ASC, id ASC',
-            [placeId]
-        );
-
-        if (result.rows.length === 0) {
-            const placeRes = await pool.query('SELECT image_path FROM places WHERE id = $1', [placeId]);
-            if (placeRes.rows.length > 0 && placeRes.rows[0].image_path) {
-                return res.json([{ id: 0, place_id: placeId, image_path: placeRes.rows[0].image_path, display_order: 0 }]);
-            }
-        }
-
-        return res.json(result.rows);
-    } catch (err) {
-        console.error('Error fetching place images:', err);
-        return res.status(500).json({ error: 'Failed to fetch place images' });
+    if (place && place.image_path) {
+        return res.json([{ id: 1, place_id: place.id, image_path: place.image_path, display_order: 0 }]);
     }
+
+    return res.json([]);
 });
 
 const { createAuthMiddleware, getAuth } = require('./auth');
 const { getFirestore } = require('firebase-admin/firestore');
-const requireAuth = createAuthMiddleware(pool);
+const requireAuth = createAuthMiddleware();
 
 // GET /api/places/:id/rating - Return average rating and total count for a place (Public)
 app.get('/api/places/:id/rating', async (req, res) => {
-    if (!pool) return res.status(500).json({ error: 'Database connection error' });
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
+    const placeId = String(req.params.id);
 
     try {
-        const result = await pool.query(
-            `SELECT 
-                COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS average_rating,
-                COUNT(rating)::int AS total_ratings
-             FROM place_ratings
-             WHERE place_id = $1`,
-            [placeId]
-        );
-
-        const row = result.rows[0] || {};
-        console.log(`[SERVER GET /api/places/${placeId}/rating] avg=${row.average_rating}, total=${row.total_ratings}`);
-        return res.json({
-            average_rating: parseFloat(row.average_rating) || 0,
-            total_ratings: parseInt(row.total_ratings, 10) || 0
+        const adminDb = getFirestore();
+        if (!adminDb) {
+            return res.json({ average_rating: 0, total_ratings: 0 });
+        }
+        const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
+        if (snap.empty) {
+            return res.json({ average_rating: 0, total_ratings: 0 });
+        }
+        let sum = 0;
+        snap.forEach(doc => {
+            sum += Number(doc.data().rating) || 0;
         });
+        const total = snap.size;
+        const avg = total > 0 ? parseFloat((sum / total).toFixed(1)) : 0;
+        return res.json({ average_rating: avg, total_ratings: total });
     } catch (err) {
-        console.error('Error fetching place rating:', err);
-        return res.status(500).json({ error: 'Failed to fetch place rating' });
+        console.warn('Error fetching place rating from Firestore, returning defaults:', err.message);
+        return res.json({ average_rating: 0, total_ratings: 0 });
     }
 });
 
-// GET /api/places/:id/reviews - Return paginated list of reviews with reviewer display name (Public + optional caller review)
+// GET /api/places/:id/reviews - Return paginated list of reviews with reviewer display name
 app.get('/api/places/:id/reviews', async (req, res) => {
-    if (!pool) return res.status(500).json({ error: 'Database connection error' });
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
-
+    const placeId = String(req.params.id);
     const limit = Math.max(1, Math.min(50, parseInt(req.query.limit, 10) || 3));
     const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
 
-    // Optional: Extract authenticated user from Bearer token if provided
     let callerUid = null;
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -316,85 +281,63 @@ app.get('/api/places/:id/reviews', async (req, res) => {
             try {
                 const decoded = await getAuth().verifyIdToken(idToken);
                 callerUid = decoded.uid;
-            } catch (ignore) {
-                // If token invalid/expired, gracefully proceed as unauthenticated public caller
-            }
+            } catch (_) {}
         }
     }
 
     try {
-        // 1. Fetch aggregated stats
-        const statsRes = await pool.query(
-            `SELECT 
-                COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS average_rating,
-                COUNT(rating)::int AS total_ratings
-             FROM place_ratings
-             WHERE place_id = $1`,
-            [placeId]
-        );
-        const statsRow = statsRes.rows[0] || {};
-        const averageRating = parseFloat(statsRow.average_rating) || 0;
-        const totalRatings = parseInt(statsRow.total_ratings, 10) || 0;
-
-        // 2. Fetch paginated reviews joined with users
-        const reviewsRes = await pool.query(
-            `SELECT 
-                pr.id,
-                pr.place_id,
-                pr.user_id,
-                pr.rating,
-                pr.comment_text,
-                pr.created_at,
-                COALESCE(u.display_name, SPLIT_PART(u.email, '@', 1), 'Calzada Commuter') AS reviewer_name
-             FROM place_ratings pr
-             LEFT JOIN users u ON pr.user_id = u.id
-             WHERE pr.place_id = $1
-             ORDER BY pr.created_at DESC
-             LIMIT $2 OFFSET $3`,
-            [placeId, limit, offset]
-        );
-
-        // 3. If caller is authenticated, check for their own review
-        let userReview = null;
-        if (callerUid) {
-            const userReviewRes = await pool.query(
-                `SELECT id, place_id, user_id, rating, comment_text, created_at 
-                 FROM place_ratings 
-                 WHERE place_id = $1 AND user_id = $2`,
-                [placeId, callerUid]
-            );
-            if (userReviewRes.rows.length > 0) {
-                userReview = userReviewRes.rows[0];
-            }
+        const adminDb = getFirestore();
+        if (!adminDb) {
+            return res.json({ place_id: placeId, average_rating: 0, total_ratings: 0, reviews: [], user_review: null, limit, offset, has_more: false });
         }
+        const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
+        const allReviews = [];
+        let userReview = null;
+        let sum = 0;
 
-        console.log(`[SERVER GET /api/places/${placeId}/reviews] callerUid=${callerUid || 'anon'}, avg=${averageRating}, total=${totalRatings}, count=${reviewsRes.rows.length}, hasUserReview=${!!userReview}`);
+        snap.forEach(doc => {
+            const d = doc.data();
+            const rev = {
+                id: doc.id,
+                place_id: placeId,
+                user_id: d.userId,
+                rating: d.rating,
+                comment_text: d.commentText,
+                created_at: d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : d.createdAt) : new Date(),
+                reviewer_name: d.reviewerName || 'Calzada Commuter'
+            };
+            sum += Number(d.rating) || 0;
+            allReviews.push(rev);
+            if (callerUid && d.userId === callerUid) {
+                userReview = rev;
+            }
+        });
+
+        allReviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const totalRatings = allReviews.length;
+        const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
+        const pagedReviews = allReviews.slice(offset, offset + limit);
 
         return res.json({
             place_id: placeId,
             average_rating: averageRating,
             total_ratings: totalRatings,
-            reviews: reviewsRes.rows,
+            reviews: pagedReviews,
             user_review: userReview,
             limit,
             offset,
-            has_more: offset + reviewsRes.rows.length < totalRatings
+            has_more: offset + pagedReviews.length < totalRatings
         });
     } catch (err) {
-        console.error('Error fetching place reviews:', err);
-        return res.status(500).json({ error: 'Failed to fetch reviews' });
+        console.warn('Error fetching place reviews from Firestore:', err.message);
+        return res.json({ place_id: placeId, average_rating: 0, total_ratings: 0, reviews: [], user_review: null, limit, offset, has_more: false });
     }
 });
 
-
 // POST /api/places/:id/rating - Upsert a review/rating tied to authenticated user (Protected)
 app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
-    if (!pool) return res.status(500).json({ error: 'Database connection error' });
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
-
-    const rawRating = req.body ? req.body.rating : null;
-    const rating = parseInt(rawRating, 10);
+    const placeId = String(req.params.id);
+    const rating = parseInt(req.body ? req.body.rating : null, 10);
     if (isNaN(rating) || rating < 1 || rating > 5) {
         return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
     }
@@ -402,93 +345,83 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
     const commentText = req.body && typeof req.body.comment_text === 'string' 
         ? req.body.comment_text.trim() 
         : null;
-
     const userId = req.user.uid;
-    console.log(`[SERVER POST /api/places/${placeId}/rating] userId=${userId}, rating=${rating}, commentText="${commentText}"`);
+    const reviewerName = req.user.name || 'Calzada Commuter';
 
     try {
-        // Upsert the review for (place_id, user_id)
-        const upsertRes = await pool.query(
-            `INSERT INTO place_ratings (place_id, user_id, rating, comment_text, created_at)
-             VALUES ($1, $2, $3, $4, NOW())
-             ON CONFLICT (place_id, user_id)
-             DO UPDATE SET 
-                 rating = EXCLUDED.rating,
-                 comment_text = EXCLUDED.comment_text,
-                 created_at = NOW()
-             RETURNING id, place_id, user_id, rating, comment_text, created_at`,
-            [placeId, userId, rating, commentText]
-        );
-
-        // Fetch updated average and total count
-        const statsRes = await pool.query(
-            `SELECT 
-                COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS average_rating,
-                COUNT(rating)::int AS total_ratings
-             FROM place_ratings
-             WHERE place_id = $1`,
-            [placeId]
-        );
-
-        const statsRow = statsRes.rows[0] || {};
-        const responseData = {
-            message: 'Rating submitted successfully',
-            average_rating: parseFloat(statsRow.average_rating) || 0,
-            total_ratings: parseInt(statsRow.total_ratings, 10) || 0,
-            user_review: upsertRes.rows[0]
+        const adminDb = getFirestore();
+        const reviewDocId = `${placeId}_${userId}`;
+        const reviewRef = adminDb.collection('place_reviews').doc(reviewDocId);
+        const reviewData = {
+            placeId,
+            userId,
+            reviewerName,
+            rating,
+            commentText,
+            updatedAt: new Date()
         };
 
-        console.log(`[SERVER POST SUCCESS] placeId=${placeId}, updatedAvg=${responseData.average_rating}, totalRatings=${responseData.total_ratings}`);
-        return res.json(responseData);
+        await reviewRef.set(reviewData, { merge: true });
+
+        // Fetch updated average and total count
+        const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
+        let sum = 0;
+        snap.forEach(d => { sum += Number(d.data().rating) || 0; });
+        const totalRatings = snap.size;
+        const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
+
+        return res.json({
+            message: 'Rating submitted successfully',
+            average_rating: averageRating,
+            total_ratings: totalRatings,
+            user_review: {
+                id: reviewDocId,
+                place_id: placeId,
+                user_id: userId,
+                rating,
+                comment_text: commentText,
+                reviewer_name: reviewerName
+            }
+        });
     } catch (err) {
-        console.error(`[SERVER POST ERROR] Error submitting place rating for placeId=${placeId}, userId=${userId}:`, err);
+        console.error('Error submitting place rating to Firestore:', err);
         return res.status(500).json({ error: 'Failed to submit place rating' });
     }
 });
 
 // DELETE /api/places/:id/rating - Delete the user's own review for a place (Protected)
 app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
-    if (!pool) return res.status(500).json({ error: 'Database connection error' });
-    const placeId = parseInt(req.params.id, 10);
-    if (isNaN(placeId)) return res.status(400).json({ error: 'Invalid place ID' });
-
+    const placeId = String(req.params.id);
     const userId = req.user.uid;
-    console.log(`[SERVER DELETE /api/places/${placeId}/rating] userId=${userId}`);
 
     try {
-        const deleteRes = await pool.query(
-            `DELETE FROM place_ratings 
-             WHERE place_id = $1 AND user_id = $2
-             RETURNING id`,
-            [placeId, userId]
-        );
-
-        if (deleteRes.rowCount === 0) {
+        const adminDb = getFirestore();
+        const reviewDocId = `${placeId}_${userId}`;
+        const reviewRef = adminDb.collection('place_reviews').doc(reviewDocId);
+        const docSnap = await reviewRef.get();
+        if (!docSnap.exists) {
             return res.status(404).json({ error: 'Review not found or unauthorized to delete' });
         }
 
-        // Fetch updated stats
-        const statsRes = await pool.query(
-            `SELECT 
-                COALESCE(ROUND(AVG(rating)::numeric, 1), 0) AS average_rating,
-                COUNT(rating)::int AS total_ratings
-             FROM place_ratings
-             WHERE place_id = $1`,
-            [placeId]
-        );
+        await reviewRef.delete();
 
-        const statsRow = statsRes.rows[0] || {};
-        console.log(`[SERVER DELETE SUCCESS] placeId=${placeId}, updatedAvg=${statsRow.average_rating}, totalRatings=${statsRow.total_ratings}`);
+        const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
+        let sum = 0;
+        snap.forEach(d => { sum += Number(d.data().rating) || 0; });
+        const totalRatings = snap.size;
+        const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
+
         return res.json({
             message: 'Review deleted successfully',
-            average_rating: parseFloat(statsRow.average_rating) || 0,
-            total_ratings: parseInt(statsRow.total_ratings, 10) || 0
+            average_rating: averageRating,
+            total_ratings: totalRatings
         });
     } catch (err) {
-        console.error('Error deleting place rating:', err);
+        console.error('Error deleting place rating from Firestore:', err);
         return res.status(500).json({ error: 'Failed to delete place rating' });
     }
 });
+
 
 
 app.post('/api/chat', async (req, res) => {
@@ -1152,10 +1085,11 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-if (!process.env.VERCEL) {
+if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
 module.exports = app;
+

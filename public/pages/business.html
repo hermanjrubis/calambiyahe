@@ -16,6 +16,7 @@
 
     <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2">
 
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
@@ -155,8 +156,7 @@
             padding: 0 20px;
         }
 
-        /* Loading & Error States */
-        .page-loading-state,
+        /* Error State */
         .page-error-state {
             display: flex;
             flex-direction: column;
@@ -166,19 +166,6 @@
             text-align: center;
             gap: 16px;
             padding: 40px 20px;
-        }
-
-        .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid #E2E8F0;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
         }
 
         .error-card {
@@ -1099,7 +1086,7 @@
 
                 <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
                 <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.maps">Maps</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
@@ -1253,33 +1240,33 @@
                 <div class="profile-nav-list">
                     <button type="button" class="profile-nav-btn" id="menuMyVisits">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
                         <span class="nav-btn-title">My Visits</span>
                     </button>
                     <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                         </span>
                         <span class="nav-btn-title">Saved Places</span>
                         <span class="saved-count-pill" id="menuSavedCount">(0)</span>
                     </button>
                     <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
                         </span>
                         <span class="nav-btn-title">My Achievements</span>
                     </button>
                     <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </span>
                         <span class="nav-btn-title">Account Settings</span>
                     </button>
                     <!-- My Business Link -->
                     <a href="my-business.html" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </span>
                         <span class="nav-btn-title">My Business</span>
                     </a>
@@ -1289,7 +1276,7 @@
 
                 <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
                     <span class="nav-btn-icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     </span>
                     <span class="nav-btn-title">Log Out</span>
                 </button>
@@ -1344,10 +1331,28 @@
          ==================================================== -->
     <main class="business-container">
 
-        <!-- 1. Page Loading State -->
-        <div class="page-loading-state" id="pageLoading">
-            <div class="spinner"></div>
-            <p>Loading business profile...</p>
+        <!-- 1. Page Loading State (Content-shaped Profile Skeleton) -->
+        <div id="pageLoading" role="status" aria-live="polite">
+            <div class="sk-business-hero">
+                <div class="sk-business-avatar skeleton"></div>
+                <div style="flex: 1; min-width: 0;">
+                    <div class="skeleton" style="width: 50%; height: 26px; margin-bottom: 12px; border-radius: 6px;"></div>
+                    <div class="skeleton" style="width: 70%; height: 14px; margin-bottom: 8px; border-radius: 4px;"></div>
+                    <div class="skeleton" style="width: 40%; height: 14px; border-radius: 4px;"></div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div class="skeleton" style="width: 80px; height: 18px; border-radius: 4px;"></div>
+                <div class="skeleton" style="width: 48px; height: 14px; border-radius: 4px;"></div>
+            </div>
+            <div class="sk-posts-grid-3">
+                <div class="sk-post-square skeleton"></div>
+                <div class="sk-post-square skeleton"></div>
+                <div class="sk-post-square skeleton"></div>
+                <div class="sk-post-square skeleton"></div>
+                <div class="sk-post-square skeleton"></div>
+                <div class="sk-post-square skeleton"></div>
+            </div>
         </div>
 
         <!-- 2. Page Error State (Business Not Found) -->

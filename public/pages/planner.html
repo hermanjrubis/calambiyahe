@@ -16,14 +16,20 @@
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.3">
+    <link rel="stylesheet" href="../css/planner.css?v=2.5.3">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+                for (var i = 0; i < regs.length; i++) regs[i].unregister();
+            });
+        }
+    </script>
     <!-- Pannellum 360 & Calzada Street View Viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <link rel="stylesheet" href="../css/streetview-viewer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -43,16 +49,31 @@
 
     <!-- Map Picker Bottom UI -->
     <div id="mapPickerUI" class="map-picker-ui" style="display:none;">
-        <div class="picker-address" id="mapPickerAddress">Move map to select location...</div>
-        <button class="picker-confirm-btn" id="mapPickerConfirmBtn">Choose This Location</button>
-        <button class="picker-cancel-btn" id="mapPickerCancelBtn">Cancel</button>
+        <div class="picker-drag-handle" aria-hidden="true"></div>
+        <div class="picker-location-row">
+            <div class="picker-pin-badge" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+            </div>
+            <div class="picker-text-wrap">
+                <div class="picker-primary-label" id="mapPickerPrimaryLabel">Move map to select location...</div>
+                <div class="picker-coords-label" id="mapPickerCoordsLabel">--</div>
+            </div>
+        </div>
+        <button class="picker-confirm-btn" id="mapPickerConfirmBtn" type="button">Choose This Location</button>
+        <button class="picker-cancel-btn" id="mapPickerCancelBtn" type="button">Cancel</button>
     </div>
 
-    <!-- Floating Recenter Button -->
-    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map">
-        <svg id="compassSvg" width="24" height="24" viewBox="0 0 24 24" fill="none" style="transition: transform 0.2s;">
-            <path d="M12 2L9 12L12 22L15 12L12 2Z" fill="#94a3b8" />
-            <path d="M12 2L9 12L15 12L12 2Z" fill="#ef4444" />
+    <!-- Floating Recenter Button (Real-time user location) -->
+    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map" aria-label="Re-center map on your location">
+        <svg class="recenter-crosshair-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="7"></circle>
+            <line x1="12" y1="2" x2="12" y2="5"></line>
+            <line x1="12" y1="19" x2="12" y2="22"></line>
+            <line x1="2" y1="12" x2="5" y2="12"></line>
+            <line x1="19" y1="12" x2="22" y2="12"></line>
         </svg>
     </button>
 
@@ -149,7 +170,7 @@
                         <!-- 1. My Visits -->
                         <button type="button" class="profile-nav-btn" id="menuMyVisits">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </span>
                             <span class="nav-btn-title">My Visits</span>
                         </button>
@@ -157,7 +178,7 @@
                         <!-- 2. Saved Places -->
                         <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                             </span>
                             <span class="nav-btn-title">Saved Places</span>
                             <span class="saved-count-pill" id="menuSavedCount">(0)</span>
@@ -166,7 +187,7 @@
                         <!-- 3. My Achievements -->
                         <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
                             </span>
                             <span class="nav-btn-title">My Achievements</span>
                         </button>
@@ -174,7 +195,7 @@
                         <!-- 4. Account Settings -->
                         <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             </span>
                             <span class="nav-btn-title">Account Settings</span>
                         </button>
@@ -182,7 +203,7 @@
                         <!-- 5. My Business -->
                         <a href="my-business.html" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             </span>
                             <span class="nav-btn-title">My Business</span>
                         </a>
@@ -192,7 +213,7 @@
                         <!-- 5. Sign Out Button -->
                         <button type="button" class="profile-nav-btn logout-btn-item" id="logoutBtn">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                             </span>
                             <span class="nav-btn-title" style="color: #DC2626; font-weight: 700;">Log Out</span>
                         </button>
@@ -243,6 +264,13 @@
             <!-- Drag Handle Bar for mobile -->
             <div class="drag-handle-bar ds-drag-handle">
                 <div class="drag-pill"></div>
+            </div>
+
+            <!-- Logo link to homepage -->
+            <div class="ds-brand-header">
+                <a href="index.html" class="ds-brand-link" title="Return to Calzada Homepage">
+                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="ds-brand-logo">
+                </a>
             </div>
 
             <div class="ds-header">
@@ -329,84 +357,137 @@
             </div>
 
             <!-- Full Width Start Journey Button -->
-            <button class="start-journey-btn" id="startJourneyBtn" disabled>START JOURNEY</button>
+            <button class="start-journey-btn" id="startJourneyBtn" disabled>
+                <svg class="start-journey-lock-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a919c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span class="start-journey-text">START JOURNEY</span>
+            </button>
+            <div class="start-journey-helper" id="startJourneyHelper">Enter a destination to continue</div>
         </div>
 
 
         <!-- SCREEN 3: ACTIVE NAVIGATION PANELS -->
 
-        <!-- Top Guide Card (Glassmorphism) -->
-        <div class="active-guide-card glass-panel" id="activeGuideCard" style="display:none;">
-            <div class="guide-top-section">
-                <div class="guide-header">
-                    <b>Guide</b>
-                </div>
+        <!-- 3A. UNIFIED DESKTOP ACTIVE NAVIGATION PANEL (Top-Left ~420px) -->
+        <div class="active-nav-panel" id="activeNavPanel" style="display:none;">
+            <!-- Segmented Mode Toggle (Walk / Jeep) -->
+            <div class="nav-panel-mode-track">
+                <button class="nav-panel-mode-btn" data-mode="walking" type="button" aria-label="Walking route">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                    </svg>
+                    <span>Walk</span>
+                </button>
+                <button class="nav-panel-mode-btn active" data-mode="jeepney" type="button" aria-label="Jeepney route">
+                    <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" width="15" height="15" alt="Jeep" style="object-fit:contain;">
+                    <span>Jeep</span>
+                </button>
+            </div>
 
-                <div class="guide-steps-container" id="guideStepsContainer">
-                    <!-- Current step — white elevated card -->
-                    <div class="guide-current-step" id="guideCurrentStep">
-                        <ion-icon name="walk"></ion-icon>
-                        <span id="guideCurrentText">Walk to National Highway</span>
-                    </div>
+            <!-- Stats Row: ARRIVAL / MIN / PHP in 3 equal columns -->
+            <div class="nav-panel-stats-row">
+                <div class="nav-panel-stat-col">
+                    <div class="nav-panel-stat-val nav-stat-arrival" id="navPanelArrival">--:--</div>
+                    <div class="nav-panel-stat-lbl">ARRIVAL</div>
+                </div>
+                <div class="nav-panel-stat-col">
+                    <div class="nav-panel-stat-val nav-stat-min" id="navPanelDuration">--</div>
+                    <div class="nav-panel-stat-lbl">MIN</div>
+                </div>
+                <div class="nav-panel-stat-col">
+                    <div class="nav-panel-stat-val nav-stat-php" id="navPanelFare">--</div>
+                    <div class="nav-panel-stat-lbl nav-stat-php-lbl" id="navPanelFareLbl">PHP</div>
                 </div>
             </div>
 
-            <div class="guide-steps-container-next" id="guideStepsContainerNext">
-                <!-- Next steps listed below on the glass background -->
-                <div class="guide-next-step" id="guideNextStep">
-                    <ion-icon name="arrow-redo-outline"></ion-icon>
-                    <span id="guideNextText">Turn right</span>
+            <div class="nav-panel-divider"></div>
+
+            <!-- NEXT STEP Prominent Block -->
+            <div class="nav-panel-next-block" id="navPanelNextBlock">
+                <div class="nav-panel-next-badge" id="navPanelNextBadge">
+                    <ion-icon name="arrow-up-outline" id="dNavNextIcon"></ion-icon>
                 </div>
-                <div class="guide-expanded-steps" id="guideExpandedSteps">
-                    <!-- Additional next steps rendered here by JS -->
+                <div class="nav-panel-next-body">
+                    <div class="nav-panel-next-tag">NEXT STEP</div>
+                    <div class="nav-panel-next-instruction" id="dNavNextInstruction">Walk towards your destination</div>
+                    <div class="nav-panel-next-dist" id="dNavNextDist">--</div>
                 </div>
             </div>
 
-            <!-- Drag handle on bottom for mobile -->
-            <div class="drag-handle-bar guide-drag-handle">
-                <div class="drag-pill"></div>
+            <!-- FULL ROUTE Collapsible Section (Collapsed by default) -->
+            <div class="nav-panel-full-route" id="navPanelFullRoute">
+                <button class="nav-panel-full-route-header" id="navPanelFullRouteToggle" type="button" aria-expanded="false">
+                    <span class="nav-panel-full-route-title">FULL ROUTE</span>
+                    <span class="nav-panel-full-route-badge" id="navPanelLegsCount"></span>
+                    <ion-icon name="chevron-down-outline" class="nav-panel-chevron" id="navPanelChevron"></ion-icon>
+                </button>
+                <div class="nav-panel-full-route-body" id="navPanelFullRouteBody">
+                    <div class="nav-panel-legs-list" id="navPanelLegsList"></div>
+                </div>
+            </div>
+
+            <!-- Cancel Route Outline Pill Button -->
+            <div class="nav-panel-cancel-wrap">
+                <button class="btn-cancel-route" type="button">Cancel Route</button>
             </div>
         </div>
 
-        <!-- Bottom Status Pill (Glassmorphism) -->
-        <div class="bottom-status-pill glass-panel" id="bottomStatusPill" style="display:none;">
-            <!-- Drag handle on top for bottom pill -->
-            <div class="drag-handle-bar status-drag-handle">
-                <div class="drag-pill"></div>
+        <!-- 3B. MOBILE ACTIVE NAVIGATION ELEMENTS -->
+        <!-- Mobile Top Guide Card (Starting 76px from top, 16px margins, 18px radius) -->
+        <div class="active-guide-card" id="activeGuideCard" style="display:none;">
+            <div class="mobile-guide-next-block">
+                <div class="nav-panel-next-badge" id="mNavNextBadge">
+                    <ion-icon name="arrow-up-outline" id="mNavNextIcon"></ion-icon>
+                </div>
+                <div class="nav-panel-next-body">
+                    <div class="nav-panel-next-tag">NEXT STEP</div>
+                    <div class="nav-panel-next-instruction" id="guideCurrentText">Walk to National Highway</div>
+                    <div class="nav-panel-next-dist" id="mNavNextDist">--</div>
+                </div>
             </div>
-            <div class="active-mode-toggle segment-track" id="activeModeToggle" style="display:none;">
-                <button class="segment-btn" id="amtWalk" data-mode="walking" type="button">
+            <!-- Secondary muted following step -->
+            <div class="mobile-guide-following" id="mobileGuideFollowing" style="display:none;">
+                <ion-icon name="arrow-redo-outline" id="mFollowingIcon"></ion-icon>
+                <span id="guideNextText">Turn right</span>
+            </div>
+        </div>
+
+        <!-- Mobile Bottom Docked Sheet -->
+        <div class="bottom-status-pill" id="bottomStatusPill" style="display:none;">
+            <div class="mobile-sheet-drag-handle" aria-hidden="true"></div>
+            <!-- Mobile Mode Toggle -->
+            <div class="nav-panel-mode-track mobile-mode-track">
+                <button class="nav-panel-mode-btn" data-mode="walking" type="button">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
                     </svg>
-                    Walk
+                    <span>Walk</span>
                 </button>
-                <button class="segment-btn active" id="amtJeep" data-mode="jeepney" type="button">
-                    <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" width="14" height="14"
-                        style="object-fit:contain;">
-                    Jeep
+                <button class="nav-panel-mode-btn active" data-mode="jeepney" type="button">
+                    <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" width="14" height="14" alt="Jeep" style="object-fit:contain;">
+                    <span>Jeep</span>
                 </button>
             </div>
-            <div class="status-cols">
-                <div class="col">
-                    <div class="val" id="pillArrival">--:--</div>
-                    <div class="lbl">arrival</div>
+            <!-- Mobile Stats Row -->
+            <div class="nav-panel-stats-row mobile-stats-row">
+                <div class="nav-panel-stat-col">
+                    <div class="nav-panel-stat-val nav-stat-arrival" id="pillArrival">--:--</div>
+                    <div class="nav-panel-stat-lbl">ARRIVAL</div>
                 </div>
-                <div class="col">
-                    <div class="val" id="pillMin">--</div>
-                    <div class="lbl">min</div>
+                <div class="nav-panel-stat-col">
+                    <div class="nav-panel-stat-val nav-stat-min" id="pillMin">--</div>
+                    <div class="nav-panel-stat-lbl">MIN</div>
                 </div>
-                <div class="col">
-                    <div class="val" id="pillPhp">--</div>
-                    <div class="lbl" id="pillPhpLbl">php</div>
+                <div class="nav-panel-stat-col">
+                    <div class="nav-panel-stat-val nav-stat-php" id="pillPhp">--</div>
+                    <div class="nav-panel-stat-lbl nav-stat-php-lbl" id="pillPhpLbl">PHP</div>
                 </div>
             </div>
-            <div class="pill-itinerary" id="pillItinerary">
-                <div class="pill-itinerary-label">Route Summary</div>
-                <div class="pill-itinerary-legs" id="pillItineraryLegs"></div>
-            </div>
-            <div class="cancel-action-row" id="cancelActionRow">
-                <button class="btn-cancel-route" id="cancelRouteBtn">Cancel Route</button>
+            <!-- Mobile Outline Cancel Route Button -->
+            <div class="nav-panel-cancel-wrap mobile-cancel-wrap">
+                <button class="btn-cancel-route" type="button">Cancel Route</button>
             </div>
         </div>
 
@@ -694,8 +775,9 @@
     <script src="../js/streetview-viewer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="../js/transitions.js"></script>
-    <script src="../js/planner.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="../js/places-shared.js?v=2.5.1"></script>
+    <script src="../js/planner.js?v=2.5.3"></script>
+    <script src="../js/script.js?v=2.5.1"></script>
     <script src="../js/i18n.js"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->

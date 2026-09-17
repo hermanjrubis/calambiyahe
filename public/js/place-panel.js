@@ -480,7 +480,9 @@ function initPlacePanelDOM() {
                 if (idx > -1) {
                     saved.splice(idx, 1);
                 } else {
-                    saved.unshift({ name: placeName, category, id: currentPlaceId });
+                    const sLat = currentActivePlace && currentActivePlace.lat;
+                    const sLng = currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon);
+                    saved.unshift({ name: placeName, category, id: currentPlaceId, lat: sLat, lng: sLng });
                 }
                 localStorage.setItem('calzadaSavedPlaces', JSON.stringify(saved));
             }
@@ -503,10 +505,22 @@ function initPlacePanelDOM() {
     // Plan Route Event
     if (planBtn) {
         planBtn.addEventListener('click', () => {
-            const placeName = planBtn.getAttribute('data-dest');
+            const placeName = planBtn.getAttribute('data-dest') || (currentActivePlace && currentActivePlace.name);
+            const rawLat = planBtn.getAttribute('data-lat') || (currentActivePlace && currentActivePlace.lat);
+            const rawLng = planBtn.getAttribute('data-lng') || (currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon));
+
             if (placeName) {
                 setTimeout(() => {
-                    window.location.href = `planner.html?dest=${encodeURIComponent(placeName)}`;
+                    const numLat = parseFloat(rawLat);
+                    const numLng = parseFloat(rawLng);
+                    const hasCoords = !isNaN(numLat) && !isNaN(numLng) && numLat !== 0 && numLng !== 0;
+                    let targetUrl;
+                    if (hasCoords) {
+                        targetUrl = `planner.html?destLat=${numLat}&destLng=${numLng}&destName=${encodeURIComponent(placeName)}&dlat=${numLat}&dlng=${numLng}&dest=${encodeURIComponent(placeName)}`;
+                    } else {
+                        targetUrl = `planner.html?dest=${encodeURIComponent(placeName)}&destName=${encodeURIComponent(placeName)}`;
+                    }
+                    window.location.href = targetUrl;
                 }, 0);
             }
         });
@@ -527,8 +541,10 @@ if (document.readyState === 'loading') {
 function handleUrlParamsOnLoad() {
     const urlParams = new URLSearchParams(window.location.search);
     const placeParam = urlParams.get('place');
+    const placeLat = urlParams.get('lat') || urlParams.get('dlat') || urlParams.get('destLat');
+    const placeLng = urlParams.get('lng') || urlParams.get('dlng') || urlParams.get('destLng');
     if (placeParam) {
-        setTimeout(() => openPlacePanel(placeParam), 250);
+        setTimeout(() => openPlacePanel(placeParam, placeLat ? parseFloat(placeLat) : undefined, placeLng ? parseFloat(placeLng) : undefined), 250);
     }
     
     // Handle back button closing panel
@@ -1329,7 +1345,7 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
 /**
  * Open Place Detail Panel
  */
-window.openPlacePanel = async function(placeName) {
+window.openPlacePanel = async function(placeName, optLat, optLng) {
     if (!placeName) return;
 
     // 1. Ensure DOM elements exist
@@ -1370,6 +1386,9 @@ window.openPlacePanel = async function(placeName) {
         };
     }
 
+    if (optLat != null) data.lat = optLat;
+    if (optLng != null) data.lng = optLng;
+
     currentActivePlace = data;
 
     // 4. Set Place Name in header immediately
@@ -1377,7 +1396,18 @@ window.openPlacePanel = async function(placeName) {
     if (nameEl) nameEl.textContent = data.name;
 
     const planBtn = document.getElementById('ppPlanBtn');
-    if (planBtn) planBtn.setAttribute('data-dest', data.name);
+    if (planBtn) {
+        planBtn.setAttribute('data-dest', data.name);
+        const curLat = data.lat != null ? data.lat : (optLat != null ? optLat : null);
+        const curLng = (data.lng != null ? data.lng : data.lon) != null ? (data.lng != null ? data.lng : data.lon) : (optLng != null ? optLng : null);
+        if (curLat != null && curLng != null) {
+            planBtn.setAttribute('data-lat', curLat);
+            planBtn.setAttribute('data-lng', curLng);
+        } else {
+            planBtn.removeAttribute('data-lat');
+            planBtn.removeAttribute('data-lng');
+        }
+    }
 
     // 5. Populate Initial Address Row
     const rowAddress = document.getElementById('ppRowAddress');
@@ -1507,6 +1537,11 @@ window.openPlacePanel = async function(placeName) {
                 currentPlaceId = match.id;
                 data = { ...data, ...match };
                 currentActivePlace = data;
+
+                if (planBtn && match.lat != null && (match.lng != null || match.lon != null)) {
+                    planBtn.setAttribute('data-lat', match.lat);
+                    planBtn.setAttribute('data-lng', match.lng != null ? match.lng : match.lon);
+                }
 
                 // Update fields with live database values if available
                 if (match.full_address && addressEl && rowAddress) {

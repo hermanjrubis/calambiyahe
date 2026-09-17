@@ -14,7 +14,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { Pool } = require('pg');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const { haversineDistanceMeters } = require('./generate-360-manifest');
 
@@ -84,39 +83,22 @@ async function fetchFromFirestore() {
 }
 
 /**
- * Fetch places from PostgreSQL places table
+ * Fetch places from local server/data/places.json dataset
  */
-async function fetchFromPostgres() {
-    if (!process.env.DATABASE_URL) {
-        throw new Error('DATABASE_URL is not set in environment.');
-    }
-
-    const isRemoteDb = process.env.DATABASE_URL.includes('supabase');
-    const pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: isRemoteDb ? { rejectUnauthorized: false } : false
-    });
-
+function fetchFromLocalJson() {
+    const placesPath = path.resolve(__dirname, '../server/data/places.json');
+    if (!fs.existsSync(placesPath)) return [];
     try {
-        const query = `
-            SELECT 
-                p.id, 
-                p.name, 
-                ST_Y(p.location::geometry) AS lat, 
-                ST_X(p.location::geometry) AS lng
-            FROM places p
-            WHERE p.is_active = TRUE
-            ORDER BY p.id ASC
-        `;
-        const result = await pool.query(query);
-        return result.rows.map(row => ({
-            id: String(row.id),
-            name: row.name,
-            lat: parseFloat(row.lat),
-            lng: parseFloat(row.lng)
+        const list = JSON.parse(fs.readFileSync(placesPath, 'utf8'));
+        return list.map(p => ({
+            id: String(p.id),
+            name: p.name,
+            lat: parseFloat(p.lat),
+            lng: parseFloat(p.lng)
         }));
-    } finally {
-        await pool.end();
+    } catch (e) {
+        console.error('Error reading places.json:', e);
+        return [];
     }
 }
 
@@ -148,11 +130,12 @@ async function linkPlacesTo360() {
     let establishments = await fetchFromFirestore();
 
     if (!establishments || establishments.length === 0) {
-        source = 'PostgreSQL database';
-        establishments = await fetchFromPostgres();
+        source = 'server/data/places.json';
+        establishments = fetchFromLocalJson();
     }
 
     console.log(`[Place-360 Linker] Loaded ${establishments.length} establishment(s) from ${source}.`);
+
 
     // 3. Match each establishment to its nearest node
     const links = [];

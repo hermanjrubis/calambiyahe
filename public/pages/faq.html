@@ -24,7 +24,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="../css/skeleton.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -135,7 +135,7 @@
 
                 <a href="faq.html" class="nav-link active" data-i18n="footer.nav.faq">FAQs</a>
                 <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.maps">Maps</a>
+                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
@@ -313,7 +313,7 @@
                     <!-- 1. My Visits -->
                     <button type="button" class="profile-nav-btn" id="menuMyVisits">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
                         <span class="nav-btn-title">My Visits</span>
                     </button>
@@ -321,7 +321,7 @@
                     <!-- 2. Saved Places -->
                     <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
                         </span>
                         <span class="nav-btn-title">Saved Places</span>
                         <span class="saved-count-pill" id="menuSavedCount">(0)</span>
@@ -330,7 +330,7 @@
                     <!-- 3. My Achievements -->
                     <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
                         </span>
                         <span class="nav-btn-title">My Achievements</span>
                     </button>
@@ -338,7 +338,7 @@
                     <!-- 4. Account Settings -->
                     <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </span>
                         <span class="nav-btn-title">Account Settings</span>
                     </button>
@@ -349,7 +349,7 @@
                 <!-- 5. Log Out -->
                 <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
                     <span class="nav-btn-icon">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     </span>
                     <span class="nav-btn-title">Log Out</span>
                 </button>
@@ -538,6 +538,59 @@
     <script src="../js/transitions.js"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js"></script>
+
+    <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
+    <div class="drawer-overlay" id="sideDrawerOverlay"></div>
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-top">
+            <a href="index.html" class="drawer-brand" aria-label="Calzada Home">
+                <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+            </a>
+            <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <nav class="drawer-links">
+            <div class="drawer-nav-group">
+                <a href="index.html" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="about.html" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="places.html" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="planner.html" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="faq.html" class="drawer-nav-item active"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="feedback.html" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+                <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
+            </div>
+
+            <div class="drawer-separator"></div>
+
+            <!-- Mobile Language Selection Row -->
+            <div class="mobile-lang-row">
+                <span class="mobile-lang-label">Language / Wika</span>
+                <div class="lang-dropdown-container mobile-lang-container">
+                    <button class="mobile-lang-toggle pill-btn" type="button" aria-expanded="false">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="drawer-footer-text">© 2026 Calzada</div>
+    </div>
 </body>
 
 </html>
