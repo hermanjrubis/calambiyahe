@@ -24,8 +24,10 @@ app.use((req, res, next) => {
     next();
 });
 
-const staticPublicPath = path.join(__dirname, '../public');
-console.log('Serving static files from;', staticPublicPath);
+const staticPublicPath = fs.existsSync(path.join(__dirname, '../public'))
+    ? path.join(__dirname, '../public')
+    : path.join(process.cwd(), 'public');
+console.log('Serving static files from:', staticPublicPath);
 
 const staticOptions = {
     etag: false,
@@ -40,7 +42,10 @@ app.use('/pages', express.static(path.join(staticPublicPath, 'pages'), staticOpt
 app.use('/uploads', express.static(path.join(staticPublicPath, 'uploads'), staticOptions));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(staticPublicPath, 'pages/index.html'));
+    const indexPath = fs.existsSync(path.join(staticPublicPath, 'pages/index.html'))
+        ? path.join(staticPublicPath, 'pages/index.html')
+        : path.join(process.cwd(), 'public/pages/index.html');
+    res.sendFile(indexPath);
 });
 
 let groqClient = null;
@@ -115,8 +120,21 @@ app.get('/api/config', (req, res) => {
 });
 
 // In-memory places dataset loaded from server/data/places.json
-const placesDataPath = path.resolve(__dirname, 'data/places.json');
+const placesDataPath = fs.existsSync(path.resolve(__dirname, 'data/places.json'))
+    ? path.resolve(__dirname, 'data/places.json')
+    : path.resolve(process.cwd(), 'server/data/places.json');
 let cachedPlaces = [];
+try {
+    cachedPlaces = require('./data/places.json');
+} catch (e) {
+    if (fs.existsSync(placesDataPath)) {
+        try {
+            cachedPlaces = JSON.parse(fs.readFileSync(placesDataPath, 'utf8'));
+        } catch (err) {
+            console.error('Error loading places.json:', err);
+        }
+    }
+}
 function getPlacesData() {
     if (cachedPlaces.length === 0 && fs.existsSync(placesDataPath)) {
         try {
