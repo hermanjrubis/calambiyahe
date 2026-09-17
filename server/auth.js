@@ -5,6 +5,30 @@ const fs = require('fs');
 
 let firebaseApp = null;
 
+function parseServiceAccountKey(keyInput) {
+    if (!keyInput) return null;
+    let parsed = null;
+    if (typeof keyInput === 'object') {
+        parsed = { ...keyInput };
+    } else if (typeof keyInput === 'string') {
+        const trimmed = keyInput.trim();
+        try {
+            parsed = JSON.parse(trimmed);
+        } catch (e) {
+            try {
+                parsed = JSON.parse(Buffer.from(trimmed, 'base64').toString('utf8'));
+            } catch (_) {
+                console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY JSON:', e.message);
+                return null;
+            }
+        }
+    }
+    if (parsed && typeof parsed.private_key === 'string') {
+        parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+    }
+    return parsed;
+}
+
 function initFirebaseAdmin() {
     if (getApps().length > 0) {
         return getApp();
@@ -12,17 +36,19 @@ function initFirebaseAdmin() {
 
     try {
         if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-            firebaseApp = initializeApp({
-                credential: cert(serviceAccount)
-            });
-            console.log('Firebase Admin initialized with FIREBASE_SERVICE_ACCOUNT_KEY environment variable.');
-            return firebaseApp;
+            const serviceAccount = parseServiceAccountKey(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+            if (serviceAccount) {
+                firebaseApp = initializeApp({
+                    credential: cert(serviceAccount)
+                });
+                console.log('Firebase Admin initialized with FIREBASE_SERVICE_ACCOUNT_KEY environment variable.');
+                return firebaseApp;
+            }
         }
 
         const localKeyPath = path.resolve(__dirname, 'serviceAccountKey.json');
         if (fs.existsSync(localKeyPath)) {
-            const serviceAccount = require(localKeyPath);
+            const serviceAccount = parseServiceAccountKey(require(localKeyPath));
             firebaseApp = initializeApp({
                 credential: cert(serviceAccount)
             });
@@ -41,6 +67,7 @@ function initFirebaseAdmin() {
 }
 
 initFirebaseAdmin();
+
 
 /**
  * Reusable Express Auth Middleware (Firebase Admin Token Verification)
