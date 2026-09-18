@@ -445,6 +445,15 @@ function initPlacePanelDOM() {
         });
     }
 
+    // Celebratory Confetti Burst for Bookmark Save (Delegates to shared bookmark-confetti.js)
+    function triggerBookmarkCelebration(anchorEl) {
+        if (!anchorEl) return;
+        const celebrate = window.calzadaBookmarkCelebration || (typeof window.triggerBookmarkCelebration === 'function' && window.triggerBookmarkCelebration !== triggerBookmarkCelebration ? window.triggerBookmarkCelebration : null);
+        if (celebrate) {
+            celebrate(anchorEl);
+        }
+    }
+
     // Save Place Event
     if (saveBtn) {
         saveBtn.addEventListener('click', async (e) => {
@@ -462,6 +471,7 @@ function initPlacePanelDOM() {
             } else {
                 saveBtn.classList.add('saved');
                 saveBtn.setAttribute('title', 'Place saved');
+                triggerBookmarkCelebration(saveBtn);
             }
 
             // Sync with Calzada User Stats / Firestore / localStorage
