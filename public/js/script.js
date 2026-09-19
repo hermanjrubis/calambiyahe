@@ -560,29 +560,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // === AUTO-CLOSE ON OUTSIDE CLICK & PAGE SCROLL ===
     let isAutoCloseAttached = false;
+    let lastViewportResizeTime = 0;
+    let lastChatInputFocusTime = 0;
+
+    function isMobileOrTouch() {
+        const isSmallScreen = window.innerWidth <= 768;
+        const isCoarsePointer = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+        return isSmallScreen || (isCoarsePointer && hasTouch);
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            lastViewportResizeTime = Date.now();
+        });
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener('focus', () => {
+            lastChatInputFocusTime = Date.now();
+        });
+    }
 
     function handleOutsideClick(e) {
         if (!chatWindow || !chatWindow.classList.contains('open')) return;
-        // If clicked element is inside chatWindow, chatToggleBtn, or any routie open trigger, do not close
-        if (chatWindow.contains(e.target) || 
-            (chatToggleBtn && chatToggleBtn.contains(e.target)) ||
-            (e.target.closest && (
-                e.target.closest('#chatToggleBtn') || 
-                e.target.closest('#routieLink') || 
-                e.target.closest('#drawerRoutieLink') || 
-                e.target.closest('#routieBannerBtn') || 
-                e.target.closest('#faqRoutieCtaBtn') || 
-                e.target.closest('#routieFeatureBtn')
-            ))) {
+        if (!e) return;
+
+        // Resolve element target (handle text nodes, SVGs, etc.)
+        let target = e.target;
+        if (target && target.nodeType === 3) {
+            target = target.parentElement;
+        }
+        if (!target || !(target instanceof Element)) return;
+
+        // 1. If clicked/tapped element is inside chatWindow, do NOT close
+        if (chatWindow.contains(target)) return;
+
+        // 2. If clicked/tapped element is inside chatToggleBtn, do NOT close
+        if (chatToggleBtn && chatToggleBtn.contains(target)) return;
+
+        // 3. If clicked/tapped element is inside any Routie open trigger, do NOT close
+        if (target.closest && (
+            target.closest('#chatToggleBtn') || 
+            target.closest('#routieLink') || 
+            target.closest('#drawerRoutieLink') || 
+            target.closest('#routieBannerBtn') || 
+            target.closest('#faqRoutieCtaBtn') || 
+            target.closest('#routieFeatureBtn')
+        )) {
             return;
         }
+
+        // 4. Exclude keyboard-induced layout shifts and focus transitions:
+        // When on-screen keyboard appears, visualViewport fires resize and coordinates shift.
+        // Ignore any clicks/taps during active keyboard transition (< 450ms).
+        if (Date.now() - lastViewportResizeTime < 450) return;
+        if (Date.now() - lastChatInputFocusTime < 450) return;
+
+        // Genuine outside click or tap — close the chat
         closeChat();
     }
 
     function handlePageScroll(e) {
-        // If scroll originated from within the chat window (e.g. scrolling messages), ignore it
-        if (e.target && chatWindow && chatWindow.contains(e.target)) return;
+        // 1. NEVER close on scroll for mobile or touch devices.
+        // On mobile, opening/closing the virtual keyboard and touch rubber-banding/momentum
+        // constantly fire window scroll events, which must NEVER close the chat window.
+        if (isMobileOrTouch()) return;
+
+        // 2. If scroll originated from within the chat window (e.g. scrolling messages), ignore it
+        if (e && e.target && chatWindow && chatWindow.contains(e.target)) return;
+
+        // 3. Ignore if chat is not open
         if (!chatWindow || !chatWindow.classList.contains('open')) return;
+
+        // Desktop only: genuine scroll of the outer page closes the chat
         closeChat();
     }
 
@@ -592,9 +643,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Delay slightly so the triggering click doesn't close the chat immediately
         setTimeout(() => {
             if (!isAutoCloseAttached) return;
+            // Listen for pointerdown / tap outside
             document.addEventListener('pointerdown', handleOutsideClick, true);
-            window.addEventListener('scroll', handlePageScroll, { passive: true });
-        }, 120);
+
+            // On DESKTOP ONLY: close when the page outside the chat is scrolled.
+            // On mobile / touch devices: scroll-to-close is disabled.
+            if (!isMobileOrTouch()) {
+                window.addEventListener('scroll', handlePageScroll, { passive: true });
+            }
+        }, 150);
     }
 
     function detachAutoCloseListeners() {
@@ -613,8 +670,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeChat = () => {
         if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        // Cleanly blur input so virtual keyboard dismisses
+        if (chatInput && document.activeElement === chatInput) {
+            chatInput.blur();
+        }
         interruptTyping();
         document.body.classList.remove('chat-active');
+        document.body.classList.remove('keyboard-open');
         chatWindow.classList.remove('open');
         if (chatToggleBtn) {
             const pulseRing = chatToggleBtn.querySelector('.pulse-ring');
@@ -657,7 +719,10 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('chat-active');
         if (chatWindow) {
             chatWindow.classList.add('open');
-            if (chatInput) setTimeout(() => chatInput.focus(), 350);
+            // Auto-focus on desktop; on mobile let user tap the input deliberately
+            if (chatInput && !isMobileOrTouch()) {
+                setTimeout(() => chatInput.focus(), 350);
+            }
             resetInactivityTimer();
             attachAutoCloseListeners();
         }

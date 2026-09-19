@@ -28,6 +28,20 @@
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+        .faq-inline-link {
+            color: #2272C3;
+            text-decoration: none;
+            font-weight: 500;
+            margin-left: 6px;
+            display: inline-block;
+        }
+        .faq-inline-link:hover {
+            text-decoration: underline;
+        }
+        .faq-inline-link:focus-visible {
+            outline: 2px solid #378ADD;
+            outline-offset: 2px;
+        }
     </style>
 </head>
 
@@ -412,6 +426,18 @@
                     </div>
                 </div>
 
+                <div class="faq-item" data-category="getting-around">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-calculator faq-cat-icon"></i><span data-i18n="faq_jeepney_fares.q">How are jeepney fares computed?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p id="faqJeepneyFareAnswer">
+                            <span id="faqJeepneyFareText">Jeepney fares follow the LTFRB fare guide. Fares shown are estimates. </span><a href="fares.html" class="faq-inline-link" data-i18n="faq_jeepney_fares.link">See the full fare table</a>
+                        </p>
+                    </div>
+                </div>
+
                 <div class="faq-item" data-category="general">
                     <button class="faq-question">
                         <span class="faq-q-text"><i class="ti ti-device-mobile faq-cat-icon"></i><span data-i18n="faq_mobile.q">Can I access Calzada on mobile devices?</span></span>
@@ -538,6 +564,7 @@
     <script src="../js/transitions.js"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js"></script>
+    <script src="../js/faq-fares.js"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>

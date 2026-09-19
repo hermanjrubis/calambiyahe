@@ -11,12 +11,14 @@
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
     <meta property="og:description"
-        content="Learn about Calzada, your local guide for discovering places, establishments, and attractions across Calamba with AI-powered recommendations.">
+        content="Learn about Calzada, your commuter guide for discovering places, establishments, and attractions across Calamba.">
     <meta name="description"
-        content="Learn about Calzada, an academic project dedicated to discovering places, local establishments, and attractions across Calamba with AI assistance.">
-    <!-- Google Fonts: Outfit -->
+        content="Learn about Calzada, your commuter guide for discovering places, establishments, and attractions across Calamba.">
+    <!-- Google Fonts: Sora & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <!-- Icons -->
@@ -24,24 +26,7 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .about-page-container {
-            padding: 120px 20px 80px;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            background: transparent;
-        }
-
-        .about-content-wrapper {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            padding: 0;
-            max-width: 1280px;
-            width: 100%;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/about.css">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2">
     <style>
@@ -378,154 +363,174 @@
     </header>
 
     <main class="about-page-container">
-        <div class="about-content-wrapper">
-            <h1 class="about-title" data-i18n="about_page.title">About</h1>
-            
-            <div class="about-text">
-                <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="about-float-logo">
-                <p data-i18n="about_page.p1">
-                    <strong>Calzada</strong> is a commuter guide platform envisioned to transform the way people
-                    travel
-                    across Calamba and nearby cities. Rooted in the word <em>calzada</em>, meaning road or
-                    pathway,
-                    the brand embodies the idea of direction, clarity, and movement.
-                </p>
-                <p data-i18n="about_page.p2">
-                    Calzada helps you discover places worth visiting around Calamba, then shows you how to get there. Compare travel options based on estimated duration, fare cost, and walking distance — using a jeepney or tricycle — to find the most convenient way to reach your destination.
-                </p>
-                <p data-i18n="about_page.p3">
-                    Need to transfer between a jeepney and tricycle to reach your destination? Calzada supports that too. The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.
-                </p>
+        <div class="about-shell">
+            <!-- 1. Intro -->
+            <section class="about-section about-intro-section">
+                <h1 class="about-main-title" data-i18n="about_page.title">About</h1>
+                <p class="about-lead-text" data-i18n="about_page.lead">Calzada is the word for road or pathway. It's also a commuter guide for getting around Calamba, built around direction, clarity, and movement.</p>
+                <div class="about-intro-cols">
+                    <p class="about-intro-p" data-i18n="about_page.p1">Calzada helps you discover places worth visiting around Calamba, then shows you how to get there. Compare travel options based on estimated duration, fare cost, and walking distance — using a jeepney or tricycle — to find the most convenient way to reach your destination.</p>
+                    <p class="about-intro-p" data-i18n="about_page.p2">Need to transfer between a jeepney and tricycle to reach your destination? Calzada supports that too. The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.</p>
+                </div>
+            </section>
 
-                <!-- Meet Routie Banner -->
-                <div class="routie-banner reveal">
-                    <div class="routie-banner-left">
-                        <div class="routie-icon-badge">
-                            <img src="../assets/DyipTok-icon.png" alt="Routie">
+            <!-- 2. Goal -->
+            <section class="about-section about-grid-section">
+                <h2 class="about-section-heading" data-i18n="about_page.goal.heading">Goal</h2>
+                <div class="about-section-body">
+                    <p class="about-body-text" data-i18n="about_page.goal.body">The primary goal of Calzada is to help commuters discover great places around Calamba and reach them with confidence. By centralizing data on places, routes, and fares, the platform aims to reduce commuting stress, promote informed decisions, and make getting around the city simpler. Calzada aims to be a trusted companion for everyday exploring and commuting — helping you save time, manage expenses, and travel with confidence.</p>
+                </div>
+            </section>
+
+            <!-- 3. What Calzada covers -->
+            <section class="about-section about-grid-section">
+                <div class="about-section-header-col">
+                    <h2 class="about-section-heading" data-i18n="about_page.covers.heading">What Calzada covers</h2>
+                    <p class="about-heading-note" data-i18n="about_page.covers.note">Currently focused on selected barangays in Calamba.</p>
+                </div>
+                <div class="about-covers-content">
+                    <!-- Ways to get around -->
+                    <div class="about-group-col">
+                        <span class="about-group-label" data-i18n="about_page.covers.ways">Ways to get around</span>
+                        <div class="about-item-list">
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <img src="../assets/icons/jeepney-icon.png" alt="Jeepney">
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.mode.jeepney">Jeepney</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <img src="../assets/icons/tricycle-icon.png" alt="Tricycle">
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.mode.tricycle">Tricycle</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2" fill="currentColor"></circle><path d="M7 21l3-4 1-3"></path><path d="M16 21l-2-4-3-3 1-6"></path><path d="M6 12l2-3 4-1 3 3 3 1"></path></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.mode.walk">Walk</span>
+                            </div>
                         </div>
-                        <div class="routie-banner-info">
-                            <h3>Meet Routie</h3>
-                            <p>Your chat assistant for finding places and getting around Calamba. Just tap "Ask Routie" anytime.</p>
+                    </div>
+
+                    <!-- Places you can find -->
+                    <div class="about-group-col">
+                        <span class="about-group-label" data-i18n="about_page.covers.places">Places you can find</span>
+                        <div class="about-item-list-grid">
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.cat.malls">Malls</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"></path><path d="M15 2v5"></path><path d="M15 11v11"></path><path d="M6 2v20"></path><path d="M6 2a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3z"></path></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.cat.eateries">Eateries</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.cat.schools">Schools</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M8 19v2M16 19v2"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.cat.terminals">Terminals</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.cat.coffee">Coffee Shops</span>
+                            </div>
+                            <div class="about-plain-row">
+                                <span class="about-plain-row-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"></path></svg>
+                                </span>
+                                <span class="about-plain-row-label" data-i18n="about_page.cat.establishments">Establishments</span>
+                            </div>
                         </div>
                     </div>
-                    <button id="routieBannerBtn" class="btn-routie-banner" type="button">Ask Routie</button>
                 </div>
+            </section>
 
-                <h2 class="goal-title" data-i18n="about_page.goal.heading">Goal</h2>
-                <p data-i18n="about_page.goal.body">
-                    The primary goal of Calzada is to help commuters discover great places around Calamba and reach them with confidence. By centralizing data on places, routes, and fares, the platform aims to reduce commuting stress, promote informed decisions, and make getting around the city simpler. Calzada aims to be a trusted companion for everyday exploring and commuting — helping you save time, manage expenses, and travel with confidence.
-                </p>
-            </div>
-
-            <!-- Visual Transit Modes Cards Showcase -->
-            <div class="transit-showcase reveal">
-                <h2 class="why-title">Supported Modes</h2>
-                <div class="transit-badge-grid">
-                    <div class="transit-badge-item">
-                        <div class="badge-icon"><img src="../assets/icons/jeepney-icon.png" alt="Jeepney" class="transit-badge-img"></div>
-                        <span>Jeepney</span>
+            <!-- 4. Routie row -->
+            <section class="about-section about-routie-section">
+                <div class="about-routie-row">
+                    <div class="about-routie-left">
+                        <div class="about-routie-avatar">
+                            <img src="../assets/DyipTok-icon.png" alt="Routie mascot">
+                        </div>
+                        <div class="about-routie-info">
+                            <h3 class="about-routie-title" data-i18n="about_page.routie.title">Meet Routie</h3>
+                            <p class="about-routie-desc" data-i18n="about_page.routie.desc">Your chat assistant for finding places and getting around Calamba. Just tap “Ask Routie” anytime.</p>
+                        </div>
                     </div>
-                    <div class="transit-badge-item">
-                        <div class="badge-icon"><img src="../assets/icons/tricycle-icon.png" alt="Tricycle" class="transit-badge-img"></div>
-                        <span>Tricycle</span>
-                    </div>
-                    <div class="transit-badge-item">
-                        <div class="badge-icon"><i class="ti ti-walk"></i></div>
-                        <span>Walk</span>
-                    </div>
+                    <button id="routieBannerBtn" class="btn-about-routie" type="button" data-i18n="about_page.routie.btn">Ask Routie</button>
                 </div>
-            </div>
+            </section>
 
-            <!-- What You Can Find (Place Categories) -->
-            <div class="places-categories-showcase reveal">
-                <h2 class="why-title">What you can find</h2>
-                <div class="categories-badge-grid">
-                    <div class="category-badge-card">
-                        <div class="cat-badge-icon"><i class="ti ti-building"></i></div>
-                        <span>Establishments</span>
+            <!-- 5. Why Calzada? -->
+            <section class="about-section about-grid-section">
+                <h2 class="about-section-heading" data-i18n="about_page.why.heading">Why Calzada?</h2>
+                <div class="about-why-grid">
+                    <div class="about-why-col">
+                        <h3 class="about-why-title" data-i18n="about_page.why.dir.title">Direction</h3>
+                        <p class="about-why-desc" data-i18n="about_page.why.dir.desc">Clear, step-by-step routes so you always know where to go.</p>
                     </div>
-                    <div class="category-badge-card">
-                        <div class="cat-badge-icon"><i class="ti ti-shopping-bag"></i></div>
-                        <span>Malls</span>
+                    <div class="about-why-col">
+                        <h3 class="about-why-title" data-i18n="about_page.why.trans.title">Transparency</h3>
+                        <p class="about-why-desc" data-i18n="about_page.why.trans.desc">No hidden charges. Fare estimates are shown before you ride.</p>
+                        <a href="fares.html" class="about-transparency-link" data-i18n="about_page.why.trans.link">How fares are computed</a>
                     </div>
-                    <div class="category-badge-card">
-                        <div class="cat-badge-icon"><i class="ti ti-coffee"></i></div>
-                        <span>Coffee Shops</span>
-                    </div>
-                    <div class="category-badge-card">
-                        <div class="cat-badge-icon"><i class="ti ti-compass"></i></div>
-                        <span>Hangout Places</span>
-                    </div>
-                    <div class="category-badge-card">
-                        <div class="cat-badge-icon"><i class="ti ti-map-pin"></i></div>
-                        <span>Terminals</span>
-                    </div>
-                    <div class="category-badge-card">
-                        <div class="cat-badge-icon"><i class="ti ti-school"></i></div>
-                        <span>Schools</span>
+                    <div class="about-why-col">
+                        <h3 class="about-why-title" data-i18n="about_page.why.comm.title">Community</h3>
+                        <p class="about-why-desc" data-i18n="about_page.why.comm.desc">Made for commuters, by commuters. Free and accessible to all.</p>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="why-calzada reveal">
-                <h2 class="why-title" data-i18n="about_page.why.heading">Bakit Calzada?</h2>
-                <div class="why-grid">
-                    <div class="why-card">
-                        <i class="ti ti-compass"></i>
-                        <h3 data-i18n="about_page.why.card1.title">Direction</h3>
-                        <p data-i18n="about_page.why.card1.desc">Hindi ka na maliligaw – bawat ruta ay klaro at tumpak.</p>
-                    </div>
-                    <div class="why-card">
-                        <i class="ti ti-coin"></i>
-                        <h3 data-i18n="about_page.why.card2.title">Transparency</h3>
-                        <p data-i18n="about_page.why.card2.desc">Walang hidden charges. Alam mo ang pamasahe bago ka sumakay.</p>
-                    </div>
-                    <div class="why-card">
-                        <i class="ti ti-users"></i>
-                        <h3 data-i18n="about_page.why.card3.title">Komunidad</h3>
-                        <p data-i18n="about_page.why.card3.desc">Gawa para sa mga commuter, ng mga commuter. Libre at accessible.</p>
+            <!-- 6. Made by -->
+            <section class="about-section about-grid-section">
+                <h2 class="about-section-heading" data-i18n="about_page.team.heading">Made by</h2>
+                <div class="about-team-content">
+                    <p class="about-team-capstone" data-i18n="about_page.team.capstone">A capstone project by BSIT students of STI College Calamba.</p>
+                    <div class="about-team-grid">
+                        <div class="about-team-member">
+                            <span class="about-team-name">Herman John Rubis</span>
+                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                        </div>
+                        <div class="about-team-member">
+                            <span class="about-team-name">Daniel Anthony Bercasio</span>
+                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                        </div>
+                        <div class="about-team-member">
+                            <span class="about-team-name">Aldrine Sumapad</span>
+                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                        </div>
+                        <div class="about-team-member">
+                            <span class="about-team-name">John Kelly Torres</span>
+                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Made By (Team & Credits) -->
-            <div class="team-section reveal">
-                <h2 class="why-title">Made by</h2>
-                <div class="team-grid">
-                    <div class="team-card">
-                        <div class="team-avatar">HJR</div>
-                        <h3 class="team-name">Herman John Rubis</h3>
-                        <span class="team-role">BSIT Student</span>
+            <!-- 7. CTA -->
+            <section class="about-cta-section">
+                <div class="about-cta-banner">
+                    <div class="about-cta-text-group">
+                        <h2 class="about-cta-title" data-i18n="about_page.cta.heading">Ready to plan your journey?</h2>
+                        <p class="about-cta-sub" data-i18n="about_page.cta.sub">Find a place worth visiting, then get there by jeepney or tricycle — all in one app.</p>
                     </div>
-                    <div class="team-card">
-                        <div class="team-avatar">DAB</div>
-                        <h3 class="team-name">Daniel Anthony Bercasio</h3>
-                        <span class="team-role">BSIT Student</span>
-                    </div>
-                    <div class="team-card">
-                        <div class="team-avatar">AS</div>
-                        <h3 class="team-name">Aldrine Sumapad</h3>
-                        <span class="team-role">BSIT Student</span>
-                    </div>
-                    <div class="team-card">
-                        <div class="team-avatar">JKT</div>
-                        <h3 class="team-name">John Kelly Torres</h3>
-                        <span class="team-role">BSIT Student</span>
-                    </div>
+                    <a href="planner.html" class="btn-about-cta" data-i18n="about_page.cta.btn">Plan Your Route Now</a>
                 </div>
-                <p class="team-caption">A capstone project by BSIT students of STI College Calamba.</p>
-            </div>
-
-            <!-- Call-To-Action Banner -->
-            <div class="about-cta-section reveal">
-                <div class="about-cta-glass">
-                    <h2>Ready to plan your journey?</h2>
-                    <p>Find a place worth visiting, then get there by jeepney or tricycle — all in one app.</p>
-                    <a href="planner.html" class="btn-cta-glow">
-                        Plan Your Route Now <ion-icon name="arrow-forward-outline"></ion-icon>
-                    </a>
-                </div>
-            </div>
+            </section>
         </div>
     </main>
 
@@ -584,6 +589,7 @@
         </div>
     </div>
 
+    <script src="../js/legal-modal.js"></script>
     <script src="../js/script.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/transitions.js"></script>

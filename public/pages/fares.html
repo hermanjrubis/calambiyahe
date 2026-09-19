@@ -4,18 +4,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Privacy Policy - Calzada</title>
-    <meta name="description" content="Privacy Policy for Calzada, an academic capstone project and place discovery guide for Calamba City.">
+    <title>Fares - Calzada</title>
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.json">
-    <!-- Google Fonts: Outfit -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
+    <meta property="og:title" content="Calzada - Traditional Jeepney Fares">
+    <meta property="og:description"
+        content="What a traditional jeepney ride should cost, based on the LTFRB fare guide.">
+    <meta name="description"
+        content="What a traditional jeepney ride should cost, based on the LTFRB fare guide.">
+    <!-- Google Fonts: Sora & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <!-- Icons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/fares.css">
+    <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2">
     <style>
         body { opacity: 0; }
@@ -23,7 +35,7 @@
     </style>
 </head>
 
-<body>
+<body class="fares-page">
 
     <!-- Mobile Search Overlay -->
     <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
@@ -48,7 +60,7 @@
         </div>
     </div>
 
-    <!-- Header / Navigation (Seamless Light Theme) -->
+    <!-- Header / Navigation (No active nav state for Fares page) -->
     <header class="navbar" id="navbar">
         <div class="nav-container">
             <!-- [Left Side]: Logo -->
@@ -243,14 +255,11 @@
                         Clear
                     </button>
                 </div>
-                <div class="alerts-list" id="activityFeedList">
-                    <!-- Filled dynamically by JS -->
-                </div>
+                <div class="alerts-list" id="activityFeedList"></div>
             </div>
 
-            <!-- Establishment Focus Profile Dropdown Menu (Top level nav-container child for Desktop + Mobile) -->
+            <!-- Establishment Focus Profile Dropdown Menu -->
             <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
-                <!-- User Info Header -->
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
                         <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
@@ -262,7 +271,6 @@
                     </div>
                 </div>
 
-                <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
                 <div class="exploration-stats-section" id="explorationStatsSection">
                     <div class="stats-section-label">Your Exploration Stats</div>
                     <div class="exploration-stats-row">
@@ -292,7 +300,6 @@
                     </div>
                 </div>
 
-                <!-- Anonymous Banner (For Guest/Anonymous Users) -->
                 <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
                     <span>Guest Mode</span>
                     <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
@@ -300,17 +307,13 @@
 
                 <div class="profile-menu-divider"></div>
 
-                <!-- Menu Items with Outline Heroicons SVGs (Strictly No Emojis) -->
                 <div class="profile-nav-list">
-                    <!-- 1. My Visits -->
                     <button type="button" class="profile-nav-btn" id="menuMyVisits">
                         <span class="nav-btn-icon">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </span>
                         <span class="nav-btn-title">My Visits</span>
                     </button>
-
-                    <!-- 2. Saved Places -->
                     <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                         <span class="nav-btn-icon">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
@@ -318,16 +321,12 @@
                         <span class="nav-btn-title">Saved Places</span>
                         <span class="saved-count-pill" id="menuSavedCount">(0)</span>
                     </button>
-
-                    <!-- 3. My Achievements -->
                     <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                         <span class="nav-btn-icon">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
                         </span>
                         <span class="nav-btn-title">My Achievements</span>
                     </button>
-
-                    <!-- 4. Account Settings -->
                     <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                         <span class="nav-btn-icon">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -338,7 +337,6 @@
 
                 <div class="profile-menu-divider"></div>
 
-                <!-- 5. Log Out -->
                 <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
                     <span class="nav-btn-icon">
                         <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -349,102 +347,205 @@
         </div>
     </header>
 
-    <main class="legal-page">
-        <div class="legal-container">
+    <!-- Main Content Shell -->
+    <main class="fares-page-container">
+        <div class="fares-shell">
+            <!-- 1. Intro -->
+            <section class="fares-section fares-intro-section">
+                <h1 class="fares-main-title" data-i18n="fares_page.title">Fares</h1>
+                <p class="fares-lead-text" data-i18n="fares_page.lead">What a traditional jeepney ride should cost, based on the LTFRB fare guide.</p>
+                <p id="fareEffectiveNote" class="fares-effective-note"></p>
+            </section>
 
-            <div class="legal-top-row">
-                <a href="login.html" class="legal-back-link">
-                    <ion-icon name="arrow-back-outline"></ion-icon>
-                    Back
-                </a>
-                <span class="legal-badge">Legal</span>
-            </div>
-            <h1 class="legal-title">Privacy Policy</h1>
-            <p class="legal-meta">Last updated: August 6, 2025</p>
+            <!-- 2. Estimate a fare (Calculator) -->
+            <section class="fares-section fares-grid-section fares-dynamic-section">
+                <h2 class="fares-section-heading" data-i18n="fares_page.estimate_title">Estimate a fare</h2>
+                <div id="fareCalcContentWrap" class="fare-calc-wrap">
+                    <div class="fare-calc-input-group">
+                        <label for="fareKmInput" class="fare-calc-label" data-i18n="fares_page.calc_label">Distance (km)</label>
+                        <input type="text" id="fareKmInput" class="fare-calc-input" value="8" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off">
+                        <p id="fareKmHint" class="fare-calc-hint"></p>
+                    </div>
 
-            <div class="legal-capstone-note">
-                <span><strong>Academic Note:</strong> Calzada is an academic capstone project, not a commercial service. This Privacy Policy is provided for transparency. Data collected is used solely for academic demonstration and app functionality.</span>
-            </div>
+                    <div class="fare-calc-results" aria-live="polite" aria-atomic="true">
+                        <div class="fare-calc-result-card">
+                            <span class="fare-calc-result-label" data-i18n="fares_page.calc_regular">Regular</span>
+                            <span id="fareResultRegular" class="fare-calc-result-amount">—</span>
+                        </div>
+                        <div class="fare-calc-result-card">
+                            <span class="fare-calc-result-label" data-i18n="fares_page.calc_discounted">Student, senior citizen, or PWD</span>
+                            <span id="fareResultDiscounted" class="fare-calc-result-amount">—</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-            <div class="legal-card">
-                <h2><span class="section-num">1</span> Information We Collect</h2>
-                <p>When you use Calzada, we may collect the following types of information:</p>
-                <ul>
-                    <li><strong>Registration data:</strong> Your email address, used to create and identify your account.</li>
-                    <li><strong>Authentication credentials:</strong> Your password, stored in hashed form via Firebase Authentication. We never see or store your password in plain text.</li>
-                    <li><strong>Google account data (optional):</strong> If you sign in with Google, we receive your name, email address, and profile picture from Google's OAuth service.</li>
-                    <li><strong>Search and place queries:</strong> What places or routes you look up within the App, to provide relevant results.</li>
-                    <li><strong>Chatbot conversations:</strong> Messages sent to Routie (our AI assistant) are processed by the Groq API to generate responses. These messages are not stored permanently on our servers.</li>
-                    <li><strong>Session and activity data:</strong> Login timestamps, device/browser type, and session logs, stored in Firestore for security and academic analysis purposes.</li>
-                </ul>
-            </div>
+            <!-- 3. How fares are computed -->
+            <section class="fares-section fares-grid-section fares-dynamic-section">
+                <h2 class="fares-section-heading" data-i18n="fares_page.computed_title">How fares are computed</h2>
+                <div class="fare-computed-content">
+                    <div class="fare-computed-cols">
+                        <div class="fare-computed-item">
+                            <h3 class="fare-computed-title" data-i18n="fares_page.calc_regular">Regular</h3>
+                            <p id="fareCompRegular" class="fares-body-text"></p>
+                        </div>
+                        <div class="fare-computed-item">
+                            <h3 class="fare-computed-title" data-i18n="fares_page.calc_discounted">Student, senior citizen, or PWD</h3>
+                            <p id="fareCompDiscounted" class="fares-body-text"></p>
+                        </div>
+                    </div>
+                    <p id="fareCompNote" class="fare-computed-note"></p>
+                </div>
+            </section>
 
-            <div class="legal-card">
-                <h2><span class="section-num">2</span> How We Use Your Information</h2>
-                <p>The information we collect is used to:</p>
-                <ul>
-                    <li>Authenticate your identity and manage your account</li>
-                    <li>Provide personalized place-finding and route guidance within Calamba</li>
-                    <li>Power the Routie chatbot to answer your commuting questions</li>
-                    <li>Monitor login sessions for security and abuse prevention</li>
-                    <li>Analyze usage patterns for academic research and system improvement</li>
-                </ul>
-                <p>We do not use your data for advertising, profiling, or any commercial purpose.</p>
-            </div>
+            <!-- 4. Fare table -->
+            <section class="fares-section fares-grid-section fares-dynamic-section">
+                <div class="fares-section-header-col">
+                    <h2 class="fares-section-heading" data-i18n="fares_page.table_title">Fare table</h2>
+                    <p class="fares-heading-note desktop-table-note" data-i18n="fares_page.table_note">Discounted fares apply to students, senior citizens, and PWDs. Amounts are in pesos.</p>
+                    <p class="fares-heading-note mobile-table-note" data-i18n="fares_page.table_note_mobile">Disc. means the fare for students, senior citizens, and PWDs. Amounts are in pesos.</p>
+                </div>
+                <div class="fares-table-content">
+                    <div id="fareTablesWrap" class="fare-tables-container"></div>
+                </div>
+            </section>
 
-            <div class="legal-card">
-                <h2><span class="section-num">3</span> Third-Party Services</h2>
-                <p>Calzada uses the following third-party services. When you use features that rely on them, some data leaves our own servers:</p>
-                <ul>
-                    <li>
-                        <strong>Google Firebase</strong> <span class="legal-third-party-tag">Authentication &amp; Database</span><br>
-                        Used for user registration, login (including Google Sign-In), and storing session/activity data in Firestore. Google's privacy policy applies to data processed through Firebase.
-                        <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer" class="legal-inline-link">Firebase Privacy</a>
-                    </li>
-                    <br>
-                    <li>
-                        <strong>Groq API</strong> <span class="legal-third-party-tag">AI Chatbot</span><br>
-                        Powers the Routie chatbot. Messages you send to Routie are transmitted to Groq's servers to generate responses. Groq's data retention policies apply. We recommend not sharing personally sensitive information through the chatbot.
-                        <a href="https://groq.com/privacy-policy/" target="_blank" rel="noopener noreferrer" class="legal-inline-link">Groq Privacy</a>
-                    </li>
-                </ul>
-            </div>
+            <!-- 5. Source -->
+            <section class="fares-section fares-grid-section fares-dynamic-section">
+                <h2 class="fares-section-heading" data-i18n="fares_page.source_title">Source</h2>
+                <div class="fare-source-content">
+                    <p id="fareSourceStatement" class="fare-source-statement"></p>
+                    <p class="fare-source-clarification" data-i18n="fares_page.source_clarification">For clarification, visit www.ltfrb.gov.ph or call the LTFRB hotline at 1342.</p>
+                    <a id="fareDownloadPdfBtn" href="/assets/docs/Fare-Guide_Traditional-PUJ-Provisional-Fare-Increase_08Oct2023.pdf" class="btn-fare-source" target="_blank" rel="noopener" data-i18n="fares_page.source_btn">Download the official guide (PDF)</a>
+                </div>
+            </section>
 
-            <div class="legal-card">
-                <h2><span class="section-num">4</span> Data Security</h2>
-                <p>We take reasonable steps to protect your data:</p>
-                <ul>
-                    <li>Passwords are hashed using industry-standard algorithms via Firebase Authentication — never stored in plain text</li>
-                    <li>All data transmissions between the App and servers use HTTPS encryption</li>
-                    <li>Firestore database access is restricted to authenticated users only, via Firebase Security Rules</li>
-                </ul>
-                <p>As an academic project, our security measures are implemented in good faith but may not match commercial-grade standards. We encourage users not to reuse passwords from other services.</p>
-            </div>
-
-            <div class="legal-card">
-                <h2><span class="section-num">5</span> User Rights</h2>
-                <p>You have the following rights regarding your personal data:</p>
-                <ul>
-                    <li><strong>Access:</strong> Request a summary of data associated with your account</li>
-                    <li><strong>Correction:</strong> Request correction of inaccurate account information</li>
-                    <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
-                </ul>
-                <p>To exercise any of these rights, contact us via the <a href="feedback.html" class="legal-inline-link">Feedback page</a>. As this is a capstone project, we will do our best to accommodate requests in a timely manner.</p>
-            </div>
-
-            <div class="legal-card">
-                <h2><span class="section-num">6</span> Contact Information</h2>
-                <p>For questions or concerns about this Privacy Policy, reach us through the <a href="feedback.html" class="legal-inline-link">Feedback page</a>. You may also review our <a href="terms.html" class="legal-inline-link">Terms of Service</a> for the rules governing use of the App.</p>
-            </div>
-
+            <!-- 6. CTA -->
+            <section class="fares-cta-section">
+                <div class="fares-cta-banner">
+                    <div class="fares-cta-text-group">
+                        <h2 class="fares-cta-title" data-i18n="fares_page.cta_title">Ready to plan your journey?</h2>
+                        <p class="fares-cta-sub" data-i18n="fares_page.cta_subtitle">Find a place worth visiting, then get there by jeepney or tricycle — all in one app.</p>
+                    </div>
+                    <a href="planner.html" class="btn-fares-cta" data-i18n="fares_page.cta_btn">Plan Your Route Now</a>
+                </div>
+            </section>
         </div>
     </main>
 
+    <!-- Chatbot Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <img src="../assets/DyipTok-icon.png" alt="Routie">
+                </div>
+                <div class="chat-title-group">
+                    <h3 class="chat-name">Routie Assistant</h3>
+                    <p class="chat-status">Your local guide</p>
+                </div>
+            </div>
+            <button class="close-chat-btn" id="closeChatBtn" type="button" aria-label="Close Chat">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message-wrapper bot-wrapper">
+                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie"></div>
+                <div class="message bot-message" data-i18n="chat.greeting">
+                    Hello! I'm Routie. Where do you want to go today?
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
+
+            <div class="chat-input-toolbar">
+                <div class="toolbar-right">
+                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                </div>
+            </div>
+
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SIDE DRAWER ===== -->
+    <div class="drawer-overlay" id="sideDrawerOverlay"></div>
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-top">
+            <a href="index.html" class="drawer-brand" aria-label="Calzada Home">
+                <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+            </a>
+            <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <nav class="drawer-links">
+            <div class="drawer-nav-group">
+                <a href="index.html" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="about.html" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="places.html" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="planner.html" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="faq.html" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="feedback.html" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+                <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
+            </div>
+
+            <div class="drawer-separator"></div>
+
+            <div class="mobile-lang-row">
+                <span class="mobile-lang-label">Language / Wika</span>
+                <div class="lang-dropdown-container mobile-lang-container">
+                    <button class="mobile-lang-toggle pill-btn" type="button" aria-expanded="false">
+                        <span class="lang-flag">🌐</span>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu">
+                        <button class="lang-dropdown-item" type="button" data-lang="en">
+                            <span class="lang-flag">🌐</span>
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl">
+                            <span class="lang-flag">🇵🇭</span>
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <div class="drawer-footer-text">© 2026 Calzada</div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/legal-modal.js"></script>
     <script src="../js/script.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/transitions.js"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js"></script>
+    <script src="../js/fares.js"></script>
 </body>
 
 </html>

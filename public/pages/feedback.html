@@ -363,17 +363,34 @@
             <p class="page-subtext">Help us improve Calzada — report a bug, suggest a feature, or just tell us what you think.</p>
         </div>
 
-        <div class="feedback-card" id="feedbackFormCard">
-            <!-- Inline Auth Gate Prompt (Visible when NOT logged in) -->
-            <div class="feedback-auth-gate" id="feedbackAuthGate" style="display: none;">
-                <ion-icon name="lock-closed-outline" class="auth-gate-icon"></ion-icon>
-                <h2>Sign in to leave feedback</h2>
-                <p>To help us prevent spam and follow up on your suggestions or bug reports, please sign in with your Calzada account.</p>
-                <a href="login.html?redirect=feedback.html" class="btn-feedback-signin">
-                    <ion-icon name="log-in-outline"></ion-icon> Sign in to Continue
-                </a>
+        <!-- SIGNED-OUT: Two-Column Split Auth Gate (Visible when NOT logged in) -->
+        <div class="feedback-gate-split" id="feedbackAuthGate" aria-live="polite">
+            <!-- Left Column: Routie Mascot Visual (No Gray Box) -->
+            <div class="feedback-gate-visual">
+                <div class="feedback-routie-card">
+                    <div class="feedback-routie-bubble">
+                        <span class="routie-bubble-author">Routie</span>
+                        <p class="routie-bubble-text">Spot a bug or have an idea to make Calzada better? Sign in and let us know — we read every note!</p>
+                    </div>
+                    <div class="feedback-routie-avatar-wrap">
+                        <img src="../assets/DyipTok-icon.png" alt="Routie Assistant" class="feedback-routie-img">
+                    </div>
+                </div>
             </div>
 
+            <!-- Right Column: Left-aligned Text & CTA -->
+            <div class="feedback-gate-content">
+                <h2 class="feedback-gate-title">Sign in to leave feedback</h2>
+                <p class="feedback-gate-desc">To help us prevent spam and follow up on your suggestions or bug reports, please sign in with your Calzada account.</p>
+                <a href="login.html?redirect=feedback.html" class="btn-feedback-signin">
+                    <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
+                    <span>Sign in to Continue</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- SIGNED-IN: Genuine Interactive Feedback Form Card -->
+        <div class="feedback-card" id="feedbackFormCard" style="display: none;">
             <form id="feedbackForm" class="feedback-form" novalidate>
                 <div class="feedback-cols-wrapper">
                     <!-- LEFT COLUMN: Category Cards & Emoji Scale -->
@@ -509,7 +526,7 @@
             </div>
             <div class="footer-column contact-column">
                 <h3 data-i18n="footer.contact.heading">Contact Us</h3>
-                <p><ion-icon name="mail-outline"></ion-icon> hello@calzada.ph</p>
+                <p><ion-icon name="mail-outline"></ion-icon> <a href="mailto:thecalzada@gmail.com">thecalzada@gmail.com</a></p>
                 <p><ion-icon name="call-outline"></ion-icon> (049) 555 1234</p>
                 <p><ion-icon name="location-outline"></ion-icon> Calamba City, Laguna</p>
             </div>
@@ -517,9 +534,9 @@
         <div class="footer-bottom">
             <p data-i18n="footer.copyright">&copy; 2026 Calzada. All rights reserved.</p>
             <div class="footer-legal-links">
-                <a href="terms.html">Terms of Service</a>
+                <button type="button" class="footer-legal-btn" data-open-legal="terms" data-i18n="footer.nav.terms">Terms of Service</button>
                 <span class="footer-legal-divider" aria-hidden="true">&bull;</span>
-                <a href="privacy.html">Privacy Policy</a>
+                <button type="button" class="footer-legal-btn" data-open-legal="privacy" data-i18n="footer.nav.privacy">Privacy Policy</button>
             </div>
         </div>
     </footer>
@@ -552,17 +569,29 @@
             const emailInput = document.getElementById('feedbackEmail');
             const errorNoticeEl = document.getElementById('feedbackErrorNotice');
 
-            // --- 1. FIREBASE AUTH GUARD & INLINE STATE SWAP ---
+            // Helper function to manage authenticated vs signed-out state
+            function setAuthState(isAuthenticated) {
+                if (isAuthenticated) {
+                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'none';
+                    if (feedbackFormCard) feedbackFormCard.style.display = 'block';
+                } else {
+                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'flex';
+                    if (feedbackFormCard) feedbackFormCard.style.display = 'none';
+                }
+            }
+
+            // Initialize signed-out gate by default
+            setAuthState(false);
+
+            // --- 1. FIREBASE AUTH GUARD & STATE SWAP ---
             onAuthStateChanged(auth, (user) => {
                 currentUser = user;
                 if (!user) {
-                    // Not signed in: hide form, show inline sign-in prompt
-                    feedbackForm.style.display = 'none';
-                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'block';
+                    // Not signed in: show clean two-column split gate
+                    setAuthState(false);
                 } else {
-                    // Signed in: show form, hide prompt
-                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'none';
-                    feedbackForm.style.display = 'block';
+                    // Signed in: show real interactive feedback form
+                    setAuthState(true);
 
                     // Pre-fill display name (editable)
                     if (nameInput) {
@@ -604,20 +633,31 @@
             });
 
             // 2. Emoji Rating Selection (Optional - Click again to deselect)
+            const emojiRowEl = document.getElementById('emojiRatingRow');
             const emojiOptions = document.querySelectorAll('.emoji-option');
             const emojiLabelEl = document.getElementById('emojiSelectedLabel');
 
             emojiOptions.forEach(opt => {
                 opt.addEventListener('click', () => {
-                    if (opt.classList.contains('is-selected')) {
-                        opt.classList.remove('is-selected');
+                    const wasSelected = opt.classList.contains('is-selected');
+
+                    emojiOptions.forEach(o => {
+                        o.classList.remove('is-selected', 'is-animating-select');
+                    });
+
+                    if (wasSelected) {
                         selectedRating = null;
-                        emojiLabelEl.textContent = '';
+                        if (emojiLabelEl) emojiLabelEl.textContent = '';
+                        if (emojiRowEl) emojiRowEl.classList.remove('has-selection');
                     } else {
-                        emojiOptions.forEach(o => o.classList.remove('is-selected'));
-                        opt.classList.add('is-selected');
+                        opt.classList.add('is-selected', 'is-animating-select');
                         selectedRating = opt.getAttribute('data-rating');
-                        emojiLabelEl.textContent = selectedRating;
+                        if (emojiLabelEl) emojiLabelEl.textContent = selectedRating;
+                        if (emojiRowEl) emojiRowEl.classList.add('has-selection');
+
+                        setTimeout(() => {
+                            opt.classList.remove('is-animating-select');
+                        }, 450);
                     }
                 });
             });
@@ -655,8 +695,7 @@
 
                 if (!currentUser) {
                     showFeedbackError('Please sign in to your account before submitting feedback.');
-                    feedbackForm.style.display = 'none';
-                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'block';
+                    setAuthState(false);
                     return;
                 }
 
@@ -732,7 +771,8 @@
                     categoryCards.forEach(c => c.classList.remove('is-selected'));
                     categoryCardsGrid.style.outline = 'none';
                     helperTextEl.textContent = '';
-                    emojiOptions.forEach(o => o.classList.remove('is-selected'));
+                    emojiOptions.forEach(o => o.classList.remove('is-selected', 'is-animating-select'));
+                    if (emojiRowEl) emojiRowEl.classList.remove('has-selection');
                     emojiLabelEl.textContent = '';
                     messageInput.placeholder = placeholders['General'];
                     charCounterEl.textContent = '0/500';
@@ -770,7 +810,8 @@
                 categoryCardsGrid.style.outline = 'none';
                 helperTextEl.textContent = '';
 
-                emojiOptions.forEach(o => o.classList.remove('is-selected'));
+                emojiOptions.forEach(o => o.classList.remove('is-selected', 'is-animating-select'));
+                if (emojiRowEl) emojiRowEl.classList.remove('has-selection');
                 emojiLabelEl.textContent = '';
 
                 messageInput.placeholder = placeholders['General'];
@@ -780,7 +821,7 @@
                 messageInput.style.borderColor = '#CBD5E1';
                 hideFeedbackError();
 
-                // Restore user's authenticated credentials
+                // Restore user's authenticated credentials and lock state
                 if (currentUser) {
                     if (nameInput) nameInput.value = currentUser.displayName || '';
                     if (emailInput) {
@@ -788,16 +829,19 @@
                         emailInput.readOnly = true;
                         emailInput.classList.add('is-readonly');
                     }
+                    setAuthState(true);
+                } else {
+                    setAuthState(false);
                 }
 
                 const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
                 if (loaderWrapper) loaderWrapper.style.display = 'none';
                 feedbackForm.classList.remove('is-loading');
                 feedbackConfirmation.classList.remove('active');
-                feedbackFormCard.style.display = 'block';
             });
         });
     </script>
+    <script src="../js/legal-modal.js"></script>
     <script src="../js/script.js"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js"></script>

@@ -696,19 +696,19 @@
 
 
 
-    <!-- ===== CHATBOT (Kept as is but container updated if needed) ===== -->
+    <!-- ===== CHATBOT ===== -->
     <div class="chat-window" id="chatWindow" style="z-index:10000;">
         <div class="chat-header">
             <div class="chat-header-info">
-                <div class="bot-avatar">
+                <div class="chat-avatar">
                     <img src="../assets/DyipTok-icon.png" alt="Routie">
                 </div>
-                <div>
-                    <div class="chat-name">Routie Assistant</div>
-                    <div class="chat-status"><span class="status-dot"></span> Online</div>
+                <div class="chat-title-group">
+                    <h3 class="chat-name">Routie Assistant</h3>
+                    <p class="chat-status">Your local guide</p>
                 </div>
             </div>
-            <button class="close-chat-btn" id="closeChatBtn">
+            <button class="close-chat-btn" id="closeChatBtn" type="button" aria-label="Close Chat">
                 <ion-icon name="close-outline"></ion-icon>
             </button>
         </div>
@@ -721,16 +721,30 @@
             </div>
         </div>
 
-
-
         <div class="chat-input-area">
             <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..."
                 id="chatInput" rows="1"></textarea>
             <div class="chat-input-toolbar">
                 <div class="toolbar-right">
-                    <button id="micBtn" class="mic-btn"><ion-icon name="mic-outline"></ion-icon></button>
-                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
+                    <button id="micBtn" class="mic-btn" type="button" title="Voice Message (Tagalog/English)"><ion-icon
+                            name="mic-outline"></ion-icon></button>
+                    <button id="sendMessageBtn" type="button"><ion-icon name="arrow-up-outline"></ion-icon></button>
                 </div>
+            </div>
+            <div id="recordingControls" class="vm-active-container" style="display: none;">
+                <div class="recording-indicator-dot"></div>
+                <div class="vm-frequency-pill" id="vmFrequencyPill">
+                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
+                </div>
+                <button id="pauseMicBtn" class="vm-action-btn pause-btn" type="button" title="Pause/Resume">
+                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+                </button>
+                <button id="cancelMicBtn" class="vm-action-btn close-btn" type="button" title="Cancel & Delete">
+                    <ion-icon name="close-outline"></ion-icon>
+                </button>
+                <button id="stopMicBtn" class="vm-action-btn send-vm-btn" type="button" title="Stop & Send">
+                    <ion-icon name="arrow-up-outline"></ion-icon>
+                </button>
             </div>
         </div>
     </div>
@@ -777,6 +791,7 @@
     <script src="../js/transitions.js"></script>
     <script src="../js/places-shared.js?v=2.5.1"></script>
     <script src="../js/planner.js?v=2.5.3"></script>
+    <script src="../js/legal-modal.js"></script>
     <script src="../js/script.js?v=2.5.1"></script>
     <script src="../js/i18n.js"></script>
 

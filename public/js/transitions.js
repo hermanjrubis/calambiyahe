@@ -246,7 +246,8 @@
 
     function isInternalLink(anchor) {
         if (!anchor || !anchor.href) return false;
-        // Skip hash-only, javascript:, mailto:, tel:, and external links
+        // Skip hash-only, javascript:, mailto:, tel:, legal modals, and external links
+        if (anchor.hasAttribute('data-open-legal')) return false;
         if (anchor.getAttribute('href').startsWith('#')) return false;
         if (anchor.getAttribute('href').startsWith('javascript:')) return false;
         if (anchor.getAttribute('href').startsWith('mailto:')) return false;

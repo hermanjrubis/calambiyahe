@@ -76,7 +76,7 @@
                             <p id="emailError" class="auth-error-text"></p>
 
                             <button type="submit" id="btnEmailContinue" class="btn-auth-primary">Continue</button>
-                            <p class="auth-legal-terms" data-i18n="login.terms_notice">By continuing, you agree to our <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>.</p>
+                            <p class="auth-legal-terms" data-i18n="login.terms_notice">By continuing, you agree to our <button type="button" class="auth-legal-link" data-open-legal="terms">Terms of Service</button> and <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>.</p>
                         </form>
                     </div>
 
@@ -134,7 +134,7 @@
 
                             <div class="auth-options" style="margin-bottom: 20px;">
                                 <label class="remember-me">
-                                    <input type="checkbox" id="regTerms"> I agree to the <a href="terms.html" target="_blank" rel="noopener noreferrer">Terms</a> &amp; <a href="privacy.html" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                                    <input type="checkbox" id="regTerms"> I agree to the <button type="button" class="auth-legal-link" data-open-legal="terms">Terms</button> &amp; <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>
                                 </label>
                             </div>
 
@@ -163,38 +163,7 @@
         </div>
     </div>
 
-    <!-- Terms Modal -->
-    <div class="modal" id="termsModal" style="align-items: center; justify-content: center;">
-        <div class="modal-content" style="text-align: left; position: relative;">
-            <button class="close-modal" onclick="document.getElementById('termsModal').classList.remove('active')" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;"><ion-icon name="close-outline"></ion-icon></button>
-            <h2 style="margin-bottom: 15px; color: #1e293b;">Terms of Service</h2>
-            <div style="max-height: 60vh; overflow-y: auto; padding-right: 15px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
-                <p><strong>1. Acceptance of Terms</strong><br>By creating an account and using Calzada, you agree to be bound by these Terms of Service. If you do not agree, please do not use the platform.</p>
-                <p style="margin-top: 10px;"><strong>2. Service Description</strong><br>Calzada is a navigational and transit guide for Calamba City. While we strive for accuracy, transit schedules and routes are subject to change. We are not liable for delays, missed trips, or inaccuracies in third-party transit data.</p>
-                <p style="margin-top: 10px;"><strong>3. User Responsibilities</strong><br>You are responsible for maintaining the confidentiality of your account credentials. Any activity occurring under your account is your sole responsibility. You agree not to misuse the platform or attempt to bypass security measures.</p>
-                <p style="margin-top: 10px;"><strong>4. Account Termination</strong><br>We reserve the right to suspend or terminate accounts that violate these terms, engage in fraudulent activities, or abuse the platform's systems.</p>
-                <p style="margin-top: 10px;"><strong>5. Changes to Terms</strong><br>We may modify these terms at any time. Continued use of Calzada constitutes acceptance of the updated terms.</p>
-            </div>
-            <button class="btn-auth-primary" style="margin-top: 20px;" onclick="document.getElementById('termsModal').classList.remove('active')">I Understand</button>
-        </div>
-    </div>
-
-    <!-- Privacy Policy Modal -->
-    <div class="modal" id="privacyModal" style="align-items: center; justify-content: center;">
-        <div class="modal-content" style="text-align: left; position: relative;">
-            <button class="close-modal" onclick="document.getElementById('privacyModal').classList.remove('active')" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;"><ion-icon name="close-outline"></ion-icon></button>
-            <h2 style="margin-bottom: 15px; color: #1e293b;">Privacy Policy</h2>
-            <div style="max-height: 60vh; overflow-y: auto; padding-right: 15px; font-size: 0.9rem; color: #475569; line-height: 1.6;">
-                <p><strong>1. Information We Collect</strong><br>We collect information you provide during registration, including your email address and authentication credentials. We also automatically collect session data such as IP address, browser type, and timestamps to secure your account.</p>
-                <p style="margin-top: 10px;"><strong>2. How We Use Your Data</strong><br>Your data is strictly used to provide authentication, personalize your commuting experience, and improve our services. We use session logs exclusively for security monitoring and account verification.</p>
-                <p style="margin-top: 10px;"><strong>3. Third-Party Services</strong><br>We utilize Google Firebase for secure authentication and database management. Your data is encrypted and handled in compliance with Google's stringent security protocols.</p>
-                <p style="margin-top: 10px;"><strong>4. Data Sharing & Security</strong><br>We <strong>never</strong> sell your personal information to third parties. We employ industry-standard encryption to protect your account against unauthorized access.</p>
-                <p style="margin-top: 10px;"><strong>5. Your Rights</strong><br>You have the right to request access to, correction of, or deletion of your personal data at any time by contacting our support team.</p>
-            </div>
-            <button class="btn-auth-primary" style="margin-top: 20px;" onclick="document.getElementById('privacyModal').classList.remove('active')">I Agree</button>
-        </div>
-    </div>
-
+    <script src="../js/legal-modal.js"></script>
     <script src="../js/script.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/transitions.js"></script>

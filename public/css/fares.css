@@ -1,0 +1,667 @@
+/* ==========================================================================
+   CALZADA - FARES PAGE STYLES
+   Strictly scoped to body.fares-page
+   No lines / no dividers, one 1120px container, Sora typography
+   ========================================================================== */
+
+/* Floating header backdrop strip */
+body.fares-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: var(--bg, #f0f6fc);
+    z-index: 199;
+    pointer-events: none;
+}
+
+body.fares-page {
+    background-color: var(--bg, #f0f6fc);
+    color: #3D5068;
+    overflow-x: hidden;
+}
+
+/* Base override for fares page container */
+body.fares-page .fares-page-container {
+    padding: 130px 24px 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    background: transparent;
+}
+
+/* Single 1120px container for all sections */
+.fares-shell {
+    max-width: 1120px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* Section base: vertical padding 56px, NO lines/dividers */
+.fares-section {
+    padding: 56px 0;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Two-column grid: 280px left column, content right column, 64px gap */
+.fares-grid-section {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 64px;
+    align-items: start;
+}
+
+/* Section headings */
+.fares-section-heading {
+    font-family: 'Sora', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: #0E2A47;
+    line-height: 1.25;
+    margin: 0;
+    text-align: left;
+}
+
+.fares-heading-note {
+    font-size: 15px;
+    color: #64748B;
+    line-height: 1.5;
+    margin-top: 10px;
+    margin-bottom: 0;
+    text-align: left;
+}
+
+/* Body typography */
+.fares-body-text {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #3D5068;
+    text-align: left;
+    margin: 0;
+    max-width: 68ch;
+}
+
+/* --------------------------------------------------------------------------
+   1. Intro Section
+   -------------------------------------------------------------------------- */
+.fares-intro-section {
+    padding-top: 16px;
+    padding-bottom: 56px;
+}
+
+.fares-main-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #0E2A47;
+    line-height: 1.1;
+    margin: 0 0 24px 0;
+    text-align: left;
+}
+
+.fares-lead-text {
+    font-family: 'Sora', sans-serif;
+    font-size: 30px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #0E2A47;
+    max-width: 1000px;
+    margin: 0 0 16px 0;
+    text-align: left;
+}
+
+.fares-effective-note {
+    font-size: 16px;
+    color: #64748B;
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+/* --------------------------------------------------------------------------
+   2. Estimate a Fare (Calculator)
+   -------------------------------------------------------------------------- */
+.fare-calc-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+.fare-calc-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 280px;
+}
+
+.fare-calc-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0E2A47;
+    text-align: left;
+}
+
+.fare-calc-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Sora', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: #0E2A47;
+    padding: 12px 18px;
+    border: 1.5px solid #B9D3F0;
+    border-radius: 10px;
+    background: #FFFFFF;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fare-calc-input:focus {
+    border-color: #378ADD;
+}
+
+.fare-calc-input:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+.fare-calc-hint {
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.4;
+    margin: 0;
+    transition: color 0.2s ease;
+}
+
+.fare-calc-hint.is-error {
+    color: #DC2626;
+    font-weight: 500;
+}
+
+.fare-calc-results {
+    display: flex;
+    align-items: flex-start;
+    gap: 64px;
+}
+
+.fare-calc-result-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fare-calc-result-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #64748B;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.fare-calc-result-amount {
+    font-family: 'Sora', sans-serif;
+    font-size: 40px;
+    font-weight: 600;
+    color: #0E2A47;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    text-align: left;
+}
+
+/* --------------------------------------------------------------------------
+   3. How Fares Are Computed
+   -------------------------------------------------------------------------- */
+.fare-computed-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+}
+
+.fare-computed-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fare-computed-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0E2A47;
+    margin: 0;
+    text-align: left;
+}
+
+.fare-computed-note {
+    font-size: 15px;
+    color: #64748B;
+    line-height: 1.6;
+    margin-top: 28px;
+    margin-bottom: 0;
+    text-align: left;
+    max-width: 70ch;
+}
+
+/* --------------------------------------------------------------------------
+   4. Fare Table
+   Split in two halves (1-25, 26-50), 40px gap, alternate white rows, 8px radius
+   -------------------------------------------------------------------------- */
+.fare-tables-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+    width: 100%;
+}
+
+.fare-table-half {
+    width: 100%;
+    min-width: 0;
+}
+
+.fare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 4px;
+    font-variant-numeric: tabular-nums;
+    table-layout: fixed;
+}
+
+.fare-table th,
+.fare-table td {
+    padding: 10px 16px;
+    text-align: left;
+    border: none;
+    font-size: 15px;
+    line-height: 1.3;
+}
+
+.fare-table thead th {
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    color: #64748B;
+    font-size: 14px;
+    padding-bottom: 12px;
+}
+
+.fare-table thead th.num-col-head,
+.fare-table td.num-cell {
+    text-align: right;
+}
+
+.fare-table thead th.km-col-head,
+.fare-table th.km-cell {
+    width: 22%;
+    text-align: left;
+}
+
+.fare-table th.km-cell {
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    color: #0E2A47;
+}
+
+.fare-table td.num-cell {
+    color: #3D5068;
+}
+
+/* Row styling: alternate white and transparent, 8px radius on corners */
+.fare-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.fare-table tbody tr:nth-child(odd) {
+    background-color: #FFFFFF;
+}
+
+.fare-table tbody tr:nth-child(even) {
+    background-color: transparent;
+}
+
+.fare-table tbody tr th:first-child,
+.fare-table tbody tr td:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.fare-table tbody tr th:last-child,
+.fare-table tbody tr td:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* Calculator matching active row highlight */
+.fare-table tbody tr.is-active-fare-row {
+    background-color: #D6E8FA !important;
+    font-weight: 600;
+}
+
+.fare-table tbody tr.is-active-fare-row th,
+.fare-table tbody tr.is-active-fare-row td {
+    color: #0E2A47 !important;
+    font-weight: 600 !important;
+}
+
+/* Header label switches (Desktop vs Mobile) */
+.desktop-col-label {
+    display: inline;
+}
+
+.mobile-col-label {
+    display: none;
+}
+
+.mobile-table-note {
+    display: none;
+}
+
+.desktop-table-note {
+    display: block;
+}
+
+/* Visually hidden screen reader utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Source Section
+   -------------------------------------------------------------------------- */
+.fare-source-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.fare-source-statement {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #3D5068;
+    margin: 0;
+    text-align: left;
+}
+
+.fare-source-clarification {
+    font-size: 16px;
+    color: #64748B;
+    line-height: 1.5;
+    margin: 0;
+    text-align: left;
+}
+
+.btn-fare-source {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: #2272C3;
+    border: 1.5px solid #378ADD;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    width: fit-content;
+    margin-top: 8px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-fare-source:hover {
+    background-color: #F0F7FF;
+    border-color: #2272C3;
+}
+
+.btn-fare-source:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+/* Error state box */
+.fare-error-box {
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.fare-error-msg {
+    font-size: 16px;
+    color: #DC2626;
+    margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   6. CTA Block
+   Identical to About page CTA
+   -------------------------------------------------------------------------- */
+.fares-cta-section {
+    padding: 56px 0 96px;
+}
+
+.fares-cta-banner {
+    background-color: #2272C3;
+    border-radius: 20px;
+    padding: 56px 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 40px;
+    box-shadow: 0 12px 36px rgba(34, 114, 195, 0.22);
+}
+
+.fares-cta-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 620px;
+}
+
+.fares-cta-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 36px;
+    font-weight: 700;
+    color: #FFFFFF;
+    line-height: 1.2;
+    margin: 0;
+    text-align: left;
+}
+
+.fares-cta-sub {
+    font-size: 18px;
+    color: #FFFFFF;
+    line-height: 1.5;
+    margin: 0;
+    opacity: 0.95;
+    text-align: left;
+}
+
+.btn-fares-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #FFFFFF;
+    color: #1A5CA3;
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 16px 32px;
+    border-radius: 10px;
+    text-decoration: none;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn-fares-cta:hover {
+    background: #F8FAFC;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.btn-fares-cta:focus-visible {
+    outline: 2px solid #FFFFFF;
+    outline-offset: 3px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+    .fares-grid-section {
+        grid-template-columns: 240px 1fr;
+        gap: 40px;
+    }
+
+    .fare-tables-container {
+        gap: 24px;
+    }
+
+    .fares-cta-banner {
+        padding: 44px 48px;
+    }
+}
+
+@media (max-width: 768px) {
+    body.fares-page .fares-page-container {
+        padding: 100px 20px 0;
+    }
+
+    .fares-section {
+        padding: 40px 0;
+    }
+
+    .fares-grid-section {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .fares-section-heading {
+        font-size: 24px;
+    }
+
+    .fare-computed-cols {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .fares-cta-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 36px 28px;
+        gap: 28px;
+    }
+
+    .btn-fares-cta {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Specific 390px mobile view per specification */
+@media (max-width: 480px) {
+    body.fares-page .fares-page-container {
+        padding: 92px 16px 0;
+    }
+
+    .fares-section {
+        padding: 32px 24px;
+    }
+
+    .fares-main-title {
+        font-size: 40px;
+        margin-bottom: 16px;
+    }
+
+    .fares-lead-text {
+        font-size: 24px;
+        line-height: 1.35;
+    }
+
+    .fares-body-text {
+        font-size: 17px;
+        line-height: 1.65;
+    }
+
+    .fares-section-heading {
+        font-size: 24px;
+    }
+
+    .fare-calc-results {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .fare-calc-result-amount {
+        font-size: 34px;
+    }
+
+    .btn-fare-source {
+        width: 100%;
+        text-align: center;
+    }
+
+    /* Table remains side-by-side on mobile, compact 14px */
+    .fare-tables-container {
+        gap: 12px;
+    }
+
+    .fare-table th,
+    .fare-table td {
+        padding: 6px 8px;
+        font-size: 14px;
+    }
+
+    .desktop-col-label {
+        display: none;
+    }
+
+    .mobile-col-label {
+        display: inline;
+    }
+
+    .desktop-table-note {
+        display: none;
+    }
+
+    .mobile-table-note {
+        display: block;
+    }
+
+    .fares-cta-title {
+        font-size: 28px;
+    }
+
+    .fares-cta-sub {
+        font-size: 16px;
+    }
+
+    .btn-fares-cta {
+        width: 100%;
+    }
+}

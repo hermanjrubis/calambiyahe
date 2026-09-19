@@ -2113,6 +2113,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show Re-center button during navigation
             if (reCenterBtn) reCenterBtn.style.display = 'flex';
 
+            // Explicitly hide MapLibre zoom controls during active navigation
+            const zoomControlGroup = document.querySelector('.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group');
+            if (zoomControlGroup) zoomControlGroup.style.setProperty('display', 'none', 'important');
+
             const elReminders = document.getElementById('remindersPillBtn');
             if (elReminders) elReminders.style.display = 'none';
             const elCategoryBar = document.getElementById('mapCategoryBarWrapper');
@@ -2157,6 +2161,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (reCenterBtn) reCenterBtn.style.display = 'none';
 
+            // Explicitly restore MapLibre zoom controls when navigation ends
+            const zoomControlGroup = document.querySelector('.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group');
+            if (zoomControlGroup) zoomControlGroup.style.removeProperty('display');
+
             // Explicitly remove user markers on cancel
             if (userMarker) { userMarker.remove(); userMarker = null; }
             if (gpsCircle) { gpsCircle = null; }
@@ -2195,6 +2203,9 @@ document.addEventListener('DOMContentLoaded', () => {
             updateMidpointBubbleVisibility(false);
             map.resize();
         }
+
+        window._calzadaStartJourney = startActiveJourneyUI;
+        window._calzadaCancelJourney = cancelActiveJourney;
 
         document.getElementById('startJourneyBtn').addEventListener('click', () => {
             if (!selectedCoords.origin || !selectedCoords.destination) return;

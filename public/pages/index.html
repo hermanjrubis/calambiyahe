@@ -18,7 +18,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
@@ -531,90 +531,78 @@
     <!-- Scrollable Content Sections -->
     <div class="scrollable-content">
         <!-- Section: About Calzada -->
-        <section class="about-card reveal" id="about-section">
-            <div class="about-centered-container">
-                <div class="about-header-centered reveal-delay-1">
-                    <span class="about-eyebrow">ABOUT CALZADA</span>
-                    <h2 data-i18n="about.heading">More than just directions.</h2>
-                    <p data-i18n="about.body" class="reveal-delay-2">
-                        Calzada helps you discover places worth visiting around Calamba, then get you there. Search a spot, see how to reach it, and pick from a jeepney or tricycle — with fares and directions in one place.
+        <section class="about-card about-preview-section reveal" id="about-section">
+            <div class="about-preview-container">
+                <div class="about-preview-header">
+                    <h2 class="about-preview-heading" data-i18n="about.heading">More than just directions.</h2>
+                    <p class="about-preview-body" data-i18n="about.body">
+                        Calzada helps you discover places worth visiting around Calamba, then gets you there. Search a spot, see how to reach it, and pick a jeepney or tricycle, with fare estimates and directions in one place.
                     </p>
+                    <a href="about.html" class="about-preview-link" data-i18n="about.learn_more">Learn more about Calzada</a>
                 </div>
 
-                <!-- 4-Column Feature Grid Row -->
-                <div class="about-feature-row reveal-delay-2">
-                    <div class="about-feature-card">
-                        <div class="feature-card-badge">
-                            <i class="ti ti-map-pin"></i>
+                <!-- 5-Stop Route Timeline -->
+                <div class="about-route-track" role="list">
+                    <!-- Stop 1 -->
+                    <div class="about-route-stop" role="listitem">
+                        <div class="about-route-connector" aria-hidden="true"></div>
+                        <div class="about-stop-dot-wrap">
+                            <span class="about-stop-dot dot-filled"></span>
                         </div>
-                        <h3 class="feature-card-label" data-i18n="about.card1.title">Find places</h3>
-                        <p class="feature-card-desc" data-i18n="about.card1.desc">Browse spots by category across Calamba</p>
-                    </div>
-
-                    <div class="about-feature-card">
-                        <div class="feature-card-badge">
-                            <i class="ti ti-coin"></i>
+                        <div class="about-stop-text">
+                            <h3 class="about-stop-title" data-i18n="about.card1.title">Find places</h3>
+                            <p class="about-stop-desc" data-i18n="about.card1.desc">Browse spots by category.</p>
                         </div>
-                        <h3 class="feature-card-label" data-i18n="about.card2.title">Live fares</h3>
-                        <p class="feature-card-desc" data-i18n="about.card2.desc">Know the cost before you leave</p>
                     </div>
 
-                    <div class="about-feature-card">
-                        <div class="feature-card-badge">
-                            <i class="ti ti-steering-wheel"></i>
+                    <!-- Stop 2 -->
+                    <div class="about-route-stop" role="listitem">
+                        <div class="about-route-connector" aria-hidden="true"></div>
+                        <div class="about-stop-dot-wrap">
+                            <span class="about-stop-dot dot-filled"></span>
                         </div>
-                        <h3 class="feature-card-label" data-i18n="about.card3.title">Jeep or tricycle</h3>
-                        <p class="feature-card-desc" data-i18n="about.card3.desc">Pick the ride that fits your trip</p>
-                    </div>
-
-                    <div class="about-feature-card">
-                        <div class="feature-card-badge">
-                            <i class="ti ti-map-pin-search"></i>
+                        <div class="about-stop-text">
+                            <h3 class="about-stop-title" data-i18n="about.card2.title">Jeepney or tricycle</h3>
+                            <p class="about-stop-desc" data-i18n="about.card2.desc">Pick the ride that fits your trip.</p>
                         </div>
-                        <h3 class="feature-card-label" data-i18n="about.card4.title">Nearest stop</h3>
-                        <p class="feature-card-desc" data-i18n="about.card4.desc">Find the closest pickup point to you</p>
                     </div>
-                </div>
 
-                <div class="about-cta-center reveal-delay-3">
-                    <a href="about.html" class="btn-learn-more" data-i18n="about.learn_more">Learn More →</a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Section: 3 Easy Steps -->
-        <section class="steps-section reveal">
-
-            <div class="steps-content">
-                <div class="steps-pill reveal-delay-1">
-                    <span data-i18n="steps.pill">Simple & Fast</span>
-                </div>
-                <h2 class="steps-title reveal-delay-2" data-i18n="steps.heading">Plan your commute in 3 easy steps</h2>
-                <p class="steps-subtitle reveal-delay-3" data-i18n="steps.sub">No more guessing fares or routes. Calzada
-                    lays it all
-                    out, clear and simple.</p>
-
-                <div class="steps-grid">
-                    <div class="step-card reveal-delay-1">
-                        <div class="step-icon"><i class="ti ti-search"></i></div>
-                        <h3 data-i18n="steps.1.title">Search Your Destination</h3>
-                        <p data-i18n="steps.1.desc">Type where you're headed. Calzada picks up on landmarks, barangays, and common stops around Calamba.</p>
+                    <!-- Stop 3 -->
+                    <div class="about-route-stop" role="listitem">
+                        <div class="about-route-connector" aria-hidden="true"></div>
+                        <div class="about-stop-dot-wrap">
+                            <span class="about-stop-dot dot-filled"></span>
+                        </div>
+                        <div class="about-stop-text">
+                            <h3 class="about-stop-title">
+                                <a href="fares.html" class="about-stop-title-link" data-i18n="about.card3.title">Fare estimates</a>
+                            </h3>
+                            <p class="about-stop-desc" data-i18n="about.card3.desc">Know the cost before you leave.</p>
+                        </div>
                     </div>
-                    <div class="step-card reveal-delay-2">
-                        <div class="step-icon"><i class="ti ti-route"></i></div>
-                        <h3 data-i18n="steps.2.title">See Your Options</h3>
-                        <p data-i18n="steps.2.desc">Compare routes with fare estimates, travel time, and how many rides you'll need.</p>
-                    </div>
-                    <div class="step-card reveal-delay-3">
-                        <div class="step-icon"><i class="ti ti-steering-wheel"></i></div>
-                        <h3 data-i18n="steps.3.title">Ride with Confidence</h3>
-                        <p data-i18n="steps.3.desc">Get simple directions to get there — by jeepney, tricycle, or a quick transfer between the two.</p>
-                    </div>
-                </div>
 
-                <!-- Steps CTA Button -->
-                <div class="steps-cta-wrap reveal-delay-3">
-                    <button type="button" class="steps-cta-btn" id="stepsCtaBtn" data-i18n="steps.cta">Try it now →</button>
+                    <!-- Stop 4 -->
+                    <div class="about-route-stop" role="listitem">
+                        <div class="about-route-connector" aria-hidden="true"></div>
+                        <div class="about-stop-dot-wrap">
+                            <span class="about-stop-dot dot-filled"></span>
+                        </div>
+                        <div class="about-stop-text">
+                            <h3 class="about-stop-title" data-i18n="about.card4.title">Nearest stop</h3>
+                            <p class="about-stop-desc" data-i18n="about.card4.desc">Find the closest terminal or pickup point.</p>
+                        </div>
+                    </div>
+
+                    <!-- Stop 5 (Destination - hollow dot, NO connector) -->
+                    <div class="about-route-stop stop-destination" role="listitem">
+                        <div class="about-stop-dot-wrap">
+                            <span class="about-stop-dot dot-hollow"></span>
+                        </div>
+                        <div class="about-stop-text">
+                            <h3 class="about-stop-title" data-i18n="about.card5.title">Travel</h3>
+                            <p class="about-stop-desc" data-i18n="about.card5.desc">Ride to your destination.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -1328,7 +1316,7 @@
             </div>
             <div class="footer-column contact-column">
                 <h3 data-i18n="footer.contact.heading">Contact Us</h3>
-                <p><ion-icon name="mail-outline"></ion-icon> hello@calzada.ph</p>
+                <p><ion-icon name="mail-outline"></ion-icon> <a href="mailto:thecalzada@gmail.com">thecalzada@gmail.com</a></p>
                 <p><ion-icon name="call-outline"></ion-icon> (049) 555 1234</p>
                 <p><ion-icon name="location-outline"></ion-icon> Calamba City, Laguna</p>
             </div>
@@ -1336,13 +1324,14 @@
         <div class="footer-bottom">
             <p data-i18n="footer.copyright">&copy; 2026 Calzada. All rights reserved.</p>
             <div class="footer-legal-links">
-                <a href="terms.html">Terms of Service</a>
+                <button type="button" class="footer-legal-btn" data-open-legal="terms" data-i18n="footer.nav.terms">Terms of Service</button>
                 <span class="footer-legal-divider" aria-hidden="true">&bull;</span>
-                <a href="privacy.html">Privacy Policy</a>
+                <button type="button" class="footer-legal-btn" data-open-legal="privacy" data-i18n="footer.nav.privacy">Privacy Policy</button>
             </div>
         </div>
     </footer>
 
+    <script src="../js/legal-modal.js"></script>
     <script src="../js/script.js"></script>
     <script src="../js/i18n.js"></script>
     <script src="../js/places-shared.js"></script>
@@ -1362,7 +1351,7 @@
 
             // IntersectionObserver for reveal animations
             const revealEls = document.querySelectorAll(
-                '.reveal, .reveal-left, .reveal-right, .reveal-scale, .features-bar, .news-section, .fare-section, .steps-section'
+                '.reveal, .reveal-left, .reveal-right, .reveal-scale, .features-bar, .news-section, .fare-section'
             );
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
@@ -1387,51 +1376,6 @@
 
             window.addEventListener('scroll', handleScroll, { passive: true });
             updateProgress();
-
-            // Stagger step cards
-            const stepsSection = document.querySelector('.steps-section');
-            if (stepsSection) {
-                const stepsObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            entry.target.classList.add('active');
-                            const cards = entry.target.querySelectorAll('.step-card');
-                            cards.forEach((card, i) => {
-                                setTimeout(() => {
-                                    card.style.opacity = '1';
-                                    card.style.transform = '';
-                                }, 80 + i * 130);
-                            });
-                        }
-                    });
-                }, { threshold: 0.15 });
-                stepsObserver.observe(stepsSection);
-            }
-
-            // Steps CTA button: smooth scroll back to hero search bar
-            const stepsCtaBtn = document.getElementById('stepsCtaBtn');
-            if (stepsCtaBtn) {
-                stepsCtaBtn.addEventListener('click', () => {
-                    const searchBar = document.getElementById('searchBar');
-                    const searchInput = document.getElementById('searchInput');
-                    const heroSection = document.querySelector('.hero-section');
-                    const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-
-                    if (window.innerWidth <= 768 && mobileSearchBtn) {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        setTimeout(() => {
-                            mobileSearchBtn.click();
-                        }, 400);
-                    } else if (searchBar) {
-                        searchBar.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        setTimeout(() => {
-                            if (searchInput) searchInput.focus();
-                        }, 450);
-                    } else if (heroSection) {
-                        heroSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                });
-            }
 
             // News cards stagger
             document.querySelectorAll('.news-section, .fare-section').forEach(section => {

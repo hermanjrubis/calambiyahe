@@ -1,0 +1,14 @@
+{
+  "vehicle": "traditional jeepney",
+  "region": "Mega Manila",
+  "source": "LTFRB PUJ General Fare Guide",
+  "sourceNote": "It includes the provisional ₱1.00 increase ordered on October 3, 2023.",
+  "effectiveDate": "2023-10-08",
+  "baseKm": 4,
+  "regular": { "baseFare": 13.00, "perKm": 1.80 },
+  "discounted": { "baseFare": 10.40, "perKm": 1.44 },
+  "discountPercent": 20,
+  "roundTo": 0.25,
+  "maxKm": 50,
+  "guidePdf": "/assets/docs/Fare-Guide_Traditional-PUJ-Provisional-Fare-Increase_08Oct2023.pdf"
+}
