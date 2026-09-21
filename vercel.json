@@ -2,14 +2,14 @@
   "version": 2,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/index.html", "destination": "/", "permanent": true },
-    { "source": "/index", "destination": "/", "permanent": true },
-    { "source": "/pages/index.html", "destination": "/", "permanent": true },
-    { "source": "/pages/index", "destination": "/", "permanent": true },
-    { "source": "/explore", "destination": "/places", "permanent": true },
-    { "source": "/pages/:page.html", "destination": "/:page", "permanent": true },
-    { "source": "/pages/:page", "destination": "/:page", "permanent": true },
-    { "source": "/:page.html", "destination": "/:page", "permanent": true }
+    { "source": "/index.html", "destination": "/", "statusCode": 301 },
+    { "source": "/index", "destination": "/", "statusCode": 301 },
+    { "source": "/pages/index.html", "destination": "/", "statusCode": 301 },
+    { "source": "/pages/index", "destination": "/", "statusCode": 301 },
+    { "source": "/explore", "destination": "/places", "statusCode": 301 },
+    { "source": "/pages/:page.html", "destination": "/:page", "statusCode": 301 },
+    { "source": "/pages/:page", "destination": "/:page", "statusCode": 301 },
+    { "source": "/:page.html", "destination": "/:page", "statusCode": 301 }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" },
