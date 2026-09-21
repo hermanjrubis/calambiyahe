@@ -90,10 +90,43 @@ document.addEventListener('DOMContentLoaded', () => {
             container: 'map',
             style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [121.1652, 14.2117], // Calamba coordinates [lng, lat]
-            zoom: 13
+            zoom: 13,
+            dragRotate: true,
+            touchPitch: false,
+            pitchWithRotate: false,
+            maxPitch: 0,
+            locale: {
+                'NavigationControl.ResetBearing': (window.t ? window.t('planner.reset_north') : 'Reset map to north')
+            }
         });
         window._calzadaMap = map;
-        map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
+        map.touchZoomRotate.enableRotation();
+        map.keyboard.enable();
+
+        // Gracefully supply 1x1 transparent placeholder for icons missing from OpenFreeMap sprite
+        map.on('styleimagemissing', (e) => {
+            if (map.hasImage(e.id)) return;
+            map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
+        });
+
+        const navControl = new maplibregl.NavigationControl({
+            showZoom: true,
+            showCompass: true,
+            visualizePitch: false
+        });
+        map.addControl(navControl, 'bottom-right');
+
+        // Accessibility and i18n title/aria-label for compass
+        const updateCompassLocale = () => {
+            const compassBtn = document.querySelector('.maplibregl-ctrl-compass');
+            if (compassBtn) {
+                const title = window.t ? window.t('planner.reset_north') : 'Reset map to north';
+                compassBtn.setAttribute('title', title);
+                compassBtn.setAttribute('aria-label', title);
+            }
+        };
+        window.addEventListener('calzada_lang_changed', updateCompassLocale);
+        setTimeout(updateCompassLocale, 200);
 
         window.addEventListener('resize', () => map.resize());
         setTimeout(() => map.resize(), 0);
@@ -667,6 +700,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Category Filter Segmented Control & Contextual Clear Logic
         const categoryBar = document.getElementById('mapCategoryBar');
+        const categoryScrollWrapper = document.getElementById('categoryScrollWrapper');
         const catClearBtn = document.getElementById('mapCatClearBtn');
         const catFadeOverlay = document.getElementById('categoryScrollFade');
         const chipHighlight = document.getElementById('chipHighlight');
@@ -687,20 +721,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 chipHighlight.style.opacity = '0';
             }
 
-            // Toggle fade overlay visibility based on horizontal scroll position
+            // Dynamic mask edge fade based on scroll position (only on sides with more content)
             const updateCategoryScrollFade = () => {
-                if (!catFadeOverlay) return;
+                if (!categoryScrollWrapper || !categoryBar) return;
                 const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
-                // Disappear if contents fit or when fully scrolled to the right (within 2px tolerance)
-                if (maxScroll <= 2 || categoryBar.scrollLeft >= maxScroll - 2) {
-                    catFadeOverlay.classList.remove('visible');
-                } else {
-                    catFadeOverlay.classList.add('visible');
+                if (maxScroll <= 2) {
+                    categoryScrollWrapper.classList.remove('has-more-start', 'has-more-end');
+                    return;
                 }
+                const scrollLeft = categoryBar.scrollLeft;
+                const hasStart = scrollLeft > 3;
+                const hasEnd = scrollLeft < maxScroll - 3;
+                categoryScrollWrapper.classList.toggle('has-more-start', hasStart);
+                categoryScrollWrapper.classList.toggle('has-more-end', hasEnd);
             };
 
-            // Standard scroll event listener (broadly supported across all browsers)
+            // Standard scroll event listener
             categoryBar.addEventListener('scroll', updateCategoryScrollFade, { passive: true });
+            if (window.ResizeObserver) {
+                new ResizeObserver(updateCategoryScrollFade).observe(categoryBar);
+            }
             window.addEventListener('resize', () => {
                 updateCategoryScrollFade();
                 const activeBtn = categoryBar.querySelector('.map-segment-btn.active');
@@ -745,6 +785,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (activeChip) {
                     moveHighlightTo(activeChip);
+                    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    activeChip.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
                 } else {
                     hideHighlight();
                 }
@@ -1774,7 +1816,7 @@ document.addEventListener('DOMContentLoaded', () => {
             walkLngLat.forEach(pt => bounds.extend(pt));
             transitLngLat.forEach(pt => bounds.extend(pt));
             if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, { padding: 60, maxZoom: 16 });
+                map.fitBounds(bounds, { padding: 60, maxZoom: 16, bearing: map.getBearing() });
             }
 
             document.getElementById('startJourneyBtn').disabled = false;
@@ -2976,13 +3018,66 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const toggleReminders = (state) => {
-            document.getElementById('remindersModal').classList.toggle('visible', state);
-            document.getElementById('remindersOverlay').classList.toggle('visible', state);
+        const remindersModal = document.getElementById('remindersModal');
+        const remindersOverlay = document.getElementById('remindersOverlay');
+        const remindersPillBtn = document.getElementById('remindersPillBtn');
+        const remindersCloseBtn = document.getElementById('remindersCloseBtn');
+        const remindersConfirmBtn = document.getElementById('remindersConfirmBtn');
+
+        const openReminders = () => {
+            if (!remindersModal) return;
+            remindersModal.classList.add('visible');
+            if (remindersOverlay) remindersOverlay.classList.add('visible');
+            document.body.style.overflow = 'hidden';
+            if (remindersCloseBtn) {
+                setTimeout(() => remindersCloseBtn.focus(), 50);
+            }
         };
-        document.getElementById('remindersPillBtn').addEventListener('click', () => toggleReminders(true));
-        document.getElementById('remindersCloseBtn').addEventListener('click', () => toggleReminders(false));
-        document.getElementById('remindersOverlay').addEventListener('click', () => toggleReminders(false));
+
+        const closeReminders = () => {
+            if (!remindersModal || !remindersModal.classList.contains('visible')) return;
+            remindersModal.classList.remove('visible');
+            if (remindersOverlay) remindersOverlay.classList.remove('visible');
+            document.body.style.overflow = '';
+            if (remindersPillBtn) {
+                remindersPillBtn.focus();
+            }
+        };
+
+        if (remindersPillBtn) remindersPillBtn.addEventListener('click', openReminders);
+        if (remindersCloseBtn) remindersCloseBtn.addEventListener('click', closeReminders);
+        if (remindersConfirmBtn) remindersConfirmBtn.addEventListener('click', closeReminders);
+        if (remindersOverlay) remindersOverlay.addEventListener('click', closeReminders);
+
+        document.addEventListener('keydown', (e) => {
+            if (!remindersModal || !remindersModal.classList.contains('visible')) return;
+
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                closeReminders();
+                return;
+            }
+
+            if (e.key === 'Tab') {
+                const focusables = [remindersCloseBtn, remindersConfirmBtn].filter(Boolean);
+                if (focusables.length === 0) return;
+
+                const firstEl = focusables[0];
+                const lastEl = focusables[focusables.length - 1];
+
+                if (e.shiftKey) {
+                    if (document.activeElement === firstEl) {
+                        e.preventDefault();
+                        lastEl.focus();
+                    }
+                } else {
+                    if (document.activeElement === lastEl) {
+                        e.preventDefault();
+                        firstEl.focus();
+                    }
+                }
+            }
+        });
 
         // Schedule Dropdown Trigger
         const schedSelect = document.getElementById('scheduleSelected');

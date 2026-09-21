@@ -269,7 +269,6 @@ export function clearUserState() {
     const statSavesCount = document.getElementById('statSavesCount');
     const statBadgesCount = document.getElementById('statBadgesCount');
     const menuSavedCount = document.getElementById('menuSavedCount');
-    const anonProfileBanner = document.getElementById('anonProfileBanner');
     const dropdownMenu = document.getElementById('userProfileMenu');
     const alertsMenu = document.getElementById('alertsDropdownMenu');
 
@@ -315,7 +314,6 @@ export function clearUserState() {
     if (statSavesCount) statSavesCount.textContent = '0';
     if (statBadgesCount) statBadgesCount.textContent = '0';
     if (menuSavedCount) menuSavedCount.textContent = '(0)';
-    if (anonProfileBanner) anonProfileBanner.style.display = 'none';
 
     if (dropdownMenu) dropdownMenu.classList.remove('open');
     if (alertsMenu) alertsMenu.classList.remove('open');
@@ -629,7 +627,6 @@ export function setupProfileUI() {
             const statSavesCount = document.getElementById('statSavesCount');
             const statBadgesCount = document.getElementById('statBadgesCount');
             const menuSavedCount = document.getElementById('menuSavedCount');
-            const anonProfileBanner = document.getElementById('anonProfileBanner');
             const explorationStatsSection = document.getElementById('explorationStatsSection');
 
             if (authNavBtn) authNavBtn.style.display = 'none';
@@ -645,8 +642,19 @@ export function setupProfileUI() {
 
             // 1. Navbar avatar pill
             if (userDisplayName) userDisplayName.textContent = name;
+            if (avatarBtn) {
+                const accTemplate = window.t ? window.t('planner.account_menu') : 'Account menu, {name}';
+                avatarBtn.setAttribute('aria-label', accTemplate.replace('{name}', name));
+            }
             const customPhoto = localStorage.getItem('calzada_pref_photo') || user.photoURL;
             if (customPhoto && userAvatarImg) {
+                const isDefault = !customPhoto || customPhoto.includes('brand-logo') || customPhoto.includes('default-avatar') || customPhoto.includes('logo');
+                userAvatarImg.classList.toggle('is-default', isDefault);
+                userAvatarImg.onerror = function() {
+                    this.onerror = null;
+                    this.style.display = 'none';
+                    if (userAvatarInitials) userAvatarInitials.style.display = 'block';
+                };
                 userAvatarImg.src = customPhoto;
                 userAvatarImg.style.display = 'block';
                 if (userAvatarInitials) userAvatarInitials.style.display = 'none';
@@ -658,6 +666,11 @@ export function setupProfileUI() {
 
             // 1b. Mobile avatar button
             if (customPhoto && mobileAvatarImg) {
+                mobileAvatarImg.onerror = function() {
+                    this.onerror = null;
+                    this.style.display = 'none';
+                    if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'block';
+                };
                 mobileAvatarImg.src = customPhoto;
                 mobileAvatarImg.style.display = 'block';
                 if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'none';
@@ -672,6 +685,11 @@ export function setupProfileUI() {
             if (profileEmail) profileEmail.textContent = email;
             if (profileHeaderInitials) profileHeaderInitials.textContent = initial;
             if (customPhoto && profileHeaderImg) {
+                profileHeaderImg.onerror = function() {
+                    this.onerror = null;
+                    this.style.display = 'none';
+                    if (profileHeaderInitials) profileHeaderInitials.style.display = 'block';
+                };
                 profileHeaderImg.src = customPhoto;
                 profileHeaderImg.style.display = 'block';
                 if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
@@ -696,12 +714,8 @@ export function setupProfileUI() {
             }
 
             // Anonymous/Guest Mode vs Full Account
-            if (user.isAnonymous) {
-                if (anonProfileBanner) anonProfileBanner.style.display = 'flex';
-                if (explorationStatsSection) explorationStatsSection.style.opacity = '0.7';
-            } else {
-                if (anonProfileBanner) anonProfileBanner.style.display = 'none';
-                if (explorationStatsSection) explorationStatsSection.style.opacity = '1';
+            if (explorationStatsSection) {
+                explorationStatsSection.style.opacity = user.isAnonymous ? '0.7' : '1';
             }
 
             // 5. Check Admin Custom Claim & Conditionally Render Link
@@ -1666,6 +1680,7 @@ async function saveUserSettings() {
             const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
 
             if (userAvatarImg) {
+                userAvatarImg.classList.remove('is-default');
                 userAvatarImg.src = pendingAvatarDataUrl;
                 userAvatarImg.style.display = 'block';
             }
@@ -1874,6 +1889,16 @@ function createProfileModals() {
 
     document.body.appendChild(modalRoot);
 }
+
+// Re-localize account menu aria-label on language switch
+window.addEventListener('calzada_lang_changed', () => {
+    const pill = document.getElementById('userAvatarPill');
+    if (pill) {
+        const name = localStorage.getItem('calzada_user_name') || 'Commuter';
+        const accTemplate = (window.t ? window.t('planner.account_menu') : 'Account menu, {name}');
+        pill.setAttribute('aria-label', accTemplate.replace('{name}', name));
+    }
+});
 
 // Expose helpers on window
 window.toggleSavePlace = toggleSavePlace;

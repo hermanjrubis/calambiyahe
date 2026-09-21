@@ -25,7 +25,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.0">
     <link rel="stylesheet" href="../css/fares.css">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2">
@@ -207,7 +207,7 @@
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
                         <div class="user-avatar-wrap">
-                            <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
                             <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                             <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                         </div>
@@ -230,7 +230,7 @@
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
                         <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
                     </div>
                 </button>
@@ -262,7 +262,7 @@
             <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
                         <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                     </div>
                     <div class="profile-header-details">
@@ -298,11 +298,6 @@
                             <span class="stat-name">Badges</span>
                         </button>
                     </div>
-                </div>
-
-                <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
-                    <span>Guest Mode</span>
-                    <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
                 </div>
 
                 <div class="profile-menu-divider"></div>
@@ -459,30 +454,16 @@
         </div>
 
         <div class="chat-input-area">
-            <textarea placeholder="Type a message..." id="chatInput" rows="1"></textarea>
-
-            <div class="chat-input-toolbar">
-                <div class="toolbar-right">
-                    <button id="micBtn" class="mic-btn" title="Voice Message (Tagalog/English)"><ion-icon name="mic-outline"></ion-icon></button>
-                    <button id="sendMessageBtn"><ion-icon name="arrow-up-outline"></ion-icon></button>
-                </div>
-            </div>
-
-            <div id="recordingControls" class="vm-active-container" style="display: none;">
-                <div class="recording-indicator-dot"></div>
-                <div class="vm-frequency-pill" id="vmFrequencyPill">
-                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
-                </div>
-                <button id="pauseMicBtn" class="vm-action-btn pause-btn" title="Pause/Resume">
-                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1" aria-label="Type a message"></textarea>
+            <div class="chat-input-actions actions">
+                <button type="button" id="micBtn" class="mic-btn" aria-label="Voice input" title="Voice input" aria-pressed="false">
+                    <ion-icon name="mic-outline"></ion-icon>
                 </button>
-                <button id="cancelMicBtn" class="vm-action-btn close-btn" title="Cancel & Delete">
-                    <ion-icon name="close-outline"></ion-icon>
-                </button>
-                <button id="stopMicBtn" class="vm-action-btn send-btn" title="Stop & Review">
-                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                <button type="button" id="sendMessageBtn" class="chat-send-btn" aria-label="Send message" title="Send message" disabled>
+                    <ion-icon name="arrow-up-outline"></ion-icon>
                 </button>
             </div>
+            <div id="chatVoiceError" class="chat-voice-error" style="display: none;" role="alert" aria-live="polite"></div>
         </div>
     </div>
 
@@ -540,11 +521,11 @@
 
     <!-- Scripts -->
     <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js"></script>
-    <script src="../js/i18n.js"></script>
+    <script src="../js/script.js?v=2.6.0"></script>
+    <script src="../js/i18n.js?v=2.6.0"></script>
     <script src="../js/transitions.js"></script>
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.0"></script>
     <script src="../js/fares.js"></script>
 </body>
 

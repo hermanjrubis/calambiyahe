@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 
     <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.0">
     <link rel="stylesheet" href="../css/skeleton.css?v=2">
 
     <!-- Ionicons -->
@@ -1157,15 +1157,12 @@
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
                         <div class="user-avatar-wrap">
-                            <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
                             <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                             <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                         </div>
                         <div class="user-name-wrap">
                             <span class="user-display-name" id="userDisplayName">Commuter</span>
-                            <span class="user-saved-home-icon" id="userSavedHomeIcon" title="Home: Saved">
-                                <svg width="14" height="14" fill="none" stroke="#16A34A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                            </span>
                         </div>
                         <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
                     </div>
@@ -1191,7 +1188,7 @@
             <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
                         <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                     </div>
                     <div class="profile-header-details">
@@ -1228,11 +1225,6 @@
                             <span class="stat-name">Badges</span>
                         </button>
                     </div>
-                </div>
-
-                <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
-                    <span>Guest Mode</span>
-                    <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
                 </div>
 
                 <div class="profile-menu-divider"></div>
@@ -1293,7 +1285,7 @@
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
                         <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
                     </div>
                 </button>
@@ -1527,9 +1519,9 @@
 
     <!-- Scripts: Global scripts for navbar dropdowns and live auth state -->
     <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js"></script>
+    <script src="../js/script.js?v=2.6.0"></script>
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.0"></script>
 
     <!-- Page Specific Data & Lightbox Logic -->
     <script type="module">

@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const isDev = window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const CHAT_API = isDev ? 'http://localhost:5000' : 'https://calzada-api.vercel.app';
+    // In production the Express API is served from this same origin (vercel.json rewrites /api/* to api/index.js),
+    // so the base stays empty and every call below is same-origin: no CORS preflight, and the page can never end up
+    // talking to a different deployment than the one that served it. Dev still points at the local server.
+    const CHAT_API = isDev ? 'http://localhost:5000' : '';
 
     // Warm up the server briefly on page load (helpful for DB wakeups)
     if (CHAT_API !== '') {
@@ -957,8 +960,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (_) {}
 
         chatInput.value = '';
-        chatInput.style.height = 'auto';
-        chatInput.classList.remove('scrolling');
+        updateChatInputHeight();
+        updateSendButtonState();
+        clearVoiceError();
         resetInactivityTimer();
 
         showTyping();
@@ -974,7 +978,10 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 ` : '';
 
         const fullMessageWithContext = `${routeInfo}\n\nUser Message: ${text}`;
-        const payload = { message: fullMessageWithContext };
+        const payload = {
+            message: fullMessageWithContext,
+            lang: typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en'
+        };
 
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s for Render cold starts
@@ -1023,188 +1030,194 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         }
     }
 
-    if (sendMessageBtn) sendMessageBtn.addEventListener('click', handleChatSend);
+    // === CHAT INPUT AUTO-GROW & SEND STATE ===
+    function updateSendButtonState() {
+        if (!sendMessageBtn || !chatInput) return;
+        const text = chatInput.value.trim();
+        sendMessageBtn.disabled = !text;
+    }
 
-    if (chatInput) {
-        chatInput.addEventListener('input', function () {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-            if (this.scrollHeight >= 120) { this.classList.add('scrolling'); }
-            else { this.classList.remove('scrolling'); }
-        });
-
-        chatInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend(); }
-        });
+    function updateChatInputHeight() {
+        if (!chatInput) return;
+        chatInput.style.height = 'auto';
+        const scrollH = chatInput.scrollHeight;
+        const maxHeight = 96; // auto-grows up to ~4 rows
+        if (scrollH > maxHeight) {
+            chatInput.style.height = maxHeight + 'px';
+            chatInput.classList.add('scrolling');
+            chatInput.style.overflowY = 'auto';
+        } else {
+            chatInput.style.height = Math.max(24, scrollH) + 'px';
+            chatInput.classList.remove('scrolling');
+            chatInput.style.overflowY = 'hidden';
+        }
     }
 
     function triggerAutoExpand() {
-        if (chatInput) {
-            chatInput.style.height = 'auto';
-            chatInput.style.height = (chatInput.scrollHeight) + 'px';
-            if (chatInput.scrollHeight >= 120) { chatInput.classList.add('scrolling'); }
-            else { chatInput.classList.remove('scrolling'); }
+        updateChatInputHeight();
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener('input', function () {
+            updateChatInputHeight();
+            updateSendButtonState();
+            clearVoiceError();
+        });
+
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (chatInput.value.trim()) {
+                    handleChatSend();
+                }
+            }
+        });
+
+        const inputArea = chatInput.closest('.chat-input-area');
+        if (inputArea) {
+            inputArea.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    chatInput.focus();
+                }
+            });
         }
     }
 
-    // === VOICE MESSAGING (Web Speech API + Visualizer) ===
+    if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (chatInput && chatInput.value.trim()) {
+                handleChatSend();
+            }
+        });
+        updateSendButtonState();
+    }
+
+    // === VOICE MESSAGING (Minimal, robust SpeechRecognition) ===
     const micBtn = document.getElementById('micBtn');
-    const recordingControls = document.getElementById('recordingControls');
-    const cancelMicBtn = document.getElementById('cancelMicBtn');
-    const stopMicBtn = document.getElementById('stopMicBtn');
-    const pauseMicBtn = document.getElementById('pauseMicBtn');
-    const pauseMicIcon = document.getElementById('pauseMicIcon');
+    const voiceErrorEl = document.getElementById('chatVoiceError');
     let recognition = null;
-    let isRecording = false;
-    let visualizerFrame = null;
+    let isListening = false;
+    let preVoiceText = '';
 
-    function startVisualizer() {
-        const canvases = document.querySelectorAll('#voiceVisualizer');
-        const bufferLength = 32;
-        let dataArray = new Uint8Array(bufferLength);
-        function draw() {
-            visualizerFrame = requestAnimationFrame(draw);
-            if (!isRecording || isPaused) {
-                canvases.forEach(canvas => {
-                    const ctx2d = canvas.getContext('2d');
-                    ctx2d.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx2d.fillStyle = 'rgba(255,255,255,0.5)';
-                    ctx2d.fillRect(0, canvas.height / 2 - 1, canvas.width, 2);
-                });
-                return;
-            }
-            for (let i = 0; i < bufferLength; i++) { dataArray[i] = Math.random() * 200 + 50; }
-            canvases.forEach(canvas => {
-                const ctx2d = canvas.getContext('2d');
-                ctx2d.clearRect(0, 0, canvas.width, canvas.height);
-                const barWidth = (canvas.width / bufferLength) * 1.8;
-                let x = 0;
-                const mid = canvas.width / 2;
-                for (let i = 0; i < bufferLength; i++) {
-                    let barHeight = (dataArray[i] / 255) * (canvas.height * 0.8);
-                    if (barHeight < 3) barHeight = 3;
-                    ctx2d.fillStyle = 'rgba(255,255,255,0.9)';
-                    ctx2d.fillRect(mid + x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight);
-                    if (i !== 0) { ctx2d.fillRect(mid - x, (canvas.height - barHeight) / 2, barWidth - 1, barHeight); }
-                    x += barWidth;
-                }
-            });
-        }
-        draw();
+    function showVoiceError(key, fallback) {
+        if (!voiceErrorEl) return;
+        const msg = (typeof window.t === 'function' ? window.t(key) : '') || fallback;
+        voiceErrorEl.textContent = msg;
+        voiceErrorEl.style.display = 'block';
     }
 
-    function stopVisualizer() {
-        if (visualizerFrame) cancelAnimationFrame(visualizerFrame);
-        visualizerFrame = null;
+    function clearVoiceError() {
+        if (voiceErrorEl) {
+            voiceErrorEl.textContent = '';
+            voiceErrorEl.style.display = 'none';
+        }
     }
 
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'fil';
-
-        let finalTranscript = '';
-        let interimTranscript = '';
-        let sessionTranscript = '';
-        let isPaused = false;
-        let isCanceled = false;
-
-        const formatTranscript = (text) => {
-            if (!text) return '';
-            return text.charAt(0).toUpperCase() + text.slice(1);
-        };
-
-        recognition.onstart = () => {
-            isRecording = true; isPaused = false; isCanceled = false;
-            if (chatInput) chatInput.style.display = 'none';
-            const toolbar = document.querySelector('.chat-input-toolbar');
-            if (toolbar) toolbar.style.display = 'none';
-            if (recordingControls) recordingControls.style.display = 'flex';
-            if (pauseMicIcon) pauseMicIcon.name = 'pause-outline';
-            startVisualizer();
-        };
-
-        recognition.onresult = (event) => {
-            if (isCanceled) return;
-            interimTranscript = ''; finalTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-                if (event.results[i].isFinal) { finalTranscript += event.results[i][0].transcript; }
-                else { interimTranscript += event.results[i][0].transcript; }
-            }
-        };
-
-        recognition.onend = () => {
-            if (isCanceled) { stopRecordingUI(); isCanceled = false; return; }
-            if (isPaused) { isRecording = false; stopVisualizer(); if (pauseMicIcon) pauseMicIcon.name = 'mic-outline'; return; }
-            isRecording = false;
-            const fullText = (sessionTranscript + ' ' + finalTranscript + ' ' + interimTranscript).trim();
-            if (fullText && chatInput) { chatInput.value = formatTranscript(fullText); triggerAutoExpand(); chatInput.focus(); }
-            stopRecordingUI();
-        };
-
-        recognition.onerror = (event) => {
-            if (isDev) console.error('Speech recognition error:', event.error);
-            if (event.error !== 'aborted') { stopRecordingUI(); }
-        };
-
-        function stopRecordingUI() {
-            isRecording = false; isPaused = false;
-            sessionTranscript = ''; finalTranscript = ''; interimTranscript = '';
-            stopVisualizer();
-            if (chatInput) chatInput.style.display = '';
-            const toolbar = document.querySelector('.chat-input-toolbar');
-            if (toolbar) toolbar.style.display = 'flex';
-            if (recordingControls) recordingControls.style.display = 'none';
-        }
-
+    function stopListeningUI() {
+        isListening = false;
         if (micBtn) {
-            micBtn.addEventListener('click', () => {
-                if (!isRecording) {
-                    try { resetInactivityTimer(); recognition.start(); }
-                    catch (err) { if (isDev) console.error('Microphone start error:', err); addMessage(window.t('js.error_mic'), false); }
-                }
-            });
+            micBtn.classList.remove('recording');
+            micBtn.setAttribute('aria-pressed', 'false');
+            const label = (typeof window.t === 'function' ? window.t('chat.voice_input') : 'Voice input');
+            micBtn.setAttribute('aria-label', label);
+            micBtn.setAttribute('title', label);
+        }
+    }
+
+    function stopListening() {
+        if (recognition) {
+            try { recognition.stop(); } catch (_) {}
+        }
+        stopListeningUI();
+    }
+
+    function startListening() {
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRec) {
+            showVoiceError('chat.voice_err_unsupported', "Voice input isn't available in this browser. Try Chrome or Edge.");
+            return;
         }
 
-        if (pauseMicBtn) {
-            pauseMicBtn.addEventListener('click', () => {
-                if (!isRecording && isPaused) {
-                    isPaused = false; recognition.start();
-                } else if (isRecording && !isPaused) {
-                    isPaused = true;
-                    if (finalTranscript || interimTranscript) { sessionTranscript += ' ' + finalTranscript + ' ' + interimTranscript; }
-                    finalTranscript = ''; interimTranscript = '';
-                    recognition.stop();
-                    if (pauseMicIcon) pauseMicIcon.name = 'mic-outline';
-                }
-            });
-        }
+        clearVoiceError();
 
-        if (stopMicBtn) {
-            stopMicBtn.addEventListener('click', () => {
-                const wasPaused = isPaused; isPaused = false;
-                if (isRecording) { recognition.stop(); }
-                else if (wasPaused) {
-                    if (chatInput && sessionTranscript.trim().length > 0) {
-                        chatInput.value = formatTranscript(sessionTranscript.trim());
-                        triggerAutoExpand(); chatInput.focus();
-                    }
-                    stopRecordingUI();
-                }
-            });
-        }
+        try {
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = true;
 
-        if (cancelMicBtn) {
-            cancelMicBtn.addEventListener('click', () => {
-                isCanceled = true;
-                if (isRecording) recognition.abort();
-                else stopRecordingUI();
-            });
+            const curLang = (typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en');
+            recognition.lang = (curLang === 'tl' ? 'fil-PH' : 'en-PH');
+
+            preVoiceText = chatInput ? chatInput.value : '';
+
+            recognition.onstart = () => {
+                isListening = true;
+                resetInactivityTimer();
+                if (micBtn) {
+                    micBtn.classList.add('recording');
+                    micBtn.setAttribute('aria-pressed', 'true');
+                    const stopLabel = (typeof window.t === 'function' ? window.t('chat.voice_stop') : 'Stop listening');
+                    micBtn.setAttribute('aria-label', stopLabel);
+                    micBtn.setAttribute('title', stopLabel);
+                }
+            };
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const trans = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) final += trans;
+                    else interim += trans;
+                }
+                const speechPart = (final || interim).trim();
+                if (chatInput && speechPart) {
+                    const base = preVoiceText.trim();
+                    chatInput.value = base ? base + ' ' + speechPart : speechPart;
+                    updateChatInputHeight();
+                    updateSendButtonState();
+                }
+            };
+
+            recognition.onerror = (event) => {
+                stopListeningUI();
+                const err = event.error;
+                if (err === 'not-allowed' || err === 'service-not-allowed') {
+                    showVoiceError('chat.voice_err_permission', "Microphone access was denied. Please allow microphone access in your browser settings.");
+                } else if (err === 'no-speech') {
+                    showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
+                } else if (err === 'network') {
+                    showVoiceError('chat.voice_err_network', "Network error during speech recognition. Please check your connection.");
+                } else if (err !== 'aborted') {
+                    showVoiceError('chat.voice_err_generic', "Voice input error occurred. Please try again.");
+                }
+            };
+
+            recognition.onend = () => {
+                stopListeningUI();
+            };
+
+            recognition.start();
+        } catch (err) {
+            stopListeningUI();
+            showVoiceError('chat.voice_err_generic', "Voice input error occurred. Please try again.");
         }
-    } else {
-        if (micBtn) { micBtn.style.display = 'none'; if (isDev) console.warn("Speech Recognition API not supported in this browser."); }
+    }
+
+    if (micBtn) {
+        micBtn.setAttribute('type', 'button');
+        micBtn.setAttribute('aria-label', (window.t ? window.t('chat.voice_input') : 'Voice input'));
+        micBtn.setAttribute('aria-pressed', 'false');
+        micBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            resetInactivityTimer();
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        });
     }
 
     window.addEventListener('calzada_lang_changed', () => {
@@ -1212,6 +1225,18 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         if (chatMsgs && chatMsgs.children.length === 1) {
             const firstMsg = chatMsgs.querySelector('.bot-message');
             if (firstMsg) firstMsg.textContent = window.t('chat.greeting');
+        }
+        if (micBtn) {
+            const label = isListening
+                ? (window.t ? window.t('chat.voice_stop') : 'Stop listening')
+                : (window.t ? window.t('chat.voice_input') : 'Voice input');
+            micBtn.setAttribute('aria-label', label);
+            micBtn.setAttribute('title', label);
+        }
+        if (sendMessageBtn) {
+            const sendLabel = (window.t ? window.t('chat.send') : 'Send message');
+            sendMessageBtn.setAttribute('aria-label', sendLabel);
+            sendMessageBtn.setAttribute('title', sendLabel);
         }
         if (typeof window.applyLang === 'function') window.applyLang();
     });
@@ -1402,6 +1427,8 @@ function checkPasswordStrength() {
         }
 
         // --- Mobile Bell Badge Sync ---
+        const desktopBadge = document.getElementById('notificationBadge') || document.querySelector('.notification-badge');
+        const mobileBellBadge = document.getElementById('mobileBellBadge') || document.querySelector('.mobile-bell-badge');
         if (desktopBadge && mobileBellBadge) {
             const syncBadge = () => {
                 const count = desktopBadge.textContent.trim();

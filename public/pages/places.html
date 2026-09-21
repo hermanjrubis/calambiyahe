@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css?v=2.5.3">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.0">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -204,7 +204,7 @@
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
                         <div class="user-avatar-wrap">
-                            <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
                             <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                             <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                         </div>
@@ -227,7 +227,7 @@
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
                         <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
                     </div>
                 </button>
@@ -262,7 +262,7 @@
                 <!-- User Info Header -->
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
                         <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                     </div>
                     <div class="profile-header-details">
@@ -301,11 +301,6 @@
                     </div>
                 </div>
 
-                <!-- Anonymous Banner (For Guest/Anonymous Users) -->
-                <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
-                    <span>Guest Mode</span>
-                    <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
-                </div>
 
                 <div class="profile-menu-divider"></div>
 
@@ -434,9 +429,9 @@
     </main>
 
     <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js"></script>
-    <script src="../js/i18n.js"></script>
-    <script src="../js/places-shared.js"></script>
+    <script src="../js/script.js?v=2.6.0"></script>
+    <script src="../js/i18n.js?v=2.6.0"></script>
+    <script src="../js/places-shared.js?v=2.6.0"></script>
     <script>
         function escapeHtml(str) {
             if (!str) return '';
@@ -784,7 +779,7 @@
         });
     </script>
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.0"></script>
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js"></script>

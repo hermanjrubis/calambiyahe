@@ -16,7 +16,7 @@
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/planner.css?v=2.5.3">
+    <link rel="stylesheet" href="../css/planner.css?v=2.6.0">
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -83,10 +83,35 @@
     </div>
 
     <!-- ===== FLOATING TOP CONTROLS (Always Visible) ===== -->
-    <div class="map-top-bar">
-        <div class="map-top-right">
+    <div class="map-top-bar" id="mapTopBar">
+        <!-- Category Filter Segmented Control Bar (Left Group) -->
+        <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
+            <div class="map-category-container">
+                <div class="category-scroll-wrapper" id="categoryScrollWrapper">
+                    <div class="map-segmented-control category-scroll" id="mapCategoryBar" role="tablist" aria-label="Place Categories">
+                        <div class="chip-highlight" id="chipHighlight" aria-hidden="true"></div>
+                        <button class="map-segment-btn" data-category="malls" type="button" role="tab" aria-selected="false">Malls</button>
+                        <button class="map-segment-btn" data-category="eateries" type="button" role="tab" aria-selected="false">Eateries</button>
+                        <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false">Schools</button>
+                        <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false">Terminals</button>
+                        <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false">Coffee Shops</button>
+                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false">Establishments</button>
+                    </div>
+                </div>
+                <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button" aria-label="Clear active category filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Clear</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Group: Reminders, Profile Pill, Menu Button -->
+        <div class="map-top-right" id="mapTopRight">
             <!-- Reminders Pill Button -->
-            <button class="map-top-pill pill-btn" id="remindersPillBtn">
+            <button class="map-top-pill pill-btn" id="remindersPillBtn" aria-label="Reminders" title="Reminders">
                 <ion-icon name="shield-checkmark-outline"></ion-icon>
                 <span data-i18n="planner.reminders_title">Reminders</span>
             </button>
@@ -98,17 +123,14 @@
                     <span>Sign In</span>
                 </a>
 
-                <div class="user-avatar-pill pill-btn" id="userAvatarPill" style="display: none; cursor: pointer;">
+                <div class="user-avatar-pill pill-btn" id="userAvatarPill" style="display: none; cursor: pointer;" aria-label="Account menu">
                     <div class="user-avatar-wrap">
-                        <img src="../assets/default-avatar.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img is-default" id="userAvatarImg" width="34" height="34" style="display:none;">
                         <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                         <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                     </div>
                     <div class="user-name-wrap">
                         <span class="user-display-name" id="userDisplayName">Commuter</span>
-                        <span class="user-saved-home-icon" id="userSavedHomeIcon" title="Home: Saved">
-                            <svg width="14" height="14" fill="none" stroke="#16A34A" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                        </span>
                     </div>
                     <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
                 </div>
@@ -118,7 +140,7 @@
                     <!-- User Info Header -->
                     <div class="profile-header-card">
                         <div class="profile-header-avatar">
-                            <img src="../assets/default-avatar.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img is-default" id="profileHeaderImg" style="display:none;">
                             <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                         </div>
                         <div class="profile-header-details">
@@ -155,12 +177,6 @@
                                 <span class="stat-name">Badges</span>
                             </button>
                         </div>
-                    </div>
-
-                    <!-- Anonymous Banner (For Guest/Anonymous Users) -->
-                    <div class="anon-profile-banner" id="anonProfileBanner" style="display: none;">
-                        <span>Guest Mode</span>
-                        <a href="login.html" class="anon-signup-link">Create Account to unlock stats →</a>
                     </div>
 
                     <div class="profile-menu-divider"></div>
@@ -222,36 +238,11 @@
             </div>
 
             <!-- Hamburger Button -->
-            <button class="map-top-icon-btn pill-btn" id="hamburgerBtn" aria-label="Menu">
+            <button class="map-top-icon-btn pill-btn" id="hamburgerBtn" aria-label="Menu" title="Menu">
                 <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
                     <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
                     <path class="menu-toggle-line" d="M7 16 27 16" />
                 </svg>
-            </button>
-        </div>
-    </div>
-
-    <!-- Category Filter Segmented Control Bar -->
-    <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
-        <div class="map-category-container">
-            <div class="category-scroll-wrapper" id="categoryScrollWrapper">
-                <div class="map-segmented-control category-scroll" id="mapCategoryBar" role="tablist" aria-label="Place Categories">
-                    <div class="chip-highlight" id="chipHighlight" aria-hidden="true"></div>
-                    <button class="map-segment-btn" data-category="malls" type="button" role="tab" aria-selected="false">Malls</button>
-                    <button class="map-segment-btn" data-category="eateries" type="button" role="tab" aria-selected="false">Eateries</button>
-                    <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false">Schools</button>
-                    <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false">Terminals</button>
-                    <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false">Coffee Shops</button>
-                    <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false">Establishments</button>
-                </div>
-                <div class="category-scroll-fade" id="categoryScrollFade" aria-hidden="true"></div>
-            </div>
-            <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button" aria-label="Clear active category filter">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-                <span>Clear</span>
             </button>
         </div>
     </div>
@@ -631,29 +622,60 @@
         <div class="drawer-footer-text">© 2026 Calzada</div>
     </div>
 
-    <!-- ===== REMINDERS MODAL (GLASSMORPHISM) ===== -->
+    <!-- ===== REMINDERS MODAL ===== -->
     <div class="modal-overlay" id="remindersOverlay"></div>
-    <div class="reminders-modal glass-panel" id="remindersModal">
-        <div class="modal-header">
-            <div class="modal-title-row">
-                <ion-icon name="shield-checkmark-outline" class="modal-icon-blue"></ion-icon>
-                <h3 data-i18n="planner.reminders_title">Mga Paalala</h3>
+    <div class="reminders-modal" id="remindersModal" role="dialog" aria-modal="true" aria-labelledby="remindersTitle">
+        <div class="reminders-header">
+            <div class="reminders-header-text">
+                <h3 class="reminders-title" id="remindersTitle" data-i18n="planner.reminders_title">Reminders</h3>
+                <p class="reminders-subtitle" data-i18n="planner.reminders_subtitle">A few things to keep in mind before and during your ride.</p>
             </div>
-            <button class="modal-close-btn" id="remindersCloseBtn"><ion-icon name="close-outline"></ion-icon></button>
+            <button class="reminders-close-btn" id="remindersCloseBtn" type="button" aria-label="Close reminders" data-i18n="planner.reminders_close" data-i18n-attr="aria-label">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M18 6 6 18M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
-        <div class="reminders-body">
-            <div class="reminder-row"><ion-icon name="help-circle-outline"></ion-icon><span
-                    data-i18n="planner.reminders_1">Tanungin ang driver kung dadaan sa iyong destinasyon.</span></div>
-            <div class="reminder-row"><ion-icon name="cash-outline"></ion-icon><span
-                    data-i18n="planner.reminders_2">Maghanda ng eksaktong pamasahe para iwas abala sa sukli.</span>
+        <div class="reminders-groups">
+            <!-- Group: Before you board -->
+            <div class="reminders-group">
+                <h4 class="reminders-group-label" data-i18n="planner.reminders_group_before">Before you board</h4>
+                <div class="reminders-group-rows">
+                    <div class="reminder-row">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
+                            <path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/>
+                        </svg>
+                        <span data-i18n="planner.reminders_5">Be alert while walking to the terminal.</span>
+                    </div>
+                    <div class="reminder-row">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
+                            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                        </svg>
+                        <span data-i18n="planner.reminders_1">Ask the driver if they will pass by your destination.</span>
+                    </div>
+                    <div class="reminder-row">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
+                            <rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>
+                        </svg>
+                        <span data-i18n="planner.reminders_2">Prepare exact fare to avoid change issues.</span>
+                    </div>
+                </div>
             </div>
-            <div class="reminder-row"><ion-icon name="bag-handle-outline"></ion-icon><span
-                    data-i18n="planner.reminders_3">Ingatan ang iyong kagamitan sa loob ng sasakyan.</span></div>
-            <div class="reminder-row"><ion-icon name="map-outline"></ion-icon><span
-                    data-i18n="planner.reminders_4">I-check ang update sa ruta kung may trapik o rerouting.</span></div>
-            <div class="reminder-row"><ion-icon name="walk-outline"></ion-icon><span
-                    data-i18n="planner.reminders_5">Maging alerto habang naglalakad papunta sa terminal.</span></div>
+
+            <!-- Group: On the ride -->
+            <div class="reminders-group">
+                <h4 class="reminders-group-label" data-i18n="planner.reminders_group_during">On the ride</h4>
+                <div class="reminders-group-rows">
+                    <div class="reminder-row">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
+                            <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>
+                        </svg>
+                        <span data-i18n="planner.reminders_3">Take care of your belongings inside the vehicle.</span>
+                    </div>
+                </div>
+            </div>
         </div>
+        <button type="button" class="reminders-confirm-btn" id="remindersConfirmBtn" data-i18n="planner.reminders_got_it">Got It!</button>
     </div>
 
     <!-- ===== DATETIME PICKER (GLASSMORPHISM) ===== -->
@@ -722,30 +744,16 @@
         </div>
 
         <div class="chat-input-area">
-            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..."
-                id="chatInput" rows="1"></textarea>
-            <div class="chat-input-toolbar">
-                <div class="toolbar-right">
-                    <button id="micBtn" class="mic-btn" type="button" title="Voice Message (Tagalog/English)"><ion-icon
-                            name="mic-outline"></ion-icon></button>
-                    <button id="sendMessageBtn" type="button"><ion-icon name="arrow-up-outline"></ion-icon></button>
-                </div>
-            </div>
-            <div id="recordingControls" class="vm-active-container" style="display: none;">
-                <div class="recording-indicator-dot"></div>
-                <div class="vm-frequency-pill" id="vmFrequencyPill">
-                    <canvas id="voiceVisualizer" width="140" height="30"></canvas>
-                </div>
-                <button id="pauseMicBtn" class="vm-action-btn pause-btn" type="button" title="Pause/Resume">
-                    <ion-icon name="pause-outline" id="pauseMicIcon"></ion-icon>
+            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1" aria-label="Type a message"></textarea>
+            <div class="chat-input-actions actions">
+                <button type="button" id="micBtn" class="mic-btn" aria-label="Voice input" title="Voice input" aria-pressed="false">
+                    <ion-icon name="mic-outline"></ion-icon>
                 </button>
-                <button id="cancelMicBtn" class="vm-action-btn close-btn" type="button" title="Cancel & Delete">
-                    <ion-icon name="close-outline"></ion-icon>
-                </button>
-                <button id="stopMicBtn" class="vm-action-btn send-vm-btn" type="button" title="Stop & Send">
+                <button type="button" id="sendMessageBtn" class="chat-send-btn" aria-label="Send message" title="Send message" disabled>
                     <ion-icon name="arrow-up-outline"></ion-icon>
                 </button>
             </div>
+            <div id="chatVoiceError" class="chat-voice-error" style="display: none;" role="alert" aria-live="polite"></div>
         </div>
     </div>
 
@@ -789,15 +797,15 @@
     <script src="../js/streetview-viewer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="../js/transitions.js"></script>
-    <script src="../js/places-shared.js?v=2.5.1"></script>
-    <script src="../js/planner.js?v=2.5.3"></script>
+    <script src="../js/places-shared.js?v=2.6.0"></script>
+    <script src="../js/planner.js?v=2.6.0"></script>
     <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js?v=2.5.1"></script>
-    <script src="../js/i18n.js"></script>
+    <script src="../js/script.js?v=2.6.0"></script>
+    <script src="../js/i18n.js?v=2.6.0"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.0"></script>
 </body>
 
 </html>
