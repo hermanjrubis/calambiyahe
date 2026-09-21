@@ -2846,12 +2846,320 @@ document.addEventListener('DOMContentLoaded', () => {
         // =============================================
         // UTILITIES & EXISTING UI RETAINMENTS
         // =============================================
-        const showToast = (msg) => {
+        const showToast = (msg, icon = 'checkmark-circle-outline') => {
             const t = document.getElementById('toastNotification');
             document.getElementById('toastMessage').textContent = msg;
+            const iconEl = t.querySelector('ion-icon');
+            if (iconEl) iconEl.setAttribute('name', icon);
             t.classList.add('active');
             setTimeout(() => t.classList.remove('active'), 3000);
         };
+
+        // =============================================
+        // USER LOCATION DOT (ambient "you are here", Google Maps style)
+        // =============================================
+        // Display-only: coordinates never leave the browser and are never stored.
+        // Kept separate from the journey tracker (startLiveTracking), which owns its
+        // own watch + nav cursor; this dot hides itself while navigation is active.
+        (() => {
+            const GEO_DENIED_KEY = 'calzada_geo_denied';        // sessionStorage: user said no
+            const GEO_TOAST_KEY = 'calzada_geo_toast_shown';    // sessionStorage: auto toast shown once
+            const LOCATE_ZOOM = 16;
+            const ACC_SOURCE = 'user-accuracy';
+            const EMPTY_FC = { type: 'FeatureCollection', features: [] };
+            const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const ss = {
+                get: (k) => { try { return sessionStorage.getItem(k); } catch (_) { return null; } },
+                set: (k, v) => { try { sessionStorage.setItem(k, v); } catch (_) { /* private mode */ } },
+                del: (k) => { try { sessionStorage.removeItem(k); } catch (_) { /* private mode */ } }
+            };
+
+            let dotMarker = null;
+            let watchHandle = null;
+            let fix = null;              // { lng, lat, acc } currently rendered
+            let hasCentered = false;     // auto-center only on the first fix
+            let requesting = false;
+            let animFrame = null;
+            let locateBtn = null;
+            let hintEl = null;
+            let accRetryPending = false;
+
+            const geoSupported = () => !!navigator.geolocation && window.isSecureContext !== false;
+            const navActive = () => document.body.classList.contains('navigation-active');
+            const routeOnMap = () => !!(window._calzadaRouteContext || isTrackingArrival);
+
+            const queryPermission = async () => {
+                try {
+                    if (!navigator.permissions || !navigator.permissions.query) return 'unknown';
+                    const status = await navigator.permissions.query({ name: 'geolocation' });
+                    return status.state; // 'granted' | 'denied' | 'prompt'
+                } catch (_) { return 'unknown'; }
+            };
+
+            // Automatic (non-click) notices appear at most once per session.
+            const toastOnce = (key) => {
+                if (ss.get(GEO_TOAST_KEY)) return;
+                ss.set(GEO_TOAST_KEY, '1');
+                showToast(t(key), 'location-outline');
+            };
+
+            // ── Accuracy circle: polygon in real meters, so it scales with zoom ──────
+            const circlePolygon = (lng, lat, meters) => {
+                const pts = 64, coords = [];
+                const dLat = meters / 110574;
+                const dLng = meters / (111320 * Math.cos(lat * Math.PI / 180));
+                for (let i = 0; i <= pts; i++) {
+                    const a = (i / pts) * 2 * Math.PI;
+                    coords.push([lng + dLng * Math.cos(a), lat + dLat * Math.sin(a)]);
+                }
+                return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] }, properties: {} };
+            };
+
+            const ensureAccuracyLayers = () => {
+                if (map.getSource(ACC_SOURCE)) return true;
+                // isStyleLoaded() stays false while sprites/tiles are pending, even though
+                // sources can already be added; so just try, and retry once the map settles.
+                try {
+                    map.addSource(ACC_SOURCE, { type: 'geojson', data: EMPTY_FC });
+                } catch (_) {
+                    if (!accRetryPending) {
+                        accRetryPending = true;
+                        map.once('idle', () => { accRetryPending = false; if (fix) render(fix); });
+                    }
+                    return false;
+                }
+                // Sit beneath the route lines so a drawn route stays readable.
+                const before = map.getLayer('walk-route-layer') ? 'walk-route-layer' : undefined;
+                map.addLayer({
+                    id: 'user-accuracy-fill', type: 'fill', source: ACC_SOURCE,
+                    paint: { 'fill-color': '#378ADD', 'fill-opacity': 0.11 }
+                }, before);
+                map.addLayer({
+                    id: 'user-accuracy-line', type: 'line', source: ACC_SOURCE,
+                    paint: { 'line-color': '#378ADD', 'line-opacity': 0.35, 'line-width': 1 }
+                }, before);
+                return true;
+            };
+
+            const render = (f) => {
+                const hidden = navActive(); // the journey nav cursor takes over
+                if (ensureAccuracyLayers()) {
+                    map.getSource(ACC_SOURCE).setData(hidden ? EMPTY_FC : circlePolygon(f.lng, f.lat, Math.max(f.acc, 1)));
+                }
+                if (!dotMarker) {
+                    const el = document.createElement('div');
+                    el.className = 'calzada-user-dot';
+                    el.setAttribute('aria-hidden', 'true');
+                    dotMarker = new maplibregl.Marker({ element: el, anchor: 'center' })
+                        .setLngLat([f.lng, f.lat])
+                        .addTo(map);
+                }
+                dotMarker.setLngLat([f.lng, f.lat]);
+                dotMarker.getElement().style.visibility = hidden ? 'hidden' : '';
+            };
+
+            // Glide the dot + circle to the new fix instead of jumping.
+            const moveTo = (next) => {
+                if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+                const from = fix;
+                if (!from || reducedMotion()) { fix = next; render(fix); return; }
+                const start = performance.now(), dur = 600;
+                const step = (now) => {
+                    const k = Math.min(1, (now - start) / dur);
+                    const e = 1 - Math.pow(1 - k, 3); // easeOutCubic
+                    fix = {
+                        lng: from.lng + (next.lng - from.lng) * e,
+                        lat: from.lat + (next.lat - from.lat) * e,
+                        acc: from.acc + (next.acc - from.acc) * e
+                    };
+                    render(fix);
+                    animFrame = k < 1 ? requestAnimationFrame(step) : null;
+                };
+                animFrame = requestAnimationFrame(step);
+            };
+
+            const centerOn = (f) => {
+                const opts = { center: [f.lng, f.lat], zoom: Math.max(map.getZoom(), LOCATE_ZOOM) };
+                if (reducedMotion()) map.jumpTo(opts);
+                else map.easeTo({ ...opts, duration: 700, essential: true });
+            };
+
+            const setLoading = (on) => {
+                requesting = on;
+                if (!locateBtn) return;
+                locateBtn.classList.toggle('is-loading', on);
+                locateBtn.setAttribute('aria-busy', on ? 'true' : 'false');
+            };
+
+            const setActive = (on) => { if (locateBtn) locateBtn.classList.toggle('is-active', on); };
+
+            const hideHint = () => {
+                if (!hintEl) return;
+                const el = hintEl;
+                hintEl = null;
+                el.classList.remove('active');
+                setTimeout(() => el.remove(), 300);
+            };
+
+            const showHint = () => {
+                if (hintEl) return;
+                hintEl = document.createElement('div');
+                hintEl.className = 'geo-hint glass-panel';
+                hintEl.setAttribute('role', 'status');
+                hintEl.innerHTML = `
+                    <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+                    <span class="geo-hint-text"></span>
+                    <button type="button" class="geo-hint-close"><ion-icon name="close-outline" aria-hidden="true"></ion-icon></button>`;
+                hintEl.querySelector('.geo-hint-close').addEventListener('click', hideHint);
+                updateLocateLocale();
+                document.body.appendChild(hintEl);
+                requestAnimationFrame(() => { if (hintEl) hintEl.classList.add('active'); });
+                // Some browsers keep the prompt open indefinitely; don't let the hint linger.
+                setTimeout(hideHint, 10000);
+            };
+
+            const onPosition = (pos, { recenter = false } = {}) => {
+                const next = { lng: pos.coords.longitude, lat: pos.coords.latitude, acc: pos.coords.accuracy || 0 };
+                moveTo(next);
+                setActive(true);
+                if (recenter || (!hasCentered && !routeOnMap())) centerOn(next);
+                hasCentered = true;
+            };
+
+            const clearLocation = () => {
+                if (watchHandle !== null) { navigator.geolocation.clearWatch(watchHandle); watchHandle = null; }
+                if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+                if (dotMarker) { dotMarker.remove(); dotMarker = null; }
+                if (map.getSource(ACC_SOURCE)) map.getSource(ACC_SOURCE).setData(EMPTY_FC);
+                fix = null;
+                setActive(false);
+            };
+
+            // fromClick: the user asked, so always answer; automatic failures toast once per session.
+            const onError = (err, fromClick) => {
+                const key = err && err.code === 1 ? 'planner.geo_denied' : 'planner.geo_unavailable';
+                if (err && err.code === 1) { ss.set(GEO_DENIED_KEY, '1'); clearLocation(); }
+                if (fromClick) showToast(t(key), 'location-outline');
+                else toastOnce(key);
+            };
+
+            const startWatch = () => {
+                if (watchHandle !== null || !geoSupported() || document.hidden) return;
+                watchHandle = navigator.geolocation.watchPosition(
+                    (pos) => onPosition(pos),
+                    // Timeouts/unavailable mid-watch: keep the last dot quietly.
+                    (err) => { if (err && err.code === 1) onError(err, false); },
+                    { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }
+                );
+            };
+
+            // One-shot request; watchPosition takes over once it succeeds.
+            const requestLocation = ({ fromClick = false } = {}) => {
+                if (requesting) return;
+                setLoading(true);
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        setLoading(false);
+                        hideHint();
+                        ss.del(GEO_DENIED_KEY);
+                        onPosition(pos, { recenter: fromClick });
+                        startWatch();
+                    },
+                    (err) => {
+                        setLoading(false);
+                        hideHint();
+                        onError(err, fromClick);
+                    },
+                    { enableHighAccuracy: true, maximumAge: 30000, timeout: 12000 }
+                );
+            };
+
+            const updateLocateLocale = () => {
+                if (locateBtn) {
+                    const label = t('planner.show_my_location');
+                    locateBtn.setAttribute('title', label);
+                    locateBtn.setAttribute('aria-label', label);
+                }
+                if (hintEl) {
+                    hintEl.querySelector('.geo-hint-text').textContent = t('planner.geo_hint');
+                    hintEl.querySelector('.geo-hint-close').setAttribute('aria-label', t('planner.geo_hint_dismiss'));
+                }
+            };
+            window.addEventListener('calzada_lang_changed', updateLocateLocale);
+
+            const onLocateClick = async () => {
+                if (requesting) return;
+                if (fix) {
+                    centerOn(fix);
+                    startWatch();
+                    return;
+                }
+                if (!geoSupported()) { showToast(t('planner.geo_unavailable'), 'location-outline'); return; }
+                if (await queryPermission() === 'denied') {
+                    ss.set(GEO_DENIED_KEY, '1');
+                    showToast(t('planner.geo_denied'), 'location-outline');
+                    return;
+                }
+                // Explicit tap: ask again even if an earlier prompt was dismissed.
+                requestLocation({ fromClick: true });
+            };
+
+            // ── Locate-me control (stacked above zoom/compass) ─────────────────────
+            // Deliberately NOT .maplibregl-ctrl-group: the navigation code grabs the first
+            // such group in the bottom-right to hide the zoom controls.
+            map.addControl({
+                onAdd() {
+                    this._container = document.createElement('div');
+                    this._container.className = 'maplibregl-ctrl calzada-locate-ctrl';
+                    locateBtn = document.createElement('button');
+                    locateBtn.type = 'button';
+                    locateBtn.className = 'calzada-locate-btn';
+                    locateBtn.innerHTML = `
+                        <span class="calzada-locate-face" aria-hidden="true">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="7"/>
+                                <circle class="calzada-locate-core" cx="12" cy="12" r="2.5"/>
+                                <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                            </svg>
+                        </span>`;
+                    locateBtn.addEventListener('click', onLocateClick);
+                    this._container.appendChild(locateBtn);
+                    updateLocateLocale();
+                    return this._container;
+                },
+                onRemove() { this._container.remove(); }
+            }, 'bottom-right');
+
+            // Save battery: stop watching while the tab is hidden, resume on return.
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    if (watchHandle !== null) { navigator.geolocation.clearWatch(watchHandle); watchHandle = null; }
+                } else if (fix) {
+                    startWatch();
+                }
+            });
+
+            // Journey start/stop toggles body.navigation-active; re-render so the dot
+            // hides under the nav cursor and comes back afterwards.
+            new MutationObserver(() => { if (fix) render(fix); })
+                .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
+            // ── Auto-request once on Planner open ──────────────────────────────────
+            (async () => {
+                if (!geoSupported()) { toastOnce('planner.geo_unavailable'); return; }
+                const state = await queryPermission();
+                if (state === 'denied') {
+                    ss.set(GEO_DENIED_KEY, '1');
+                    toastOnce('planner.geo_denied');
+                    return;
+                }
+                if (state === 'granted') { requestLocation(); return; }
+                // 'prompt' or unknown: stay quiet if the user already declined this session.
+                if (ss.get(GEO_DENIED_KEY)) return;
+                showHint();
+                requestLocation();
+            })();
+        })();
 
         // ── DRAWER ACTIVE NAV SYNC ───────────────────────────────────────────────
         // Reduces any page URL - clean ("/about"), legacy ("/pages/about.html") or bare
