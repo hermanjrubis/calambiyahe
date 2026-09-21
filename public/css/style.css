@@ -12050,3 +12050,37 @@ input#searchInput,
     color: #94A3B8;
     text-align: left;
 }
+
+/* =========================================================
+   LANGUAGE SWITCH TRANSITION
+   The i18n swap is a synchronous lookup in an in-memory dictionary - there is
+   nothing to wait for, so there is deliberately no spinner and no artificial
+   delay here. This is only a 150ms fade out, the swap, then a 150ms fade in,
+   so the text changes smoothly instead of snapping.
+
+   Only opacity is touched: nothing is disabled, pointer-events are untouched
+   and the page stays scrollable and clickable for the whole 300ms. Elements
+   whose translation targets an attribute (data-i18n-attr, e.g. a placeholder)
+   are skipped - their visible text isn't what changes. Blocks that a script
+   re-renders on language change can opt in with data-lang-fade.
+   ========================================================= */
+html.lang-swapping [data-i18n]:not([data-i18n-attr]),
+html.lang-swapping [data-lang-fade] {
+    transition: opacity 150ms ease;
+}
+
+html.lang-swapping-out [data-i18n]:not([data-i18n-attr]),
+html.lang-swapping-out [data-lang-fade] {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    html.lang-swapping [data-i18n]:not([data-i18n-attr]),
+    html.lang-swapping [data-lang-fade],
+    html.lang-swapping-out [data-i18n]:not([data-i18n-attr]),
+    html.lang-swapping-out [data-lang-fade] {
+        transition: none;
+        opacity: 1;
+    }
+}

@@ -152,6 +152,41 @@
         updateCalculator();
     }
 
+    /**
+     * Fills #fareTablesWrap with a shaped placeholder while jeepney-fares.json is in
+     * flight. Presentation only - it renders no fare figures and is overwritten wholesale
+     * by renderTables(). Row counts mirror the current maxKm (50, split into two halves)
+     * so the real tables drop into the space already reserved instead of shoving the page
+     * down. If the fetch fails, renderErrorState() hides the whole .fares-dynamic-section,
+     * so this can never be left spinning.
+     */
+    const SKELETON_MAX_KM = 50;
+
+    function renderTableSkeleton() {
+        const tableContainer = document.getElementById('fareTablesWrap');
+        if (!tableContainer) return;
+
+        const half = Math.ceil(SKELETON_MAX_KM / 2);
+
+        function skeletonHalf(rowCount) {
+            let rows = '';
+            for (let i = 0; i < rowCount; i++) {
+                rows += '<div class="sk-fare-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
+            }
+            return `
+                <div class="fare-table-half">
+                    <div class="sk-fare-head"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+                    ${rows}
+                </div>`;
+        }
+
+        tableContainer.innerHTML = `
+            <div class="sk-fare-tables" role="status" aria-live="polite" aria-busy="true" aria-label="Loading fare table">
+                ${skeletonHalf(half)}
+                ${skeletonHalf(SKELETON_MAX_KM - half)}
+            </div>`;
+    }
+
     function renderTables(lang, vars) {
         const tableContainer = document.getElementById('fareTablesWrap');
         if (!tableContainer || !fareData) return;
@@ -315,6 +350,7 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         setupCalculatorInput();
+        renderTableSkeleton();
 
         try {
             await loadFareData();

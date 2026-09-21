@@ -1506,8 +1506,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('startJourneyBtn').disabled = true;
             const sumTime = document.getElementById('sumTime');
             const sumFare = document.getElementById('sumFare');
-            if (sumTime) sumTime.innerHTML = '<div class="route-spinner" style="margin:0 auto;"></div>';
-            if (sumFare) sumFare.textContent = '—';
+            // Shaped placeholder using the shared skeleton token - this was the one pending-fetch
+            // state on the site that still used a brand-blue spinner. Both values are stubbed so
+            // the summary banner keeps its height while the route is computed.
+            if (sumTime) sumTime.innerHTML = '<span class="skeleton sk-route-val" role="status" aria-label="Calculating route"></span>';
+            if (sumFare) sumFare.innerHTML = '<span class="skeleton sk-route-val sk-route-fare"></span>';
 
             const oPt = selectedCoords.origin;
             const dPt = selectedCoords.destination;

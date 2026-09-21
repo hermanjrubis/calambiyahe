@@ -6,22 +6,57 @@ html {
     background-color: #ffffff;
 }
 
-/* Base Skeleton Token: Light Gray (#E2E8F0) with calm opacity pulse */
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.42;
-    }
+/* =========================================================
+   SHARED SKELETON TOKEN
+   One tint, one shimmer, one radius - every loading block on
+   every page is built from this. Change it here and the whole
+   site follows; never redeclare the animation further down.
+   ========================================================= */
+:root {
+    --sk-base: #e6ecf4;        /* light gray-blue, sits between the site's #e2e8f0 border and #f0f4f9 surface */
+    --sk-highlight: #f5f8fc;   /* the band that travels across the block */
+    --sk-radius: 8px;
+    --sk-speed: 1.4s;
+}
+
+@keyframes sk-shimmer {
+    from { background-position: 150% 0; }
+    to   { background-position: -50% 0; }
 }
 
 .skeleton {
-    background-color: #E2E8F0;
-    animation: pulse 1.5s ease-in-out infinite;
-    border-radius: var(--radius-sm, 8px);
+    background-color: var(--sk-base);
+    background-image: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0%,
+            var(--sk-highlight) 50%,
+            rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    background-position: 150% 0;
+    animation: sk-shimmer var(--sk-speed) ease-in-out infinite;
+    border-radius: var(--sk-radius);
     pointer-events: none;
     user-select: none;
+}
+
+/* skeleton.css is loaded after style.css, so .skeleton's radius would otherwise
+   override a real component's own. Where .skeleton is applied directly to the
+   element that becomes the finished card, hand the radius back by overriding the
+   token rather than the property, so the placeholder and the real thing match. */
+.gallery-item.skeleton {
+    --sk-radius: 16px;
+}
+
+/* Reduced motion: keep the block (it still reserves the layout) but hold it
+   perfectly still - no travelling band, no pulse. */
+@media (prefers-reduced-motion: reduce) {
+    .skeleton,
+    .skeleton-avatar,
+    .skeleton-line {
+        animation: none;
+        background-image: none;
+        background-color: var(--sk-base);
+    }
 }
 
 /* Shape Utilities */
@@ -170,7 +205,7 @@ html {
 .sk-discover-media {
     width: 100%;
     aspect-ratio: 16 / 10;
-    background-color: #E2E8F0;
+    background-color: var(--sk-base);
     flex-shrink: 0;
 }
 
@@ -249,7 +284,103 @@ html {
     border-bottom: none;
 }
 
-/* 4. Search Options Skeleton (Planner Modal) */
+/* 4. Place Card Skeleton (Places grid, Home featured gallery)
+   Sits inside the real .ref-card frame so the placeholder occupies exactly the
+   space the finished card will. The two bar widths vary per card via --sk-w1 /
+   --sk-w2 so a grid of them doesn't look rubber-stamped. */
+.sk-place-card .sk-media {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+}
+
+.sk-place-card .sk-line-title {
+    width: var(--sk-w1, 72%);
+    height: 18px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.sk-place-card .sk-line-sub {
+    width: var(--sk-w2, 52%);
+    height: 14px;
+    border-radius: 4px;
+}
+
+/* 5. Fare Table Skeleton (Fares page)
+   Mirrors .fare-tables-container / .fare-table-half / .fare-table so the 50 rows
+   that arrive from jeepney-fares.json land in the space already reserved. */
+.sk-fare-tables {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+    width: 100%;
+}
+
+.sk-fare-head,
+.sk-fare-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    align-items: center;
+    padding: 10px 16px;
+}
+
+.sk-fare-head {
+    padding-bottom: 12px;
+}
+
+.sk-fare-head .skeleton {
+    height: 14px;
+    border-radius: 4px;
+}
+
+.sk-fare-row .skeleton {
+    height: 15px;
+    border-radius: 4px;
+}
+
+/* The km column is narrow and left-aligned; the two money columns are right-aligned. */
+.sk-fare-head .skeleton:first-child,
+.sk-fare-row .skeleton:first-child {
+    width: 40%;
+}
+
+.sk-fare-row .skeleton:nth-child(2),
+.sk-fare-row .skeleton:nth-child(3) {
+    width: 62%;
+    justify-self: end;
+}
+
+.sk-fare-head .skeleton:nth-child(2),
+.sk-fare-head .skeleton:nth-child(3) {
+    width: 70%;
+    justify-self: end;
+}
+
+@media (max-width: 900px) {
+    .sk-fare-tables {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+}
+
+/* 6. Route Summary Skeleton (Planner results)
+   Replaces the old brand-blue spinner so a pending route reads the same as every
+   other pending fetch on the site. Sized to the 1.35rem .summary-large text. */
+.sk-route-val {
+    display: inline-block;
+    width: 74px;
+    height: 20px;
+    border-radius: 6px;
+    vertical-align: -3px;
+}
+
+.sk-route-val.sk-route-fare {
+    width: 52px;
+}
+
+/* 7. Search Options Skeleton (Planner Modal) */
 .sk-search-row {
     display: flex;
     align-items: center;
@@ -309,9 +440,12 @@ body.page-is-exiting {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background-color: #E2E8F0;
-    animation: pulse 1.5s ease-in-out infinite;
     flex-shrink: 0;
+    background-color: var(--sk-base);
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, var(--sk-highlight) 50%, rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: sk-shimmer var(--sk-speed) ease-in-out infinite;
 }
 
 .skeleton-lines {
@@ -325,8 +459,11 @@ body.page-is-exiting {
     width: 100%;
     height: 12px;
     border-radius: 4px;
-    background-color: #E2E8F0;
-    animation: pulse 1.5s ease-in-out infinite;
+    background-color: var(--sk-base);
+    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, var(--sk-highlight) 50%, rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: sk-shimmer var(--sk-speed) ease-in-out infinite;
 }
 
 .skeleton-line.short {

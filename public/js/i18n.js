@@ -697,6 +697,69 @@ function applyLang(lang) {
     window.dispatchEvent(new CustomEvent('calzada_lang_changed', { detail: { lang } }));
 }
 
+/* ---------------------------------------------------------------------------
+ * Language switch transition
+ *
+ * applyLang() above is a synchronous pass over the [data-i18n] nodes reading an
+ * in-memory dictionary, so a language switch is instant. That means a spinner
+ * would be theatre, and an artificial delay would make an instant action feel
+ * slow. What the swap did look like was a hard flicker, so this wraps it in a
+ * short cross-fade: 150ms out, swap, 150ms in.
+ *
+ * Nothing is blocked while it runs - only opacity animates, so links, buttons
+ * and scrolling all keep working. Under prefers-reduced-motion the fade is
+ * skipped entirely and the swap happens immediately, with no timers at all.
+ * ------------------------------------------------------------------------- */
+const LANG_FADE_MS = 150;
+let langFadeTimers = [];
+
+function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+}
+
+function clearLangFade() {
+    langFadeTimers.forEach(clearTimeout);
+    langFadeTimers = [];
+    document.documentElement.classList.remove('lang-swapping', 'lang-swapping-out');
+}
+
+/**
+ * User-initiated language change: same swap as applyLang(), with a fade around it.
+ * applyLang() itself is left untouched so page-load init and any external caller
+ * still get the plain, immediate behaviour.
+ */
+function applyLangWithTransition(lang) {
+    if (prefersReducedMotion()) {
+        applyLang(lang);
+        return;
+    }
+
+    const root = document.documentElement;
+
+    // A second click mid-fade must not strand the page at opacity 0.
+    langFadeTimers.forEach(clearTimeout);
+    langFadeTimers = [];
+
+    root.classList.add('lang-swapping');
+
+    // Let the transition rule land before opacity flips, or the browser jumps straight to 0.
+    requestAnimationFrame(() => {
+        root.classList.add('lang-swapping-out');
+
+        langFadeTimers.push(setTimeout(() => {
+            applyLang(lang);
+            root.classList.remove('lang-swapping-out');
+
+            langFadeTimers.push(setTimeout(() => {
+                root.classList.remove('lang-swapping');
+            }, LANG_FADE_MS));
+        }, LANG_FADE_MS));
+    });
+}
+
+// If the page is restored from bfcache mid-fade, don't come back invisible.
+window.addEventListener('pageshow', clearLangFade);
+
 /**
  * Global helper to get a translation by key
  */
@@ -715,9 +778,10 @@ window.getCurrentLang = function() {
 
 function toggleLang() {
     const current = localStorage.getItem('calzada_lang') || 'en';
-    applyLang(current === 'en' ? 'tl' : 'en');
+    applyLangWithTransition(current === 'en' ? 'tl' : 'en');
 }
 window.applyLang = applyLang;
+window.applyLangWithTransition = applyLangWithTransition;
 window.toggleLang = toggleLang;
 
 // Init — works whether DOM is ready or not
@@ -755,7 +819,7 @@ function initI18n() {
             e.stopPropagation();
             const selectedLang = dropdownItem.getAttribute('data-lang');
             if (selectedLang) {
-                applyLang(selectedLang);
+                applyLangWithTransition(selectedLang);
             }
             document.querySelectorAll('.lang-dropdown-container').forEach(c => {
                 c.classList.remove('open');
