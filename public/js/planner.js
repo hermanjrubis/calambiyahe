@@ -2865,8 +2865,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const GEO_DENIED_KEY = 'calzada_geo_denied';        // sessionStorage: user said no
             const GEO_TOAST_KEY = 'calzada_geo_toast_shown';    // sessionStorage: auto toast shown once
             const LOCATE_ZOOM = 16;
-            const ACC_SOURCE = 'user-accuracy';
-            const EMPTY_FC = { type: 'FeatureCollection', features: [] };
             const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             const ss = {
                 get: (k) => { try { return sessionStorage.getItem(k); } catch (_) { return null; } },
@@ -2876,13 +2874,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let dotMarker = null;
             let watchHandle = null;
-            let fix = null;              // { lng, lat, acc } currently rendered
+            let fix = null;              // { lng, lat } currently rendered
             let hasCentered = false;     // auto-center only on the first fix
             let requesting = false;
             let animFrame = null;
             let locateBtn = null;
             let hintEl = null;
-            let accRetryPending = false;
 
             const geoSupported = () => !!navigator.geolocation && window.isSecureContext !== false;
             const navActive = () => document.body.classList.contains('navigation-active');
@@ -2903,49 +2900,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(t(key), 'location-outline');
             };
 
-            // ── Accuracy circle: polygon in real meters, so it scales with zoom ──────
-            const circlePolygon = (lng, lat, meters) => {
-                const pts = 64, coords = [];
-                const dLat = meters / 110574;
-                const dLng = meters / (111320 * Math.cos(lat * Math.PI / 180));
-                for (let i = 0; i <= pts; i++) {
-                    const a = (i / pts) * 2 * Math.PI;
-                    coords.push([lng + dLng * Math.cos(a), lat + dLat * Math.sin(a)]);
-                }
-                return { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coords] }, properties: {} };
-            };
-
-            const ensureAccuracyLayers = () => {
-                if (map.getSource(ACC_SOURCE)) return true;
-                // isStyleLoaded() stays false while sprites/tiles are pending, even though
-                // sources can already be added; so just try, and retry once the map settles.
-                try {
-                    map.addSource(ACC_SOURCE, { type: 'geojson', data: EMPTY_FC });
-                } catch (_) {
-                    if (!accRetryPending) {
-                        accRetryPending = true;
-                        map.once('idle', () => { accRetryPending = false; if (fix) render(fix); });
-                    }
-                    return false;
-                }
-                // Sit beneath the route lines so a drawn route stays readable.
-                const before = map.getLayer('walk-route-layer') ? 'walk-route-layer' : undefined;
-                map.addLayer({
-                    id: 'user-accuracy-fill', type: 'fill', source: ACC_SOURCE,
-                    paint: { 'fill-color': '#378ADD', 'fill-opacity': 0.11 }
-                }, before);
-                map.addLayer({
-                    id: 'user-accuracy-line', type: 'line', source: ACC_SOURCE,
-                    paint: { 'line-color': '#378ADD', 'line-opacity': 0.35, 'line-width': 1 }
-                }, before);
-                return true;
-            };
-
             const render = (f) => {
                 const hidden = navActive(); // the journey nav cursor takes over
-                if (ensureAccuracyLayers()) {
-                    map.getSource(ACC_SOURCE).setData(hidden ? EMPTY_FC : circlePolygon(f.lng, f.lat, Math.max(f.acc, 1)));
-                }
                 if (!dotMarker) {
                     const el = document.createElement('div');
                     el.className = 'calzada-user-dot';
@@ -2958,7 +2914,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dotMarker.getElement().style.visibility = hidden ? 'hidden' : '';
             };
 
-            // Glide the dot + circle to the new fix instead of jumping.
+            // Glide the dot to the new fix instead of jumping.
             const moveTo = (next) => {
                 if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
                 const from = fix;
@@ -2969,8 +2925,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const e = 1 - Math.pow(1 - k, 3); // easeOutCubic
                     fix = {
                         lng: from.lng + (next.lng - from.lng) * e,
-                        lat: from.lat + (next.lat - from.lat) * e,
-                        acc: from.acc + (next.acc - from.acc) * e
+                        lat: from.lat + (next.lat - from.lat) * e
                     };
                     render(fix);
                     animFrame = k < 1 ? requestAnimationFrame(step) : null;
@@ -3019,7 +2974,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const onPosition = (pos, { recenter = false } = {}) => {
-                const next = { lng: pos.coords.longitude, lat: pos.coords.latitude, acc: pos.coords.accuracy || 0 };
+                const next = { lng: pos.coords.longitude, lat: pos.coords.latitude };
                 moveTo(next);
                 setActive(true);
                 if (recenter || (!hasCentered && !routeOnMap())) centerOn(next);
@@ -3030,7 +2985,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (watchHandle !== null) { navigator.geolocation.clearWatch(watchHandle); watchHandle = null; }
                 if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
                 if (dotMarker) { dotMarker.remove(); dotMarker = null; }
-                if (map.getSource(ACC_SOURCE)) map.getSource(ACC_SOURCE).setData(EMPTY_FC);
                 fix = null;
                 setActive(false);
             };
