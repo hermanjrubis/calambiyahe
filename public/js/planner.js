@@ -2854,10 +2854,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // ── DRAWER ACTIVE NAV SYNC ───────────────────────────────────────────────
+        // Reduces any page URL - clean ("/about"), legacy ("/pages/about.html") or bare
+        // ("about.html") - to one comparable key, so the active nav state keeps working
+        // now that pages are served on extension-less URLs. "/" and "/index" mean home.
+        const navKey = (value) => {
+            const path = String(value || '').split('?')[0].split('#')[0];
+            const last = path.split('/').filter(Boolean).pop() || '';
+            const key = last.replace(/\.html$/i, '').toLowerCase();
+            return (!key || key === 'index') ? 'home' : key;
+        };
+
         const updateActiveDrawerNav = () => {
-            const pathParts = window.location.pathname.split('/');
-            const rawPath = pathParts.pop().split('?')[0].split('#')[0];
-            const currentPath = (!rawPath || rawPath === '' || rawPath === '/') ? 'index.html' : rawPath;
+            const currentKey = navKey(window.location.pathname);
 
             const drawerItems = document.querySelectorAll('.drawer-nav-item, .drawer-links a');
             drawerItems.forEach(item => {
@@ -2866,16 +2874,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.classList.remove('active');
                     return;
                 }
-                const href = rawHref.split('/').pop().split('?')[0].split('#')[0];
-                if (!href) {
-                    item.classList.remove('active');
-                    return;
-                }
-                const isMatch = (
-                    href === currentPath ||
-                    (currentPath === 'planner.html' && href === 'planner.html') ||
-                    (currentPath === 'index.html' && href === 'index.html')
-                );
+                const isMatch = navKey(rawHref) === currentKey;
                 if (isMatch) {
                     item.classList.add('active');
                 } else {

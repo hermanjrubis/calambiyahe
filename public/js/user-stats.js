@@ -144,7 +144,7 @@ function renderActivityFeed() {
     if (!user) {
         list.innerHTML = `<div class="activity-empty-state">
             <svg width="28" height="28" fill="none" stroke="#CBD5E1" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <p>No activity yet.<br><a href="login.html" style="color: #378ADD; font-weight: 600; text-decoration: underline;">Sign in</a> to see your activity updates.</p>
+            <p>No activity yet.<br><a href="/login" style="color: #378ADD; font-weight: 600; text-decoration: underline;">Sign in</a> to see your activity updates.</p>
         </div>`;
         return;
     }
@@ -742,11 +742,11 @@ export function setupProfileUI() {
             try {
                 clearUserState();
                 await signOut(auth);
-                window.location.href = 'login.html';
+                window.location.href = '/login';
             } catch (error) {
                 console.error("Logout Error:", error);
                 clearUserState();
-                window.location.href = 'login.html';
+                window.location.href = '/login';
             }
         });
     }
@@ -1000,7 +1000,7 @@ export function setupProfileUI() {
         const exploreEmptyBtn = e.target.closest('#emptyStateExploreBtn') || e.target.closest('.saved-empty-explore-btn');
         if (exploreEmptyBtn) {
             closeModal('modalSavedPlaces');
-            if (window.location.pathname.includes('places.html')) {
+            if (window.location.pathname.includes('/places')) {
                 e.preventDefault();
                 const grid = document.getElementById('placesGrid') || document.querySelector('.places-page');
                 if (grid) grid.scrollIntoView({ behavior: 'smooth' });
@@ -1058,8 +1058,9 @@ export function renderAdminMenuLink(isAdmin) {
     const adminLink = document.createElement('a');
     adminLink.id = 'menuAdminPanel';
     adminLink.className = 'profile-nav-btn';
-    const isPagesDir = window.location.pathname.includes('/pages/');
-    adminLink.href = isPagesDir ? 'admin.html' : '/pages/admin.html';
+    // Root-absolute now that pages are served on clean URLs, so it no longer has to
+    // guess the current depth.
+    adminLink.href = '/admin';
     adminLink.style.textDecoration = 'none';
     adminLink.innerHTML = `
         <span class="nav-btn-icon" style="color: #378ADD;">
@@ -1108,7 +1109,7 @@ function renderVisitsList() {
                 </div>
                 <h4 class="saved-empty-title">No visits recorded yet</h4>
                 <p class="saved-empty-desc">When you search or navigate to malls, eateries, and spots in Calamba, they will appear here automatically.</p>
-                <a href="places.html" class="saved-empty-explore-btn" id="emptyStateVisitsBtn">
+                <a href="/places" class="saved-empty-explore-btn" id="emptyStateVisitsBtn">
                     <span>Explore Places</span>
                     <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
                 </a>
@@ -1119,8 +1120,8 @@ function renderVisitsList() {
 
     container.innerHTML = currentVisits.map(v => {
         const vUrl = (v.lat != null && v.lng != null)
-            ? `planner.html?destLat=${v.lat}&destLng=${v.lng}&destName=${encodeURIComponent(v.placeName)}&dlat=${v.lat}&dlng=${v.lng}&dest=${encodeURIComponent(v.placeName)}`
-            : `planner.html?destName=${encodeURIComponent(v.placeName)}&dest=${encodeURIComponent(v.placeName)}`;
+            ? `/planner?destLat=${v.lat}&destLng=${v.lng}&destName=${encodeURIComponent(v.placeName)}&dlat=${v.lat}&dlng=${v.lng}&dest=${encodeURIComponent(v.placeName)}`
+            : `/planner?destName=${encodeURIComponent(v.placeName)}&dest=${encodeURIComponent(v.placeName)}`;
         return `
         <div class="visit-item-card">
             <div class="visit-item-info">
@@ -1168,7 +1169,7 @@ function renderSavedList() {
                 </div>
                 <h4 class="saved-empty-title">No saved spots yet</h4>
                 <p class="saved-empty-desc">No saved spots yet — start exploring and save your favorites!</p>
-                <a href="places.html" class="saved-empty-explore-btn" id="emptyStateExploreBtn">
+                <a href="/places" class="saved-empty-explore-btn" id="emptyStateExploreBtn">
                     <span>Explore Places</span>
                     <svg class="calzada-route-arrow" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="9 6 18 6 18 15"></polyline></svg>
                 </a>
@@ -1183,8 +1184,8 @@ function renderSavedList() {
             <div class="saved-timeline-items">
                 ${currentSaved.map(s => {
                     const sUrl = (s.lat != null && s.lng != null)
-                        ? `planner.html?destLat=${s.lat}&destLng=${s.lng}&destName=${encodeURIComponent(s.placeName)}&dlat=${s.lat}&dlng=${s.lng}&dest=${encodeURIComponent(s.placeName)}`
-                        : `planner.html?destName=${encodeURIComponent(s.placeName)}&dest=${encodeURIComponent(s.placeName)}`;
+                        ? `/planner?destLat=${s.lat}&destLng=${s.lng}&destName=${encodeURIComponent(s.placeName)}&dlat=${s.lat}&dlng=${s.lng}&dest=${encodeURIComponent(s.placeName)}`
+                        : `/planner?destName=${encodeURIComponent(s.placeName)}&dest=${encodeURIComponent(s.placeName)}`;
                     return `
                     <div class="saved-stop-row" data-placename="${escapeHtml(s.placeName)}">
                         <div class="saved-stop-node-wrap">

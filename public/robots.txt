@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Signed-in and operator-only areas - nothing useful to index, and they all
+# redirect to /login for anyone without a session.
+Disallow: /admin
+Disallow: /my-business
+Disallow: /submit
+Disallow: /calibrate-360
+
+# The legacy /pages/*.html URLs 301 to their clean equivalents; keep crawlers on
+# the canonical form rather than having them discover the old one.
+Disallow: /pages/
+
+Sitemap: https://calzadaph.com/sitemap.xml

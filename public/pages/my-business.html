@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
 
     <style>
         :root {
@@ -997,11 +997,11 @@
     <!-- 2. Application Top Bar -->
     <header class="mybus-topbar" id="mybusTopbar" style="display: none;">
         <div class="topbar-left">
-            <a href="index.html" class="topbar-brand" title="Calzada Homepage">
+            <a href="/" class="topbar-brand" title="Calzada Homepage">
                 <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="topbar-logo">
             </a>
             <div class="topbar-breadcrumb">
-                <a href="index.html" class="breadcrumb-root">Home</a>
+                <a href="/" class="breadcrumb-root">Home</a>
                 <span class="breadcrumb-sep">/</span>
                 <span class="breadcrumb-current">My Business</span>
             </div>
@@ -1009,7 +1009,7 @@
 
         <div class="topbar-right">
             <span class="topbar-user-email" id="topbarUserEmail">--</span>
-            <a href="submit.html" class="topbar-link-btn" title="Register Business">
+            <a href="/submit" class="topbar-link-btn" title="Register Business">
                 <i class="ti ti-plus"></i>
                 <span>Register</span>
             </a>
@@ -1033,7 +1033,7 @@
             <div class="empty-state-card">
                 <h1 class="empty-state-title">You haven't registered a business yet</h1>
                 <p class="empty-state-desc">List your business on Calzada's Discover feed to connect with commuters and visitors across Calamba.</p>
-                <a href="submit.html" class="btn-register-cta">Register Your Business</a>
+                <a href="/submit" class="btn-register-cta">Register Your Business</a>
             </div>
         </div>
 
@@ -1288,7 +1288,7 @@
                 </div>
 
                 <div class="form-actions" style="margin-top: 24px; border-top: 1px solid var(--border-color);">
-                    <a href="submit.html" class="btn-submit">
+                    <a href="/submit" class="btn-submit">
                         <i class="ti ti-plus"></i>
                         <span>Submit a new registration</span>
                     </a>
@@ -1411,7 +1411,7 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (!user || user.isAnonymous) {
-                window.location.href = "login.html?redirect=my-business.html";
+                window.location.href = "/login?redirect=/my-business";
                 return;
             }
 
@@ -1425,7 +1425,7 @@
             mybusSignOutBtn.addEventListener('click', async () => {
                 try {
                     await signOut(auth);
-                    window.location.href = "login.html";
+                    window.location.href = "/login";
                 } catch (err) {
                     console.error('Sign out error:', err);
                     showBanner('Failed to sign out. Please try again.', 'error');
@@ -1520,7 +1520,7 @@
                 approvedDocId.textContent = activeBusinessId;
                 const btnViewPublicProfile = document.getElementById('btnViewPublicProfile');
                 if (btnViewPublicProfile) {
-                    btnViewPublicProfile.href = `business.html?id=${encodeURIComponent(activeBusinessId)}`;
+                    btnViewPublicProfile.href = `/business?id=${encodeURIComponent(activeBusinessId)}`;
                 }
 
                 initialDescription = activeBusiness.description || '';

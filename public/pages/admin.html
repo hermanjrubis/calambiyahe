@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
 
     <style>
         :root {
@@ -1126,8 +1126,8 @@
                 <p>Administrator privileges are required to access this portal.</p>
             </div>
             <div class="denied-actions" id="deniedActionButtons">
-                <a href="login.html" class="btn-admin-primary">Sign In as Admin</a>
-                <a href="index.html" class="btn-admin-secondary">Return to Home</a>
+                <a href="/login" class="btn-admin-primary">Sign In as Admin</a>
+                <a href="/" class="btn-admin-secondary">Return to Home</a>
             </div>
         </div>
     </div>
@@ -1141,7 +1141,7 @@
         <!-- Left Sidebar Navigation -->
         <aside class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
-                <a href="index.html" class="sidebar-brand" title="Calzada Home">
+                <a href="/" class="sidebar-brand" title="Calzada Home">
                     <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="brand-logo-img">
                     <span class="brand-portal-tag">Admin</span>
                 </a>
@@ -1179,7 +1179,7 @@
 
             <!-- Bottom Action -->
             <div class="sidebar-footer">
-                <a href="index.html" class="sidebar-view-site" title="Return to Public Site">
+                <a href="/" class="sidebar-view-site" title="Return to Public Site">
                     <i class="ti ti-external-link nav-icon"></i>
                     <span class="nav-text">View Public Site</span>
                 </a>
@@ -1350,7 +1350,7 @@
                                 Places approved through the review queue will appear here.
                             </p>
                             <div style="margin-top: 18px;">
-                                <a href="places.html" class="btn-admin-secondary" target="_blank">
+                                <a href="/places" class="btn-admin-secondary" target="_blank">
                                     <i class="ti ti-external-link"></i>
                                     <span>Browse Public Places Guide</span>
                                 </a>
@@ -1795,11 +1795,11 @@
                                 <i class="ti ti-arrow-back-up"></i>
                                 <span>Unpublish / Revert to Pending</span>
                             </button>
-                            <a href="business.html?id=${bus.id}" class="btn-admin-primary" target="_blank" style="padding: 7px 14px; font-size: 0.84rem;">
+                            <a href="/business?id=${bus.id}" class="btn-admin-primary" target="_blank" style="padding: 7px 14px; font-size: 0.84rem;">
                                 <i class="ti ti-external-link"></i>
                                 <span>View Public Profile</span>
                             </a>
-                            <a href="places.html" class="btn-admin-secondary" target="_blank" style="padding: 7px 14px; font-size: 0.84rem;">
+                            <a href="/places" class="btn-admin-secondary" target="_blank" style="padding: 7px 14px; font-size: 0.84rem;">
                                 <i class="ti ti-map-pin"></i>
                                 <span>Places Guide</span>
                             </a>
@@ -1893,8 +1893,8 @@
                     </p>
                 `;
                 deniedActionButtons.innerHTML = `
-                    <a href="login.html" class="btn-admin-primary">Sign In as Admin</a>
-                    <a href="index.html" class="btn-admin-secondary">Return to Home</a>
+                    <a href="/login" class="btn-admin-primary">Sign In as Admin</a>
+                    <a href="/" class="btn-admin-secondary">Return to Home</a>
                 `;
                 return;
             }
@@ -1951,14 +1951,14 @@
                     `;
                     deniedActionButtons.innerHTML = `
                         <button type="button" id="deniedSignOutBtn" class="btn-admin-secondary">Sign Out / Switch Account</button>
-                        <a href="index.html" class="btn-admin-primary">Return to Home</a>
+                        <a href="/" class="btn-admin-primary">Return to Home</a>
                     `;
 
                     const deniedSignOutBtn = document.getElementById('deniedSignOutBtn');
                     if (deniedSignOutBtn) {
                         deniedSignOutBtn.addEventListener('click', async () => {
                             await signOut(auth);
-                            window.location.href = "login.html";
+                            window.location.href = "/login";
                         });
                     }
                 }
@@ -1973,7 +1973,7 @@
                     <p class="denied-hint">${escapeHtml(err.message)}</p>
                 `;
                 deniedActionButtons.innerHTML = `
-                    <a href="index.html" class="btn-admin-primary">Return to Home</a>
+                    <a href="/" class="btn-admin-primary">Return to Home</a>
                 `;
             }
         });
@@ -1993,7 +1993,7 @@
         // Sign out buttons
         const handleSignOut = async () => {
             await signOut(auth);
-            window.location.href = "index.html";
+            window.location.href = "/";
         };
 
         const adminSignOutBtn = document.getElementById('adminSignOutBtn');

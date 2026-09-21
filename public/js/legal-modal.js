@@ -73,7 +73,7 @@
 
                 <div class="legal-modal-section">
                     <h3><span class="legal-sec-num">7</span> Contact Information</h3>
-                    <p>For questions or concerns about these Terms of Service, you may reach the Calzada team through the <a href="feedback.html" class="legal-link">Feedback page</a> or via email at <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
+                    <p>For questions or concerns about these Terms of Service, you may reach the Calzada team through the <a href="/feedback" class="legal-link">Feedback page</a> or via email at <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
                     <p>You may also view our <button type="button" class="legal-link-btn" data-open-legal="privacy">Privacy Policy</button> for information on how we handle your data.</p>
                 </div>
             `
@@ -144,12 +144,12 @@
                         <li><strong>Correction:</strong> Request correction of inaccurate account information</li>
                         <li><strong>Deletion:</strong> Request deletion of your account and associated data</li>
                     </ul>
-                    <p>To exercise any of these rights, contact us via the <a href="feedback.html" class="legal-link">Feedback page</a> or email <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
+                    <p>To exercise any of these rights, contact us via the <a href="/feedback" class="legal-link">Feedback page</a> or email <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
                 </div>
 
                 <div class="legal-modal-section">
                     <h3><span class="legal-sec-num">6</span> Contact Information</h3>
-                    <p>For questions or concerns about this Privacy Policy, reach us through the <a href="feedback.html" class="legal-link">Feedback page</a> or at <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
+                    <p>For questions or concerns about this Privacy Policy, reach us through the <a href="/feedback" class="legal-link">Feedback page</a> or at <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
                     <p>You may also review our <button type="button" class="legal-link-btn" data-open-legal="terms">Terms of Service</button> for the rules governing use of the App.</p>
                 </div>
             `

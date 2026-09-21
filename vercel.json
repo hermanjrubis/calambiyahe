@@ -1,13 +1,32 @@
 {
   "version": 2,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/index.html", "destination": "/", "permanent": true },
+    { "source": "/index", "destination": "/", "permanent": true },
+    { "source": "/pages/index.html", "destination": "/", "permanent": true },
+    { "source": "/pages/index", "destination": "/", "permanent": true },
+    { "source": "/explore", "destination": "/places", "permanent": true },
+    { "source": "/pages/:page.html", "destination": "/:page", "permanent": true },
+    { "source": "/pages/:page", "destination": "/:page", "permanent": true },
+    { "source": "/:page.html", "destination": "/:page", "permanent": true }
+  ],
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api/index.js"
-    }
+    { "source": "/api/(.*)", "destination": "/api/index.js" },
+    { "source": "/", "destination": "/pages/index.html" },
+    { "source": "/about", "destination": "/pages/about.html" },
+    { "source": "/fares", "destination": "/pages/fares.html" },
+    { "source": "/planner", "destination": "/pages/planner.html" },
+    { "source": "/faq", "destination": "/pages/faq.html" },
+    { "source": "/feedback", "destination": "/pages/feedback.html" },
+    { "source": "/places", "destination": "/pages/places.html" },
+    { "source": "/discover", "destination": "/pages/discover.html" },
+    { "source": "/login", "destination": "/pages/login.html" },
+    { "source": "/business", "destination": "/pages/business.html" },
+    { "source": "/my-business", "destination": "/pages/my-business.html" },
+    { "source": "/submit", "destination": "/pages/submit.html" },
+    { "source": "/admin", "destination": "/pages/admin.html" },
+    { "source": "/calibrate-360", "destination": "/pages/calibrate-360.html" },
+    { "source": "/(.*)", "destination": "/api/index.js" }
   ]
 }

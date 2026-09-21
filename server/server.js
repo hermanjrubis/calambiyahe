@@ -35,10 +35,15 @@ const staticOptions = {
     setHeaders: (res) => res.setHeader('Cache-Control', 'no-store')
 };
 
+// Pages are served extension-less so local dev matches production, where vercel.json
+// rewrites /about to /pages/about.html. Without `extensions` the clean URLs would 404
+// under `node server/server.js` even though they work once deployed.
+const pageStaticOptions = { ...staticOptions, extensions: ['html'] };
+
 app.use(express.static(staticPublicPath, staticOptions));
-app.use(express.static(path.join(staticPublicPath, 'pages'), staticOptions));
+app.use(express.static(path.join(staticPublicPath, 'pages'), pageStaticOptions));
 app.use('/public', express.static(staticPublicPath, staticOptions));
-app.use('/pages', express.static(path.join(staticPublicPath, 'pages'), staticOptions));
+app.use('/pages', express.static(path.join(staticPublicPath, 'pages'), pageStaticOptions));
 app.use('/uploads', express.static(path.join(staticPublicPath, 'uploads'), staticOptions));
 
 app.get('/', (req, res) => {

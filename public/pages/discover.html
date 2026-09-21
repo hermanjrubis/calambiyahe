@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Discover - Calzada</title>
+    <link rel="canonical" href="https://calzadaph.com/discover">
     <meta name="description" content="Discover local businesses, updates, and moments across Calamba City on Calzada.">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -14,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
 
     <style>
         :root {
@@ -673,27 +674,27 @@
     <!-- Top Bar Navigation -->
     <header class="discover-topbar">
         <div class="topbar-left">
-            <a href="index.html" class="topbar-brand">
+            <a href="/" class="topbar-brand">
                 <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="topbar-logo">
             </a>
             <div class="topbar-breadcrumb">
-                <a href="index.html" class="breadcrumb-root">Home</a>
+                <a href="/" class="breadcrumb-root">Home</a>
                 <span class="breadcrumb-sep">/</span>
                 <span class="breadcrumb-current">Discover</span>
             </div>
         </div>
 
         <div class="topbar-right">
-            <a href="places.html" class="topbar-nav-link">Explore Places</a>
-            <a href="planner.html" class="topbar-nav-link">Maps</a>
+            <a href="/places" class="topbar-nav-link">Explore Places</a>
+            <a href="/planner" class="topbar-nav-link">Maps</a>
             
             <div id="authNavContainer">
-                <a href="login.html?redirect=discover.html" class="topbar-auth-btn" id="navSignInBtn">
+                <a href="/login?redirect=/discover" class="topbar-auth-btn" id="navSignInBtn">
                     <i class="ti ti-user"></i>
                     <span>Sign In</span>
                 </a>
                 <div class="topbar-user-pill" id="navUserPill" style="display: none;">
-                    <a href="my-business.html" class="topbar-nav-link" style="font-weight: 600; color: var(--primary);">My Business</a>
+                    <a href="/my-business" class="topbar-nav-link" style="font-weight: 600; color: var(--primary);">My Business</a>
                     <span class="topbar-user-email" id="navUserEmail"></span>
                     <button type="button" class="topbar-logout-btn" id="navLogoutBtn" title="Log Out" aria-label="Log Out">
                         <i class="ti ti-logout"></i>
@@ -1149,12 +1150,12 @@
                 <div class="card-info-panel">
                     <div class="card-header">
                         <div class="card-header-left">
-                            <a href="business.html?id=${post.businessId}" class="card-avatar" id="avatar-${post.id}" style="text-decoration: none; color: inherit;" title="View business profile">
+                            <a href="/business?id=${post.businessId}" class="card-avatar" id="avatar-${post.id}" style="text-decoration: none; color: inherit;" title="View business profile">
                                 ${avatarHtml}
                             </a>
                             <div class="card-bus-info">
                                 <div class="card-bus-name-row">
-                                    <a href="business.html?id=${post.businessId}" class="card-bus-name" title="View business profile">
+                                    <a href="/business?id=${post.businessId}" class="card-bus-name" title="View business profile">
                                         ${escapeHtml(post.businessName || 'Local Business')}
                                     </a>
                                     <i class="ti ti-circle-check card-verified-icon" title="Verified business"></i>
@@ -1233,7 +1234,7 @@
 
                     // Unauthenticated Guard: Fail-fast redirect to login
                     if (!currentUser) {
-                        window.location.href = 'login.html?redirect=discover.html';
+                        window.location.href = '/login?redirect=/discover';
                         return;
                     }
 

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fares - Calzada</title>
+    <link rel="canonical" href="https://calzadaph.com/fares">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.json">
@@ -25,10 +26,10 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
-    <link rel="stylesheet" href="../css/style.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.2">
     <link rel="stylesheet" href="../css/fares.css">
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -65,14 +66,14 @@
         <div class="nav-container">
             <!-- [Left Side]: Logo -->
             <div class="nav-left">
-                <a href="index.html" class="brand-logo">
+                <a href="/" class="brand-logo">
                     <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
                 </a>
             </div>
 
             <!-- [Center]: About Us | Explore ▼ | FAQs | My Trips -->
             <nav class="nav-center" id="navLinks">
-                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+                <a href="/about" class="nav-link" data-i18n="footer.nav.about">About Us</a>
 
                 <!-- Explore Dropdown -->
                 <div class="nav-dropdown" id="exploreDropdown">
@@ -81,31 +82,31 @@
                         <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
                     </button>
                     <div class="nav-dropdown-menu" id="exploreDropdownMenu">
-                        <a href="places.html?category=malls" class="nav-dropdown-item">
+                        <a href="/places?category=malls" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-mall">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                             </span>
                             <span>Malls</span>
                         </a>
-                        <a href="places.html?category=eateries" class="nav-dropdown-item">
+                        <a href="/places?category=eateries" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-eatery">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
                             </span>
                             <span>Eateries</span>
                         </a>
-                        <a href="places.html?category=schools" class="nav-dropdown-item">
+                        <a href="/places?category=schools" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-school">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
                             </span>
                             <span>Schools</span>
                         </a>
-                        <a href="places.html?category=terminals" class="nav-dropdown-item">
+                        <a href="/places?category=terminals" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-terminal">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M8 19v2M16 19v2"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>
                             </span>
                             <span>Terminals</span>
                         </a>
-                        <a href="places.html?category=coffee" class="nav-dropdown-item">
+                        <a href="/places?category=coffee" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-coffee">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
@@ -117,7 +118,7 @@
                             </span>
                             <span>Coffee Shops</span>
                         </a>
-                        <a href="places.html?category=establishments" class="nav-dropdown-item">
+                        <a href="/places?category=establishments" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
@@ -128,7 +129,7 @@
                             <span>Establishments</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
-                        <a href="places.html" class="nav-dropdown-item view-all">
+                        <a href="/places" class="nav-dropdown-item view-all">
                             <span class="nav-drop-icon icon-all">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                             </span>
@@ -137,9 +138,9 @@
                     </div>
                 </div>
 
-                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
+                <a href="/faq" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="/feedback" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="/planner" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
@@ -200,7 +201,7 @@
                 </div>
 
                 <div class="user-profile-nav" id="userProfileNav">
-                    <a href="login.html" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
+                    <a href="/login" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
                         <ion-icon name="person-outline"></ion-icon>
                         <span>Sign In</span>
                     </a>
@@ -225,7 +226,7 @@
                     <ion-icon name="notifications-outline"></ion-icon>
                     <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
                 </button>
-                <a href="login.html" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
+                <a href="/login" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
                     <ion-icon name="person-outline"></ion-icon>
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
@@ -422,7 +423,7 @@
                         <h2 class="fares-cta-title" data-i18n="fares_page.cta_title">Ready to plan your journey?</h2>
                         <p class="fares-cta-sub" data-i18n="fares_page.cta_subtitle">Find a place worth visiting, then get there by jeepney or tricycle — all in one app.</p>
                     </div>
-                    <a href="planner.html" class="btn-fares-cta" data-i18n="fares_page.cta_btn">Plan Your Route Now</a>
+                    <a href="/planner" class="btn-fares-cta" data-i18n="fares_page.cta_btn">Plan Your Route Now</a>
                 </div>
             </section>
         </div>
@@ -471,7 +472,7 @@
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
-            <a href="index.html" class="drawer-brand" aria-label="Calzada Home">
+            <a href="/" class="drawer-brand" aria-label="Calzada Home">
                 <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
@@ -480,12 +481,12 @@
         </div>
         <nav class="drawer-links">
             <div class="drawer-nav-group">
-                <a href="index.html" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
-                <a href="about.html" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
-                <a href="places.html" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
-                <a href="planner.html" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
-                <a href="faq.html" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
-                <a href="feedback.html" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+                <a href="/" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="/planner" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
                 <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
             </div>
 
@@ -520,13 +521,13 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js?v=2.6.1"></script>
-    <script src="../js/i18n.js?v=2.6.1"></script>
-    <script src="../js/transitions.js"></script>
+    <script src="../js/legal-modal.js?v=2.6.2"></script>
+    <script src="../js/script.js?v=2.6.2"></script>
+    <script src="../js/i18n.js?v=2.6.2"></script>
+    <script src="../js/transitions.js?v=2.6.2"></script>
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.1"></script>
-    <script src="../js/fares.js?v=2.6.1"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.2"></script>
+    <script src="../js/fares.js?v=2.6.2"></script>
 </body>
 
 </html>

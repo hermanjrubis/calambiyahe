@@ -6,6 +6,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calzada - Route Planner</title>
+    <link rel="canonical" href="https://calzadaph.com/planner">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.json">
@@ -16,7 +17,7 @@
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/planner.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/planner.css?v=2.6.2">
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -29,7 +30,7 @@
     <link rel="stylesheet" href="../css/streetview-viewer.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -118,7 +119,7 @@
 
             <!-- User Profile Nav / Sign In Button -->
             <div class="user-profile-nav" id="userProfileNav">
-                <a href="login.html" id="authNavBtn" class="btn-nav-signin pill-btn" data-i18n="login.signin" style="display: inline-flex; text-decoration: none;">
+                <a href="/login" id="authNavBtn" class="btn-nav-signin pill-btn" data-i18n="login.signin" style="display: inline-flex; text-decoration: none;">
                     <ion-icon name="person-outline"></ion-icon>
                     <span>Sign In</span>
                 </a>
@@ -217,7 +218,7 @@
                         </button>
 
                         <!-- 5. My Business -->
-                        <a href="my-business.html" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
+                        <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
                             <span class="nav-btn-icon">
                                 <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                             </span>
@@ -259,7 +260,7 @@
 
             <!-- Logo link to homepage -->
             <div class="ds-brand-header">
-                <a href="index.html" class="ds-brand-link" title="Return to Calzada Homepage">
+                <a href="/" class="ds-brand-link" title="Return to Calzada Homepage">
                     <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="ds-brand-logo">
                 </a>
             </div>
@@ -573,7 +574,7 @@
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
-            <a href="index.html" class="drawer-brand" aria-label="Calzada Home">
+            <a href="/" class="drawer-brand" aria-label="Calzada Home">
                 <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
@@ -582,12 +583,12 @@
         </div>
         <nav class="drawer-links">
             <div class="drawer-nav-group">
-                <a href="index.html" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
-                <a href="about.html" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
-                <a href="places.html" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
-                <a href="planner.html" class="drawer-nav-item active"><span data-i18n="footer.nav.planner">Planner</span></a>
-                <a href="faq.html" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
-                <a href="feedback.html" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+                <a href="/" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="/planner" class="drawer-nav-item active"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
                 <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
             </div>
 
@@ -796,16 +797,16 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="../js/transitions.js"></script>
-    <script src="../js/places-shared.js?v=2.6.1"></script>
-    <script src="../js/planner.js?v=2.6.1"></script>
-    <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js?v=2.6.1"></script>
-    <script src="../js/i18n.js?v=2.6.1"></script>
+    <script src="../js/transitions.js?v=2.6.2"></script>
+    <script src="../js/places-shared.js?v=2.6.2"></script>
+    <script src="../js/planner.js?v=2.6.2"></script>
+    <script src="../js/legal-modal.js?v=2.6.2"></script>
+    <script src="../js/script.js?v=2.6.2"></script>
+    <script src="../js/i18n.js?v=2.6.2"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.1"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.2"></script>
 </body>
 
 </html>

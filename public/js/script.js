@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const parts = place.display_name.split(',').slice(1, 4).map(s => s.trim());
                         const address = parts.join(', ');
                         return buildResultItem(name, address, () => {
-                            window.location.href = `planner.html?dest=${encodeURIComponent(name)}&dlat=${place.lat}&dlng=${place.lon}`;
+                            window.location.href = `/planner?dest=${encodeURIComponent(name)}&dlat=${place.lat}&dlng=${place.lon}`;
                         });
                     });
                     showResults(apiItems, true);
@@ -284,9 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.length > 0) {
                     finalDest = data[0].name || data[0].display_name.split(',')[0];
                 }
-                window.location.href = `planner.html?dest=${encodeURIComponent(finalDest)}`;
+                window.location.href = `/planner?dest=${encodeURIComponent(finalDest)}`;
             } catch (e) {
-                window.location.href = `planner.html?dest=${encodeURIComponent(cleanedVal)}`;
+                window.location.href = `/planner?dest=${encodeURIComponent(cleanedVal)}`;
             }
         };
 
@@ -312,10 +312,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const sideDrawerOverlay = document.getElementById('sideDrawerOverlay');
     const drawerCloseBtn = document.getElementById('drawerCloseBtn');
 
+    // Reduces any page URL - clean ("/about"), legacy ("/pages/about.html") or bare
+    // ("about.html") - to one comparable key, so the active nav state keeps working
+    // now that pages are served on extension-less URLs. "/" and "/index" both mean home.
+    function navKey(value) {
+        const path = String(value || '').split('?')[0].split('#')[0];
+        const last = path.split('/').filter(Boolean).pop() || '';
+        const key = last.replace(/\.html$/i, '').toLowerCase();
+        return (!key || key === 'index') ? 'home' : key;
+    }
+
     function updateActiveDrawerNav() {
-        const pathParts = window.location.pathname.split('/');
-        const rawPath = pathParts.pop().split('?')[0].split('#')[0];
-        const currentPath = (!rawPath || rawPath === '' || rawPath === '/') ? 'index.html' : rawPath;
+        const currentKey = navKey(window.location.pathname);
 
         const drawerItems = document.querySelectorAll('.drawer-nav-item, .drawer-links a');
         drawerItems.forEach(item => {
@@ -324,20 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.remove('active');
                 return;
             }
-            const href = rawHref.split('/').pop().split('?')[0].split('#')[0];
-            if (!href) {
-                item.classList.remove('active');
-                return;
-            }
-            const isMatch = (
-                href === currentPath ||
-                (currentPath === 'index.html' && href === 'index.html') ||
-                (currentPath === 'places.html' && href === 'places.html') ||
-                (currentPath === 'about.html' && href === 'about.html') ||
-                (currentPath === 'planner.html' && href === 'planner.html') ||
-                (currentPath === 'faq.html' && href === 'faq.html') ||
-                (currentPath === 'feedback.html' && href === 'feedback.html')
-            );
+            const isMatch = navKey(rawHref) === currentKey;
             if (isMatch) {
                 item.classList.add('active');
             } else {
@@ -1342,7 +1337,7 @@ function checkPasswordStrength() {
                         window.CalzadaActivity.addSearchHistory(q);
                     }
                 } catch (_) {}
-                window.location.href = 'places.html?q=' + encodeURIComponent(q);
+                window.location.href = '/places?q=' + encodeURIComponent(q);
             }
         }
         if (mobileSubmit) mobileSubmit.addEventListener('click', doMobileSearch);
@@ -1361,7 +1356,7 @@ function checkPasswordStrength() {
                         if (!places.length) { if (mobileResults) mobileResults.style.display = 'none'; return; }
                         if (mobileResults) {
                             mobileResults.innerHTML = places.slice(0, 6).map(p => `
-                                <div class="search-result-item" data-name="${(p.name || p.place_name || '').replace(/"/g, '&quot;')}" data-href="places.html?q=${encodeURIComponent(p.name || p.place_name || '')}">
+                                <div class="search-result-item" data-name="${(p.name || p.place_name || '').replace(/"/g, '&quot;')}" data-href="/places?q=${encodeURIComponent(p.name || p.place_name || '')}">
                                     <ion-icon name="location-outline"></ion-icon>
                                     <div>
                                         <div class="result-name">${p.name || p.place_name || ''}</div>

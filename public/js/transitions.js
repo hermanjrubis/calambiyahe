@@ -3,7 +3,7 @@
  */
 (function () {
     const path = window.location.pathname;
-    const page = path.split('/').pop() || 'index.html';
+    const page = path.split('/').pop() || '/';
 
     // Shared Navbar Skeleton
     const navSkeleton = `
@@ -25,7 +25,7 @@
 
     // Skeleton Templates matching actual Calzada Layouts
     const SKELETONS = {
-        'index.html': `
+        '/': `
             ${navSkeleton}
             <div style="height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 5%; background: linear-gradient(135deg, #f0f6fc 0%, #e2eaf5 100%);">
                 <div class="skeleton sk-circle" style="width: 90px; height: 90px; margin-bottom: 24px; box-shadow: 0 8px 24px rgba(0,0,0,0.05);"></div>
@@ -35,7 +35,7 @@
                 <div class="skeleton" style="width: 100%; max-width: 650px; height: 64px; border-radius: 32px; box-shadow: 0 12px 32px rgba(26,143,255,0.1);"></div>
             </div>
         `,
-        'planner.html': `
+        '/planner': `
             <div style="display: flex; height: 100vh; width: 100vw; overflow: hidden; background: #f8fafc;">
                 <!-- Sidebar -->
                 <div class="planner-sidebar-sk" style="width: 400px; background: #ffffff; padding: 24px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid #e2eaf5; z-index: 5;">
@@ -66,7 +66,7 @@
                 }
             </style>
         `,
-        'places.html': `
+        '/places': `
             ${navSkeleton}
             <!-- Hero -->
             <div style="padding: 120px 5% 60px; text-align: center; background: #f0f6fc;">
@@ -97,7 +97,7 @@
                 </div>
             </div>
         `,
-        'login.html': `
+        '/login': `
             ${navSkeleton}
             <div style="display: flex; align-items: center; justify-content: center; height: 100vh; padding: 20px; background: #f8fafc;">
                 <div style="background: #ffffff; width: 100%; max-width: 480px; padding: 40px 32px; border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.04);">
@@ -117,7 +117,7 @@
                 </div>
             </div>
         `,
-        'faq.html': `
+        '/faq': `
             ${navSkeleton}
             <div style="padding: 120px 5% 60px; max-width: 800px; margin: auto;">
                 <div class="skeleton" style="width: 60%; max-width: 400px; height: 40px; border-radius: 12px; margin: 0 auto 48px;"></div>
@@ -130,7 +130,7 @@
                 <div class="skeleton" style="width: 100%; height: 72px; border-radius: 16px;"></div>
             </div>
         `,
-        'about.html': `
+        '/about': `
             ${navSkeleton}
             <div style="padding: 120px 5% 60px; max-width: 800px; margin: auto;">
                 <!-- Main Header Title -->
@@ -194,7 +194,7 @@
         document.body.classList.add('fouc-ready');
 
         // Fallback for root path matching index.html
-        const pageKey = (page === '' || page === '/') ? 'index.html' : page;
+        const pageKey = (page === '' || page === '/') ? '/' : page;
 
         if (SKELETONS[pageKey]) {
             const skWrap = document.createElement('div');
@@ -256,8 +256,12 @@
         try {
             const url = new URL(anchor.href, window.location.origin);
             if (url.origin !== window.location.origin) return false;
-            // Must link to an .html page (not an asset, API endpoint, etc.)
-            if (!url.pathname.endsWith('.html') && !url.pathname.endsWith('/')) return false;
+            // Must be a page, not an asset or an API endpoint. Pages are served on clean
+            // extension-less URLs now (/about), so identify them by the absence of a file
+            // extension rather than by a .html suffix; /api/* is never a page.
+            const lastSegment = url.pathname.split('/').pop();
+            if (url.pathname.startsWith('/api/')) return false;
+            if (lastSegment && /\.[a-zA-Z0-9]{2,5}$/.test(lastSegment) && !lastSegment.endsWith('.html')) return false;
             return true;
         } catch (e) {
             return false;

@@ -367,7 +367,7 @@ function initPlacePanelDOM() {
                     <div class="rating-feedback-area" id="ppRatingFeedbackArea" style="display:none;">
                         <!-- Inline unauthenticated login prompt revealed ONLY on star click -->
                         <div class="rating-inline-auth" id="ppRatingAuthNotice" style="display:none;">
-                            Log in to submit a rating — <a href="login.html" class="rating-inline-login-link">Log in</a>
+                            Log in to submit a rating — <a href="/login" class="rating-inline-login-link">Log in</a>
                         </div>
 
                         <!-- Action Bar for existing reviews (Collapsed view) -->
@@ -526,9 +526,9 @@ function initPlacePanelDOM() {
                     const hasCoords = !isNaN(numLat) && !isNaN(numLng) && numLat !== 0 && numLng !== 0;
                     let targetUrl;
                     if (hasCoords) {
-                        targetUrl = `planner.html?destLat=${numLat}&destLng=${numLng}&destName=${encodeURIComponent(placeName)}&dlat=${numLat}&dlng=${numLng}&dest=${encodeURIComponent(placeName)}`;
+                        targetUrl = `/planner?destLat=${numLat}&destLng=${numLng}&destName=${encodeURIComponent(placeName)}&dlat=${numLat}&dlng=${numLng}&dest=${encodeURIComponent(placeName)}`;
                     } else {
-                        targetUrl = `planner.html?dest=${encodeURIComponent(placeName)}&destName=${encodeURIComponent(placeName)}`;
+                        targetUrl = `/planner?dest=${encodeURIComponent(placeName)}&destName=${encodeURIComponent(placeName)}`;
                     }
                     window.location.href = targetUrl;
                 }, 0);

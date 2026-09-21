@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Your Commuting Guide in Calamba</title>
+    <link rel="canonical" href="https://calzadaph.com/">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.json">
@@ -23,7 +24,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-    <link rel="stylesheet" href="../css/style.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.2">
     <!-- Search dropdown styles -->
     <style>
         .search-results-dropdown {
@@ -103,7 +104,7 @@
         };
     </script>
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -144,14 +145,14 @@
         <div class="nav-container">
             <!-- [Left Side]: Logo -->
             <div class="nav-left">
-                <a href="index.html" class="brand-logo">
+                <a href="/" class="brand-logo">
                     <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
                 </a>
             </div>
 
             <!-- [Center]: About Us | Explore ▼ | FAQs | My Trips -->
             <nav class="nav-center" id="navLinks">
-                <a href="about.html" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+                <a href="/about" class="nav-link" data-i18n="footer.nav.about">About Us</a>
 
                 <!-- Explore Dropdown with Modern Crisp SVGs -->
                 <div class="nav-dropdown" id="exploreDropdown">
@@ -160,7 +161,7 @@
                         <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
                     </button>
                     <div class="nav-dropdown-menu" id="exploreDropdownMenu">
-                        <a href="places.html?category=malls" class="nav-dropdown-item">
+                        <a href="/places?category=malls" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-mall">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
@@ -170,7 +171,7 @@
                             </span>
                             <span>Malls</span>
                         </a>
-                        <a href="places.html?category=eateries" class="nav-dropdown-item">
+                        <a href="/places?category=eateries" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-eatery">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
@@ -182,7 +183,7 @@
                             </span>
                             <span>Eateries</span>
                         </a>
-                        <a href="places.html?category=schools" class="nav-dropdown-item">
+                        <a href="/places?category=schools" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-school">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
@@ -191,7 +192,7 @@
                             </span>
                             <span>Schools</span>
                         </a>
-                        <a href="places.html?category=terminals" class="nav-dropdown-item">
+                        <a href="/places?category=terminals" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-terminal">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="4" y="3" width="16" height="16" rx="2"></rect>
@@ -203,7 +204,7 @@
                             </span>
                             <span>Terminals</span>
                         </a>
-                        <a href="places.html?category=coffee" class="nav-dropdown-item">
+                        <a href="/places?category=coffee" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-coffee">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
@@ -215,7 +216,7 @@
                             </span>
                             <span>Coffee Shops</span>
                         </a>
-                        <a href="places.html?category=establishments" class="nav-dropdown-item">
+                        <a href="/places?category=establishments" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
@@ -226,7 +227,7 @@
                             <span>Establishments</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
-                        <a href="places.html" class="nav-dropdown-item view-all">
+                        <a href="/places" class="nav-dropdown-item view-all">
                             <span class="nav-drop-icon icon-all">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="3" y="3" width="7" height="7"></rect>
@@ -240,9 +241,9 @@
                     </div>
                 </div>
 
-                <a href="faq.html" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="feedback.html" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
-                <a href="planner.html" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
+                <a href="/faq" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="/feedback" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="/planner" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
 
                 <!-- Mobile Language Row -->
                 <div class="mobile-lang-row">
@@ -306,7 +307,7 @@
 
                 <!-- 3. User Profile Nav / 👤 Sign In -->
                 <div class="user-profile-nav" id="userProfileNav">
-                    <a href="login.html" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
+                    <a href="/login" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
                         <ion-icon name="person-outline"></ion-icon>
                         <span>Sign In</span>
                     </a>
@@ -424,7 +425,7 @@
                     </button>
 
                     <!-- 5. My Business -->
-                    <a href="my-business.html" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
+                    <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
                         <span class="nav-btn-icon">
                             <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         </span>
@@ -450,7 +451,7 @@
                     <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
                 </button>
                 <!-- Sign In (Logged out) -->
-                <a href="login.html" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
+                <a href="/login" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
                     <ion-icon name="person-outline"></ion-icon>
                 </a>
                 <!-- Profile Avatar (Logged in) -->
@@ -485,7 +486,7 @@
 
                 <!-- CTA Buttons -->
                 <div class="hero-cta-wrap">
-                    <a href="places.html" class="hero-get-started-btn hover-fx-btn">
+                    <a href="/places" class="hero-get-started-btn hover-fx-btn">
                         <span class="hover-fx-label">Get Started</span>
                         <span class="hover-fx-label-hover">
                             Get Started
@@ -496,7 +497,7 @@
                         </span>
                         <span class="hover-fx-circle" aria-hidden="true"></span>
                     </a>
-                    <a href="discover.html" class="hero-discover-btn hover-fx-btn">
+                    <a href="/discover" class="hero-discover-btn hover-fx-btn">
                         <span class="hover-fx-label">Discover</span>
                         <span class="hover-fx-label-hover">
                             Discover
@@ -529,7 +530,7 @@
                     <p class="about-preview-body" data-i18n="about.body">
                         Calzada helps you discover places worth visiting around Calamba, then gets you there. Search a spot, see how to reach it, and pick a jeepney or tricycle, with fare estimates and directions in one place.
                     </p>
-                    <a href="about.html" class="about-preview-link" data-i18n="about.learn_more">Learn more about Calzada</a>
+                    <a href="/about" class="about-preview-link" data-i18n="about.learn_more">Learn more about Calzada</a>
                 </div>
 
                 <!-- 5-Stop Route Timeline -->
@@ -566,7 +567,7 @@
                         </div>
                         <div class="about-stop-text">
                             <h3 class="about-stop-title">
-                                <a href="fares.html" class="about-stop-title-link" data-i18n="about.card3.title">Fare estimates</a>
+                                <a href="/fares" class="about-stop-title-link" data-i18n="about.card3.title">Fare estimates</a>
                             </h3>
                             <p class="about-stop-desc" data-i18n="about.card3.desc">Know the cost before you leave.</p>
                         </div>
@@ -675,7 +676,7 @@
                         <p class="feature-desc">
                             Get a clear, step-by-step guide to your destination in Calamba — which jeepney to ride, where to transfer, when to walk, plus fare estimates and travel times for each leg, so you always know exactly how to get there.
                         </p>
-                        <a href="planner.html" class="feature-link-btn">See more →</a>
+                        <a href="/planner" class="feature-link-btn">See more →</a>
                     </div>
                     <div class="feature-visual-block route-visual">
                         <div class="geo-pattern-card route-card">
@@ -715,7 +716,7 @@
                         <p class="feature-desc">
                             Get a full 360-degree look at any destination before you head out. Inspect the entrance, preview landmark surroundings, verify parking spots, and locate exact pickup points across Calamba directly on place pages.
                         </p>
-                        <a href="places.html" class="feature-link-btn">Try it now →</a>
+                        <a href="/places" class="feature-link-btn">Try it now →</a>
                     </div>
                     <div class="feature-visual-block streetview-visual">
                         <div class="streetview-mascot-card">
@@ -733,7 +734,7 @@
                         <p class="feature-desc">
                             Bookmark places you want to visit and build your personal collection of favorite spots. Keep a complete history of places you have visited around Calamba, track your exploration statistics, and unlock achievements as you discover new destinations.
                         </p>
-                        <a href="places.html" class="feature-link-btn">See more →</a>
+                        <a href="/places" class="feature-link-btn">See more →</a>
                     </div>
                     <div class="feature-visual-block save-visual">
                         <div class="save-mascot-card">
@@ -810,7 +811,7 @@
                         <p class="feature-desc">
                             Browse Malls, Eateries, Schools, and Terminals across Calamba. Filter spots by category, read place profiles, view operational hours, and find new local favorites recommended by fellow commuters.
                         </p>
-                        <a href="places.html" class="feature-link-btn">See more →</a>
+                        <a href="/places" class="feature-link-btn">See more →</a>
                     </div>
                     <div class="feature-visual-block discover-visual">
                         <div class="discover-mascot-card">
@@ -1196,7 +1197,7 @@
                 <div class="gallery-item skeleton" aria-hidden="true"></div>
             </div>
             <div class="featured-gallery-action">
-                <a href="places.html" class="gallery-view-all-link">View All Places →</a>
+                <a href="/places" class="gallery-view-all-link">View All Places →</a>
             </div>
         </section>
 
@@ -1205,7 +1206,7 @@
             <div class="closing-cta-card">
                 <h2>Ready to explore Calamba?</h2>
                 <p>Search a place and start your trip in seconds.</p>
-                <a href="places.html" class="closing-cta-btn">Start Searching</a>
+                <a href="/places" class="closing-cta-btn">Start Searching</a>
             </div>
         </section>
 
@@ -1264,7 +1265,7 @@
     <footer class="site-footer">
         <div class="footer-container">
             <div class="footer-column brand-column">
-                <a href="index.html" class="footer-logo">
+                <a href="/" class="footer-logo">
                     <img src="../assets/logo-white.png" alt="Calzada Logo" class="footer-logo-img">
                 </a>
                 <p data-i18n="footer.tagline">Ang iyong maaasahang gabay sa commute sa Calamba.</p>
@@ -1282,12 +1283,12 @@
             </div>
             <div class="footer-column nav-column">
                 <h3 data-i18n="footer.nav.heading">Navigation</h3>
-                <a href="index.html" data-i18n="footer.nav.home">Home</a>
-                <a href="about.html" data-i18n="footer.nav.about">About Us</a>
-                <a href="places.html" data-i18n="footer.nav.places">Place Finder</a>
-                <a href="planner.html" data-i18n="footer.nav.planner">Planner</a>
-                <a href="faq.html" data-i18n="footer.nav.faq">FAQs</a>
-                <a href="feedback.html" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="/" data-i18n="footer.nav.home">Home</a>
+                <a href="/about" data-i18n="footer.nav.about">About Us</a>
+                <a href="/places" data-i18n="footer.nav.places">Place Finder</a>
+                <a href="/planner" data-i18n="footer.nav.planner">Planner</a>
+                <a href="/faq" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="/feedback" data-i18n="footer.nav.feedback">Feedback</a>
             </div>
             <div class="footer-column contact-column">
                 <h3 data-i18n="footer.contact.heading">Contact Us</h3>
@@ -1306,10 +1307,10 @@
         </div>
     </footer>
 
-    <script src="../js/legal-modal.js"></script>
-    <script src="../js/script.js?v=2.6.1"></script>
-    <script src="../js/i18n.js?v=2.6.1"></script>
-    <script src="../js/places-shared.js?v=2.6.1"></script>
+    <script src="../js/legal-modal.js?v=2.6.2"></script>
+    <script src="../js/script.js?v=2.6.2"></script>
+    <script src="../js/i18n.js?v=2.6.2"></script>
+    <script src="../js/places-shared.js?v=2.6.2"></script>
 
     <!-- =============================================
          SCROLL ANIMATION ENGINE
@@ -1494,7 +1495,7 @@
                     const escapedName = escape(name);
                     const escapedRawCat = escape(rawCategory);
                     const escapedDisplayCat = escape(displayCategory);
-                    const targetHref = `places.html?q=${encodeURIComponent(name)}`;
+                    const targetHref = `/places?q=${encodeURIComponent(name)}`;
 
                     return `
                 <div class="gallery-item" data-category="${escapedRawCat}" data-href="${targetHref}">
@@ -1604,7 +1605,7 @@
             // Submit: navigate to places.html with query
             function doMobileSearch() {
                 const q = mobileInput ? mobileInput.value.trim() : '';
-                if (q) window.location.href = 'places.html?q=' + encodeURIComponent(q);
+                if (q) window.location.href = '/places?q=' + encodeURIComponent(q);
             }
             if (mobileSubmit) mobileSubmit.addEventListener('click', doMobileSearch);
             if (mobileInput) {
@@ -1624,7 +1625,7 @@
                             const places = Array.isArray(data) ? data : (data.places || data.results || []);
                             if (!places.length) { mobileResults.style.display = 'none'; return; }
                             mobileResults.innerHTML = places.slice(0, 6).map(p => `
-                                <div class="search-result-item" data-href="places.html?q=${encodeURIComponent(p.name || p.place_name || '')}">
+                                <div class="search-result-item" data-href="/places?q=${encodeURIComponent(p.name || p.place_name || '')}">
                                     <ion-icon name="location-outline"></ion-icon>
                                     <div>
                                         <div class="result-name">${p.name || p.place_name || ''}</div>
@@ -1753,7 +1754,7 @@
                     destLat: lat || '',
                     destLng: lng || ''
                 });
-                window.location.href = `planner.html?${params.toString()}`;
+                window.location.href = `/planner?${params.toString()}`;
             };
 
             const showResults = (items) => {
@@ -1956,14 +1957,14 @@
                                 originLat: lat,
                                 originLng: lng
                             });
-                            window.location.href = `planner.html?${params.toString()}`;
+                            window.location.href = `/planner?${params.toString()}`;
                         },
                         (error) => {
                             heroNearMeBtn.classList.remove('loading');
                             heroNearMeBtn.innerHTML = '<ion-icon name="navigate-outline"></ion-icon>';
                             console.warn('GPS Error:', error);
                             // Fallback to Places page Near Me
-                            window.location.href = 'places.html';
+                            window.location.href = '/places';
                         },
                         { timeout: 10000, enableHighAccuracy: true }
                     );
@@ -1979,11 +1980,11 @@
         })();
     </script>
 
-    <script src="../js/transitions.js"></script>
+    <script src="../js/transitions.js?v=2.6.2"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.1"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.2"></script>
 
     <!-- Stacking Cards (stacking-card.tsx) & 3D Container Scroll (container-scroll-animation.tsx) Scripts -->
     <script>
@@ -2508,7 +2509,7 @@
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
-            <a href="index.html" class="drawer-brand" aria-label="Calzada Home">
+            <a href="/" class="drawer-brand" aria-label="Calzada Home">
                 <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
@@ -2517,12 +2518,12 @@
         </div>
         <nav class="drawer-links">
             <div class="drawer-nav-group">
-                <a href="index.html" class="drawer-nav-item active"><span data-i18n="footer.nav.home">Home</span></a>
-                <a href="about.html" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
-                <a href="places.html" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
-                <a href="planner.html" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
-                <a href="faq.html" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
-                <a href="feedback.html" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+                <a href="/" class="drawer-nav-item active"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="/planner" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
                 <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
             </div>
 
