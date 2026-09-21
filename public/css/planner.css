@@ -985,6 +985,52 @@ body.navigation-active .calzada-locate-ctrl {
     display: none !important;
 }
 
+/* Mobile map controls: pinch handles zoom, so drop +/- and keep the stack
+   (locate, compass, attribution) floating just above the bottom sheet.
+   planner.js sets --ctrl-lift from the sheet's transform and mirrors its
+   transition, so the stack glides with the sheet and tracks drags live. */
+@media (max-width: 767px) {
+    .maplibregl-ctrl-group .maplibregl-ctrl-zoom-in,
+    .maplibregl-ctrl-group .maplibregl-ctrl-zoom-out {
+        display: none !important;
+    }
+
+    .maplibregl-ctrl-bottom-right {
+        bottom: 0 !important;
+        right: 12px !important;
+        /* Fallback when no sheet is showing: clear the system bar */
+        transform: translate3d(0, var(--ctrl-lift, calc(-12px - env(safe-area-inset-bottom, 0px))), 0);
+        transition: transform var(--sheet-dur) var(--sheet-spring);
+        will-change: transform;
+    }
+
+    /* 44px tap targets; the locate face grows to match the compass */
+    .maplibregl-ctrl-group button {
+        width: 44px !important;
+        height: 44px !important;
+    }
+
+    .maplibregl-ctrl-bottom-right .calzada-locate-ctrl {
+        margin: 0 0 8px 0 !important;
+    }
+
+    .calzada-locate-face {
+        width: 44px;
+        height: 44px;
+    }
+
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+        margin-bottom: 8px !important;
+    }
+
+    /* The compact attribution "i" is 24px; widen its hit area invisibly */
+    .maplibregl-ctrl-attrib-button::after {
+        content: '';
+        position: absolute;
+        inset: -10px;
+    }
+}
+
 /* User location dot: a single brand-blue dot with a white ring.
    pointer-events: none so map taps (Where from / Where to) pass straight through. */
 .calzada-user-dot {
@@ -1190,10 +1236,7 @@ body.navigation-active .calzada-locate-ctrl {
         gap: 6px !important;
     }
 
-    .maplibregl-ctrl-bottom-right {
-        bottom: 106px !important;
-        right: 16px !important;
-    }
+    /* .maplibregl-ctrl-bottom-right is positioned by the sheet-synced mobile block above */
 }
 
 /* =============================================

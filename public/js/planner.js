@@ -1088,6 +1088,52 @@ document.addEventListener('DOMContentLoaded', () => {
             updateMidpointBubbleVisibility(false);
         });
 
+        // ── MOBILE MAP CONTROLS FOLLOW THE SHEET ─────────────────────────────────
+        // The controls live in the map layer (below the GUI layer), so they must sit
+        // above the sheet's top edge or they end up hidden behind it. Every sheet move
+        // (drag, snap, programmatic expand) goes through its inline transform, so we
+        // mirror that transform's *target* plus its transition onto the controls: same
+        // easing, same start frame, and live tracking while the transition is 'none'
+        // during a drag. Desktop keeps the CSS position untouched.
+        (() => {
+            const CTRL_GAP = 12;        // px between the sheet's top edge and the controls
+            const CTRL_MIN_TOP = 150;   // never climb under the header/category bar
+            const mobileMq = window.matchMedia('(max-width: 767px)');
+            const ctrlCorner = document.querySelector('.maplibregl-ctrl-bottom-right');
+            if (!ctrlCorner || !directionsCard) return;
+
+            const sheetTargetY = () => {
+                const m = directionsCard.style.transform.match(/translateY\(([-\d.]+)px\)/);
+                return m ? parseFloat(m[1]) : 0;
+            };
+
+            const sync = () => {
+                const sheetShown = directionsCard.offsetParent !== null && directionsCard.offsetHeight > 0;
+                if (!mobileMq.matches || !sheetShown) {
+                    // Desktop, or journey mode with the sheet hidden: fall back to CSS.
+                    ctrlCorner.style.removeProperty('--ctrl-lift');
+                    ctrlCorner.style.removeProperty('transition');
+                    return;
+                }
+                // offsetTop ignores transforms, so this is the sheet's resting top edge;
+                // adding the inline translateY gives where the sheet is (or is heading).
+                const sheetTop = directionsCard.offsetTop + sheetTargetY();
+                const mapH = map.getContainer().clientHeight;
+                const ctrlH = ctrlCorner.offsetHeight;
+                const bottom = Math.max(sheetTop - CTRL_GAP, CTRL_MIN_TOP + ctrlH);
+                ctrlCorner.style.setProperty('--ctrl-lift', `${Math.round(bottom - mapH)}px`);
+                ctrlCorner.style.transition = directionsCard.style.transition === 'none'
+                    ? 'none'
+                    : 'transform var(--sheet-dur) var(--sheet-spring)';
+            };
+
+            new MutationObserver(sync).observe(directionsCard, { attributes: true, attributeFilter: ['style', 'class'] });
+            if (window.ResizeObserver) new ResizeObserver(sync).observe(directionsCard);
+            mobileMq.addEventListener ? mobileMq.addEventListener('change', sync) : mobileMq.addListener(sync);
+            window.addEventListener('resize', sync);
+            sync();
+        })();
+
         // ── GUIDE CARD DRAG — Swipe up to expand steps, down to minimize ─────────
         const guideCard = document.getElementById('activeGuideCard');
         const guideDragHandle = document.querySelector('.guide-drag-handle');
