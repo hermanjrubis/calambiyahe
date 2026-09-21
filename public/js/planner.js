@@ -1096,8 +1096,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // easing, same start frame, and live tracking while the transition is 'none'
         // during a drag. Desktop keeps the CSS position untouched.
         (() => {
-            const CTRL_GAP = 12;        // px between the sheet's top edge and the controls
-            const CTRL_MIN_TOP = 150;   // never climb under the header/category bar
+            const CTRL_GAP = 12;        // px between the sheet's top edge and the lowest control
             const mobileMq = window.matchMedia('(max-width: 767px)');
             const ctrlCorner = document.querySelector('.maplibregl-ctrl-bottom-right');
             if (!ctrlCorner || !directionsCard) return;
@@ -1107,28 +1106,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 return m ? parseFloat(m[1]) : 0;
             };
 
+            // Everything below is measured live, so it holds for any screen size:
+            // no per-device offsets, only the gap itself is a constant.
+            const measureStack = () => {
+                const box = ctrlCorner.getBoundingClientRect();
+                const rects = [...ctrlCorner.children]
+                    .map(el => el.getBoundingClientRect())
+                    .filter(r => r.height > 0);
+                if (!rects.length) return { trailing: 0, height: 0 };
+                const visBottom = Math.max(...rects.map(r => r.bottom));
+                const visTop = Math.min(...rects.map(r => r.top));
+                // MapLibre puts a margin under the last control; the gap must be measured
+                // from what is actually visible, not from the container box.
+                return { trailing: box.bottom - visBottom, height: visBottom - visTop };
+            };
+
+            // Highest point the stack may reach: just under the category bar (or the
+            // top of the screen if that bar is hidden).
+            const topLimit = () => {
+                const bar = document.getElementById('mapCategoryBarWrapper');
+                const r = bar && bar.offsetParent !== null ? bar.getBoundingClientRect() : null;
+                return (r && r.height ? r.bottom : 0) + CTRL_GAP;
+            };
+
             const sync = () => {
                 const sheetShown = directionsCard.offsetParent !== null && directionsCard.offsetHeight > 0;
                 if (!mobileMq.matches || !sheetShown) {
                     // Desktop, or journey mode with the sheet hidden: fall back to CSS.
                     ctrlCorner.style.removeProperty('--ctrl-lift');
                     ctrlCorner.style.removeProperty('transition');
+                    ctrlCorner.classList.remove('ctrl-no-room');
                     return;
                 }
                 // offsetTop ignores transforms, so this is the sheet's resting top edge;
                 // adding the inline translateY gives where the sheet is (or is heading).
                 const sheetTop = directionsCard.offsetTop + sheetTargetY();
                 const mapH = map.getContainer().clientHeight;
-                const ctrlH = ctrlCorner.offsetHeight;
-                const bottom = Math.max(sheetTop - CTRL_GAP, CTRL_MIN_TOP + ctrlH);
-                ctrlCorner.style.setProperty('--ctrl-lift', `${Math.round(bottom - mapH)}px`);
+                const stack = measureStack();
+                const visBottom = sheetTop - CTRL_GAP;
+                ctrlCorner.style.setProperty('--ctrl-lift', `${Math.round(visBottom + stack.trailing - mapH)}px`);
+                // If a tall/expanded sheet leaves no room above it, fade the stack out
+                // rather than overlap the sheet or the category bar.
+                const noRoom = visBottom - stack.height < topLimit();
+                ctrlCorner.classList.toggle('ctrl-no-room', noRoom);
+                // visibility flips after the fade when hiding, immediately when showing.
+                const fade = `opacity 0.2s ease, visibility 0s linear ${noRoom ? '0.2s' : '0s'}`;
                 ctrlCorner.style.transition = directionsCard.style.transition === 'none'
-                    ? 'none'
-                    : 'transform var(--sheet-dur) var(--sheet-spring)';
+                    ? fade
+                    : `transform var(--sheet-dur) var(--sheet-spring), ${fade}`;
             };
 
             new MutationObserver(sync).observe(directionsCard, { attributes: true, attributeFilter: ['style', 'class'] });
-            if (window.ResizeObserver) new ResizeObserver(sync).observe(directionsCard);
+            if (window.ResizeObserver) {
+                // Sheet height and stack size (e.g. the attribution expanding) both matter.
+                const ro = new ResizeObserver(sync);
+                ro.observe(directionsCard);
+                ro.observe(ctrlCorner);
+            }
             mobileMq.addEventListener ? mobileMq.addEventListener('change', sync) : mobileMq.addListener(sync);
             window.addEventListener('resize', sync);
             sync();

@@ -1004,6 +1004,16 @@ body.navigation-active .calzada-locate-ctrl {
         will-change: transform;
     }
 
+    /* No room above a tall sheet: fade out instead of overlapping it */
+    .maplibregl-ctrl-bottom-right.ctrl-no-room {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .maplibregl-ctrl-bottom-right.ctrl-no-room .maplibregl-ctrl {
+        pointer-events: none;
+    }
+
     /* 44px tap targets; the locate face grows to match the compass */
     .maplibregl-ctrl-group button {
         width: 44px !important;
