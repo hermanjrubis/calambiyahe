@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.1">
 
     <style>
         :root {
@@ -371,6 +371,47 @@
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        /* Shown instead of a broken-image icon when a post has no photo, or when the
+           stored URL fails to load (older posts still hold pre-Cloudinary local paths). */
+        .card-media-empty {
+            width: 100%;
+            height: 100%;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: #6B8BA8;
+            background: #0E2A47;
+        }
+
+        .card-media-empty i {
+            font-size: 2.25rem;
+            opacity: 0.55;
+        }
+
+        .card-media-empty span {
+            font-size: 0.8125rem;
+            letter-spacing: -0.01em;
+            opacity: 0.75;
+        }
+
+        /* Business initials, used when there is no avatar or the avatar fails to load. */
+        .card-avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-family: var(--font-primary, 'Sora', sans-serif);
+            font-weight: 700;
+            font-size: 0.875rem;
+            letter-spacing: 0.02em;
+            color: var(--primary, #378ADD);
+            text-transform: uppercase;
         }
 
         .card-avatar-placeholder {
@@ -996,6 +1037,60 @@
             }));
         }
 
+        /**
+         * True only for a URL a browser can actually fetch from any deployment.
+         *
+         * Uploads now return an absolute Cloudinary https URL. Posts created before that
+         * hold a relative "/uploads/..." path pointing at a file on whichever machine
+         * received the upload - it resolves nowhere in production, so treat it as missing
+         * and show the placeholder instead of letting the browser draw a broken icon.
+         */
+        function isUsableImageUrl(url) {
+            if (typeof url !== 'string') return false;
+            const trimmed = url.trim();
+            if (!trimmed) return false;
+            if (trimmed.startsWith('/uploads/')) return false;
+            return /^https?:\/\//i.test(trimmed) || trimmed.startsWith('data:') || trimmed.startsWith('../assets/');
+        }
+
+        /** Up to two initials from the business name, e.g. "Shabu ni Erms" -> "SE". */
+        function businessInitials(name) {
+            if (typeof name !== 'string') return '';
+            const words = name.trim().split(/\s+/).filter(w => /[A-Za-z0-9]/.test(w));
+            if (words.length === 0) return '';
+            // A single word contributes its first two letters/digits, skipping punctuation
+            // so "7-Eleven" reads as "7E" rather than "7-".
+            if (words.length === 1) return words[0].replace(/[^A-Za-z0-9]/g, '').slice(0, 2);
+            return (words[0][0] || '') + (words[words.length - 1][0] || '');
+        }
+
+        function mediaFallbackHtml() {
+            return `
+                <div class="card-media-empty" role="img" aria-label="No photo for this post">
+                    <i class="ti ti-photo-off"></i>
+                    <span>No photo</span>
+                </div>`;
+        }
+
+        /** Swaps a failed avatar for the business initials (or the generic store icon). */
+        function showAvatarFallback(img) {
+            if (!img || !img.parentElement) return;
+            const initials = img.getAttribute('data-initials') || '';
+            img.outerHTML = initials
+                ? `<span class="card-avatar-initials">${escapeHtml(initials)}</span>`
+                : `<i class="ti ti-building-store card-avatar-placeholder"></i>`;
+        }
+        window.showAvatarFallback = showAvatarFallback;
+
+        /** Swaps a failed <img> for the neutral panel, so a dead URL never shows as broken. */
+        function showMediaFallback(postId) {
+            const img = document.getElementById(`media-img-${postId}`);
+            if (img && img.parentElement) {
+                img.outerHTML = mediaFallbackHtml();
+            }
+        }
+        window.showMediaFallback = showMediaFallback;
+
         // 5. Render single card HTML
         function generatePostCardHtml(post) {
             const photos = post.photoUrls || [];
@@ -1003,18 +1098,24 @@
             const isMulti = photos.length > 1;
             const currentPhoto = photos[currentIdx] || photos[0] || '';
 
-            // Avatar rendering with fallback icon
+            // Avatar: the business initials stand in when there is no photo, and also when
+            // the photo fails to load - posts created before image hosting stored a local
+            // "/uploads/..." path that 404s anywhere but the machine that received it.
+            const initials = businessInitials(post.businessName);
             let avatarHtml = '';
-            if (post.profilePhotoUrl) {
-                avatarHtml = `<img src="${post.profilePhotoUrl}" alt="${escapeHtml(post.businessName || 'Business')}" class="card-avatar-img">`;
+            if (isUsableImageUrl(post.profilePhotoUrl)) {
+                avatarHtml = `<img src="${escapeHtml(post.profilePhotoUrl)}" alt="${escapeHtml(post.businessName || 'Business')}" class="card-avatar-img" data-initials="${escapeHtml(initials)}" onerror="showAvatarFallback(this)">`;
+            } else if (initials) {
+                avatarHtml = `<span class="card-avatar-initials">${escapeHtml(initials)}</span>`;
             } else {
                 avatarHtml = `<i class="ti ti-building-store card-avatar-placeholder"></i>`;
             }
 
-            // Media / Carousel rendering inside .card-media-panel
-            let mediaInnerHtml = `
-                <img src="${currentPhoto}" alt="Post photo" class="card-media-img" id="media-img-${post.id}">
-            `;
+            // Media / Carousel rendering inside .card-media-panel. A post with no usable
+            // photo gets a neutral panel rather than a broken-image icon.
+            let mediaInnerHtml = isUsableImageUrl(currentPhoto)
+                ? `<img src="${escapeHtml(currentPhoto)}" alt="Post photo" class="card-media-img" id="media-img-${post.id}" onerror="showMediaFallback('${post.id}')">`
+                : mediaFallbackHtml();
 
             if (isMulti) {
                 let dotsHtml = '';
@@ -1194,7 +1295,7 @@
         // 7. Update Carousel Image and Dot state on slide change
         function updateCarouselCard(postId, photos, activeIdx) {
             const imgEl = document.getElementById(`media-img-${postId}`);
-            if (imgEl && photos[activeIdx]) {
+            if (imgEl && isUsableImageUrl(photos[activeIdx])) {
                 imgEl.src = photos[activeIdx];
             }
 

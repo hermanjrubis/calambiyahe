@@ -60,6 +60,7 @@ function getGroqClient() {
 }
 
 const { normalizeLang, fallbackReply, interpretModelOutput } = require('./chat-reply');
+const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
 // ROUTIE TUTORIALS - the ONLY procedures the chatbot may teach.
@@ -752,7 +753,7 @@ const submissionUpload = multer({
 
 // POST /api/submissions/upload - Authenticated photo upload for submit.html
 app.post('/api/submissions/upload', requireAuth, (req, res) => {
-    submissionUpload(req, res, (err) => {
+    submissionUpload(req, res, async (err) => {
         if (err instanceof multer.MulterError) {
             if (err.code === 'LIMIT_FILE_SIZE') {
                 return res.status(400).json({ error: 'File size exceeds 50MB limit.' });
@@ -776,11 +777,12 @@ app.post('/api/submissions/upload', requireAuth, (req, res) => {
         }
 
         const photoUrls = [];
-        const uploadDir = path.join(staticPublicPath, 'uploads', 'submissions', submissionId);
+        if (!cloudinaryConfigured()) {
+            console.error('Cloudinary is not configured; refusing to accept an upload that could not be served.');
+            return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+        }
 
         try {
-            fs.mkdirSync(uploadDir, { recursive: true });
-
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
 
@@ -792,15 +794,13 @@ app.post('/api/submissions/upload', requireAuth, (req, res) => {
                     });
                 }
 
-                const ext = realMime === 'image/jpeg' ? '.jpg' : (realMime === 'image/png' ? '.png' : '.webp');
-                const safeRandomName = crypto.randomBytes(8).toString('hex') + ext;
-                const safeFileName = `${i}-${safeRandomName}`;
-                const destinationPath = path.join(uploadDir, safeFileName);
-
-                fs.writeFileSync(destinationPath, file.buffer);
-
-                const fileUrl = `/uploads/submissions/${submissionId}/${safeFileName}`;
-                photoUrls.push(fileUrl);
+                const safeRandomName = crypto.randomBytes(8).toString('hex');
+                const { url } = await uploadBuffer(
+                    file.buffer,
+                    `calzada/submissions/${submissionId}`,
+                    `${i}-${safeRandomName}`
+                );
+                photoUrls.push(url);
             }
 
             return res.json({
@@ -809,8 +809,8 @@ app.post('/api/submissions/upload', requireAuth, (req, res) => {
                 photoUrls
             });
         } catch (writeErr) {
-            console.error('Error saving uploaded files:', writeErr);
-            return res.status(500).json({ error: 'Failed to save uploaded photos to server disk.' });
+            console.error('Error uploading submission photos to Cloudinary:', writeErr);
+            return res.status(500).json({ error: 'Failed to upload photos to image hosting.' });
         }
     });
 });
@@ -891,33 +891,35 @@ app.post('/api/businesses/upload-photo', requireAuth, (req, res) => {
             return res.status(500).json({ error: 'Failed to verify business details.' });
         }
 
-        const uploadDir = path.join(staticPublicPath, 'uploads', 'businesses', businessId);
+        if (!cloudinaryConfigured()) {
+            console.error('Cloudinary is not configured; refusing to accept an upload that could not be served.');
+            return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+        }
 
         try {
-            fs.mkdirSync(uploadDir, { recursive: true });
+            const safeFileName = crypto.randomBytes(8).toString('hex');
+            const { url: fileUrl } = await uploadBuffer(
+                file.buffer,
+                `calzada/businesses/${businessId}`,
+                safeFileName
+            );
 
-            const ext = realMime === 'image/jpeg' ? '.jpg' : (realMime === 'image/png' ? '.png' : '.webp');
-            const safeFileName = `${crypto.randomBytes(8).toString('hex')}${ext}`;
-            const destinationPath = path.join(uploadDir, safeFileName);
-
-            fs.writeFileSync(destinationPath, file.buffer);
-
-            const fileUrl = `/uploads/businesses/${businessId}/${safeFileName}`;
-
-            // Clean up old local profile photo if it exists and points to our uploads folder
-            if (businessData && businessData.profilePhotoUrl && typeof businessData.profilePhotoUrl === 'string') {
-                const oldUrl = businessData.profilePhotoUrl;
-                if (oldUrl.startsWith(`/uploads/businesses/${businessId}/`)) {
+            // Retire the photo this one replaces. Cloudinary assets are removed by public_id;
+            // a legacy "/uploads/..." value is a file this server wrote before image hosting
+            // existed, so unlink that instead. Neither cleanup may fail the request.
+            const oldUrl = businessData && businessData.profilePhotoUrl;
+            if (typeof oldUrl === 'string' && oldUrl && oldUrl !== fileUrl) {
+                if (oldUrl.startsWith('/uploads/businesses/')) {
                     try {
-                        const relativeOldPath = oldUrl.replace(/^\//, '');
-                        const absoluteOldPath = path.join(staticPublicPath, relativeOldPath);
-                        if (fs.existsSync(absoluteOldPath) && absoluteOldPath !== destinationPath) {
+                        const absoluteOldPath = path.join(staticPublicPath, oldUrl.replace(/^\//, ''));
+                        if (absoluteOldPath.startsWith(staticPublicPath) && fs.existsSync(absoluteOldPath)) {
                             fs.unlinkSync(absoluteOldPath);
-                            console.log(`Deleted old profile photo: ${absoluteOldPath}`);
                         }
                     } catch (cleanupErr) {
-                        console.warn('Failed to delete old profile photo from disk:', cleanupErr.message);
+                        console.warn('Failed to delete legacy local profile photo:', cleanupErr.message);
                     }
+                } else {
+                    await destroyByUrl(oldUrl);
                 }
             }
 
@@ -927,8 +929,8 @@ app.post('/api/businesses/upload-photo', requireAuth, (req, res) => {
                 photoUrl: fileUrl
             });
         } catch (writeErr) {
-            console.error('Error saving uploaded business photo:', writeErr);
-            return res.status(500).json({ error: 'Failed to save uploaded photo to server disk.' });
+            console.error('Error uploading business photo to Cloudinary:', writeErr);
+            return res.status(500).json({ error: 'Failed to upload photo to image hosting.' });
         }
     });
 });
@@ -999,21 +1001,21 @@ app.post('/api/posts/upload-photo', requireAuth, (req, res) => {
             return res.status(500).json({ error: 'Failed to verify business details.' });
         }
 
-        const uploadDir = path.join(staticPublicPath, 'uploads', 'posts', postId);
+        if (!cloudinaryConfigured()) {
+            console.error('Cloudinary is not configured; refusing to accept an upload that could not be served.');
+            return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+        }
 
         try {
-            fs.mkdirSync(uploadDir, { recursive: true });
-
             const photoUrls = [];
             for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                const realMime = validatedMimes[i];
-                const ext = realMime === 'image/jpeg' ? '.jpg' : (realMime === 'image/png' ? '.png' : '.webp');
-                const safeFileName = `${i}-${crypto.randomBytes(8).toString('hex')}${ext}`;
-                const destinationPath = path.join(uploadDir, safeFileName);
-
-                fs.writeFileSync(destinationPath, file.buffer);
-                photoUrls.push(`/uploads/posts/${postId}/${safeFileName}`);
+                const safeFileName = `${i}-${crypto.randomBytes(8).toString('hex')}`;
+                const { url } = await uploadBuffer(
+                    files[i].buffer,
+                    `calzada/posts/${postId}`,
+                    safeFileName
+                );
+                photoUrls.push(url);
             }
 
             return res.json({
@@ -1022,13 +1024,13 @@ app.post('/api/posts/upload-photo', requireAuth, (req, res) => {
                 photoUrls
             });
         } catch (writeErr) {
-            console.error('Error saving uploaded post photos:', writeErr);
-            return res.status(500).json({ error: 'Failed to save uploaded photos to server disk.' });
+            console.error('Error uploading post photos to Cloudinary:', writeErr);
+            return res.status(500).json({ error: 'Failed to upload photos to image hosting.' });
         }
     });
 });
 
-// DELETE /api/posts/:postId/photo - Authenticated deletion of post photo from disk
+// DELETE /api/posts/:postId/photo - Authenticated deletion of a post's photos
 app.delete('/api/posts/:postId/photo', requireAuth, async (req, res) => {
     const postId = req.params ? req.params.postId : null;
     if (!postId || !/^[a-zA-Z0-9_-]{1,128}$/.test(postId)) {
@@ -1054,10 +1056,22 @@ app.delete('/api/posts/:postId/photo', requireAuth, async (req, res) => {
             }
         }
 
+        // Remove the hosted images. Posts written since image hosting landed hold absolute
+        // Cloudinary URLs; older ones hold a local "/uploads/posts/<id>/" directory this
+        // server wrote. Clear whichever applies - neither may fail the delete.
+        const existingUrls = postDoc.exists && Array.isArray(postDoc.data().photoUrls)
+            ? postDoc.data().photoUrls
+            : [];
+        for (const url of existingUrls) {
+            if (typeof url === 'string' && !url.startsWith('/uploads/')) {
+                await destroyByUrl(url);
+            }
+        }
+
         const postDir = path.join(staticPublicPath, 'uploads', 'posts', postId);
         if (fs.existsSync(postDir)) {
             fs.rmSync(postDir, { recursive: true, force: true });
-            console.log(`Deleted post upload directory: ${postDir}`);
+            console.log(`Deleted legacy post upload directory: ${postDir}`);
         }
 
         return res.json({
