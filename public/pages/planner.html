@@ -17,7 +17,7 @@
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/planner.css?v=2.6.6">
+    <link rel="stylesheet" href="../css/planner.css?v=2.6.7">
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -758,11 +758,8 @@
         </div>
     </div>
 
-    <!-- Toast Notification (Glassmorphism) -->
-    <div class="toast-notification glass-panel" id="toastNotification">
-        <ion-icon name="checkmark-circle-outline"></ion-icon>
-        <span id="toastMessage">Success!</span>
-    </div>
+    <!-- Toasts: filled by showToast() in planner.js -->
+    <div class="cz-toasts" id="toastRegion" aria-live="polite"></div>
 
     <!-- Auth Modal (Glassmorphism) -->
     <div class="modal-overlay" id="authOverlay"></div>
@@ -799,10 +796,10 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="../js/transitions.js?v=2.6.2"></script>
     <script src="../js/places-shared.js?v=2.6.2"></script>
-    <script src="../js/planner.js?v=2.6.6"></script>
+    <script src="../js/planner.js?v=2.6.7"></script>
     <script src="../js/legal-modal.js?v=2.6.2"></script>
     <script src="../js/script.js?v=2.6.2"></script>
-    <script src="../js/i18n.js?v=2.6.3"></script>
+    <script src="../js/i18n.js?v=2.6.4"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>

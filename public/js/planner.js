@@ -1321,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     () => {
                         closeLocationModal();
-                        showToast('Hindi ma-detect ang iyong lokasyon. I-check ang location permission.');
+                        showToast(t('planner.toast_locate_failed'), 'error');
                     },
                     { enableHighAccuracy: true, timeout: 8000 }
                 );
@@ -1506,7 +1506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             },
                             () => {
                                 closeLocationModal();
-                                showToast('Hindi ma-detect ang iyong lokasyon. I-check ang location permission.');
+                                showToast(t('planner.toast_locate_failed'), 'error');
                             },
                             { enableHighAccuracy: true, timeout: 8000 }
                         );
@@ -2433,7 +2433,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let geoRetryTimer = null;
             const geoErrorHandler = (err) => {
                 console.warn('Geolocation error:', err.message);
-                showToast('GPS error — retrying…');
+                showToast(t('planner.toast_gps_retry'), 'error');
                 geoRetryTimer = setTimeout(() => {
                     if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
                     watchId = navigator.geolocation.watchPosition(handleLocationUpdate, geoErrorHandler,
@@ -2656,7 +2656,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 updateRouteSource('completed-route', []);
                                 updateRouteSource('transit-route', res.coordinates.map(c => [c[1], c[0]]));
                             }
-                            showToast('Route updated');
+                            showToast(t('planner.toast_route_updated'), 'success');
                         }
                     }, 10000);
                 }
@@ -2926,14 +2926,104 @@ document.addEventListener('DOMContentLoaded', () => {
         // =============================================
         // UTILITIES & EXISTING UI RETAINMENTS
         // =============================================
-        const showToast = (msg, icon = 'checkmark-circle-outline') => {
-            const t = document.getElementById('toastNotification');
-            document.getElementById('toastMessage').textContent = msg;
-            const iconEl = t.querySelector('ion-icon');
-            if (iconEl) iconEl.setAttribute('name', icon);
-            t.classList.add('active');
-            setTimeout(() => t.classList.remove('active'), 3000);
-        };
+        // ── TOASTS: one component for every Planner message ─────────────────────
+        // showToast(message, type) with type 'info' | 'location' | 'success' | 'error'.
+        // Bottom-center, stacked newest-at-bottom (max 3), auto-dismiss after 5s
+        // (paused on hover/focus), plus a close button. Returns a handle with
+        // dismiss() for messages whose lifetime is tied to something else.
+        const showToast = (() => {
+            const TOAST_MS = 5000;
+            const MAX_TOASTS = 3;
+            const LEAVE_MS = 180;
+            const ICONS = {
+                info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+                location: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+                success: '<circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>',
+                error: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>'
+            };
+            const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const region = document.getElementById('toastRegion');
+            const active = [];
+
+            // Keep the stack just above whichever bottom panel is showing (directions
+            // sheet, journey guide card, status pill). Measured per frame while toasts
+            // are up, so it follows sheet drags/animations with no coupling to them.
+            // Panels not spanning the horizontal center (the desktop sidebar) are ignored.
+            const PANELS = '#directionsCard, #activeGuideCard, #bottomStatusPill';
+            let rafId = null;
+            const updateClearance = () => {
+                const vw = window.innerWidth, vh = window.innerHeight;
+                let top = vh;
+                document.querySelectorAll(PANELS).forEach(el => {
+                    const r = el.getBoundingClientRect();
+                    if (!r.height || r.left > vw / 2 || r.right < vw / 2) return;
+                    if (r.top < top && r.top > 80) top = r.top;
+                });
+                // Short screens with a tall sheet: never push the stack off the top;
+                // let it overlap the panel (it sits above it in z-order) instead.
+                const clear = Math.min(vh - Math.min(top, vh) + 12, vh - region.offsetHeight - 16);
+                region.style.setProperty('--toast-clear', `${Math.round(clear)}px`);
+                rafId = active.length ? requestAnimationFrame(updateClearance) : null;
+            };
+
+            const remove = (item) => {
+                const i = active.indexOf(item);
+                if (i === -1) return;
+                active.splice(i, 1);
+                clearTimeout(item.timer);
+                const { el } = item;
+                if (reducedMotion()) { el.remove(); return; }
+                el.classList.add('is-leaving');
+                setTimeout(() => el.remove(), LEAVE_MS);
+            };
+
+            const startTimer = (item) => {
+                clearTimeout(item.timer);
+                item.startedAt = Date.now();
+                item.timer = setTimeout(() => remove(item), item.remaining);
+            };
+            const pauseTimer = (item) => {
+                clearTimeout(item.timer);
+                item.remaining = Math.max(1000, item.remaining - (Date.now() - item.startedAt));
+            };
+
+            return (message, type = 'info') => {
+                if (!region) return { dismiss() {} };
+                const kind = ICONS[type] ? type : 'info';
+
+                // Same message already showing: restart it rather than stacking a copy.
+                const dupe = active.find(it => it.message === message);
+                if (dupe) { dupe.remaining = TOAST_MS; startTimer(dupe); return { dismiss: () => remove(dupe) }; }
+
+                const el = document.createElement('div');
+                el.className = `cz-toast cz-toast--${kind}`;
+                el.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+                el.innerHTML = `
+                    <svg class="cz-toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[kind]}</svg>
+                    <p class="cz-toast-msg"></p>
+                    <button type="button" class="cz-toast-close">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                    </button>`;
+                el.querySelector('.cz-toast-msg').textContent = message;
+                const closeBtn = el.querySelector('.cz-toast-close');
+                closeBtn.setAttribute('aria-label', t('planner.toast_dismiss'));
+
+                const item = { el, message, remaining: TOAST_MS, timer: null, startedAt: 0 };
+                closeBtn.addEventListener('click', () => remove(item));
+                el.addEventListener('keydown', (e) => { if (e.key === 'Escape') remove(item); });
+                el.addEventListener('mouseenter', () => pauseTimer(item));
+                el.addEventListener('mouseleave', () => { if (!el.contains(document.activeElement)) startTimer(item); });
+                el.addEventListener('focusin', () => pauseTimer(item));
+                el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget) && !el.matches(':hover')) startTimer(item); });
+
+                active.push(item);
+                region.appendChild(el);
+                while (active.length > MAX_TOASTS) remove(active[0]);
+                startTimer(item);
+                if (!rafId) updateClearance();
+                return { dismiss: () => remove(item) };
+            };
+        })();
 
         // =============================================
         // USER LOCATION DOT (ambient "you are here", Google Maps style)
@@ -2959,7 +3049,7 @@ document.addEventListener('DOMContentLoaded', () => {
             let requesting = false;
             let animFrame = null;
             let locateBtn = null;
-            let hintEl = null;
+            let hintToast = null;
 
             const geoSupported = () => !!navigator.geolocation && window.isSecureContext !== false;
             const navActive = () => document.body.classList.contains('navigation-active');
@@ -2974,10 +3064,11 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             // Automatic (non-click) notices appear at most once per session.
+            const geoToastType = (key) => (key === 'planner.geo_denied' ? 'location' : 'error');
             const toastOnce = (key) => {
                 if (ss.get(GEO_TOAST_KEY)) return;
                 ss.set(GEO_TOAST_KEY, '1');
-                showToast(t(key), 'location-outline');
+                showToast(t(key), geoToastType(key));
             };
 
             const render = (f) => {
@@ -3029,28 +3120,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const setActive = (on) => { if (locateBtn) locateBtn.classList.toggle('is-active', on); };
 
             const hideHint = () => {
-                if (!hintEl) return;
-                const el = hintEl;
-                hintEl = null;
-                el.classList.remove('active');
-                setTimeout(() => el.remove(), 300);
+                if (hintToast) { hintToast.dismiss(); hintToast = null; }
             };
 
             const showHint = () => {
-                if (hintEl) return;
-                hintEl = document.createElement('div');
-                hintEl.className = 'geo-hint glass-panel';
-                hintEl.setAttribute('role', 'status');
-                hintEl.innerHTML = `
-                    <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
-                    <span class="geo-hint-text"></span>
-                    <button type="button" class="geo-hint-close"><ion-icon name="close-outline" aria-hidden="true"></ion-icon></button>`;
-                hintEl.querySelector('.geo-hint-close').addEventListener('click', hideHint);
-                updateLocateLocale();
-                document.body.appendChild(hintEl);
-                requestAnimationFrame(() => { if (hintEl) hintEl.classList.add('active'); });
-                // Some browsers keep the prompt open indefinitely; don't let the hint linger.
-                setTimeout(hideHint, 10000);
+                if (!hintToast) hintToast = showToast(t('planner.geo_hint'), 'location');
             };
 
             const onPosition = (pos, { recenter = false } = {}) => {
@@ -3073,7 +3147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const onError = (err, fromClick) => {
                 const key = err && err.code === 1 ? 'planner.geo_denied' : 'planner.geo_unavailable';
                 if (err && err.code === 1) { ss.set(GEO_DENIED_KEY, '1'); clearLocation(); }
-                if (fromClick) showToast(t(key), 'location-outline');
+                if (fromClick) showToast(t(key), geoToastType(key));
                 else toastOnce(key);
             };
 
@@ -3114,10 +3188,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     locateBtn.setAttribute('title', label);
                     locateBtn.setAttribute('aria-label', label);
                 }
-                if (hintEl) {
-                    hintEl.querySelector('.geo-hint-text').textContent = t('planner.geo_hint');
-                    hintEl.querySelector('.geo-hint-close').setAttribute('aria-label', t('planner.geo_hint_dismiss'));
-                }
             };
             window.addEventListener('calzada_lang_changed', updateLocateLocale);
 
@@ -3128,10 +3198,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     startWatch();
                     return;
                 }
-                if (!geoSupported()) { showToast(t('planner.geo_unavailable'), 'location-outline'); return; }
+                if (!geoSupported()) { showToast(t('planner.geo_unavailable'), 'error'); return; }
                 if (await queryPermission() === 'denied') {
                     ss.set(GEO_DENIED_KEY, '1');
-                    showToast(t('planner.geo_denied'), 'location-outline');
+                    showToast(t('planner.geo_denied'), 'location');
                     return;
                 }
                 // Explicit tap: ask again even if an earlier prompt was dismissed.
@@ -3432,7 +3502,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const val = e.target.dataset.value;
                 // FIX ∗11: Depart/Arrive options not implemented — show toast instead of opening flatpickr
                 if (val !== 'now') {
-                    showToast('Scheduled routing coming soon — using current time.');
+                    showToast(t('planner.toast_sched_soon'), 'info');
                     schedOpts.classList.remove('open');
                     return;
                 }
@@ -3681,7 +3751,7 @@ document.addEventListener('DOMContentLoaded', () => {
             executeRouteQuery().then(() => {
                 dismissBanner();
                 if (wasActive) {
-                    showToast(`Resuming journey to ${state.destName || 'destination'}…`);
+                    showToast(t('planner.toast_resuming').replace('{dest}', state.destName || t('planner.toast_destination')), 'info');
                     navigator.geolocation.getCurrentPosition(
                         (pos) => {
                             selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
@@ -3700,12 +3770,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             });
                         },
                         () => {
-                            showToast('Could not get current position. Tap Start Journey to resume.');
+                            showToast(t('planner.toast_resume_failed'), 'error');
                         },
                         { enableHighAccuracy: true, timeout: 8000 }
                     );
                 } else {
-                    showToast('Your last route was restored.');
+                    showToast(t('planner.toast_route_restored'), 'success');
                 }
             }).catch(() => {
                 sessionStorage.removeItem(STORAGE_KEY);
