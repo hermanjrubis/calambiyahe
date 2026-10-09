@@ -17,6 +17,7 @@ import {
     addDoc, 
     deleteDoc,
     query, 
+    where,
     orderBy, 
     serverTimestamp,
     onAuthStateChanged,
@@ -283,7 +284,7 @@ export function clearUserState() {
         userAvatarInitials.style.display = 'none';
     }
     if (userAvatarImg) {
-        userAvatarImg.src = '';
+        userAvatarImg.removeAttribute('src');
         userAvatarImg.style.display = 'none';
     }
     if (mobileAvatarInitials) {
@@ -291,7 +292,7 @@ export function clearUserState() {
         mobileAvatarInitials.style.display = 'none';
     }
     if (mobileAvatarImg) {
-        mobileAvatarImg.src = '';
+        mobileAvatarImg.removeAttribute('src');
         mobileAvatarImg.style.display = 'none';
     }
 
@@ -302,7 +303,7 @@ export function clearUserState() {
         profileHeaderInitials.style.display = 'none';
     }
     if (profileHeaderImg) {
-        profileHeaderImg.src = '';
+        profileHeaderImg.removeAttribute('src');
         profileHeaderImg.style.display = 'none';
     }
 
@@ -328,6 +329,14 @@ export function clearUserState() {
 
     // 6. Ensure Admin link is removed
     renderAdminMenuLink(false);
+
+    // 7. Reset Business menu link to default registration link
+    const myBusinessBtn = document.getElementById('menuMyBusiness');
+    if (myBusinessBtn) {
+        myBusinessBtn.href = '/submit';
+        const titleEl = myBusinessBtn.querySelector('.nav-btn-title');
+        if (titleEl) titleEl.textContent = 'Register your business';
+    }
 }
 
 window._calzadaClearUserState = clearUserState;
@@ -729,6 +738,9 @@ export function setupProfileUI() {
                 }
             }
             renderAdminMenuLink(isAdmin);
+
+            // 6. Dynamic Business Link ("Register your business" -> /submit vs "My Business" -> /my-business)
+            await syncBusinessMenuLink(user);
         } else {
             clearUserState();
         }
@@ -1078,6 +1090,65 @@ export function renderAdminMenuLink(isAdmin) {
     }
 }
 
+/**
+ * Dynamically configure business link in account menu:
+ * - If user has an active business (status 'pending' or 'approved') -> "My Business" -> /my-business
+ * - If user has no business (or only rejected) -> "Register your business" -> /submit
+ */
+export async function syncBusinessMenuLink(user) {
+    const navList = document.querySelector('.profile-nav-list');
+    if (!navList) return;
+
+    let myBusinessBtn = document.getElementById('menuMyBusiness');
+    if (!myBusinessBtn) {
+        myBusinessBtn = document.createElement('a');
+        myBusinessBtn.id = 'menuMyBusiness';
+        myBusinessBtn.className = 'profile-nav-btn';
+        myBusinessBtn.style.textDecoration = 'none';
+        myBusinessBtn.innerHTML = `
+            <span class="nav-btn-icon">
+                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            </span>
+            <span class="nav-btn-title">Register your business</span>
+        `;
+        const accountSettings = document.getElementById('menuAccountSettings');
+        if (accountSettings && accountSettings.parentNode === navList) {
+            accountSettings.insertAdjacentElement('afterend', myBusinessBtn);
+        } else {
+            navList.appendChild(myBusinessBtn);
+        }
+    }
+
+    const titleEl = myBusinessBtn.querySelector('.nav-btn-title');
+
+    if (!user || user.isAnonymous) {
+        myBusinessBtn.href = '/submit';
+        if (titleEl) titleEl.textContent = 'Register your business';
+        return;
+    }
+
+    try {
+        const q = query(collection(db, 'businesses'), where('ownerId', '==', user.uid));
+        const snap = await getDocs(q);
+        const hasActiveBiz = !snap.empty && snap.docs.some(d => {
+            const st = d.data().status;
+            return st === 'pending' || st === 'approved';
+        });
+
+        if (hasActiveBiz) {
+            myBusinessBtn.href = '/my-business';
+            if (titleEl) titleEl.textContent = 'My Business';
+        } else {
+            myBusinessBtn.href = '/submit';
+            if (titleEl) titleEl.textContent = 'Register your business';
+        }
+    } catch (e) {
+        console.warn('Could not determine business ownership for menu:', e);
+        myBusinessBtn.href = '/submit';
+        if (titleEl) titleEl.textContent = 'Register your business';
+    }
+}
+
 function closeDropdown() {
     const avatarBtn = document.getElementById('userAvatarPill');
     const dropdownMenu = document.getElementById('userProfileMenu');
@@ -1377,7 +1448,7 @@ async function handleRemovePhoto() {
         const initial = (currentName || initialLoadedDisplayName || 'U').charAt(0).toUpperCase();
 
         if (avatarImgEl) {
-            avatarImgEl.src = '';
+            avatarImgEl.removeAttribute('src');
             avatarImgEl.style.display = 'none';
         }
         if (avatarLargeEl) {
@@ -1838,7 +1909,7 @@ function createProfileModals() {
                         <div class="settings-avatar-col">
                             <div class="settings-avatar-wrapper">
                                 <div class="settings-avatar-large" id="settingsAvatarLarge">U</div>
-                                <img src="" alt="Profile Photo" id="settingsAvatarImg" class="settings-avatar-img" style="display: none;" />
+                                <img alt="Profile Photo" id="settingsAvatarImg" class="settings-avatar-img" style="display: none;" />
                                 <label for="settingsPhotoUploadInput" class="settings-camera-badge" title="Change profile photo" aria-label="Change profile photo">
                                     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </label>

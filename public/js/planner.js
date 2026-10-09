@@ -252,25 +252,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const CALAMBA_PLACES_FALLBACK = [
             // Malls
             { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', lat: 14.203928, lng: 121.1545159, full_address: 'National Road, Brgy. Real, Calamba City Triangle, 4027 Laguna' },
-            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', lat: 14.1986374, lng: 121.1604888, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/citymall-calamba/citymall-calamba-1.jpg' },
-            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', lat: 14.1930, lng: 121.1625, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.jpg' },
+            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', lat: 14.1986374, lng: 121.1604888, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/citymall-calamba/citymall-calamba-1.webp' },
+            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', lat: 14.1930, lng: 121.1625, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp' },
             { id: 'south-supermarket', name: 'South Supermarket', category: 'malls', lat: 14.2030841, lng: 121.1584071, full_address: 'Manila S Rd, Calamba, 4027 Laguna' },
             // Schools
-            { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', lat: 14.2025089, lng: 121.1583962, full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '../assets/places/sti-college/sti-1.jpg' },
-            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', lat: 14.1987583, lng: 121.1519236, full_address: 'Real, Calamba, 4027 Laguna', image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.jpg' },
+            { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', lat: 14.2025089, lng: 121.1583962, full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '../assets/places/sti-college/sti-1.webp' },
+            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', lat: 14.1987583, lng: 121.1519236, full_address: 'Real, Calamba, 4027 Laguna', image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.webp' },
             { id: 'real-elementary', name: 'Real Elementary School', category: 'schools', lat: 14.1987874, lng: 121.1492457, full_address: '336 Real Rd, Real, Calamba, 4027 Laguna' },
             { id: 'pwu-cdcec', name: 'PWU CDCEC Calamba', category: 'schools', lat: 14.2052421, lng: 121.1562636, full_address: '6544+3HW, Bridge, Calamba, 4027 Laguna' },
             // Terminals
             { id: 'calamba-crossing-term', name: 'Calamba Crossing / Central Terminal', category: 'terminals', lat: 14.19821, lng: 121.16315, full_address: 'Calamba Crossing, Brgy. Real, Calamba City' },
-            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', lat: 14.19895, lng: 121.16335, full_address: 'SM City Calamba Complex, Calamba City', image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.jpg' },
+            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', lat: 14.19895, lng: 121.16335, full_address: 'SM City Calamba Complex, Calamba City', image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp' },
             { id: 'turbina-bus-term', name: 'Turbina Bus Terminal', category: 'terminals', lat: 14.18888, lng: 121.14444, full_address: 'Turbina, Calamba City' },
             // Eateries
             { id: 'rose-grace', name: 'Rose and Grace Restaurant', category: 'eateries', lat: 14.2012, lng: 121.1568, full_address: 'Maharlika Highway, Brgy. Real, Calamba City' },
-            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', lat: 14.1925, lng: 121.1620, full_address: 'National Highway, Brgy. Halang, Calamba City', image_path: '../assets/places/ding-hao/ding-hao-1.jpg' },
-            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', lat: 14.2035, lng: 121.1560, full_address: 'Manila S Rd, Calamba City, Laguna', image_path: '../assets/places/uncle-johns/uncle-johns-1.jpg' },
-            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', lat: 14.2028, lng: 121.1565, full_address: 'Calamba City, Laguna', image_path: '../assets/places/teng-tengs/teng-tengs-1.jpg' },
-            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', lat: 14.2018, lng: 121.1578, full_address: 'Calamba City, Laguna', image_path: '../assets/places/mariz-food-town/mariz-food-town-1.jpg' },
-            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', lat: 14.2020, lng: 121.1565, full_address: 'Calamba City, Laguna', image_path: '../assets/places/ton-tons-sisig/ton-tons-sisig-1.jpg' },
+            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', lat: 14.1925, lng: 121.1620, full_address: 'National Highway, Brgy. Halang, Calamba City', image_path: '../assets/places/ding-hao/ding-hao-1.webp' },
+            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', lat: 14.2035, lng: 121.1560, full_address: 'Manila S Rd, Calamba City, Laguna', image_path: '../assets/places/uncle-johns/uncle-johns-1.webp' },
+            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', lat: 14.2028, lng: 121.1565, full_address: 'Calamba City, Laguna', image_path: '../assets/places/teng-tengs/teng-tengs-1.webp' },
+            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', lat: 14.2018, lng: 121.1578, full_address: 'Calamba City, Laguna', image_path: '../assets/places/mariz-food-town/mariz-food-town-1.webp' },
+            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', lat: 14.2020, lng: 121.1565, full_address: 'Calamba City, Laguna', image_path: '../assets/places/ton-tons-sisig/ton-tons-sisig-1.webp' },
             // Coffee Shops
             { id: 'moonbucks', name: 'Moonbucks', category: 'coffee', lat: 14.2104, lng: 121.1648, full_address: 'Elepaño Subdivision, Brgy. 3 (Bayan), Calamba City' },
             { id: 'sample-coffee', name: 'Sample Coffee House', category: 'coffee', lat: 14.1843, lng: 121.1625, full_address: 'National Highway, Brgy. Bucal, Calamba City' },
@@ -280,27 +280,27 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'establishments', lat: 14.2140, lng: 121.1670, full_address: 'J.P. Rizal St, Brgy. 5 Poblacion, Calamba City' },
             { id: 'calamba-plaza', name: 'Calamba Town Plaza', category: 'establishments', lat: 14.2135, lng: 121.1662, full_address: 'Rizal St, Poblacion, Calamba City' },
             { id: 'calamba-medical', name: 'Calamba Medical Center', category: 'establishments', lat: 14.2065, lng: 121.1575, full_address: 'National Highway, Crossing, Calamba City' },
-            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', lat: 14.2020, lng: 121.1570, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/card-sme-bank/card-sme-bank-1.jpg' },
-            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', lat: 14.1950, lng: 121.1550, full_address: 'National Highway, Calamba City, Laguna', image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.jpg' },
-            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', lat: 14.1990, lng: 121.1595, full_address: 'Barangay 1 (Uno), Calamba City, Laguna', image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.jpg' },
-            { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', lat: 14.1960, lng: 121.1510, full_address: 'Calamba City, Laguna', image_path: '../assets/places/laguna-logistics/laguna-logistics-1.jpg' },
-            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', lat: 14.2005, lng: 121.1540, full_address: 'Calamba City, Laguna', image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.jpg' },
-            { id: 'news-star', name: 'News Star', category: 'establishments', lat: 14.2120, lng: 121.1650, full_address: 'Calamba City, Laguna', image_path: '../assets/places/news-star/news-star-1.jpg' },
+            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', lat: 14.2020, lng: 121.1570, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/card-sme-bank/card-sme-bank-1.webp' },
+            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', lat: 14.1950, lng: 121.1550, full_address: 'National Highway, Calamba City, Laguna', image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp' },
+            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', lat: 14.1990, lng: 121.1595, full_address: 'Barangay 1 (Uno), Calamba City, Laguna', image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.webp' },
+            { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', lat: 14.1960, lng: 121.1510, full_address: 'Calamba City, Laguna', image_path: '../assets/places/laguna-logistics/laguna-logistics-1.webp' },
+            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', lat: 14.2005, lng: 121.1540, full_address: 'Calamba City, Laguna', image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.webp' },
+            { id: 'news-star', name: 'News Star', category: 'establishments', lat: 14.2120, lng: 121.1650, full_address: 'Calamba City, Laguna', image_path: '../assets/places/news-star/news-star-1.webp' },
             // Schools
-            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', lat: 14.1880, lng: 121.1650, full_address: 'Ipil-ipil St., Bucal, Calamba City, Laguna', image_path: '../assets/places/letran-calamba/letran-calamba-1.jpg' },
-            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', lat: 14.1910, lng: 121.1620, full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/halang-elementary-school/halang-elementary-school-1.jpg' },
+            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', lat: 14.1880, lng: 121.1650, full_address: 'Ipil-ipil St., Bucal, Calamba City, Laguna', image_path: '../assets/places/letran-calamba/letran-calamba-1.webp' },
+            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', lat: 14.1910, lng: 121.1620, full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/halang-elementary-school/halang-elementary-school-1.webp' },
             // Eateries
-            { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', lat: 14.2025, lng: 121.1575, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.jpg' },
-            { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', lat: 14.1920, lng: 121.1625, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.jpg' },
-            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', lat: 14.1905, lng: 121.1615, full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/creekside-halang/creekside-halang-1.jpg' },
-            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', lat: 14.2030, lng: 121.1570, full_address: 'Calamba City, Laguna', image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/dear-hotpot-unlimited-japanese-hotpot-1.jpg' },
-            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', lat: 14.2022, lng: 121.1555, full_address: 'Calamba City, Laguna', image_path: '../assets/places/d-fresco/d-fresco-1.jpg' },
-            { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', lat: 14.2008, lng: 121.1562, full_address: 'Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.jpg' },
+            { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', lat: 14.2025, lng: 121.1575, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp' },
+            { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', lat: 14.1920, lng: 121.1625, full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.webp' },
+            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', lat: 14.1905, lng: 121.1615, full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/creekside-halang/creekside-halang-1.webp' },
+            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', lat: 14.2030, lng: 121.1570, full_address: 'Calamba City, Laguna', image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/dear-hotpot-unlimited-japanese-hotpot-1.webp' },
+            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', lat: 14.2022, lng: 121.1555, full_address: 'Calamba City, Laguna', image_path: '../assets/places/d-fresco/d-fresco-1.webp' },
+            { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', lat: 14.2008, lng: 121.1562, full_address: 'Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.webp' },
             // Coffee Shops
-            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', lat: 14.2015, lng: 121.1560, full_address: 'Calamba City, Laguna', image_path: '../assets/places/krav-cafe/krav-cafe-1.jpg' },
+            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', lat: 14.2015, lng: 121.1560, full_address: 'Calamba City, Laguna', image_path: '../assets/places/krav-cafe/krav-cafe-1.webp' },
             // Establishments
-            { id: 'd-and-q', name: 'D & Q', category: 'establishments', lat: 14.2010, lng: 121.1580, full_address: 'Calamba City, Laguna', image_path: '../assets/places/d-and-q/d-and-q-1.jpg' },
-            { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', lat: 14.2045, lng: 121.1585, full_address: 'Calamba City, Laguna', image_path: '../assets/places/morales-bercasio/morales-bercasio-1.jpg' },
+            { id: 'd-and-q', name: 'D & Q', category: 'establishments', lat: 14.2010, lng: 121.1580, full_address: 'Calamba City, Laguna', image_path: '../assets/places/d-and-q/d-and-q-1.webp' },
+            { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', lat: 14.2045, lng: 121.1585, full_address: 'Calamba City, Laguna', image_path: '../assets/places/morales-bercasio/morales-bercasio-1.webp' },
         ];
 
         let categoryMarkers = [];
@@ -494,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
                 const imageHtml = place.image_path
-                    ? `<div class="popup-img-container"><img src="${resolvePlaceImageUrl(place.image_path)}" alt="${place.name}" class="popup-place-img" onerror="this.parentElement.remove();"></div>`
+                    ? `<div class="popup-img-container"><img src="${resolvePlaceImageUrl(place.image_path)}" alt="${place.name}" class="popup-place-img" loading="lazy" decoding="async" onerror="this.parentElement.remove();"></div>`
                     : '';
 
                 // 360 Photosphere Thumbnail & "View 360°" Action (omitted if no link exists)
@@ -659,7 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button type="button" class="calzada-360-close-btn" id="calzada360CloseBtn" aria-label="Close 360 Viewer">&times;</button>
                     </div>
                     <div class="calzada-360-preview-viewport" id="calzada360Viewport">
-                        <img id="calzada360ModalImg" src="" alt="360 Photosphere" class="calzada-360-full-img" />
+                        <img id="calzada360ModalImg" alt="360 Photosphere" class="calzada-360-full-img" />
                         <div class="calzada-360-status-pill" id="calzada360StatusPill">
                             <span class="calzada-360-pulse-dot"></span>
                             <span id="calzada360PillText">Node: ${nodeId}</span>

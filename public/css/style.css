@@ -31,6 +31,10 @@
     box-sizing: border-box;
 }
 
+img:not([src]) {
+    visibility: hidden;
+}
+
 body {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: var(--bg);
@@ -277,6 +281,7 @@ button, .btn-nav-auth, .btn-learn-more, .lang-toggle-btn, .nav-link, .search-but
 
 .logo-img {
     height: 44px;
+    width: auto;
     object-fit: contain;
 }
 
@@ -11955,6 +11960,7 @@ input#searchInput,
 
 .drawer-logo {
     height: 34px;
+    width: auto;
     max-width: 140px;
     object-fit: contain;
     display: block;

@@ -28,6 +28,10 @@
     padding: 0;
 }
 
+img:not([src]) {
+    visibility: hidden;
+}
+
 html,
 body {
     height: 100%;
@@ -2628,6 +2632,7 @@ body:not(.navigation-active) .bottom-status-pill {
 
 .drawer-logo {
     height: 34px;
+    width: auto;
     max-width: 140px;
     object-fit: contain;
     display: block;

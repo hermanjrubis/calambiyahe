@@ -36,12 +36,12 @@ const placesData = {
     "STI College Calamba": {
         name: "STI College - Calamba",
         category: "School",
-        image: "../assets/places/sti-college/sti-1.jpg",
+        image: "../assets/places/sti-college/sti-1.webp",
         images: [
-            "../assets/places/sti-college/sti-1.jpg",
-            "../assets/places/sti-college/sti-2.jpg",
-            "../assets/places/sti-college/sti-3.jpg",
-            "../assets/places/sti-college/sti-4.jpg"
+            "../assets/places/sti-college/sti-1.webp",
+            "../assets/places/sti-college/sti-2.webp",
+            "../assets/places/sti-college/sti-3.webp",
+            "../assets/places/sti-college/sti-4.webp"
         ],
         full_address: "Manila S Rd, Calamba, 4027 Laguna",
         phone: "(049) 502 8225",
@@ -66,12 +66,12 @@ const placesData = {
     "STI College - Calamba": {
         name: "STI College - Calamba",
         category: "School",
-        image: "../assets/places/sti-college/sti-1.jpg",
+        image: "../assets/places/sti-college/sti-1.webp",
         images: [
-            "../assets/places/sti-college/sti-1.jpg",
-            "../assets/places/sti-college/sti-2.jpg",
-            "../assets/places/sti-college/sti-3.jpg",
-            "../assets/places/sti-college/sti-4.jpg"
+            "../assets/places/sti-college/sti-1.webp",
+            "../assets/places/sti-college/sti-2.webp",
+            "../assets/places/sti-college/sti-3.webp",
+            "../assets/places/sti-college/sti-4.webp"
         ],
         full_address: "Manila S Rd, Calamba, 4027 Laguna",
         phone: "(049) 502 8225",
@@ -217,7 +217,7 @@ function initPlacePanelDOM() {
             <div class="panel-hero" id="ppHero">
                 <div class="carousel-container" id="ppCarousel">
                     <div class="carousel-slides" id="ppCarouselSlides">
-                        <img id="ppImage" class="carousel-slide" src="" alt="Place Hero">
+                        <img id="ppImage" class="carousel-slide" alt="Place Hero" loading="lazy" decoding="async">
                     </div>
                     <button class="carousel-nav carousel-prev" id="ppCarouselPrev" aria-label="Previous Image" type="button" style="display:none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -235,7 +235,7 @@ function initPlacePanelDOM() {
                 <!-- 1. Header Row: 18px semibold Name + Save Button -->
                 <div class="panel-header-row">
                     <h3 class="panel-place-title" id="ppName">Place Name</h3>
-                    <button class="panel-save-btn" id="ppSaveBtn" type="button" aria-label="Save place" title="Save place">
+                    <button class="panel-save-btn" id="ppSaveBtn" type="button" aria-label="Save place" title="Save place" aria-pressed="false">
                         <svg class="save-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
@@ -246,7 +246,7 @@ function initPlacePanelDOM() {
                 <div class="panel-360-section" id="pp360Section" style="display:none;">
                     <div class="panel-360-container">
                         <div class="popup-360-thumb-wrap" id="pp360ThumbWrap" title="Click to view 360° photo">
-                            <img src="" alt="360 View" class="popup-360-thumb" id="pp360Thumb">
+                            <img alt="360 View" class="popup-360-thumb" id="pp360Thumb" loading="lazy" decoding="async">
                             <span class="popup-360-badge">360°</span>
                         </div>
                         <div class="popup-360-action-wrap">
@@ -467,10 +467,14 @@ function initPlacePanelDOM() {
             // Toggle visual state
             if (isCurrentlySaved) {
                 saveBtn.classList.remove('saved');
+                saveBtn.setAttribute('aria-pressed', 'false');
+                saveBtn.setAttribute('aria-label', 'Save place');
                 saveBtn.setAttribute('title', 'Save place');
             } else {
                 saveBtn.classList.add('saved');
-                saveBtn.setAttribute('title', 'Place saved');
+                saveBtn.setAttribute('aria-pressed', 'true');
+                saveBtn.setAttribute('aria-label', 'Remove from saved');
+                saveBtn.setAttribute('title', 'Remove from saved');
                 triggerBookmarkCelebration(saveBtn);
             }
 
@@ -497,14 +501,20 @@ function initPlacePanelDOM() {
                 localStorage.setItem('calzadaSavedPlaces', JSON.stringify(saved));
             }
 
-            // Sync to backend endpoint
+            // Sync to backend endpoint (only if signed in)
             if (currentPlaceId) {
                 try {
-                    await fetch(`/api/places/${currentPlaceId}/save`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ saved: !isCurrentlySaved })
-                    });
+                    const token = await fetchAuthToken();
+                    if (token) {
+                        await fetch(`/api/places/${currentPlaceId}/save`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({ saved: !isCurrentlySaved })
+                        });
+                    }
                 } catch (err) {
                     console.warn('Backend save API sync:', err);
                 }
@@ -851,7 +861,6 @@ function initAuthListenerForPlacePanel() {
     if (window.CalzadaAuth && typeof window.CalzadaAuth.onAuthStateChanged === 'function') {
         authListenerInitialized = true;
         window.CalzadaAuth.onAuthStateChanged((user) => {
-            console.log('[PLACE PANEL] Live onAuthStateChanged listener fired, user:', user ? user.uid : 'Logged out');
             if (currentPlaceId) {
                 setupRatingAndReviews(currentPlaceId);
             }
@@ -897,7 +906,6 @@ async function setupRatingAndReviews(placeId) {
     if (!scoreEl || !picker) return;
 
     const loggedIn = isUserLoggedIn();
-    console.log('[PLACE PANEL setupRatingAndReviews] activeId:', activeId, 'isUserLoggedIn:', loggedIn);
 
     // Reset Form UI
     reviewsOffset = 0;
@@ -908,7 +916,11 @@ async function setupRatingAndReviews(placeId) {
     if (authNotice) authNotice.style.display = 'none';
     if (actionBar) actionBar.style.display = 'none';
     if (commentBox) commentBox.style.display = 'none';
-    if (deleteBtn) deleteBtn.style.display = 'none';
+    if (deleteBtn) {
+        deleteBtn.style.display = 'none';
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = 'Delete';
+    }
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (submitBtn) {
         submitBtn.textContent = 'Submit rating';
@@ -963,7 +975,6 @@ async function setupRatingAndReviews(placeId) {
             if (feedbackArea) feedbackArea.style.display = 'block';
 
             const authenticated = isUserLoggedIn();
-            console.log('[PLACE PANEL star click] selected star:', starVal, 'live authenticated state:', authenticated);
 
             if (!authenticated) {
                 if (authNotice) authNotice.style.display = 'block';
@@ -1011,7 +1022,6 @@ async function setupRatingAndReviews(placeId) {
     if (submitBtn) {
         submitBtn.onclick = async () => {
             const targetPlaceId = activeId || currentPlaceId;
-            console.log('[PLACE PANEL submitBtn.onclick] targetPlaceId:', targetPlaceId, 'rating:', activeUserRating);
             if (!targetPlaceId) {
                 console.warn('[PLACE PANEL submitBtn.onclick] Missing targetPlaceId!');
                 return;
@@ -1039,7 +1049,6 @@ async function setupRatingAndReviews(placeId) {
                     comment_text: commentText
                 };
 
-                console.log('[PLACE PANEL submitBtn.onclick] Sending POST /api/places/' + targetPlaceId + '/rating payload:', payload);
 
                 const res = await fetch(`/api/places/${targetPlaceId}/rating`, {
                     method: 'POST',
@@ -1050,7 +1059,6 @@ async function setupRatingAndReviews(placeId) {
                     body: JSON.stringify(payload)
                 });
 
-                console.log('[PLACE PANEL submitBtn.onclick] Response HTTP status:', res.status);
 
                 if (res.status === 401) {
                     if (authNotice) authNotice.style.display = 'block';
@@ -1066,7 +1074,6 @@ async function setupRatingAndReviews(placeId) {
                 }
 
                 const resData = await res.json();
-                console.log('[PLACE PANEL submitBtn.onclick] Raw POST response body:', resData);
 
                 userHasExistingReview = true;
 
@@ -1100,7 +1107,6 @@ async function setupRatingAndReviews(placeId) {
                 }
 
                 // Refresh Reviews list from offset 0
-                console.log('[PLACE PANEL submitBtn.onclick] Refreshing reviews list...');
                 await fetchAndRenderReviews(targetPlaceId, true);
             } catch (err) {
                 console.error('[PLACE PANEL submitBtn.onclick] Error submitting review:', err);
@@ -1117,17 +1123,55 @@ async function setupRatingAndReviews(placeId) {
 
     // Review Deletion Handler
     if (deleteBtn) {
+        let deleteConfirmTimer = null;
+        let isAwaitingDeleteConfirm = false;
+
+        function resetDeleteButton() {
+            if (deleteConfirmTimer) {
+                clearTimeout(deleteConfirmTimer);
+                deleteConfirmTimer = null;
+            }
+            isAwaitingDeleteConfirm = false;
+            if (deleteBtn) {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Delete';
+            }
+        }
+
         deleteBtn.onclick = async () => {
             const targetPlaceId = activeId || currentPlaceId;
-            if (!targetPlaceId) return;
+            if (!targetPlaceId) {
+                resetDeleteButton();
+                return;
+            }
+
+            // Two-step confirmation: first click asks for confirmation for 4 seconds
+            if (!isAwaitingDeleteConfirm) {
+                isAwaitingDeleteConfirm = true;
+                deleteBtn.textContent = 'Confirm delete?';
+                deleteConfirmTimer = setTimeout(() => {
+                    resetDeleteButton();
+                }, 4000);
+                return;
+            }
+
+            // Second click within 4s: proceed with delete
+            if (deleteConfirmTimer) {
+                clearTimeout(deleteConfirmTimer);
+                deleteConfirmTimer = null;
+            }
+            isAwaitingDeleteConfirm = false;
+
             deleteBtn.disabled = true;
             deleteBtn.textContent = 'Deleting...';
 
             try {
                 const token = await fetchAuthToken();
-                if (!token) return;
+                if (!token) {
+                    resetDeleteButton();
+                    return;
+                }
 
-                console.log('[PLACE PANEL deleteBtn.onclick] Sending DELETE /api/places/' + targetPlaceId + '/rating');
                 const res = await fetch(`/api/places/${targetPlaceId}/rating`, {
                     method: 'DELETE',
                     headers: {
@@ -1153,8 +1197,7 @@ async function setupRatingAndReviews(placeId) {
             } catch (err) {
                 console.error('[PLACE PANEL deleteBtn.onclick] Error deleting review:', err);
             } finally {
-                deleteBtn.disabled = false;
-                deleteBtn.textContent = 'Delete';
+                resetDeleteButton();
             }
         };
     }
@@ -1179,7 +1222,6 @@ async function setupRatingAndReviews(placeId) {
  */
 async function fetchAndRenderReviews(placeId, resetList = true) {
     const activeId = placeId || currentPlaceId;
-    console.log(`[PLACE PANEL fetchAndRenderReviews] activeId=${activeId}, resetList=${resetList}, reviewsOffset=${reviewsOffset}`);
 
     const scoreEl = document.getElementById('ppRatingScore');
     const countEl = document.getElementById('ppRatingCount');
@@ -1227,7 +1269,6 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        console.log(`[PLACE PANEL fetchAndRenderReviews] Raw response for placeId ${activeId}:`, data);
 
         // Update Rating Card Summary
         const avg = parseFloat(data.average_rating) || 0;
@@ -1511,9 +1552,13 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         const isSaved = savedPlaces.some(s => (s.name || s.placeName || '').toLowerCase() === data.name.toLowerCase());
         if (isSaved) {
             saveBtn.classList.add('saved');
-            saveBtn.setAttribute('title', 'Place saved');
+            saveBtn.setAttribute('aria-pressed', 'true');
+            saveBtn.setAttribute('aria-label', 'Remove from saved');
+            saveBtn.setAttribute('title', 'Remove from saved');
         } else {
             saveBtn.classList.remove('saved');
+            saveBtn.setAttribute('aria-pressed', 'false');
+            saveBtn.setAttribute('aria-label', 'Save place');
             saveBtn.setAttribute('title', 'Save place');
         }
     }
@@ -1664,7 +1709,6 @@ function getPlacePanel360Link(placeId, placeName) {
 if (!window._open360Viewer) {
     window._open360Viewer = function(nodeId) {
         if (!nodeId) return;
-        console.log('[Calzada 360] Requesting 360° viewer at node:', nodeId);
 
         window.dispatchEvent(new CustomEvent('calzada:open-360', {
             detail: { nodeId }
@@ -1694,7 +1738,7 @@ if (!window._open360Viewer) {
                         <button type="button" class="calzada-360-close-btn" id="calzada360CloseBtn" aria-label="Close 360 Viewer">&times;</button>
                     </div>
                     <div class="calzada-360-preview-viewport" id="calzada360Viewport">
-                        <img id="calzada360ModalImg" src="" alt="360 Photosphere" class="calzada-360-full-img" />
+                        <img id="calzada360ModalImg" alt="360 Photosphere" class="calzada-360-full-img" />
                         <div class="calzada-360-status-pill" id="calzada360StatusPill">
                             <span class="calzada-360-pulse-dot"></span>
                             <span id="calzada360PillText">Node: ${nodeId}</span>

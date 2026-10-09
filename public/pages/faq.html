@@ -19,13 +19,13 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.6.2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.3">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -77,7 +77,7 @@
             <!-- [Left Side]: Logo -->
             <div class="nav-left">
                 <a href="/" class="brand-logo">
-                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="logo-img">
                 </a>
             </div>
 
@@ -218,7 +218,7 @@
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
                         <div class="user-avatar-wrap">
-                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" width="34" height="34" style="display:none;">
                             <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                             <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                         </div>
@@ -241,7 +241,7 @@
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" width="34" height="34" style="display:none;">
                         <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
                     </div>
                 </button>
@@ -276,7 +276,7 @@
                 <!-- User Info Header -->
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" width="48" height="48" style="display:none;">
                         <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                     </div>
                     <div class="profile-header-details">
@@ -506,7 +506,7 @@
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="chat-avatar">
-                    <img src="../assets/DyipTok-icon.png" alt="Routie">
+                    <img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async">
                 </div>
                 <div class="chat-title-group">
                     <h3 class="chat-name">Routie Assistant</h3>
@@ -519,7 +519,7 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message-wrapper bot-wrapper">
-                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie"></div>
+                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async"></div>
                 <div class="message bot-message" data-i18n="chat.greeting">
                     Hello! I'm Routie. Where do you want to go today?
                 </div>
@@ -540,19 +540,19 @@
         </div>
     </div>
 
-    <script src="../js/script.js?v=2.6.2"></script>
-    <script src="../js/i18n.js?v=2.6.2"></script>
-    <script src="../js/transitions.js?v=2.6.2"></script>
-    <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.2"></script>
-    <script src="../js/faq-fares.js?v=2.6.2"></script>
+    <script src="../js/script.js?v=2.6.3"></script>
+    <script src="../js/i18n.js?v=2.6.3"></script>
+    <script src="../js/transitions.js?v=2.6.3"></script>
+    <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.4"></script>
+    <script src="../js/faq-fares.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <a href="/" class="drawer-brand" aria-label="Calzada Home">
-                <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
                 <ion-icon name="close-outline"></ion-icon>

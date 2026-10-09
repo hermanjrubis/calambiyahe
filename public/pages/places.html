@@ -17,15 +17,15 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css?v=2.6.2">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.3">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="../css/streetview-viewer.css">
+    <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.6.3">
     <!-- Skeleton CSS & FOUC Preventer -->
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <link rel="stylesheet" href="../css/place-panel.css?v=7">
     <style>
         body { opacity: 0; }
@@ -64,7 +64,7 @@
             <!-- [Left Side]: Logo -->
             <div class="nav-left">
                 <a href="/" class="brand-logo">
-                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="logo-img">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="logo-img">
                 </a>
             </div>
 
@@ -205,7 +205,7 @@
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
                         <div class="user-avatar-wrap">
-                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" width="34" height="34" style="display:none;">
                             <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                             <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                         </div>
@@ -228,7 +228,7 @@
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" width="34" height="34" style="display:none;">
                         <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
                     </div>
                 </button>
@@ -263,7 +263,7 @@
                 <!-- User Info Header -->
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" width="48" height="48" style="display:none;">
                         <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                     </div>
                     <div class="profile-header-details">
@@ -358,7 +358,7 @@
         <div class="places-layout">
             <!-- Persistent Left Sidebar Category Navigation (7 Categories) -->
             <aside class="places-sidebar">
-                <h3 class="sidebar-title">Categories</h3>
+                <h1 class="sidebar-title">Categories</h1>
                 <nav class="sidebar-category-list" id="categoryTabs">
                     <button class="category-tab active" data-category="all">
                         <span data-i18n="places.cat_all">All Places</span>
@@ -415,24 +415,24 @@
                 <!-- No-JS fallback: preserved static cards for users without JavaScript -->
                 <noscript>
                 <div class="places-grid">
-                    <div class="ref-card" data-category="schools"><div class="ref-img-container"><img src="../assets/places/sti-college/sti-1.jpg" alt="STI College - Calamba" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>STI College - Calamba</h3><p class="card-subtitle">schools • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="terminals"><div class="ref-img-container"><img src="../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.jpg" alt="SM City Calamba Transport Terminal" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>SM City Calamba Transport Terminal</h3><p class="card-subtitle">terminals • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="malls"><div class="ref-img-container"><img src="../assets/places/citymall-calamba/citymall-calamba-1.jpg" alt="CityMall Calamba" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>CityMall Calamba</h3><p class="card-subtitle">malls • Halang, Calamba</p></div></div>
-                    <div class="ref-card" data-category="eateries"><div class="ref-img-container"><img src="../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.jpg" alt="Jollibee – Real, Calamba City" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Jollibee – Real, Calamba City</h3><p class="card-subtitle">eateries • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="schools"><div class="ref-img-container"><img src="../assets/places/letran-calamba/letran-calamba-1.jpg" alt="Colegio de San Juan de Letran – Calamba" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Colegio de San Juan de Letran – Calamba</h3><p class="card-subtitle">schools • Bucal, Calamba</p></div></div>
-                    <div class="ref-card" data-category="malls"><div class="ref-img-container"><img src="../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.jpg" alt="Puregold – Halang, Calamba" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Puregold – Halang, Calamba</h3><p class="card-subtitle">malls • Halang, Calamba</p></div></div>
-                    <div class="ref-card" data-category="coffee"><div class="ref-img-container"><img src="../assets/places/krav-cafe/krav-cafe-1.jpg" alt="Krav Cafe" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Krav Cafe</h3><p class="card-subtitle">coffee • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="establishments"><div class="ref-img-container"><img src="../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.jpg" alt="Wilcon Depot Calamba" class="ref-card-img" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Wilcon Depot Calamba</h3><p class="card-subtitle">establishments • Real, Calamba</p></div></div>
+                    <div class="ref-card" data-category="schools"><div class="ref-img-container"><img src="../assets/places/sti-college/sti-1.webp" alt="STI College - Calamba" class="ref-card-img" width="1200" height="900" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>STI College - Calamba</h3><p class="card-subtitle">schools • Real, Calamba</p></div></div>
+                    <div class="ref-card" data-category="terminals"><div class="ref-img-container"><img src="../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp" alt="SM City Calamba Transport Terminal" class="ref-card-img" width="862" height="582" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>SM City Calamba Transport Terminal</h3><p class="card-subtitle">terminals • Real, Calamba</p></div></div>
+                    <div class="ref-card" data-category="malls"><div class="ref-img-container"><img src="../assets/places/citymall-calamba/citymall-calamba-1.webp" alt="CityMall Calamba" class="ref-card-img" width="1169" height="1460" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>CityMall Calamba</h3><p class="card-subtitle">malls • Halang, Calamba</p></div></div>
+                    <div class="ref-card" data-category="eateries"><div class="ref-img-container"><img src="../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp" alt="Jollibee – Real, Calamba City" class="ref-card-img" width="1170" height="864" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Jollibee – Real, Calamba City</h3><p class="card-subtitle">eateries • Real, Calamba</p></div></div>
+                    <div class="ref-card" data-category="schools"><div class="ref-img-container"><img src="../assets/places/letran-calamba/letran-calamba-1.webp" alt="Colegio de San Juan de Letran – Calamba" class="ref-card-img" width="600" height="450" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Colegio de San Juan de Letran – Calamba</h3><p class="card-subtitle">schools • Bucal, Calamba</p></div></div>
+                    <div class="ref-card" data-category="malls"><div class="ref-img-container"><img src="../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp" alt="Puregold – Halang, Calamba" class="ref-card-img" width="1077" height="1091" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Puregold – Halang, Calamba</h3><p class="card-subtitle">malls • Halang, Calamba</p></div></div>
+                    <div class="ref-card" data-category="coffee"><div class="ref-img-container"><img src="../assets/places/krav-cafe/krav-cafe-1.webp" alt="Krav Cafe" class="ref-card-img" width="1079" height="512" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Krav Cafe</h3><p class="card-subtitle">coffee • Real, Calamba</p></div></div>
+                    <div class="ref-card" data-category="establishments"><div class="ref-img-container"><img src="../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp" alt="Wilcon Depot Calamba" class="ref-card-img" width="1080" height="674" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Wilcon Depot Calamba</h3><p class="card-subtitle">establishments • Real, Calamba</p></div></div>
                 </div>
                 </noscript>
             </div>
         </div>
     </main>
 
-    <script src="../js/legal-modal.js?v=2.6.2"></script>
-    <script src="../js/script.js?v=2.6.2"></script>
-    <script src="../js/i18n.js?v=2.6.2"></script>
-    <script src="../js/places-shared.js?v=2.6.2"></script>
+    <script src="../js/legal-modal.js?v=2.6.3"></script>
+    <script src="../js/script.js?v=2.6.3"></script>
+    <script src="../js/i18n.js?v=2.6.3"></script>
+    <script src="../js/places-shared.js?v=2.6.3"></script>
     <script>
         function escapeHtml(str) {
             if (!str) return '';
@@ -474,33 +474,33 @@
         window.resolvePlaceImageUrl = resolvePlaceImageUrl;
 
         const FALLBACK_PLACES = [
-            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.1986374, lng: 121.1604888, image_path: '../assets/places/citymall-calamba/citymall-calamba-1.jpg', description: 'Commercial shopping center along National Highway' },
-            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.193, lng: 121.1625, image_path: '../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.jpg', description: 'Major supermarket and shopping store in Halang' },
-            { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.2025089, lng: 121.1583962, image_path: '../assets/places/sti-college/sti-1.jpg', description: 'Higher education institution along Manila South Road' },
-            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.1987583, lng: 121.1519236, image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.jpg', description: 'Private basic and secondary education institution' },
-            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', barangay: 'Bucal', municipality: 'Calamba', lat: 14.188, lng: 121.165, image_path: '../assets/places/letran-calamba/letran-calamba-1.jpg', description: 'Catholic higher education institution in Bucal' },
-            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', barangay: 'Halang', municipality: 'Calamba', lat: 14.191, lng: 121.162, image_path: '../assets/places/halang-elementary-school/halang-elementary-school-1.jpg', description: 'Public elementary school in Brgy. Halang' },
-            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', barangay: 'Real', municipality: 'Calamba', lat: 14.19895, lng: 121.16335, image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.jpg', description: 'Major central public transportation hub' },
-            { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2025, lng: 121.1575, image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.jpg', description: 'Popular fast-food chain branch along National Highway' },
-            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2035, lng: 121.156, image_path: '../assets/places/uncle-johns/uncle-johns-1.jpg', description: '24/7 convenience store with hot fried chicken and meals' },
-            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1925, lng: 121.162, image_path: '../assets/places/ding-hao/ding-hao-1.jpg', description: 'Chinese restaurant along National Highway' },
-            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2028, lng: 121.1565, image_path: '../assets/places/teng-tengs/teng-tengs-1.jpg', description: 'Popular local dining eatery in Real' },
-            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2018, lng: 121.1578, image_path: '../assets/places/mariz-food-town/mariz-food-town-1.jpg', description: 'Casual food court and carinderia' },
-            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.1565, image_path: '../assets/places/ton-tons-sisig/ton-tons-sisig-1.jpg', description: 'Specialty sizzling sisig dining spot' },
-            { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.192, lng: 121.1625, image_path: '../assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.jpg', description: 'Famous Filipino grilled chicken restaurant' },
-            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1905, lng: 121.1615, image_path: '../assets/places/creekside-halang/creekside-halang-1.jpg', description: 'Local grill and dining spot along the creek' },
-            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.203, lng: 121.157, image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/dear-hotpot-unlimited-japanese-hotpot-1.jpg', description: 'Unlimited Japanese hotpot and shabu-shabu' },
-            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2022, lng: 121.1555, image_path: '../assets/places/d-fresco/d-fresco-1.jpg', description: 'Refreshing beverages and casual food' },
-            { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2008, lng: 121.1562, image_path: '../assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.jpg', description: 'Traditional Filipino home-cooked dishes' },
-            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', barangay: 'Real', municipality: 'Calamba', lat: 14.2015, lng: 121.156, image_path: '../assets/places/krav-cafe/krav-cafe-1.jpg', description: 'Artisanal coffee and specialty cafe drinks' },
-            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.157, image_path: '../assets/places/card-sme-bank/card-sme-bank-1.jpg', description: 'Thrift bank and financial service institution' },
-            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.195, lng: 121.155, image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.jpg', description: 'Home improvement and construction supplies depot' },
-            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.199, lng: 121.1595, image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.jpg', description: 'Local government barangay hall for Barangay 1' },
-            { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.196, lng: 121.151, image_path: '../assets/places/laguna-logistics/laguna-logistics-1.jpg', description: 'Logistics and freight handling services' },
-            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2005, lng: 121.154, image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.jpg', description: 'Automotive repair and maintenance service' },
-            { id: 'news-star', name: 'News Star', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.212, lng: 121.165, image_path: '../assets/places/news-star/news-star-1.jpg', description: 'Local commercial publication and printing office' },
-            { id: 'd-and-q', name: 'D & Q', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.201, lng: 121.158, image_path: '../assets/places/d-and-q/d-and-q-1.jpg', description: 'Commercial establishment in Real' },
-            { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2045, lng: 121.1585, image_path: '../assets/places/morales-bercasio/morales-bercasio-1.jpg', description: 'Professional services and business office' },
+            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.1986374, lng: 121.1604888, image_path: '../assets/places/citymall-calamba/citymall-calamba-1.webp', description: 'Commercial shopping center along National Highway' },
+            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.193, lng: 121.1625, image_path: '../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp', description: 'Major supermarket and shopping store in Halang' },
+            { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.2025089, lng: 121.1583962, image_path: '../assets/places/sti-college/sti-1.webp', description: 'Higher education institution along Manila South Road' },
+            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.1987583, lng: 121.1519236, image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.webp', description: 'Private basic and secondary education institution' },
+            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', barangay: 'Bucal', municipality: 'Calamba', lat: 14.188, lng: 121.165, image_path: '../assets/places/letran-calamba/letran-calamba-1.webp', description: 'Catholic higher education institution in Bucal' },
+            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', barangay: 'Halang', municipality: 'Calamba', lat: 14.191, lng: 121.162, image_path: '../assets/places/halang-elementary-school/halang-elementary-school-1.webp', description: 'Public elementary school in Brgy. Halang' },
+            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', barangay: 'Real', municipality: 'Calamba', lat: 14.19895, lng: 121.16335, image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp', description: 'Major central public transportation hub' },
+            { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2025, lng: 121.1575, image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp', description: 'Popular fast-food chain branch along National Highway' },
+            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2035, lng: 121.156, image_path: '../assets/places/uncle-johns/uncle-johns-1.webp', description: '24/7 convenience store with hot fried chicken and meals' },
+            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1925, lng: 121.162, image_path: '../assets/places/ding-hao/ding-hao-1.webp', description: 'Chinese restaurant along National Highway' },
+            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2028, lng: 121.1565, image_path: '../assets/places/teng-tengs/teng-tengs-1.webp', description: 'Popular local dining eatery in Real' },
+            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2018, lng: 121.1578, image_path: '../assets/places/mariz-food-town/mariz-food-town-1.webp', description: 'Casual food court and carinderia' },
+            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.1565, image_path: '../assets/places/ton-tons-sisig/ton-tons-sisig-1.webp', description: 'Specialty sizzling sisig dining spot' },
+            { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.192, lng: 121.1625, image_path: '../assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.webp', description: 'Famous Filipino grilled chicken restaurant' },
+            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1905, lng: 121.1615, image_path: '../assets/places/creekside-halang/creekside-halang-1.webp', description: 'Local grill and dining spot along the creek' },
+            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.203, lng: 121.157, image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/dear-hotpot-unlimited-japanese-hotpot-1.webp', description: 'Unlimited Japanese hotpot and shabu-shabu' },
+            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2022, lng: 121.1555, image_path: '../assets/places/d-fresco/d-fresco-1.webp', description: 'Refreshing beverages and casual food' },
+            { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2008, lng: 121.1562, image_path: '../assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.webp', description: 'Traditional Filipino home-cooked dishes' },
+            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', barangay: 'Real', municipality: 'Calamba', lat: 14.2015, lng: 121.156, image_path: '../assets/places/krav-cafe/krav-cafe-1.webp', description: 'Artisanal coffee and specialty cafe drinks' },
+            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.157, image_path: '../assets/places/card-sme-bank/card-sme-bank-1.webp', description: 'Thrift bank and financial service institution' },
+            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.195, lng: 121.155, image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp', description: 'Home improvement and construction supplies depot' },
+            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.199, lng: 121.1595, image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.webp', description: 'Local government barangay hall for Barangay 1' },
+            { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.196, lng: 121.151, image_path: '../assets/places/laguna-logistics/laguna-logistics-1.webp', description: 'Logistics and freight handling services' },
+            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2005, lng: 121.154, image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.webp', description: 'Automotive repair and maintenance service' },
+            { id: 'news-star', name: 'News Star', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.212, lng: 121.165, image_path: '../assets/places/news-star/news-star-1.webp', description: 'Local commercial publication and printing office' },
+            { id: 'd-and-q', name: 'D & Q', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.201, lng: 121.158, image_path: '../assets/places/d-and-q/d-and-q-1.webp', description: 'Commercial establishment in Real' },
+            { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2045, lng: 121.1585, image_path: '../assets/places/morales-bercasio/morales-bercasio-1.webp', description: 'Professional services and business office' },
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -592,7 +592,7 @@
 
                     cardEl.innerHTML = `
                         <div class="ref-img-container">
-                            <img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='../assets/hero-places-bg.png'">
+                            <img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='../assets/hero-places-bg.png'">
                         </div>
                         <div class="ref-card-body">
                             <h3>${escapeHtml(name)}</h3>
@@ -779,21 +779,21 @@
             fetchPlacesFromAPI();
         });
     </script>
-    <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.2"></script>
+    <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.4"></script>
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-    <script src="../js/streetview-viewer.js"></script>
-    <script src="../js/bookmark-confetti.js"></script>
-    <script src="../js/place-panel.js?v=2.6.2"></script>
-    <script src="../js/transitions.js?v=2.6.2"></script>
+    <script src="../js/streetview-viewer.js?v=2.6.3"></script>
+    <script src="../js/bookmark-confetti.js?v=2.6.3"></script>
+    <script src="../js/place-panel.js?v=2.6.4"></script>
+    <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <a href="/" class="drawer-brand" aria-label="Calzada Home">
-                <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
                 <ion-icon name="close-outline"></ion-icon>

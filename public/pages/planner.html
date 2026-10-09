@@ -6,6 +6,7 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Calzada - Route Planner</title>
+    <meta name="description" content="Plan commuting routes, estimate fares, and find transit connections for Jeepneys, Buses, and Tricycles in Calamba.">
     <link rel="canonical" href="https://calzadaph.com/planner">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -17,7 +18,7 @@
         href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
-    <link rel="stylesheet" href="../css/planner.css?v=2.6.7">
+    <link rel="stylesheet" href="../css/planner.css?v=2.6.8">
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -27,10 +28,10 @@
     </script>
     <!-- Pannellum 360 & Calzada Street View Viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="../css/streetview-viewer.css">
+    <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.6.3">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -141,7 +142,7 @@
                     <!-- User Info Header -->
                     <div class="profile-header-card">
                         <div class="profile-header-avatar">
-                            <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img is-default" id="profileHeaderImg" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img is-default" id="profileHeaderImg" width="48" height="48" style="display:none;">
                             <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                         </div>
                         <div class="profile-header-details">
@@ -261,25 +262,25 @@
             <!-- Logo link to homepage -->
             <div class="ds-brand-header">
                 <a href="/" class="ds-brand-link" title="Return to Calzada Homepage">
-                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="ds-brand-logo">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="ds-brand-logo">
                 </a>
             </div>
 
             <div class="ds-header">
-                <h3 class="ds-title">Directions</h3>
+                <h1 class="ds-title">Directions</h1>
                 <!-- Collapsed state peek info -->
                 <div class="ds-peek-info" id="dsPeekInfo" style="display:none;">
                     <span id="peekSummary" class="peek-summary-text">-- min • ₱ --</span>
                 </div>
                 <!-- Close X logic will reset planner -->
-                <button class="ds-close-btn" id="closeDirectionsBtn" style="display:none;"><ion-icon
+                <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Close directions" style="display:none;"><ion-icon
                         name="close"></ion-icon></button>
             </div>
 
             <div class="ds-body">
                 <!-- Origin-Destination Block -->
                 <div class="od-input-block">
-                    <img src="../assets/originDestination-icon.png" class="od-connector-img" alt="">
+                    <img src="../assets/originDestination-icon.png" class="od-connector-img" alt="" width="18" height="56">
                     <div class="od-input-column">
                         <div class="od-row" style="padding: 10px 0;">
                             <div class="od-field unfilled" id="openOriginModal">Where from?</div>
@@ -288,7 +289,7 @@
                             <div class="od-field unfilled" id="openDestModal">Where to?</div>
                         </div>
                     </div>
-                    <button class="swap-btn" id="swapLocationsBtn"><ion-icon name="swap-vertical"></ion-icon></button>
+                    <button class="swap-btn" id="swapLocationsBtn" aria-label="Swap origin and destination"><ion-icon name="swap-vertical"></ion-icon></button>
                 </div>
 
                 <!-- Schedule Dropdown -->
@@ -302,7 +303,7 @@
                         <li data-value="depart" data-i18n="planner.depart_at">Depart at...</li>
                         <li data-value="arrive" data-i18n="planner.arrive_by">Arrive by...</li>
                     </ul>
-                    <input type="text" id="nativeDatePicker"
+                    <input type="text" id="nativeDatePicker" aria-label="Select date"
                         style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
                 </div>
 
@@ -490,10 +491,10 @@
     <div class="location-modal" id="locationModal">
         <div class="loc-header">
             <h3 id="locModalTitle">Change Origin</h3>
-            <button class="loc-close-btn" id="closeLocModal"><ion-icon name="close"></ion-icon></button>
+            <button class="loc-close-btn" id="closeLocModal" aria-label="Close location search"><ion-icon name="close"></ion-icon></button>
         </div>
         <div class="loc-search">
-            <input type="text" id="locSearchInput" placeholder="Search..." autocomplete="off">
+            <input type="text" id="locSearchInput" aria-label="Search location" placeholder="Search..." autocomplete="off">
         </div>
 
         <div class="loc-options" id="locOptionsList">
@@ -575,7 +576,7 @@
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <a href="/" class="drawer-brand" aria-label="Calzada Home">
-                <img src="../assets/logo-header.png" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
                 <ion-icon name="close-outline"></ion-icon>
@@ -683,7 +684,7 @@
     <div class="dt-picker-overlay" id="dtPickerOverlay"></div>
     <div class="dt-picker-modal glass-panel" id="dtPickerModal">
         <div class="dt-picker-header">
-            <button class="dt-back-btn" id="dtBackBtn"><ion-icon name="arrow-back-outline"></ion-icon></button>
+            <button class="dt-back-btn" id="dtBackBtn" aria-label="Back to departure options"><ion-icon name="arrow-back-outline"></ion-icon></button>
             <div class="dt-toggle">
                 <button class="dt-toggle-btn active" id="dtLeaveBtn" data-i18n="planner.dt_leave">Leave</button>
                 <button class="dt-toggle-btn" id="dtArriveBtn" data-i18n="planner.dt_arrive">Arrive</button>
@@ -693,9 +694,9 @@
         <div class="dt-time-display" id="dtTimeDisplay">12:00 pm</div>
         <div class="dt-sliders">
             <div class="dt-slider-row"><span class="dt-slider-label">HR</span><input type="range" class="dt-slider"
-                    id="dtHrSlider" min="1" max="12" value="12"></div>
+                    id="dtHrSlider" aria-label="Select hour" min="1" max="12" value="12"></div>
             <div class="dt-slider-row"><span class="dt-slider-label">MIN</span><input type="range" class="dt-slider"
-                    id="dtMinSlider" min="0" max="59" value="0"></div>
+                    id="dtMinSlider" aria-label="Select minute" min="0" max="59" value="0"></div>
             <div class="dt-ampm-row">
                 <button class="dt-ampm-btn active" id="dtAmBtn" data-i18n="planner.dt_am">AM</button>
                 <button class="dt-ampm-btn" id="dtPmBtn" data-i18n="planner.dt_pm">PM</button>
@@ -724,7 +725,7 @@
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="chat-avatar">
-                    <img src="../assets/DyipTok-icon.png" alt="Routie">
+                    <img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async">
                 </div>
                 <div class="chat-title-group">
                     <h3 class="chat-name">Routie Assistant</h3>
@@ -737,7 +738,7 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message-wrapper bot-wrapper">
-                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie"></div>
+                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async"></div>
                 <div class="message bot-message" data-i18n="chat.greeting">
                     Hello! I'm Routie. Where do you want to go today?
                 </div>
@@ -769,7 +770,7 @@
                 <ion-icon name="person-circle-outline" class="modal-icon-blue"></ion-icon>
                 <h3 data-i18n="planner.login_title">Mag-Login para Magpatuloy</h3>
             </div>
-            <button class="modal-close-btn" id="closeAuthBtn"><ion-icon name="close-outline"></ion-icon></button>
+            <button class="modal-close-btn" id="closeAuthBtn" aria-label="Close authentication modal"><ion-icon name="close-outline"></ion-icon></button>
         </div>
         <div class="auth-body">
             <p class="auth-desc" data-i18n="planner.login_desc">Kailangan ng account para i-save ang iyong scheduled
@@ -780,7 +781,7 @@
             <div class="auth-or"><span>o</span></div>
             <div class="auth-input-group">
                 <ion-icon name="call-outline"></ion-icon>
-                <input type="tel" id="authPhone" placeholder="Mobile Number (09XXXXXXXXX)">
+                <input type="tel" id="authPhone" aria-label="Mobile Number" placeholder="Mobile Number (09XXXXXXXXX)">
             </div>
             <button class="cta-btn" id="authSubmitBtn">
                 <span id="authBtnText" data-i18n="planner.mobile_login">Continue with Mobile</span>
@@ -792,18 +793,18 @@
 
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-    <script src="../js/streetview-viewer.js"></script>
+    <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="../js/transitions.js?v=2.6.2"></script>
-    <script src="../js/places-shared.js?v=2.6.2"></script>
-    <script src="../js/planner.js?v=2.6.7"></script>
-    <script src="../js/legal-modal.js?v=2.6.2"></script>
-    <script src="../js/script.js?v=2.6.2"></script>
-    <script src="../js/i18n.js?v=2.6.4"></script>
+    <script src="../js/transitions.js?v=2.6.3"></script>
+    <script src="../js/places-shared.js?v=2.6.3"></script>
+    <script src="../js/planner.js?v=2.6.8"></script>
+    <script src="../js/legal-modal.js?v=2.6.3"></script>
+    <script src="../js/script.js?v=2.6.3"></script>
+    <script src="../js/i18n.js?v=2.6.3"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
-    <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.2"></script>
+    <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.4"></script>
 </body>
 
 </html>

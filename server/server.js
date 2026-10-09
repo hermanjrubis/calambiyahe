@@ -1,4 +1,5 @@
 const express = require('express');
+const compression = require('compression');
 const { Groq } = require('groq-sdk');
 const cors = require('cors');
 const https = require('https');
@@ -14,15 +15,57 @@ if (!process.env.GROQ_API_KEY) {
 
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.disable('x-powered-by');
 
+const allowedOrigins = [
+    process.env.PRODUCTION_ORIGIN,
+    'https://calzadaph.com',
+    'https://calambiyahe.vercel.app',
+    'http://localhost:5000'
+].filter(Boolean);
+
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true
+}));
+
+const CSP_REPORT_ONLY = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://unpkg.com https://apis.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://unpkg.com",
+    "font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://lh3.googleusercontent.com https://www.google.com https://*.basemaps.cartocdn.com https://tiles.openfreemap.org",
+    "connect-src 'self' https://unpkg.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://tiles.openfreemap.org https://basemaps.cartocdn.com https://*.basemaps.cartocdn.com https://calzada-web.firebaseapp.com",
+    "frame-src 'self' https://calzada-web.firebaseapp.com https://accounts.google.com",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'"
+].join('; ');
+
+// Standard security headers and report-only CSP
 app.use((req, res, next) => {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Content-Security-Policy-Report-Only', CSP_REPORT_ONLY);
     next();
 });
+
+app.use(express.json());
+
+// API endpoints keep no-store
+app.use('/api', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+});
+
+// Enable compression before static assets
+app.use(compression());
 
 const staticPublicPath = fs.existsSync(path.join(__dirname, '../public'))
     ? path.join(__dirname, '../public')
@@ -30,9 +73,16 @@ const staticPublicPath = fs.existsSync(path.join(__dirname, '../public'))
 console.log('Serving static files from:', staticPublicPath);
 
 const staticOptions = {
-    etag: false,
-    maxAge: 0,
-    setHeaders: (res) => res.setHeader('Cache-Control', 'no-store')
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+        const normalized = filePath.replace(/\\/g, '/');
+        if (normalized.endsWith('.html') || normalized.includes('/css/') || normalized.includes('/js/') || normalized.endsWith('.css') || normalized.endsWith('.js')) {
+            res.setHeader('Cache-Control', 'no-cache');
+        } else {
+            res.setHeader('Cache-Control', 'public, max-age=604800');
+        }
+    }
 };
 
 // Pages are served extension-less so local dev matches production, where vercel.json
@@ -50,6 +100,7 @@ app.get('/', (req, res) => {
     const indexPath = fs.existsSync(path.join(staticPublicPath, 'pages/index.html'))
         ? path.join(staticPublicPath, 'pages/index.html')
         : path.join(process.cwd(), 'public/pages/index.html');
+    res.setHeader('Cache-Control', 'no-cache');
     res.sendFile(indexPath);
 });
 
@@ -416,37 +467,73 @@ app.get('/api/places/search', (req, res) => {
     return res.json(places);
 });
 
+const { createAuthMiddleware, getAuth } = require('./auth');
+const { getFirestore } = require('firebase-admin/firestore');
+const requireAuth = createAuthMiddleware();
+
+function findPlaceById(rawId) {
+    if (!rawId) return null;
+    const places = getPlacesData();
+    return places.find(p => String(p.id) === String(rawId) || p.slug === rawId || (p.name && p.name.toLowerCase() === String(rawId).toLowerCase())) || null;
+}
+
 // GET /api/places/:id - Return full detail for a single place
 app.get('/api/places/:id', (req, res) => {
-    const rawId = req.params.id;
-    const places = getPlacesData();
-    const place = places.find(p => String(p.id) === String(rawId) || p.slug === rawId || (p.name && p.name.toLowerCase() === rawId.toLowerCase()));
+    const place = findPlaceById(req.params.id);
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+    }
+    return res.json(place);
+});
 
+// POST /api/places/:id/save - Toggle / Save a place bookmark (Protected)
+app.post('/api/places/:id/save', requireAuth, async (req, res) => {
+    const place = findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
 
-    return res.json(place);
-});
-
-// POST /api/places/:id/save - Toggle / Save a place bookmark
-app.post('/api/places/:id/save', (req, res) => {
-    const placeId = req.params.id;
     const { saved } = req.body || {};
+    if (typeof saved !== 'boolean') {
+        return res.status(400).json({ error: 'Field "saved" must be a boolean' });
+    }
+
+    const userId = req.user.uid;
+    const placeId = String(place.id);
+
+    try {
+        const adminDb = getFirestore();
+        if (adminDb) {
+            const saveDocRef = adminDb.collection('users').doc(userId).collection('savedPlaces').doc(placeId);
+            if (saved) {
+                await saveDocRef.set({
+                    id: placeId,
+                    placeName: place.name,
+                    category: place.category || 'Establishment',
+                    updatedAt: new Date()
+                }, { merge: true });
+            } else {
+                await saveDocRef.delete();
+            }
+        }
+    } catch (err) {
+        console.warn('Error syncing saved place to Firestore:', err.message);
+    }
 
     return res.json({ 
         success: true, 
         placeId, 
-        saved: saved !== undefined ? saved : true,
+        saved,
         message: 'Place save status recorded'
     });
 });
 
 // GET /api/places/:id/images - Return images for a place
 app.get('/api/places/:id/images', (req, res) => {
-    const rawId = req.params.id;
-    const places = getPlacesData();
-    const place = places.find(p => String(p.id) === String(rawId) || p.slug === rawId);
+    const place = findPlaceById(req.params.id);
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+    }
 
     if (place && place.image_path) {
         return res.json([{ id: 1, place_id: place.id, image_path: place.image_path, display_order: 0 }]);
@@ -455,13 +542,13 @@ app.get('/api/places/:id/images', (req, res) => {
     return res.json([]);
 });
 
-const { createAuthMiddleware, getAuth } = require('./auth');
-const { getFirestore } = require('firebase-admin/firestore');
-const requireAuth = createAuthMiddleware();
-
 // GET /api/places/:id/rating - Return average rating and total count for a place (Public)
 app.get('/api/places/:id/rating', async (req, res) => {
-    const placeId = String(req.params.id);
+    const place = findPlaceById(req.params.id);
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+    }
+    const placeId = String(place.id);
 
     try {
         const adminDb = getFirestore();
@@ -487,7 +574,11 @@ app.get('/api/places/:id/rating', async (req, res) => {
 
 // GET /api/places/:id/reviews - Return paginated list of reviews with reviewer display name
 app.get('/api/places/:id/reviews', async (req, res) => {
-    const placeId = String(req.params.id);
+    const place = findPlaceById(req.params.id);
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+    }
+    const placeId = String(place.id);
     const limit = Math.max(1, Math.min(50, parseInt(req.query.limit, 10) || 3));
     const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
 
@@ -554,7 +645,11 @@ app.get('/api/places/:id/reviews', async (req, res) => {
 
 // POST /api/places/:id/rating - Upsert a review/rating tied to authenticated user (Protected)
 app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
-    const placeId = String(req.params.id);
+    const place = findPlaceById(req.params.id);
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+    }
+    const placeId = String(place.id);
     const rating = parseInt(req.body ? req.body.rating : null, 10);
     if (isNaN(rating) || rating < 1 || rating > 5) {
         return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
@@ -609,7 +704,11 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
 
 // DELETE /api/places/:id/rating - Delete the user's own review for a place (Protected)
 app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
-    const placeId = String(req.params.id);
+    const place = findPlaceById(req.params.id);
+    if (!place) {
+        return res.status(404).json({ error: 'Place not found' });
+    }
+    const placeId = String(place.id);
     const userId = req.user.uid;
 
     try {

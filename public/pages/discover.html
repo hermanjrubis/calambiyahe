@@ -14,8 +14,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
 
     <style>
         :root {
@@ -675,7 +675,7 @@
     <header class="discover-topbar">
         <div class="topbar-left">
             <a href="/" class="topbar-brand">
-                <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="topbar-logo">
+                <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="topbar-logo">
             </a>
             <div class="topbar-breadcrumb">
                 <a href="/" class="breadcrumb-root">Home</a>
@@ -709,6 +709,7 @@
         <div class="page-header">
             <h1 class="page-title">Discover</h1>
             <p class="page-subtitle">Local businesses and moments around Calamba.</p>
+            <p class="discover-owner-cta" id="discoverOwnerCta" style="margin-top: 8px; font-size: 0.88rem; color: #64748B;">Own a business in Calamba? <a href="/submit" style="color: #378ADD; text-decoration: underline;">List it on Calzada</a></p>
         </div>
 
         <!-- Feed List -->
@@ -849,16 +850,30 @@
         // 1. Auth State Monitoring
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
+            const ownerCta = document.getElementById('discoverOwnerCta');
             if (user) {
                 if (navSignInBtn) navSignInBtn.style.display = 'none';
                 if (navUserPill) navUserPill.style.display = 'flex';
                 if (navUserEmail) navUserEmail.textContent = user.email || 'User';
+
+                // Hide registration link if user already has an active business (pending or approved)
+                try {
+                    const snap = await getDocs(query(collection(db, 'businesses'), where('ownerId', '==', user.uid)));
+                    const hasBiz = !snap.empty && snap.docs.some(d => {
+                        const st = d.data().status;
+                        return st === 'pending' || st === 'approved';
+                    });
+                    if (ownerCta) ownerCta.style.display = hasBiz ? 'none' : 'block';
+                } catch (_) {
+                    if (ownerCta) ownerCta.style.display = 'block';
+                }
 
                 // Sync like state for already rendered posts
                 await syncLikeStatesForLoadedPosts();
             } else {
                 if (navSignInBtn) navSignInBtn.style.display = 'inline-flex';
                 if (navUserPill) navUserPill.style.display = 'none';
+                if (ownerCta) ownerCta.style.display = 'block';
             }
         });
 

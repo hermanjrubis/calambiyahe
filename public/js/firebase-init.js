@@ -28,7 +28,9 @@ import {
     serverTimestamp,
     runTransaction,
     startAfter,
-    documentId
+    documentId,
+    writeBatch,
+    deleteField
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 // Default Firebase configuration fallback for pages that do not define window.FIREBASE_CONFIG in HTML
@@ -349,6 +351,8 @@ export {
     runTransaction,
     startAfter,
     documentId,
+    writeBatch,
+    deleteField,
     signOut,
     updateProfile,
     sendPasswordResetEmail,

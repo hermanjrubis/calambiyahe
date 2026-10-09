@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin Review Dashboard - Calzada</title>
+    <meta name="description" content="Calzada administration portal for managing place listings, routes, business verification, and system settings.">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     
@@ -12,8 +13,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
+    <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
 
     <style>
         :root {
@@ -848,14 +850,20 @@
 
         .admin-category-badge {
             font-family: 'Outfit', sans-serif;
-            font-size: 0.74rem;
-            font-weight: 600;
-            padding: 2px 9px;
-            border-radius: var(--radius-full);
-            background: var(--primary-light);
-            color: var(--primary);
-            border: 1px solid #D0E3F7;
+            font-size: 0.88rem;
+            font-weight: 500;
+            color: var(--navy-muted);
+            background: none;
+            border: none;
+            padding: 0;
+            border-radius: 0;
             text-transform: capitalize;
+        }
+
+        .admin-category-badge::before {
+            content: "·";
+            margin-right: 8px;
+            color: var(--navy-subtle);
         }
 
         .admin-item-meta-row {
@@ -1121,7 +1129,7 @@
             <div class="denied-icon-wrap">
                 <i class="ti ti-shield-lock"></i>
             </div>
-            <h1 class="denied-title">Access Denied</h1>
+            <h2 class="denied-title">Access Denied</h2>
             <div class="denied-body" id="deniedDetails">
                 <p>Administrator privileges are required to access this portal.</p>
             </div>
@@ -1142,7 +1150,7 @@
         <aside class="admin-sidebar" id="adminSidebar">
             <div class="sidebar-header">
                 <a href="/" class="sidebar-brand" title="Calzada Home">
-                    <img src="../assets/logo-header-blue.png" alt="Calzada Logo" class="brand-logo-img">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="brand-logo-img">
                     <span class="brand-portal-tag">Admin</span>
                 </a>
                 <button type="button" class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
@@ -1292,7 +1300,7 @@
                 <!-- PANEL 2: PENDING SUBMISSIONS -->
                 <section class="admin-panel" id="panel-submissions">
                     <div class="section-header">
-                        <h1 class="section-title">Pending Submissions</h1>
+                        <h2 class="section-title">Pending Submissions</h2>
                         <p class="section-subtitle">
                             Review and approve or reject user-submitted places and contributions.
                         </p>
@@ -1324,7 +1332,7 @@
                 <!-- PANEL 3: APPROVED PLACES -->
                 <section class="admin-panel" id="panel-places">
                     <div class="section-header">
-                        <h1 class="section-title">Approved Places</h1>
+                        <h2 class="section-title">Approved Places</h2>
                         <p class="section-subtitle">
                             Verified establishments currently published and live on the Calzada map.
                         </p>
@@ -1362,7 +1370,7 @@
                 <!-- PANEL 4: SETTINGS -->
                 <section class="admin-panel" id="panel-settings">
                     <div class="section-header">
-                        <h1 class="section-title">Admin Settings</h1>
+                        <h2 class="section-title">Admin Settings</h2>
                         <p class="section-subtitle">
                             Account information, credentials, and session management.
                         </p>
@@ -1424,6 +1432,9 @@
 
     </div>
 
+    <!-- MapLibre GL JS -->
+    <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
+
     <!-- Firebase Auth & Client-Side Navigation Script -->
     <script type="module">
         import { 
@@ -1431,10 +1442,13 @@
             db, 
             collection, 
             doc, 
+            getDoc,
             getDocs, 
             query, 
             where, 
             updateDoc, 
+            writeBatch,
+            deleteField,
             serverTimestamp, 
             onAuthStateChanged, 
             signOut 
@@ -1586,7 +1600,19 @@
                     where("status", "==", "pending")
                 );
                 const pendingSnap = await getDocs(pendingQuery);
-                pendingBusinesses = pendingSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                pendingBusinesses = await Promise.all(pendingSnap.docs.map(async d => {
+                    const data = d.data();
+                    let ownerEmail = data.ownerEmail || null;
+                    try {
+                        const ownerSnap = await getDoc(doc(db, "businesses", d.id, "private", "owner"));
+                        if (ownerSnap.exists()) {
+                            ownerEmail = ownerSnap.data()?.ownerEmail || ownerEmail;
+                        }
+                    } catch (err) {
+                        console.warn(`Could not load private owner for ${d.id}:`, err);
+                    }
+                    return { id: d.id, ...data, ownerEmail };
+                }));
                 pendingBusinesses.sort((a, b) => {
                     const timeA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : 0;
                     const timeB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : 0;
@@ -1599,7 +1625,19 @@
                     where("status", "==", "approved")
                 );
                 const approvedSnap = await getDocs(approvedQuery);
-                approvedBusinesses = approvedSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                approvedBusinesses = await Promise.all(approvedSnap.docs.map(async d => {
+                    const data = d.data();
+                    let ownerEmail = data.ownerEmail || null;
+                    try {
+                        const ownerSnap = await getDoc(doc(db, "businesses", d.id, "private", "owner"));
+                        if (ownerSnap.exists()) {
+                            ownerEmail = ownerSnap.data()?.ownerEmail || ownerEmail;
+                        }
+                    } catch (err) {
+                        console.warn(`Could not load private owner for ${d.id}:`, err);
+                    }
+                    return { id: d.id, ...data, ownerEmail };
+                }));
                 approvedBusinesses.sort((a, b) => {
                     const timeA = a.approvedAt?.toMillis ? a.approvedAt.toMillis() : (a.submittedAt?.toMillis ? a.submittedAt.toMillis() : 0);
                     const timeB = b.approvedAt?.toMillis ? b.approvedAt.toMillis() : (b.submittedAt?.toMillis ? b.submittedAt.toMillis() : 0);
@@ -1666,9 +1704,22 @@
 
             emptyState.style.display = 'none';
             container.innerHTML = pendingBusinesses.map(bus => {
-                const categoryLabel = CATEGORY_NAMES[bus.category] || bus.category || 'General';
+                // B1: Display serviceType instead of "Commercial Establishment" when it exists
+                const categoryLabel = bus.serviceType || CATEGORY_NAMES[bus.category] || bus.category || 'General';
                 const dateStr = formatAdminDate(bus.submittedAt);
                 const hasPhoto = Boolean(bus.profilePhotoUrl);
+
+                const socialLinks = [];
+                if (bus.socialLinks) {
+                    if (bus.socialLinks.facebook) {
+                        const fbLabel = bus.socialLinks.facebook.includes('profile.php?id=') ? 'Facebook page' : 'Facebook';
+                        socialLinks.push(`<a href="${escapeHtml(bus.socialLinks.facebook)}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary); text-decoration: underline;">${fbLabel}</a>`);
+                    }
+                    if (bus.socialLinks.instagram) socialLinks.push(`<a href="${escapeHtml(bus.socialLinks.instagram)}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary); text-decoration: underline;">Instagram</a>`);
+                    if (bus.socialLinks.tiktok) socialLinks.push(`<a href="${escapeHtml(bus.socialLinks.tiktok)}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary); text-decoration: underline;">TikTok</a>`);
+                }
+
+                const hasLocation = bus.location && typeof bus.location.lat === 'number' && typeof bus.location.lng === 'number';
 
                 return `
                     <div class="admin-item-card" id="card-${bus.id}">
@@ -1695,6 +1746,12 @@
                                         <i class="ti ti-calendar"></i>
                                         <span>${dateStr}</span>
                                     </div>
+                                    ${socialLinks.length > 0 ? `
+                                        <div class="admin-meta-item" title="Social Profiles">
+                                            <i class="ti ti-world"></i>
+                                            <span>${socialLinks.join(' · ')}</span>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             </div>
                             ${hasPhoto ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="${escapeHtml(bus.name)}" class="admin-item-thumb">` : ''}
@@ -1703,6 +1760,16 @@
                         ${bus.description ? `
                             <div class="admin-item-desc">
                                 <strong>Description:</strong> ${escapeHtml(bus.description)}
+                            </div>
+                        ` : ''}
+
+                        ${hasLocation ? `
+                            <div style="margin-top: 14px;">
+                                <div style="font-size: 0.82rem; color: var(--navy-muted); margin-bottom: 6px; display: flex; align-items: center; gap: 4px;">
+                                    <i class="ti ti-map-pin"></i>
+                                    <span>Pinned Location: ${bus.location.lat.toFixed(5)}, ${bus.location.lng.toFixed(5)}</span>
+                                </div>
+                                <div id="admin-map-${bus.id}" style="height: 180px; width: 100%; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;"></div>
                             </div>
                         ` : ''}
 
@@ -1719,6 +1786,30 @@
                     </div>
                 `;
             }).join('');
+
+            // Initialize MapLibre review maps
+            pendingBusinesses.forEach(bus => {
+                if (bus.location && typeof bus.location.lat === 'number' && typeof bus.location.lng === 'number' && typeof maplibregl !== 'undefined') {
+                    const mapEl = document.getElementById(`admin-map-${bus.id}`);
+                    if (mapEl) {
+                        try {
+                            const adminMap = new maplibregl.Map({
+                                container: `admin-map-${bus.id}`,
+                                style: 'https://tiles.openfreemap.org/styles/liberty',
+                                center: [bus.location.lng, bus.location.lat],
+                                zoom: 15,
+                                interactive: false,
+                                attributionControl: false
+                            });
+                            new maplibregl.Marker({ color: '#378ADD' })
+                                .setLngLat([bus.location.lng, bus.location.lat])
+                                .addTo(adminMap);
+                        } catch (err) {
+                            console.warn(`Could not render admin map for ${bus.id}:`, err);
+                        }
+                    }
+                }
+            });
 
             container.querySelectorAll('.btn-approve').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1750,9 +1841,20 @@
 
             emptyState.style.display = 'none';
             container.innerHTML = approvedBusinesses.map(bus => {
-                const categoryLabel = CATEGORY_NAMES[bus.category] || bus.category || 'General';
+                // B1: Display serviceType instead of "Commercial Establishment" when it exists
+                const categoryLabel = bus.serviceType || CATEGORY_NAMES[bus.category] || bus.category || 'General';
                 const dateStr = formatAdminDate(bus.approvedAt || bus.submittedAt);
                 const hasPhoto = Boolean(bus.profilePhotoUrl);
+
+                const socialLinks = [];
+                if (bus.socialLinks) {
+                    if (bus.socialLinks.facebook) {
+                        const fbLabel = bus.socialLinks.facebook.includes('profile.php?id=') ? 'Facebook page' : 'Facebook';
+                        socialLinks.push(`<a href="${escapeHtml(bus.socialLinks.facebook)}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary); text-decoration: underline;">${fbLabel}</a>`);
+                    }
+                    if (bus.socialLinks.instagram) socialLinks.push(`<a href="${escapeHtml(bus.socialLinks.instagram)}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary); text-decoration: underline;">Instagram</a>`);
+                    if (bus.socialLinks.tiktok) socialLinks.push(`<a href="${escapeHtml(bus.socialLinks.tiktok)}" target="_blank" rel="noopener noreferrer nofollow" style="color: var(--primary); text-decoration: underline;">TikTok</a>`);
+                }
 
                 return `
                     <div class="admin-item-card" id="card-${bus.id}">
@@ -1779,6 +1881,12 @@
                                         <i class="ti ti-calendar-check"></i>
                                         <span>Approved: ${dateStr}</span>
                                     </div>
+                                    ${socialLinks.length > 0 ? `
+                                        <div class="admin-meta-item" title="Social Profiles">
+                                            <i class="ti ti-world"></i>
+                                            <span>${socialLinks.join(' · ')}</span>
+                                        </div>
+                                    ` : ''}
                                 </div>
                             </div>
                             ${hasPhoto ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="${escapeHtml(bus.name)}" class="admin-item-thumb">` : ''}
@@ -1827,7 +1935,8 @@
                 await updateDoc(busRef, {
                     status: 'approved',
                     approvedAt: serverTimestamp(),
-                    updatedAt: serverTimestamp()
+                    updatedAt: serverTimestamp(),
+                    rejectionReason: deleteField()
                 });
 
                 showAdminNotice(`"${businessName}" has been successfully approved and published!`, 'success');
@@ -1875,6 +1984,25 @@
             } catch (err) {
                 console.error('Error unpublishing business:', err);
                 showAdminNotice(`Failed to unpublish "${businessName}": ${err.message}`, 'error');
+            }
+        }
+
+        async function deleteBusiness(businessId, businessName) {
+            if (!confirm(`Are you sure you want to permanently delete "${businessName || businessId}"? This action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const batch = writeBatch(db);
+                batch.delete(doc(db, "businesses", businessId));
+                batch.delete(doc(db, "businesses", businessId, "private", "owner"));
+                await batch.commit();
+
+                showAdminNotice(`"${businessName || businessId}" has been deleted.`, 'success');
+                await loadAdminData();
+            } catch (err) {
+                console.error('Error deleting business:', err);
+                showAdminNotice(`Failed to delete "${businessName || businessId}": ${err.message}`, 'error');
             }
         }
 

@@ -2,6 +2,30 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Helper functions
+    function isValidCloudinaryUrl(url) {
+      return url is string && url.matches('^https://res\\.cloudinary\\.com/.*');
+    }
+
+    function isValidLocation(loc) {
+      return loc is map
+        && loc.keys().hasOnly(['lat', 'lng'])
+        && 'lat' in loc && 'lng' in loc
+        && loc.lat is number && loc.lng is number
+        && loc.lat >= 14.10 && loc.lat <= 14.30
+        && loc.lng >= 121.05 && loc.lng <= 121.25;
+    }
+
+    function isValidSocialLinks(links) {
+      return links == null || (
+        links is map
+        && links.keys().hasOnly(['facebook', 'instagram', 'tiktok'])
+        && (links.get('facebook', null) == null || (links.facebook is string && links.facebook.size() <= 200 && links.facebook.matches('^https://www\\.facebook\\.com/([A-Za-z0-9.]{1,100}|profile\\.php\\?id=[0-9]{5,20})$')))
+        && (links.get('instagram', null) == null || (links.instagram is string && links.instagram.size() <= 200 && links.instagram.matches('^https://www\\.instagram\\.com/[A-Za-z0-9._]{1,30}$')))
+        && (links.get('tiktok', null) == null || (links.tiktok is string && links.tiktok.size() <= 200 && links.tiktok.matches('^https://www\\.tiktok\\.com/@[A-Za-z0-9._]{1,24}$')))
+      );
+    }
+
     // User profiles & activity data
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -9,9 +33,8 @@ service cloud.firestore {
 
     // Submissions collection security rules (Legacy / Preserved)
     match /submissions/{submissionId} {
-      allow create: if request.auth != null
-        && request.resource.data.submittedBy == request.auth.uid
-        && request.resource.data.status == 'pending';
+      // FIX 5: Disable new creations, keep read/update/delete as they are
+      allow create: if false;
       allow read: if request.auth != null
         && (resource.data.submittedBy == request.auth.uid || resource.data.status == 'approved' || request.auth.token.admin == true);
       allow update: if request.auth != null && request.auth.token.admin == true;
@@ -21,13 +44,32 @@ service cloud.firestore {
 
     // Businesses collection security rules (Instagram Business model)
     match /businesses/{businessId} {
-      // Create: Authenticated owner only, status forced to pending, email matches auth token, profilePhotoUrl & approvedAt forced to null
+      // Create: Authenticated owner only, status forced to pending, profilePhotoUrl & approvedAt forced to null
       allow create: if request.auth != null
         && request.resource.data.ownerId == request.auth.uid
-        && request.resource.data.ownerEmail == request.auth.token.email
         && request.resource.data.status == 'pending'
         && request.resource.data.profilePhotoUrl == null
-        && request.resource.data.approvedAt == null;
+        && request.resource.data.approvedAt == null
+        // FIX 2: submittedAt must equal request.time
+        && request.resource.data.submittedAt == request.time
+        // FIX 3: Field allowlist and size constraints
+        && request.resource.data.keys().hasOnly([
+          'name', 'category', 'address', 'description', 'contactNumber', 
+          'ownerId', 'status', 'submittedAt', 'profilePhotoUrl', 'approvedAt',
+          'serviceType', 'socialLinks', 'location'
+        ])
+        && request.resource.data.name is string 
+        && request.resource.data.name.size() >= 1 
+        && request.resource.data.name.size() <= 80
+        && request.resource.data.address is string 
+        && request.resource.data.address.size() >= 1 
+        && request.resource.data.address.size() <= 160
+        && (request.resource.data.description == null || (request.resource.data.description is string && request.resource.data.description.size() <= 500))
+        && request.resource.data.category in ['malls', 'eateries', 'coffee', 'schools', 'terminals', 'establishments']
+        && (request.resource.data.contactNumber == null || (request.resource.data.contactNumber is string && request.resource.data.contactNumber.size() <= 20))
+        && (request.resource.data.get('serviceType', null) == null || (request.resource.data.serviceType is string && request.resource.data.serviceType.size() >= 2 && request.resource.data.serviceType.size() <= 40))
+        && isValidSocialLinks(request.resource.data.get('socialLinks', null))
+        && isValidLocation(request.resource.data.location);
 
       // Read: Public read if approved; Owner can read own doc regardless of status; Admins can read all
       allow read: if resource.data.status == 'approved'
@@ -40,17 +82,44 @@ service cloud.firestore {
         (
           request.auth.token.admin == true
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status', 'approvedAt', 'rejectionReason', 'adminNotes', 'name', 
-            'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt'
+            'status', 'approvedAt', 'rejectionReason', 'name', 
+            'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt',
+            'serviceType', 'socialLinks', 'location'
           ])
+          // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['serviceType']) || request.resource.data.get('serviceType', null) == null || (request.resource.data.serviceType is string && request.resource.data.serviceType.size() >= 2 && request.resource.data.serviceType.size() <= 40))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['socialLinks']) || isValidSocialLinks(request.resource.data.get('socialLinks', null)))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['location']) || isValidLocation(request.resource.data.location))
         ) || (
           resource.data.ownerId == request.auth.uid
           && resource.data.status == 'approved'
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profilePhotoUrl', 'description', 'updatedAt'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profilePhotoUrl', 'description', 'updatedAt', 'socialLinks'])
+          // FIX 3: Owner update description null or string <= 500
+          && (request.resource.data.description == null || (request.resource.data.description is string && request.resource.data.description.size() <= 500))
+          // FIX 4: profilePhotoUrl (when not null) must match cloudinary URL regex
+          && (request.resource.data.profilePhotoUrl == null || isValidCloudinaryUrl(request.resource.data.profilePhotoUrl))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['socialLinks']) || isValidSocialLinks(request.resource.data.get('socialLinks', null)))
+          // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
         )
       );
 
       // Delete: Admins only
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    match /businesses/{businessId}/private/{docId} {
+      allow create: if request.auth != null && docId == 'owner'
+        && getAfter(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid
+        && request.resource.data.keys().hasOnly(['ownerEmail'])
+        && (request.resource.data.ownerEmail == null
+            || request.resource.data.ownerEmail == request.auth.token.email);
+      allow read: if request.auth != null && (request.auth.token.admin == true
+        || get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid);
+      allow update: if false;
       allow delete: if request.auth != null && request.auth.token.admin == true;
     }
 
@@ -68,7 +137,22 @@ service cloud.firestore {
         && request.resource.data.photoUrls is list
         && request.resource.data.photoUrls.size() >= 1
         && request.resource.data.photoUrls.size() <= 5
-        && (!('caption' in request.resource.data) || request.resource.data.caption == null || request.resource.data.caption is string)
+        // FIX 4: Every photoUrl item must match Cloudinary URL regex with size guards
+        && isValidCloudinaryUrl(request.resource.data.photoUrls[0])
+        && (request.resource.data.photoUrls.size() < 2 || isValidCloudinaryUrl(request.resource.data.photoUrls[1]))
+        && (request.resource.data.photoUrls.size() < 3 || isValidCloudinaryUrl(request.resource.data.photoUrls[2]))
+        && (request.resource.data.photoUrls.size() < 4 || isValidCloudinaryUrl(request.resource.data.photoUrls[3]))
+        && (request.resource.data.photoUrls.size() < 5 || isValidCloudinaryUrl(request.resource.data.photoUrls[4]))
+        // FIX 3: keys().hasOnly([...]) and caption null or string <= 500
+        && request.resource.data.keys().hasOnly([
+          'businessId', 'businessName', 'businessCategory', 'ownerId', 
+          'photoUrls', 'caption', 'likeCount', 'createdAt', 'updatedAt', 'status'
+        ])
+        && (request.resource.data.caption == null || (request.resource.data.caption is string && request.resource.data.caption.size() <= 500))
+        // FIX 2: createdAt == request.time, updatedAt == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == null
+        // Cross-lookup to referenced business
         && exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId))
         && get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerId == request.auth.uid
         && get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.status == 'approved'
@@ -86,16 +170,23 @@ service cloud.firestore {
         (
           resource.data.ownerId == request.auth.uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['caption', 'updatedAt'])
-          && (request.resource.data.caption == null || request.resource.data.caption is string)
+          // FIX 3: caption null or string <= 500
+          && (request.resource.data.caption == null || (request.resource.data.caption is string && request.resource.data.caption.size() <= 500))
+          // FIX 2: require updatedAt == request.time when changed, forbid changing createdAt
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt)
         ) || (
+          // FIX 1: Require like document's state to actually change
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likeCount'])
           && (
             (
               request.resource.data.likeCount == resource.data.likeCount + 1
+              && !exists(/databases/$(database)/documents/posts/$(postId)/likes/$(request.auth.uid))
               && existsAfter(/databases/$(database)/documents/posts/$(postId)/likes/$(request.auth.uid))
             ) || (
               request.resource.data.likeCount == resource.data.likeCount - 1
               && request.resource.data.likeCount >= 0
+              && exists(/databases/$(database)/documents/posts/$(postId)/likes/$(request.auth.uid))
               && !existsAfter(/databases/$(database)/documents/posts/$(postId)/likes/$(request.auth.uid))
             )
           )
