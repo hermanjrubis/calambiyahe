@@ -33,17 +33,26 @@ import {
     deleteField
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
+// Set authDomain by hostname:
+// - on calzadaph.com (and www.calzadaph.com): "calzadaph.com"
+// - everywhere else (localhost, vercel.app previews): keep "calzada-web.firebaseapp.com"
+const isCalzadaDomain = typeof window !== 'undefined' && 
+    (window.location.hostname === 'calzadaph.com' || window.location.hostname === 'www.calzadaph.com');
+const authDomain = isCalzadaDomain ? 'calzadaph.com' : 'calzada-web.firebaseapp.com';
+
 // Default Firebase configuration fallback for pages that do not define window.FIREBASE_CONFIG in HTML
 if (!window.FIREBASE_CONFIG) {
     window.FIREBASE_CONFIG = {
         apiKey: "AIzaSyAKI7xRjkfajArFjWknW4IkvWwlkep5wj4",
-        authDomain: "calzada-web.firebaseapp.com",
+        authDomain,
         projectId: "calzada-web",
         storageBucket: "calzada-web.firebasestorage.app",
         messagingSenderId: "772241459557",
         appId: "1:772241459557:web:992e794b2936faa25db98c",
         measurementId: "G-D6QBPVQVZM"
     };
+} else {
+    window.FIREBASE_CONFIG.authDomain = authDomain;
 }
 
 const app = initializeApp(window.FIREBASE_CONFIG);
