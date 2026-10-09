@@ -364,12 +364,6 @@ const callGroqWithRetry = async (client, messages, retries = 2) => {
 
 app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 
-app.get('/api/config', (req, res) => {
-    res.json({
-        cartoApiKey: process.env.CARTO_API_KEY || ''
-    });
-});
-
 // In-memory places dataset loaded from server/data/places.json
 const placesDataPath = fs.existsSync(path.resolve(__dirname, 'data/places.json'))
     ? path.resolve(__dirname, 'data/places.json')

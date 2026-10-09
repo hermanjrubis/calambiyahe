@@ -202,7 +202,8 @@ service cloud.firestore {
       // Likes subcollection: Each user manages ONLY their own like document
       match /likes/{uid} {
         allow create: if request.auth != null && request.auth.uid == uid;
-        allow delete: if request.auth != null && request.auth.uid == uid;
+        allow delete: if request.auth != null
+          && (request.auth.uid == uid || request.auth.token.admin == true);
         allow read: if request.auth != null && request.auth.uid == uid;
         allow update: if false;
       }

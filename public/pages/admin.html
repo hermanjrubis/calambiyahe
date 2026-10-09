@@ -966,6 +966,31 @@
             background: #FFFBEB;
         }
 
+        .btn-card-delete {
+            background: transparent;
+            color: var(--danger);
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s ease;
+        }
+
+        .btn-card-delete:hover:not(:disabled) {
+            text-decoration: underline;
+        }
+
+        .btn-card-delete:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            text-decoration: none;
+        }
+
         .admin-item-thumb {
             width: 64px;
             height: 64px;
@@ -1782,6 +1807,7 @@
                                 <i class="ti ti-x"></i>
                                 <span>Reject</span>
                             </button>
+                            <button type="button" class="btn-card-delete" data-id="${bus.id}" data-name="${escapeHtml(bus.name || 'Business')}">Delete</button>
                         </div>
                     </div>
                 `;
@@ -1826,6 +1852,8 @@
                     rejectBusiness(id, name);
                 });
             });
+
+            attachCardDeleteListeners(container);
         }
 
         function renderApprovedList() {
@@ -1911,6 +1939,7 @@
                                 <i class="ti ti-map-pin"></i>
                                 <span>Places Guide</span>
                             </a>
+                            <button type="button" class="btn-card-delete" data-id="${bus.id}" data-name="${escapeHtml(bus.name || 'Business')}">Delete</button>
                         </div>
                     </div>
                 `;
@@ -1923,6 +1952,8 @@
                     unpublishBusiness(id, name);
                 });
             });
+
+            attachCardDeleteListeners(container);
         }
 
         async function approveBusiness(businessId, businessName) {
@@ -1987,24 +2018,171 @@
             }
         }
 
-        async function deleteBusiness(businessId, businessName) {
-            if (!confirm(`Are you sure you want to permanently delete "${businessName || businessId}"? This action cannot be undone.`)) {
-                return;
-            }
+        function attachCardDeleteListeners(container) {
+            container.querySelectorAll('.btn-card-delete').forEach(btn => {
+                let confirmTimer = null;
+                let isAwaitingConfirm = false;
+
+                const resetBtn = () => {
+                    if (confirmTimer) {
+                        clearTimeout(confirmTimer);
+                        confirmTimer = null;
+                    }
+                    isAwaitingConfirm = false;
+                    btn.textContent = 'Delete';
+                };
+
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    const name = btn.getAttribute('data-name');
+
+                    if (!isAwaitingConfirm) {
+                        isAwaitingConfirm = true;
+                        btn.textContent = 'Confirm delete?';
+                        confirmTimer = setTimeout(() => {
+                            resetBtn();
+                        }, 4000);
+                        return;
+                    }
+
+                    // Second click within 4 seconds: proceed with deletion
+                    resetBtn();
+                    await deleteBusiness(id, name, btn);
+                });
+            });
+        }
+
+        async function deleteBusiness(businessId, businessName, triggerBtn) {
+            const card = document.getElementById(`card-${businessId}`);
+            const cardButtons = card ? Array.from(card.querySelectorAll('button, a')) : [];
+            const deleteBtn = triggerBtn || (card ? card.querySelector('.btn-card-delete') : null);
+
+            // Clear any previous inline error on the card
+            const existingErr = card ? card.querySelector('.card-inline-error') : null;
+            if (existingErr) existingErr.remove();
+
+            // Disable all card actions and show "Deleting..."
+            cardButtons.forEach(b => {
+                b.disabled = true;
+                if (b.tagName === 'A') b.style.pointerEvents = 'none';
+            });
+            if (deleteBtn) deleteBtn.textContent = 'Deleting...';
 
             try {
-                const batch = writeBatch(db);
-                batch.delete(doc(db, "businesses", businessId));
-                batch.delete(doc(db, "businesses", businessId, "private", "owner"));
-                await batch.commit();
+                // 1. Fetch business doc to get profilePhotoUrl
+                const busDocRef = doc(db, "businesses", businessId);
+                const busSnap = await getDoc(busDocRef);
+                const busData = busSnap.exists() ? busSnap.data() : null;
+
+                const cloudinaryUrls = [];
+                if (busData?.profilePhotoUrl) {
+                    cloudinaryUrls.push(busData.profilePhotoUrl);
+                }
+
+                // 2. Fetch all posts where businessId == this business
+                const postsQuery = query(
+                    collection(db, "posts"),
+                    where("businessId", "==", businessId)
+                );
+                const postsSnap = await getDocs(postsQuery);
+
+                // Collect document references in order:
+                // - each post's likes
+                // - each post
+                // - businesses/{id}/private/owner
+                // - businesses/{id}
+                const docRefsToDelete = [];
+
+                for (const postDoc of postsSnap.docs) {
+                    const postData = postDoc.data();
+                    if (Array.isArray(postData?.photoUrls)) {
+                        cloudinaryUrls.push(...postData.photoUrls);
+                    } else if (postData?.photoUrl) {
+                        cloudinaryUrls.push(postData.photoUrl);
+                    }
+
+                    // Fetch likes subcollection for this post
+                    try {
+                        const likesSnap = await getDocs(collection(db, "posts", postDoc.id, "likes"));
+                        likesSnap.docs.forEach(likeDoc => {
+                            docRefsToDelete.push(doc(db, "posts", postDoc.id, "likes", likeDoc.id));
+                        });
+                    } catch (_) {
+                        if (auth.currentUser?.uid) {
+                            docRefsToDelete.push(doc(db, "posts", postDoc.id, "likes", auth.currentUser.uid));
+                        }
+                    }
+
+                    docRefsToDelete.push(doc(db, "posts", postDoc.id));
+                }
+
+                // Owner private document and business document
+                docRefsToDelete.push(doc(db, "businesses", businessId, "private", "owner"));
+                docRefsToDelete.push(busDocRef);
+
+                // Delete in batches of at most 400 writes
+                const BATCH_SIZE = 400;
+                for (let i = 0; i < docRefsToDelete.length; i += BATCH_SIZE) {
+                    const chunk = docRefsToDelete.slice(i, i + BATCH_SIZE);
+                    const batch = writeBatch(db);
+                    chunk.forEach(ref => batch.delete(ref));
+                    await batch.commit();
+                }
+
+                // Print referenced Cloudinary URLs to console (do NOT delete anything from Cloudinary)
+                console.log(`Cloudinary URLs referenced by "${businessName || businessId}":`, cloudinaryUrls);
+
+                // On success: remove card and update counts on the Overview
+                if (card) {
+                    card.remove();
+                }
+
+                pendingBusinesses = pendingBusinesses.filter(b => b.id !== businessId);
+                approvedBusinesses = approvedBusinesses.filter(b => b.id !== businessId);
+                updateMetrics();
+
+                if (pendingBusinesses.length === 0) {
+                    const emptyPending = document.getElementById('pendingEmptyState');
+                    if (emptyPending) emptyPending.style.display = 'block';
+                }
+                if (approvedBusinesses.length === 0) {
+                    const emptyApproved = document.getElementById('approvedEmptyState');
+                    if (emptyApproved) emptyApproved.style.display = 'block';
+                }
 
                 showAdminNotice(`"${businessName || businessId}" has been deleted.`, 'success');
-                await loadAdminData();
+
             } catch (err) {
-                console.error('Error deleting business:', err);
-                showAdminNotice(`Failed to delete "${businessName || businessId}": ${err.message}`, 'error');
+                console.error(`Error deleting business "${businessName || businessId}":`, err);
+
+                // Restore card buttons
+                cardButtons.forEach(b => {
+                    b.disabled = false;
+                    if (b.tagName === 'A') b.style.pointerEvents = '';
+                });
+                if (deleteBtn) deleteBtn.textContent = 'Delete';
+
+                // Show error inline on the card
+                if (card) {
+                    let inlineErr = card.querySelector('.card-inline-error');
+                    if (!inlineErr) {
+                        inlineErr = document.createElement('div');
+                        inlineErr.className = 'card-inline-error';
+                        inlineErr.style.color = 'var(--danger)';
+                        inlineErr.style.fontSize = '0.84rem';
+                        inlineErr.style.marginTop = '12px';
+                        inlineErr.style.padding = '8px 12px';
+                        inlineErr.style.border = '1px solid var(--danger)';
+                        inlineErr.style.borderRadius = 'var(--radius-sm)';
+                        card.appendChild(inlineErr);
+                    }
+                    inlineErr.textContent = `Failed to delete: ${err.message || 'An unexpected error occurred.'}`;
+                }
             }
         }
+
+        window.deleteBusiness = deleteBusiness;
+        window.attachCardDeleteListeners = attachCardDeleteListeners;
 
         // --- 4. Firebase Auth & Role Verification ---
         onAuthStateChanged(auth, async (user) => {
