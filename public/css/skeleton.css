@@ -14,9 +14,9 @@ html {
    ========================================================= */
 :root {
     --sk-base: #e6ecf4;        /* light gray-blue, sits between the site's #e2e8f0 border and #f0f4f9 surface */
-    --sk-highlight: #f5f8fc;   /* the band that travels across the block */
+    --sk-highlight: #edf2f8;   /* low contrast highlight, only slightly lighter than the base */
     --sk-radius: 8px;
-    --sk-speed: 1.4s;
+    --sk-speed: 1.6s;
 }
 
 @keyframes sk-shimmer {
@@ -52,11 +52,31 @@ html {
 @media (prefers-reduced-motion: reduce) {
     .skeleton,
     .skeleton-avatar,
-    .skeleton-line {
-        animation: none;
-        background-image: none;
-        background-color: var(--sk-base);
+    .skeleton-line,
+    .discover-card.is-skeleton .skeleton-media,
+    .discover-card.is-skeleton .skeleton-avatar,
+    .discover-card.is-skeleton .skeleton-line {
+        animation: none !important;
+        background-image: none !important;
+        background-color: var(--sk-base) !important;
     }
+    .discover-card.is-skeleton::after {
+        display: none !important;
+        animation: none !important;
+    }
+}
+
+/* Visually Hidden Screen Reader Only Utility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Shape Utilities */
@@ -184,52 +204,93 @@ html {
    PAGE-SPECIFIC CONTENT-SHAPED SKELETONS
    ========================================================= */
 
-/* 1. Discover Post Card Skeleton */
-.sk-discover-card {
-    display: flex;
-    flex-direction: column;
-    background: #FFFFFF;
-    border: 1px solid var(--border-color, #E2E8F0);
-    border-radius: var(--radius-md, 16px);
+/* 1. Discover Post Card Skeleton (Matches real .discover-card geometry 1:1) */
+.discover-card.is-skeleton {
+    position: relative;
+    user-select: none;
+    pointer-events: none;
     overflow: hidden;
-    margin-bottom: 28px;
 }
 
-@media (min-width: 768px) {
-    .sk-discover-card {
-        flex-direction: row;
-        height: 520px;
-    }
+/* One unified shimmer across the whole card: 1.6s linear, subtle highlight */
+.discover-card.is-skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.45) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: sk-shimmer 1.6s linear infinite;
+    pointer-events: none;
+    z-index: 10;
 }
 
-.sk-discover-media {
+.discover-card.is-skeleton .skeleton-media {
     width: 100%;
-    aspect-ratio: 16 / 10;
-    background-color: var(--sk-base);
+    height: 100%;
+    background-color: var(--sk-base, #e6ecf4);
+}
+
+.discover-card.is-skeleton .card-avatar.skeleton-avatar {
+    background-color: var(--sk-base, #e6ecf4);
+    border: none;
+}
+
+.discover-card.is-skeleton .skeleton-line {
+    background-color: var(--sk-base, #e6ecf4);
+    border-radius: 4px;
+    display: block;
+}
+
+.discover-card.is-skeleton .sk-line-name {
+    width: 45%;
+    height: 14px;
+}
+
+.discover-card.is-skeleton .sk-line-category {
+    width: 30%;
+    height: 11px;
+    margin-top: 5px;
+}
+
+.discover-card.is-skeleton .sk-line-time {
+    width: 48px;
+    height: 11px;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
-@media (min-width: 768px) {
-    .sk-discover-media {
-        width: 60%;
-        height: 100%;
-        aspect-ratio: auto;
-    }
+.discover-card.is-skeleton .card-body {
+    gap: 10px;
+    min-height: 72.16px;
 }
 
-.sk-discover-info {
-    width: 100%;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-sizing: border-box;
+.discover-card.is-skeleton .sk-line-caption-1 {
+    width: 92%;
+    height: 12px;
+    margin-top: 5px;
 }
 
-@media (min-width: 768px) {
-    .sk-discover-info {
-        width: 40%;
-        height: 100%;
+.discover-card.is-skeleton .sk-line-caption-2 {
+    width: 70%;
+    height: 12px;
+    margin-bottom: 5px;
+}
+
+.discover-card.is-skeleton .sk-line-like {
+    width: 56px;
+    height: 14px;
+    margin: 7px 0;
+}
+
+/* Feed layout rules for skeletons: 2 on desktop, 1 on mobile */
+@media (max-width: 767px) {
+    .discover-feed .discover-card.is-skeleton ~ .discover-card.is-skeleton {
+        display: none;
     }
 }
 

@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <script>document.documentElement.classList.add('js-reveal');</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Calzada - Your Commuting Guide in Calamba</title>
@@ -603,14 +604,14 @@
         <section class="features-zigzag-section" id="featuresSection">
             <div class="features-zigzag-container">
                 <!-- Section Header -->
-                <div class="features-header">
+                <div class="features-header reveal">
                     <span class="features-pill">CALZADA FEATURES</span>
                     <h2 class="features-header-title">Everything you need to explore Calamba</h2>
                     <p class="features-header-subtitle">Five powerful features, one seamless experience.</p>
                 </div>
 
                 <!-- Feature 1: Ask Routie (Text Left / Visual Right) -->
-                <div class="feature-row">
+                <div class="feature-row reveal">
                     <div class="feature-text-block">
                         <span class="feature-tag">AI ASSISTANT</span>
                         <h3 class="feature-title">Ask Routie – Your AI Assistant</h3>
@@ -669,7 +670,7 @@
                 </div>
 
                 <!-- Feature 2: Smart Route Planning (Visual Left / Text Right via reverse) -->
-                <div class="feature-row reverse">
+                <div class="feature-row reverse reveal">
                     <div class="feature-text-block">
                         <span class="feature-tag">NAVIGATION</span>
                         <h3 class="feature-title">Smart Route Planning</h3>
@@ -709,7 +710,7 @@
                 </div>
 
                 <!-- Feature 3: See It Before You Go — 360° Street View (Text Left / Visual Right) -->
-                <div class="feature-row">
+                <div class="feature-row reveal">
                     <div class="feature-text-block">
                         <span class="feature-tag">STREET VIEW</span>
                         <h3 class="feature-title">See It Before You Go — 360° Street View</h3>
@@ -727,7 +728,7 @@
                 </div>
 
                 <!-- Feature 4: Save & Track Your Favorites (Visual Left / Text Right via reverse) -->
-                <div class="feature-row reverse">
+                <div class="feature-row reverse reveal">
                     <div class="feature-text-block">
                         <span class="feature-tag">EXPLORATION</span>
                         <h3 class="feature-title">Save &amp; Track Your Favorites</h3>
@@ -804,7 +805,7 @@
                 </div>
 
                 <!-- Feature 5: Discover Places to Visit (Text Left / Visual Right) -->
-                <div class="feature-row">
+                <div class="feature-row reveal">
                     <div class="feature-text-block">
                         <span class="feature-tag">DISCOVERY</span>
                         <h3 class="feature-title">Discover Places to Visit</h3>
@@ -1183,12 +1184,12 @@
 
 
         <!-- Section: Featured Places Hover-Expand Gallery -->
-        <section class="featured-gallery">
-            <div class="featured-gallery-header">
+        <section class="featured-gallery" id="featured-gallery">
+            <div class="featured-gallery-header reveal">
                 <h2>Discover Calamba</h2>
                 <p>A few places worth checking out, picked from what commuters are exploring.</p>
             </div>
-            <div class="featured-gallery-row" id="featuredGalleryRow">
+            <div class="featured-gallery-row reveal" id="featuredGalleryRow">
                 <div class="gallery-item skeleton" aria-hidden="true"></div>
                 <div class="gallery-item skeleton" aria-hidden="true"></div>
                 <div class="gallery-item skeleton" aria-hidden="true"></div>
@@ -1202,8 +1203,8 @@
         </section>
 
         <!-- Section: Closing CTA (Fix 6) -->
-        <section class="closing-cta-section">
-            <div class="closing-cta-card">
+        <section class="closing-cta-section" id="closing-cta-section">
+            <div class="closing-cta-card reveal">
                 <h2>Ready to explore Calamba?</h2>
                 <p>Search a place and start your trip in seconds.</p>
                 <a href="/places" class="closing-cta-btn">Start Searching</a>
@@ -1326,19 +1327,7 @@
                 if (progressBar) progressBar.style.width = (total > 0 ? (scrolled / total) * 100 : 0) + '%';
             };
 
-            // IntersectionObserver for reveal animations
-            const revealEls = document.querySelectorAll(
-                '.reveal, .reveal-left, .reveal-right, .reveal-scale, .features-bar, .news-section, .fare-section'
-            );
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('active');
-                    }
-                });
-            }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
 
-            revealEls.forEach(el => observer.observe(el));
 
             // Parallax on hero content
             const heroContent = document.querySelector('.hero-content');

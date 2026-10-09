@@ -39,18 +39,42 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // === SCROLL REVEAL ANIMATION ===
+    // === SCROLL REVEAL SYSTEM (ONE SHARED INTERSECTIONOBSERVER) ===
     const revealElements = document.querySelectorAll('.reveal');
-    const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('active');
-            } else {
-                entry.target.classList.remove('active');
-            }
+    if (revealElements.length > 0) {
+        let isInitialLoad = true;
+        const revealObserver = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    if (isInitialLoad) {
+                        // Elements already inside viewport on page load appear immediately without animation delay
+                        el.classList.add('immediate-reveal', 'active');
+                        requestAnimationFrame(() => {
+                            setTimeout(() => {
+                                el.classList.remove('immediate-reveal');
+                            }, 50);
+                        });
+                    } else {
+                        el.classList.add('active');
+                    }
+                    obs.unobserve(el);
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -10% 0px'
         });
-    }, { threshold: 0.1 });
-    revealElements.forEach(el => revealObserver.observe(el));
+
+        revealElements.forEach(el => revealObserver.observe(el));
+
+        // After initial check on page load, subsequent reveals use smooth transitions
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                isInitialLoad = false;
+            }, 100);
+        });
+    }
 
     // === FEATURES BAR TOGGLE (Mobile) ===
     const featuresBar = document.querySelector('.features-bar');

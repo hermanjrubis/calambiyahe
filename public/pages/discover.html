@@ -236,13 +236,18 @@
         /* Photo / Media Panel */
         .card-media-panel {
             width: 100%;
-            background: #091E33;
+            background-color: var(--sk-base, #e6ecf4);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             user-select: none;
             overflow: hidden;
+            transition: background-color 200ms ease;
+        }
+
+        .card-media-panel.media-loaded {
+            background-color: #091E33;
         }
 
         .card-media-wrap {
@@ -260,6 +265,12 @@
             height: 100%;
             object-fit: cover;
             display: block;
+            opacity: 0;
+            transition: opacity 200ms ease;
+        }
+
+        .card-media-img.loaded {
+            opacity: 1;
         }
 
         /* Carousel Controls attached inside Photo Panel */
@@ -713,43 +724,12 @@
         </div>
 
         <!-- Feed List -->
-        <div class="discover-feed" id="discoverFeed">
+        <div class="discover-feed" id="discoverFeed" aria-busy="false">
             <!-- Populated via JS -->
         </div>
 
-        <!-- Loading Skeleton Feed -->
-        <div id="feedLoading" role="status" aria-live="polite">
-            <div class="sk-discover-card">
-                <div class="sk-discover-media skeleton"></div>
-                <div class="sk-discover-info">
-                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                        <div class="skeleton" style="width:38px;height:38px;border-radius:50%;flex-shrink:0;"></div>
-                        <div style="flex:1;">
-                            <div class="skeleton" style="width:55%;height:14px;margin-bottom:6px;"></div>
-                            <div class="skeleton" style="width:35%;height:11px;"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton" style="width:92%;height:12px;margin-bottom:8px;"></div>
-                    <div class="skeleton" style="width:78%;height:12px;margin-bottom:8px;"></div>
-                    <div class="skeleton" style="width:40%;height:12px;margin-top:auto;"></div>
-                </div>
-            </div>
-            <div class="sk-discover-card">
-                <div class="sk-discover-media skeleton"></div>
-                <div class="sk-discover-info">
-                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                        <div class="skeleton" style="width:38px;height:38px;border-radius:50%;flex-shrink:0;"></div>
-                        <div style="flex:1;">
-                            <div class="skeleton" style="width:48%;height:14px;margin-bottom:6px;"></div>
-                            <div class="skeleton" style="width:30%;height:11px;"></div>
-                        </div>
-                    </div>
-                    <div class="skeleton" style="width:88%;height:12px;margin-bottom:8px;"></div>
-                    <div class="skeleton" style="width:70%;height:12px;margin-bottom:8px;"></div>
-                    <div class="skeleton" style="width:50%;height:12px;margin-top:auto;"></div>
-                </div>
-            </div>
-        </div>
+        <!-- Visually hidden status for screen readers -->
+        <div class="sr-only" role="status" id="feedStatus" aria-live="polite"></div>
 
         <!-- Empty State -->
         <div class="feed-empty-state" id="feedEmptyState" style="display: none;">
@@ -792,10 +772,76 @@
         const PAGE_SIZE = 12;
 
         const discoverFeed = document.getElementById('discoverFeed');
-        const feedLoading = document.getElementById('feedLoading');
         const feedEmptyState = document.getElementById('feedEmptyState');
         const paginationWrap = document.getElementById('paginationWrap');
         const btnLoadMore = document.getElementById('btnLoadMore');
+        let skeletonTimer = null;
+
+        function getSkeletonCardHtml() {
+            return `
+            <article class="discover-card is-skeleton" aria-hidden="true">
+                <div class="card-media-panel">
+                    <div class="card-media-wrap">
+                        <div class="skeleton-media"></div>
+                    </div>
+                </div>
+                <div class="card-info-panel">
+                    <div class="card-header">
+                        <div class="card-header-left">
+                            <div class="card-avatar skeleton-avatar"></div>
+                            <div class="card-bus-info">
+                                <div class="card-bus-name-row">
+                                    <div class="skeleton-line sk-line-name"></div>
+                                </div>
+                                <div class="skeleton-line sk-line-category"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-line sk-line-time"></div>
+                    </div>
+                    <div class="card-body">
+                        <div class="skeleton-line sk-line-caption-1"></div>
+                        <div class="skeleton-line sk-line-caption-2"></div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="skeleton-line sk-line-like"></div>
+                    </div>
+                </div>
+            </article>
+            `;
+        }
+
+        function showSkeletons() {
+            if (!discoverFeed) return;
+            discoverFeed.setAttribute('aria-busy', 'true');
+            const statusEl = document.getElementById('feedStatus');
+            if (statusEl) statusEl.textContent = 'Loading posts';
+
+            const count = window.innerWidth >= 768 ? 2 : 1;
+            let skHtml = '';
+            for (let i = 0; i < count; i++) {
+                skHtml += getSkeletonCardHtml();
+            }
+            discoverFeed.innerHTML = skHtml;
+        }
+
+        function clearSkeletons() {
+            if (skeletonTimer) {
+                clearTimeout(skeletonTimer);
+                skeletonTimer = null;
+            }
+            if (discoverFeed) {
+                discoverFeed.setAttribute('aria-busy', 'false');
+            }
+            const statusEl = document.getElementById('feedStatus');
+            if (statusEl) statusEl.textContent = '';
+        }
+
+        window.onMediaImgLoaded = function(img) {
+            if (!img) return;
+            img.classList.add('loaded');
+            const panel = img.closest('.card-media-panel');
+            if (panel) panel.classList.add('media-loaded');
+        };
 
         const navSignInBtn = document.getElementById('navSignInBtn');
         const navUserPill = document.getElementById('navUserPill');
@@ -927,9 +973,12 @@
             isFetching = true;
 
             if (!isLoadMore) {
-                feedLoading.style.display = 'flex';
                 feedEmptyState.style.display = 'none';
-                paginationWrap.style.display = 'none';
+                if (paginationWrap) paginationWrap.style.display = 'none';
+                // If posts arrive in under 150ms, do not show the skeleton at all
+                skeletonTimer = setTimeout(() => {
+                    showSkeletons();
+                }, 150);
             } else {
                 btnLoadMore.disabled = true;
                 btnLoadMore.textContent = 'Loading...';
@@ -990,6 +1039,8 @@
                         p.profilePhotoUrl = photoMap.get(p.businessId) || null;
                     });
 
+                    clearSkeletons();
+
                     if (isLoadMore) {
                         postsData = postsData.concat(newPosts);
                         appendPostsToFeed(newPosts);
@@ -1004,6 +1055,7 @@
 
                 } else {
                     hasMorePosts = false;
+                    clearSkeletons();
                     if (!isLoadMore) {
                         postsData = [];
                         discoverFeed.innerHTML = '';
@@ -1017,6 +1069,7 @@
 
             } catch (err) {
                 console.error('Error loading discover feed:', err);
+                clearSkeletons();
                 if (!isLoadMore) {
                     discoverFeed.innerHTML = `
                         <div class="quiet-error-state">
@@ -1026,10 +1079,12 @@
                     `;
                 }
             } finally {
+                clearSkeletons();
                 isFetching = false;
-                feedLoading.style.display = 'none';
-                btnLoadMore.disabled = false;
-                btnLoadMore.textContent = 'Load more';
+                if (btnLoadMore) {
+                    btnLoadMore.disabled = false;
+                    btnLoadMore.textContent = 'Load more';
+                }
             }
         }
 
@@ -1130,7 +1185,7 @@
             // Media / Carousel rendering inside .card-media-panel. A post with no usable
             // photo gets a neutral panel rather than a broken-image icon.
             let mediaInnerHtml = isUsableImageUrl(currentPhoto)
-                ? `<img src="${escapeHtml(currentPhoto)}" alt="Post photo" class="card-media-img" id="media-img-${post.id}" onerror="showMediaFallback('${post.id}')">`
+                ? `<img src="${escapeHtml(currentPhoto)}" alt="Post photo" class="card-media-img" id="media-img-${post.id}" onload="onMediaImgLoaded(this)" onerror="showMediaFallback('${post.id}')">`
                 : mediaFallbackHtml();
 
             if (isMulti) {
@@ -1198,6 +1253,14 @@
 
         // 6. Attach Card Event Listeners (Carousels & Likes)
         function attachCardListeners(container) {
+            // Media Image loaded transition
+            container.querySelectorAll('.card-media-img').forEach(img => {
+                if (img.complete && img.naturalWidth > 0) {
+                    onMediaImgLoaded(img);
+                } else {
+                    img.addEventListener('load', () => onMediaImgLoaded(img), { once: true });
+                }
+            });
             // Carousel Prev
             container.querySelectorAll('.carousel-prev').forEach(btn => {
                 btn.addEventListener('click', (e) => {
@@ -1367,6 +1430,13 @@
                 loadDiscoverFeed(true);
             });
         }
+
+        // Expose helpers for testing and verification
+        window.generatePostCardHtml = generatePostCardHtml;
+        window.getSkeletonCardHtml = getSkeletonCardHtml;
+        window.showSkeletons = showSkeletons;
+        window.clearSkeletons = clearSkeletons;
+        window.attachCardListeners = attachCardListeners;
 
         // Initial Load
         loadDiscoverFeed(false);
