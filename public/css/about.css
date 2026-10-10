@@ -4,6 +4,11 @@
    No lines / no dividers, one 1120px container, Sora typography
    ========================================================================== */
 
+:root {
+    --biz-spring: cubic-bezier(.34, 1.56, .64, 1);
+    --biz-out:    cubic-bezier(.22, 1, .36, 1);
+}
+
 /* Floating header backdrop strip: hides scrolling content above the scrolled nav pill */
 body.about-page::before {
     content: '';
@@ -61,7 +66,7 @@ body.about-page .about-page-container {
 /* Section headings */
 .about-section-heading {
     font-family: 'Sora', sans-serif;
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 600;
     color: #0E2A47;
     line-height: 1.25;
@@ -81,7 +86,7 @@ body.about-page .about-page-container {
 
 /* Body typography */
 .about-body-text {
-    font-size: 20px;
+    font-size: 17px;
     line-height: 1.7;
     color: #3D5068;
     text-align: left;
@@ -99,7 +104,7 @@ body.about-page .about-page-container {
 
 .about-main-title {
     font-family: 'Sora', sans-serif;
-    font-size: 56px;
+    font-size: 44px;
     font-weight: 700;
     letter-spacing: -0.03em;
     color: #0E2A47;
@@ -110,9 +115,9 @@ body.about-page .about-page-container {
 
 .about-lead-text {
     font-family: 'Sora', sans-serif;
-    font-size: 30px;
+    font-size: 22px;
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.45;
     color: #0E2A47;
     max-width: 1000px;
     margin: 0 0 40px 0;
@@ -127,8 +132,8 @@ body.about-page .about-page-container {
 }
 
 .about-intro-p {
-    font-size: 18px;
-    line-height: 1.7;
+    font-size: 17px;
+    line-height: 1.65;
     color: #3D5068;
     text-align: left;
     margin: 0;
@@ -240,22 +245,31 @@ body.about-page .about-page-container {
     min-width: 0;
 }
 
+/* Non-draggable icons and logos */
+.logo-img,
+.drawer-logo,
+.about-plain-row-icon img,
+.about-routie-avatar img {
+    -webkit-user-drag: none;
+    user-select: none;
+}
+
 .about-routie-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #F0F6FC;
+    width: 56px;
+    height: 56px;
+    border-radius: 0;
+    background: transparent;
     flex-shrink: 0;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .about-routie-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
 }
 
 .about-routie-info {
@@ -308,6 +322,742 @@ body.about-page .about-page-container {
 }
 
 /* --------------------------------------------------------------------------
+   4b. For local businesses (interactive walkthrough)
+   -------------------------------------------------------------------------- */
+.about-business-link {
+    display: inline-block;
+    color: #378ADD;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    margin-top: 12px;
+    width: fit-content;
+    transition: text-decoration 0.15s ease;
+}
+
+.about-business-link:hover {
+    text-decoration: underline;
+}
+
+.about-business-link:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+.about-business-walkthrough {
+    width: 100%;
+    position: relative;
+}
+
+/* Travelling Route Marker & Fill (Desktop >= 900px) */
+.about-business-route-marker {
+    position: absolute;
+    top: 0;
+    left: -2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: #378ADD;
+    box-shadow: 0 0 0 3px var(--bg, #f0f6fc);
+    z-index: 4;
+    pointer-events: none;
+    transition: transform 560ms var(--biz-spring);
+}
+
+.about-business-route-fill {
+    position: absolute;
+    left: 5px;
+    width: 2px;
+    background-color: #378ADD;
+    transform-origin: top center;
+    transition: transform 460ms var(--biz-out);
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* Step items & buttons */
+.about-business-step-item {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.about-business-step-btn {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 16px;
+    width: 100%;
+    padding: 14px 12px 14px 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 8px;
+    font-family: inherit;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.about-business-step-btn:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+.about-business-step-btn:active {
+    transform: scale(0.98);
+}
+
+/* Stop marker with 12px dot and vertical dashed line */
+.about-business-stop-marker {
+    position: relative;
+    align-self: stretch;
+    width: 12px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.about-business-stop-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    border: 2px solid #CBD5E1;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    z-index: 2;
+    position: relative;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.about-business-step-btn[aria-selected="true"] .about-business-stop-dot,
+.about-business-step-btn[aria-expanded="true"] .about-business-stop-dot,
+.about-business-step-btn.active .about-business-stop-dot {
+    background-color: #378ADD;
+    border-color: #378ADD;
+}
+
+/* Visited step dot */
+.about-business-step-btn.visited .about-business-stop-dot {
+    background-color: #378ADD;
+    border-color: #378ADD;
+}
+
+.about-business-stop-connector {
+    position: absolute;
+    top: 17px;
+    bottom: -33px;
+    left: 5px;
+    width: 0;
+    border-left: 2px dashed #9CC3EC;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.about-business-step-item:last-child .about-business-stop-connector {
+    display: none;
+}
+
+.about-business-step-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+    transition: transform 160ms ease-out;
+}
+
+.about-business-step-btn:hover .about-business-step-content {
+    transform: translateX(3px);
+}
+
+.about-business-step-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: #64748B;
+    line-height: 1.3;
+    margin: 0;
+    transition: color 0.15s ease;
+}
+
+.about-business-step-btn:hover .about-business-step-title {
+    color: #0E2A47;
+}
+
+.about-business-step-btn[aria-selected="true"] .about-business-step-title,
+.about-business-step-btn[aria-expanded="true"] .about-business-step-title,
+.about-business-step-btn.active .about-business-step-title {
+    color: #0E2A47;
+}
+
+.about-business-step-desc {
+    font-size: 15px;
+    color: #64748B;
+    line-height: 1.4;
+    margin: 0;
+}
+
+.about-business-step-chevron {
+    display: none;
+}
+
+/* Gray FAQ link under step list */
+.about-business-faq-link {
+    display: inline-block;
+    color: #64748B;
+    font-size: 14px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: color 0.15s ease;
+    width: fit-content;
+}
+
+.about-business-faq-link:hover {
+    color: #0E2A47;
+}
+
+.about-business-faq-link:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+/* Preview Caption & Card */
+.about-business-preview-caption {
+    font-size: 13px;
+    color: #64748B;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.about-business-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 24px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+}
+
+/* Panel entrance motion */
+@keyframes bizPop {
+    0% {
+        opacity: 0;
+        transform: translateY(18px) scale(0.94);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-4px) scale(1.015);
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.about-business-panel.active .about-business-card {
+    animation: bizPop 520ms var(--biz-spring) both;
+    transform-origin: 50% 0;
+}
+
+/* Staggered Content Animation */
+@keyframes bizChildRise {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.about-business-panel.active .about-business-card > *:not(.about-preview-fields),
+.about-business-panel.active .about-preview-fields > * {
+    animation: bizChildRise 380ms var(--biz-out) both;
+}
+
+.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(1),
+.about-business-panel.active .about-preview-fields > *:nth-child(1) {
+    animation-delay: 120ms;
+}
+
+.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(2),
+.about-business-panel.active .about-preview-fields > *:nth-child(2) {
+    animation-delay: 180ms;
+}
+
+.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(3),
+.about-business-panel.active .about-preview-fields > *:nth-child(3) {
+    animation-delay: 240ms;
+}
+
+.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(4),
+.about-business-panel.active .about-preview-fields > *:nth-child(4) {
+    animation-delay: 300ms;
+}
+
+.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(5),
+.about-business-panel.active .about-preview-fields > *:nth-child(5) {
+    animation-delay: 360ms;
+}
+
+/* Step 1: Register fields */
+.about-preview-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.about-preview-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.about-preview-field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0E2A47;
+    margin: 0;
+}
+
+.about-preview-field-box {
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: #0E2A47;
+    background: #FFFFFF;
+    user-select: text;
+}
+
+.about-preview-pin-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #378ADD;
+    margin-top: 2px;
+}
+
+/* Step 2: Review */
+.about-preview-biz-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #0E2A47;
+    margin: 0 0 6px 0;
+}
+
+.about-preview-status-line {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #64748B;
+    margin-bottom: 12px;
+}
+
+.about-preview-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.about-preview-status-dot.pending {
+    background-color: #D97706;
+}
+
+.about-preview-status-dot.approved {
+    background-color: #16A34A;
+}
+
+.about-preview-notice {
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+}
+
+.about-preview-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+}
+
+.about-preview-dl-row {
+    display: flex;
+    align-items: baseline;
+    font-size: 14px;
+}
+
+.about-preview-dt {
+    width: 110px;
+    flex-shrink: 0;
+    color: #64748B;
+    margin: 0;
+}
+
+.about-preview-dd {
+    color: #0E2A47;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Step 3: Profile */
+.about-preview-profile-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+}
+
+.about-preview-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background: #F0F6FC;
+    border: 1px solid #CBD5E1;
+    color: #378ADD;
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.about-preview-desc {
+    font-size: 14px;
+    color: #3D5068;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+}
+
+.about-preview-socials {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #E2E8F0;
+    flex-wrap: wrap;
+}
+
+.about-preview-social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+}
+
+.about-preview-social-link svg {
+    fill: currentColor;
+}
+
+/* Step 4: Discover Post */
+.about-business-card.post-preview {
+    padding: 0;
+    overflow: hidden;
+}
+
+.about-preview-post-media {
+    width: 100%;
+    height: 108px;
+    background-color: #E6ECF4;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-preview-post-media .ti-photo {
+    font-size: 28px;
+    color: #9FB3CC;
+}
+
+.about-preview-post-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+}
+
+.about-preview-post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.about-preview-post-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: #F0F6FC;
+    border: 1px solid #CBD5E1;
+    color: #378ADD;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.about-preview-post-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.about-preview-post-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0E2A47;
+    line-height: 1.3;
+}
+
+.about-preview-post-sub {
+    font-size: 12px;
+    color: #64748B;
+    margin-top: 2px;
+}
+
+.about-preview-post-caption {
+    font-size: 13.5px;
+    color: #0E2A47;
+    line-height: 1.45;
+    margin: 0;
+}
+
+.about-preview-post-footer {
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+}
+
+.about-preview-like-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748B;
+}
+
+/* Desktop layout (>= 900px) */
+@media (min-width: 900px) {
+    .about-business-walkthrough {
+        display: grid;
+        grid-template-columns: minmax(260px, 4fr) minmax(340px, 6fr);
+        gap: 0 48px;
+        align-items: start;
+        position: relative;
+    }
+
+    .about-business-step-item {
+        display: contents;
+    }
+
+    .about-business-step-item[data-step="0"] .about-business-step-btn { grid-row: 1; grid-column: 1; }
+    .about-business-step-item[data-step="1"] .about-business-step-btn { grid-row: 2; grid-column: 1; }
+    .about-business-step-item[data-step="2"] .about-business-step-btn { grid-row: 3; grid-column: 1; }
+    .about-business-step-item[data-step="3"] .about-business-step-btn { grid-row: 4; grid-column: 1; }
+
+    .about-business-faq-link {
+        grid-row: 5;
+        grid-column: 1;
+        margin-top: 24px;
+    }
+
+    .about-business-panel {
+        grid-row: 1 / span 5;
+        grid-column: 2;
+        width: 100%;
+        position: relative;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transition: opacity 120ms ease, visibility 120ms ease;
+    }
+
+    .about-business-panel.active {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    /* Without JavaScript on desktop: show all stacked */
+    html:not(.js-enabled) .about-business-walkthrough {
+        display: block;
+    }
+    html:not(.js-enabled) .about-business-step-item {
+        display: block;
+        margin-bottom: 32px;
+    }
+    html:not(.js-enabled) .about-business-panel {
+        display: block;
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        position: static;
+        margin-top: 12px;
+    }
+}
+
+/* Mobile & Tablet (< 900px): Accordion Layout */
+@media (max-width: 899px) {
+    .about-business-walkthrough {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .about-business-route-marker,
+    .about-business-route-fill,
+    .about-business-stop-connector {
+        display: none;
+    }
+
+    .about-business-step-item {
+        border-bottom: 1px solid #E2E8F0;
+        padding-bottom: 0;
+    }
+
+    .about-business-step-btn {
+        min-height: 48px;
+        padding: 16px 0;
+        align-items: flex-start;
+    }
+
+    .about-business-stop-marker {
+        margin-top: 5px;
+    }
+
+    .about-business-stop-dot {
+        margin-top: 0;
+    }
+
+    .about-business-stop-dot::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.22);
+        opacity: 0;
+        transform: scale(0.6);
+        transition: transform 320ms var(--biz-spring), opacity 320ms var(--biz-spring);
+        pointer-events: none;
+    }
+
+    .about-business-step-btn[aria-selected="true"] .about-business-stop-dot::after,
+    .about-business-step-btn[aria-expanded="true"] .about-business-stop-dot::after,
+    .about-business-step-btn.active .about-business-stop-dot::after {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .about-business-step-btn.visited .about-business-stop-dot::after {
+        opacity: 0;
+        transform: scale(0.6);
+    }
+
+    .about-business-step-chevron {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748B;
+        transition: transform 320ms var(--biz-spring);
+        margin-left: auto;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .about-business-step-btn[aria-expanded="true"] .about-business-step-chevron,
+    .about-business-step-btn.active .about-business-step-chevron {
+        transform: rotate(180deg);
+    }
+
+    .about-business-panel {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 360ms var(--biz-out), visibility 360ms var(--biz-out), padding-bottom 360ms var(--biz-out);
+        visibility: hidden;
+        padding-bottom: 0;
+    }
+
+    .about-business-panel.active {
+        grid-template-rows: 1fr;
+        visibility: visible;
+        padding-bottom: 20px;
+    }
+
+    .about-business-panel-inner {
+        overflow: hidden;
+        min-height: 0;
+        width: 100%;
+    }
+
+    .about-business-faq-link {
+        margin-top: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .about-business-route-marker,
+    .about-business-route-fill,
+    .about-business-panel,
+    .about-business-step-chevron,
+    .about-business-step-btn,
+    .about-business-step-content,
+    .about-business-stop-dot,
+    .about-business-stop-dot::after {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    .about-business-panel.active .about-business-card,
+    .about-business-panel.active .about-business-card > *,
+    .about-business-panel.active .about-preview-fields > * {
+        animation: none !important;
+    }
+}
+
+html:not(.js-enabled) .about-business-route-marker,
+html:not(.js-enabled) .about-business-route-fill {
+    display: none !important;
+}
+
+html:not(.js-enabled) .about-business-panel {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    grid-template-rows: 1fr !important;
+}
+
+html:not(.js-enabled) .about-business-panel-inner {
+    overflow: visible !important;
+}
+
+/* --------------------------------------------------------------------------
    5. Why Calzada?
    -------------------------------------------------------------------------- */
 .about-why-grid {
@@ -325,7 +1075,7 @@ body.about-page .about-page-container {
 
 .about-why-title {
     font-family: 'Sora', sans-serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: #0E2A47;
     margin: 0;
@@ -369,7 +1119,7 @@ body.about-page .about-page-container {
 }
 
 .about-team-capstone {
-    font-size: 18px;
+    font-size: 16px;
     color: #3D5068;
     line-height: 1.6;
     margin: 0 0 28px 0;
@@ -432,7 +1182,7 @@ body.about-page .about-page-container {
 
 .about-cta-title {
     font-family: 'Sora', sans-serif;
-    font-size: 36px;
+    font-size: 30px;
     font-weight: 700;
     color: #FFFFFF;
     line-height: 1.2;
@@ -441,7 +1191,7 @@ body.about-page .about-page-container {
 }
 
 .about-cta-sub {
-    font-size: 18px;
+    font-size: 16px;
     color: #FFFFFF;
     line-height: 1.5;
     margin: 0;
@@ -507,13 +1257,28 @@ body.about-page .about-page-container {
         padding: 40px 0;
     }
 
+    .about-main-title {
+        font-size: 38px;
+    }
+
+    .about-lead-text {
+        font-size: 20px;
+        line-height: 1.45;
+    }
+
+    .about-intro-p,
+    .about-body-text {
+        font-size: 16.5px;
+        line-height: 1.65;
+    }
+
     .about-grid-section {
         grid-template-columns: 1fr;
         gap: 20px;
     }
 
     .about-section-heading {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .about-intro-cols {
@@ -538,6 +1303,10 @@ body.about-page .about-page-container {
         gap: 28px;
     }
 
+    .about-cta-title {
+        font-size: 27px;
+    }
+
     .btn-about-cta {
         width: 100%;
         text-align: center;
@@ -555,24 +1324,24 @@ body.about-page .about-page-container {
     }
 
     .about-main-title {
-        font-size: 40px;
+        font-size: 32px;
         margin-bottom: 16px;
     }
 
     .about-lead-text {
-        font-size: 24px;
-        line-height: 1.35;
+        font-size: 19px;
+        line-height: 1.45;
         margin-bottom: 28px;
     }
 
     .about-intro-p,
     .about-body-text {
-        font-size: 17px;
+        font-size: 16px;
         line-height: 1.65;
     }
 
     .about-section-heading {
-        font-size: 24px;
+        font-size: 21px;
     }
 
     .about-item-list-grid {
@@ -604,7 +1373,7 @@ body.about-page .about-page-container {
     }
 
     .about-cta-title {
-        font-size: 28px;
+        font-size: 24px;
     }
 
     .about-cta-sub {

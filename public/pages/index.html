@@ -1498,6 +1498,37 @@
                 }).join('');
 
                 galleryRow.innerHTML = html;
+                if (galleryRow.classList.contains('active')) {
+                    setTimeout(clearAllGalleryDelays, 1300);
+                }
+            }
+
+            // Remove reveal delay once each item has revealed so hover is never delayed
+            galleryRow.addEventListener('transitionend', function (e) {
+                if (e.propertyName === 'transform') {
+                    const item = e.target.closest('.gallery-item');
+                    if (item) {
+                        item.style.transitionDelay = '0s';
+                        item.classList.add('revealed');
+                    }
+                }
+            });
+
+            function clearAllGalleryDelays() {
+                galleryRow.querySelectorAll('.gallery-item').forEach(item => {
+                    item.style.transitionDelay = '0s';
+                    item.classList.add('revealed');
+                });
+            }
+
+            const galleryObserver = new MutationObserver(() => {
+                if (galleryRow.classList.contains('active')) {
+                    setTimeout(clearAllGalleryDelays, 1300);
+                }
+            });
+            galleryObserver.observe(galleryRow, { attributes: true, attributeFilter: ['class'] });
+            if (galleryRow.classList.contains('active')) {
+                setTimeout(clearAllGalleryDelays, 1300);
             }
 
             async function loadFeaturedPlaces() {
@@ -2051,21 +2082,31 @@
                 }
             }
 
+            function scheduleViewerInit() {
+                if ('requestIdleCallback' in window) {
+                    requestIdleCallback(() => loadViewer());
+                } else {
+                    setTimeout(loadViewer, 200);
+                }
+            }
+
             const viewerEl = document.getElementById('panorama-viewer');
+            const featuresSection = document.getElementById('featuresSection') || viewerEl;
+
             if (viewerEl) {
                 viewerEl.addEventListener('pointerdown', loadViewer, { once: true, passive: true });
                 viewerEl.addEventListener('click', loadViewer, { once: true, passive: true });
 
-                if ('IntersectionObserver' in window) {
+                if ('IntersectionObserver' in window && featuresSection) {
                     const observer = new IntersectionObserver((entries) => {
                         entries.forEach(entry => {
                             if (entry.isIntersecting) {
                                 observer.disconnect();
-                                loadViewer();
+                                scheduleViewerInit();
                             }
                         });
-                    }, { rootMargin: '200px 0px' });
-                    observer.observe(viewerEl);
+                    }, { rootMargin: '600px 0px' });
+                    observer.observe(featuresSection);
                 } else {
                     window.addEventListener('load', () => setTimeout(loadViewer, 3000), { once: true });
                 }

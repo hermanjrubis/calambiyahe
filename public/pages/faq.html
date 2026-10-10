@@ -43,6 +43,47 @@
             outline: 2px solid #378ADD;
             outline-offset: 2px;
         }
+
+        .faq-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .faq-bg {
+            --g: min(calc((100vw - 800px) / 2), 283px);
+            position: absolute;      /* phone + tablet: scrolls with the page */
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            user-select: none;
+        }
+        .faq-q { position: absolute; height: auto; }
+
+        /* Phone (< 600px): only two marks, around the title */
+        .faq-q-1, .faq-q-4 { display: none; }
+        .faq-q-3 { width: 112px; right: -46px; top: 72px; transform: rotate(16deg); }
+        .faq-q-2 { width: 40px;  left: 10px;  top: 92px; transform: rotate(-12deg); }
+
+        /* Tablet (600px – 1279px) */
+        @media (min-width: 600px) {
+            .faq-q-3 { width: 116px; right: -30px; top: 66px; }
+            .faq-q-2 { width: 48px;  left: 70px;  top: 90px; }
+        }
+
+        /* Desktop (>= 1280px): four marks in the side gutters, fixed to the viewport */
+        @media (min-width: 1280px) {
+            .faq-bg { position: fixed; }
+            .faq-q-1, .faq-q-4 { display: block; }
+            .faq-q-1 { width: calc(var(--g) * 1.55); left: calc(var(--g) * -0.32);
+                       bottom: calc(var(--g) * -0.39); transform: rotate(-14deg); }
+            .faq-q-2 { width: calc(var(--g) * 0.26); left: calc(var(--g) * 0.67);
+                       top: 300px; transform: rotate(10deg); }
+            .faq-q-3 { width: calc(var(--g) * 0.81); right: calc(var(--g) * -0.21);
+                       top: 110px; transform: rotate(16deg); }
+            .faq-q-4 { width: calc(var(--g) * 0.34); right: calc(var(--g) * 0.53);
+                       bottom: 60px; transform: rotate(-10deg); }
+        }
     </style>
 </head>
 
@@ -369,7 +410,27 @@
 
     <!-- FAQ Section -->
     <main class="faq-section">
-        <div class="faq-bg-mark" aria-hidden="true">?</div>
+        <div class="faq-bg" aria-hidden="true">
+            <svg width="0" height="0" style="position:absolute" focusable="false">
+                <symbol id="faq-q-solid" viewBox="0 0 260 360">
+                    <path d="M62 104 A68 68 0 1 1 172 158 C146 178 130 194 130 232"
+                        fill="none" stroke="#DBE8F8" stroke-width="46" stroke-linecap="round"/>
+                    <circle cx="130" cy="306" r="27" fill="#DBE8F8"/>
+                </symbol>
+                <symbol id="faq-q-outline" viewBox="0 0 260 360">
+                    <path d="M62 104 A68 68 0 1 1 172 158 C146 178 130 194 130 232"
+                        fill="none" stroke="#BFD6F1" stroke-width="46" stroke-linecap="round"/>
+                    <circle cx="130" cy="306" r="27" fill="#BFD6F1"/>
+                    <path d="M62 104 A68 68 0 1 1 172 158 C146 178 130 194 130 232"
+                        fill="none" stroke="#F0F6FC" stroke-width="38" stroke-linecap="round"/>
+                    <circle cx="130" cy="306" r="23" fill="#F0F6FC"/>
+                </symbol>
+            </svg>
+            <svg class="faq-q faq-q-1" viewBox="0 0 260 360"><use href="#faq-q-solid"/></svg>
+            <svg class="faq-q faq-q-2" viewBox="0 0 260 360"><use href="#faq-q-outline"/></svg>
+            <svg class="faq-q faq-q-3" viewBox="0 0 260 360"><use href="#faq-q-solid"/></svg>
+            <svg class="faq-q faq-q-4" viewBox="0 0 260 360"><use href="#faq-q-outline"/></svg>
+        </div>
         <div class="faq-container">
             <!-- FAQ Header Hero Area -->
             <div class="faq-header-hero">
@@ -387,6 +448,7 @@
                     <button class="faq-pill" data-category="general" data-i18n="faq.pill_general">General</button>
                     <button class="faq-pill" data-category="getting-around" data-i18n="faq.pill_getting_around">Getting Around</button>
                     <button class="faq-pill" data-category="routie" data-i18n="faq.pill_routie">Routie</button>
+                    <button class="faq-pill" data-category="business" data-filter="business" data-i18n="faq.pill_business">For Businesses</button>
                 </div>
             </div>
 
@@ -470,7 +532,7 @@
                         <ion-icon name="chevron-down-outline"></ion-icon>
                     </button>
                     <div class="faq-answer">
-                        <p data-i18n="faq3.a">Yes. The platform is free for commuters and does not require any subscription. Its primary goal is to provide accessible and transparent information to the public.</p>
+                        <p data-i18n="faq3.a">Yes. Finding places, checking fares and planning routes on Calzada is free.</p>
                     </div>
                 </div>
 
@@ -481,6 +543,66 @@
                     </button>
                     <div class="faq-answer">
                         <p data-i18n="faq4.a">The primary goal of Calzada is to empower commuters by providing accurate, transparent, and easy-to-use transit information. By centralizing data on routes, fares, and transport options, the platform aims to reduce commuting stress and improve overall mobility in the city.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq-business-register" data-category="business">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-building-store faq-cat-icon"></i><span data-i18n="faq5.q">How do I list my business on Calzada?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p data-i18n="faq5.a">Sign in, open &ldquo;Register your business&rdquo; from your profile menu, and fill in your business name, category, address and map pin. Each account can register one business.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq-business-approval" data-category="business">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-clock faq-cat-icon"></i><span data-i18n="faq7.q">How long does approval take?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p data-i18n="faq7.a">Every registration is reviewed by the Calzada team before it appears publicly. You can check its status any time on your My Business page.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq-business-rejected" data-category="business">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-alert-circle faq-cat-icon"></i><span data-i18n="faq8.q">Why was my registration rejected, and can I try again?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p data-i18n="faq8.a">If the details couldn't be verified, your My Business page shows the reason. You can correct them and register again.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq-business-edit" data-category="business">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-edit faq-cat-icon"></i><span data-i18n="faq9.q">What can I change after my business is approved?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p data-i18n="faq9.a">Your profile photo, description and social links, any time. Your name, category, address and map pin are verified and can't be edited from your account.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq-business-feed" data-category="business">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-layout-grid faq-cat-icon"></i><span data-i18n="faq10.q">How does the Discover feed decide what to show?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p data-i18n="faq10.a">Posts from approved businesses appear newest first. Likes don't change the order.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" id="faq-business-posts" data-category="business">
+                    <button class="faq-question">
+                        <span class="faq-q-text"><i class="ti ti-photo faq-cat-icon"></i><span data-i18n="faq11.q">What can I post?</span></span>
+                        <ion-icon name="chevron-down-outline"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p data-i18n="faq11.a">Up to five photos per post with a caption of up to 500 characters. You can edit the caption or delete the post later.</p>
                     </div>
                 </div>
             </div>

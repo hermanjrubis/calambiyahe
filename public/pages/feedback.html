@@ -12,9 +12,9 @@
     <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - We'd Love Your Feedback">
-    <meta property="og:description" content="Help us improve Calzada — report a bug, suggest a feature, or just tell us what you think.">
+    <meta property="og:description" content="Report a bug, suggest a feature, or just tell us what you think.">
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
     <link rel="stylesheet" href="../css/style.css?v=2.6.3">
@@ -23,7 +23,118 @@
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+
+        /* Routie Speech Bubble Styles */
+        .feedback-routie-bubble {
+            background: #EAF2FC;
+            color: #0E2A47;
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 16px;
+            line-height: 1.35;
+            border-radius: 18px 18px 18px 4px;
+            padding: 12px 16px;
+            box-shadow: none;
+            border: none;
+            max-width: 250px;
+            width: max-content;
+            box-sizing: border-box;
+            display: inline-block;
+            position: absolute;
+            left: 104px;
+            top: 22px;
+            margin: 0;
+            text-align: left;
+        }
+
+        .feedback-routie-bubble::after {
+            content: "";
+            position: absolute;
+            left: 14px;
+            bottom: -13px;
+            width: 22px;
+            height: 16px;
+            background: #EAF2FC;
+            clip-path: polygon(0 0, 100% 0, 10% 100%);
+        }
+
+        @media (max-width: 767.98px) {
+            .feedback-routie-bubble {
+                top: 0;
+                left: 74px;
+                max-width: 220px;
+            }
+        }
+
+        /* Polish Fixes: Loading Overlay & Mascot Artwork Spacing */
+        .feedback-form.is-loading {
+            opacity: 0.12;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .feedback-confirmation-img,
+        .feedback-confirmation img {
+            margin: -18px auto -22px;
+        }
+
+        .feedback-loader-img {
+            margin-bottom: 6px;
+        }
+
+        .routie-sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .routie-bubble-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            position: relative;
+        }
+
+        .routie-bubble-sizer {
+            grid-area: 1 / 1 / 2 / 2;
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+            visibility: hidden;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .routie-sizer-item {
+            grid-area: 1 / 1 / 2 / 2;
+            word-break: normal;
+            overflow-wrap: normal;
+        }
+
+        .routie-word {
+            display: inline-block;
+        }
+
+        .routie-bubble-typed {
+            grid-area: 1 / 1 / 2 / 2;
+            position: relative;
+            word-break: normal;
+            overflow-wrap: normal;
+            opacity: 1;
+        }
     </style>
+    <noscript>
+        <style>
+            #feedbackAuthPlaceholder { display: none !important; }
+            #feedbackAuthGate { display: flex !important; opacity: 1 !important; }
+        </style>
+    </noscript>
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -357,20 +468,47 @@
 
         <div class="feedback-header">
             <h1 class="page-title">We'd Love Your Feedback</h1>
-            <p class="page-subtext">Help us improve Calzada — report a bug, suggest a feature, or just tell us what you think.</p>
+            <p class="page-subtext">Report a bug, suggest a feature, or just tell us what you think.</p>
         </div>
 
+        <!-- Auth Gate Initial Loading Placeholder Card -->
+        <div class="feedback-auth-placeholder" id="feedbackAuthPlaceholder" aria-busy="true"></div>
+
         <!-- SIGNED-OUT: Two-Column Split Auth Gate (Visible when NOT logged in) -->
-        <div class="feedback-gate-split" id="feedbackAuthGate" aria-live="polite">
+        <div class="feedback-gate-split" id="feedbackAuthGate" aria-live="polite" style="display: none; opacity: 0;">
             <!-- Left Column: Routie Mascot Visual (No Gray Box) -->
             <div class="feedback-gate-visual">
                 <div class="feedback-routie-card">
-                    <div class="feedback-routie-bubble">
-                        <span class="routie-bubble-author">Routie</span>
-                        <p class="routie-bubble-text">Spot a bug or have an idea to make Calzada better? Sign in and let us know — we read every note!</p>
+                    <div class="feedback-routie-bubble" id="feedbackRoutieBubble">
+                        <span class="routie-sr-only" id="routieSrText">Routie says: tell us about bugs, ideas, wrong fares or routes, missing places, or anything else.</span>
+                        <div class="routie-bubble-layout" aria-hidden="true">
+                            <div class="routie-bubble-sizer" id="routieBubbleSizer" aria-hidden="true">
+                                <div class="routie-sizer-item" data-idx="0">
+                                    <span class="routie-word">Spotted</span> <span class="routie-word">a</span> <span class="routie-word">bug?</span> <span class="routie-word">Tell</span> <span class="routie-word">me!</span>
+                                </div>
+                                <div class="routie-sizer-item" data-idx="1">
+                                    <span class="routie-word">Got</span> <span class="routie-word">an</span> <span class="routie-word">idea</span> <span class="routie-word">to</span> <span class="routie-word">make</span> <span class="routie-word">Calzada</span> <span class="routie-word">better?</span>
+                                </div>
+                                <div class="routie-sizer-item" data-idx="2">
+                                    <span class="routie-word">Was</span> <span class="routie-word">a</span> <span class="routie-word">fare</span> <span class="routie-word">or</span> <span class="routie-word">a</span> <span class="routie-word">route</span> <span class="routie-word">wrong?</span>
+                                </div>
+                                <div class="routie-sizer-item" data-idx="3">
+                                    <span class="routie-word">Is</span> <span class="routie-word">a</span> <span class="routie-word">place</span> <span class="routie-word">missing</span> <span class="routie-word">from</span> <span class="routie-word">the</span> <span class="routie-word">map?</span>
+                                </div>
+                                <div class="routie-sizer-item" data-idx="4">
+                                    <span class="routie-word">Something</span> <span class="routie-word">confusing</span> <span class="routie-word">or</span> <span class="routie-word">hard</span> <span class="routie-word">to</span> <span class="routie-word">use?</span>
+                                </div>
+                                <div class="routie-sizer-item" data-idx="5">
+                                    <span class="routie-word">Just</span> <span class="routie-word">want</span> <span class="routie-word">to</span> <span class="routie-word">say</span> <span class="routie-word">hi?</span> <span class="routie-word">That</span> <span class="routie-word">works</span> <span class="routie-word">too.</span>
+                                </div>
+                            </div>
+                            <div class="routie-bubble-typed" id="routieBubbleTyped" aria-hidden="true">
+                                <span class="routie-typed-text" id="routieTypedText">Spotted a bug? Tell me!</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="feedback-routie-avatar-wrap">
-                        <img src="../assets/DyipTok-icon.png" alt="Routie Assistant" class="feedback-routie-img" width="92" height="92" loading="lazy" decoding="async">
+                        <img src="../assets/routie-default.png" alt="" class="feedback-routie-img" id="feedbackRoutieImg" width="600" height="600" loading="lazy" decoding="async">
                     </div>
                 </div>
             </div>
@@ -378,16 +516,16 @@
             <!-- Right Column: Left-aligned Text & CTA -->
             <div class="feedback-gate-content">
                 <h2 class="feedback-gate-title">Sign in to leave feedback</h2>
-                <p class="feedback-gate-desc">To help us prevent spam and follow up on your suggestions or bug reports, please sign in with your Calzada account.</p>
+                <p class="feedback-gate-desc">So we can follow up on your report and keep spam out.</p>
                 <a href="/login?redirect=/feedback" class="btn-feedback-signin">
                     <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
-                    <span>Sign in to Continue</span>
+                    <span>Sign in to continue</span>
                 </a>
             </div>
         </div>
 
         <!-- SIGNED-IN: Genuine Interactive Feedback Form Card -->
-        <div class="feedback-card" id="feedbackFormCard" style="display: none;">
+        <div class="feedback-card" id="feedbackFormCard" style="display: none; opacity: 0;">
             <form id="feedbackForm" class="feedback-form" novalidate>
                 <div class="feedback-cols-wrapper">
                     <!-- LEFT COLUMN: Category Cards & Emoji Scale -->
@@ -457,7 +595,10 @@
                             </div>
                         </div>
 
-                        <div id="feedbackErrorNotice" class="feedback-error-notice" style="display:none;" role="alert"></div>
+                        <div id="feedbackErrorNotice" class="feedback-error-notice" style="display:none;" role="alert">
+                            <img src="../assets/routie-sad.png" alt="" class="feedback-error-img" width="44" height="44">
+                            <span class="feedback-error-text" id="feedbackErrorText"></span>
+                        </div>
 
                         <button type="submit" class="btn-submit-feedback">
                             <i class="ti ti-send"></i> Submit Feedback
@@ -467,19 +608,19 @@
             </form>
 
             <!-- Submission Loader State View -->
-            <div class="feedback-loader-wrapper" id="feedbackLoaderWrapper">
-                <div class="loader" id="feedbackLoader">
-                    <li class="ball"></li>
-                    <li class="ball"></li>
-                    <li class="ball"></li>
+            <div class="feedback-loader-wrapper" id="feedbackLoaderWrapper" role="status" aria-live="polite">
+                <div class="feedback-loader-content">
+                    <img src="../assets/routie-builder.png" alt="" class="feedback-loader-img" width="150" height="150">
+                    <h3 class="feedback-loader-title">Sending your feedback…</h3>
+                    <p class="feedback-loader-sub">This only takes a moment.</p>
                 </div>
             </div>
         </div>
 
         <!-- Confirmation State View -->
         <div class="feedback-card feedback-confirmation" id="feedbackConfirmation">
-            <i class="ti ti-circle-check feedback-success-icon"></i>
-            <h2 class="feedback-confirmation-title">Thank you! We've received your feedback.</h2>
+            <img src="../assets/routie-love.png" alt="" class="feedback-confirmation-img" width="150" height="150">
+            <h2 class="feedback-confirmation-title" id="feedbackConfirmationTitle" tabindex="-1">Thank you! We got it.</h2>
             <p class="feedback-confirmation-desc">Your input helps us make commuting in Calamba clearer and easier for everyone.</p>
             <div class="feedback-actions-row">
                 <button type="button" class="btn-feedback-reset" id="btnFeedbackReset">
@@ -544,6 +685,18 @@
     <script type="module">
         import { auth, onAuthStateChanged } from "../js/firebase-init.js";
 
+        // =========================================================================
+        // ROUTIE SPEECH BUBBLE PROMPTS & TYPING EFFECT
+        // =========================================================================
+        const ROUTIE_PROMPTS = [
+            "Spotted a bug? Tell me!",
+            "Got an idea to make Calzada better?",
+            "Was a fare or a route wrong?",
+            "Is a place missing from the map?",
+            "Something confusing or hard to use?",
+            "Just want to say hi? That works too."
+        ];
+
         document.addEventListener('DOMContentLoaded', () => {
             // Skeleton loader fouc handler
             document.body.classList.add('fouc-ready');
@@ -567,22 +720,345 @@
             const emailInput = document.getElementById('feedbackEmail');
             const errorNoticeEl = document.getElementById('feedbackErrorNotice');
 
-            // Helper function to manage authenticated vs signed-out state
-            function setAuthState(isAuthenticated) {
-                if (isAuthenticated) {
-                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'none';
-                    if (feedbackFormCard) feedbackFormCard.style.display = 'block';
+            // --- Routie Speech Bubble Engine ---
+            const typedTextEl = document.getElementById('routieTypedText');
+            const routieBubbleTyped = document.getElementById('routieBubbleTyped');
+            const routieImg = document.getElementById('feedbackRoutieImg');
+            const feedbackRoutieBubble = document.getElementById('feedbackRoutieBubble');
+            const routieSrText = document.getElementById('routieSrText');
+
+            let currentMsgIndex = 0;
+            let currentCharIndex = 0;
+            let phase = 'idle'; // 'revealing' | 'holding' | 'fading' | 'pause-between'
+            let activeTimer = null;
+            let isPaused = false;
+            let isTabVisible = !document.hidden;
+            let isBubbleInView = true;
+            let isGateVisible = false;
+
+            function isReducedMotion() {
+                return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+            }
+
+            function getActivePrompts() {
+                const lang = window.getCurrentLang ? window.getCurrentLang() : 'en';
+                if (lang === 'tl' && window.translations && window.translations.tl) {
+                    const tl = window.translations.tl;
+                    return [
+                        tl['feedback.routie.prompt1'] || ROUTIE_PROMPTS[0],
+                        tl['feedback.routie.prompt2'] || ROUTIE_PROMPTS[1],
+                        tl['feedback.routie.prompt3'] || ROUTIE_PROMPTS[2],
+                        tl['feedback.routie.prompt4'] || ROUTIE_PROMPTS[3],
+                        tl['feedback.routie.prompt5'] || ROUTIE_PROMPTS[4],
+                        tl['feedback.routie.prompt6'] || ROUTIE_PROMPTS[5]
+                    ];
+                }
+                return ROUTIE_PROMPTS;
+            }
+
+            function escapeHtml(str) {
+                return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            }
+
+            function getLinesForMessage(msgIdx) {
+                const item = document.querySelector(`.routie-sizer-item[data-idx="${msgIdx}"]`);
+                const prompts = getActivePrompts();
+                const msg = prompts[msgIdx] || ROUTIE_PROMPTS[msgIdx];
+                if (!item) return [msg];
+                const words = msg.split(' ');
+                const wordEls = Array.from(item.querySelectorAll('.routie-word'));
+                if (!wordEls.length) return [msg];
+                const lines = [];
+                let currentLine = [];
+                let currentTop = null;
+                for (let i = 0; i < wordEls.length; i++) {
+                    const top = wordEls[i].getBoundingClientRect().top;
+                    if (currentTop === null || Math.abs(top - currentTop) < 4) {
+                        currentTop = top;
+                        currentLine.push(words[i]);
+                    } else {
+                        lines.push(currentLine.join(' '));
+                        currentTop = top;
+                        currentLine = [words[i]];
+                    }
+                }
+                if (currentLine.length) lines.push(currentLine.join(' '));
+                return lines;
+            }
+
+            function renderTypedProgress(k) {
+                if (!typedTextEl) return;
+                const lines = getLinesForMessage(currentMsgIndex);
+                if (lines.length === 1) {
+                    typedTextEl.textContent = lines[0].slice(0, k);
                 } else {
-                    if (feedbackAuthGate) feedbackAuthGate.style.display = 'flex';
-                    if (feedbackFormCard) feedbackFormCard.style.display = 'none';
+                    const l1 = lines[0];
+                    const l2 = lines[1];
+                    const l1Len = l1.length;
+                    if (k <= l1Len) {
+                        typedTextEl.textContent = l1.slice(0, k);
+                    } else {
+                        const l2Chars = Math.min(l2.length, k - (l1Len + 1));
+                        typedTextEl.innerHTML = escapeHtml(l1) + '<br>' + escapeHtml(l2.slice(0, Math.max(0, l2Chars)));
+                    }
                 }
             }
 
-            // Initialize signed-out gate by default
-            setAuthState(false);
+            function setRoutieTalking(isTalking) {
+                const img = routieImg || document.getElementById('feedbackRoutieImg');
+                if (!img) return;
+                if (isTalking && !isReducedMotion()) {
+                    img.classList.add('is-talking');
+                } else {
+                    img.classList.remove('is-talking');
+                }
+            }
+
+            function clearSpeechTimer() {
+                if (activeTimer) {
+                    clearTimeout(activeTimer);
+                    activeTimer = null;
+                }
+            }
+
+            function scheduleSpeechStep(ms) {
+                clearSpeechTimer();
+                activeTimer = setTimeout(speechStep, ms);
+            }
+
+            function speechStep() {
+                if (isPaused || !isTabVisible || !isBubbleInView || !isGateVisible) {
+                    setRoutieTalking(false);
+                    return;
+                }
+                if (isReducedMotion()) {
+                    setRoutieTalking(false);
+                    return;
+                }
+
+                const prompts = getActivePrompts();
+                const msg = prompts[currentMsgIndex] || ROUTIE_PROMPTS[currentMsgIndex];
+                const totalChars = msg.length;
+
+                if (phase === 'revealing') {
+                    renderTypedProgress(currentCharIndex);
+
+                    if (currentCharIndex < totalChars) {
+                        setRoutieTalking(true);
+                        const ch = msg[currentCharIndex - 1] || '';
+                        let delay = 32;
+                        if (ch === '?' || ch === '!' || ch === ',') {
+                            delay += 240;
+                        }
+                        currentCharIndex++;
+                        scheduleSpeechStep(delay);
+                    } else {
+                        // All characters revealed: hold for 2400ms, Routie stops talking
+                        phase = 'holding';
+                        setRoutieTalking(false);
+                        clearSpeechTimer();
+                        activeTimer = setTimeout(() => {
+                            // Fade whole line out: opacity 1 -> 0 over 220ms
+                            phase = 'fading';
+                            if (routieBubbleTyped) {
+                                routieBubbleTyped.style.transition = 'opacity 220ms ease';
+                                routieBubbleTyped.style.opacity = '0';
+                            }
+                            clearSpeechTimer();
+                            activeTimer = setTimeout(() => {
+                                // Wait 200ms
+                                phase = 'pause-between';
+                                if (routieBubbleTyped) {
+                                    routieBubbleTyped.style.transition = 'none';
+                                    routieBubbleTyped.style.opacity = '1';
+                                    renderTypedProgress(0);
+                                }
+                                clearSpeechTimer();
+                                activeTimer = setTimeout(() => {
+                                    // Start revealing next message
+                                    currentMsgIndex = (currentMsgIndex + 1) % prompts.length;
+                                    phase = 'revealing';
+                                    currentCharIndex = 1;
+                                    renderTypedProgress(1);
+                                    setRoutieTalking(true);
+                                    scheduleSpeechStep(32);
+                                }, 200);
+                            }, 220);
+                        }, 2400);
+                    }
+                }
+            }
+
+            function startRoutieSpeech() {
+                clearSpeechTimer();
+                if (isReducedMotion()) {
+                    if (typedTextEl) typedTextEl.textContent = getActivePrompts()[0];
+                    setRoutieTalking(false);
+                    return;
+                }
+                isGateVisible = true;
+                phase = 'revealing';
+                currentCharIndex = 0;
+                renderTypedProgress(0);
+                if (routieBubbleTyped) {
+                    routieBubbleTyped.style.transition = 'none';
+                    routieBubbleTyped.style.opacity = '1';
+                }
+                clearSpeechTimer();
+                activeTimer = setTimeout(() => {
+                    currentCharIndex = 1;
+                    renderTypedProgress(1);
+                    setRoutieTalking(true);
+                    scheduleSpeechStep(32);
+                }, 400); // starts 400ms after gate is visible
+            }
+
+            function stopRoutieSpeech() {
+                isGateVisible = false;
+                setRoutieTalking(false);
+                clearSpeechTimer();
+            }
+
+            function pauseRoutieSpeech() {
+                isPaused = true;
+                setRoutieTalking(false);
+                clearSpeechTimer();
+            }
+
+            function resumeRoutieSpeech() {
+                if (!isPaused || !isGateVisible || isReducedMotion()) return;
+                isPaused = false;
+                if (phase === 'holding') {
+                    scheduleSpeechStep(100);
+                } else if (phase === 'revealing') {
+                    setRoutieTalking(true);
+                    scheduleSpeechStep(32);
+                } else {
+                    scheduleSpeechStep(100);
+                }
+            }
+
+            window.__routieSpeechEngine = {
+                prompts: ROUTIE_PROMPTS,
+                getState: () => ({
+                    phase,
+                    currentMsgIndex,
+                    currentCharIndex,
+                    isPaused,
+                    isGateVisible,
+                    hasTimer: activeTimer !== null,
+                    text: typedTextEl ? (typedTextEl.innerText || typedTextEl.textContent) : '',
+                    isTalking: (routieImg || document.getElementById('feedbackRoutieImg'))?.classList.contains('is-talking') || false
+                }),
+                start: startRoutieSpeech,
+                stop: stopRoutieSpeech,
+                pause: pauseRoutieSpeech,
+                resume: resumeRoutieSpeech
+            };
+
+            // Visibility & Intersection Observers
+            document.addEventListener('visibilitychange', () => {
+                isTabVisible = !document.hidden;
+                if (!isTabVisible) {
+                    pauseRoutieSpeech();
+                } else if (isBubbleInView && isGateVisible) {
+                    resumeRoutieSpeech();
+                }
+            });
+
+            if (feedbackRoutieBubble) {
+                const bubbleObserver = new IntersectionObserver((entries) => {
+                    const entry = entries[0];
+                    isBubbleInView = entry.isIntersecting;
+                    if (!isBubbleInView) {
+                        pauseRoutieSpeech();
+                    } else if (!document.hidden && isGateVisible) {
+                        resumeRoutieSpeech();
+                    }
+                }, { threshold: 0.1 });
+                bubbleObserver.observe(feedbackRoutieBubble);
+            }
+
+            // Language change listener
+            window.addEventListener('calzada_lang_changed', () => {
+                const prompts = getActivePrompts();
+                const sizerEl = document.getElementById('routieBubbleSizer');
+                if (sizerEl) {
+                    sizerEl.innerHTML = prompts.map((m, idx) => `
+                        <div class="routie-sizer-item" data-idx="${idx}">
+                            ${m.split(' ').map((w, wIdx) => `<span class="routie-word" data-w="${wIdx}">${w}</span>`).join(' ')}
+                        </div>
+                    `).join('');
+                }
+                if (routieSrText) {
+                    const lang = window.getCurrentLang ? window.getCurrentLang() : 'en';
+                    routieSrText.textContent = (window.translations && window.translations[lang] && window.translations[lang]['feedback.routie.sr'])
+                        ? window.translations[lang]['feedback.routie.sr']
+                        : "Routie says: tell us about bugs, ideas, wrong fares or routes, missing places, or anything else.";
+                }
+                if (isReducedMotion()) {
+                    if (typedTextEl) typedTextEl.textContent = prompts[0];
+                    setRoutieTalking(false);
+                } else {
+                    currentMsgIndex = 0;
+                    currentCharIndex = 0;
+                    phase = 'revealing';
+                    renderTypedProgress(0);
+                    scheduleSpeechStep(100);
+                }
+            });
+
+            // Auth State Transition & Loading Fallback Logic
+            let authResolved = false;
+            let authTimeout = setTimeout(() => {
+                if (!authResolved) {
+                    setAuthState(false);
+                }
+            }, 4000);
+
+            // Helper function to manage authenticated vs signed-out state
+            function setAuthState(isAuthenticated) {
+                authResolved = true;
+                if (authTimeout) {
+                    clearTimeout(authTimeout);
+                    authTimeout = null;
+                }
+
+                const placeholder = document.getElementById('feedbackAuthPlaceholder');
+                if (placeholder) {
+                    placeholder.remove();
+                }
+
+                if (isAuthenticated) {
+                    if (feedbackAuthGate) {
+                        feedbackAuthGate.style.display = 'none';
+                        feedbackAuthGate.style.opacity = '0';
+                    }
+                    stopRoutieSpeech();
+                    if (feedbackFormCard) {
+                        feedbackFormCard.style.display = 'block';
+                        void feedbackFormCard.offsetWidth; // trigger reflow for smooth 200ms fade-in
+                        feedbackFormCard.style.opacity = '1';
+                    }
+                } else {
+                    if (feedbackFormCard) {
+                        feedbackFormCard.style.display = 'none';
+                        feedbackFormCard.style.opacity = '0';
+                    }
+                    if (feedbackAuthGate) {
+                        feedbackAuthGate.style.display = 'flex';
+                        void feedbackAuthGate.offsetWidth; // trigger reflow for smooth 200ms fade-in
+                        feedbackAuthGate.style.opacity = '1';
+                    }
+                    startRoutieSpeech();
+                }
+            }
 
             // --- 1. FIREBASE AUTH GUARD & STATE SWAP ---
             onAuthStateChanged(auth, (user) => {
+                if (window.__MOCK_USER__) {
+                    user = window.__MOCK_USER__;
+                }
                 currentUser = user;
                 if (!user) {
                     // Not signed in: show clean two-column split gate
@@ -604,6 +1080,23 @@
                     }
                 }
             });
+
+            // Mock user hook for automated verification without touching Firebase
+            window.__setMockUser = (user) => {
+                currentUser = user;
+                setAuthState(!!user);
+                if (user) {
+                    if (nameInput) nameInput.value = user.displayName || '';
+                    if (emailInput) {
+                        emailInput.value = user.email || '';
+                        emailInput.readOnly = true;
+                        emailInput.classList.add('is-readonly');
+                    }
+                }
+            };
+            if (window.__MOCK_USER__) {
+                window.__setMockUser(window.__MOCK_USER__);
+            }
 
             const helpers = {
                 'Bug Report': "Something's not working right? Let us know what happened.",
@@ -669,8 +1162,13 @@
             // Helper to show/hide submission error notices
             function showFeedbackError(msg) {
                 if (errorNoticeEl) {
-                    errorNoticeEl.textContent = msg;
-                    errorNoticeEl.style.display = 'block';
+                    const textEl = document.getElementById('feedbackErrorText');
+                    if (textEl) {
+                        textEl.textContent = msg;
+                    } else {
+                        errorNoticeEl.textContent = msg;
+                    }
+                    errorNoticeEl.style.display = 'flex';
                 } else {
                     alert(msg);
                 }
@@ -679,7 +1177,8 @@
             function hideFeedbackError() {
                 if (errorNoticeEl) {
                     errorNoticeEl.style.display = 'none';
-                    errorNoticeEl.textContent = '';
+                    const textEl = document.getElementById('feedbackErrorText');
+                    if (textEl) textEl.textContent = '';
                 }
             }
 
@@ -734,9 +1233,11 @@
                     message: messageInput.value.trim()
                 };
 
-                // Show Loader Overlay & Blur Form
-                const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
+                // Disable form controls and show loader overlay
+                const formControls = feedbackForm.querySelectorAll('input, textarea, button');
+                formControls.forEach(el => el.disabled = true);
                 feedbackForm.classList.add('is-loading');
+                const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
                 if (loaderWrapper) loaderWrapper.style.display = 'flex';
 
                 try {
@@ -758,9 +1259,10 @@
                         throw new Error(result.error || 'Failed to submit feedback. Please try again.');
                     }
 
-                    // Success: Stop loader, reset form, and switch to confirmation view
-                    if (loaderWrapper) loaderWrapper.style.display = 'none';
+                    // Success: Stop loader, re-enable fields, reset form, and switch to confirmation view
+                    formControls.forEach(el => el.disabled = false);
                     feedbackForm.classList.remove('is-loading');
+                    if (loaderWrapper) loaderWrapper.style.display = 'none';
 
                     // Reset form fields and selection state
                     feedbackForm.reset();
@@ -790,11 +1292,18 @@
 
                     feedbackFormCard.style.display = 'none';
                     feedbackConfirmation.classList.add('active');
+
+                    // Move focus to confirmation title
+                    const confirmationTitle = document.getElementById('feedbackConfirmationTitle');
+                    if (confirmationTitle) {
+                        confirmationTitle.focus();
+                    }
                 } catch (err) {
                     console.error('Error submitting feedback:', err);
-                    if (loaderWrapper) loaderWrapper.style.display = 'none';
+                    formControls.forEach(el => el.disabled = false);
                     feedbackForm.classList.remove('is-loading');
-                    showFeedbackError(err.message || 'Something went wrong while submitting your feedback. Please check your connection and try again.');
+                    if (loaderWrapper) loaderWrapper.style.display = 'none';
+                    showFeedbackError("That didn't go through. Check your connection and try again.");
                 }
             });
 

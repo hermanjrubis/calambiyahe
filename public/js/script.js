@@ -190,6 +190,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         }
+
+        function handleFaqHash() {
+            const hash = window.location.hash ? window.location.hash.substring(1) : '';
+            if (!hash) return;
+            const targetItem = document.getElementById(hash);
+            if (targetItem && targetItem.classList.contains('faq-item')) {
+                const category = targetItem.getAttribute('data-category');
+                if (category) {
+                    const targetPill = Array.from(faqPills).find(p =>
+                        p.getAttribute('data-category') === category ||
+                        p.getAttribute('data-filter') === category
+                    );
+                    if (targetPill) {
+                        faqPills.forEach(p => p.classList.remove('active'));
+                        targetPill.classList.add('active');
+                        activeCategory = category;
+                        filterFaqs();
+                    }
+                }
+                faqItems.forEach(otherItem => { otherItem.classList.remove('active'); });
+                targetItem.classList.add('active');
+
+                setTimeout(() => {
+                    const navbar = document.getElementById('navbar');
+                    const navHeight = navbar ? navbar.offsetHeight : 70;
+                    const itemRect = targetItem.getBoundingClientRect();
+                    const targetScrollTop = window.pageYOffset + itemRect.top - navHeight - 20;
+                    window.scrollTo({
+                        top: Math.max(0, targetScrollTop),
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
+
+        handleFaqHash();
+        window.addEventListener('hashchange', handleFaqHash);
     }
 
     // === TRANSPORT CHIP SELECTION ===

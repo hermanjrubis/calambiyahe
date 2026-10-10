@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="../css/about.css?v=2.6.3">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
+    <script>document.documentElement.classList.add('js-enabled');</script>
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
@@ -68,7 +69,7 @@
             <!-- [Left Side]: Logo -->
             <div class="nav-left">
                 <a href="/" class="brand-logo">
-                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="logo-img">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="logo-img" draggable="false">
                 </a>
             </div>
 
@@ -391,13 +392,13 @@
                         <div class="about-item-list">
                             <div class="about-plain-row">
                                 <span class="about-plain-row-icon">
-                                    <img src="../assets/icons/jeepney-icon.png" alt="Jeepney" width="24" height="24" loading="lazy" decoding="async">
+                                    <img src="../assets/icons/jeepney-icon.png" alt="" aria-hidden="true" draggable="false" width="24" height="24" loading="lazy" decoding="async">
                                 </span>
                                 <span class="about-plain-row-label" data-i18n="about_page.mode.jeepney">Jeepney</span>
                             </div>
                             <div class="about-plain-row">
                                 <span class="about-plain-row-icon">
-                                    <img src="../assets/icons/tricycle-icon.png" alt="Tricycle" width="24" height="24" loading="lazy" decoding="async">
+                                    <img src="../assets/icons/tricycle-icon.png" alt="" aria-hidden="true" draggable="false" width="24" height="24" loading="lazy" decoding="async">
                                 </span>
                                 <span class="about-plain-row-label" data-i18n="about_page.mode.tricycle">Tricycle</span>
                             </div>
@@ -460,7 +461,7 @@
                 <div class="about-routie-row">
                     <div class="about-routie-left">
                         <div class="about-routie-avatar">
-                            <img src="../assets/DyipTok-icon.png" alt="Routie mascot" width="48" height="48" loading="lazy" decoding="async">
+                            <img src="../assets/DyipTok-icon.png" alt="Routie mascot" width="56" height="56" draggable="false" loading="lazy" decoding="async">
                         </div>
                         <div class="about-routie-info">
                             <h3 class="about-routie-title" data-i18n="about_page.routie.title">Meet Routie</h3>
@@ -468,6 +469,196 @@
                         </div>
                     </div>
                     <button id="routieBannerBtn" class="btn-about-routie" type="button" data-i18n="about_page.routie.btn">Ask Routie</button>
+                </div>
+            </section>
+
+            <!-- 4b. For local businesses -->
+            <section class="about-section about-grid-section about-business-section" id="business-section">
+                <div class="about-section-header-col">
+                    <h2 class="about-section-heading" data-i18n="about_page.business.heading">For local businesses</h2>
+                    <p class="about-heading-note" data-i18n="about_page.business.note">For shops, eateries and services in Calamba.</p>
+                    <a href="/submit" class="about-business-link" data-i18n="about_page.business.link">List your business</a>
+                </div>
+                <div class="about-business-walkthrough" id="aboutWalkthrough" role="tablist" aria-orientation="vertical" aria-label="Business onboarding walkthrough">
+                    <span class="about-business-route-fill" aria-hidden="true"></span>
+                    <span class="about-business-route-marker" aria-hidden="true"></span>
+                    <!-- Step 1: Register -->
+                    <div class="about-business-step-item" data-step="0">
+                        <button type="button" class="about-business-step-btn active" role="tab" id="biz-tab-0" aria-selected="true" aria-controls="biz-pane-0" aria-expanded="true" tabindex="0">
+                            <div class="about-business-stop-marker">
+                                <span class="about-business-stop-dot"></span>
+                                <span class="about-business-stop-connector" aria-hidden="true"></span>
+                            </div>
+                            <div class="about-business-step-content">
+                                <h3 class="about-business-step-title" data-i18n="about_page.business.step1_title">Register</h3>
+                                <p class="about-business-step-desc" data-i18n="about_page.business.step1_desc">Name, category, address and a map pin.</p>
+                            </div>
+                            <div class="about-business-step-chevron" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </button>
+                        <div class="about-business-panel active" id="biz-pane-0" role="tabpanel" aria-labelledby="biz-tab-0" tabindex="0" data-i18n="about_page.business.step1_aria" data-i18n-attr="aria-label">
+                            <div class="about-business-panel-inner">
+                                <div class="about-business-preview-caption" aria-hidden="true" data-i18n="about_page.business.example_caption">Example</div>
+                                <div class="about-business-card" aria-hidden="true">
+                                    <div class="about-preview-fields">
+                                        <div class="about-preview-field-group">
+                                            <label class="about-preview-field-label" data-i18n="about_page.business.field_name">Business or place name</label>
+                                            <div class="about-preview-field-box" data-i18n="about_page.business.sample_name">Kusina ni Aling Nena</div>
+                                        </div>
+                                        <div class="about-preview-field-group">
+                                            <label class="about-preview-field-label" data-i18n="about_page.business.field_category">Category</label>
+                                            <div class="about-preview-field-box" data-i18n="about_page.business.sample_category">Eateries & Dining</div>
+                                        </div>
+                                        <div class="about-preview-field-group">
+                                            <label class="about-preview-field-label" data-i18n="about_page.business.field_address">Address</label>
+                                            <div class="about-preview-field-box" data-i18n="about_page.business.sample_address">Brgy. Real, Calamba City</div>
+                                        </div>
+                                        <div class="about-preview-pin-row">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                            <span data-i18n="about_page.business.pin_set">Pin set on the map</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Review -->
+                    <div class="about-business-step-item" data-step="1">
+                        <button type="button" class="about-business-step-btn" role="tab" id="biz-tab-1" aria-selected="false" aria-controls="biz-pane-1" aria-expanded="false" tabindex="-1">
+                            <div class="about-business-stop-marker">
+                                <span class="about-business-stop-dot"></span>
+                                <span class="about-business-stop-connector" aria-hidden="true"></span>
+                            </div>
+                            <div class="about-business-step-content">
+                                <h3 class="about-business-step-title" data-i18n="about_page.business.step2_title">Review</h3>
+                                <p class="about-business-step-desc" data-i18n="about_page.business.step2_desc">The Calzada team checks every registration.</p>
+                            </div>
+                            <div class="about-business-step-chevron" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </button>
+                        <div class="about-business-panel" id="biz-pane-1" role="tabpanel" aria-labelledby="biz-tab-1" tabindex="0" data-i18n="about_page.business.step2_aria" data-i18n-attr="aria-label">
+                            <div class="about-business-panel-inner">
+                                <div class="about-business-preview-caption" aria-hidden="true" data-i18n="about_page.business.example_caption">Example</div>
+                                <div class="about-business-card" aria-hidden="true">
+                                    <h4 class="about-preview-biz-name" data-i18n="about_page.business.sample_name">Kusina ni Aling Nena</h4>
+                                    <div class="about-preview-status-line">
+                                        <span class="about-preview-status-dot pending" aria-hidden="true"></span>
+                                        <span class="about-preview-status-text" data-i18n="about_page.business.status_pending">Pending review</span>
+                                    </div>
+                                    <p class="about-preview-notice" data-i18n="about_page.business.review_notice">We're checking your details. You can see this status any time on My Business.</p>
+                                    <dl class="about-preview-dl">
+                                        <div class="about-preview-dl-row">
+                                            <dt class="about-preview-dt" data-i18n="about_page.business.field_category">Category</dt>
+                                            <dd class="about-preview-dd" data-i18n="about_page.business.sample_category">Eateries & Dining</dd>
+                                        </div>
+                                        <div class="about-preview-dl-row">
+                                            <dt class="about-preview-dt" data-i18n="about_page.business.field_address">Address</dt>
+                                            <dd class="about-preview-dd" data-i18n="about_page.business.sample_address">Brgy. Real, Calamba City</dd>
+                                        </div>
+                                    </dl>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Profile -->
+                    <div class="about-business-step-item" data-step="2">
+                        <button type="button" class="about-business-step-btn" role="tab" id="biz-tab-2" aria-selected="false" aria-controls="biz-pane-2" aria-expanded="false" tabindex="-1">
+                            <div class="about-business-stop-marker">
+                                <span class="about-business-stop-dot"></span>
+                                <span class="about-business-stop-connector" aria-hidden="true"></span>
+                            </div>
+                            <div class="about-business-step-content">
+                                <h3 class="about-business-step-title" data-i18n="about_page.business.step3_title">Profile</h3>
+                                <p class="about-business-step-desc" data-i18n="about_page.business.step3_desc">Add a photo, description and social links.</p>
+                            </div>
+                            <div class="about-business-step-chevron" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </button>
+                        <div class="about-business-panel" id="biz-pane-2" role="tabpanel" aria-labelledby="biz-tab-2" tabindex="0" data-i18n="about_page.business.step3_aria" data-i18n-attr="aria-label">
+                            <div class="about-business-panel-inner">
+                                <div class="about-business-preview-caption" aria-hidden="true" data-i18n="about_page.business.example_caption">Example</div>
+                                <div class="about-business-card" aria-hidden="true">
+                                    <div class="about-preview-profile-top">
+                                        <div class="about-preview-avatar">KN</div>
+                                        <div>
+                                            <h4 class="about-preview-biz-name" data-i18n="about_page.business.sample_name">Kusina ni Aling Nena</h4>
+                                            <div class="about-preview-status-line">
+                                                <span class="about-preview-status-dot approved" aria-hidden="true"></span>
+                                                <span class="about-preview-status-text" data-i18n="about_page.business.status_approved">Approved · Live</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="about-preview-desc" data-i18n="about_page.business.sample_desc">Authentic Lutong Bahay and fresh local specialties in Calamba.</p>
+                                    <dl class="about-preview-dl">
+                                        <div class="about-preview-dl-row">
+                                            <dt class="about-preview-dt" data-i18n="about_page.business.field_category">Category</dt>
+                                            <dd class="about-preview-dd" data-i18n="about_page.business.sample_category">Eateries & Dining</dd>
+                                        </div>
+                                        <div class="about-preview-dl-row">
+                                            <dt class="about-preview-dt" data-i18n="about_page.business.field_address">Address</dt>
+                                            <dd class="about-preview-dd" data-i18n="about_page.business.sample_address">Brgy. Real, Calamba City</dd>
+                                        </div>
+                                    </dl>
+                                    <div class="about-preview-socials">
+                                        <span class="about-preview-social-link">
+                                            <svg class="public-social-icon" viewBox="0 0 24 24" width="16" height="16"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                            <span>@kusinanialingnena</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Posts -->
+                    <div class="about-business-step-item" data-step="3">
+                        <button type="button" class="about-business-step-btn" role="tab" id="biz-tab-3" aria-selected="false" aria-controls="biz-pane-3" aria-expanded="false" tabindex="-1">
+                            <div class="about-business-stop-marker">
+                                <span class="about-business-stop-dot"></span>
+                            </div>
+                            <div class="about-business-step-content">
+                                <h3 class="about-business-step-title" data-i18n="about_page.business.step4_title">Posts</h3>
+                                <p class="about-business-step-desc" data-i18n="about_page.business.step4_desc">Share photos. They appear on Discover, newest first.</p>
+                            </div>
+                            <div class="about-business-step-chevron" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                            </div>
+                        </button>
+                        <div class="about-business-panel" id="biz-pane-3" role="tabpanel" aria-labelledby="biz-tab-3" tabindex="0" data-i18n="about_page.business.step4_aria" data-i18n-attr="aria-label">
+                            <div class="about-business-panel-inner">
+                                <div class="about-business-preview-caption" aria-hidden="true" data-i18n="about_page.business.example_caption">Example</div>
+                                <div class="about-business-card post-preview" aria-hidden="true">
+                                    <div class="about-preview-post-media">
+                                        <i class="ti ti-photo" aria-hidden="true"></i>
+                                    </div>
+                                    <div class="about-preview-post-body">
+                                        <div class="about-preview-post-header">
+                                            <div class="about-preview-post-avatar">KN</div>
+                                            <div class="about-preview-post-meta">
+                                                <div class="about-preview-post-name" data-i18n="about_page.business.sample_name">Kusina ni Aling Nena</div>
+                                                <div class="about-preview-post-sub"><span data-i18n="about_page.business.sample_category">Eateries & Dining</span> · <span data-i18n="about_page.business.post_time">Just now</span></div>
+                                            </div>
+                                        </div>
+                                        <p class="about-preview-post-caption" data-i18n="about_page.business.post_caption">Serving hot Bulalo and Crispy Pata today! Visit us in Brgy. Real.</p>
+                                        <div class="about-preview-post-footer">
+                                            <div class="about-preview-like-btn">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                                <span>0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Under list: FAQ Link -->
+                    <a href="/faq#faq-business-feed" class="about-business-faq-link" data-i18n="about_page.business.feed_link">How does Discover decide what to show?</a>
                 </div>
             </section>
 
@@ -577,12 +768,179 @@
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.4"></script>
 
+    <!-- Walkthrough interactive script -->
+    <script>
+    (function() {
+        const walkthrough = document.getElementById('aboutWalkthrough');
+        if (!walkthrough) return;
+
+        const tabs = Array.from(walkthrough.querySelectorAll('.about-business-step-btn'));
+        const panels = Array.from(walkthrough.querySelectorAll('.about-business-panel'));
+        const stepItems = Array.from(walkthrough.querySelectorAll('.about-business-step-item'));
+        const marker = walkthrough.querySelector('.about-business-route-marker');
+        const fill = walkthrough.querySelector('.about-business-route-fill');
+
+        let currentActiveIndex = 0;
+
+        function updateMarkerAndFill(index) {
+            if (window.innerWidth < 900) return;
+            const activeTab = tabs[index];
+            if (!activeTab) return;
+            const activeDot = activeTab.querySelector('.about-business-stop-dot');
+            const firstDot = tabs[0] ? tabs[0].querySelector('.about-business-stop-dot') : null;
+            const lastDot = tabs[tabs.length - 1] ? tabs[tabs.length - 1].querySelector('.about-business-stop-dot') : null;
+
+            if (activeDot && marker) {
+                const walkRect = walkthrough.getBoundingClientRect();
+                const dotRect = activeDot.getBoundingClientRect();
+                // Center 16px marker on 12px dot: offset is (12 - 16) / 2 = -2px
+                const targetY = (dotRect.top - walkRect.top) + (activeDot.offsetHeight - 16) / 2;
+                marker.style.transform = `translateY(${targetY}px)`;
+            }
+
+            if (activeDot && firstDot && lastDot && fill) {
+                const firstDotRect = firstDot.getBoundingClientRect();
+                const lastDotRect = lastDot.getBoundingClientRect();
+                const activeDotRect = activeDot.getBoundingClientRect();
+                const totalDist = lastDotRect.top - firstDotRect.top;
+                const currentDist = activeDotRect.top - firstDotRect.top;
+                const scale = totalDist > 0 ? (currentDist / totalDist) : 0;
+                fill.style.transform = `scaleY(${scale})`;
+            }
+        }
+
+        function updateMetrics() {
+            if (window.innerWidth >= 900) {
+                // Keep panel area from jumping: panel height = height of tallest panel
+                let maxHeight = 0;
+                panels.forEach(panel => {
+                    const inner = panel.querySelector('.about-business-panel-inner') || panel;
+                    const h = inner.offsetHeight;
+                    if (h > maxHeight) maxHeight = h;
+                });
+                panels.forEach(panel => {
+                    panel.style.minHeight = maxHeight > 0 ? maxHeight + 'px' : '';
+                });
+
+                // Position fill line baseline (top and height)
+                const firstDot = tabs[0] ? tabs[0].querySelector('.about-business-stop-dot') : null;
+                const lastDot = tabs[tabs.length - 1] ? tabs[tabs.length - 1].querySelector('.about-business-stop-dot') : null;
+                if (firstDot && lastDot && fill) {
+                    const walkRect = walkthrough.getBoundingClientRect();
+                    const firstDotRect = firstDot.getBoundingClientRect();
+                    const lastDotRect = lastDot.getBoundingClientRect();
+                    const startY = (firstDotRect.top - walkRect.top) + (firstDot.offsetHeight / 2);
+                    const totalDist = lastDotRect.top - firstDotRect.top;
+                    fill.style.top = `${startY}px`;
+                    fill.style.height = `${totalDist}px`;
+                }
+
+                updateMarkerAndFill(currentActiveIndex);
+            } else {
+                panels.forEach(panel => {
+                    panel.style.minHeight = '';
+                });
+            }
+        }
+
+        function selectStep(index, shouldFocus) {
+            currentActiveIndex = index;
+
+            tabs.forEach((tab, i) => {
+                const isSelected = (i === index);
+                const isVisited = (i < index);
+                tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                tab.setAttribute('aria-expanded', isSelected ? 'true' : 'false');
+                tab.setAttribute('tabindex', isSelected ? '0' : '-1');
+                if (isSelected) {
+                    tab.classList.add('active');
+                    tab.classList.remove('visited');
+                } else if (isVisited) {
+                    tab.classList.remove('active');
+                    tab.classList.add('visited');
+                } else {
+                    tab.classList.remove('active');
+                    tab.classList.remove('visited');
+                }
+            });
+
+            panels.forEach((panel, i) => {
+                if (i === index) {
+                    panel.classList.add('active');
+                    panel.removeAttribute('inert');
+                    // Restart bizPop animation cleanly if clicked
+                    const card = panel.querySelector('.about-business-card');
+                    if (card) {
+                        card.style.animation = 'none';
+                        void card.offsetHeight;
+                        card.style.animation = '';
+                    }
+                } else {
+                    panel.classList.remove('active');
+                    panel.setAttribute('inert', '');
+                }
+            });
+
+            stepItems.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add('expanded');
+                } else {
+                    item.classList.remove('expanded');
+                }
+            });
+
+            updateMarkerAndFill(index);
+
+            if (shouldFocus && tabs[index]) {
+                tabs[index].focus();
+            }
+        }
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                selectStep(index, false);
+            });
+
+            tab.addEventListener('keydown', (e) => {
+                let targetIndex = null;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    targetIndex = (index + 1) % tabs.length;
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    targetIndex = (index - 1 + tabs.length) % tabs.length;
+                } else if (e.key === 'Home') {
+                    e.preventDefault();
+                    targetIndex = 0;
+                } else if (e.key === 'End') {
+                    e.preventDefault();
+                    targetIndex = tabs.length - 1;
+                }
+
+                if (targetIndex !== null) {
+                    selectStep(targetIndex, true);
+                }
+            });
+        });
+
+        // Initialize state
+        selectStep(0, false);
+        updateMetrics();
+
+        window.addEventListener('resize', updateMetrics);
+
+        if (document.fonts && document.fonts.ready) {
+            document.fonts.ready.then(updateMetrics);
+        }
+    })();
+    </script>
+
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <a href="/" class="drawer-brand" aria-label="Calzada Home">
-                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" draggable="false" onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
                 <ion-icon name="close-outline"></ion-icon>
