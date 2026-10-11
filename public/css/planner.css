@@ -277,6 +277,14 @@ body {
     pointer-events: none;
     margin: 0;
     padding: 0;
+    transition: opacity 160ms ease;
+}
+
+.map-category-bar-wrapper[style*="opacity: 0"],
+.map-category-bar-wrapper[style*="opacity: 0"] *,
+.map-category-bar-wrapper[style*="pointer-events: none"],
+.map-category-bar-wrapper[style*="pointer-events: none"] * {
+    pointer-events: none !important;
 }
 
 .map-category-container {
@@ -738,6 +746,7 @@ body {
     max-height: 20px !important;
     flex-shrink: 0 !important;
     display: block !important;
+    stroke: #378ADD;
 }
 
 .stat-value {
@@ -1265,7 +1274,7 @@ body.navigation-active .calzada-locate-ctrl {
     max-height: calc(var(--vh, 1vh) * 92);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 768px) {
     .bottom-sheet {
         background: rgba(255, 255, 255, 0.72);
         backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
@@ -1273,7 +1282,7 @@ body.navigation-active .calzada-locate-ctrl {
         border: 1px solid rgba(255, 255, 255, 0.45);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
         border-radius: 24px;
-        margin: 0 12px 12px 12px;
+        margin: 0 12px max(12px, env(safe-area-inset-bottom, 12px)) 12px;
     }
 }
 
@@ -1350,6 +1359,10 @@ body.navigation-active .calzada-locate-ctrl {
 
     .bottom-sheet.collapsed {
         transform: none !important;
+    }
+
+    .ds-footer {
+        display: contents;
     }
 }
 
@@ -1897,9 +1910,25 @@ body.navigation-active .calzada-locate-ctrl {
     box-shadow: 0 2px 8px rgba(55, 138, 221, 0.25);
 }
 
-.nav-panel-mode-btn svg,
+.nav-panel-mode-btn svg {
+    flex-shrink: 0;
+    fill: currentColor;
+}
+
+.nav-panel-mode-btn .segment-icon-img,
 .nav-panel-mode-btn img {
     flex-shrink: 0;
+    filter: grayscale(1) opacity(0.65);
+    transition: filter 0.15s ease;
+}
+
+.nav-panel-mode-btn.active svg {
+    fill: currentColor;
+}
+
+.nav-panel-mode-btn.active .segment-icon-img,
+.nav-panel-mode-btn.active img {
+    filter: brightness(0) invert(1) !important;
 }
 
 /* Stats Row: 3 Equal Columns with Sora Numbers */
@@ -2752,67 +2781,97 @@ body:not(.navigation-active) .bottom-status-pill {
 
 /* Drawer Language Dropdown Toggle */
 .mobile-lang-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #EBF3FB !important;
-    border: 1px solid #B5D4F4 !important;
-    border-radius: 20px !important;
-    padding: 6px 14px !important;
-    font-weight: 700;
-    font-size: 0.85rem;
-    color: #042C53 !important;
-    cursor: pointer;
-    font-family: 'Outfit', sans-serif;
-    transition: all 0.2s ease;
-    height: auto !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+    gap: 6px;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 999px !important;
+    background: #FFFFFF !important;
     box-shadow: none !important;
+    color: #0E2A47 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 160ms ease, border-color 160ms ease;
+    user-select: none;
 }
 
-.mobile-lang-toggle .lang-flag {
-    font-size: 0.95rem;
+.mobile-lang-toggle:hover {
+    background: #F0F6FC !important;
+}
+
+.mobile-lang-toggle:focus-visible {
+    outline: 2px solid #378ADD !important;
+    outline-offset: 2px;
+}
+
+.mobile-lang-toggle .lang-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #378ADD;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
 }
 
 .mobile-lang-toggle .lang-active {
-    color: #042C53;
-    font-weight: 700;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    color: #0E2A47;
 }
 
 .mobile-lang-toggle .lang-arrow {
-    color: #378ADD;
-    font-size: 0.85rem;
-    transition: transform 0.25s ease;
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 160ms ease;
 }
 
 /* Language Dropdown Container & Menu */
 .lang-dropdown-container {
     position: relative;
-    display: inline-block;
+    display: inline-flex;
 }
 
 .lang-dropdown-menu {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
-    min-width: 150px;
+    min-width: 176px;
+    max-width: calc(100vw - 24px);
     background: #FFFFFF !important;
-    border: 1px solid rgba(55, 138, 221, 0.25) !important;
-    border-radius: 14px !important;
-    box-shadow: 0 12px 30px rgba(4, 44, 83, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 12px !important;
     padding: 6px !important;
+    box-shadow: 0 8px 24px rgba(4, 44, 83, 0.08) !important;
+    box-sizing: border-box;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-8px) scale(0.96);
-    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-        transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
-        visibility 0.2s;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 140ms ease-out, transform 140ms ease-out, visibility 140ms ease-out;
     z-index: 1000;
 }
 
 .lang-dropdown-container.open .lang-dropdown-menu {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 .lang-dropdown-container.open .lang-arrow {
@@ -2821,58 +2880,69 @@ body:not(.navigation-active) .bottom-status-pill {
 
 .lang-dropdown-item {
     width: 100%;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 10px;
+    border: none !important;
+    border-radius: 8px;
+    background: transparent !important;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border: none !important;
-    background: transparent !important;
-    border-radius: 8px;
-    color: #042C53;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.88rem;
-    font-weight: 600;
+    box-sizing: border-box;
     cursor: pointer;
     text-align: left;
-    transition: background 0.15s ease, color 0.15s ease;
-    box-shadow: none !important;
+    transition: background 140ms ease;
+    user-select: none;
     outline: none !important;
 }
 
-.lang-dropdown-item:hover {
-    background: rgba(55, 138, 221, 0.08) !important;
-    color: #378ADD !important;
+.lang-dropdown-item:hover,
+.lang-dropdown-item:focus-visible {
+    background: #F0F6FC !important;
+    outline: none !important;
 }
 
 .lang-dropdown-item.active {
-    background: #378ADD !important;
-    color: #FFFFFF !important;
-}
-
-.lang-dropdown-item .lang-flag {
-    font-size: 1.05rem;
+    background: #EAF2FC !important;
 }
 
 .lang-dropdown-item .lang-name {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    color: #0E2A47;
     flex: 1;
+}
+
+.lang-dropdown-item.active .lang-name {
     font-weight: 600;
+    color: #0E2A47;
 }
 
 .lang-dropdown-item .lang-code {
-    font-size: 0.75rem;
-    opacity: 0.75;
-    font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 13px;
+    color: #64748B;
+    margin-right: 8px;
 }
 
 .lang-dropdown-item .lang-check {
-    font-size: 0.95rem;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: #378ADD !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    visibility: hidden;
     opacity: 0 !important;
-    transition: opacity 0.15s ease;
 }
 
 .lang-dropdown-item.active .lang-check {
+    visibility: visible;
     opacity: 1 !important;
-    color: #FFFFFF !important;
 }
 
 /* Animated Hamburger-to-X Menu Toggle Icon */
@@ -4831,32 +4901,65 @@ body:not(.navigation-active) .bottom-status-pill {
 }
 
 /* =============================================
-   NAVIGATION CURSOR ANIMATIONS
+   NAVIGATION POINTER (Google Maps style disc + arrow)
    ============================================= */
+.calzada-nav-marker-root {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    cursor: default;
+    pointer-events: none;
+}
+
+.nav-marker-shadow-layer {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 3px 6px rgba(14, 42, 71, 0.28));
+    transform: none !important; /* Never rotates so shadow stays downward */
+}
+
 .nav-cursor-wrapper {
-    transform-origin: center center;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform-origin: 24px 24px;
     will-change: transform;
 }
 
-.nav-pulse-ring {
-    animation: nav-pulse 2.4s ease-out infinite;
-    transform-origin: 24px 24px;
+.nav-cursor-wrapper svg {
+    width: 48px;
+    height: 48px;
+    display: block;
 }
 
-@keyframes nav-pulse {
-    0% {
-        r: 14;
-        opacity: 0.4;
+@media (max-width: 768px) {
+    .calzada-nav-marker-root {
+        width: 56px;
+        height: 56px;
     }
-
-    70% {
-        r: 22;
-        opacity: 0;
+    .nav-marker-shadow-layer {
+        width: 56px;
+        height: 56px;
     }
-
-    100% {
-        r: 14;
-        opacity: 0;
+    .nav-cursor-wrapper {
+        width: 56px;
+        height: 56px;
+        transform-origin: 28px 28px;
+    }
+    .nav-cursor-wrapper svg {
+        width: 56px;
+        height: 56px;
     }
 }
 
@@ -5304,3 +5407,311 @@ html.lang-swapping-out [data-lang-fade] {
         opacity: 1;
     }
 }
+
+/* =========================================================
+   MOBILE BOTTOM SHEET — COMPACT LAYOUT & TYPOGRAPHY (≤ 768px)
+   ========================================================= */
+@media (max-width: 768px) {
+    /* A1, A4. Sheet height and bounds */
+    .bottom-sheet {
+        max-height: calc(var(--vh, 1vh) * 100 - 72px - env(safe-area-inset-top, 0px)) !important;
+        max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
+        margin: 0 12px max(12px, env(safe-area-inset-bottom, 12px)) 12px !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* B1. Hide brand header (logo inside sheet) */
+    .ds-brand-header {
+        display: none !important;
+    }
+
+    /* A3. Drag handle: fully visible and tappable */
+    .drag-handle-bar {
+        padding: 4px 0 2px !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        cursor: grab !important;
+    }
+
+    .drag-pill {
+        width: 36px !important;
+        height: 4px !important;
+    }
+
+    /* A3, C. Header row with "Directions" (18px) and close button */
+    .ds-header {
+        padding: 0 16px 2px !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .ds-title {
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 18px !important;
+        font-weight: 700 !important;
+        line-height: 1.2 !important;
+    }
+
+    .ds-close-btn {
+        width: 28px !important;
+        height: 28px !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* B2, B3. Body container: Fixed above itinerary legs, strictly 12px gap */
+    .ds-body {
+        padding: 0 16px !important;
+        gap: 12px !important;
+        margin: 0 !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    /* B2. Remove individual margins to enforce exact 12px vertical rhythm */
+    .ds-body > .od-input-block,
+    .ds-body > .schedule-row,
+    .ds-body > .mode-segment-control,
+    .ds-body > .route-summary-block {
+        margin: 0 !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* C, D2. Origin / Destination block: row height 40px, text 14px, truncation with ellipsis */
+    .od-input-block {
+        padding: 0 10px !important;
+        gap: 6px !important;
+        margin: 0 !important;
+    }
+
+    .od-connector-img {
+        height: 38px !important;
+        width: auto !important;
+    }
+
+    .od-divider-line {
+        margin: 0 !important;
+    }
+
+    .od-input-column {
+        min-width: 0 !important;
+        flex: 1 !important;
+        overflow: hidden !important;
+    }
+
+    .od-row {
+        height: 40px !important;
+        padding: 0 !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .od-field {
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        min-width: 0 !important;
+        flex: 1 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        line-height: 1.2 !important;
+    }
+
+    .swap-btn {
+        flex-shrink: 0 !important;
+        width: 34px !important;
+        height: 34px !important;
+        margin-left: 6px !important;
+    }
+
+    /* C. Schedule pill: height 36px, text 13px */
+    .schedule-row {
+        margin: 0 !important;
+    }
+
+    .schedule-pill {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 0 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* C. Mode segment toggle: height 36px, text 13px */
+    .mode-segment-control {
+        margin: 0 !important;
+        gap: 8px !important;
+    }
+
+    .mode-segment-control .segment-track {
+        padding: 2px !important;
+        gap: 2px !important;
+    }
+
+    .mode-segment-control .segment-btn {
+        height: 36px !important;
+        min-height: 36px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        padding: 0 14px !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Route summary block and banner */
+    .route-summary-block {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* C. Summary banner: padding 12px 14px, summary-large 19px, summary-sub 13px */
+    .route-summary-banner {
+        margin: 0 !important;
+        padding: 12px 14px !important;
+        flex-shrink: 0 !important;
+    }
+
+    .summary-large {
+        font-family: 'Sora', 'Outfit', sans-serif !important;
+        font-size: 19px !important;
+        font-weight: 800 !important;
+        line-height: 1.25 !important;
+    }
+
+    .summary-sub {
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        line-height: 1.2 !important;
+        margin-top: 3px !important;
+    }
+
+    /* B3. The list of route steps (.itinerary-legs) is the ONLY scrolling area inside the sheet */
+    .itinerary-legs {
+        margin-top: 0 !important;
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 5px !important;
+        padding-right: 2px !important;
+    }
+
+    /* C. Compact leg cards */
+    .leg-card {
+        padding: 5px 10px !important;
+        gap: 8px !important;
+        border-radius: 10px !important;
+    }
+
+    .leg-icon-circle {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .leg-icon-circle svg,
+    .leg-icon-circle .leg-icon-img {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    .leg-title {
+        font-family: 'Sora', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        line-height: 1.18 !important;
+    }
+
+    .leg-sub {
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        line-height: 1.18 !important;
+    }
+
+    .leg-fare-badge {
+        font-family: 'Sora', sans-serif !important;
+        font-size: 12.5px !important;
+        font-weight: 700 !important;
+        padding: 1px 6px !important;
+    }
+
+    .leg-route-stops {
+        margin-top: 2px !important;
+        padding-top: 2px !important;
+        gap: 4px !important;
+    }
+
+    .leg-stop-group {
+        gap: 1px !important;
+    }
+
+    .leg-stop-tag {
+        font-family: 'Outfit', sans-serif !important;
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        line-height: 1.1 !important;
+    }
+
+    .leg-stop-name {
+        font-family: 'Sora', 'Outfit', sans-serif !important;
+        font-size: 12.5px !important;
+        font-weight: 600 !important;
+        line-height: 1.18 !important;
+    }
+
+    .leg-stop-details {
+        gap: 3px !important;
+    }
+
+    .leg-stop-connector {
+        min-height: 8px !important;
+    }
+
+    .leg-card:not(:last-child)::after {
+        left: 23px !important;
+        top: 32px !important;
+    }
+
+    /* B3, A4. Pinned Start Journey Footer with solid white background */
+    .ds-footer {
+        flex-shrink: 0 !important;
+        background: #FFFFFF !important;
+        position: relative !important;
+        z-index: 10 !important;
+        border-radius: 0 0 24px 24px !important;
+        padding: 0 0 max(8px, env(safe-area-inset-bottom, 8px)) !important;
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+    }
+
+    .start-journey-btn {
+        height: 48px !important;
+        min-height: 48px !important;
+        font-family: 'Sora', 'Outfit', sans-serif !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        margin: 12px 16px 8px !important;
+        width: calc(100% - 32px) !important;
+    }
+}
+

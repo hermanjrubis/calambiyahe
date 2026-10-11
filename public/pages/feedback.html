@@ -4,18 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calzada - Feedback</title>
-    <meta name="description" content="Send feedback, report routing issues, and suggest improvements to help make commuting better in Calamba City.">
+    <title data-i18n="feedback.title">Calzada - Feedback</title>
+    <meta name="description" content="Send feedback, report routing issues, and suggest improvements to help make commuting better in Calamba City." data-i18n="feedback.meta_desc" data-i18n-attr="content">
     <link rel="canonical" href="https://calzadaph.com/feedback">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
-    <meta property="og:title" content="Calzada - We'd Love Your Feedback">
-    <meta property="og:description" content="Report a bug, suggest a feature, or just tell us what you think.">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <meta property="og:title" content="Calzada - We'd Love Your Feedback" data-i18n="feedback.og_title" data-i18n-attr="content">
+    <meta property="og:description" content="Report a bug, suggest a feature, or just tell us what you think." data-i18n="feedback.og_desc" data-i18n-attr="content">
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts (Non-blocking) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+    </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
     <link rel="stylesheet" href="../css/style.css?v=2.6.3">
     <!-- Skeleton CSS & FOUC Preventer -->
@@ -23,6 +30,36 @@
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+    </style>
+    <noscript>
+        <style>body { opacity: 1 !important; }</style>
+    </noscript>
+    <script>
+        (function() {
+            function show() {
+                if (document.body && !document.body.classList.contains('fouc-ready')) {
+                    document.body.classList.add('fouc-ready');
+                }
+            }
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                show();
+            } else {
+                document.addEventListener('DOMContentLoaded', show);
+            }
+            setTimeout(function() {
+                show();
+                var sk = document.getElementById('skeleton-overlay');
+                if (sk) {
+                    sk.classList.add('hidden');
+                    setTimeout(function() { sk.remove(); }, 500);
+                    document.querySelectorAll('main, .scrollable-content, .planner-gui-container, .places-page, .auth-page-container, .ref-hero').forEach(function(el) {
+                        el.style.opacity = '1';
+                    });
+                }
+            }, 1200);
+        })();
+    </script>
+    <style>
 
         /* Routie Speech Bubble Styles */
         .feedback-routie-bubble {
@@ -76,6 +113,54 @@
         .feedback-confirmation-img,
         .feedback-confirmation img {
             margin: -18px auto -22px;
+        }
+
+        .feedback-confirmation {
+            padding: 32px 36px;
+            width: 100%;
+            max-width: 820px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .feedback-confirmation.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: feedbackFadeIn 200ms ease forwards;
+        }
+
+        @keyframes feedbackFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .feedback-confirmation.active {
+                animation: none !important;
+                opacity: 1 !important;
+            }
+        }
+
+        .feedback-confirmation-title,
+        .feedback-confirmation-desc {
+            max-width: 520px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .feedback-confirmation {
+                min-height: auto !important;
+                padding: 20px 16px;
+            }
+        }
+
+        .char-counter {
+            line-height: 15px;
         }
 
         .feedback-loader-img {
@@ -143,21 +228,21 @@
 <body class="feedback-page">
 
     <!-- Mobile Search Overlay -->
-    <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
+    <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places" data-i18n="nav.search.label" data-i18n-attr="aria-label">
         <div class="mobile-search-backdrop" id="mobileSearchBackdrop"></div>
         <div class="mobile-search-card">
             <div class="mobile-search-topbar">
-                <span class="mobile-search-label">Search a place</span>
-                <button class="mobile-search-close" id="mobileSearchClose" aria-label="Close search">
+                <span class="mobile-search-label" data-i18n="nav.search.label">Search a place</span>
+                <button class="mobile-search-close" id="mobileSearchClose" aria-label="Close search" data-i18n="nav.search.close" data-i18n-attr="aria-label">
                     <ion-icon name="close-outline"></ion-icon>
                 </button>
             </div>
             <div class="mobile-search-input-wrap">
                 <ion-icon name="search-outline" class="mobile-search-prefix"></ion-icon>
                 <input type="text" id="mobileSearchInput" class="mobile-search-input"
-                    placeholder="Where to go?" autocomplete="off" autocorrect="off"
+                    placeholder="Where to go?" data-i18n="nav.search.placeholder" data-i18n-attr="placeholder" autocomplete="off" autocorrect="off"
                     autocapitalize="off" spellcheck="false">
-                <button class="mobile-search-submit" id="mobileSearchSubmit" aria-label="Search">
+                <button class="mobile-search-submit" id="mobileSearchSubmit" aria-label="Search" data-i18n="nav.search.submit" data-i18n-attr="aria-label">
                     <ion-icon name="arrow-forward-outline"></ion-icon>
                 </button>
             </div>
@@ -190,25 +275,25 @@
                             <span class="nav-drop-icon icon-mall">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
                             </span>
-                            <span>Malls</span>
+                            <span data-i18n="nav.explore.malls">Malls</span>
                         </a>
                         <a href="/places?category=eateries" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-eatery">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
                             </span>
-                            <span>Eateries</span>
+                            <span data-i18n="nav.explore.eateries">Eateries</span>
                         </a>
                         <a href="/places?category=schools" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-school">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
                             </span>
-                            <span>Schools</span>
+                            <span data-i18n="nav.explore.schools">Schools</span>
                         </a>
                         <a href="/places?category=terminals" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-terminal">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M8 19v2M16 19v2"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>
                             </span>
-                            <span>Terminals</span>
+                            <span data-i18n="nav.explore.terminals">Terminals</span>
                         </a>
                         <a href="/places?category=coffee" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-coffee">
@@ -220,7 +305,7 @@
                                     <line x1="14" y1="2" x2="14" y2="4"></line>
                                 </svg>
                             </span>
-                            <span>Coffee Shops</span>
+                            <span data-i18n="nav.explore.coffee">Coffee Shops</span>
                         </a>
                         <a href="/places?category=establishments" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
@@ -230,14 +315,14 @@
                                     <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"></path>
                                 </svg>
                             </span>
-                            <span>Establishments</span>
+                            <span data-i18n="nav.explore.establishments">Establishments</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
                         <a href="/places" class="nav-dropdown-item view-all">
                             <span class="nav-drop-icon icon-all">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                             </span>
-                            <span>View All Places →</span>
+                            <span><span data-i18n="nav.explore.view_all">View All Places</span> →</span>
                         </a>
                     </div>
                 </div>
@@ -245,54 +330,26 @@
                 <a href="/faq" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
                 <a href="/feedback" class="nav-link active" data-i18n="footer.nav.feedback">Feedback</a>
                 <a href="/planner" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
-
-                <!-- Mobile Language Row -->
-                <div class="mobile-lang-row">
-                    <span class="mobile-lang-label">Language / Wika</span>
-                    <div class="lang-dropdown-container mobile-lang-container">
-                        <button class="mobile-lang-toggle" type="button" aria-expanded="false">
-                            <span class="lang-flag">🌐</span>
-                            <span class="lang-active">EN</span>
-                            <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
-                        </button>
-                        <div class="lang-dropdown-menu">
-                            <button class="lang-dropdown-item" type="button" data-lang="en">
-                                <span class="lang-flag">🌐</span>
-                                <span class="lang-name">English</span>
-                                <span class="lang-code">EN</span>
-                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                            </button>
-                            <button class="lang-dropdown-item" type="button" data-lang="tl">
-                                <span class="lang-flag">🇵🇭</span>
-                                <span class="lang-name">Tagalog</span>
-                                <span class="lang-code">TL</span>
-                                <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </nav>
 
             <!-- [Right Side]: Language, Activity Feed Bell, User Profile / Sign In -->
             <div class="nav-right">
                 <div class="lang-dropdown-container">
-                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" title="Switch Language">
-                        <span class="lang-flag">🌐</span>
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
+                        <i class="ti ti-language lang-icon" aria-hidden="true"></i>
                         <span class="lang-active">EN</span>
-                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
                     </button>
-                    <div class="lang-dropdown-menu">
-                        <button class="lang-dropdown-item" type="button" data-lang="en">
-                            <span class="lang-flag">🌐</span>
+                    <div class="lang-dropdown-menu" role="menu">
+                        <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
                             <span class="lang-name">English</span>
                             <span class="lang-code">EN</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
-                        <button class="lang-dropdown-item" type="button" data-lang="tl">
-                            <span class="lang-flag">🇵🇭</span>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
                             <span class="lang-name">Tagalog</span>
                             <span class="lang-code">TL</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
@@ -305,9 +362,9 @@
                 </div>
 
                 <div class="user-profile-nav" id="userProfileNav">
-                    <a href="/login" id="authNavBtn" class="btn-nav-signin" data-i18n="login.signin">
+                    <a href="/login" id="authNavBtn" class="btn-nav-signin">
                         <ion-icon name="person-outline"></ion-icon>
-                        <span>Sign In</span>
+                        <span data-i18n="nav.signin">Sign In</span>
                     </a>
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
@@ -353,11 +410,11 @@
                 <div class="alerts-header">
                     <div class="alerts-header-title">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                        <span>Activity Feed</span>
+                        <span data-i18n="nav.activity.title">Activity Feed</span>
                     </div>
                     <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-                        Clear
+                        <span data-i18n="nav.activity.clear">Clear</span>
                     </button>
                 </div>
                 <div class="alerts-list" id="activityFeedList">
@@ -381,30 +438,30 @@
 
                 <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
                 <div class="exploration-stats-section" id="explorationStatsSection">
-                    <div class="stats-section-label">Your Exploration Stats</div>
+                    <div class="stats-section-label" data-i18n="nav.user.stats_label">Your Exploration Stats</div>
                     <div class="exploration-stats-row">
-                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" title="View Visited Establishments">
+                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" data-i18n="nav.user.title_visits" data-i18n-attr="title" title="View Visited Establishments">
                             <span class="stat-icon">
-                                <svg width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
                             </span>
                             <span class="stat-value" id="statVisitsCount">0</span>
-                            <span class="stat-name">Visits</span>
+                            <span class="stat-name" data-i18n="nav.user.visits">Visits</span>
                         </button>
                         <div class="stat-divider"></div>
-                        <button type="button" class="stat-pill-btn" id="statSavesBtn" title="View Saved Places">
+                        <button type="button" class="stat-pill-btn" id="statSavesBtn" data-i18n="nav.user.title_saves" data-i18n-attr="title" title="View Saved Places">
                             <span class="stat-icon">
-                                <svg width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
                             </span>
                             <span class="stat-value" id="statSavesCount">0</span>
-                            <span class="stat-name">Saves</span>
+                            <span class="stat-name" data-i18n="nav.user.saves">Saves</span>
                         </button>
                         <div class="stat-divider"></div>
-                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" title="View Achievements">
+                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" data-i18n="nav.user.title_badges" data-i18n-attr="title" title="View Badges">
                             <span class="stat-icon">
-                                <svg width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
                             </span>
                             <span class="stat-value" id="statBadgesCount">0</span>
-                            <span class="stat-name">Badges</span>
+                            <span class="stat-name" data-i18n="nav.user.badges">Badges</span>
                         </button>
                     </div>
                 </div>
@@ -412,50 +469,58 @@
 
                 <div class="profile-menu-divider"></div>
 
-                <!-- Menu Items with Outline Heroicons SVGs (Strictly No Emojis) -->
+                <!-- Menu Items with Outline Tabler SVGs (Strictly No Emojis) -->
                 <div class="profile-nav-list">
                     <!-- 1. My Visits -->
                     <button type="button" class="profile-nav-btn" id="menuMyVisits">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
                         </span>
-                        <span class="nav-btn-title">My Visits</span>
+                        <span class="nav-btn-title" data-i18n="nav.user.my_visits">My Visits</span>
                     </button>
 
                     <!-- 2. Saved Places -->
                     <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
                         </span>
-                        <span class="nav-btn-title">Saved Places</span>
-                        <span class="saved-count-pill" id="menuSavedCount">(0)</span>
+                        <span class="nav-btn-title" data-i18n="nav.user.saved_places">Saved Places</span>
+                        <span class="saved-count-pill" id="menuSavedCount" style="display: none;">0</span>
                     </button>
 
-                    <!-- 3. My Achievements -->
+                    <!-- 3. My Badges -->
                     <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
                         </span>
-                        <span class="nav-btn-title">My Achievements</span>
+                        <span class="nav-btn-title" data-i18n="nav.user.my_achievements">My Badges</span>
                     </button>
 
                     <!-- 4. Account Settings -->
                     <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
                         </span>
-                        <span class="nav-btn-title">Account Settings</span>
+                        <span class="nav-btn-title" data-i18n="nav.user.account_settings">Account Settings</span>
                     </button>
+
+                    <!-- 5. Register your business -->
+                    <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21v-10.15" /><path d="M19 21v-10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.register_business">Register your business</span>
+                    </a>
                 </div>
 
                 <div class="profile-menu-divider"></div>
 
-                <!-- 5. Log Out -->
+                <!-- 6. Log Out -->
                 <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
                     <span class="nav-btn-icon">
-                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></svg>
                     </span>
-                    <span class="nav-btn-title">Log Out</span>
+                    <span class="nav-btn-title" data-i18n="nav.user.logout">Log Out</span>
                 </button>
             </div>
         </div>
@@ -467,8 +532,8 @@
         <ion-icon name="chatbubbles-outline" class="feedback-bg-mark" aria-hidden="true"></ion-icon>
 
         <div class="feedback-header">
-            <h1 class="page-title">We'd Love Your Feedback</h1>
-            <p class="page-subtext">Report a bug, suggest a feature, or just tell us what you think.</p>
+            <h1 class="page-title" data-i18n="feedback.header.title">We'd Love Your Feedback</h1>
+            <p class="page-subtext" data-i18n="feedback.header.sub">Report a bug, suggest a feature, or just tell us what you think.</p>
         </div>
 
         <!-- Auth Gate Initial Loading Placeholder Card -->
@@ -515,11 +580,11 @@
 
             <!-- Right Column: Left-aligned Text & CTA -->
             <div class="feedback-gate-content">
-                <h2 class="feedback-gate-title">Sign in to leave feedback</h2>
-                <p class="feedback-gate-desc">So we can follow up on your report and keep spam out.</p>
+                <h2 class="feedback-gate-title" data-i18n="feedback.gate.title">Sign in to leave feedback</h2>
+                <p class="feedback-gate-desc" data-i18n="feedback.gate.desc">So we can follow up on your report and keep spam out.</p>
                 <a href="/login?redirect=/feedback" class="btn-feedback-signin">
                     <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
-                    <span>Sign in to continue</span>
+                    <span data-i18n="feedback.gate.btn">Sign in to continue</span>
                 </a>
             </div>
         </div>
@@ -531,40 +596,40 @@
                     <!-- LEFT COLUMN: Category Cards & Emoji Scale -->
                     <div class="feedback-col-left">
                         <div class="form-group">
-                            <label>Feedback Category <span style="color:#EF4444;">*</span></label>
+                            <label><span data-i18n="feedback.cat.label">Feedback Category</span> <span style="color:#EF4444;">*</span></label>
                             <div class="category-cards-grid" id="categoryCardsGrid">
                                 <div class="category-card" data-category="Bug Report">
                                     <i class="ti ti-bug cat-card-icon"></i>
-                                    <span class="cat-card-label">Bug Report</span>
+                                    <span class="cat-card-label" data-i18n="feedback.cat.bug">Bug Report</span>
                                 </div>
                                 <div class="category-card" data-category="Suggestion">
                                     <i class="ti ti-bulb cat-card-icon"></i>
-                                    <span class="cat-card-label">Suggestion</span>
+                                    <span class="cat-card-label" data-i18n="feedback.cat.suggestion">Suggestion</span>
                                 </div>
                                 <div class="category-card" data-category="General">
                                     <i class="ti ti-message-2 cat-card-icon"></i>
-                                    <span class="cat-card-label">General</span>
+                                    <span class="cat-card-label" data-i18n="feedback.cat.general">General</span>
                                 </div>
                             </div>
                             <div class="category-helper-text" id="categoryHelperText"></div>
                         </div>
 
                         <div class="form-group" style="margin-top: 18px;">
-                            <label>How's your experience so far? <span style="font-weight:400; color:#64748B; font-size:0.8rem;">(optional)</span></label>
+                            <label><span data-i18n="feedback.rating.label">How's your experience so far?</span> <span style="font-weight:400; color:#64748B; font-size:0.8rem;" data-i18n="feedback.rating.optional">(optional)</span></label>
                             <div class="emoji-rating-row" id="emojiRatingRow">
-                                <div class="emoji-option" data-rating="Bad" title="Bad">
+                                <div class="emoji-option" data-rating="Bad" title="Bad" data-i18n="feedback.rating.bad" data-i18n-attr="title">
                                     <span class="emoji-char">😞</span>
                                 </div>
-                                <div class="emoji-option" data-rating="Poor" title="Poor">
+                                <div class="emoji-option" data-rating="Poor" title="Poor" data-i18n="feedback.rating.poor" data-i18n-attr="title">
                                     <span class="emoji-char">😕</span>
                                 </div>
-                                <div class="emoji-option" data-rating="Okay" title="Okay">
+                                <div class="emoji-option" data-rating="Okay" title="Okay" data-i18n="feedback.rating.okay" data-i18n-attr="title">
                                     <span class="emoji-char">😐</span>
                                 </div>
-                                <div class="emoji-option" data-rating="Good" title="Good">
+                                <div class="emoji-option" data-rating="Good" title="Good" data-i18n="feedback.rating.good" data-i18n-attr="title">
                                     <span class="emoji-char">🙂</span>
                                 </div>
-                                <div class="emoji-option" data-rating="Great" title="Great">
+                                <div class="emoji-option" data-rating="Great" title="Great" data-i18n="feedback.rating.great" data-i18n-attr="title">
                                     <span class="emoji-char">😄</span>
                                 </div>
                             </div>
@@ -575,21 +640,21 @@
                     <!-- RIGHT COLUMN: Name, Email, Message, Submit -->
                     <div class="feedback-col-right">
                         <div class="form-group">
-                            <label for="feedbackName">Name</label>
-                            <input type="text" id="feedbackName" placeholder="e.g. Maria Santos">
+                            <label for="feedbackName" data-i18n="feedback.field.name">Name</label>
+                            <input type="text" id="feedbackName" placeholder="e.g. Maria Santos" data-i18n-placeholder="feedback.placeholder.name">
                         </div>
 
                         <div class="form-group">
-                            <label for="feedbackEmail">Email Address</label>
+                            <label for="feedbackEmail" data-i18n="feedback.field.email">Email Address</label>
                             <div class="input-group">
                                 <ion-icon name="mail-outline"></ion-icon>
-                                <input type="email" id="feedbackEmail" required readonly class="is-readonly" placeholder="name@example.com">
+                                <input type="email" id="feedbackEmail" required readonly class="is-readonly" placeholder="name@example.com" data-i18n-placeholder="feedback.placeholder.email">
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="feedbackMessage">Your Message <span style="color:#EF4444;">*</span></label>
-                            <textarea id="feedbackMessage" required maxlength="500" placeholder="Tell us what you experienced or what we could improve..."></textarea>
+                            <label for="feedbackMessage"><span data-i18n="feedback.field.message">Your Message</span> <span style="color:#EF4444;">*</span></label>
+                            <textarea id="feedbackMessage" required maxlength="500" placeholder="Tell us what you experienced or what we could improve..." data-i18n-placeholder="feedback.placeholder.general"></textarea>
                             <div class="char-counter-row">
                                 <span class="char-counter" id="charCounter">0/500</span>
                             </div>
@@ -601,7 +666,7 @@
                         </div>
 
                         <button type="submit" class="btn-submit-feedback">
-                            <i class="ti ti-send"></i> Submit Feedback
+                            <i class="ti ti-send"></i> <span data-i18n="feedback.btn.submit">Submit Feedback</span>
                         </button>
                     </div>
                 </div>
@@ -611,8 +676,8 @@
             <div class="feedback-loader-wrapper" id="feedbackLoaderWrapper" role="status" aria-live="polite">
                 <div class="feedback-loader-content">
                     <img src="../assets/routie-builder.png" alt="" class="feedback-loader-img" width="150" height="150">
-                    <h3 class="feedback-loader-title">Sending your feedback…</h3>
-                    <p class="feedback-loader-sub">This only takes a moment.</p>
+                    <h3 class="feedback-loader-title" data-i18n="feedback.loader.title">Sending your feedback…</h3>
+                    <p class="feedback-loader-sub" data-i18n="feedback.loader.sub">This only takes a moment.</p>
                 </div>
             </div>
         </div>
@@ -620,14 +685,14 @@
         <!-- Confirmation State View -->
         <div class="feedback-card feedback-confirmation" id="feedbackConfirmation">
             <img src="../assets/routie-love.png" alt="" class="feedback-confirmation-img" width="150" height="150">
-            <h2 class="feedback-confirmation-title" id="feedbackConfirmationTitle" tabindex="-1">Thank you! We got it.</h2>
-            <p class="feedback-confirmation-desc">Your input helps us make commuting in Calamba clearer and easier for everyone.</p>
+            <h2 class="feedback-confirmation-title" id="feedbackConfirmationTitle" tabindex="-1" data-i18n="feedback.confirm.title">Thank you! We got it.</h2>
+            <p class="feedback-confirmation-desc" data-i18n="feedback.confirm.desc">Your input helps us make commuting in Calamba clearer and easier for everyone.</p>
             <div class="feedback-actions-row">
                 <button type="button" class="btn-feedback-reset" id="btnFeedbackReset">
-                    <i class="ti ti-rotate-clockwise"></i> Send Another Response
+                    <i class="ti ti-rotate-clockwise"></i> <span data-i18n="feedback.btn.reset">Send Another Response</span>
                 </button>
                 <a href="/" class="btn-feedback-home">
-                    <i class="ti ti-home"></i> Back to Home
+                    <i class="ti ti-home"></i> <span data-i18n="feedback.btn.home">Back to Home</span>
                 </a>
             </div>
         </div>
@@ -697,7 +762,7 @@
             "Just want to say hi? That works too."
         ];
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function initFeedbackPage() {
             // Skeleton loader fouc handler
             document.body.classList.add('fouc-ready');
 
@@ -1006,6 +1071,28 @@
                     renderTypedProgress(0);
                     scheduleSpeechStep(100);
                 }
+
+                // Update category helper text and message placeholder
+                if (selectedCategory && helperTextEl) {
+                    helperTextEl.textContent = getCategoryHelper(selectedCategory);
+                }
+                if (messageInput) {
+                    messageInput.placeholder = getCategoryPlaceholder(selectedCategory);
+                }
+
+                // Update rating selected label
+                if (selectedRating && emojiLabelEl) {
+                    emojiLabelEl.textContent = getRatingLabel(selectedRating);
+                }
+
+                // Update active error text if displayed
+                if (activeErrorKey && errorNoticeEl && errorNoticeEl.style.display !== 'none') {
+                    const textEl = document.getElementById('feedbackErrorText');
+                    if (textEl) textEl.textContent = window.t(activeErrorKey);
+                }
+
+                // Update document title
+                document.title = window.t('feedback.title');
             });
 
             // Auth State Transition & Loading Fallback Logic
@@ -1083,6 +1170,7 @@
 
             // Mock user hook for automated verification without touching Firebase
             window.__setMockUser = (user) => {
+                window.__MOCK_USER__ = user;
                 currentUser = user;
                 setAuthState(!!user);
                 if (user) {
@@ -1098,17 +1186,33 @@
                 window.__setMockUser(window.__MOCK_USER__);
             }
 
-            const helpers = {
-                'Bug Report': "Something's not working right? Let us know what happened.",
-                'Suggestion': "Got an idea to make Calzada better? We're listening.",
-                'General': "Anything else on your mind? Tell us."
-            };
+            let activeErrorKey = null;
 
-            const placeholders = {
-                'Bug Report': "Which part of the website had the issue?",
-                'Suggestion': "What would you like to see added or changed?",
-                'General': "Tell us what you experienced or what we could improve..."
-            };
+            function getCategoryHelper(category) {
+                if (!category) return '';
+                if (category === 'Bug Report') return window.t('feedback.helper.bug');
+                if (category === 'Suggestion') return window.t('feedback.helper.suggestion');
+                if (category === 'General') return window.t('feedback.helper.general');
+                return '';
+            }
+
+            function getCategoryPlaceholder(category) {
+                if (category === 'Bug Report') return window.t('feedback.placeholder.bug');
+                if (category === 'Suggestion') return window.t('feedback.placeholder.suggestion');
+                return window.t('feedback.placeholder.general');
+            }
+
+            function getRatingLabel(rating) {
+                if (!rating) return '';
+                const map = {
+                    'Bad': 'feedback.rating.bad',
+                    'Poor': 'feedback.rating.poor',
+                    'Okay': 'feedback.rating.okay',
+                    'Good': 'feedback.rating.good',
+                    'Great': 'feedback.rating.great'
+                };
+                return map[rating] ? window.t(map[rating]) : rating;
+            }
 
             // 1. Category Card Selection
             categoryCards.forEach(card => {
@@ -1118,8 +1222,8 @@
                     categoryCardsGrid.style.outline = 'none';
 
                     selectedCategory = card.getAttribute('data-category');
-                    helperTextEl.textContent = helpers[selectedCategory] || '';
-                    messageInput.placeholder = placeholders[selectedCategory] || placeholders['General'];
+                    helperTextEl.textContent = getCategoryHelper(selectedCategory);
+                    messageInput.placeholder = getCategoryPlaceholder(selectedCategory);
                 });
             });
 
@@ -1143,7 +1247,7 @@
                     } else {
                         opt.classList.add('is-selected', 'is-animating-select');
                         selectedRating = opt.getAttribute('data-rating');
-                        if (emojiLabelEl) emojiLabelEl.textContent = selectedRating;
+                        if (emojiLabelEl) emojiLabelEl.textContent = getRatingLabel(selectedRating);
                         if (emojiRowEl) emojiRowEl.classList.add('has-selection');
 
                         setTimeout(() => {
@@ -1160,7 +1264,8 @@
             });
 
             // Helper to show/hide submission error notices
-            function showFeedbackError(msg) {
+            function showFeedbackError(msg, key = null) {
+                activeErrorKey = key;
                 if (errorNoticeEl) {
                     const textEl = document.getElementById('feedbackErrorText');
                     if (textEl) {
@@ -1169,12 +1274,31 @@
                         errorNoticeEl.textContent = msg;
                     }
                     errorNoticeEl.style.display = 'flex';
+
+                    // Phone only (< 768px): scroll error notice into view if off screen
+                    if (window.innerWidth < 768) {
+                        requestAnimationFrame(() => {
+                            const navbar = document.getElementById('navbar') || document.querySelector('.navbar');
+                            const navBottom = navbar ? (navbar.getBoundingClientRect().bottom || navbar.offsetHeight) : 60;
+                            const rect = errorNoticeEl.getBoundingClientRect();
+                            const isOffScreen = rect.top < navBottom + 16 || rect.bottom > window.innerHeight - 16;
+                            if (isOffScreen) {
+                                const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                                const targetScrollY = window.pageYOffset + rect.top - (navBottom + 16);
+                                window.scrollTo({
+                                    top: Math.max(0, targetScrollY),
+                                    behavior: prefersReducedMotion ? 'auto' : 'smooth'
+                                });
+                            }
+                        });
+                    }
                 } else {
                     alert(msg);
                 }
             }
 
             function hideFeedbackError() {
+                activeErrorKey = null;
                 if (errorNoticeEl) {
                     errorNoticeEl.style.display = 'none';
                     const textEl = document.getElementById('feedbackErrorText');
@@ -1191,7 +1315,7 @@
                 hideFeedbackError();
 
                 if (!currentUser) {
-                    showFeedbackError('Please sign in to your account before submitting feedback.');
+                    showFeedbackError(window.t('feedback.error.signin_required'), 'feedback.error.signin_required');
                     setAuthState(false);
                     return;
                 }
@@ -1222,7 +1346,7 @@
                     idToken = await currentUser.getIdToken();
                 } catch (tokenErr) {
                     console.error('Failed to get auth token:', tokenErr);
-                    showFeedbackError('Your sign-in session has expired. Please sign in again.');
+                    showFeedbackError(window.t('feedback.error.expired'), 'feedback.error.expired');
                     return;
                 }
 
@@ -1240,6 +1364,24 @@
                 const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
                 if (loaderWrapper) loaderWrapper.style.display = 'flex';
 
+                // Phone only (< 768px): vertically center .feedback-loader-content below sticky navbar
+                if (window.innerWidth < 768) {
+                    const navbar = document.getElementById('navbar') || document.querySelector('.navbar');
+                    const navBottom = navbar ? (navbar.getBoundingClientRect().bottom || navbar.offsetHeight) : 60;
+                    const loaderContent = loaderWrapper ? (loaderWrapper.querySelector('.feedback-loader-content') || loaderWrapper) : null;
+                    if (loaderContent) {
+                        const loaderRect = loaderContent.getBoundingClientRect();
+                        const visibleCenterY = (navBottom + window.innerHeight) / 2;
+                        const loaderDocCenterY = window.pageYOffset + loaderRect.top + (loaderRect.height / 2);
+                        const targetScrollY = Math.max(0, loaderDocCenterY - visibleCenterY);
+                        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        window.scrollTo({
+                            top: targetScrollY,
+                            behavior: prefersReducedMotion ? 'auto' : 'smooth'
+                        });
+                    }
+                }
+
                 try {
                     const response = await fetch('/api/feedback', {
                         method: 'POST',
@@ -1254,9 +1396,9 @@
 
                     if (!response.ok) {
                         if (response.status === 401) {
-                            throw new Error('Your sign-in session has expired. Please sign in again.');
+                            throw new Error('AUTH_EXPIRED');
                         }
-                        throw new Error(result.error || 'Failed to submit feedback. Please try again.');
+                        throw new Error(result.error || 'FAILED');
                     }
 
                     // Success: Stop loader, re-enable fields, reset form, and switch to confirmation view
@@ -1274,7 +1416,7 @@
                     emojiOptions.forEach(o => o.classList.remove('is-selected', 'is-animating-select'));
                     if (emojiRowEl) emojiRowEl.classList.remove('has-selection');
                     emojiLabelEl.textContent = '';
-                    messageInput.placeholder = placeholders['General'];
+                    messageInput.placeholder = getCategoryPlaceholder('General');
                     charCounterEl.textContent = '0/500';
                     emailInput.style.borderColor = '#CBD5E1';
                     messageInput.style.borderColor = '#CBD5E1';
@@ -1290,8 +1432,33 @@
                         }
                     }
 
+                    // Desktop (>= 768px): keep exactly the same outer box height
+                    const isDesktop = window.innerWidth >= 768;
+                    if (isDesktop && feedbackFormCard) {
+                        const formHeight = feedbackFormCard.offsetHeight;
+                        feedbackConfirmation.style.minHeight = formHeight + 'px';
+                    } else {
+                        feedbackConfirmation.style.minHeight = '';
+                    }
+
+                    // Swap without a visible jump in the same frame
                     feedbackFormCard.style.display = 'none';
                     feedbackConfirmation.classList.add('active');
+
+                    // Phone (< 768px): scroll into view about 16px below sticky navbar
+                    if (!isDesktop) {
+                        requestAnimationFrame(() => {
+                            const navbar = document.getElementById('navbar') || document.querySelector('.navbar');
+                            const navBottom = navbar ? (navbar.getBoundingClientRect().bottom || navbar.offsetHeight) : 60;
+                            const cardRect = feedbackConfirmation.getBoundingClientRect();
+                            const targetScrollY = window.pageYOffset + cardRect.top - (navBottom + 16);
+                            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                            window.scrollTo({
+                                top: Math.max(0, targetScrollY),
+                                behavior: prefersReducedMotion ? 'auto' : 'smooth'
+                            });
+                        });
+                    }
 
                     // Move focus to confirmation title
                     const confirmationTitle = document.getElementById('feedbackConfirmationTitle');
@@ -1303,7 +1470,11 @@
                     formControls.forEach(el => el.disabled = false);
                     feedbackForm.classList.remove('is-loading');
                     if (loaderWrapper) loaderWrapper.style.display = 'none';
-                    showFeedbackError("That didn't go through. Check your connection and try again.");
+                    if (err.message === 'AUTH_EXPIRED') {
+                        showFeedbackError(window.t('feedback.error.expired'), 'feedback.error.expired');
+                    } else {
+                        showFeedbackError(window.t('feedback.error.network'), 'feedback.error.network');
+                    }
                 }
             });
 
@@ -1321,7 +1492,7 @@
                 if (emojiRowEl) emojiRowEl.classList.remove('has-selection');
                 emojiLabelEl.textContent = '';
 
-                messageInput.placeholder = placeholders['General'];
+                messageInput.placeholder = getCategoryPlaceholder('General');
                 charCounterEl.textContent = '0/500';
 
                 emailInput.style.borderColor = '#CBD5E1';
@@ -1344,9 +1515,18 @@
                 const loaderWrapper = document.getElementById('feedbackLoaderWrapper');
                 if (loaderWrapper) loaderWrapper.style.display = 'none';
                 feedbackForm.classList.remove('is-loading');
+
+                // Clear inline min-height and return to normal form height
+                feedbackConfirmation.style.minHeight = '';
                 feedbackConfirmation.classList.remove('active');
             });
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFeedbackPage);
+        } else {
+            initFeedbackPage();
+        }
     </script>
     <script src="../js/legal-modal.js?v=2.6.3"></script>
     <script src="../js/script.js?v=2.6.3"></script>
@@ -1381,26 +1561,24 @@
             <div class="mobile-lang-row">
                 <span class="mobile-lang-label">Language / Wika</span>
                 <div class="lang-dropdown-container mobile-lang-container">
-                    <button class="mobile-lang-toggle pill-btn" type="button" aria-expanded="false">
-                        <span class="lang-flag">🌐</span>
-                        <span class="lang-active">EN</span>
-                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
-                    </button>
-                    <div class="lang-dropdown-menu">
-                        <button class="lang-dropdown-item" type="button" data-lang="en">
-                            <span class="lang-flag">🌐</span>
-                            <span class="lang-name">English</span>
-                            <span class="lang-code">EN</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
+                            <i class="ti ti-language lang-icon" aria-hidden="true"></i>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
                         </button>
-                        <button class="lang-dropdown-item" type="button" data-lang="tl">
-                            <span class="lang-flag">🇵🇭</span>
-                            <span class="lang-name">Tagalog</span>
-                            <span class="lang-code">TL</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                        </button>
+                        <div class="lang-dropdown-menu" role="menu">
+                            <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
             </div>
         </nav>
         <div class="drawer-footer-text">© 2026 Calzada</div>

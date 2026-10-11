@@ -11,6 +11,11 @@ window.translations = {
         'hero.title':           'Find places you can explore in <span class="title-accent">Calamba.</span>',
         'hero.subtitle':        'Your local guide to spots worth the trip.',
         'hero.search.placeholder': 'Where do you want to go?',
+        'hero.popover.get_started.title': 'Place Finder',
+        'hero.popover.get_started.desc':  'Browse malls, eateries, schools and terminals in Calamba, then see how to get there.',
+        'hero.popover.discover.title':    'Discover',
+        'hero.popover.discover.desc':     'See the latest posts and photos from local shops and eateries.',
+        'hero.popover.tap_action':        'Tap again to open',
         'about.heading':        'More than just directions.',
         'about.body':           'Calzada helps you discover places worth visiting around Calamba, then gets you there. Search a spot, see how to reach it, and pick a jeepney or tricycle, with fare estimates and directions in one place.',
         'about.learn_more':     'Learn more about Calzada',
@@ -64,6 +69,10 @@ window.translations = {
         'footer.nav.terms':     'Terms of Service',
         'footer.contact.heading': 'Contact Us',
         'footer.copyright':     '© 2026 Calzada. All rights reserved.',
+
+        // === user menu ===
+        'nav.user.register_business': 'Register your business',
+        'nav.user.my_business': 'My Business',
         // === chat ===
         'chat.label':           'Ask Routie',
         'chat.greeting':        "Hello! I'm Routie. Where do you want to go today?",
@@ -221,14 +230,93 @@ window.translations = {
         'faq10.a':              'Posts from approved businesses appear newest first. Likes don\'t change the order.',
         'faq11.q':              'What can I post?',
         'faq11.a':              'Up to five photos per post with a caption of up to 500 characters. You can edit the caption or delete the post later.',
+        // === navbar dropdowns & profile ===
+        'nav.explore.malls':          'Malls',
+        'nav.explore.eateries':       'Eateries',
+        'nav.explore.schools':        'Schools',
+        'nav.explore.terminals':      'Terminals',
+        'nav.explore.coffee':         'Coffee Shops',
+        'nav.explore.establishments': 'Establishments',
+        'nav.explore.view_all':       'View All Places →',
+        'nav.activity.title':         'Activity Feed',
+        'nav.activity.clear':         'Clear',
+        'nav.activity.mark_read':     'Mark all as read',
+        'nav.user.commuter':          'Commuter',
+        'nav.user.stats_label':       'Your Exploration Stats',
+        'nav.user.visits':            'Visits',
+        'nav.user.saves':             'Saves',
+        'nav.user.badges':            'Badges',
+        'nav.user.my_visits':         'My Visits',
+        'nav.user.saved_places':      'Saved Places',
+        'nav.user.my_achievements':   'My Badges',
+        'nav.user.my_badges':         'My Badges',
+        'nav.user.my_business':       'My Business',
+        'nav.user.account_settings':  'Account Settings',
+        'nav.user.logout':            'Log Out',
+        'nav.user.title_visits':      'View Visited Establishments',
+        'nav.user.title_saves':       'View Saved Places',
+        'nav.user.title_badges':      'View Badges',
+        'nav.signin':                 'Sign In',
+        'nav.search.label':           'Search a place',
+        'nav.search.placeholder':     'Where to go?',
+        'nav.search.close':           'Close search',
+        'nav.search.submit':          'Search',
+        'nav.aria.menu':              'Toggle Menu',
+        'nav.aria.close_menu':        'Close menu',
+        'nav.aria.notifications':     'Activity Feed',
+        'nav.aria.profile':           'User Profile',
+        'nav.aria.signin':            'Sign In',
+        'nav.aria.alerts':            'Your recent activity',
+
         // === feedback.html ===
-        'feedback.routie.prompt1': 'Spotted a bug? Tell me!',
-        'feedback.routie.prompt2': 'Got an idea to make Calzada better?',
-        'feedback.routie.prompt3': 'Was a fare or a route wrong?',
-        'feedback.routie.prompt4': 'Is a place missing from the map?',
-        'feedback.routie.prompt5': 'Something confusing or hard to use?',
-        'feedback.routie.prompt6': 'Just want to say hi? That works too.',
-        'feedback.routie.sr':      'Routie says: tell us about bugs, ideas, wrong fares or routes, missing places, or anything else.',
+        'feedback.title':              'Calzada - Feedback',
+        'feedback.meta_desc':          'Send feedback, report routing issues, and suggest improvements to help make commuting better in Calamba City.',
+        'feedback.og_title':           "Calzada - We'd Love Your Feedback",
+        'feedback.og_desc':            'Report a bug, suggest a feature, or just tell us what you think.',
+        'feedback.header.title':       "We'd Love Your Feedback",
+        'feedback.header.sub':         'Report a bug, suggest a feature, or just tell us what you think.',
+        'feedback.gate.title':         'Sign in to leave feedback',
+        'feedback.gate.desc':          'So we can follow up on your report and keep spam out.',
+        'feedback.gate.btn':           'Sign in to continue',
+        'feedback.cat.label':          'Feedback Category',
+        'feedback.cat.bug':            'Bug Report',
+        'feedback.cat.suggestion':     'Suggestion',
+        'feedback.cat.general':        'General',
+        'feedback.helper.bug':         "Something's not working right? Let us know what happened.",
+        'feedback.helper.suggestion':  "Got an idea to make Calzada better? We're listening.",
+        'feedback.helper.general':     'Anything else on your mind? Tell us.',
+        'feedback.rating.label':       "How's your experience so far?",
+        'feedback.rating.optional':    '(optional)',
+        'feedback.rating.bad':         'Bad',
+        'feedback.rating.poor':        'Poor',
+        'feedback.rating.okay':        'Okay',
+        'feedback.rating.good':        'Good',
+        'feedback.rating.great':       'Great',
+        'feedback.field.name':         'Name',
+        'feedback.field.email':        'Email Address',
+        'feedback.field.message':      'Your Message',
+        'feedback.placeholder.name':    'e.g. Maria Santos',
+        'feedback.placeholder.email':   'name@example.com',
+        'feedback.placeholder.general': 'Tell us what you experienced or what we could improve...',
+        'feedback.placeholder.bug':    'Which part of the website had the issue?',
+        'feedback.placeholder.suggestion': 'What would you like to see added or changed?',
+        'feedback.btn.submit':         'Submit Feedback',
+        'feedback.loader.title':       'Sending your feedback…',
+        'feedback.loader.sub':         'This only takes a moment.',
+        'feedback.confirm.title':      'Thank you! We got it.',
+        'feedback.confirm.desc':       'Your input helps us make commuting in Calamba clearer and easier for everyone.',
+        'feedback.btn.reset':          'Send Another Response',
+        'feedback.btn.home':           'Back to Home',
+        'feedback.error.network':      "That didn't go through. Check your connection and try again.",
+        'feedback.error.expired':      'Your sign-in session has expired. Please sign in again.',
+        'feedback.error.signin_required': 'Please sign in to your account before submitting feedback.',
+        'feedback.routie.prompt1':     'Spotted a bug? Tell me!',
+        'feedback.routie.prompt2':     'Got an idea to make Calzada better?',
+        'feedback.routie.prompt3':     'Was a fare or a route wrong?',
+        'feedback.routie.prompt4':     'Is a place missing from the map?',
+        'feedback.routie.prompt5':     'Something confusing or hard to use?',
+        'feedback.routie.prompt6':     'Just want to say hi? That works too.',
+        'feedback.routie.sr':          'Routie says: tell us about bugs, ideas, wrong fares or routes, missing places, or anything else.',
         // === places.html ===
         'places.hero_title':    'Where will you ride, where will you get off?',
         'places.hero_subtitle': 'From sakayan to galaan — your smart guide to Calamba\'s must-visit places',
@@ -274,6 +362,40 @@ window.translations = {
         'planner.toast_dismiss': 'Dismiss',
         'planner.toast_locate_failed': "Couldn't detect your location. Check your location permission.",
         'planner.toast_gps_retry': 'GPS error. Retrying…',
+        'planner.toast_gps_denied': 'Location is off. Allow location access to keep navigating.',
+        'planner.toast_gps_weak': 'Weak GPS signal. Still trying…',
+        'planner.step.depart_foot': 'Start walking',
+        'planner.step.depart_foot_name': 'Walk towards {name}',
+        'planner.step.depart_jeepney': 'Board the jeepney',
+        'planner.step.depart_jeepney_name': 'Board the jeepney towards {name}',
+        'planner.step.ride_jeepney_towards': 'Ride the jeepney towards {getOffStop}',
+        'planner.step.ride_jeepney_stay': 'Stay on the jeepney',
+        'planner.step.turn_right': 'Turn right',
+        'planner.step.turn_right_name': 'Turn right onto {name}',
+        'planner.step.turn_left': 'Turn left',
+        'planner.step.turn_left_name': 'Turn left onto {name}',
+        'planner.step.slight_right': 'Keep right',
+        'planner.step.slight_right_name': 'Keep right onto {name}',
+        'planner.step.slight_left': 'Keep left',
+        'planner.step.slight_left_name': 'Keep left onto {name}',
+        'planner.step.uturn': 'Make a U-turn',
+        'planner.step.uturn_name': 'Make a U-turn onto {name}',
+        'planner.step.end_of_road_right': 'At the end of the road, turn right',
+        'planner.step.end_of_road_right_name': 'At the end of the road, turn right onto {name}',
+        'planner.step.end_of_road_left': 'At the end of the road, turn left',
+        'planner.step.end_of_road_left_name': 'At the end of the road, turn left onto {name}',
+        'planner.step.end_of_road': 'At the end of the road, continue straight',
+        'planner.step.end_of_road_name': 'At the end of the road, continue onto {name}',
+        'planner.step.continue': 'Continue straight',
+        'planner.step.continue_name': 'Continue on {name}',
+        'planner.step.arrive': 'You have arrived',
+        'planner.next_step': 'NEXT STEP',
+        'planner.step.board_jeepney': 'Board the jeepney',
+        'planner.step.board_jeepney_stop': 'Board the jeepney at {stop}',
+        'planner.step.alight_jeepney': 'Get off the jeepney',
+        'planner.step.alight_jeepney_stop': 'Get off at {stop}',
+        'planner.unit_km': 'km',
+        'planner.unit_m': 'm',
         'planner.toast_route_updated': 'Route updated',
         'planner.toast_sched_soon': 'Scheduled routing is coming soon. Using the current time for now.',
         'planner.toast_resuming': 'Resuming journey to {dest}…',
@@ -389,7 +511,7 @@ window.translations = {
         'planner.recenter': 'Re-center',
 
         'js.server_wakeup':     "I'm still waking up the server. Sorry for the delay! Please try sending your message again in 10-20 seconds. 😅",
-        'js.osm_attribution':   "🗺️ Search results powered by <a href='https://www.openstreetmap.org' target='_blank'>OpenStreetMap</a> / Nominatim"
+        'js.osm_attribution':   "🗺️ Search results powered by <a href='https://www.openstreetmap.org' target='_blank'>OpenStreetMap</a> / Nominatim",
     },
 
     tl: {
@@ -397,6 +519,11 @@ window.translations = {
         'hero.title':           'Maghanap ng mga lugar na pwedeng puntahan sa <span class="title-accent">Calamba.</span>',
         'hero.subtitle':        'Ang iyong lokal na gabay sa mga lugar na sulit puntahan.',
         'hero.search.placeholder': 'Saan ka pupunta?',
+        'hero.popover.get_started.title': 'Place Finder',
+        'hero.popover.get_started.desc':  'Tingnan ang mga mall, kainan, paaralan at terminal sa Calamba, tapos alamin kung paano pumunta.',
+        'hero.popover.discover.title':    'Discover',
+        'hero.popover.discover.desc':     'Tingnan ang mga bagong post at litrato mula sa mga lokal na tindahan at kainan.',
+        'hero.popover.tap_action':        'I-tap ulit para buksan',
         'about.heading':        'Higit pa sa simpleng direksyon.',
         'about.body':           'Tinutulungan ka ng Calzada na makahanap ng mga lugar na sulit bisitahin sa Calamba at makarating doon. Maghanap ng lugar, alamin kung paano pumunta, at pumili ng jeepney o tricycle, na may tantiya sa pamasahe at direksyon sa iisang lugar.',
         'about.learn_more':     'Alamin pa ang tungkol sa Calzada',
@@ -450,6 +577,10 @@ window.translations = {
         'footer.nav.terms':     'Mga Tuntunin sa Paggamit',
         'footer.contact.heading': 'Makipag-ugnayan',
         'footer.copyright':     '© 2026 Calzada. Lahat ng karapatan ay nakalaan.',
+
+        // === user menu ===
+        'nav.user.register_business': 'Irehistro ang negosyo mo',
+        'nav.user.my_business': 'Aking Negosyo',
         
         // === chat ===
         'chat.label':           'Magtanong kay Routie',
@@ -610,14 +741,93 @@ window.translations = {
         'faq10.a':              'Ang mga post mula sa mga aprubadong negosyo ay lumalabas nang pinakabago muna. Hindi binabago ng likes ang pagkakasunod-sunod.',
         'faq11.q':              'Ano ang maaari kong i-post?',
         'faq11.a':              'Hanggang limang litrato bawat post na may caption na hanggang 500 characters. Maaari mong i-edit ang caption o burahin ang post sa ibang pagkakataon.',
+        // === navbar dropdowns & profile ===
+        'nav.explore.malls':          'Mga Mall',
+        'nav.explore.eateries':       'Mga Kainan',
+        'nav.explore.schools':        'Mga Paaralan',
+        'nav.explore.terminals':      'Mga Terminal',
+        'nav.explore.coffee':         'Mga Coffee Shop',
+        'nav.explore.establishments': 'Mga Establisimyento',
+        'nav.explore.view_all':       'Tingnan Lahat ng Lugar →',
+        'nav.activity.title':         'Activity Feed',
+        'nav.activity.clear':         'I-clear',
+        'nav.activity.mark_read':     'Markahan lahat bilang nabasa',
+        'nav.user.commuter':          'Commuter',
+        'nav.user.stats_label':       'Iyong Exploration Stats',
+        'nav.user.visits':            'Mga Bisita',
+        'nav.user.saves':             'Mga Na-save',
+        'nav.user.badges':            'Mga Badge',
+        'nav.user.my_visits':         'Mga Binisita Ko',
+        'nav.user.saved_places':      'Mga Naka-save na Lugar',
+        'nav.user.my_achievements':   'Mga Badge Ko',
+        'nav.user.my_badges':         'Mga Badge Ko',
+        'nav.user.my_business':       'Aking Negosyo',
+        'nav.user.account_settings':  'Account Settings',
+        'nav.user.logout':            'Mag-log Out',
+        'nav.user.title_visits':      'Tingnan ang mga Binisitang Establisimyento',
+        'nav.user.title_saves':       'Tingnan ang mga Naka-save na Lugar',
+        'nav.user.title_badges':      'Tingnan ang mga Badge',
+        'nav.signin':                 'Mag-sign In',
+        'nav.search.label':           'Maghanap ng lugar',
+        'nav.search.placeholder':     'Saan pupunta?',
+        'nav.search.close':           'Isara ang paghahanap',
+        'nav.search.submit':          'Maghanap',
+        'nav.aria.menu':              'I-toggle ang Menu',
+        'nav.aria.close_menu':        'Isara ang menu',
+        'nav.aria.notifications':     'Activity Feed',
+        'nav.aria.profile':           'Profile ng User',
+        'nav.aria.signin':            'Mag-sign In',
+        'nav.aria.alerts':            'Ang iyong pinakabagong activity',
+
         // === feedback.html ===
-        'feedback.routie.prompt1': 'May nakitang bug? Sabihin mo sa akin!',
-        'feedback.routie.prompt2': 'May ideya para mas mapaganda ang Calzada?',
-        'feedback.routie.prompt3': 'Mali ba ang pamasahe o ruta?',
-        'feedback.routie.prompt4': 'May kulang bang lugar sa mapa?',
-        'feedback.routie.prompt5': 'May nakakalito o mahirap gamitin?',
-        'feedback.routie.prompt6': "Gusto mo lang bumati? Pwede rin 'yan.",
-        'feedback.routie.sr':      'Sabi ni Routie: sabihin sa amin ang mga bug, ideya, maling pamasahe o ruta, nawawalang lugar, o anumang bagay.',
+        'feedback.title':              'Calzada - Feedback',
+        'feedback.meta_desc':          'Magpadala ng feedback, mag-report ng isyu sa ruta, at magmungkahi ng pagbabago para mapaganda ang pag-commute sa Calamba City.',
+        'feedback.og_title':           'Calzada - Gusto Naming Marinig ang Feedback Mo',
+        'feedback.og_desc':            'Mag-report ng bug, magmungkahi ng feature, o sabihin lang ang nasa isip mo.',
+        'feedback.header.title':       'Gusto Naming Marinig ang Feedback Mo',
+        'feedback.header.sub':         'Mag-report ng bug, magmungkahi ng feature, o sabihin lang ang nasa isip mo.',
+        'feedback.gate.title':         'Mag-sign in para makapagbigay ng feedback',
+        'feedback.gate.desc':          'Para mabalikan ka namin tungkol sa report mo at maiwasan ang spam.',
+        'feedback.gate.btn':           'Mag-sign in para magpatuloy',
+        'feedback.cat.label':          'Kategorya ng Feedback',
+        'feedback.cat.bug':            'Bug Report',
+        'feedback.cat.suggestion':     'Mungkahi',
+        'feedback.cat.general':        'Pangkalahatan',
+        'feedback.helper.bug':         'May hindi gumagana nang tama? Ikuwento mo ang nangyari.',
+        'feedback.helper.suggestion':  'May idea ka para mapaganda ang Calzada? Nakikinig kami.',
+        'feedback.helper.general':     'May iba ka pang gustong sabihin? Sabihin mo lang.',
+        'feedback.rating.label':       'Kumusta ang experience mo sa ngayon?',
+        'feedback.rating.optional':    '(opsyonal)',
+        'feedback.rating.bad':         'Masama',
+        'feedback.rating.poor':        'Hindi maganda',
+        'feedback.rating.okay':        'Ayos lang',
+        'feedback.rating.good':        'Maganda',
+        'feedback.rating.great':       'Napakaganda',
+        'feedback.field.name':         'Pangalan',
+        'feedback.field.email':        'Email Address',
+        'feedback.field.message':      'Mensahe Mo',
+        'feedback.placeholder.name':    'hal. Maria Santos',
+        'feedback.placeholder.email':   'name@example.com',
+        'feedback.placeholder.general': 'Ikuwento ang naranasan mo o kung ano ang puwede naming pagandahin...',
+        'feedback.placeholder.bug':    'Aling bahagi ng website ang may problema?',
+        'feedback.placeholder.suggestion': 'Ano ang gusto mong makitang idagdag o baguhin?',
+        'feedback.btn.submit':         'Ipadala ang Feedback',
+        'feedback.loader.title':       'Ipinapadala ang feedback mo…',
+        'feedback.loader.sub':         'Sandali lang ito.',
+        'feedback.confirm.title':      'Salamat! Natanggap na namin.',
+        'feedback.confirm.desc':       'Nakakatulong ang feedback mo para mas maging malinaw at madali ang pag-commute sa Calamba para sa lahat.',
+        'feedback.btn.reset':          'Magpadala Ulit',
+        'feedback.btn.home':           'Bumalik sa Home',
+        'feedback.error.network':      'Hindi naipadala. I-check ang connection mo at subukan ulit.',
+        'feedback.error.expired':      'Nag-expire na ang sign-in mo. Mag-sign in ulit.',
+        'feedback.error.signin_required': 'Mag-sign in muna sa iyong account bago magpadala ng feedback.',
+        'feedback.routie.prompt1':     'May nakitang bug? Sabihin mo sa akin!',
+        'feedback.routie.prompt2':     'May ideya para mas mapaganda ang Calzada?',
+        'feedback.routie.prompt3':     'Mali ba ang pamasahe o ruta?',
+        'feedback.routie.prompt4':     'May kulang bang lugar sa mapa?',
+        'feedback.routie.prompt5':     'May nakakalito o mahirap gamitin?',
+        'feedback.routie.prompt6':     "Gusto mo lang bumati? Pwede rin 'yan.",
+        'feedback.routie.sr':          'Sabi ni Routie: sabihin sa amin ang mga bug, ideya, maling pamasahe o ruta, nawawalang lugar, o anumang bagay.',
         
         // === places.html ===
         'places.hero_title':    'Saan ka sasakay, saan ka bababa?',
@@ -654,6 +864,40 @@ window.translations = {
         'planner.toast_dismiss': 'Isara',
         'planner.toast_locate_failed': 'Hindi ma-detect ang iyong lokasyon. I-check ang location permission.',
         'planner.toast_gps_retry': 'May problema sa GPS. Sinusubukang muli…',
+        'planner.toast_gps_denied': 'Naka-off ang location. I-allow ang location access para tuloy ang navigation.',
+        'planner.toast_gps_weak': 'Mahina ang GPS signal. Sinusubukan pa…',
+        'planner.step.depart_foot': 'Magsimulang maglakad',
+        'planner.step.depart_foot_name': 'Maglakad papunta sa {name}',
+        'planner.step.depart_jeepney': 'Sumakay ng jeep',
+        'planner.step.depart_jeepney_name': 'Sumakay ng jeep papunta sa {name}',
+        'planner.step.ride_jeepney_towards': 'Sumakay hanggang {getOffStop}',
+        'planner.step.ride_jeepney_stay': 'Manatili sa jeep',
+        'planner.step.turn_right': 'Kumanan',
+        'planner.step.turn_right_name': 'Kumanan sa {name}',
+        'planner.step.turn_left': 'Kumaliwa',
+        'planner.step.turn_left_name': 'Kumaliwa sa {name}',
+        'planner.step.slight_right': 'Manatili sa kanan',
+        'planner.step.slight_right_name': 'Manatili sa kanan sa {name}',
+        'planner.step.slight_left': 'Manatili sa kaliwa',
+        'planner.step.slight_left_name': 'Manatili sa kaliwa sa {name}',
+        'planner.step.uturn': 'Mag-U-turn',
+        'planner.step.uturn_name': 'Mag-U-turn sa {name}',
+        'planner.step.end_of_road_right': 'Sa dulo ng kalsada, kumanan',
+        'planner.step.end_of_road_right_name': 'Sa dulo ng kalsada, kumanan sa {name}',
+        'planner.step.end_of_road_left': 'Sa dulo ng kalsada, kumaliwa',
+        'planner.step.end_of_road_left_name': 'Sa dulo ng kalsada, kumaliwa sa {name}',
+        'planner.step.end_of_road': 'Sa dulo ng kalsada, dumiretso',
+        'planner.step.end_of_road_name': 'Sa dulo ng kalsada, dumiretso sa {name}',
+        'planner.step.continue': 'Dumiretso',
+        'planner.step.continue_name': 'Dumiretso sa {name}',
+        'planner.step.arrive': 'Nakarating ka na',
+        'planner.next_step': 'SUSUNOD NA HAKBANG',
+        'planner.step.board_jeepney': 'Sumakay ng jeep',
+        'planner.step.board_jeepney_stop': 'Sumakay ng jeep sa {stop}',
+        'planner.step.alight_jeepney': 'Bumaba ng jeep',
+        'planner.step.alight_jeepney_stop': 'Bumaba sa {stop}',
+        'planner.unit_km': 'km',
+        'planner.unit_m': 'm',
         'planner.toast_route_updated': 'Na-update ang ruta',
         'planner.toast_sched_soon': 'Malapit na ang naka-iskedyul na ruta. Kasalukuyang oras muna ang gagamitin.',
         'planner.toast_resuming': 'Itinutuloy ang byahe papuntang {dest}…',
@@ -771,141 +1015,297 @@ window.translations = {
         'planner.recenter': 'I-gitna sa Map',
 
         'js.server_wakeup':     'Ginigising ko pa lang ang server. Pasensya na sa antala! Pakisubukan ulit mag-send ng message pagkalipas ng 10-20 seconds. 😅',
-        'js.osm_attribution':   "🗺️ Ang search results ay suportado ng <a href='https://www.openstreetmap.org' target='_blank'>OpenStreetMap</a> / Nominatim"
+        'js.osm_attribution':   "🗺️ Ang search results ay suportado ng <a href='https://www.openstreetmap.org' target='_blank'>OpenStreetMap</a> / Nominatim",
     }
 
 };
 
+let isApplyingLang = false;
+
 // Apply the stored or given language to all [data-i18n] elements
 function applyLang(lang) {
-    const dict = window.translations[lang];
-    if (!dict) return;
-
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (!dict[key]) return;
-
-        const attr = el.getAttribute('data-i18n-attr');
-        if (attr) {
-            el.setAttribute(attr, dict[key]);
-        } else {
-            // Special handling for HTML strings in translations
-            el.innerHTML = dict[key];
+    if (isApplyingLang) return;
+    isApplyingLang = true;
+    try {
+        const SUPPORTED = ['en', 'tl'];
+        if (!SUPPORTED.includes(lang)) {
+            const saved = localStorage.getItem('calzada_lang');
+            lang = SUPPORTED.includes(saved) ? saved : 'en';
         }
-    });
 
-    // Update all toggle buttons (Desktop & Mobile)
-    document.querySelectorAll('#langToggleBtn, .mobile-lang-toggle').forEach(btn => {
-        const active = btn.querySelector('.lang-active');
-        const other  = btn.querySelector('.lang-other');
-        const flag   = btn.querySelector('.lang-flag');
-        if (active) active.textContent = lang === 'en' ? 'EN' : 'TL';
-        if (other)  other.textContent  = lang === 'en' ? 'TL' : 'EN';
-        if (flag)   flag.textContent   = lang === 'en' ? '🌐' : '🇵🇭';
-        
-        // Visual indicator
-        btn.classList.remove('en-mode', 'tl-mode');
-        btn.classList.add(lang === 'en' ? 'en-mode' : 'tl-mode');
-    });
+        const dict = (window.translations && window.translations[lang]) || {};
+        const enDict = (window.translations && window.translations.en) || {};
 
-    // Update active states on dropdown items
-    document.querySelectorAll('.lang-dropdown-item').forEach(item => {
-        const itemLang = item.getAttribute('data-lang');
-        if (itemLang === lang) {
-            item.classList.add('active');
-        } else {
-            item.classList.remove('active');
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            const val = dict[key] !== undefined ? dict[key] : enDict[key];
+            if (val === undefined || val === null) return;
+
+            const attr = el.getAttribute('data-i18n-attr');
+            if (attr) {
+                el.setAttribute(attr, val);
+            } else {
+                // Special handling for HTML strings in translations
+                el.innerHTML = val;
+                if (el.tagName === 'TITLE') {
+                    document.title = el.textContent;
+                }
+            }
+        });
+
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            const val = dict[key] !== undefined ? dict[key] : enDict[key];
+            if (val !== undefined && val !== null) {
+                el.setAttribute('placeholder', val);
+            }
+        });
+
+        document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+            const key = el.getAttribute('data-i18n-aria-label');
+            const val = dict[key] !== undefined ? dict[key] : enDict[key];
+            if (val !== undefined && val !== null) {
+                el.setAttribute('aria-label', val);
+            }
+        });
+
+        // Re-apply real user display name if signed in, or set translated fallback
+        const userDisplayName = document.getElementById('userDisplayName');
+        if (userDisplayName) {
+            const cachedName = localStorage.getItem('calzada_pref_name') || localStorage.getItem('calzada_user_name');
+            const fallback = dict['nav.user.commuter'] || enDict['nav.user.commuter'] || 'Commuter';
+            if (cachedName && cachedName.trim() && cachedName !== 'Commuter') {
+                userDisplayName.textContent = cachedName;
+            } else {
+                const currentText = userDisplayName.textContent ? userDisplayName.textContent.trim() : '';
+                if (!currentText || currentText === 'Commuter' || currentText === fallback) {
+                    userDisplayName.textContent = fallback;
+                }
+            }
         }
-    });
 
-    localStorage.setItem('calzada_lang', lang);
-    document.documentElement.lang = lang === 'en' ? 'en' : 'tl';
+        // Update all toggle buttons (Desktop & Mobile)
+        document.querySelectorAll('#langToggleBtn, .mobile-lang-toggle').forEach(btn => {
+            const active = btn.querySelector('.lang-active');
+            const other  = btn.querySelector('.lang-other');
+            if (active) active.textContent = lang === 'en' ? 'EN' : 'TL';
+            if (other)  other.textContent  = lang === 'en' ? 'TL' : 'EN';
+            btn.setAttribute('aria-label', lang === 'en' ? 'Language: English' : 'Wika: Tagalog');
+            
+            // Visual indicator
+            btn.classList.remove('en-mode', 'tl-mode');
+            btn.classList.add(lang === 'en' ? 'en-mode' : 'tl-mode');
+        });
 
-    // Dispatch event for other scripts to re-run localized logic
-    window.dispatchEvent(new CustomEvent('calzada_lang_changed', { detail: { lang } }));
+        // Update active states on dropdown items
+        document.querySelectorAll('.lang-dropdown-item').forEach(item => {
+            const itemLang = item.getAttribute('data-lang');
+            const isActive = itemLang === lang;
+            if (isActive) {
+                item.classList.add('active');
+                item.setAttribute('aria-checked', 'true');
+            } else {
+                item.classList.remove('active');
+                item.setAttribute('aria-checked', 'false');
+            }
+        });
+
+        localStorage.setItem('calzada_lang', lang);
+        document.documentElement.lang = lang === 'en' ? 'en' : 'tl';
+
+        // Dispatch event for other scripts to re-run localized logic
+        window.dispatchEvent(new CustomEvent('calzada_lang_changed', { detail: { lang } }));
+    } finally {
+        isApplyingLang = false;
+    }
 }
 
 /* ---------------------------------------------------------------------------
- * Language switch transition
- *
- * applyLang() above is a synchronous pass over the [data-i18n] nodes reading an
- * in-memory dictionary, so a language switch is instant. That means a spinner
- * would be theatre, and an artificial delay would make an instant action feel
- * slow. What the swap did look like was a hard flicker, so this wraps it in a
- * short cross-fade: 150ms out, swap, 150ms in.
- *
- * Nothing is blocked while it runs - only opacity animates, so links, buttons
- * and scrolling all keep working. Under prefers-reduced-motion the fade is
- * skipped entirely and the swap happens immediately, with no timers at all.
+ * Language Switch Transition & Confirmation Toast (Strict 480ms spec)
  * ------------------------------------------------------------------------- */
-const LANG_FADE_MS = 150;
-let langFadeTimers = [];
+let langSwitchTimers = [];
+let toastTimeout = null;
+let toastFadeTimeout = null;
+let pendingLang = null;
 
 function prefersReducedMotion() {
     return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
-function clearLangFade() {
-    langFadeTimers.forEach(clearTimeout);
-    langFadeTimers = [];
-    document.documentElement.classList.remove('lang-swapping', 'lang-swapping-out');
+function clearLangTransition() {
+    langSwitchTimers.forEach(clearTimeout);
+    langSwitchTimers = [];
+    pendingLang = null;
+    const root = document.documentElement;
+    root.classList.remove('lang-switching', 'lang-fade-out', 'lang-fade-in');
+    const existingBar = document.getElementById('langProgressBar');
+    if (existingBar && existingBar.parentNode) {
+        existingBar.remove();
+    }
+}
+
+function showLangToast(lang, animate) {
+    if (toastTimeout) clearTimeout(toastTimeout);
+    if (toastFadeTimeout) clearTimeout(toastFadeTimeout);
+
+    let toast = document.getElementById('langToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'langToast';
+        toast.className = 'lang-toast';
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+    }
+
+    const text = lang === 'en' ? 'Language set to English' : 'Tagalog na ang wika';
+    toast.innerHTML = `<i class="ti ti-check lang-toast-icon" aria-hidden="true"></i><span>${text}</span>`;
+    toast.classList.remove('fading-out');
+
+    if (!animate || prefersReducedMotion()) {
+        toast.classList.remove('fading-out');
+        toast.classList.add('visible', 'no-anim');
+        toastTimeout = setTimeout(() => {
+            toast.classList.remove('visible', 'no-anim');
+            if (toast.parentNode) toast.remove();
+        }, 1800);
+        return;
+    }
+
+    toast.classList.remove('no-anim');
+    void toast.offsetWidth;
+    toast.classList.add('visible'); // fades in over 160ms
+
+    // Stays 1800ms
+    toastTimeout = setTimeout(() => {
+        toast.classList.add('fading-out'); // fades out over 200ms
+        toastFadeTimeout = setTimeout(() => {
+            toast.classList.remove('visible', 'fading-out');
+            if (toast.parentNode) toast.remove();
+        }, 200);
+    }, 160 + 1800);
 }
 
 /**
- * User-initiated language change: same swap as applyLang(), with a fade around it.
- * applyLang() itself is left untouched so page-load init and any external caller
- * still get the plain, immediate behaviour.
+ * User-initiated language change: 480ms transition sequence.
  */
 function applyLangWithTransition(lang) {
+    const SUPPORTED = ['en', 'tl'];
+    if (!SUPPORTED.includes(lang)) {
+        const saved = localStorage.getItem('calzada_lang');
+        lang = SUPPORTED.includes(saved) ? saved : 'en';
+    }
+    const currentLang = pendingLang ?? window.getCurrentLang();
+
+    // D3: Choosing the language that is already active (or pending) does nothing
+    if (lang === currentLang) {
+        // Just ensure menus close
+        document.querySelectorAll('.lang-dropdown-container').forEach(c => {
+            c.classList.remove('open');
+            const btn = c.querySelector('button');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+        return;
+    }
+
+    // D1.a: Close the language menu immediately
+    document.querySelectorAll('.lang-dropdown-container').forEach(c => {
+        c.classList.remove('open');
+        const btn = c.querySelector('button');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    });
+
+    // D5: Cancel running sequence to support rapid switching
+    clearLangTransition();
+    pendingLang = lang;
+
+    // D7: prefers-reduced-motion: switch instantly and show toast without animation
     if (prefersReducedMotion()) {
         applyLang(lang);
+        showLangToast(lang, false);
+        pendingLang = null;
         return;
     }
 
     const root = document.documentElement;
 
-    // A second click mid-fade must not strand the page at opacity 0.
-    langFadeTimers.forEach(clearTimeout);
-    langFadeTimers = [];
+    // D1.b: Add class "lang-switching" to <html>
+    root.classList.add('lang-switching', 'lang-fade-out');
 
-    root.classList.add('lang-swapping');
+    // D1.b: 2px #378ADD bar fixed at top of viewport
+    const bar = document.createElement('div');
+    bar.id = 'langProgressBar';
+    bar.className = 'lang-progress-bar';
+    document.body.appendChild(bar);
 
-    // Let the transition rule land before opacity flips, or the browser jumps straight to 0.
+    // Animate scaleX 0 -> 1 over 420ms ease-out
     requestAnimationFrame(() => {
-        root.classList.add('lang-swapping-out');
-
-        langFadeTimers.push(setTimeout(() => {
-            applyLang(lang);
-            root.classList.remove('lang-swapping-out');
-
-            langFadeTimers.push(setTimeout(() => {
-                root.classList.remove('lang-swapping');
-            }, LANG_FADE_MS));
-        }, LANG_FADE_MS));
+        bar.classList.add('animating');
     });
+
+    // D1.c & d: Translatable content fades to 0.35 over 160ms; at 160ms swap language
+    langSwitchTimers.push(setTimeout(() => {
+        applyLang(lang);
+        root.classList.remove('lang-fade-out');
+        root.classList.add('lang-fade-in');
+
+        // D2: Confirmation toast
+        showLangToast(lang, true);
+
+        // D1.e: Fade content back to 1 over 220ms (ends at 380ms)
+        langSwitchTimers.push(setTimeout(() => {
+            root.classList.remove('lang-fade-in');
+        }, 220));
+    }, 160));
+
+    // D1.b & f: Bar scale finishes at 420ms, then fades out over 120ms (ends at 540ms max; total ~480ms feel)
+    langSwitchTimers.push(setTimeout(() => {
+        if (bar && bar.parentNode) {
+            bar.classList.add('fading-out');
+        }
+        langSwitchTimers.push(setTimeout(() => {
+            if (bar && bar.parentNode) bar.remove();
+            root.classList.remove('lang-switching');
+            pendingLang = null;
+        }, 120));
+    }, 420));
 }
 
-// If the page is restored from bfcache mid-fade, don't come back invisible.
-window.addEventListener('pageshow', clearLangFade);
+// If the page is restored from bfcache mid-fade, reset cleanly
+window.addEventListener('pageshow', clearLangTransition);
 
 /**
- * Global helper to get a translation by key
+ * Global helper to get a translation by key (strictly falls back to English before raw key)
  */
-window.t = function(key) {
-    const lang = localStorage.getItem('calzada_lang') || 'en';
-    const dict = window.translations[lang];
-    return dict ? (dict[key] || key) : key;
+window.t = function(key, params) {
+    const SUPPORTED = ['en', 'tl'];
+    const saved = localStorage.getItem('calzada_lang');
+    const lang = SUPPORTED.includes(saved) ? saved : 'en';
+    const dict = (window.translations && window.translations[lang]) || {};
+    let str = dict[key];
+    if (str === undefined) {
+        const enDict = (window.translations && window.translations.en) || {};
+        str = enDict[key] !== undefined ? enDict[key] : key;
+    }
+    if (params && typeof params === 'object') {
+        Object.entries(params).forEach(([k, v]) => {
+            str = String(str).replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+        });
+    }
+    return str;
 };
 
 /**
  * Global helper to get current language
  */
 window.getCurrentLang = function() {
-    return localStorage.getItem('calzada_lang') || 'en';
+    const SUPPORTED = ['en', 'tl'];
+    const saved = localStorage.getItem('calzada_lang');
+    return SUPPORTED.includes(saved) ? saved : 'en';
 };
 
 function toggleLang() {
-    const current = localStorage.getItem('calzada_lang') || 'en';
+    const current = window.getCurrentLang();
     applyLangWithTransition(current === 'en' ? 'tl' : 'en');
 }
 window.applyLang = applyLang;
@@ -914,7 +1314,12 @@ window.toggleLang = toggleLang;
 
 // Init — works whether DOM is ready or not
 function initI18n() {
-    const saved = localStorage.getItem('calzada_lang') || 'en';
+    const SUPPORTED = ['en', 'tl'];
+    let saved = localStorage.getItem('calzada_lang');
+    if (!SUPPORTED.includes(saved)) {
+        saved = 'en';
+        localStorage.setItem('calzada_lang', 'en');
+    }
     applyLang(saved);
 
     // Initial listener setup
@@ -964,6 +1369,35 @@ function initI18n() {
                 const btn = c.querySelector('button');
                 if (btn) btn.setAttribute('aria-expanded', 'false');
             });
+        }
+    });
+
+    // Keyboard navigation (Escape closes, Arrow Up/Down moves between items)
+    document.addEventListener('keydown', (e) => {
+        const openContainer = document.querySelector('.lang-dropdown-container.open');
+        if (!openContainer) return;
+
+        const trigger = openContainer.querySelector('#langToggleBtn, .mobile-lang-toggle');
+        const items = Array.from(openContainer.querySelectorAll('.lang-dropdown-item'));
+
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            openContainer.classList.remove('open');
+            if (trigger) {
+                trigger.setAttribute('aria-expanded', 'false');
+                trigger.focus();
+            }
+        } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const activeEl = document.activeElement;
+            const currentIndex = items.indexOf(activeEl);
+            let nextIndex;
+            if (e.key === 'ArrowDown') {
+                nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % items.length;
+            } else {
+                nextIndex = currentIndex === -1 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
+            }
+            items[nextIndex]?.focus();
         }
     });
 }

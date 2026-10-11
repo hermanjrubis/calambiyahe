@@ -83,10 +83,10 @@ let activityFeed = [];
 let unreadCount = 0;
 
 const ACTIVITY_ICONS = {
-    visit:  `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>`,
-    save:   `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>`,
-    unsave: `<svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>`,
-    badge:  `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>`,
+    visit:  `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>`,
+    save:   `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>`,
+    unsave: `<svg width="15" height="15" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>`,
+    badge:  `<svg width="15" height="15" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>`,
 };
 
 function timeAgo(timestamp) {
@@ -314,7 +314,10 @@ export function clearUserState() {
     if (statVisitsCount) statVisitsCount.textContent = '0';
     if (statSavesCount) statSavesCount.textContent = '0';
     if (statBadgesCount) statBadgesCount.textContent = '0';
-    if (menuSavedCount) menuSavedCount.textContent = '(0)';
+    if (menuSavedCount) {
+        menuSavedCount.textContent = '0';
+        menuSavedCount.style.display = 'none';
+    }
 
     if (dropdownMenu) dropdownMenu.classList.remove('open');
     if (alertsMenu) alertsMenu.classList.remove('open');
@@ -331,11 +334,16 @@ export function clearUserState() {
     renderAdminMenuLink(false);
 
     // 7. Reset Business menu link to default registration link
-    const myBusinessBtn = document.getElementById('menuMyBusiness');
-    if (myBusinessBtn) {
+    let myBusinessBtn = document.getElementById('menuMyBusiness');
+    if (!myBusinessBtn) {
+        syncBusinessMenuLink(null);
+    } else {
         myBusinessBtn.href = '/submit';
         const titleEl = myBusinessBtn.querySelector('.nav-btn-title');
-        if (titleEl) titleEl.textContent = 'Register your business';
+        if (titleEl) {
+            titleEl.setAttribute('data-i18n', 'nav.user.register_business');
+            titleEl.textContent = (window.t ? window.t('nav.user.register_business') : 'Register your business');
+        }
     }
 }
 
@@ -564,7 +572,10 @@ function updateUINumbers() {
     if (visitsCountEl) visitsCountEl.textContent = currentVisits.length;
     if (savesCountEl) savesCountEl.textContent = currentSaved.length;
     if (badgesCountEl) badgesCountEl.textContent = currentBadges.length;
-    if (menuSavedCountEl) menuSavedCountEl.textContent = `(${currentSaved.length})`;
+    if (menuSavedCountEl) {
+        menuSavedCountEl.textContent = `${currentSaved.length}`;
+        menuSavedCountEl.style.display = currentSaved.length > 0 ? '' : 'none';
+    }
     if (userBadgeCounter) {
         userBadgeCounter.textContent = currentBadges.length;
         userBadgeCounter.style.display = currentBadges.length > 0 ? 'flex' : 'none';
@@ -713,7 +724,10 @@ export function setupProfileUI() {
                 if (statVisitsCount) statVisitsCount.textContent = stats.visits;
                 if (statSavesCount) statSavesCount.textContent = stats.saves;
                 if (statBadgesCount) statBadgesCount.textContent = stats.badges;
-                if (menuSavedCount) menuSavedCount.textContent = `(${stats.saves})`;
+                if (menuSavedCount) {
+                    menuSavedCount.textContent = `${stats.saves}`;
+                    menuSavedCount.style.display = stats.saves > 0 ? '' : 'none';
+                }
                 if (userBadgeCounter) {
                     userBadgeCounter.textContent = stats.badges;
                     userBadgeCounter.style.display = stats.badges > 0 ? 'flex' : 'none';
@@ -1107,9 +1121,9 @@ export async function syncBusinessMenuLink(user) {
         myBusinessBtn.style.textDecoration = 'none';
         myBusinessBtn.innerHTML = `
             <span class="nav-btn-icon">
-                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21v-10.15" /><path d="M19 21v-10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg>
             </span>
-            <span class="nav-btn-title">Register your business</span>
+            <span class="nav-btn-title" data-i18n="nav.user.register_business"></span>
         `;
         const accountSettings = document.getElementById('menuAccountSettings');
         if (accountSettings && accountSettings.parentNode === navList) {
@@ -1120,10 +1134,15 @@ export async function syncBusinessMenuLink(user) {
     }
 
     const titleEl = myBusinessBtn.querySelector('.nav-btn-title');
+    const setMenuLabel = (key, defaultText) => {
+        if (!titleEl) return;
+        titleEl.setAttribute('data-i18n', key);
+        titleEl.textContent = (window.t ? window.t(key) : defaultText);
+    };
 
     if (!user || user.isAnonymous) {
         myBusinessBtn.href = '/submit';
-        if (titleEl) titleEl.textContent = 'Register your business';
+        setMenuLabel('nav.user.register_business', 'Register your business');
         return;
     }
 
@@ -1137,15 +1156,15 @@ export async function syncBusinessMenuLink(user) {
 
         if (hasActiveBiz) {
             myBusinessBtn.href = '/my-business';
-            if (titleEl) titleEl.textContent = 'My Business';
+            setMenuLabel('nav.user.my_business', 'My Business');
         } else {
             myBusinessBtn.href = '/submit';
-            if (titleEl) titleEl.textContent = 'Register your business';
+            setMenuLabel('nav.user.register_business', 'Register your business');
         }
     } catch (e) {
         console.warn('Could not determine business ownership for menu:', e);
         myBusinessBtn.href = '/submit';
-        if (titleEl) titleEl.textContent = 'Register your business';
+        setMenuLabel('nav.user.register_business', 'Register your business');
     }
 }
 
@@ -1843,7 +1862,7 @@ function createProfileModals() {
                 <div class="profile-modal-header">
                     <div class="modal-header-title">
                         <div class="modal-header-icon-box">
-                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
                         </div>
                         <h3 class="modal-header-heading">My Establishment Visits</h3>
                     </div>
@@ -1862,7 +1881,7 @@ function createProfileModals() {
                 <div class="profile-modal-header saved-modal-header">
                     <div class="modal-header-title saved-header-title">
                         <div class="modal-header-icon-box saved-header-icon-box">
-                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
                         </div>
                         <h3 class="modal-header-heading saved-modal-heading">Saved Establishments</h3>
                     </div>
@@ -1881,9 +1900,9 @@ function createProfileModals() {
                 <div class="profile-modal-header">
                     <div class="modal-header-title">
                         <div class="modal-header-icon-box">
-                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H8c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-1c0-.55-.45-1-1-1h-1c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
                         </div>
-                        <h3 class="modal-header-heading">Exploration Achievements</h3>
+                        <h3 class="modal-header-heading">Exploration Badges</h3>
                     </div>
                     <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
                 </div>
@@ -1962,13 +1981,23 @@ function createProfileModals() {
     document.body.appendChild(modalRoot);
 }
 
-// Re-localize account menu aria-label on language switch
+// Re-localize account menu aria-label & dynamic business menu link on language switch
 window.addEventListener('calzada_lang_changed', () => {
     const pill = document.getElementById('userAvatarPill');
     if (pill) {
         const name = localStorage.getItem('calzada_user_name') || 'Commuter';
         const accTemplate = (window.t ? window.t('planner.account_menu') : 'Account menu, {name}');
         pill.setAttribute('aria-label', accTemplate.replace('{name}', name));
+    }
+    const myBusinessBtn = document.getElementById('menuMyBusiness');
+    if (myBusinessBtn) {
+        const titleEl = myBusinessBtn.querySelector('.nav-btn-title');
+        if (titleEl) {
+            const key = titleEl.getAttribute('data-i18n');
+            if (key && window.t) {
+                titleEl.textContent = window.t(key);
+            }
+        }
     }
 });
 

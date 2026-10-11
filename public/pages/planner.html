@@ -14,10 +14,18 @@
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
     <meta property="og:description" content="Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts (Non-blocking) -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+    </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
     <link rel="stylesheet" href="../css/planner.css?v=2.6.8">
     <script>
         if ('serviceWorker' in navigator) {
@@ -36,6 +44,34 @@
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
     </style>
+    <noscript>
+        <style>body { opacity: 1 !important; }</style>
+    </noscript>
+    <script>
+        (function() {
+            function show() {
+                if (document.body && !document.body.classList.contains('fouc-ready')) {
+                    document.body.classList.add('fouc-ready');
+                }
+            }
+            if (document.readyState === 'interactive' || document.readyState === 'complete') {
+                show();
+            } else {
+                document.addEventListener('DOMContentLoaded', show);
+            }
+            setTimeout(function() {
+                show();
+                var sk = document.getElementById('skeleton-overlay');
+                if (sk) {
+                    sk.classList.add('hidden');
+                    setTimeout(function() { sk.remove(); }, 500);
+                    document.querySelectorAll('main, .scrollable-content, .planner-gui-container, .places-page, .auth-page-container, .ref-hero').forEach(function(el) {
+                        el.style.opacity = '1';
+                    });
+                }
+            }, 1200);
+        })();
+    </script>
 </head>
 
 <body class="planner-body">
@@ -153,88 +189,89 @@
 
                     <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
                     <div class="exploration-stats-section" id="explorationStatsSection">
-                        <div class="stats-section-label">Your Exploration Stats</div>
+                        <div class="stats-section-label" data-i18n="nav.user.stats_label">Your Exploration Stats</div>
                         <div class="exploration-stats-row">
-                            <button type="button" class="stat-pill-btn" id="statVisitsBtn" title="View Visited Establishments">
+                            <button type="button" class="stat-pill-btn" id="statVisitsBtn" data-i18n="nav.user.title_visits" data-i18n-attr="title" title="View Visited Establishments">
                                 <span class="stat-icon">
-                                    <svg width="20" height="20" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
                                 </span>
                                 <span class="stat-value" id="statVisitsCount">0</span>
-                                <span class="stat-name">Visits</span>
+                                <span class="stat-name" data-i18n="nav.user.visits">Visits</span>
                             </button>
                             <div class="stat-divider"></div>
-                            <button type="button" class="stat-pill-btn" id="statSavesBtn" title="View Saved Places">
+                            <button type="button" class="stat-pill-btn" id="statSavesBtn" data-i18n="nav.user.title_saves" data-i18n-attr="title" title="View Saved Places">
                                 <span class="stat-icon">
-                                    <svg width="20" height="20" fill="none" stroke="#DC2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
                                 </span>
                                 <span class="stat-value" id="statSavesCount">0</span>
-                                <span class="stat-name">Saves</span>
+                                <span class="stat-name" data-i18n="nav.user.saves">Saves</span>
                             </button>
                             <div class="stat-divider"></div>
-                            <button type="button" class="stat-pill-btn" id="statBadgesBtn" title="View Achievements">
+                            <button type="button" class="stat-pill-btn" id="statBadgesBtn" data-i18n="nav.user.title_badges" data-i18n-attr="title" title="View Badges">
                                 <span class="stat-icon">
-                                    <svg width="20" height="20" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
                                 </span>
                                 <span class="stat-value" id="statBadgesCount">0</span>
-                                <span class="stat-name">Badges</span>
+                                <span class="stat-name" data-i18n="nav.user.badges">Badges</span>
                             </button>
                         </div>
                     </div>
 
                     <div class="profile-menu-divider"></div>
 
-                    <!-- Menu Items -->
+                    <!-- Menu Items with Outline Tabler SVGs (Strictly No Emojis) -->
                     <div class="profile-nav-list">
                         <!-- 1. My Visits -->
                         <button type="button" class="profile-nav-btn" id="menuMyVisits">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
                             </span>
-                            <span class="nav-btn-title">My Visits</span>
+                            <span class="nav-btn-title" data-i18n="nav.user.my_visits">My Visits</span>
                         </button>
 
                         <!-- 2. Saved Places -->
                         <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
                             </span>
-                            <span class="nav-btn-title">Saved Places</span>
-                            <span class="saved-count-pill" id="menuSavedCount">(0)</span>
+                            <span class="nav-btn-title" data-i18n="nav.user.saved_places">Saved Places</span>
+                            <span class="saved-count-pill" id="menuSavedCount" style="display: none;">0</span>
                         </button>
 
-                        <!-- 3. My Achievements -->
+                        <!-- 3. My Badges -->
                         <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 21V5a2 2 0 012-2h4a2 2 0 012 2v16m-8 0h8m-8 0H6m12 0h2M8 11h8M8 7h8"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
                             </span>
-                            <span class="nav-btn-title">My Achievements</span>
+                            <span class="nav-btn-title" data-i18n="nav.user.my_achievements">My Badges</span>
                         </button>
 
                         <!-- 4. Account Settings -->
                         <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
                             </span>
-                            <span class="nav-btn-title">Account Settings</span>
+                            <span class="nav-btn-title" data-i18n="nav.user.account_settings">Account Settings</span>
                         </button>
 
-                        <!-- 5. My Business -->
+                        <!-- 5. Register your business -->
                         <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21v-10.15" /><path d="M19 21v-10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg>
                             </span>
-                            <span class="nav-btn-title">My Business</span>
+                            <span class="nav-btn-title" data-i18n="nav.user.register_business">Register your business</span>
                         </a>
+                    </div>
 
-                        <div class="profile-menu-divider"></div>
+                    <div class="profile-menu-divider"></div>
 
-                        <!-- 5. Sign Out Button -->
-                        <button type="button" class="profile-nav-btn logout-btn-item" id="logoutBtn">
-                            <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="#DC2626" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-                            </span>
-                            <span class="nav-btn-title" style="color: #DC2626; font-weight: 700;">Log Out</span>
-                        </button>
+                    <!-- 6. Sign Out Button -->
+                    <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.logout">Log Out</span>
+                    </button>
                     </div>
                 </div>
             </div>
@@ -282,10 +319,10 @@
                 <div class="od-input-block">
                     <img src="../assets/originDestination-icon.png" class="od-connector-img" alt="" width="18" height="56">
                     <div class="od-input-column">
-                        <div class="od-row" style="padding: 10px 0;">
+                        <div class="od-row">
                             <div class="od-field unfilled" id="openOriginModal">Where from?</div>
                         </div>
-                        <div class="od-row" style="padding: 10px 0;">
+                        <div class="od-row">
                             <div class="od-field unfilled" id="openDestModal">Where to?</div>
                         </div>
                     </div>
@@ -349,15 +386,17 @@
 
             </div>
 
-            <!-- Full Width Start Journey Button -->
-            <button class="start-journey-btn" id="startJourneyBtn" disabled>
-                <svg class="start-journey-lock-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a919c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span class="start-journey-text">START JOURNEY</span>
-            </button>
-            <div class="start-journey-helper" id="startJourneyHelper">Enter a destination to continue</div>
+            <!-- Fixed Bottom Footer: Start Journey Button & Helper -->
+            <div class="ds-footer" id="dsFooter">
+                <button class="start-journey-btn" id="startJourneyBtn" disabled>
+                    <svg class="start-journey-lock-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a919c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span class="start-journey-text">START JOURNEY</span>
+                </button>
+                <div class="start-journey-helper" id="startJourneyHelper">Enter a destination to continue</div>
+            </div>
         </div>
 
 
@@ -599,26 +638,24 @@
             <div class="mobile-lang-row">
                 <span class="mobile-lang-label">Language / Wika</span>
                 <div class="lang-dropdown-container mobile-lang-container">
-                    <button class="mobile-lang-toggle pill-btn" type="button" aria-expanded="false">
-                        <span class="lang-flag">🌐</span>
-                        <span class="lang-active">EN</span>
-                        <ion-icon name="chevron-down-outline" class="lang-arrow"></ion-icon>
-                    </button>
-                    <div class="lang-dropdown-menu">
-                        <button class="lang-dropdown-item" type="button" data-lang="en">
-                            <span class="lang-flag">🌐</span>
-                            <span class="lang-name">English</span>
-                            <span class="lang-code">EN</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
+                            <i class="ti ti-language lang-icon" aria-hidden="true"></i>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
                         </button>
-                        <button class="lang-dropdown-item" type="button" data-lang="tl">
-                            <span class="lang-flag">🇵🇭</span>
-                            <span class="lang-name">Tagalog</span>
-                            <span class="lang-code">TL</span>
-                            <ion-icon name="checkmark-outline" class="lang-check"></ion-icon>
-                        </button>
+                        <div class="lang-dropdown-menu" role="menu">
+                            <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
             </div>
         </nav>
         <div class="drawer-footer-text">© 2026 Calzada</div>

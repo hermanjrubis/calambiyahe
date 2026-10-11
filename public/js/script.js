@@ -1294,7 +1294,6 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             sendMessageBtn.setAttribute('aria-label', sendLabel);
             sendMessageBtn.setAttribute('title', sendLabel);
         }
-        if (typeof window.applyLang === 'function') window.applyLang();
     });
 
     // === CATEGORY SCROLL NAVIGATION (Desktop) ===
@@ -1514,3 +1513,402 @@ function checkPasswordStrength() {
         initGlobalNavbar();
     }
 })();
+
+// =============================================
+// HERO BUTTON EXPLANATION POPOVERS (MORPH)
+// =============================================
+(function initHeroPopoversModule() {
+    function initHeroPopovers() {
+        const getStartedBtn = document.getElementById('heroGetStartedBtn');
+        const getStartedPopover = document.getElementById('heroPopoverGetStarted');
+        const discoverBtn = document.getElementById('heroDiscoverBtn');
+        const discoverPopover = document.getElementById('heroPopoverDiscover');
+
+        if (!getStartedBtn || !getStartedPopover || !discoverBtn || !discoverPopover) return;
+
+        const items = [
+            {
+                btn: getStartedBtn,
+                popover: getStartedPopover,
+                href: getStartedBtn.getAttribute('href') || '/places',
+                originalParent: getStartedPopover.parentElement,
+                placeholder: document.createComment('hero-popover-placeholder-get-started'),
+                isPortalled: false,
+                cleanupTimer: null
+            },
+            {
+                btn: discoverBtn,
+                popover: discoverPopover,
+                href: discoverBtn.getAttribute('href') || '/discover',
+                originalParent: discoverPopover.parentElement,
+                placeholder: document.createComment('hero-popover-placeholder-discover'),
+                isPortalled: false,
+                cleanupTimer: null
+            }
+        ];
+
+        let activeItem = null;
+        let openTimer = null;
+        let closeTimer = null;
+        let scrollStartY = 0;
+        let isAutoScrolling = false;
+
+        const isDesktopHover = () =>
+            window.matchMedia &&
+            window.matchMedia('(hover: hover) and (pointer: fine) and (min-width: 769px)').matches;
+
+        function portalToBody(item) {
+            if (item.isPortalled) return;
+            if (item.cleanupTimer) {
+                clearTimeout(item.cleanupTimer);
+                item.cleanupTimer = null;
+            }
+            if (item.originalParent && item.popover.parentNode === item.originalParent) {
+                item.originalParent.insertBefore(item.placeholder, item.popover);
+            }
+            document.body.appendChild(item.popover);
+            item.popover.classList.add('is-portalled');
+            item.isPortalled = true;
+        }
+
+        function restoreToParent(item) {
+            if (!item.isPortalled) return;
+            if (item.cleanupTimer) {
+                clearTimeout(item.cleanupTimer);
+                item.cleanupTimer = null;
+            }
+            if (item.placeholder.parentNode) {
+                item.placeholder.parentNode.insertBefore(item.popover, item.placeholder);
+                item.placeholder.remove();
+            } else if (item.originalParent) {
+                item.originalParent.appendChild(item.popover);
+            }
+            item.popover.classList.remove('is-portalled');
+            item.popover.style.position = '';
+            item.popover.style.top = '';
+            item.popover.style.left = '';
+            item.popover.style.width = '';
+            item.popover.style.zIndex = '';
+            item.isPortalled = false;
+        }
+
+        function positionPortalledPopover(item) {
+            if (!item || !item.popover) return;
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            const width = Math.min(280, viewportWidth - 32);
+            const btnRect = item.btn.getBoundingClientRect();
+            const top = btnRect.bottom + window.scrollY + 10;
+            const left = (viewportWidth - width) / 2 + window.scrollX;
+
+            item.popover.style.position = 'absolute';
+            item.popover.style.width = `${width}px`;
+            item.popover.style.top = `${top}px`;
+            item.popover.style.left = `${left}px`;
+            item.popover.style.zIndex = '150';
+        }
+
+        function positionDesktopPopover(item) {
+            if (!item || !item.popover) return;
+            item.popover.style.position = '';
+            item.popover.style.top = '';
+            item.popover.style.left = '0px';
+            item.popover.style.width = '280px';
+            item.popover.style.zIndex = '';
+            const rect = item.popover.getBoundingClientRect();
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+            if (rect.right > viewportWidth - 12) {
+                const diff = rect.right - (viewportWidth - 12);
+                item.popover.style.left = `-${diff}px`;
+            }
+        }
+
+        function openItem(item) {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+
+            // Close the other item if open
+            items.forEach(it => {
+                if (it !== item) {
+                    closeItem(it);
+                }
+            });
+
+            if (!isDesktopHover()) {
+                portalToBody(item);
+                positionPortalledPopover(item);
+            } else {
+                if (item.isPortalled) {
+                    restoreToParent(item);
+                }
+                positionDesktopPopover(item);
+            }
+
+            item.popover.classList.add('is-open');
+            item.popover.setAttribute('aria-hidden', 'false');
+            item.btn.classList.add('is-active');
+            activeItem = item;
+            scrollStartY = window.scrollY;
+
+            // If the open card's bottom would be below the viewport on short screens,
+            // scroll it into view smoothly after it opens without triggering scroll > 60px close rule
+            if (!isDesktopHover()) {
+                requestAnimationFrame(() => {
+                    const rect = item.popover.getBoundingClientRect();
+                    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+                    if (rect.bottom > viewportHeight - 8) {
+                        isAutoScrolling = true;
+                        item.popover.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        setTimeout(() => {
+                            scrollStartY = window.scrollY;
+                            isAutoScrolling = false;
+                        }, 450);
+                    }
+                });
+            }
+        }
+
+        function closeItem(item) {
+            if (!item) return;
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            item.popover.classList.remove('is-open');
+            item.popover.setAttribute('aria-hidden', 'true');
+            item.btn.classList.remove('is-active');
+            isAutoScrolling = false;
+            if (activeItem === item) {
+                activeItem = null;
+            }
+
+            if (item.isPortalled) {
+                if (item.cleanupTimer) {
+                    clearTimeout(item.cleanupTimer);
+                }
+                item.cleanupTimer = setTimeout(() => {
+                    restoreToParent(item);
+                    item.cleanupTimer = null;
+                }, 200);
+            }
+        }
+
+        function closeAll(immediate = false) {
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+            items.forEach(it => {
+                closeItem(it);
+                if (immediate && it.isPortalled) {
+                    restoreToParent(it);
+                }
+            });
+            isAutoScrolling = false;
+            activeItem = null;
+        }
+
+        function scheduleOpen(item) {
+            if (!isDesktopHover()) return;
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+            if (activeItem === item) return;
+
+            if (openTimer) clearTimeout(openTimer);
+            openTimer = setTimeout(() => {
+                openItem(item);
+            }, 120);
+        }
+
+        function scheduleClose(item) {
+            if (!isDesktopHover()) return;
+            if (openTimer) {
+                clearTimeout(openTimer);
+                openTimer = null;
+            }
+            if (closeTimer) clearTimeout(closeTimer);
+            closeTimer = setTimeout(() => {
+                closeItem(item);
+                closeTimer = null;
+            }, 150);
+        }
+
+        function cancelClose() {
+            if (closeTimer) {
+                clearTimeout(closeTimer);
+                closeTimer = null;
+            }
+        }
+
+        items.forEach(item => {
+            // --- DESKTOP HOVER LISTENERS ---
+            item.btn.addEventListener('mouseenter', () => {
+                if (isDesktopHover()) {
+                    scheduleOpen(item);
+                }
+            });
+
+            item.btn.addEventListener('mouseleave', () => {
+                if (!isDesktopHover()) return;
+                if (activeItem !== item && openTimer) {
+                    clearTimeout(openTimer);
+                    openTimer = null;
+                    return;
+                }
+                if (activeItem === item) {
+                    scheduleClose(item);
+                }
+            });
+
+            item.popover.addEventListener('mouseenter', () => {
+                if (isDesktopHover()) {
+                    cancelClose();
+                }
+            });
+
+            item.popover.addEventListener('mouseleave', () => {
+                if (isDesktopHover()) {
+                    scheduleClose(item);
+                }
+            });
+
+            item.btn.addEventListener('focus', () => {
+                if (isDesktopHover()) {
+                    scheduleOpen(item);
+                }
+            });
+
+            item.btn.addEventListener('blur', () => {
+                if (isDesktopHover()) {
+                    if (openTimer) {
+                        clearTimeout(openTimer);
+                        openTimer = null;
+                    }
+                    closeItem(item);
+                }
+            });
+        });
+
+        // --- TOUCH / CLICK INTERCEPTOR (CAPTURE PHASE ON WINDOW) ---
+        // Must use window capture to intercept clicks on hero buttons before transitions.js capture listener on document
+        window.addEventListener('click', (e) => {
+            // Desktop mouse -> desktop hover handles popovers, let click navigate normally
+            if (isDesktopHover()) {
+                return;
+            }
+
+            // Card click on open popover
+            const clickedPopover = e.target.closest('#heroPopoverGetStarted, #heroPopoverDiscover');
+            if (clickedPopover && clickedPopover.classList.contains('is-open')) {
+                const popoverItem = items.find(it => it.popover === clickedPopover);
+                if (popoverItem) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    window.location.href = popoverItem.href;
+                    return;
+                }
+            }
+
+            // Button click
+            const clickedBtn = e.target.closest('#heroGetStartedBtn, #heroDiscoverBtn');
+            if (!clickedBtn) {
+                return;
+            }
+
+            // Modifier keys or middle click -> allow native open in new tab
+            if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) {
+                return;
+            }
+
+            // Keyboard activation (Enter / Space has detail === 0) -> navigate immediately
+            if (e.detail === 0) {
+                return;
+            }
+
+            const item = items.find(it => it.btn === clickedBtn);
+            if (!item) return;
+
+            if (activeItem === item) {
+                // Second tap on the SAME button while its popover is open:
+                // Let event proceed normally to transitions.js / native link navigation
+                return;
+            }
+
+            // First tap on this button (popover closed or other popover open):
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            openItem(item);
+        }, true);
+
+        // Tap anywhere else (outside click) -> close
+        document.addEventListener('click', (e) => {
+            if (!activeItem || isDesktopHover()) return;
+            if (activeItem.btn.contains(e.target) || activeItem.popover.contains(e.target)) {
+                return;
+            }
+            closeAll();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeAll();
+            }
+        });
+
+        // Scrolling more than 60px -> close popovers
+        window.addEventListener('scroll', () => {
+            if (!activeItem || isDesktopHover() || isAutoScrolling) return;
+            if (Math.abs(window.scrollY - scrollStartY) > 60) {
+                closeAll();
+            }
+        }, { passive: true });
+
+        // Back/forward cache restore -> close both popovers
+        window.addEventListener('pageshow', () => {
+            closeAll(true);
+        });
+
+        // Handle viewport resize while an item is open
+        window.addEventListener('resize', () => {
+            if (isDesktopHover()) {
+                items.forEach(it => {
+                    if (it.isPortalled) {
+                        restoreToParent(it);
+                    }
+                });
+                if (activeItem) {
+                    positionDesktopPopover(activeItem);
+                }
+            } else if (activeItem && activeItem.isPortalled) {
+                positionPortalledPopover(activeItem);
+            }
+        }, { passive: true });
+
+        window.addEventListener('orientationchange', () => {
+            if (activeItem && activeItem.isPortalled) {
+                setTimeout(() => {
+                    positionPortalledPopover(activeItem);
+                }, 100);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHeroPopovers);
+    } else {
+        initHeroPopovers();
+    }
+})();
+
