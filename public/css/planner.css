@@ -240,7 +240,8 @@ body {
     color: var(--primary);
 }
 
-.map-top-icon-btn {
+.map-top-icon-btn,
+#hamburgerBtn {
     width: 44px;
     height: 44px;
     min-width: 44px;
@@ -249,6 +250,7 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    pointer-events: auto !important;
 }
 
 /* =============================================
@@ -540,7 +542,7 @@ body {
     flex: 0 0 34px;
     display: grid;
     place-items: center;
-    background: #EEF3FA;
+    background: #378ADD;
     box-sizing: border-box;
 }
 
@@ -562,7 +564,7 @@ body {
     font-family: 'Sora', sans-serif;
     font-weight: 700;
     font-size: 0.85rem;
-    color: var(--brand-blue, #378ADD);
+    color: #FFFFFF;
 }
 
 .user-name-wrap {
@@ -1527,6 +1529,35 @@ body.navigation-active .calzada-locate-ctrl {
 .od-field.unfilled {
     color: #94a3b8;
     font-weight: 400;
+}
+
+.od-clear-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #64748B;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.od-clear-btn:hover {
+    background-color: #F1F5F9;
+    color: #334155;
+}
+
+.od-clear-btn:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 1px;
 }
 
 .swap-btn {
@@ -5568,7 +5599,7 @@ html.lang-swapping-out [data-lang-fade] {
 
     /* Route summary block and banner */
     .route-summary-block {
-        display: flex !important;
+        display: flex;
         flex-direction: column !important;
         gap: 12px !important;
         margin: 0 !important;
@@ -5576,6 +5607,16 @@ html.lang-swapping-out [data-lang-fade] {
         flex: 1 1 auto !important;
         min-height: 0 !important;
         overflow: hidden !important;
+    }
+
+    .route-summary-block[style*="display: none"],
+    .route-summary-block[style*="display:none"],
+    .route-summary-block.hidden,
+    .route-summary-banner[style*="display: none"],
+    .route-summary-banner[style*="display:none"],
+    .mode-segment-control[style*="display: none"],
+    .mode-segment-control[style*="display:none"] {
+        display: none !important;
     }
 
     /* C. Summary banner: padding 12px 14px, summary-large 19px, summary-sub 13px */

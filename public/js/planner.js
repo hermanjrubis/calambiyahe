@@ -323,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         window._calzadaMap = map;
         window.calzadaMap = map;
+        window.map = map;
         map.touchZoomRotate.enableRotation();
         map.keyboard.enable();
 
@@ -357,26 +358,48 @@ document.addEventListener('DOMContentLoaded', () => {
         map.on('load', () => map.resize());
 
         // GeoJSON Route line layers setup
+        const getRouteInsertionBeforeId = () => {
+            if (!map || !map.isStyleLoaded()) return undefined;
+            const layers = map.getStyle().layers;
+            if (!layers) return undefined;
+            let maxGroundIdx = -1;
+            for (let i = 0; i < layers.length; i++) {
+                const l = layers[i];
+                if (l.id === 'building-3d' || l.id === 'building' || l.type === 'fill-extrusion' ||
+                    l.id.startsWith('bridge_') || l.id.startsWith('boundary_')) {
+                    maxGroundIdx = Math.max(maxGroundIdx, i);
+                }
+            }
+            for (let i = maxGroundIdx + 1; i < layers.length; i++) {
+                if (layers[i].type === 'symbol') {
+                    return layers[i].id;
+                }
+            }
+            return undefined;
+        };
+
         let routeLayersInitialized = false;
         const initRouteLayers = () => {
-            if (routeLayersInitialized || !map.isStyleLoaded()) return;
+            if (routeLayersInitialized || !map || !map.isStyleLoaded()) return;
 
-            if (!map.getSource('walk-route')) {
-                map.addSource('walk-route', {
+            const beforeId = getRouteInsertionBeforeId();
+
+            if (!map.getSource('completed-route')) {
+                map.addSource('completed-route', {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
                 map.addLayer({
-                    id: 'walk-route-layer',
+                    id: 'completed-route-layer',
                     type: 'line',
-                    source: 'walk-route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    source: 'completed-route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
-                        'line-color': '#3b82f6',
-                        'line-width': 5,
-                        'line-dasharray': [2, 2]
+                        'line-color': '#9ca3af',
+                        'line-width': 6,
+                        'line-opacity': 0.85
                     }
-                });
+                }, beforeId);
             }
 
             if (!map.getSource('transit-route')) {
@@ -388,35 +411,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     id: 'transit-route-layer',
                     type: 'line',
                     source: 'transit-route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
                         'line-color': '#1a8fff',
-                        'line-width': 6
+                        'line-width': 7,
+                        'line-opacity': 1
                     }
-                });
+                }, beforeId);
             }
 
-            if (!map.getSource('completed-route')) {
-                map.addSource('completed-route', {
+            if (!map.getSource('walk-route')) {
+                map.addSource('walk-route', {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
                 map.addLayer({
-                    id: 'completed-route-layer',
+                    id: 'walk-route-layer',
                     type: 'line',
-                    source: 'completed-route',
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
+                    source: 'walk-route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
-                        'line-color': '#9ca3af',
-                        'line-width': 5
+                        'line-color': '#3b82f6',
+                        'line-width': 6,
+                        'line-dasharray': [2, 2],
+                        'line-opacity': 1
                     }
-                });
+                }, beforeId);
             }
 
             routeLayersInitialized = true;
         };
 
         map.on('load', initRouteLayers);
+        map.on('style.load', () => {
+            routeLayersInitialized = false;
+            initRouteLayers();
+        });
 
         const updateRouteSource = (sourceId, coordsLngLat) => {
             initRouteLayers();
@@ -442,6 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let selectedCoords = { origin: null, destination: null };
         let originPlaceName = '';
         let destPlaceName = '';
+        window.selectedCoords = selectedCoords;
 
         // URL parameters parsed later
         let isTrackingArrival = false;
@@ -452,6 +483,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastFixTimestamp = 0;
         let currentNavHeading = null;
         let lastMatchedSegmentIndex = 0;
+
+        // E: Compass & Heading tracking state
+        let compassHeading = null;
+        let lastCameraApplyAt = 0;
+        let currentGpsSpeed = null;
+        let currentGpsHeading = null;
+        let activeCompassListener = null;
+        let activeCompassAbsoluteListener = null;
 
         function prefersReducedMotion() {
             return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -465,6 +504,147 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         window.setMapAutoFollow = setMapAutoFollow;
+
+        // G: Planner Auth UI Sync (exactly one of Sign in or Avatar may show)
+        function syncPlannerAuthUI() {
+            const authNavBtn = document.getElementById('authNavBtn');
+            const userAvatarPill = document.getElementById('userAvatarPill');
+            if (!authNavBtn || !userAvatarPill) return;
+
+            const isUserLoggedIn = (userAvatarPill.style.display !== 'none' && userAvatarPill.style.display !== '') ||
+                                   (window.firebase && window.firebase.auth && window.firebase.auth().currentUser !== null) ||
+                                   (localStorage.getItem('calzada_user_logged_in') === 'true');
+
+            if (isUserLoggedIn) {
+                authNavBtn.style.setProperty('display', 'none', 'important');
+                userAvatarPill.style.display = 'inline-flex';
+            } else {
+                authNavBtn.style.removeProperty('display');
+                authNavBtn.style.display = 'inline-flex';
+                userAvatarPill.style.display = 'none';
+            }
+        }
+        window.syncPlannerAuthUI = syncPlannerAuthUI;
+
+        setTimeout(() => {
+            syncPlannerAuthUI();
+            const avatarPillEl = document.getElementById('userAvatarPill');
+            if (avatarPillEl) {
+                new MutationObserver(() => syncPlannerAuthUI()).observe(avatarPillEl, { attributes: true, attributeFilter: ['style', 'class'] });
+            }
+        }, 50);
+
+        // E3: Shortest angular difference and smoothing
+        function getAngularDiff(target, current) {
+            return ((target - current + 540) % 360) - 180;
+        }
+
+        function smoothHeading(current, target, thresholdDeg = 4, alpha = 0.3) {
+            if (current === null || current === undefined || isNaN(current)) return target;
+            if (target === null || target === undefined || isNaN(target)) return current;
+            const diff = getAngularDiff(target, current);
+            if (Math.abs(diff) < thresholdDeg) return current;
+            let next = (current + diff * alpha) % 360;
+            if (next < 0) next += 360;
+            return next;
+        }
+
+        // E4: Single camera update path building one easeTo call
+        function applyCamera(opts = {}) {
+            if (!map || !mapAutoFollow || !isTrackingArrival) return;
+            const now = performance.now();
+
+            const center = opts.center || (displayLocation ? displayLocation.point : (currentLocation ? [currentLocation.lng, currentLocation.lat] : (selectedCoords.origin ? [selectedCoords.origin[1], selectedCoords.origin[0]] : null)));
+            if (!center) return;
+
+            const isPhone = window.innerWidth <= 768;
+            const finalMapBearing = opts.bearing !== undefined ? opts.bearing : (isPhone ? (currentNavHeading || 0) : 0);
+            const padding = opts.padding !== undefined ? opts.padding : computeCameraPadding();
+            const zoom = opts.zoom !== undefined ? opts.zoom : 17;
+            const duration = opts.duration !== undefined ? opts.duration : (prefersReducedMotion() ? 0 : 300);
+
+            map.easeTo({
+                center: center,
+                bearing: finalMapBearing,
+                zoom: zoom,
+                pitch: 0,
+                padding: padding,
+                duration: duration,
+                easing: t => t,
+                essential: true
+            });
+            lastCameraApplyAt = now;
+        }
+
+        function startCompassListening() {
+            if (activeCompassListener || activeCompassAbsoluteListener) return;
+
+            const onOrientation = (event) => {
+                let rawHeading = null;
+                if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+                    rawHeading = event.webkitCompassHeading;
+                } else if (typeof event.alpha === 'number' && !isNaN(event.alpha)) {
+                    rawHeading = (360 - event.alpha) % 360;
+                }
+
+                if (rawHeading === null) return;
+
+                const screenAngle = (window.screen?.orientation?.angle !== undefined)
+                    ? window.screen.orientation.angle
+                    : (typeof window.orientation === 'number' ? window.orientation : 0);
+                rawHeading = (rawHeading + screenAngle) % 360;
+                if (rawHeading < 0) rawHeading += 360;
+
+                // E3: Smooth the compass: low-pass filter on shortest angular diff, ignore changes under 4 deg
+                if (compassHeading === null) {
+                    compassHeading = rawHeading;
+                } else {
+                    compassHeading = smoothHeading(compassHeading, rawHeading, 4, 0.25);
+                }
+
+                // E2: Heading source: speed >= 2 m/s and GPS heading valid -> GPS heading; else compass heading
+                const isFastJeep = (currentGpsSpeed !== null && currentGpsSpeed >= 2.0 && currentGpsHeading !== null);
+                if (!isFastJeep) {
+                    currentNavHeading = compassHeading;
+
+                    const isPhone = window.innerWidth <= 768;
+                    const finalMapBearing = isPhone ? (currentNavHeading || 0) : 0;
+
+                    const pointerEl = userMarker?.getElement()?.querySelector('.nav-cursor-wrapper');
+                    if (pointerEl) {
+                        pointerEl.style.transform = isPhone ? 'rotate(0deg)' : `rotate(${currentNavHeading || 0}deg)`;
+                    }
+
+                    const compass = document.getElementById('compassSvg');
+                    if (compass) {
+                        compass.style.transform = `rotate(${-finalMapBearing}deg)`;
+                    }
+
+                    // E4: Camera: compass may call applyCamera at most 4 times per second (>= 250ms interval)
+                    const now = performance.now();
+                    if (mapAutoFollow && isTrackingArrival && (now - lastCameraApplyAt >= 250)) {
+                        applyCamera({ bearing: finalMapBearing, duration: 200 });
+                    }
+                }
+            };
+
+            activeCompassAbsoluteListener = onOrientation;
+            activeCompassListener = onOrientation;
+            window.addEventListener('deviceorientationabsolute', activeCompassAbsoluteListener, { passive: true });
+            window.addEventListener('deviceorientation', activeCompassListener, { passive: true });
+        }
+
+        function stopCompassListening() {
+            if (activeCompassListener) {
+                window.removeEventListener('deviceorientation', activeCompassListener);
+                activeCompassListener = null;
+            }
+            if (activeCompassAbsoluteListener) {
+                window.removeEventListener('deviceorientationabsolute', activeCompassAbsoluteListener);
+                activeCompassAbsoluteListener = null;
+            }
+            compassHeading = null;
+        }
 
         function snapToRoute(lngLat, routeCoords, lastIdx = 0, threshold = 25) {
             if (!routeCoords || routeCoords.length < 2) {
@@ -605,6 +785,67 @@ document.addEventListener('DOMContentLoaded', () => {
         let originMarker = null, destMarker = null, userMarker = null, gpsCircle = null;
         let walkPolyline = null, transitPolyline = null, completedTransitPolyline = null;
         let midpointBubbleMarker = null;
+
+        function createOriginMarker(coords) {
+            if (originMarker) { originMarker.remove(); originMarker = null; }
+            const oEl = document.createElement('div');
+            oEl.className = 'calzada-origin-marker';
+            oEl.innerHTML = `<div style="width:16px;height:16px;background:#1C6EF2;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(28,110,242,0.5);"></div>`;
+            originMarker = new maplibregl.Marker({
+                element: oEl,
+                anchor: 'center'
+            }).setLngLat(toLngLat(coords)).addTo(map);
+            return originMarker;
+        }
+
+        function createDestMarker(coords) {
+            if (destMarker) { destMarker.remove(); destMarker = null; }
+            const dEl = document.createElement('div');
+            dEl.className = 'calzada-dest-marker';
+            dEl.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
+                <circle cx="14" cy="14" r="6" fill="white"/>
+            </svg>`;
+            destMarker = new maplibregl.Marker({
+                element: dEl,
+                anchor: 'bottom'
+            }).setLngLat(toLngLat(coords)).addTo(map);
+            return destMarker;
+        }
+
+        function ensureOriginMarker() {
+            if (isTrackingArrival) return;
+            if (selectedCoords.origin && Array.isArray(selectedCoords.origin) && selectedCoords.origin.length >= 2) {
+                if (!originMarker) {
+                    createOriginMarker(selectedCoords.origin);
+                } else {
+                    originMarker.setLngLat(toLngLat(selectedCoords.origin));
+                    if (!originMarker.getElement()?.parentNode) {
+                        originMarker.addTo(map);
+                    }
+                }
+            } else if (originMarker) {
+                originMarker.remove();
+                originMarker = null;
+            }
+        }
+
+        function ensureDestMarker() {
+            if (isTrackingArrival) return;
+            if (selectedCoords.destination && Array.isArray(selectedCoords.destination) && selectedCoords.destination.length >= 2) {
+                if (!destMarker) {
+                    createDestMarker(selectedCoords.destination);
+                } else {
+                    destMarker.setLngLat(toLngLat(selectedCoords.destination));
+                    if (!destMarker.getElement()?.parentNode) {
+                        destMarker.addTo(map);
+                    }
+                }
+            } else if (destMarker) {
+                destMarker.remove();
+                destMarker = null;
+            }
+        }
 
         // =============================================
         // CATEGORY FILTER PILLS & MAP PLACES CONTROLLER
@@ -1676,41 +1917,237 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('closeLocModal').addEventListener('click', closeLocationModal);
         locationModalOverlay.addEventListener('click', closeLocationModal);
 
-        document.getElementById('closeDirectionsBtn').addEventListener('click', () => {
+        // B3: Centralized single function that every path calls to control planner state & visibility
+        const renderPlannerState = () => {
+            const hasOrigin = Boolean(selectedCoords.origin && originPlaceName);
+            const hasDest = Boolean(selectedCoords.destination && destPlaceName);
+            const hasBothFields = hasOrigin && hasDest;
+            const hasRoute = hasBothFields && (
+                (walkRouteGeojson && Array.isArray(walkRouteGeojson.coordinates) && walkRouteGeojson.coordinates.length >= 2) ||
+                (transitRouteGeojson && Array.isArray(transitRouteGeojson.coordinates) && transitRouteGeojson.coordinates.length >= 2)
+            );
+
+            // 0. Ensure single-location or route markers stay consistent with field values
+            ensureOriginMarker();
+            ensureDestMarker();
+
+            // 1. Origin & Destination text and clear (×) buttons (B2)
+            const origEl = document.getElementById('openOriginModal');
+            const destEl = document.getElementById('openDestModal');
+            const clearOriginBtn = document.getElementById('clearOriginBtn');
+            const clearDestBtn = document.getElementById('clearDestBtn');
+
+            if (origEl) {
+                if (hasOrigin) {
+                    origEl.textContent = originPlaceName;
+                    origEl.classList.remove('unfilled');
+                } else {
+                    origEl.textContent = (window.t ? window.t('planner.where_from') : 'Where from?');
+                    origEl.classList.add('unfilled');
+                }
+            }
+            if (clearOriginBtn) {
+                clearOriginBtn.style.display = hasOrigin ? 'inline-flex' : 'none';
+            }
+
+            if (destEl) {
+                if (hasDest) {
+                    destEl.textContent = destPlaceName;
+                    destEl.classList.remove('unfilled');
+                } else {
+                    destEl.textContent = (window.t ? window.t('planner.where_to') : 'Where to?');
+                    destEl.classList.add('unfilled');
+                }
+            }
+            if (clearDestBtn) {
+                clearDestBtn.style.display = hasDest ? 'inline-flex' : 'none';
+            }
+
+            // 2. Directions sheet header X button (B1)
+            const closeDirectionsBtn = document.getElementById('closeDirectionsBtn');
+            if (closeDirectionsBtn) {
+                closeDirectionsBtn.style.display = (hasRoute || hasOrigin || hasDest) ? 'flex' : 'none';
+            }
+
+            // 3. Summary and itinerary are visible ONLY when both fields have a value and route computed (B3)
+            const transportModesBlock = document.getElementById('transportModesBlock');
+            const routeSummaryBlock = document.getElementById('routeSummaryBlock');
+            const itineraryLegs = document.getElementById('itineraryLegs');
+            const walkHintEl = document.getElementById('walkableTripHint');
+            const startBtn = document.getElementById('startJourneyBtn');
+            const startHelper = document.getElementById('startJourneyHelper');
+
+            if (hasRoute) {
+                if (transportModesBlock) {
+                    transportModesBlock.style.removeProperty('display');
+                    transportModesBlock.style.display = 'flex';
+                }
+                if (routeSummaryBlock) {
+                    routeSummaryBlock.style.removeProperty('display');
+                    routeSummaryBlock.style.display = '';
+                    routeSummaryBlock.classList.remove('hidden');
+                    const summaryBanner = routeSummaryBlock.querySelector('.route-summary-banner');
+                    if (summaryBanner) {
+                        summaryBanner.style.removeProperty('display');
+                        summaryBanner.style.display = '';
+                    }
+                }
+                if (startBtn) startBtn.disabled = false;
+                if (startHelper) startHelper.style.display = 'none';
+            } else {
+                if (transportModesBlock) {
+                    transportModesBlock.style.setProperty('display', 'none', 'important');
+                }
+                if (routeSummaryBlock) {
+                    routeSummaryBlock.style.setProperty('display', 'none', 'important');
+                    routeSummaryBlock.classList.add('hidden');
+                    const summaryBanner = routeSummaryBlock.querySelector('.route-summary-banner');
+                    if (summaryBanner) {
+                        summaryBanner.style.setProperty('display', 'none', 'important');
+                    }
+                }
+                if (itineraryLegs) itineraryLegs.innerHTML = '';
+                if (walkHintEl) walkHintEl.style.display = 'none';
+                const peekSummary = document.getElementById('peekSummary');
+                if (peekSummary) peekSummary.textContent = '-- min • ₱ --';
+                const dsPeekInfo = document.getElementById('dsPeekInfo');
+                if (dsPeekInfo) dsPeekInfo.style.display = 'none';
+                const sumTime = document.getElementById('sumTime');
+                if (sumTime) sumTime.textContent = '-- min';
+                const sumFare = document.getElementById('sumFare');
+                if (sumFare) sumFare.textContent = '₱ --';
+                const sumETA = document.getElementById('sumETA') || document.getElementById('sumEta');
+                if (sumETA) sumETA.textContent = '--:--';
+                const sumDist = document.getElementById('sumDist');
+                if (sumDist) sumDist.textContent = '--';
+                if (startBtn) startBtn.disabled = true;
+                if (startHelper) {
+                    startHelper.style.display = '';
+                    if (!hasDest) {
+                        startHelper.textContent = (window.t ? window.t('planner.enter_destination') : 'Enter a destination to continue');
+                    } else if (!hasOrigin) {
+                        startHelper.textContent = (window.t ? window.t('planner.enter_origin') : 'Enter an origin to continue');
+                    } else {
+                        startHelper.textContent = (window.t ? window.t('planner.enter_destination') : 'Enter a destination to continue');
+                    }
+                }
+            }
+
+            updateCategoryBarVisibility();
+        };
+
+        // B2: Clear origin only
+        const clearOriginField = () => {
+            selectedCoords.origin = null;
+            originPlaceName = '';
+            if (originMarker) { originMarker.remove(); originMarker = null; }
+            if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
+            if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
+
+            walkRouteGeojson = null;
+            transitRouteGeojson = null;
+            window.activeRouteSteps = [];
+            window.currentStepIndex = 0;
+
+            updateRouteSource('walk-route', []);
+            updateRouteSource('transit-route', []);
+            updateRouteSource('completed-route', []);
+            window._calzadaRouteContext = null;
+            try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
+
+            ensureDestMarker();
+            renderPlannerState();
+
+            if (selectedCoords.destination && destMarker) {
+                map.flyTo({ center: toLngLat(selectedCoords.destination), zoom: 15 });
+            }
+        };
+
+        // B2: Clear destination only
+        const clearDestField = () => {
+            selectedCoords.destination = null;
+            destPlaceName = '';
+            if (destMarker) { destMarker.remove(); destMarker = null; }
+            if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
+            if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
+
+            walkRouteGeojson = null;
+            transitRouteGeojson = null;
+            window.activeRouteSteps = [];
+            window.currentStepIndex = 0;
+
+            updateRouteSource('walk-route', []);
+            updateRouteSource('transit-route', []);
+            updateRouteSource('completed-route', []);
+            window._calzadaRouteContext = null;
+            try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
+
+            ensureOriginMarker();
+            renderPlannerState();
+
+            if (selectedCoords.origin && originMarker) {
+                map.flyTo({ center: toLngLat(selectedCoords.origin), zoom: 15 });
+            }
+        };
+
+        // B1: Clear EVERYTHING (header X button)
+        const clearAllPlannerState = () => {
             userExplicitMode = false;
+            selectedMode = 'jeepney';
+            setModeUI('jeepney');
+
             selectedCoords.origin = null;
             selectedCoords.destination = null;
             originPlaceName = '';
             destPlaceName = '';
-            updateODDisplay();
 
             if (originMarker) { originMarker.remove(); originMarker = null; }
             if (destMarker) { destMarker.remove(); destMarker = null; }
-            updateRouteSource('walk-route', []);
-            updateRouteSource('transit-route', []);
-            updateRouteSource('completed-route', []);
             if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
             if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
 
-            document.getElementById('transportModesBlock').style.display = 'none';
-            document.getElementById('routeSummaryBlock').style.display = 'none';
-            const walkHintEl = document.getElementById('walkableTripHint');
-            if (walkHintEl) walkHintEl.style.display = 'none';
-            document.getElementById('startJourneyBtn').disabled = true;
-            document.getElementById('closeDirectionsBtn').style.display = 'none';
+            walkRouteGeojson = null;
+            transitRouteGeojson = null;
+            window.activeRouteSteps = [];
+            window.currentStepIndex = 0;
 
-            // Clear chatbot context
+            updateRouteSource('walk-route', []);
+            updateRouteSource('transit-route', []);
+            updateRouteSource('completed-route', []);
+
             window._calzadaRouteContext = null;
+            try {
+                sessionStorage.removeItem(STORAGE_KEY);
+                sessionStorage.removeItem('calzada_journey');
+            } catch (e) {}
 
             updateMidpointBubbleVisibility(false);
-            updateCategoryBarVisibility();
+            renderPlannerState();
 
             if (currentLocation && currentLocation.lat && currentLocation.lng) {
                 map.flyTo({ center: [currentLocation.lng, currentLocation.lat], zoom: 14 });
             } else {
                 map.flyTo({ center: [121.1652, 14.2117], zoom: 13 });
             }
+        };
+
+        document.getElementById('clearOriginBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearOriginField();
         });
+
+        document.getElementById('clearDestBtn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            clearDestField();
+        });
+
+        document.getElementById('closeDirectionsBtn')?.addEventListener('click', () => {
+            clearAllPlannerState();
+        });
+
+        const updateODDisplay = () => {
+            renderPlannerState();
+        };
 
         const renderModalDefaultOptions = () => {
             const isOrig = activeSelectingField === 'origin';
@@ -1759,16 +2196,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateODDisplay();
             executeRouteQuery();
         });
-
-        const updateODDisplay = () => {
-            const origEl = document.getElementById('openOriginModal');
-            const destEl = document.getElementById('openDestModal');
-            if (originPlaceName && selectedCoords.origin) { origEl.textContent = originPlaceName; origEl.classList.remove('unfilled'); }
-            else { origEl.textContent = 'Where from?'; origEl.classList.add('unfilled'); }
-
-            if (destPlaceName && selectedCoords.destination) { destEl.textContent = destPlaceName; destEl.classList.remove('unfilled'); }
-            else { destEl.textContent = 'Where to?'; destEl.classList.add('unfilled'); }
-        };
 
         const selectLocation = (name, coords) => {
             if (activeSelectingField === 'origin') {
@@ -1989,11 +2416,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const executeRouteQuery = async () => {
             if (!selectedCoords.origin || !selectedCoords.destination) {
-                document.getElementById('transportModesBlock').style.display = 'none';
-                document.getElementById('routeSummaryBlock').style.display = 'none';
-                const walkHintEl = document.getElementById('walkableTripHint');
-                if (walkHintEl) walkHintEl.style.display = 'none';
-                document.getElementById('startJourneyBtn').disabled = true;
+                renderPlannerState();
                 return;
             }
 
@@ -2022,25 +2445,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('modeJeepney').style.display = 'inline-flex';
 
             // Draw Markers
-            if (originMarker) { originMarker.remove(); originMarker = null; }
-            if (destMarker) { destMarker.remove(); destMarker = null; }
-
-            const oEl = document.createElement('div');
-            oEl.innerHTML = `<div style="width:16px;height:16px;background:#1C6EF2;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(28,110,242,0.5);"></div>`;
-            originMarker = new maplibregl.Marker({
-                element: oEl.firstElementChild || oEl,
-                anchor: 'center'
-            }).setLngLat(toLngLat(oPt)).addTo(map);
-
-            const dEl = document.createElement('div');
-            dEl.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
-            <circle cx="14" cy="14" r="6" fill="white"/>
-        </svg>`;
-            destMarker = new maplibregl.Marker({
-                element: dEl.firstElementChild || dEl,
-                anchor: 'bottom'
-            }).setLngLat(toLngLat(dPt)).addTo(map);
+            ensureOriginMarker();
+            ensureDestMarker();
 
             // ── WALKING MODE: pure foot route from origin to destination ───────────
             if (selectedMode === 'walking') {
@@ -2088,9 +2494,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                document.getElementById('startJourneyBtn').disabled = false;
-                document.getElementById('transportModesBlock').style.display = 'flex';
-                document.getElementById('routeSummaryBlock').style.display = 'block';
+                renderItinerary();
+                renderPlannerState();
                 return;
             }
 
@@ -2208,10 +2613,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            document.getElementById('startJourneyBtn').disabled = false;
-            document.getElementById('transportModesBlock').style.display = 'flex';
-            document.getElementById('routeSummaryBlock').style.display = 'block';
-            updateCategoryBarVisibility();
+            renderItinerary();
+            renderPlannerState();
         };
 
         // =============================================
@@ -2409,11 +2812,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const blk = document.getElementById('routeSummaryBlock');
             const st = document.getElementById('sumTime');
             const sf = document.getElementById('sumFare');
-            const se = document.getElementById('sumETA');
+            const se = document.getElementById('sumETA') || document.getElementById('sumEta');
             const sd = document.getElementById('sumDist');
 
             const totalMin = currentWalkDur + currentTransitDur;
-            const totalDist = (currentWalkDist + currentTransitDist).toFixed(1);
+            const totalDistRaw = (currentWalkDist + currentTransitDist).toFixed(1);
+            const totalDist = String(totalDistRaw).replace(/\s*km/gi, '').trim();
 
             // ETA must use cachedRemainingSeconds for consistency with the bottom pill
             const totalSecs = (currentWalkDur + currentTransitDur) * 60;
@@ -2421,15 +2825,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = new Date(Date.now() + cachedRemainingSeconds * 1000);
             const eta = fmt24h(d);
 
-            st.textContent = `${totalMin} min`;
-            sf.textContent = selectedMode === 'walking' ? 'Free' : `₱${currentFare}`;
-            se.textContent = eta;
-            sd.textContent = totalDist;
+            if (st) st.textContent = `${totalMin} min`;
+            if (sf) sf.textContent = selectedMode === 'walking' ? 'Free' : `₱${currentFare}`;
+            if (se) se.textContent = eta;
+            if (sd) sd.textContent = totalDist;
 
-            document.getElementById('peekSummary').textContent = selectedMode === 'walking'
-                ? `${totalMin} min • Walk`
-                : `${totalMin} min • ₱${currentFare}`;
-            blk.style.visibility = 'visible';
+            const peek = document.getElementById('peekSummary');
+            if (peek) {
+                peek.textContent = selectedMode === 'walking'
+                    ? `${totalMin} min • Walk`
+                    : `${totalMin} min • ₱${currentFare}`;
+            }
+            if (blk) {
+                blk.style.removeProperty('display');
+                blk.style.display = '';
+                blk.style.visibility = 'visible';
+                blk.classList.remove('hidden');
+                const banner = blk.querySelector('.route-summary-banner');
+                if (banner) {
+                    banner.style.removeProperty('display');
+                    banner.style.display = '';
+                }
+            }
 
             // Update chatbot context for Routie Assistant
             window._calzadaRouteContext = {
@@ -2693,47 +3110,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function cancelActiveJourney() {
             stopLiveTracking();
+            stopCompassListening();
             document.body.classList.remove('navigation-active');
-
-            updateRouteSource('walk-route', []);
-            updateRouteSource('transit-route', []);
-            updateRouteSource('completed-route', []);
-            if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
-            if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
-            if (originMarker) { originMarker.remove(); originMarker = null; }
-            if (destMarker) { destMarker.remove(); destMarker = null; }
-
-            userExplicitMode = false;
-            selectedCoords.origin = null;
-            selectedCoords.destination = null;
-            originPlaceName = '';
-            destPlaceName = '';
-            updateODDisplay();
-            document.getElementById('transportModesBlock').style.display = 'none';
-            document.getElementById('routeSummaryBlock').style.display = 'none';
-            const walkHintEl = document.getElementById('walkableTripHint');
-            if (walkHintEl) walkHintEl.style.display = 'none';
-            document.getElementById('startJourneyBtn').disabled = true;
-            document.getElementById('closeDirectionsBtn').style.display = 'none';
-            window._calzadaRouteContext = null;
 
             isTrackingArrival = false;
             setMapAutoFollow(false);
-            sessionStorage.removeItem('calzada_journey'); // user cancelled — clear state
-
             if (reCenterBtn) reCenterBtn.style.display = 'none';
+
+            // A2: Remove navigation-only user pointers on cancel
+            if (userMarker) { userMarker.remove(); userMarker = null; }
+            if (gpsCircle) { gpsCircle = null; }
+
+            // Clear completed route line progress
+            updateRouteSource('completed-route', []);
+
+            // A3: Reset progress to first step
+            window.currentStepIndex = 0;
+            activeLegIndex = 0;
+            updateGuideStepsUI();
+
+            // A4: Clear saved journey state so a reload shows preview or empty state, never navigation mode
+            try {
+                sessionStorage.removeItem(STORAGE_KEY);
+                sessionStorage.removeItem('calzada_journey');
+            } catch (e) {}
 
             // Explicitly restore MapLibre zoom controls when navigation ends
             const zoomControlGroup = document.querySelector('.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group');
             if (zoomControlGroup) zoomControlGroup.style.removeProperty('display');
 
-            // Explicitly remove user markers on cancel
-            if (userMarker) { userMarker.remove(); userMarker = null; }
-            if (gpsCircle) { gpsCircle = null; }
-            if (originMarker) originMarker.addTo(map);
-
             // Reset map bearing to north
-            map.setBearing(0);
+            map.easeTo({ bearing: 0, duration: 300 });
 
             // Hide Active nav overlays
             if (activeNavPanel) activeNavPanel.style.setProperty('display', 'none', 'important');
@@ -2750,10 +3157,23 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elGoogleSignIn) elGoogleSignIn.style.display = '';
             const elUserProfileNav = document.getElementById('userProfileNav');
             if (elUserProfileNav) elUserProfileNav.style.display = '';
-            const elAuthNavBtn = document.getElementById('authNavBtn');
-            if (elAuthNavBtn) elAuthNavBtn.style.display = '';
 
-            // Restore Directions
+            // Auth UI: ensure only one of authNavBtn or userAvatarPill shows (G)
+            syncPlannerAuthUI();
+
+            // A1: Return to the same route preview the user saw before starting:
+            // origin and destination fields filled, route line and origin/destination markers drawn,
+            // summary and itinerary shown, mode unchanged, START JOURNEY enabled.
+            if (selectedCoords.origin && selectedCoords.destination && (walkRouteGeojson || transitRouteGeojson)) {
+                drawRoutes(walkRouteGeojson?.coordinates || [], transitRouteGeojson?.coordinates || []);
+                renderItinerary();
+                updateSummaryRow();
+                updatePillFareUI();
+            }
+
+            renderPlannerState();
+
+            // Restore Directions Card
             directionsCard.classList.remove('journey-active-hidden');
             directionsCard.style.removeProperty('display');
             directionsCard.style.display = '';
@@ -2797,8 +3217,50 @@ document.addEventListener('DOMContentLoaded', () => {
             userMarker
         });
 
+        window._calzadaExecuteRouteQuery = executeRouteQuery;
+        window._calzadaRenderPlannerState = renderPlannerState;
+        window._calzadaClearAllPlannerState = clearAllPlannerState;
+        window._calzadaClearOriginField = clearOriginField;
+        window._calzadaClearDestField = clearDestField;
+        window._calzadaSelectLocation = selectLocation;
+        window._calzadaApplyCamera = applyCamera;
+        window._calzadaSmoothHeading = smoothHeading;
+        window._calzadaSetCompassHeading = (h) => { compassHeading = h; };
+        window._calzadaSetOD = (originName, originCoords, destName, destCoords, mode = 'jeepney') => {
+            originPlaceName = originName;
+            selectedCoords.origin = originCoords;
+            destPlaceName = destName;
+            selectedCoords.destination = destCoords;
+            selectedMode = mode;
+            userExplicitMode = true;
+            setModeUI(mode);
+            renderPlannerState();
+        };
+        window._calzadaGetRouteGeojson = () => ({
+            walkRouteGeojson,
+            transitRouteGeojson
+        });
+
         document.getElementById('startJourneyBtn').addEventListener('click', () => {
             if (!selectedCoords.origin || !selectedCoords.destination) return;
+
+            // E1: iOS DeviceOrientationEvent.requestPermission() inside user gesture
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    DeviceOrientationEvent.requestPermission().catch(e => console.warn('DeviceOrientation error:', e));
+                } catch (e) {
+                    console.warn('DeviceOrientation permission error:', e);
+                }
+            }
+
+            // A3: Reset progress to first step (currentStepIndex = 0)
+            window.currentStepIndex = 0;
+            activeLegIndex = 0;
+            updateGuideStepsUI();
+
+            isTrackingArrival = true;
+            setMapAutoFollow(true);
+            if (reCenterBtn) reCenterBtn.style.display = 'none';
 
             startActiveJourneyUI();
 
@@ -2813,9 +3275,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 easing: t => t,
                 essential: true
             });
-            mapAutoFollow = true;
-            isTrackingArrival = true;
 
+            startCompassListening();
             startLiveTracking();
             // Persist active journey state immediately
             saveJourneyState();
@@ -3060,6 +3521,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         function stopLiveTracking() {
+            stopCompassListening();
             if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             if (geoRetryTimer) { clearTimeout(geoRetryTimer); geoRetryTimer = null; }
             if (geoHealthTimer) { clearInterval(geoHealthTimer); geoHealthTimer = null; }
@@ -3087,6 +3549,9 @@ document.addEventListener('DOMContentLoaded', () => {
             displayLocation = null;
             lastFixTimestamp = 0;
             currentNavHeading = null;
+            compassHeading = null;
+            currentGpsSpeed = null;
+            currentGpsHeading = null;
             lastMatchedSegmentIndex = 0;
 
             // Remove the user location marker when tracking stops
@@ -3158,23 +3623,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 isMoving = moveDist > 1.0;
             }
 
-            // D1: Heading source, in order:
-            // a. Snapped and moving: the bearing of the matched route segment.
-            // b. Not snapped, speed >= 1.5 m/s and pos.coords.heading is a number: GPS heading.
-            // c. Otherwise: keep the last heading. Never rotate the map from a stationary fix.
+            // E2: Heading source while navigating:
+            // - speed >= 2 m/s and GPS heading is a number (riding the jeep): GPS heading.
+            // - otherwise: compass heading.
+            // - neither available or permission denied: keep current behavior (route segment bearing when snapped and moving, else keep last heading). No error toast.
+            currentGpsSpeed = (typeof speed === 'number' && !isNaN(speed)) ? speed : null;
+            currentGpsHeading = (typeof pos.coords.heading === 'number' && !isNaN(pos.coords.heading)) ? pos.coords.heading : null;
+
             let targetHeading;
-            if (isSnapped && isMoving) {
+            const isFastJeep = (currentGpsSpeed !== null && currentGpsSpeed >= 2.0 && currentGpsHeading !== null);
+
+            if (isFastJeep) {
+                targetHeading = currentGpsHeading;
+                currentNavHeading = currentGpsHeading;
+            } else if (compassHeading !== null && !isNaN(compassHeading)) {
+                targetHeading = compassHeading;
+                currentNavHeading = compassHeading;
+            } else if (isSnapped && isMoving) {
                 targetHeading = matchedSegmentBearing;
-            } else if (!isSnapped && (typeof speed === 'number' && speed >= 1.5) && (pos.coords.heading !== null && !isNaN(pos.coords.heading))) {
-                targetHeading = pos.coords.heading;
+                currentNavHeading = smoothHeading(currentNavHeading, targetHeading, 4, 0.3);
+            } else if (!isSnapped && (typeof speed === 'number' && speed >= 1.5) && currentGpsHeading !== null) {
+                targetHeading = currentGpsHeading;
+                currentNavHeading = currentGpsHeading;
             } else {
-                targetHeading = (currentNavHeading !== null) ? currentNavHeading : (pos.coords.heading !== null && !isNaN(pos.coords.heading) ? pos.coords.heading : 0);
+                targetHeading = (currentNavHeading !== null) ? currentNavHeading : (currentGpsHeading !== null ? currentGpsHeading : 0);
+                currentNavHeading = smoothHeading(currentNavHeading, targetHeading, 4, 0.3);
             }
 
-            // D2: Smooth it: move at most 45 degrees per update toward target along shortest direction
-            currentNavHeading = stepHeading(currentNavHeading, targetHeading, 45);
-
-            // D3: Phone (max-width 768px): heading-up. Map bearing = heading, arrow points straight up.
+            // Phone (max-width 768px): heading-up. Map bearing = heading, arrow points straight up.
             // Desktop: north-up. Map bearing 0, arrow rotates to the heading.
             const isPhone = window.innerWidth <= 768;
             const finalMapBearing = isPhone ? (currentNavHeading || 0) : 0;
@@ -3188,13 +3664,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // D4: Keep #compassSvg in sync with the final map bearing, not the raw GPS heading.
+            // Keep #compassSvg in sync with the final map bearing
             const compass = document.getElementById('compassSvg');
             if (compass) {
                 compass.style.transform = `rotate(${-finalMapBearing}deg)`;
             }
 
-            // C1, C2: Smooth marker movement with requestAnimationFrame over updateDuration
+            // Smooth marker movement with requestAnimationFrame over updateDuration
             if (markerAnimRaf) {
                 cancelAnimationFrame(markerAnimRaf);
                 markerAnimRaf = null;
@@ -3238,18 +3714,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // A1, E3, E4, F2: One camera call per update if mapAutoFollow is true
+            // E4: Camera: keep ONE camera update path via applyCamera
             if (mapAutoFollow) {
-                const padding = computeCameraPadding();
-                map.easeTo({
+                applyCamera({
                     center: [displayLocation.lng, displayLocation.lat],
                     bearing: finalMapBearing,
-                    zoom: 17,
-                    pitch: 0,
-                    padding: padding,
-                    duration: updateDuration,
-                    easing: t => t,
-                    essential: true
+                    duration: updateDuration
                 });
             }
 
@@ -3292,12 +3762,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (activeLegIndex === 0 && minD < 50 && closestIdx >= currentPath.length - 3) {
-                // Also switch legs when the user is within 40m of the snap/boarding point
                 activeLegIndex = 1;
-                // Dim the walk leg to show it's done
-                if (walkPolyline) walkPolyline.setStyle({ color: '#9ca3af', opacity: 0.5, dashArray: '6, 8' });
             }
-            // Extra guard: if user is within 40m of walk leg end (boarding point), switch legs
             if (activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0) {
                 const walkEnd = walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1];
                 const distToBoard = getHaversineDist(latitude, longitude, walkEnd[0], walkEnd[1]) * 1000;
@@ -3320,8 +3786,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const remainCoords = transitCoords.slice(closestIdx).map(c => [c[1], c[0]]);
 
                 // Sakay-style: completed = gray, remaining = mode color
-                updateRouteSource('completed-route', passCoords);
+                const walkCoords = walkRouteGeojson?.coordinates || [];
+                const fullCompleted = walkCoords.map(c => [c[1], c[0]]).concat(passCoords);
+                updateRouteSource('completed-route', fullCompleted.length > 1 ? fullCompleted : passCoords);
                 updateRouteSource('transit-route', remainCoords);
+                updateRouteSource('walk-route', []);
 
                 remainingTimeSecs = (remainingDist / JEEPNEY_SPEED_KPH) * 3600; // jeepney ~20 km/h
             } else {
@@ -3342,6 +3811,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (aheadCoords.length > 1) {
                     updateRouteSource('walk-route', aheadCoords);
+                }
+                // D1: Always ensure transit route line is drawn ahead
+                if (transitRouteGeojson && transitRouteGeojson.coordinates && transitRouteGeojson.coordinates.length > 0) {
+                    updateRouteSource('transit-route', transitRouteGeojson.coordinates.map(c => [c[1], c[0]]));
                 }
             }
 

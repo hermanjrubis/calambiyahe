@@ -310,7 +310,7 @@
                     <span id="peekSummary" class="peek-summary-text">-- min • ₱ --</span>
                 </div>
                 <!-- Close X logic will reset planner -->
-                <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Close directions" style="display:none;"><ion-icon
+                <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Clear route" data-i18n="planner.clear_route" data-i18n-attr="aria-label" title="Clear route" style="display:none;"><ion-icon
                         name="close"></ion-icon></button>
             </div>
 
@@ -321,9 +321,21 @@
                     <div class="od-input-column">
                         <div class="od-row">
                             <div class="od-field unfilled" id="openOriginModal">Where from?</div>
+                            <button class="od-clear-btn" id="clearOriginBtn" type="button" aria-label="Clear origin" data-i18n="planner.clear_origin" data-i18n-attr="aria-label" title="Clear origin" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
                         </div>
                         <div class="od-row">
                             <div class="od-field unfilled" id="openDestModal">Where to?</div>
+                            <button class="od-clear-btn" id="clearDestBtn" type="button" aria-label="Clear destination" data-i18n="planner.clear_dest" data-i18n-attr="aria-label" title="Clear destination" style="display:none;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                     <button class="swap-btn" id="swapLocationsBtn" aria-label="Swap origin and destination"><ion-icon name="swap-vertical"></ion-icon></button>
