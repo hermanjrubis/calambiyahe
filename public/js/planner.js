@@ -500,7 +500,9 @@ document.addEventListener('DOMContentLoaded', () => {
             mapAutoFollow = Boolean(val);
             const btn = document.getElementById('reCenterBtn');
             if (btn) {
-                btn.style.display = (isTrackingArrival && !mapAutoFollow) ? 'flex' : 'none';
+                const shouldShow = Boolean(isTrackingArrival && !mapAutoFollow);
+                btn.classList.toggle('is-visible', shouldShow);
+                btn.style.removeProperty('display');
             }
         }
         window.setMapAutoFollow = setMapAutoFollow;
@@ -749,18 +751,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const guideCard = document.getElementById('activeGuideCard');
             const rGuide = (guideCard && getComputedStyle(guideCard).display !== 'none') ? guideCard.getBoundingClientRect() : null;
-            const topEdge = (rGuide && rGuide.height > 0) ? rGuide.bottom : 0;
-            const baseTopPadding = topEdge + 16;
+            let topEdge = (rGuide && rGuide.height > 0) ? rGuide.bottom : 0;
 
-            const sheet = document.getElementById('bottomStatusPill') || document.getElementById('directionsCard');
+            const thenStrip = document.getElementById('mobileGuideFollowing');
+            const rThen = (thenStrip && getComputedStyle(thenStrip).display !== 'none') ? thenStrip.getBoundingClientRect() : null;
+            if (rThen && rThen.height > 0 && rThen.bottom > topEdge) {
+                topEdge = rThen.bottom;
+            }
+
+            const sheet = (vw <= 768 && document.body.classList.contains('navigation-active'))
+                ? document.getElementById('bottomStatusPill')
+                : (document.getElementById('bottomStatusPill') || document.getElementById('directionsCard'));
             const rSheet = (sheet && getComputedStyle(sheet).display !== 'none') ? sheet.getBoundingClientRect() : null;
             const bottomEdge = (rSheet && rSheet.height > 0) ? rSheet.top : vh;
-            const baseBottomPadding = (vh - bottomEdge) + 16;
 
             if (vw <= 768) {
-                const visibleHeight = Math.max(100, (vh - baseBottomPadding) - baseTopPadding);
-                const padTop = Math.round(baseTopPadding + 0.30 * visibleHeight);
-                const padBottom = Math.round(baseBottomPadding);
+                // Visible height between bottom of banner (including Then strip) and top of bottom bar
+                const visibleHeight = Math.max(100, bottomEdge - topEdge);
+                // Center MapLibre pointer at 65% of visible map height:
+                // padTop + (vh - padTop - padBottom)/2 = topEdge + 0.65 * visibleHeight
+                const padTop = Math.round(topEdge + 0.30 * visibleHeight);
+                const padBottom = Math.round(vh - bottomEdge);
                 return { top: padTop, bottom: padBottom, left: 0, right: 0 };
             } else {
                 const sidebar = document.getElementById('activeNavPanel') || document.querySelector('.active-nav-panel') || document.getElementById('plannerSidebar');
@@ -771,6 +782,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const padLeft = Math.round(leftEdge);
                 const padRight = 0;
+                const baseTopPadding = topEdge + 16;
+                const baseBottomPadding = (vh - bottomEdge) + 16;
                 const padTop = Math.round(baseTopPadding);
                 const padBottom = Math.round(baseBottomPadding);
                 return { top: padTop, bottom: padBottom, left: padLeft, right: padRight };
@@ -1502,6 +1515,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return `${h}:${m}`;
         }
 
+        let currentRemainingDistanceMeters = 0;
+
         function updateDynamicBottomPill(timeSinceLastMove = 0) {
             let mins = Math.ceil(cachedRemainingSeconds / 60);
             const minText = mins < 1 ? "< 1" : `${mins}`;
@@ -1527,6 +1542,71 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.nav-stat-arrival, #navPanelArrival, #dNavArrival, #pillArrival').forEach(el => {
                 el.textContent = arrivalText;
             });
+
+            // ── B3 Collapsed Row Elements ──
+            const pillRemTime = document.getElementById('pillRemTime');
+            if (pillRemTime) {
+                pillRemTime.textContent = `${mins} min`;
+            }
+
+            const pillRemDist = document.getElementById('pillRemDist');
+            if (pillRemDist) {
+                let totalRemM = 0;
+                if (currentRemainingDistanceMeters > 0) {
+                    totalRemM = currentRemainingDistanceMeters;
+                } else {
+                    totalRemM = (currentWalkDist + currentTransitDist) * 1000;
+                }
+                const distStr = totalRemM < 1000
+                    ? `${Math.round(totalRemM / 50) * 50 || Math.round(totalRemM)} m`
+                    : `${(totalRemM / 1000).toFixed(1)} km`;
+                pillRemDist.textContent = distStr;
+            }
+
+            // Left line 2: "Arrive 20:24 · Walking · Free" or "Arrive 19:06 · Jeepney · ₱15"
+            const arriveLabel = t('planner.arrive_time', { time: arrivalText }) || `Arrive ${arrivalText}`;
+            const isWalkOnly = selectedMode === 'walking';
+            const modeName = isWalkOnly
+                ? (t('planner.nav_walking') || 'Walking')
+                : (t('planner.nav_jeepney') || 'Jeepney');
+            const fareLabel = isWalkOnly
+                ? (t('planner.free') || 'Free')
+                : `₱${currentFare}`;
+
+            const pillSubLine = document.getElementById('pillSubLine');
+            if (pillSubLine) {
+                pillSubLine.textContent = `${arriveLabel} · ${modeName} · ${fareLabel}`;
+            }
+            const pillArrivalText = document.getElementById('pillArrivalText');
+            if (pillArrivalText) pillArrivalText.textContent = arriveLabel;
+            const pillModeText = document.getElementById('pillModeText');
+            if (pillModeText) pillModeText.textContent = modeName;
+            const pillFareText = document.getElementById('pillFareText');
+            if (pillFareText) pillFareText.textContent = fareLabel;
+
+            const endBtn = document.getElementById('navEndRouteBtn');
+            if (endBtn) {
+                const endLabel = t('planner.end_route') || 'End route';
+                endBtn.setAttribute('aria-label', endLabel);
+                endBtn.setAttribute('title', endLabel);
+            }
+
+            const swipeHint = document.getElementById('navSwipeHint');
+            if (swipeHint) {
+                swipeHint.textContent = t('planner.swipe_up_all_steps') || 'Swipe up for all steps';
+            }
+
+            const recenterLabel = document.querySelector('#reCenterBtn .recenter-label');
+            if (recenterLabel) {
+                recenterLabel.textContent = t('planner.recenter') || 'Re-center';
+            }
+
+            // Update CSS variable --bottom-nav-height so Re-center pill sits exactly 12px above bottom bar
+            const bottomPill = document.getElementById('bottomStatusPill');
+            if (bottomPill && getComputedStyle(bottomPill).display !== 'none') {
+                const h = bottomPill.offsetHeight || 108;
+                document.documentElement.style.setProperty('--bottom-nav-height', `${h}px`);
+            }
         }
 
         function syncNavDisplays(timeSinceLastMove = 0) {
@@ -1570,6 +1650,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeGuideCard = document.getElementById('activeGuideCard');
         const activeNavPanel = document.getElementById('activeNavPanel');
         const reCenterBtn = document.getElementById('reCenterBtn');
+        if (reCenterBtn) {
+            reCenterBtn.style.removeProperty('display');
+            reCenterBtn.classList.remove('is-visible');
+        }
 
         // Strict viewport gating: exactly ONE navigation UI visible matching window width
         function updateNavLayoutForViewport() {
@@ -1978,6 +2062,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const startHelper = document.getElementById('startJourneyHelper');
 
             if (hasRoute) {
+                if (directionsCard) directionsCard.classList.add('has-route');
                 if (transportModesBlock) {
                     transportModesBlock.style.removeProperty('display');
                     transportModesBlock.style.display = 'flex';
@@ -1995,6 +2080,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (startBtn) startBtn.disabled = false;
                 if (startHelper) startHelper.style.display = 'none';
             } else {
+                if (directionsCard) directionsCard.classList.remove('has-route');
                 if (transportModesBlock) {
                     transportModesBlock.style.setProperty('display', 'none', 'important');
                 }
@@ -2020,6 +2106,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (sumETA) sumETA.textContent = '--:--';
                 const sumDist = document.getElementById('sumDist');
                 if (sumDist) sumDist.textContent = '--';
+                const sumArriveText = document.getElementById('sumArriveText');
+                if (sumArriveText) sumArriveText.innerHTML = 'Arrive <span id="sumETA">--:--</span>';
                 if (startBtn) startBtn.disabled = true;
                 if (startHelper) {
                     startHelper.style.display = '';
@@ -2732,79 +2820,278 @@ document.addEventListener('DOMContentLoaded', () => {
             container.innerHTML = '';
 
             const isWalkOnly = selectedMode === 'walking';
+            const t = (k, p) => (window.t ? window.t(k, p) : null);
 
             // Helper: format meters
             const fmtM = (m) => m < 1000 ? `${Math.round(m / 50) * 50} m` : `${(m / 1000).toFixed(1)} km`;
 
-            // ── WALK CARD ───────────────────────────────────────────────────────────
+            // Base departure time (now) and arrival time
+            const depTime = new Date();
+            const totalSecs = (currentWalkDur + currentTransitDur) * 60;
+            if (!isTrackingArrival) cachedRemainingSeconds = totalSecs;
+            const arrTime = new Date(Date.now() + cachedRemainingSeconds * 1000);
+
+            // Stop row factory: [time column 44px] [rail 22px] [content]
+            const createStopRow = ({ time, ringClass, name, subText }) => {
+                const row = document.createElement('div');
+                row.className = 'timeline-row timeline-stop-row';
+                row.innerHTML = `
+                    <div class="timeline-time">${escapeHtml(time)}</div>
+                    <div class="timeline-rail">
+                        <span class="timeline-ring ${ringClass}"></span>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-stop-name">${escapeHtml(name)}</div>
+                        ${subText ? `<div class="timeline-sub-line">${escapeHtml(subText)}</div>` : ''}
+                    </div>
+                `;
+                return row;
+            };
+
+            // Leg row factory: [time column 44px] [rail 22px] [content]
+            const createLegRow = ({ type, contentHtml }) => {
+                const row = document.createElement('div');
+                row.className = `timeline-row timeline-leg-row timeline-leg-row--${type}`;
+                const lineClass = type === 'walk' ? 'timeline-line--walk' : 'timeline-line--jeepney';
+                row.innerHTML = `
+                    <div class="timeline-time"></div>
+                    <div class="timeline-rail">
+                        <div class="timeline-line ${lineClass}"></div>
+                    </div>
+                    <div class="timeline-content">
+                        ${contentHtml}
+                    </div>
+                `;
+                return row;
+            };
+
+            const originName = originPlaceName || (window.t ? window.t('planner.origin') : 'Origin');
+            const destName = destPlaceName || (window.t ? window.t('planner.destination') : 'Destination');
+
+            if (isWalkOnly) {
+                // ── WALK-ONLY ROUTE: origin → walk → destination ────────────────────
+                // 1. Origin Stop
+                container.appendChild(createStopRow({
+                    time: fmt24h(depTime),
+                    ringClass: 'timeline-ring--origin',
+                    name: originName,
+                    subText: null
+                }));
+
+                // 2. Walk Leg
+                const walkLegLabel = t('planner.walk_leg', {
+                    dist: fmtM(currentWalkDist * 1000),
+                    time: `${currentWalkDur} min`
+                }) || `Walk ${fmtM(currentWalkDist * 1000)} · ${currentWalkDur} min`;
+
+                const walkHtml = `
+                    <div class="timeline-walk-content">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#475569">
+                            <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                        </svg>
+                        <span>${escapeHtml(walkLegLabel)}</span>
+                    </div>
+                `;
+                container.appendChild(createLegRow({ type: 'walk', contentHtml: walkHtml }));
+
+                // 3. Destination Stop (time must equal summary arrival)
+                container.appendChild(createStopRow({
+                    time: fmt24h(arrTime),
+                    ringClass: 'timeline-ring--dest',
+                    name: destName,
+                    subText: null
+                }));
+
+                renderActiveNavLegs();
+                return;
+            }
+
+            // ── JEEPNEY ROUTE ───────────────────────────────────────────────────────
+            // Stop names extraction:
             const walkSteps = walkRouteGeojson?.steps || [];
             const highwayName = walkSteps.length > 0
                 ? (walkSteps[walkSteps.length - 1]?.name || 'National Highway')
                 : 'National Highway';
-
-            const walkTargetName = isWalkOnly ? (destPlaceName || 'Destination') : highwayName;
-            const walkTitle = isWalkOnly
-                ? `Walk to <strong>${walkTargetName}</strong>`
-                : `Walk towards <strong>${walkTargetName}</strong>`;
-
-            const walkCard = document.createElement('div');
-            walkCard.className = 'leg-card';
-            walkCard.innerHTML = `
-            <div class="leg-icon-wrap">
-                <div class="leg-icon-circle walk-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
-                    </svg>
-                </div>
-            </div>
-            <div class="leg-content">
-                <div class="leg-title">${walkTitle}</div>
-                <div class="leg-sub">${fmtM(currentWalkDist * 1000)} · ${currentWalkDur} min</div>
-            </div>`;
-            container.appendChild(walkCard);
-
-            if (isWalkOnly) return; // Walk-only mode: only one card
-
-            // ── TRANSIT CARD ─────────────────────────────────────────────────────────
             const tSteps = transitRouteGeojson?.steps || [];
-            const boardAt = tSteps.length > 0 ? (tSteps[0]?.name || highwayName) : highwayName;
+            let boardAt = tSteps.length > 0 ? (tSteps[0]?.name || highwayName) : highwayName;
             const alightStep = tSteps.length > 1
                 ? tSteps.slice(0, -1).reverse().find(s => s.name && s.name !== '') : null;
-            const alightAt = alightStep?.name || destPlaceName || 'Destination';
+            let alightAt = alightStep?.name || destName;
 
-            const transitCard = document.createElement('div');
-            transitCard.className = 'leg-card';
-            transitCard.innerHTML = `
-            <div class="leg-icon-wrap">
-                <div class="leg-icon-circle jeep-icon">
-                    <img src="../assets/icons/jeepney-icon.png" alt="Jeepney" class="leg-icon-img">
+            // Route signboard (ONLY if route data has one; never invent one)
+            const signboardName = transitRouteGeojson?.signboard
+                || transitRouteGeojson?.routeName
+                || transitRouteGeojson?.route_name
+                || null;
+
+            // Times:
+            // Stop 1: depTime
+            // Stop 2: depTime + currentWalkDur (rounded to min)
+            // Stop 3 / last: previous + currentTransitDur = arrTime
+            const boardTime = new Date(depTime.getTime() + currentWalkDur * 60 * 1000);
+
+            // Identical stop name deduplication:
+            // "If boarding and alighting names are identical (e.g. both 'National Highway 1'),
+            // append the nearest named cross street or landmark to the alighting stop if the
+            // data has one; otherwise append '· {distance} later'. Never show two identical stop names in a row."
+            const norm = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+            if (norm(boardAt) === norm(alightAt)) {
+                let modifier = null;
+                // Check if any intermediate step in tSteps has a named street
+                const otherStep = tSteps.find(s => s.name && norm(s.name) !== norm(boardAt));
+                if (otherStep && otherStep.name) {
+                    modifier = otherStep.name;
+                }
+                // Check if CALAMBA_PLACES_FALLBACK has a place near alighting coordinates
+                if (!modifier && transitRouteGeojson?.coordinates?.length) {
+                    const lastCoord = transitRouteGeojson.coordinates[transitRouteGeojson.coordinates.length - 1];
+                    if (lastCoord) {
+                        const nearby = CALAMBA_PLACES_FALLBACK.find(p => {
+                            const d = getHaversineDist(lastCoord[0], lastCoord[1], p.lat, p.lng) * 1000;
+                            return d <= 350 && norm(p.name) !== norm(boardAt);
+                        });
+                        if (nearby) modifier = nearby.name;
+                    }
+                }
+                if (modifier) {
+                    alightAt = `${alightAt}, ${modifier}`;
+                } else {
+                    const distStr = `${currentTransitDist.toFixed(1)} km`;
+                    const laterStr = t('planner.dist_later', { dist: distStr }) || `${distStr} later`;
+                    alightAt = `${alightAt} · ${laterStr}`;
+                }
+            }
+
+            // Also ensure origin and boardAt are not identical in a row:
+            if (norm(originName) === norm(boardAt)) {
+                boardAt = `${boardAt} (${t('planner.board_here') || 'Boarding point'})`;
+            }
+
+            // Check if route has a separate final walk leg
+            const hasFinalWalk = (window.finalWalkRouteGeojson && window.finalWalkRouteGeojson.coordinates?.length >= 2)
+                || (transitRouteGeojson?.finalWalk && transitRouteGeojson.finalWalk.distance > 0);
+
+            // 1. Origin Stop
+            container.appendChild(createStopRow({
+                time: fmt24h(depTime),
+                ringClass: 'timeline-ring--origin',
+                name: originName,
+                subText: null
+            }));
+
+            // 2. Initial Walk Leg
+            const walk1Label = t('planner.walk_leg', {
+                dist: fmtM(currentWalkDist * 1000),
+                time: `${currentWalkDur} min`
+            }) || `Walk ${fmtM(currentWalkDist * 1000)} · ${currentWalkDur} min`;
+
+            const walk1Html = `
+                <div class="timeline-walk-content">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#475569">
+                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                    </svg>
+                    <span>${escapeHtml(walk1Label)}</span>
                 </div>
-            </div>
-            <div class="leg-content">
-                <div class="leg-title-row">
-                    <span class="leg-title">Jeepney</span>
-                    <span class="leg-fare-badge">₱${currentFare}</span>
-                </div>
-                <div class="leg-sub">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km</div>
-                <div class="leg-route-stops">
-                    <div class="leg-stop-line">
-                        <div class="leg-stop-dot filled"></div>
-                        <div class="leg-stop-connector"></div>
-                        <div class="leg-stop-dot"></div>
-                    </div>
-                    <div class="leg-stop-details">
-                        <div class="leg-stop-group">
-                            <span class="leg-stop-tag">GET ON</span>
-                            <span class="leg-stop-name">${boardAt}</span>
+            `;
+            container.appendChild(createLegRow({ type: 'walk', contentHtml: walk1Html }));
+
+            // 3. Boarding Stop Row
+            const boardSub = t('planner.board_here') || 'Board here';
+            container.appendChild(createStopRow({
+                time: fmt24h(boardTime),
+                ringClass: 'timeline-ring--intermediate',
+                name: boardAt,
+                subText: boardSub
+            }));
+
+            // 4. Jeepney Leg Row
+            const signboardHtml = signboardName ? `
+                <div class="timeline-signboard">${escapeHtml((t('planner.signboard') || 'Signboard') + ': ' + signboardName)}</div>
+            ` : '';
+
+            const jeepHtml = `
+                <div class="timeline-jeep-content">
+                    <div class="timeline-jeep-header">
+                        <div class="timeline-jeep-left">
+                            <span class="timeline-jeep-badge">
+                                <img src="../assets/icons/jeepney-icon.png" alt="Jeepney">
+                                <span>Jeepney</span>
+                            </span>
+                            <span class="timeline-jeep-meta">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km</span>
                         </div>
-                        <div class="leg-stop-group">
-                            <span class="leg-stop-tag">GET OFF</span>
-                            <span class="leg-stop-name">${alightAt}</span>
-                        </div>
+                        <span class="timeline-jeep-fare">₱${currentFare}</span>
                     </div>
+                    ${signboardHtml}
                 </div>
-            </div>`;
-            container.appendChild(transitCard);
+            `;
+            container.appendChild(createLegRow({ type: 'jeepney', contentHtml: jeepHtml }));
+
+            if (hasFinalWalk) {
+                // Route with final walk: Alighting stop -> Walk leg -> Destination
+                const finalWalkDist = window.finalWalkRouteGeojson?.distance || transitRouteGeojson?.finalWalk?.distance || 150;
+                const finalWalkDur = Math.ceil((finalWalkDist / 1000 / WALK_SPEED_KPH) * 60) || 2;
+                const finalAlightTime = new Date(boardTime.getTime() + currentTransitDur * 60 * 1000);
+                const finalDestTime = new Date(finalAlightTime.getTime() + finalWalkDur * 60 * 1000);
+
+                const getOffSub = t('planner.get_off_here') || 'Get off here';
+                container.appendChild(createStopRow({
+                    time: fmt24h(finalAlightTime),
+                    ringClass: 'timeline-ring--intermediate',
+                    name: alightAt,
+                    subText: getOffSub
+                }));
+
+                const walk2Label = t('planner.walk_leg', {
+                    dist: fmtM(finalWalkDist),
+                    time: `${finalWalkDur} min`
+                }) || `Walk ${fmtM(finalWalkDist)} · ${finalWalkDur} min`;
+
+                const walk2Html = `
+                    <div class="timeline-walk-content">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#475569">
+                            <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                        </svg>
+                        <span>${escapeHtml(walk2Label)}</span>
+                    </div>
+                `;
+                container.appendChild(createLegRow({ type: 'walk', contentHtml: walk2Html }));
+
+                container.appendChild(createStopRow({
+                    time: fmt24h(finalDestTime),
+                    ringClass: 'timeline-ring--dest',
+                    name: destName,
+                    subText: null
+                }));
+            } else {
+                // Jeepney drops user directly at destination:
+                // "If the jeepney drops the user at the destination, the alighting stop row is the destination row."
+                // Destination ring #E5484D, time = summary arrival time
+                // B0: Make the sub line name the actual alighting point when it differs from the destination name:
+                // "Get off at Elejorde Street" / "Bumaba sa Elejorde Street". Keep "Get off here" only when the names match.
+                let finalDestName = destName || alightAt;
+                if (norm(finalDestName) === norm(boardAt)) {
+                    finalDestName = alightAt;
+                }
+
+                const lastTransitStep = (tSteps || []).slice().reverse().find(s => (s.stopName || s.name || '').trim() !== '');
+                const alightingPointName = (lastTransitStep?.stopName || lastTransitStep?.name || alightAt || '').trim();
+
+                let getOffSub;
+                if (alightingPointName && norm(alightingPointName) !== norm(finalDestName)) {
+                    getOffSub = t('planner.get_off_at', { stop: alightingPointName, name: alightingPointName })
+                        || `Get off at ${alightingPointName}`;
+                } else {
+                    getOffSub = t('planner.get_off_here') || 'Get off here';
+                }
+
+                container.appendChild(createStopRow({
+                    time: fmt24h(arrTime),
+                    ringClass: 'timeline-ring--dest',
+                    name: finalDestName,
+                    subText: getOffSub
+                }));
+            }
+
             renderActiveNavLegs();
         };
 
@@ -2814,6 +3101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const sf = document.getElementById('sumFare');
             const se = document.getElementById('sumETA') || document.getElementById('sumEta');
             const sd = document.getElementById('sumDist');
+            const arriveTextEl = document.getElementById('sumArriveText');
 
             const totalMin = currentWalkDur + currentTransitDur;
             const totalDistRaw = (currentWalkDist + currentTransitDist).toFixed(1);
@@ -2825,10 +3113,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const d = new Date(Date.now() + cachedRemainingSeconds * 1000);
             const eta = fmt24h(d);
 
+            const isWalkOnly = selectedMode === 'walking';
+            const freeLabel = window.t ? (window.t('planner.fare_free') || window.t('planner.free') || 'Free') : 'Free';
+            const fareLabel = isWalkOnly ? freeLabel : `₱${currentFare}`;
+
             if (st) st.textContent = `${totalMin} min`;
-            if (sf) sf.textContent = selectedMode === 'walking' ? 'Free' : `₱${currentFare}`;
+            if (sf) sf.textContent = fareLabel;
             if (se) se.textContent = eta;
             if (sd) sd.textContent = totalDist;
+
+            const etaHtml = `<span id="sumETA">${eta}</span>`;
+            const arriveStr = window.t
+                ? window.t('planner.arrive_time', { time: etaHtml })
+                : `Arrive ${etaHtml}`;
+            if (arriveTextEl) {
+                arriveTextEl.innerHTML = `${arriveStr}`;
+            }
 
             const peek = document.getElementById('peekSummary');
             if (peek) {
@@ -2972,6 +3272,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     prevName
                 });
                 const distText = current.distance ? formatDist(current.distance) : '';
+                const hasDist = Boolean(current.distance && Number(current.distance) > 0 && distText);
                 const iconName = getStepIcon(current, current.mode, isLast);
 
                 // Localize "NEXT STEP" badge on both desktop and mobile
@@ -2986,21 +3287,48 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dDist = document.getElementById('dNavNextDist');
                 const dIcon = document.getElementById('dNavNextIcon');
                 if (dInstr) dInstr.textContent = instructionText;
-                if (dDist) dDist.textContent = distText;
+                if (dDist) {
+                    if (hasDist) {
+                        dDist.textContent = distText;
+                        dDist.style.display = '';
+                    } else {
+                        dDist.textContent = '';
+                        dDist.style.display = 'none';
+                    }
+                }
                 if (dIcon) dIcon.setAttribute('name', iconName);
 
                 // Mobile Current/Next Step
                 const mInstr = document.getElementById('guideCurrentText');
                 const mDist = document.getElementById('mNavNextDist');
                 const mIcon = document.getElementById('mNavNextIcon');
-                if (mInstr) mInstr.textContent = instructionText;
-                if (mDist) mDist.textContent = distText;
+                if (mInstr) {
+                    const rawStreetName = (current.name || '').trim();
+                    if (rawStreetName && instructionText.includes(rawStreetName)) {
+                        const escName = escapeHtml(rawStreetName);
+                        const escInstr = escapeHtml(instructionText);
+                        mInstr.innerHTML = escInstr.replace(escName, `<span class="step-street-name">${escName}</span>`);
+                    } else {
+                        mInstr.textContent = instructionText;
+                    }
+                }
+                if (mDist) {
+                    if (hasDist) {
+                        mDist.textContent = distText;
+                        mDist.style.display = '';
+                    } else {
+                        mDist.textContent = '';
+                        mDist.style.display = 'none';
+                    }
+                }
                 if (mIcon) mIcon.setAttribute('name', iconName);
 
-                // Following step preview on mobile
+                // Following step preview on mobile ("Then" strip attached under the banner)
                 const mobileFollowing = document.getElementById('mobileGuideFollowing');
                 const mobileNextText = document.getElementById('guideNextText');
                 const mobileFollowingIcon = document.getElementById('mFollowingIcon');
+                const thenLabel = document.querySelector('#mobileGuideFollowing .mobile-guide-then-label');
+                if (thenLabel) thenLabel.textContent = t('planner.nav_then') || 'Then';
 
                 if (idx + 1 < steps.length) {
                     const nextS = steps[idx + 1];
@@ -3018,13 +3346,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             index: idx + 1,
                             prevName: (current.name || '').trim(),
                             prevText: instructionText
-                        }) + (nextS.distance ? ` (${formatDist(nextS.distance)})` : '');
-                        if (mobileNextText) mobileNextText.textContent = nextInstr;
+                        });
+                        const cleanNextInstr = (nextInstr || '')
+                            .replace(/\s*\(--\)\s*/g, ' ')
+                            .replace(/\s*\(0\s*m\)\s*/gi, ' ')
+                            .trim();
+                        if (mobileNextText) mobileNextText.textContent = cleanNextInstr;
                         if (mobileFollowingIcon) mobileFollowingIcon.setAttribute('name', getStepIcon(nextS, nextS.mode, nextIsLast));
                         if (mobileFollowing) mobileFollowing.style.display = 'flex';
                     }
                 } else {
                     if (mobileFollowing) mobileFollowing.style.display = 'none';
+                }
+
+                if (bottomStatusPill && bottomStatusPill.classList.contains('expanded')) {
+                    renderExpandedNavTimeline();
                 }
             }
         }
@@ -3106,6 +3442,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elUserProfileNav) elUserProfileNav.style.display = 'none';
             const elAuthNavBtn = document.getElementById('authNavBtn');
             if (elAuthNavBtn) elAuthNavBtn.style.display = 'none';
+            const elHamburger = document.getElementById('hamburgerBtn');
+            if (elHamburger) elHamburger.style.display = 'none';
+            const elMapTopBar = document.getElementById('mapTopBar');
+            if (elMapTopBar) elMapTopBar.style.display = 'none';
+
+            if (bottomStatusPill) {
+                bottomStatusPill.classList.remove('expanded');
+                const exp = document.getElementById('navExpandedContent');
+                if (exp) exp.style.display = 'none';
+            }
         }
 
         function cancelActiveJourney() {
@@ -3115,7 +3461,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             isTrackingArrival = false;
             setMapAutoFollow(false);
-            if (reCenterBtn) reCenterBtn.style.display = 'none';
+            if (reCenterBtn) {
+                reCenterBtn.classList.remove('is-visible');
+                reCenterBtn.style.removeProperty('display');
+            }
 
             // A2: Remove navigation-only user pointers on cancel
             if (userMarker) { userMarker.remove(); userMarker = null; }
@@ -3145,7 +3494,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // Hide Active nav overlays
             if (activeNavPanel) activeNavPanel.style.setProperty('display', 'none', 'important');
             if (activeGuideCard) activeGuideCard.style.setProperty('display', 'none', 'important');
-            if (bottomStatusPill) bottomStatusPill.style.setProperty('display', 'none', 'important');
+            if (bottomStatusPill) {
+                bottomStatusPill.style.setProperty('display', 'none', 'important');
+                bottomStatusPill.classList.remove('expanded');
+                const exp = document.getElementById('navExpandedContent');
+                if (exp) exp.style.display = 'none';
+            }
 
             const elReminders = document.getElementById('remindersPillBtn');
             if (elReminders) elReminders.style.display = '';
@@ -3157,6 +3511,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (elGoogleSignIn) elGoogleSignIn.style.display = '';
             const elUserProfileNav = document.getElementById('userProfileNav');
             if (elUserProfileNav) elUserProfileNav.style.display = '';
+            const elMapTopBar = document.getElementById('mapTopBar');
+            if (elMapTopBar) elMapTopBar.style.display = '';
 
             // Auth UI: ensure only one of authNavBtn or userAvatarPill shows (G)
             syncPlannerAuthUI();
@@ -3218,6 +3574,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         window._calzadaExecuteRouteQuery = executeRouteQuery;
+        window._calzadaUpdateSummaryRow = updateSummaryRow;
+        window._calzadaRenderItinerary = renderItinerary;
         window._calzadaRenderPlannerState = renderPlannerState;
         window._calzadaClearAllPlannerState = clearAllPlannerState;
         window._calzadaClearOriginField = clearOriginField;
@@ -3240,6 +3598,16 @@ document.addEventListener('DOMContentLoaded', () => {
             walkRouteGeojson,
             transitRouteGeojson
         });
+        window._calzadaSimulateIdenticalStops = () => {
+            destPlaceName = 'National Highway 1';
+            if (transitRouteGeojson) {
+                transitRouteGeojson.steps = [
+                    { name: 'National Highway 1', distance: 100 },
+                    { name: 'National Highway 1', distance: 4300 }
+                ];
+                updateSummaryRow();
+            }
+        };
 
         document.getElementById('startJourneyBtn').addEventListener('click', () => {
             if (!selectedCoords.origin || !selectedCoords.destination) return;
@@ -3260,7 +3628,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             isTrackingArrival = true;
             setMapAutoFollow(true);
-            if (reCenterBtn) reCenterBtn.style.display = 'none';
+            if (reCenterBtn) {
+                reCenterBtn.classList.remove('is-visible');
+                reCenterBtn.style.removeProperty('display');
+            }
 
             startActiveJourneyUI();
 
@@ -3317,6 +3688,84 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // B3: Navigation Bottom Sheet Drag Handle and Swipe Gesture
+        function renderExpandedNavTimeline() {
+            const pillLegs = document.getElementById('pillItineraryLegs');
+            const mainLegs = document.getElementById('itineraryLegs');
+            if (!pillLegs || !mainLegs) return;
+            pillLegs.innerHTML = mainLegs.innerHTML;
+
+            const rows = pillLegs.querySelectorAll('.timeline-row');
+            rows.forEach(r => r.classList.remove('timeline-row--active'));
+
+            const stepIdx = window.currentStepIndex || 0;
+            const steps = window.activeRouteSteps || [];
+            const currentStep = steps[stepIdx];
+
+            let targetRow = null;
+            if (currentStep) {
+                if (currentStep.mode === 'driving' || currentStep.mode === 'jeepney') {
+                    targetRow = pillLegs.querySelector('.timeline-leg-row--jeepney');
+                } else if (currentStep.maneuver?.type === 'arrive') {
+                    const stops = pillLegs.querySelectorAll('.timeline-stop-row');
+                    targetRow = stops[stops.length - 1];
+                } else {
+                    targetRow = pillLegs.querySelector('.timeline-leg-row--walk');
+                }
+            }
+            if (!targetRow && rows.length > 0) {
+                targetRow = rows[0];
+            }
+            if (targetRow) {
+                targetRow.classList.add('timeline-row--active');
+            }
+        }
+        window._calzadaRenderExpandedNavTimeline = renderExpandedNavTimeline;
+
+        function toggleNavExpanded(force) {
+            if (!bottomStatusPill) return;
+            const isExp = force !== undefined ? Boolean(force) : !bottomStatusPill.classList.contains('expanded');
+            bottomStatusPill.classList.toggle('expanded', isExp);
+            const expandedContent = document.getElementById('navExpandedContent');
+            if (expandedContent) {
+                expandedContent.style.display = isExp ? 'flex' : 'none';
+                if (isExp) {
+                    renderExpandedNavTimeline();
+                }
+            }
+            setTimeout(() => {
+                const h = bottomStatusPill.offsetHeight || 108;
+                document.documentElement.style.setProperty('--bottom-nav-height', `${h}px`);
+            }, 100);
+        }
+        window._calzadaExpandNavSheet = toggleNavExpanded;
+
+        const dragHandle = document.getElementById('navSheetDragHandle');
+        if (dragHandle) {
+            dragHandle.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleNavExpanded();
+            });
+        }
+
+        let navTouchStartY = 0;
+        if (bottomStatusPill) {
+            bottomStatusPill.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches[0]) navTouchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            bottomStatusPill.addEventListener('touchend', (e) => {
+                if (e.changedTouches && e.changedTouches[0]) {
+                    const diff = navTouchStartY - e.changedTouches[0].clientY;
+                    if (diff > 40 && !bottomStatusPill.classList.contains('expanded')) {
+                        toggleNavExpanded(true);
+                    } else if (diff < -40 && bottomStatusPill.classList.contains('expanded')) {
+                        toggleNavExpanded(false);
+                    }
+                }
+            }, { passive: true });
+        }
+
         // User map gestures disable auto-follow only during active navigation (F1)
         ['dragstart', 'zoomstart', 'rotatestart', 'pitchstart'].forEach(evtName => {
             map.on(evtName, (e) => {
@@ -3328,9 +3777,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (reCenterBtn) {
             reCenterBtn.addEventListener('click', () => {
-                if (!currentLocation && !displayLocation) return;
                 setMapAutoFollow(true);
-                const targetPt = displayLocation ? displayLocation.point : [currentLocation.lng, currentLocation.lat];
+                const targetPt = displayLocation ? displayLocation.point : (currentLocation ? [currentLocation.lng, currentLocation.lat] : (selectedCoords?.origin ? toLngLat(selectedCoords.origin) : null));
+                if (!targetPt) return;
                 const padding = computeCameraPadding();
                 const bearing = window.innerWidth <= 768 ? (currentNavHeading || 0) : 0;
                 const dur = prefersReducedMotion() ? 0 : 600;
@@ -4163,14 +4612,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // C3: Ensure at least 12px clearance below the NEXT STEP card (#activeGuideCard)
+                // C3: Ensure at least 12px clearance below the guide card (#activeGuideCard) and Then strip
                 let minTop = 16;
                 const guideCard = document.getElementById('activeGuideCard');
-                if (guideCard) {
-                    const rGuide = guideCard.getBoundingClientRect();
-                    if (rGuide.height > 0 && getComputedStyle(guideCard).display !== 'none') {
-                        minTop = Math.max(minTop, rGuide.bottom + 12);
-                    }
+                const thenStrip = document.getElementById('mobileGuideFollowing');
+                const rGuide = (guideCard && getComputedStyle(guideCard).display !== 'none') ? guideCard.getBoundingClientRect() : null;
+                const rThen = (thenStrip && getComputedStyle(thenStrip).display !== 'none') ? thenStrip.getBoundingClientRect() : null;
+                const bannerBottom = Math.max(rGuide && rGuide.height > 0 ? rGuide.bottom : 0, rThen && rThen.height > 0 ? rThen.bottom : 0);
+                if (bannerBottom > 0) {
+                    minTop = Math.max(minTop, bannerBottom + 12);
                 }
 
                 const clear = Math.min(vh - Math.min(top, vh) + 12, vh - region.offsetHeight - minTop);
@@ -4578,6 +5028,10 @@ document.addEventListener('DOMContentLoaded', () => {
             syncDrawerLangState();
             if (isTrackingArrival || document.body.classList.contains('navigation-active')) {
                 updateGuideStepsUI();
+                syncNavDisplays();
+            } else if (selectedCoords.origin && selectedCoords.destination) {
+                renderItinerary();
+                updateSummaryRow();
             }
         });
 

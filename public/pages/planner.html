@@ -113,6 +113,12 @@
             <line x1="2" y1="12" x2="5" y2="12"></line>
             <line x1="19" y1="12" x2="22" y2="12"></line>
         </svg>
+        <span class="recenter-nav-arrow" aria-hidden="true" style="display:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#2272C3">
+                <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+            </svg>
+        </span>
+        <span class="recenter-label" data-i18n="planner.recenter" style="display:none;">Re-center</span>
     </button>
 
     <!-- Mid-point Bubble (when directions card collapsed) -->
@@ -317,9 +323,9 @@
             <div class="ds-body">
                 <!-- Origin-Destination Block -->
                 <div class="od-input-block">
-                    <img src="../assets/originDestination-icon.png" class="od-connector-img" alt="" width="18" height="56">
                     <div class="od-input-column">
                         <div class="od-row">
+                            <span class="od-icon od-icon--origin" aria-hidden="true"></span>
                             <div class="od-field unfilled" id="openOriginModal">Where from?</div>
                             <button class="od-clear-btn" id="clearOriginBtn" type="button" aria-label="Clear origin" data-i18n="planner.clear_origin" data-i18n-attr="aria-label" title="Clear origin" style="display:none;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -329,6 +335,7 @@
                             </button>
                         </div>
                         <div class="od-row">
+                            <span class="od-icon od-icon--dest" aria-hidden="true"></span>
                             <div class="od-field unfilled" id="openDestModal">Where to?</div>
                             <button class="od-clear-btn" id="clearDestBtn" type="button" aria-label="Clear destination" data-i18n="planner.clear_dest" data-i18n-attr="aria-label" title="Clear destination" style="display:none;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -379,20 +386,21 @@
 
                 <!-- Summary Row (Visible when route is found) -->
                 <div class="route-summary-block" id="routeSummaryBlock" style="display: none;">
-                    <!-- Highlighted Header Summary Banner -->
+                    <!-- Highlighted Header Summary Banner (one row, no card box) -->
                     <div class="route-summary-banner">
-                        <div class="summary-large">
-                            <span id="sumTime" class="sum-primary-val">-- min</span>
-                            <span class="sum-dot">·</span>
-                            <span id="sumFare" class="sum-primary-val">--</span>
+                        <div class="summary-left">
+                            <div class="summary-time"><span id="sumTime">-- min</span></div>
+                            <div class="summary-sub" id="summarySub">
+                                <span class="summary-arrive-text" id="sumArriveText">Arrive <span id="sumETA">--:--</span></span>
+                                <span class="sum-dot-sm">·</span>
+                                <span class="summary-dist-text"><span id="sumDist">--</span> km</span>
+                            </div>
                         </div>
-                        <div class="summary-sub">
-                            <span id="sumETA">--:--</span> ETA
-                            <span class="sum-dot-sm">·</span>
-                            <span id="sumDist">--</span> km
+                        <div class="summary-right">
+                            <span id="sumFare" class="sum-fare-pill">--</span>
                         </div>
                     </div>
-                    <!-- Sequential Leg Cards with Route Line Connector -->
+                    <!-- Sequential Timeline Itinerary -->
                     <div class="itinerary-legs" id="itineraryLegs"></div>
                 </div>
 
@@ -479,59 +487,63 @@
         </div>
 
         <!-- 3B. MOBILE ACTIVE NAVIGATION ELEMENTS -->
-        <!-- Mobile Top Guide Card (Starting 76px from top, 16px margins, 18px radius) -->
+        <!-- Mobile Top Guide Card (Solid #2272C3, radius 18px, padding 14px 16px) -->
         <div class="active-guide-card" id="activeGuideCard" style="display:none;">
-            <div class="mobile-guide-next-block">
-                <div class="nav-panel-next-badge" id="mNavNextBadge">
+            <div class="mobile-guide-main">
+                <div class="nav-guide-icon-wrap" id="mNavNextBadge">
                     <ion-icon name="arrow-up-outline" id="mNavNextIcon"></ion-icon>
                 </div>
-                <div class="nav-panel-next-body">
-                    <div class="nav-panel-next-tag">NEXT STEP</div>
-                    <div class="nav-panel-next-instruction" id="guideCurrentText">Walk to National Highway</div>
-                    <div class="nav-panel-next-dist" id="mNavNextDist">--</div>
+                <div class="nav-guide-body">
+                    <div class="nav-guide-dist" id="mNavNextDist">--</div>
+                    <div class="nav-guide-instr" id="guideCurrentText">Walk to National Highway</div>
                 </div>
             </div>
-            <!-- Secondary muted following step -->
+            <!-- "Then" strip attached under the banner, 18px from left edge -->
             <div class="mobile-guide-following" id="mobileGuideFollowing" style="display:none;">
+                <span class="mobile-guide-then-label" data-i18n="planner.nav_then">Then</span>
                 <ion-icon name="arrow-redo-outline" id="mFollowingIcon"></ion-icon>
-                <span id="guideNextText">Turn right</span>
+                <span class="mobile-guide-then-text" id="guideNextText">Turn right</span>
             </div>
         </div>
 
         <!-- Mobile Bottom Docked Sheet -->
         <div class="bottom-status-pill" id="bottomStatusPill" style="display:none;">
-            <div class="mobile-sheet-drag-handle" aria-hidden="true"></div>
-            <!-- Mobile Mode Toggle -->
-            <div class="nav-panel-mode-track mobile-mode-track">
-                <button class="nav-panel-mode-btn" data-mode="walking" type="button">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
-                    </svg>
-                    <span>Walk</span>
-                </button>
-                <button class="nav-panel-mode-btn active" data-mode="jeepney" type="button">
-                    <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" width="14" height="14" alt="Jeep" style="object-fit:contain;">
-                    <span>Jeep</span>
-                </button>
-            </div>
-            <!-- Mobile Stats Row -->
-            <div class="nav-panel-stats-row mobile-stats-row">
-                <div class="nav-panel-stat-col">
-                    <div class="nav-panel-stat-val nav-stat-arrival" id="pillArrival">--:--</div>
-                    <div class="nav-panel-stat-lbl">ARRIVAL</div>
+            <div class="mobile-sheet-drag-handle" id="navSheetDragHandle" aria-hidden="true"></div>
+            <!-- Collapsed row -->
+            <div class="nav-collapsed-row" id="navCollapsedRow">
+                <div class="nav-collapsed-left">
+                    <div class="nav-collapsed-line1">
+                        <span class="nav-rem-time" id="pillRemTime">-- min</span>
+                        <span class="nav-rem-dot">·</span>
+                        <span class="nav-rem-dist" id="pillRemDist">-- m</span>
+                    </div>
+                    <div class="nav-collapsed-line2" id="pillSubLine">
+                        <span id="pillArrivalText">Arrive --:--</span> · <span id="pillModeText">Jeepney</span> · <span id="pillFareText">₱--</span>
+                    </div>
                 </div>
-                <div class="nav-panel-stat-col">
-                    <div class="nav-panel-stat-val nav-stat-min" id="pillMin">--</div>
-                    <div class="nav-panel-stat-lbl">MIN</div>
-                </div>
-                <div class="nav-panel-stat-col">
-                    <div class="nav-panel-stat-val nav-stat-php" id="pillPhp">--</div>
-                    <div class="nav-panel-stat-lbl nav-stat-php-lbl" id="pillPhpLbl">PHP</div>
+                <div class="nav-collapsed-right">
+                    <button class="btn-cancel-route nav-end-btn" id="navEndRouteBtn" type="button" aria-label="End route" title="End route">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
             </div>
-            <!-- Mobile Outline Cancel Route Button -->
-            <div class="nav-panel-cancel-wrap mobile-cancel-wrap">
-                <button class="btn-cancel-route" type="button">Cancel Route</button>
+            <!-- Swipe up hint -->
+            <div class="nav-swipe-hint" id="navSwipeHint" data-i18n="planner.swipe_up_all_steps">Swipe up for all steps</div>
+
+            <!-- Expanded Part A timeline -->
+            <div class="nav-expanded-content" id="navExpandedContent" style="display:none;">
+                <div class="nav-expanded-itinerary" id="pillItineraryLegs"></div>
+            </div>
+
+            <!-- Hidden compatibility elements for existing JS selectors -->
+            <div class="nav-compat-hidden" style="display:none;" aria-hidden="true">
+                <div id="pillArrival">--:--</div>
+                <div id="pillMin">--</div>
+                <div id="pillPhp">--</div>
+                <div id="pillPhpLbl">PHP</div>
             </div>
         </div>
 
