@@ -1157,6 +1157,7 @@ body.navigation-active .calzada-locate-ctrl {
     .map-top-right {
         order: 1 !important;
         margin-left: auto !important;
+        gap: 8px !important;
     }
 
     .map-category-bar-wrapper {
@@ -1190,6 +1191,8 @@ body.navigation-active .calzada-locate-ctrl {
     .map-top-right .user-avatar-pill {
         padding: 0 10px 0 6px !important;
         gap: 6px !important;
+        height: 44px !important;
+        min-height: 44px !important;
     }
 
     /* .maplibregl-ctrl-bottom-right is positioned by the sheet-synced mobile block above */
@@ -1473,6 +1476,7 @@ body.navigation-active .calzada-locate-ctrl {
     width: auto;
     object-fit: contain;
     flex-shrink: 0;
+    display: block;
 }
 
 .od-input-column {
@@ -1494,14 +1498,15 @@ body.navigation-active .calzada-locate-ctrl {
     top: 32px;
     height: 7px;
     z-index: 1;
+    display: none;
 }
 
 .od-row {
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 36px;
-    min-height: 36px;
+    height: 33px;
+    min-height: 33px;
     padding: 0;
     box-sizing: border-box;
 }
@@ -1515,6 +1520,7 @@ body.navigation-active .calzada-locate-ctrl {
     background-size: 40px 120px;
     position: relative;
     z-index: 2;
+    display: none;
 }
 
 .od-icon--origin {
@@ -3074,6 +3080,10 @@ body.navigation-active #hamburgerBtn {
 
     #hamburgerBtn {
         display: flex !important;
+    }
+
+    .map-top-right {
+        gap: 8px !important;
     }
 }
 
@@ -6012,8 +6022,15 @@ html.lang-swapping-out [data-lang-fade] {
     }
 
     .od-input-column::before {
+        display: block !important;
         top: 34px !important;
         height: 11px !important;
+    }
+
+    .od-icon,
+    .od-icon--origin,
+    .od-icon--dest {
+        display: block !important;
     }
 
     .od-row {
