@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 
     <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
-    <link rel="stylesheet" href="../css/style.css?v=2.6.5">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.6">
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
 
@@ -1299,11 +1299,12 @@
             <!-- Mobile-only icon cluster -->
             <div class="mobile-nav-icons" id="mobileNavIcons">
                 <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
-                    <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E2A47" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
+                    <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
                     <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
                 </button>
-                <a href="/login" class="mobile-nav-icon-btn" id="mobileSignInBtn" aria-label="Sign In">
-                    <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0E2A47" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+                <a href="/login" class="mobile-signin-pill" id="mobileSignInBtn" aria-label="Sign in" data-i18n-aria-label="login.signin">
+                    <svg class="mobile-signin-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+                    <span class="mobile-signin-text" data-i18n="login.signin">Sign in</span>
                 </a>
                 <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
@@ -1312,9 +1313,10 @@
                     </div>
                 </button>
                 <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                    <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-                        <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
-                        <path class="menu-toggle-line" d="M7 16 27 16" />
+                    <svg class="menu-toggle-icon menu-deep" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="21" height="21" aria-hidden="true">
+                        <line class="md-line md-top" x1="4" y1="6" x2="20" y2="6" />
+                        <line class="md-line md-mid" x1="8" y1="12" x2="20" y2="12" />
+                        <line class="md-line md-bot" x1="12" y1="18" x2="20" y2="18" />
                     </svg>
                 </button>
             </div>
@@ -1553,7 +1555,7 @@
 
     <!-- Scripts: Global scripts for navbar dropdowns and live auth state -->
     <script src="../js/legal-modal.js?v=2.6.4"></script>
-    <script src="../js/script.js?v=2.6.5"></script>
+    <script src="../js/script.js?v=2.6.6"></script>
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.8"></script>
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>

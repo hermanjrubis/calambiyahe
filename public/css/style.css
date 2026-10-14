@@ -2398,6 +2398,42 @@ body.chat-active .chat-toggle-pill {
         width: 40px !important;
         height: 40px !important;
         flex-shrink: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        border-radius: 50% !important;
+        background: #EAF2FC !important;
+        box-shadow: none !important;
+        transition: background 0.15s ease !important;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-menu-btn:active {
+        background: #D6E6F8 !important;
+    }
+
+    /* Menu icon (Tabler "menu-deep"): three right-aligned lines that turn into an X when open */
+    .menu-toggle-icon.menu-deep,
+    .menu-toggle-icon.menu-deep.open {
+        transform: none;
+    }
+
+    .menu-deep .md-line {
+        transform-box: view-box;
+        transform-origin: 12px 12px;
+        vector-effect: non-scaling-stroke;
+        transition: transform 0.3s ease, opacity 0.2s ease;
+    }
+
+    .menu-deep.open .md-top {
+        transform: rotate(45deg) translate(0, 6px);
+    }
+
+    .menu-deep.open .md-mid {
+        opacity: 0;
+    }
+
+    .menu-deep.open .md-bot {
+        transform: rotate(-45deg) translate(-8px, -6px) scaleX(2);
     }
 
     /* Mobile icon cluster: bell, sign in / avatar, then the menu button.
@@ -2420,41 +2456,91 @@ body.chat-active .chat-toggle-pill {
         height: 40px;
         padding: 0;
         border-radius: 50%;
-        background: transparent;
+        background: #EAF2FC;
         border: none;
-        color: #042C53;
+        box-shadow: none;
+        color: #2272C3;
         font-size: 1.15rem;
         cursor: pointer;
         text-decoration: none;
         position: relative;
         transition: background 0.15s ease;
         flex-shrink: 0;
+        -webkit-tap-highlight-color: transparent;
     }
 
-    .mobile-nav-icon-btn:hover,
     .mobile-nav-icon-btn:active {
-        background: rgba(55, 138, 221, 0.1);
+        background: #D6E6F8;
     }
 
-    /* Bell and user: inline Tabler outline icons, 22px */
+    .mobile-nav-icon-btn:focus-visible,
+    .mobile-menu-btn:focus-visible,
+    .mobile-signin-pill:focus-visible {
+        outline: 2px solid #378ADD;
+        outline-offset: 2px;
+    }
+
+    /* Bell: inline Tabler outline icon, 21px */
     .mobile-nav-icon-btn .mobile-nav-svg {
-        width: 22px;
-        height: 22px;
+        width: 21px;
+        height: 21px;
         display: block;
         flex-shrink: 0;
     }
 
-    /* Bell dot (unread activity): inside the button's top-right corner, so the avatar never covers it */
+    /* Signed out: "Sign in" pill; icon only in a 40x40 circle when the text does not fit */
+    .mobile-signin-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 40px;
+        padding: 0 14px 0 11px;
+        border-radius: 999px;
+        background: #378ADD;
+        color: #FFFFFF;
+        font-family: 'Sora', sans-serif;
+        font-weight: 600;
+        font-size: 13.5px;
+        line-height: 1;
+        white-space: nowrap;
+        text-decoration: none;
+        flex-shrink: 0;
+        transition: background 0.15s ease;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .mobile-signin-pill:active {
+        background: #2272C3;
+    }
+
+    .mobile-signin-icon {
+        width: 17px;
+        height: 17px;
+        display: block;
+        flex-shrink: 0;
+    }
+
+    .mobile-signin-pill.is-compact {
+        width: 40px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .mobile-signin-pill.is-compact .mobile-signin-text {
+        display: none;
+    }
+
+    /* Bell dot (unread activity): inside the circle's top-right; the ring matches the circle */
     .mobile-bell-badge {
         position: absolute;
         top: 7px;
         right: 8px;
-        width: 8px;
-        height: 8px;
+        width: 9px;
+        height: 9px;
         box-sizing: content-box;
         border-radius: 50%;
         background: #E5484D;
-        border: 2px solid #FFFFFF;
+        border: 2px solid #EAF2FC;
         display: none;
         font-size: 0;
         line-height: 0;
@@ -2476,9 +2562,13 @@ body.chat-active .chat-toggle-pill {
         justify-content: center;
     }
 
+    .mobile-avatar-btn {
+        background: transparent;
+    }
+
     .mobile-avatar-wrap {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background: #378ADD;
         color: #FFFFFF;
@@ -2503,6 +2593,18 @@ body.chat-active .chat-toggle-pill {
         object-fit: cover;
         border-radius: 50%;
         display: block;
+    }
+
+    @media (max-width: 359px) {
+        .mobile-signin-pill {
+            width: 40px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        .mobile-signin-pill .mobile-signin-text {
+            display: none;
+        }
     }
 
     /* Ensure Dropdown Menus render fixed above page on mobile view */

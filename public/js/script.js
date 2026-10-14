@@ -1386,6 +1386,24 @@ function checkPasswordStrength() {
             syncBadge();
         }
 
+        // --- Mobile "Sign in" pill: icon only when the text would not fit next to the logo ---
+        const signInPill = document.querySelector('#mobileSignInBtn.mobile-signin-pill');
+        if (signInPill) {
+            const fitSignInPill = () => {
+                signInPill.classList.remove('is-compact');
+                if (signInPill.offsetParent === null) return; // hidden (signed in, or desktop)
+                const logo = document.querySelector('.brand-logo');
+                const group = document.getElementById('mobileNavIcons');
+                const overlaps = logo && group && group.getBoundingClientRect().left < logo.getBoundingClientRect().right + 8;
+                if (overlaps || signInPill.scrollWidth > signInPill.clientWidth + 1) signInPill.classList.add('is-compact');
+            };
+            fitSignInPill();
+            window.addEventListener('resize', fitSignInPill);
+            window.addEventListener('calzada_lang_changed', () => setTimeout(fitSignInPill, 0));
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitSignInPill);
+            new MutationObserver(fitSignInPill).observe(signInPill, { attributes: true, attributeFilter: ['style'] });
+        }
+
         // --- Mobile Sign In Sync ---
         const mobileSignIn = document.getElementById('mobileSignInBtn');
         const userAvatarPill = document.getElementById('userAvatarPill');
