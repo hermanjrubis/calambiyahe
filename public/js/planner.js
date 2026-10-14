@@ -3067,9 +3067,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // =============================================
         // SESSION PERSISTENCE HELPER
         // =============================================
+        // The route (legs with geometry and steps) is saved with the journey, so a reload redraws it
+        // without asking the routing servers again. It is serialised only when it changes: this runs on
+        // every location fix, and a live reroute replaces a leg's coordinates and steps in place.
+        let savedRouteRefs = null;
+        let savedRouteJson = 'null';
+        const routeJsonForSave = () => {
+            const w = walkRouteGeojson, tr = transitRouteGeojson;
+            const refs = [w, w && w.coordinates, w && w.steps, tr, tr && tr.coordinates, tr && tr.steps];
+            if (!savedRouteRefs || refs.some((r, i) => r !== savedRouteRefs[i])) {
+                savedRouteRefs = refs;
+                savedRouteJson = (w || tr) ? JSON.stringify({ walk: w, transit: tr }) : 'null';
+            }
+            return savedRouteJson;
+        };
+        let arrivedJourneyId = null; // set on arrival, so nothing saves that journey as active again
+
+        // sessionStorage only (this tab on this device): the origin coordinates never go to
+        // localStorage or Firestore; the trip saved on arrival keeps only the origin label.
         const saveJourneyState = () => {
+            if (isTrackingArrival && journeyId && journeyId === arrivedJourneyId) return;
             try {
-                sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
+                const state = JSON.stringify({
                     origin: selectedCoords.origin,
                     destination: selectedCoords.destination,
                     originName: originPlaceName,
@@ -3080,9 +3099,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     isJourneyActive: isTrackingArrival,
                     startedAt: journeyStartedAt,
                     journeyId,
-                    savedAt: Date.now()
-                }));
-            } catch (e) { /* sessionStorage unavailable */ }
+                    savedAt: Date.now(),
+                    // Route figures as shown (walk includes the gaps to the road; fare from the jeepney leg)
+                    stats: {
+                        walkDist: currentWalkDist, walkDur: currentWalkDur,
+                        transitDist: currentTransitDist, transitDur: currentTransitDur,
+                        fare: currentFare
+                    }
+                });
+                sessionStorage.setItem(STORAGE_KEY, `${state.slice(0, -1)},"route":${routeJsonForSave()}}`);
+            } catch (e) { /* sessionStorage unavailable or full */ }
         };
 
         // Routing servers. The public OSRM demo server only has the car profile and ignores "foot", so walks there
@@ -4639,9 +4665,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Keep step index current in session
-            saveJourneyState();
-
             if (lastValidPosition) {
                 const moveDist = getHaversineDist(latitude, longitude, lastValidPosition.lat, lastValidPosition.lng) * 1000;
                 if (moveDist > 10) {
@@ -4685,6 +4708,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const distToBoard = getHaversineDist(latitude, longitude, walkEnd[0], walkEnd[1]) * 1000;
                 if (distToBoard < 40) activeLegIndex = 1;
             }
+
+            // Keep the step and leg current in session (after this fix moved them), for a reload
+            saveJourneyState();
 
             let remainingDist = 0;
             for (let i = closestIdx; i < currentPath.length - 1; i++) {
@@ -4875,6 +4901,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const trip = buildTrip();
             // States saved before journeyId existed have none: one id for this arrival is enough.
             if (!journeyId) journeyId = newJourneyId();
+            // The saved journey was removed above; keep it removed while the ticket is open
+            arrivedJourneyId = journeyId;
 
             // Signed-in accounts keep the trip (once per journey, not awaited so the ticket is
             // never delayed); guests and anonymous users keep nothing.
@@ -5749,11 +5777,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // =============================================
+        // ACTIVE JOURNEY FROM BEFORE A RELOAD
+        // =============================================
+        // A journey that is still running (saved in this tab, started under 3 hours ago) comes back
+        // exactly as it was and wins over URL parameters and the defaults. Ended and cancelled
+        // journeys are already removed; older or unreadable ones are removed here.
+        const JOURNEY_RESTORE_MAX_AGE_MS = 3 * 60 * 60 * 1000;
+        const savedActiveJourney = (() => {
+            let state = null;
+            try { state = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null'); } catch (_) { state = null; }
+            if (!state || !state.isJourneyActive) return null;
+            const isPoint = (p) => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite);
+            const startedAt = Number.isFinite(state.startedAt) ? state.startedAt : state.savedAt;
+            const ageMs = Date.now() - startedAt;
+            if (!(ageMs >= 0 && ageMs < JOURNEY_RESTORE_MAX_AGE_MS) || !isPoint(state.origin) || !isPoint(state.destination)) {
+                try { sessionStorage.removeItem(STORAGE_KEY); } catch (_) {}
+                return null;
+            }
+            return state;
+        })();
+
+        // =============================================
         // URL PARAMETERS LOGIC
         // =============================================
-        // URL PARAMETERS — runs regardless of earlier errors
+        // URL PARAMETERS — runs regardless of earlier errors. Skipped while an active journey is
+        // restored: the URL still holds the link the planner was opened with.
         try {
-            const urlParams = new URLSearchParams(window.location.search);
+            const urlParams = new URLSearchParams(savedActiveJourney ? '' : window.location.search);
             // URLSearchParams.get automatically decodes, so no decodeURIComponent needed
             const destName = urlParams.get('destName') || urlParams.get('dest') || '';
             const destLat = parseFloat(urlParams.get('destLat') || urlParams.get('dlat') || '');
@@ -5923,26 +5973,91 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // =============================================
-        // SESSION RECOVERY — restore last journey on reload
+        // SESSION RECOVERY — restore the journey or last route on reload
         // =============================================
+        // An active journey resumes straight into navigation with everything it had: origin
+        // (label and coordinates), destination, mode, route legs, boarding point, start time,
+        // journey id and current step. Location fixes after this only move the dot and the camera.
+        const isSavedLeg = (leg) => !!leg && Array.isArray(leg.coordinates) && Array.isArray(leg.steps) && Number.isFinite(leg.distance);
+        const resumeSavedJourney = (state) => {
+            selectedCoords.origin = state.origin;
+            selectedCoords.destination = state.destination;
+            originPlaceName = state.originName || '';
+            destPlaceName = state.destName || '';
+            selectedMode = state.selectedMode === 'walking' ? 'walking' : 'jeepney';
+            userExplicitMode = true; // no distance-based mode switch, also if the route is fetched again
+            journeyStartedAt = Number.isFinite(state.startedAt) ? state.startedAt : null;
+            journeyId = typeof state.journeyId === 'string' && /^[A-Za-z0-9]{20}$/.test(state.journeyId) ? state.journeyId : null;
+            isTrackingArrival = true; // from here on the preview replan never moves the origin
+            setModeUI(selectedMode);
+
+            const resumeNavigation = () => {
+                startActiveJourneyUI();
+                startCompassListening();
+                startLiveTracking();
+                // startLiveTracking begins at the first step and leg: put back where the journey was
+                const steps = window.activeRouteSteps || [];
+                activeLegIndex = selectedMode === 'walking' ? 0 : Math.min(Math.max(state.activeLegIndex | 0, 0), 1);
+                window.currentStepIndex = Math.min(Math.max(state.currentStepIndex | 0, 0), Math.max(steps.length - 1, 0));
+                updateGuideStepsUI();
+                saveJourneyState();
+                map.resize();
+                showToast(t('planner.toast_resuming').replace('{dest}', state.destName || t('planner.toast_destination')), 'info');
+            };
+
+            const route = state.route || {};
+            const stats = state.stats || {};
+            const hasSavedRoute = isSavedLeg(route.walk) && isSavedLeg(route.transit)
+                && (route.walk.coordinates.length >= 2 || route.transit.coordinates.length >= 2)
+                && ['walkDist', 'walkDur', 'transitDist', 'transitDur', 'fare'].every(k => Number.isFinite(stats[k]));
+            if (hasSavedRoute) {
+                // Redraw the saved route: no request to the routing servers
+                walkRouteGeojson = route.walk;
+                transitRouteGeojson = route.transit;
+                window.walkRouteGeojson = walkRouteGeojson;
+                window.transitRouteGeojson = transitRouteGeojson;
+                currentWalkDist = stats.walkDist;
+                currentWalkDur = stats.walkDur;
+                currentTransitDist = stats.transitDist;
+                currentTransitDur = stats.transitDur;
+                currentFare = stats.fare;
+                ensureOriginMarker();
+                ensureDestMarker();
+                drawRoutes(walkRouteGeojson.coordinates, transitRouteGeojson.coordinates);
+                updateSummaryRow();
+                updatePillFareUI();
+                renderItinerary();
+                renderPlannerState();
+                resumeNavigation();
+            } else {
+                // Saved before the route was kept: fetch it once, with the same origin and mode
+                executeRouteQuery().then(resumeNavigation).catch((e) => {
+                    console.error('Journey restore failed:', e);
+                    showToast(t('planner.toast_resume_failed'), 'error');
+                });
+            }
+        };
+
         (() => {
+            if (savedActiveJourney) {
+                resumeSavedJourney(savedActiveJourney);
+                return;
+            }
+
+            // No active journey: bring back the last route preview (as before)
             const raw = sessionStorage.getItem('calzada_journey');
             if (!raw) return;
             let state;
             try { state = JSON.parse(raw); } catch (e) { return; }
             const ageMs = Date.now() - (state.savedAt || 0);
-            if (ageMs > 7200000) { sessionStorage.removeItem('calzada_journey'); return; } // >2h old
+            if (state.isJourneyActive || ageMs > 7200000) { sessionStorage.removeItem('calzada_journey'); return; } // >2h old
             if (!state.origin || !state.destination) return;
 
             // Build recovery banner
             const banner = document.createElement('div');
             banner.id = 'recoveryBanner';
-            const wasActive = state.isJourneyActive;
-            const msg = wasActive
-                ? `Resuming journey to <strong>${state.destName || 'destination'}</strong>…`
-                : `Your last route was restored.`;
             banner.innerHTML = `
-            <span>${msg}</span>
+            <span>Your last route was restored.</span>
             <button id="recoveryDismissBtn" title="Start fresh">×</button>
         `;
             banner.style.cssText = [
@@ -5962,9 +6077,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 dismissBanner();
             });
 
-            // Keep the real start time across the reload (absent in states saved before it existed)
-            journeyStartedAt = wasActive && Number.isFinite(state.startedAt) ? state.startedAt : null;
-            journeyId = wasActive && typeof state.journeyId === 'string' && /^[A-Za-z0-9]{20}$/.test(state.journeyId) ? state.journeyId : null;
+            journeyStartedAt = null;
+            journeyId = null;
 
             // Restore OD state
             selectedCoords.origin = state.origin;
@@ -5974,36 +6088,10 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedMode = (state.selectedMode === 'walking' ? 'walking' : 'jeepney');
             updateODDisplay();
 
-            // Re-fetch fresh OSRM route (never use stale saved polylines)
+            // Re-fetch fresh OSRM route for the preview
             executeRouteQuery().then(() => {
                 dismissBanner();
-                if (wasActive) {
-                    showToast(t('planner.toast_resuming').replace('{dest}', state.destName || t('planner.toast_destination')), 'info');
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => {
-                            selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
-                            originPlaceName = 'My Location';
-                            currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                            updateODDisplay();
-                            executeRouteQuery().then(() => {
-                                startActiveJourneyUI();
-                                mapAutoFollow = true;
-                                isTrackingArrival = true;
-                                // FIX ∗9: clamp indices to valid range after fresh route fetch
-                                activeLegIndex = Math.min(state.activeLegIndex || 0, 1);
-                                window.currentStepIndex = 0; // always restart from step 0 on recovery
-                                startLiveTracking();
-                                map.resize();
-                            });
-                        },
-                        () => {
-                            showToast(t('planner.toast_resume_failed'), 'error');
-                        },
-                        { enableHighAccuracy: true, timeout: 8000 }
-                    );
-                } else {
-                    showToast(t('planner.toast_route_restored'), 'success');
-                }
+                showToast(t('planner.toast_route_restored'), 'success');
             }).catch(() => {
                 sessionStorage.removeItem(STORAGE_KEY);
                 dismissBanner();
