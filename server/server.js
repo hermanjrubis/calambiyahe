@@ -268,7 +268,7 @@ HOW TO ANSWER
 5. Anything unrelated to using Calzada (weather, other cities, general knowledge, math, and so on): ONE short polite sentence saying you can only help with using Calzada. No steps and no help line.
 6. Only when the user asks how to do something on Calzada, or about a Calzada feature, that no tutorial covers (including the separate Discover page, which is not the Explore page): NEVER guess a procedure. Say in one short sentence that you don't have steps for that, then add the help line once. This is the ONLY case in which the help line may appear.
 7. If the message has a [ROUTE INFO] block and the user asks about that trip (time, fare, distance), answer briefly from it and call the fare an estimate based on the LTFRB fare guide. Otherwise ignore it.
-8. FARE AMOUNTS. If the user asks how much a jeepney ride costs (magkano, how much, the fare for a distance, the student/senior/PWD fare), answer from FARE FACTS in one to three short sentences and say it is an estimate based on the LTFRB fare guide. If the message has a [FARE ESTIMATE] or [FARE MINIMUM] block, quote its figures exactly (never ₱11.20: the student minimum is the rounded amount), and mention the counted km when it differs from the distance asked. Never work out a fare any other way. If the user asks about a trip between two places and there is no [ROUTE INFO] block, give the minimum fares (regular and student/senior/PWD), say the total depends on the distance, and suggest planning the trip in the “${labels.planner}” to see its fare. Mention modern jeepneys only if the user asks about them. This is not a tutorial: no numbered steps and no help line.
+8. FARE AMOUNTS. If the user asks how much a jeepney ride costs (magkano, how much, the fare for a distance, the student/senior/PWD fare), answer from FARE FACTS in one to three short sentences and say it is an estimate based on the LTFRB fare guide. If the message has a [FARE ESTIMATE] or [FARE MINIMUM] block, quote its figures exactly (never ₱11.20: the student minimum is the rounded amount), and mention the counted km when it differs from the distance asked. Never work out a fare any other way. If the user asks about a trip between two places and there is no [ROUTE INFO] block, give the minimum fares (regular and student/senior/PWD), say the total depends on the distance, and suggest planning the trip in the “${labels.planner}”, which shows the fare for your route (in Tagalog: ang pamasahe base sa distansya ng route mo). Every fare is an estimate: never call a fare exact (no "exact fare", "eksaktong fare", "eksaktong pamasahe"). Mention modern jeepneys only if the user asks about them. This is not a tutorial: no numbered steps and no help line.
 
 THE HELP LINE - STRICT
 Never append the list of things you can help with unless the user asked how to do something on Calzada that is not covered by a tutorial (case 6 above). Do NOT add it to greetings, thanks, small talk, out-of-scope replies, or tutorial answers. In all of those, keep the reply to one or two sentences and end there. The help line is rare: most replies must not contain it.
@@ -330,23 +330,50 @@ const DEFAULT_MODEL_OPTIONS = { max_tokens: 500 };
 // All four answer the six tutorials verbatim in English and Tagalog; qwen leads because it needs no reasoning pass, so it
 // is both the fastest and the cheapest per request. Keep any replacement on that list of small standalone models.
 // Note: llama-3.1-8b-instant and qwen/qwen3.6-27b are no longer available on Groq (404).
+//
+// Every failure hands over to the next model: a 404 or an empty reply at once, a 429 at once, a timeout at once (a
+// retry would most likely time out again), and any other error (5xx, unreadable reply) after the usual 2 retries.
+// Time limits: the chat widget gives up after 60 s, so one call may take at most GROQ_ATTEMPT_TIMEOUT_MS and the whole
+// chain stops once GROQ_TOTAL_BUDGET_MS is spent - worst case about 50 s for a request, whatever the models do.
+// When every model has failed, the error reported is, in order: a 429 ("busy"), a timeout ("took too long"), else the
+// last error ("having trouble").
+const GROQ_ATTEMPT_TIMEOUT_MS = 20000;
+const GROQ_TOTAL_BUDGET_MS = 50000;
+const GROQ_RETRY_DELAY_MS = 1000;
+const GROQ_MIN_ATTEMPT_MS = 3000; // not worth starting a call with less time than this left
+
 const callGroqWithRetry = async (client, messages, retries = 2) => {
     const models = ['qwen/qwen3.8-27b', 'openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'openai/gpt-oss-safeguard-20b'];
+    const startedAt = Date.now();
+    const timeLeft = () => GROQ_TOTAL_BUDGET_MS - (Date.now() - startedAt);
     let rateLimited = null;
+    let timedOut = null;
+    let lastError = null;
+    chain:
     for (const model of models) {
         let options = MODEL_OPTIONS[model] || DEFAULT_MODEL_OPTIONS;
         for (let i = 0; i <= retries; i++) {
+            if (timeLeft() < GROQ_MIN_ATTEMPT_MS) {
+                console.log(`Groq time budget spent, not trying ${model}.`);
+                break chain;
+            }
+            const controller = new AbortController();
+            let timer = null;
             try {
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Groq Timeout')), 45000)
-                );
+                const timeoutPromise = new Promise((_, reject) => {
+                    timer = setTimeout(() => {
+                        reject(new Error('Groq Timeout'));
+                        controller.abort(); // stop the request still in flight
+                    }, Math.min(GROQ_ATTEMPT_TIMEOUT_MS, timeLeft()));
+                });
 
                 const completionPromise = client.chat.completions.create({
                     messages,
                     model,
                     temperature: 0.2,
                     ...options,
-                });
+                }, { signal: controller.signal });
+                completionPromise.catch(() => {}); // after a timeout the aborted request rejects with nobody listening
 
                 const completion = await Promise.race([completionPromise, timeoutPromise]);
                 const first = completion.choices && completion.choices[0];
@@ -363,18 +390,31 @@ const callGroqWithRetry = async (client, messages, retries = 2) => {
                     rateLimited = error;
                     break;
                 }
+                if (error.message === 'Groq Timeout') {
+                    console.log(`Model ${model} timed out, trying next model...`);
+                    timedOut = error;
+                    break;
+                }
                 if (options !== DEFAULT_MODEL_OPTIONS && error.status === 400) {
                     // The model rejected an extra option (or JSON mode could not produce valid JSON); retry with a plain request.
                     options = DEFAULT_MODEL_OPTIONS;
                     continue;
                 }
-                if (i === retries) throw error;
+                lastError = error;
+                if (i === retries) {
+                    console.log(`Model ${model} still failing after ${retries} retries (${error.status || error.message}), trying next model...`);
+                    break;
+                }
                 console.log(`Retrying Groq call for model ${model}... (${i + 1}/${retries})`);
-                await new Promise(res => setTimeout(res, 1000));
+                await new Promise(res => setTimeout(res, GROQ_RETRY_DELAY_MS));
+            } finally {
+                clearTimeout(timer);
             }
         }
     }
     if (rateLimited) throw rateLimited;
+    if (timedOut) throw timedOut;
+    if (lastError) throw lastError;
     throw new Error('No compatible Groq model available.');
 };
 

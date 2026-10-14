@@ -22,7 +22,7 @@
     // LTFRB PUJ General Fare Guide, effective September 28, 2026 (same values as jeepney-fares.json)
     const FALLBACK_FARES = Object.freeze({
         vehicle: 'traditional jeepney',
-        region: 'Mega Manila',
+        region: 'Region IV-A (CALABARZON)',
         source: 'LTFRB PUJ General Fare Guide',
         sourceNote: 'This is the fare increase that took effect on September 28, 2026.',
         sourceNoteTl: 'Ito ang dagdag-pasahe na ipinatupad noong Setyembre 28, 2026.',
