@@ -317,6 +317,11 @@ document.addEventListener('DOMContentLoaded', () => {
             touchPitch: false,
             pitchWithRotate: false,
             maxPitch: 0,
+            // The map style credits OpenStreetMap; walking routes come from the FOSSGIS routing server, whose
+            // usage policy also asks for a link that lets people report and fix map errors.
+            attributionControl: {
+                customAttribution: '<a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
+            },
             locale: {
                 'NavigationControl.ResetBearing': (window.t ? window.t('planner.reset_north') : 'Reset map to north')
             }
@@ -459,7 +464,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             routeLayersInitialized = true;
+
+            // Replay route lines that were drawn before the style finished loading
+            Object.keys(pendingRouteData).forEach(id => {
+                const data = pendingRouteData[id];
+                delete pendingRouteData[id];
+                if (id === 'route-connector') updateRouteConnectors(data);
+                else updateRouteSource(id, data);
+            });
         };
+
+        // A route can arrive before the map style has loaded (e.g. a route opened from URL parameters),
+        // when the route sources do not exist yet. Its line data is kept here until initRouteLayers creates them.
+        const pendingRouteData = {};
 
         map.on('load', initRouteLayers);
         map.on('style.load', () => {
@@ -470,7 +487,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateRouteSource = (sourceId, coordsLngLat) => {
             initRouteLayers();
             const src = map.getSource(sourceId);
-            if (!src) return;
+            if (!src) {
+                pendingRouteData[sourceId] = coordsLngLat;
+                return;
+            }
             if (!coordsLngLat || coordsLngLat.length < 2) {
                 src.setData({ type: 'FeatureCollection', features: [] });
             } else {
@@ -488,7 +508,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateRouteConnectors = (features) => {
             initRouteLayers();
             const src = map.getSource('route-connector');
-            if (!src) return;
+            if (!src) {
+                pendingRouteData['route-connector'] = features;
+                return;
+            }
             src.setData({
                 type: 'FeatureCollection',
                 features: features || []
@@ -3062,15 +3085,51 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { /* sessionStorage unavailable */ }
         };
 
-        const fetchOSRMRouteCoords = async (start, end, profile) => {
-            // OSRM public instance supports: foot, car (not 'driving')
-            const osrmProfile = profile === 'foot' ? 'foot' : 'car';
-            const url = `https://router.project-osrm.org/route/v1/${osrmProfile}/${start[1]},${start[0]};${end[1]},${end[0]}?overview=full&geometries=geojson&steps=true&alternatives=false`;
+        // Routing servers. The public OSRM demo server only has the car profile and ignores "foot", so walks there
+        // follow one-ways and car detours (a ~400 m walk came out ~1.1 km). Walking legs therefore use the FOSSGIS
+        // foot server (routing.openstreetmap.de: OpenStreetMap data, real pedestrian profile); jeepney legs, and so the
+        // fare, stay on the demo server. If the foot server fails, takes over 5 s or finds no route, the walk falls
+        // back to the demo server, so routing never breaks. FOSSGIS usage policy: OSM attribution plus a "fix the map"
+        // link on the map (see the map's attributionControl), max 1 request per second.
+        const OSRM_DEMO_URL = 'https://router.project-osrm.org/route/v1';
+        const OSRM_FOOT_URL = 'https://routing.openstreetmap.de/routed-foot/route/v1';
+        const FOOT_ROUTE_TIMEOUT_MS = 5000;
+
+        // First route of an OSRM response, or null (HTTP error, timeout, no route).
+        const requestOsrmRoute = async (url, timeoutMs = 0) => {
+            const controller = timeoutMs ? new AbortController() : null;
+            const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
             try {
-                const req = await fetch(url);
-                const json = await req.json();
-                if (json.code === 'Ok' && json.routes && json.routes.length > 0) {
-                    const rt = json.routes[0];
+                const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
+                if (!res.ok) return null;
+                const json = await res.json();
+                return (json.code === 'Ok' && json.routes && json.routes.length > 0) ? json.routes[0] : null;
+            } finally {
+                if (timer) clearTimeout(timer);
+            }
+        };
+
+        const fetchOSRMRouteCoords = async (start, end, profile) => {
+            const coords = `${start[1]},${start[0]};${end[1]},${end[0]}`;
+            const query = 'overview=full&geometries=geojson&steps=true&alternatives=false';
+            try {
+                let rt = null;
+                let usedFootServer = false;
+                if (profile === 'foot') {
+                    try {
+                        rt = await requestOsrmRoute(`${OSRM_FOOT_URL}/foot/${coords}?${query}`, FOOT_ROUTE_TIMEOUT_MS);
+                        usedFootServer = !!rt;
+                    } catch (_) { rt = null; /* failed or timed out: fall back below */ }
+                }
+                if (!rt) {
+                    // OSRM public instance supports: foot, car (not 'driving')
+                    const osrmProfile = profile === 'foot' ? 'foot' : 'car';
+                    rt = await requestOsrmRoute(`${OSRM_DEMO_URL}/${osrmProfile}/${coords}?${query}`);
+                }
+                if (profile === 'foot') {
+                    console.info(`Walk route: ${usedFootServer ? 'FOSSGIS foot server' : (rt ? 'OSRM demo server (fallback)' : 'no route from either server')}`);
+                }
+                if (rt) {
                     const distM = rt.distance;
                     // Note: OSRM public demo server returns vehicle-speed durations (~22 km/h) for 'foot'.
                     // For walking routes, compute realistic duration using WALK_SPEED_KPH (~4.6 km/h / ~13 min/km).
@@ -3098,11 +3157,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return F.fareFor(distKm, 'regular', F.current());
         };
 
+        // Walking routes: solid green line; jeepney routes: dashed blue walk legs and an accent jeepney line.
+        const applyRouteLineColors = () => {
+            const isWalkOnly = selectedMode === 'walking';
+            if (map.getLayer('walk-route-layer')) {
+                map.setPaintProperty('walk-route-layer', 'line-color', isWalkOnly ? '#10b981' : '#3b82f6');
+                map.setPaintProperty('walk-route-layer', 'line-dasharray', isWalkOnly ? [1, 0] : [2, 2]);
+            }
+            if (map.getLayer('transit-route-layer')) {
+                map.setPaintProperty('transit-route-layer', 'line-color', isWalkOnly ? '#10b981' : '#378ADD');
+            }
+        };
+        // The route layers are created on load, after a route that arrived early was drawn
+        map.on('load', applyRouteLineColors);
+
         const drawRoutes = (walkCoords, transitCoords) => {
             if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
             if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
 
-            const modeColor = selectedMode === 'walking' ? '#10b981' : '#378ADD';
             const isWalkOnly = selectedMode === 'walking';
 
             const safeWalkCoords = (walkCoords && walkCoords.length >= 2) ? walkCoords : (walkCoords && walkCoords.length === 1 ? [walkCoords[0], walkCoords[0]] : []);
@@ -3112,14 +3184,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('walk-route', walkLngLat);
             updateRouteSource('transit-route', isWalkOnly ? [] : transitLngLat);
             updateRouteSource('completed-route', []);
-
-            if (map.getLayer('walk-route-layer')) {
-                map.setPaintProperty('walk-route-layer', 'line-color', isWalkOnly ? '#10b981' : '#3b82f6');
-                map.setPaintProperty('walk-route-layer', 'line-dasharray', isWalkOnly ? [1, 0] : [2, 2]);
-            }
-            if (map.getLayer('transit-route-layer')) {
-                map.setPaintProperty('transit-route-layer', 'line-color', modeColor);
-            }
+            applyRouteLineColors();
 
             if (!isWalkOnly && transitCoords && transitCoords.length > 1) {
                 // Boarding point marker
