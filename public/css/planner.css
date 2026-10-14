@@ -909,17 +909,6 @@ body {
     justify-content: center !important;
 }
 
-.maplibregl-ctrl-compass {
-    display: block !important;
-}
-
-.maplibregl-ctrl-compass .maplibregl-ctrl-icon {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='29' height='29' viewBox='0 0 29 29'%3E%3Cpath d='M14.5 4 19 14.5H10Z' fill='%23378ADD'/%3E%3Cpath d='M14.5 25 10 14.5H19Z' fill='%239AA9BC'/%3E%3C/svg%3E") !important;
-    background-size: 29px 29px;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
 .maplibregl-ctrl-group button:last-child {
     border-bottom: none !important;
 }
@@ -936,15 +925,23 @@ body.navigation-active .maplibregl-ctrl-zoom-out {
     display: none !important;
 }
 
-/* Locate-me control: stacked above zoom/compass. The button is a 44px hit area;
-   the visible 38px face matches the zoom/compass pill. */
-.maplibregl-ctrl-bottom-right .calzada-locate-ctrl {
-    margin: 0 -3px 5px 0 !important;
+/* Map buttons: one white card, compass on top, a short divider, locate below.
+   Hidden during navigation, as the separate buttons were. */
+.maplibregl-ctrl-bottom-right .calzada-map-card {
+    width: 48px;
+    margin: 0 0 8px 0 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(14, 42, 71, 0.16);
+    overflow: hidden;
 }
 
-.calzada-locate-btn {
-    width: 44px;
-    height: 44px;
+.calzada-map-btn {
+    width: 48px;
+    height: 48px;
     padding: 0;
     border: none;
     background: transparent;
@@ -952,47 +949,52 @@ body.navigation-active .maplibregl-ctrl-zoom-out {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 14px;
     -webkit-tap-highlight-color: transparent;
 }
 
-.calzada-locate-face {
-    width: 38px;
-    height: 38px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.94);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(230, 238, 247, 0.8);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-    transition: background 0.2s ease;
-}
-
-.calzada-locate-btn:hover .calzada-locate-face {
+.calzada-map-btn:hover {
     background: #F1F5F9;
 }
 
-.calzada-locate-btn:focus-visible {
+.calzada-map-btn:focus-visible {
     outline: 2px solid #378ADD;
-    outline-offset: 2px;
+    outline-offset: -3px;
+    border-radius: 14px;
 }
 
-.calzada-locate-btn:focus:not(:focus-visible) {
+.calzada-map-btn:focus:not(:focus-visible) {
     outline: none;
 }
 
-.calzada-locate-btn.is-active .calzada-locate-core {
-    fill: #378ADD;
+.calzada-map-divider {
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: #E2E8F0;
+    flex-shrink: 0;
+}
+
+.calzada-compass-needle {
+    transition: transform 0.12s linear;
+}
+
+/* Locate: outline target (map not on the user), filled arrow (centred), heading arrow (navigation) */
+.calzada-locate-icon {
+    display: none;
+}
+
+.calzada-locate-btn:not([data-state]) .calzada-locate-icon--idle,
+.calzada-locate-btn[data-state="idle"] .calzada-locate-icon--idle,
+.calzada-locate-btn[data-state="centred"] .calzada-locate-icon--centred,
+.calzada-locate-btn[data-state="heading"] .calzada-locate-icon--heading {
+    display: block;
 }
 
 .calzada-locate-btn.is-loading {
     cursor: progress;
 }
 
-.calzada-locate-btn.is-loading svg {
+.calzada-locate-btn.is-loading .calzada-locate-icon {
     animation: calzada-locate-spin 1s linear infinite;
 }
 
@@ -1000,8 +1002,20 @@ body.navigation-active .maplibregl-ctrl-zoom-out {
     to { transform: rotate(360deg); }
 }
 
-body.navigation-active .calzada-locate-ctrl {
+body.navigation-active .calzada-map-card {
     display: none !important;
+}
+
+/* Attribution: compact round "i" at the bottom-left (expanded when the map opens) */
+.maplibregl-ctrl-bottom-left {
+    bottom: 24px !important;
+    left: 364px !important; /* clear of the 340px directions panel on desktop */
+    z-index: 550 !important;
+    margin: 0 !important;
+}
+
+.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
+    margin: 0 !important;
 }
 
 /* Mobile map controls: pinch handles zoom, so drop +/- and keep the stack
@@ -1033,23 +1047,29 @@ body.navigation-active .calzada-locate-ctrl {
         pointer-events: none;
     }
 
-    /* 44px tap targets; the locate face grows to match the compass */
-    .maplibregl-ctrl-group button {
-        width: 44px !important;
-        height: 44px !important;
-    }
-
-    .maplibregl-ctrl-bottom-right .calzada-locate-ctrl {
-        margin: 0 0 8px 0 !important;
-    }
-
-    .calzada-locate-face {
-        width: 44px;
-        height: 44px;
-    }
-
+    /* Phones zoom with pinch: the +/- group would be an empty box */
     .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
-        margin-bottom: 8px !important;
+        display: none !important;
+    }
+
+    /* The attribution "i" rides above the sheet at the left, like the map buttons at the right */
+    .maplibregl-ctrl-bottom-left {
+        bottom: 0 !important;
+        left: 12px !important;
+        transform: translate3d(0, var(--ctrl-lift, calc(-12px - env(safe-area-inset-bottom, 0px))), 0);
+        transition: transform var(--sheet-dur) var(--sheet-spring);
+        will-change: transform;
+    }
+
+    .maplibregl-ctrl-bottom-left.ctrl-no-room {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    /* Expanded credits stop short of the map buttons card at the right */
+    .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
+        box-sizing: border-box;
+        max-width: calc(100vw - 80px) !important; /* 12px gutter + 48px card + 12px edge + 8px gap */
     }
 
     /* The compact attribution "i" is 24px; widen its hit area invisibly */
@@ -1074,7 +1094,8 @@ body.navigation-active .calzada-locate-ctrl {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .calzada-locate-btn.is-loading svg { animation: none; opacity: 0.5; }
+    .calzada-locate-btn.is-loading .calzada-locate-icon { animation: none; opacity: 0.5; }
+    .calzada-compass-needle { transition: none; }
 }
 
 

@@ -420,6 +420,76 @@ const callGroqWithRetry = async (client, messages, retries = 2) => {
 
 app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 
+// GET /api/geocode?q=&lat=&lng= - place autocomplete for the planner search (Geoapify).
+// The API key stays on the server. Privacy: the position is rounded to 2 decimals (~1 km) before it
+// leaves this server, and neither the search text nor the position is ever logged. Without a key the
+// endpoint answers 204 at once, so the page goes straight to its Esri fallback.
+const GEOAPIFY_AUTOCOMPLETE_URL = 'https://api.geoapify.com/v1/geocode/autocomplete';
+const GEOCODE_FILTER = 'rect:120.95,13.95,121.65,14.55'; // lon1,lat1,lon2,lat2 around Laguna
+const GEOCODE_DEFAULT_POINT = { lat: 14.21, lng: 121.17 }; // Calamba
+const GEOCODE_TIMEOUT_MS = 3000;
+const GEOCODE_CACHE_MS = 10 * 60 * 1000;
+const GEOCODE_CACHE_MAX = 500;
+const geocodeCache = new Map(); // "q|lat|lng" -> { at, data }
+
+// Category of a Geoapify result, for the icon tile in the search list
+const geocodeKind = (r) => {
+    const cats = [].concat(r.category || [], r.categories || []).join(' ');
+    if (/education/.test(cats)) return 'school';
+    if (/catering\.cafe|coffee/.test(cats)) return 'coffee';
+    if (/catering/.test(cats)) return 'food';
+    if (/commercial\.(shopping_mall|department_store|supermarket)/.test(cats)) return 'mall';
+    if (/public_transport|bus/.test(cats)) return 'terminal';
+    if (/building|office|service|healthcare|administrative|religion/.test(cats)) return 'building';
+    return 'pin';
+};
+
+app.get('/api/geocode', async (req, res) => {
+    const key = process.env.GEOAPIFY_KEY;
+    if (!key) return res.status(204).end();
+
+    const q = String(req.query.q || '').trim().slice(0, 120);
+    if (q.length < 2) return res.status(400).json({ error: 'Search text too short' });
+    const round2 = (v) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : null; };
+    let lat = round2(req.query.lat);
+    let lng = round2(req.query.lng);
+    if (lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180) ({ lat, lng } = GEOCODE_DEFAULT_POINT);
+
+    const cacheKey = `${q.toLowerCase()}|${lat}|${lng}`;
+    const hit = geocodeCache.get(cacheKey);
+    if (hit && Date.now() - hit.at < GEOCODE_CACHE_MS) return res.json(hit.data);
+
+    const params = new URLSearchParams({
+        text: q, filter: GEOCODE_FILTER, bias: `proximity:${lng},${lat}`,
+        limit: '8', lang: 'en', format: 'json', apiKey: key
+    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), GEOCODE_TIMEOUT_MS);
+    try {
+        const upstream = await fetch(`${GEOAPIFY_AUTOCOMPLETE_URL}?${params}`, { signal: controller.signal });
+        if (!upstream.ok) return res.status(502).json({ error: 'Geocoder unavailable' });
+        const body = await upstream.json();
+        const results = (body.results || []).map(r => ({
+            name: String(r.name || r.address_line1 || '').slice(0, 120),
+            street: r.street || '',
+            area: r.suburb || r.district || r.neighbourhood || r.quarter || '',
+            city: r.city || r.town || r.village || r.municipality || r.county || '',
+            lat: Number(r.lat),
+            lng: Number(r.lon),
+            kind: geocodeKind(r)
+        })).filter(r => r.name && Number.isFinite(r.lat) && Number.isFinite(r.lng));
+        const data = { source: 'geoapify', results };
+        geocodeCache.set(cacheKey, { at: Date.now(), data });
+        if (geocodeCache.size > GEOCODE_CACHE_MAX) geocodeCache.delete(geocodeCache.keys().next().value); // oldest first
+        return res.json(data);
+    } catch (e) {
+        // Timeout or network error; nothing about the request is logged
+        return res.status(e && e.name === 'AbortError' ? 504 : 502).json({ error: 'Geocoder unavailable' });
+    } finally {
+        clearTimeout(timer);
+    }
+});
+
 // In-memory places dataset loaded from server/data/places.json
 const placesDataPath = fs.existsSync(path.resolve(__dirname, 'data/places.json'))
     ? path.resolve(__dirname, 'data/places.json')

@@ -26,7 +26,8 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.7.0">
+    <link rel="stylesheet" href="../css/planner.css?v=2.7.1">
+    <link rel="stylesheet" href="../css/place-search.css?v=1.0.0">
     <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
     <link rel="stylesheet" href="../css/account-modals-planner.css?v=1.1.0">
     <!-- Ticket styles up front: the arrival ticket must look right even if the network drops on the way -->
@@ -338,7 +339,7 @@
                     <div class="od-input-column">
                         <div class="od-row">
                             <span class="od-icon od-icon--origin" aria-hidden="true"></span>
-                            <div class="od-field unfilled" id="openOriginModal">Where from?</div>
+                            <div class="od-field unfilled" id="openOriginModal" role="button" tabindex="0" aria-haspopup="dialog">Where from?</div>
                             <button class="od-clear-btn" id="clearOriginBtn" type="button" aria-label="Clear origin" data-i18n="planner.clear_origin" data-i18n-attr="aria-label" title="Clear origin" style="display:none;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -348,7 +349,7 @@
                         </div>
                         <div class="od-row">
                             <span class="od-icon od-icon--dest" aria-hidden="true"></span>
-                            <div class="od-field unfilled" id="openDestModal">Where to?</div>
+                            <div class="od-field unfilled" id="openDestModal" role="button" tabindex="0" aria-haspopup="dialog">Where to?</div>
                             <button class="od-clear-btn" id="clearDestBtn" type="button" aria-label="Clear destination" data-i18n="planner.clear_dest" data-i18n-attr="aria-label" title="Clear destination" style="display:none;">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -560,37 +561,6 @@
         </div>
 
     </div><!-- /planner-gui-container -->
-
-    <!-- SCREEN 2: CHANGE LOCATION MODAL -->
-    <div class="modal-overlay" id="locationModalOverlay"></div>
-    <div class="location-modal" id="locationModal">
-        <div class="loc-header">
-            <h3 id="locModalTitle">Change Origin</h3>
-            <button class="loc-close-btn" id="closeLocModal" aria-label="Close location search"><ion-icon name="close"></ion-icon></button>
-        </div>
-        <div class="loc-search">
-            <input type="text" id="locSearchInput" aria-label="Search location" placeholder="Search..." autocomplete="off">
-        </div>
-
-        <div class="loc-options" id="locOptionsList">
-            <!-- Render options/results here -->
-            <div class="loc-row" id="optMyLocation">
-                <div class="loc-icon bg-blue"><ion-icon name="locate"></ion-icon></div>
-                <div class="loc-text">My Location</div>
-            </div>
-            <div class="loc-row" id="optPinLocation">
-                <div class="loc-icon pin-blue"><ion-icon name="location"></ion-icon></div>
-                <div class="loc-text">Pin Location</div>
-            </div>
-        </div>
-        <!-- Will show results instead of options when typing -->
-
-        <div class="loc-attribution" id="locAttribution" style="display:none;">
-            <span>■</span> Search results powered by OpenStreetMap · ESRI
-        </div>
-    </div>
-
-
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
@@ -818,10 +788,11 @@
     <script src="../js/places-shared.js?v=2.6.3"></script>
     <script src="../js/fare-calc.js?v=1.0.1"></script>
     <script src="../js/trip-ticket.js?v=1.1.3"></script>
-    <script src="../js/planner.js?v=2.7.8"></script>
+    <script src="../js/place-search.js?v=1.0.0"></script>
+    <script src="../js/planner.js?v=2.7.9"></script>
     <script src="../js/legal-modal.js?v=2.6.4"></script>
-    <script src="../js/script.js?v=2.6.4"></script>
-    <script src="../js/i18n.js?v=2.7.2"></script>
+    <script src="../js/script.js?v=2.6.5"></script>
+    <script src="../js/i18n.js?v=2.7.3"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>

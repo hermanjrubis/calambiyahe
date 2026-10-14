@@ -317,11 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
             touchPitch: false,
             pitchWithRotate: false,
             maxPitch: 0,
-            // The map style credits OpenStreetMap; walking routes come from the FOSSGIS routing server, whose
-            // usage policy also asks for a link that lets people report and fix map errors.
-            attributionControl: {
-                customAttribution: '<a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
-            },
+            // Attribution is added below as a compact control at the bottom-left
+            attributionControl: false,
             locale: {
                 'NavigationControl.ResetBearing': (window.t ? window.t('planner.reset_north') : 'Reset map to north')
             }
@@ -338,24 +335,35 @@ document.addEventListener('DOMContentLoaded', () => {
             map.addImage(e.id, { width: 1, height: 1, data: new Uint8Array(4) });
         });
 
+        // Zoom buttons (desktop only). The compass lives in the map buttons card with the locate button.
         const navControl = new maplibregl.NavigationControl({
             showZoom: true,
-            showCompass: true,
+            showCompass: false,
             visualizePitch: false
         });
         map.addControl(navControl, 'bottom-right');
 
-        // Accessibility and i18n title/aria-label for compass
-        const updateCompassLocale = () => {
-            const compassBtn = document.querySelector('.maplibregl-ctrl-compass');
-            if (compassBtn) {
-                const title = window.t ? window.t('planner.reset_north') : 'Reset map to north';
-                compassBtn.setAttribute('title', title);
-                compassBtn.setAttribute('aria-label', title);
-            }
+        // Attribution: a small round "i" at the bottom-left. The map style credits OpenStreetMap; walking
+        // routes come from the FOSSGIS routing server, whose usage policy also asks for a link that lets
+        // people report and fix map errors. Per the OSM attribution guidelines the credits show expanded
+        // when the map opens and collapse after the first time the user moves the map.
+        const attributionControl = new maplibregl.AttributionControl({
+            compact: true,
+            customAttribution: '<a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
+        });
+        map.addControl(attributionControl, 'bottom-left');
+        const attribEl = () => document.querySelector('.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib');
+        map.once('load', () => {
+            const el = attribEl();
+            if (el) { el.classList.add('maplibregl-compact-show'); el.setAttribute('open', ''); }
+        });
+        const collapseAttribution = (e) => {
+            if (!e || !e.originalEvent) return; // only a real user interaction (drag, zoom, rotate)
+            const el = attribEl();
+            if (el) { el.classList.remove('maplibregl-compact-show'); el.removeAttribute('open'); }
+            map.off('movestart', collapseAttribution);
         };
-        window.addEventListener('calzada_lang_changed', updateCompassLocale);
-        setTimeout(updateCompassLocale, 200);
+        map.on('movestart', collapseAttribution);
 
         window.addEventListener('resize', () => map.resize());
         setTimeout(() => map.resize(), 0);
@@ -2062,6 +2070,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const CTRL_GAP = 12;        // px between the sheet's top edge and the lowest control
             const mobileMq = window.matchMedia('(max-width: 767px)');
             const ctrlCorner = document.querySelector('.maplibregl-ctrl-bottom-right');
+            // The attribution "i" at the bottom-left rides on the same lift
+            const attribCorner = document.querySelector('.maplibregl-ctrl-bottom-left');
+            const corners = [ctrlCorner, attribCorner].filter(Boolean);
             if (!ctrlCorner || !directionsCard) return;
 
             const sheetTargetY = () => {
@@ -2096,9 +2107,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const sheetShown = directionsCard.offsetParent !== null && directionsCard.offsetHeight > 0;
                 if (!mobileMq.matches || !sheetShown) {
                     // Desktop, or journey mode with the sheet hidden: fall back to CSS.
-                    ctrlCorner.style.removeProperty('--ctrl-lift');
-                    ctrlCorner.style.removeProperty('transition');
-                    ctrlCorner.classList.remove('ctrl-no-room');
+                    corners.forEach(c => {
+                        c.style.removeProperty('--ctrl-lift');
+                        c.style.removeProperty('transition');
+                        c.classList.remove('ctrl-no-room');
+                    });
                     return;
                 }
                 // offsetTop ignores transforms, so this is the sheet's resting top edge;
@@ -2107,16 +2120,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const mapH = map.getContainer().clientHeight;
                 const stack = measureStack();
                 const visBottom = sheetTop - CTRL_GAP;
-                ctrlCorner.style.setProperty('--ctrl-lift', `${Math.round(visBottom + stack.trailing - mapH)}px`);
+                corners.forEach(c => c.style.setProperty('--ctrl-lift', `${Math.round(visBottom + stack.trailing - mapH)}px`));
                 // If a tall/expanded sheet leaves no room above it, fade the stack out
                 // rather than overlap the sheet or the category bar.
                 const noRoom = visBottom - stack.height < topLimit();
-                ctrlCorner.classList.toggle('ctrl-no-room', noRoom);
+                corners.forEach(c => c.classList.toggle('ctrl-no-room', noRoom));
                 // visibility flips after the fade when hiding, immediately when showing.
                 const fade = `opacity 0.2s ease, visibility 0s linear ${noRoom ? '0.2s' : '0s'}`;
-                ctrlCorner.style.transition = directionsCard.style.transition === 'none'
+                const transition = directionsCard.style.transition === 'none'
                     ? fade
                     : `transform var(--sheet-dur) var(--sheet-spring), ${fade}`;
+                corners.forEach(c => { c.style.transition = transition; });
             };
 
             new MutationObserver(sync).observe(directionsCard, { attributes: true, attributeFilter: ['style', 'class'] });
@@ -2199,31 +2213,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Modals
-        const locationModal = document.getElementById('locationModal');
-        const locationModalOverlay = document.getElementById('locationModalOverlay');
-        const locSearchInput = document.getElementById('locSearchInput');
-        const locOptionsList = document.getElementById('locOptionsList');
-        const locAttribution = document.getElementById('locAttribution');
+        // "Where from?" / "Where to?": the place search (js/place-search.js). Mobile: full-screen
+        // page; desktop: dropdown under the field. Not during a journey (the fields are hidden then).
         let activeSelectingField = 'origin';
 
         const openLocationModal = (type) => {
             activeSelectingField = type;
-            document.getElementById('locModalTitle').textContent = type === 'origin' ? 'Change Origin' : 'Change Destination';
-            locSearchInput.value = '';
-            renderModalDefaultOptions();
-            locationModal.classList.add('visible');
-            locationModalOverlay.classList.add('visible');
-            setTimeout(() => locSearchInput.focus(), 100);
+            if (document.body.classList.contains('navigation-active') || !window.CalzadaPlaceSearch) return;
+            window.CalzadaPlaceSearch.open({
+                field: type,
+                anchor: document.getElementById(type === 'origin' ? 'openOriginModal' : 'openDestModal'),
+                places: () => (pickerKnownPlaces.length ? pickerKnownPlaces : CALAMBA_PLACES_FALLBACK),
+                userFix: () => (typeof window._calzadaGetUserFix === 'function' ? window._calzadaGetUserFix() : null),
+                onSelect: (name, coords) => selectLocation(name, coords),
+                onMyLocation: () => requestMyLocationOrigin(),
+                onPin: () => triggerMapPicker()
+            });
         };
         const closeLocationModal = () => {
-            locationModal.classList.remove('visible');
-            locationModalOverlay.classList.remove('visible');
+            if (window.CalzadaPlaceSearch) window.CalzadaPlaceSearch.close({ restoreFocus: false });
         };
-        document.getElementById('openOriginModal').addEventListener('click', () => openLocationModal('origin'));
-        document.getElementById('openDestModal').addEventListener('click', () => openLocationModal('destination'));
-        document.getElementById('closeLocModal').addEventListener('click', closeLocationModal);
-        locationModalOverlay.addEventListener('click', closeLocationModal);
+        ['openOriginModal', 'openDestModal'].forEach((id) => {
+            const field = document.getElementById(id);
+            if (!field) return;
+            const type = id === 'openOriginModal' ? 'origin' : 'destination';
+            field.addEventListener('click', () => openLocationModal(type));
+            field.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLocationModal(type); }
+            });
+        });
 
         // B3: Centralized single function that every path calls to control planner state & visibility
         const renderPlannerState = () => {
@@ -2628,24 +2646,6 @@ document.addEventListener('DOMContentLoaded', () => {
             myLocWatchTimer = setTimeout(() => finalizeFix(bestFix), 8000);
         }
 
-        const renderModalDefaultOptions = () => {
-            const isOrig = activeSelectingField === 'origin';
-            locOptionsList.innerHTML = '';
-            if (isOrig) {
-                locOptionsList.innerHTML += `<div class="loc-row" id="optMyLoc"><div class="loc-icon bg-blue"><ion-icon name="locate"></ion-icon></div><div class="loc-text">My Location</div></div>`;
-            }
-            locOptionsList.innerHTML += `<div class="loc-row" id="optPinLoc"><div class="loc-icon pin-blue"><ion-icon name="location"></ion-icon></div><div class="loc-text">Pin Location</div></div>`;
-            locAttribution.style.display = 'none';
-
-            document.getElementById('optMyLoc')?.addEventListener('click', () => {
-                requestMyLocationOrigin();
-            });
-            document.getElementById('optPinLoc')?.addEventListener('click', () => {
-                closeLocationModal();
-                triggerMapPicker();
-            });
-        };
-
         document.getElementById('swapLocationsBtn').addEventListener('click', () => {
             const tempC = selectedCoords.origin;
             selectedCoords.origin = selectedCoords.destination;
@@ -2711,134 +2711,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setModeUI('jeepney');
             executeRouteQuery();
         });
-
-        // =============================================
-        // GEOCODING (ESRI Primary, Nominatim Fallback)
-        // =============================================
-        let geocodeTimeout = null;
-        locSearchInput.addEventListener('input', (e) => {
-            const val = e.target.value.trim();
-            clearTimeout(geocodeTimeout);
-            if (val.length < 3 && val.toLowerCase() !== 'my') {
-                renderModalDefaultOptions();
-                return;
-            }
-            geocodeTimeout = setTimeout(() => performSearch(val), 600);
-        });
-
-        const SEARCH_SKELETON_HTML = `
-            <div role="status" aria-live="polite" style="padding: 4px 0;">
-                <div class="sk-search-row">
-                    <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div class="skeleton" style="width: 55%; height: 13px; margin-bottom: 6px; border-radius: 4px;"></div>
-                        <div class="skeleton" style="width: 80%; height: 10px; border-radius: 4px;"></div>
-                    </div>
-                </div>
-                <div class="sk-search-row">
-                    <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div class="skeleton" style="width: 45%; height: 13px; margin-bottom: 6px; border-radius: 4px;"></div>
-                        <div class="skeleton" style="width: 70%; height: 10px; border-radius: 4px;"></div>
-                    </div>
-                </div>
-                <div class="sk-search-row">
-                    <div class="skeleton" style="width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;"></div>
-                    <div style="flex: 1;">
-                        <div class="skeleton" style="width: 60%; height: 13px; margin-bottom: 6px; border-radius: 4px;"></div>
-                        <div class="skeleton" style="width: 75%; height: 10px; border-radius: 4px;"></div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        const performSearch = async (query) => {
-            locOptionsList.innerHTML = SEARCH_SKELETON_HTML;
-
-            try {
-                const esriSuggestUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/suggest?text=${encodeURIComponent(query)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&maxSuggestions=6&f=json`;
-                const res = await fetch(esriSuggestUrl);
-                const data = await res.json();
-
-                if (data.suggestions && data.suggestions.length > 0) {
-                    renderSearchResults(data.suggestions.map(s => ({
-                        name: s.text.split(',')[0],
-                        address: s.text,
-                        isSuggestion: true,
-                        provider: 'ESRI'
-                    })), query);
-                    return;
-                }
-            } catch (e) { console.warn("ESRI Search failed, falling back to OSM", e); }
-
-            try {
-                const nomUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)},+Laguna,+Philippines&format=json&addressdetails=1&limit=5&countrycodes=ph&viewbox=120.8,14.5,121.5,13.9&bounded=1`;
-                const nm = await fetch(nomUrl, { headers: { 'Accept-Language': 'en' } });
-                const nData = await nm.json();
-                if (nData && nData.length > 0) {
-                    renderSearchResults(nData.map(c => ({
-                        name: c.display_name.split(',')[0],
-                        address: c.display_name,
-                        lat: parseFloat(c.lat),
-                        lng: parseFloat(c.lon),
-                        isSuggestion: false,
-                        provider: 'OpenStreetMap'
-                    })), query);
-                    return;
-                }
-            } catch (e) { }
-
-            locOptionsList.innerHTML = `<div style="padding: 20px; text-align: center; color: var(--navy-muted, #64748B); font-size: 0.88rem;">No results found.</div>`;
-        };
-
-        const renderSearchResults = (results, query) => {
-            locOptionsList.innerHTML = '';
-
-            if (activeSelectingField === 'origin' && query && query.toLowerCase().startsWith('my')) {
-                locOptionsList.innerHTML += `<div class="loc-row" id="optMyLocSearch"><div class="loc-icon bg-blue"><ion-icon name="locate"></ion-icon></div><div class="loc-text">My Location</div></div>`;
-                setTimeout(() => {
-                    document.getElementById('optMyLocSearch')?.addEventListener('click', () => {
-                        requestMyLocationOrigin();
-                    });
-                }, 0);
-            }
-
-            const bubble = document.createElement('div');
-            bubble.className = 'search-results-bubble';
-            results.forEach(r => {
-                const row = document.createElement('div');
-                row.className = 'loc-row search-result';
-                row.innerHTML = `
-                <div class="loc-text">
-                    ${r.name}
-                    <span class="sub-text">${r.address}</span>
-                </div>
-            `;
-                row.addEventListener('click', async () => {
-                    if (r.isSuggestion) {
-                        locOptionsList.innerHTML = SEARCH_SKELETON_HTML;
-                        try {
-                            const esriCandidatesUrl = `https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(r.address)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&outFields=PlaceName,Place_addr&maxLocations=1&f=json`;
-                            const cRes = await fetch(esriCandidatesUrl);
-                            const cData = await cRes.json();
-                            if (cData.candidates && cData.candidates.length > 0) {
-                                selectLocation(r.name, [cData.candidates[0].location.y, cData.candidates[0].location.x]);
-                            } else {
-                                selectLocation(r.name, [14.2045, 121.1641]);
-                            }
-                        } catch (e) {
-                            selectLocation(r.name, [14.2045, 121.1641]);
-                        }
-                    } else {
-                        selectLocation(r.name, [r.lat, r.lng]);
-                    }
-                });
-                bubble.appendChild(row);
-            });
-            locOptionsList.appendChild(bubble);
-            locAttribution.style.display = 'block';
-        };
-
 
         // =============================================
         // MATH & GEOMETRY
@@ -5460,6 +5332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 dotMarker.setLngLat([f.lng, f.lat]);
                 dotMarker.getElement().style.visibility = hidden ? 'hidden' : '';
+                scheduleLocateState();
             };
 
             // Glide the dot to the new fix instead of jumping.
@@ -5528,6 +5401,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
+            // Where the user is, if known (the place search shows distances with it); never stored
+            window._calzadaGetUserFix = () => (fix ? { lat: fix.lat, lng: fix.lng } : null);
+
             window._calzadaSetUserFix = (lng, lat) => {
                 const next = { lng, lat };
                 moveTo(next);
@@ -5542,6 +5418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (dotMarker) { dotMarker.remove(); dotMarker = null; }
                 fix = null;
                 setActive(false);
+                scheduleLocateState();
             };
 
             // fromClick: the user asked, so always answer; automatic failures toast once per session.
@@ -5583,14 +5460,56 @@ document.addEventListener('DOMContentLoaded', () => {
                 );
             };
 
+            let compassBtn = null;
+            let compassNeedle = null;
             const updateLocateLocale = () => {
                 if (locateBtn) {
                     const label = t('planner.show_my_location');
                     locateBtn.setAttribute('title', label);
                     locateBtn.setAttribute('aria-label', label);
                 }
+                if (compassBtn) {
+                    const label = t('planner.reset_north');
+                    compassBtn.setAttribute('title', label);
+                    compassBtn.setAttribute('aria-label', label);
+                }
             };
             window.addEventListener('calzada_lang_changed', updateLocateLocale);
+
+            // Look of the locate button (what a tap does is unchanged): 'idle' = outline target, the map
+            // is not on the user; 'centred' = filled arrow, the map is centred on the user; 'heading' =
+            // heading arrow while navigation follows the user's direction.
+            let locateState = '';
+            const updateLocateState = () => {
+                if (!locateBtn) return;
+                let state = 'idle';
+                if (navActive()) {
+                    state = 'heading';
+                } else if (fix) {
+                    const c = map.project(map.getCenter());
+                    const u = map.project([fix.lng, fix.lat]);
+                    if (Math.hypot(c.x - u.x, c.y - u.y) <= 24) state = 'centred';
+                }
+                if (state === locateState) return;
+                locateState = state;
+                locateBtn.dataset.state = state;
+                locateBtn.setAttribute('aria-pressed', state === 'idle' ? 'false' : 'true');
+            };
+            let locateStateFrame = null;
+            const scheduleLocateState = () => {
+                if (locateStateFrame) return;
+                locateStateFrame = requestAnimationFrame(() => { locateStateFrame = null; updateLocateState(); });
+            };
+            map.on('move', scheduleLocateState);
+
+            // Compass: the needle points north as the map rotates; a tap turns the map back to north
+            const syncCompass = () => {
+                if (compassNeedle) compassNeedle.style.transform = `rotate(${-map.getBearing()}deg)`;
+            };
+            map.on('rotate', syncCompass);
+            const onCompassClick = () => {
+                map.easeTo({ bearing: 0, pitch: 0, duration: reducedMotion() ? 0 : 300, essential: true });
+            };
 
             const onLocateClick = async () => {
                 if (requesting) return;
@@ -5609,27 +5528,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 requestLocation({ fromClick: true });
             };
 
-            // ── Locate-me control (stacked above zoom/compass) ─────────────────────
+            // ── Map buttons: one card, compass on top, locate below ────────────────
             // Deliberately NOT .maplibregl-ctrl-group: the navigation code grabs the first
             // such group in the bottom-right to hide the zoom controls.
             map.addControl({
                 onAdd() {
                     this._container = document.createElement('div');
-                    this._container.className = 'maplibregl-ctrl calzada-locate-ctrl';
+                    this._container.className = 'maplibregl-ctrl calzada-map-card';
+
+                    compassBtn = document.createElement('button');
+                    compassBtn.type = 'button';
+                    compassBtn.className = 'calzada-map-btn calzada-compass-btn';
+                    compassBtn.innerHTML = `
+                        <svg class="calzada-compass-needle" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2.5 15.6 12H8.4Z" fill="#E5484D"/>
+                            <path d="M12 21.5 8.4 12h7.2Z" fill="#94A3B8"/>
+                        </svg>`;
+                    compassNeedle = compassBtn.firstElementChild;
+                    compassBtn.addEventListener('click', onCompassClick);
+
+                    const divider = document.createElement('span');
+                    divider.className = 'calzada-map-divider';
+                    divider.setAttribute('aria-hidden', 'true');
+
                     locateBtn = document.createElement('button');
                     locateBtn.type = 'button';
-                    locateBtn.className = 'calzada-locate-btn';
+                    locateBtn.className = 'calzada-map-btn calzada-locate-btn';
                     locateBtn.innerHTML = `
-                        <span class="calzada-locate-face" aria-hidden="true">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="7"/>
-                                <circle class="calzada-locate-core" cx="12" cy="12" r="2.5"/>
-                                <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-                            </svg>
-                        </span>`;
+                        <svg class="calzada-locate-icon calzada-locate-icon--idle" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="7"/>
+                            <circle cx="12" cy="12" r="2.5"/>
+                            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+                        </svg>
+                        <svg class="calzada-locate-icon calzada-locate-icon--centred" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.6 3.4 3.9 10.3c-.9.4-.8 1.6.1 1.8l6.7 1.4 1.4 6.7c.2.9 1.4 1 1.8.1z" fill="#378ADD"/>
+                        </svg>
+                        <svg class="calzada-locate-icon calzada-locate-icon--heading" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2.5 19.5 20.5 12 16.6 4.5 20.5Z" fill="#378ADD"/>
+                        </svg>`;
                     locateBtn.addEventListener('click', onLocateClick);
-                    this._container.appendChild(locateBtn);
+
+                    this._container.append(compassBtn, divider, locateBtn);
                     updateLocateLocale();
+                    syncCompass();
+                    updateLocateState();
                     return this._container;
                 },
                 onRemove() { this._container.remove(); }
@@ -5646,7 +5588,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Journey start/stop toggles body.navigation-active; re-render so the dot
             // hides under the nav cursor and comes back afterwards.
-            new MutationObserver(() => { if (fix) render(fix); })
+            new MutationObserver(() => { if (fix) render(fix); updateLocateState(); })
                 .observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
             // ── Auto-request once on Planner open ──────────────────────────────────
