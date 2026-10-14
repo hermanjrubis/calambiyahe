@@ -81,7 +81,12 @@
         if (label === 'Pinned location') return tr('planner.pinned_location');
         return label;
     };
-    const fareText = (mode, fare) => mode === 'jeepney' && fare > 0 ? `₱${fare}` : tr('planner.free');
+    // "₱16", or "₱16.25" when there are centavos (same as js/fare-calc.js formatPeso)
+    const fmtPeso = (amount) => {
+        const value = Math.round((Number(amount) || 0) * 100) / 100;
+        return Number.isInteger(value) ? `₱${value}` : `₱${value.toFixed(2)}`;
+    };
+    const fareText = (mode, fare) => mode === 'jeepney' && fare > 0 ? fmtPeso(fare) : tr('planner.free');
 
     // ── Icons (ionicons glyphs inlined: shadow-DOM icons do not render into the PNG) ──
     const ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 512 512" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="48" d="M416 128L192 384l-96-96"/></svg>';
@@ -233,7 +238,7 @@
                         <span class="tkt-jeep-badge"><img src="${JEEPNEY_ICON}" alt=""><span>${esc(tr('planner.nav_jeepney'))}</span></span>
                         <span class="tkt-jeep-meta">${Math.max(1, leg.durationMin)} min · ${esc(fmtKm(leg.distanceKm))}</span>
                     </div>
-                    <span class="tkt-jeep-fare">₱${leg.fare}</span>
+                    <span class="tkt-jeep-fare">${fmtPeso(leg.fare)}</span>
                 </div>`);
             // Alighting stop, unless the jeepney drops at the destination row itself
             if (leg.alightStop || legs[i + 1]) html += stopRow('', 'stop', leg.alightStop || leg.boardStop || 'National Highway', tr('ticket.got_off'));

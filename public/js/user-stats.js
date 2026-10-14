@@ -582,7 +582,7 @@ export async function toggleSavePlace(placeName, category, placeId = null) {
 // My Trips follows the My Visits pattern: a profile modal built in createProfileModals().
 // The confirm dialog and the shared formatters come from js/trip-ticket.js (loaded on demand).
 // ─────────────────────────────────────────────────────────────────────────────
-const TRIP_TICKET_SRC = '/js/trip-ticket.js?v=1.1.2';
+const TRIP_TICKET_SRC = '/js/trip-ticket.js?v=1.1.3';
 const TRIPS_PAGE_SIZE = 20;
 const SAVED_JOURNEYS_KEEP = 50; // journey ids remembered per account
 const savedJourneysMemory = new Set();
@@ -761,7 +761,11 @@ const tripFmt = () => (window.CalzadaTicket && window.CalzadaTicket.format) || {
     minutes: (m) => `${Math.max(1, Math.round(m))} min`,
     time: (ms) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; },
     km: (km) => (km < 1 ? `${Math.round(km * 100) * 10} m` : `${Number(km).toFixed(1)} km`),
-    fare: (mode, fare) => (mode === 'jeepney' && fare > 0 ? `₱${fare}` : ttr('planner.free'))
+    fare: (mode, fare) => {
+        if (!(mode === 'jeepney' && fare > 0)) return ttr('planner.free');
+        const value = Math.round(Number(fare) * 100) / 100;
+        return Number.isInteger(value) ? `₱${value}` : `₱${value.toFixed(2)}`;
+    }
 };
 
 function renderTripsModalText() {

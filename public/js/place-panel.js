@@ -57,9 +57,9 @@ const placesData = {
         },
         barangay: "Brgy. Halang, Calamba City",
         landmarks: ["Near Robinsons Calamba", "Along National Highway", "Beside LTO Calamba"],
-        howToGetThere: "Ride any jeepney going to Crossing or Halang. Fare starts at ₱13. Travel time approx. 10–15 mins.",
+        howToGetThere: "Ride any jeepney going to Crossing or Halang. Fare starts at ₱14. Travel time approx. 10–15 mins.",
         about: "STI College Calamba offers tech and business programs. It is one of the major schools along the National Highway in Halang.",
-        fare: "₱13–₱20",
+        fare: "₱14–₱20",
         travelTime: "10–15 mins",
         transport: "Jeepney / Tricycle"
     },
@@ -87,9 +87,9 @@ const placesData = {
         },
         barangay: "Brgy. Halang, Calamba City",
         landmarks: ["Near Robinsons Calamba", "Along National Highway", "Beside LTO Calamba"],
-        howToGetThere: "Ride any jeepney going to Crossing or Halang. Fare starts at ₱13. Travel time approx. 10–15 mins.",
+        howToGetThere: "Ride any jeepney going to Crossing or Halang. Fare starts at ₱14. Travel time approx. 10–15 mins.",
         about: "STI College Calamba offers tech and business programs. It is one of the major schools along the National Highway in Halang.",
-        fare: "₱13–₱20",
+        fare: "₱14–₱20",
         travelTime: "10–15 mins",
         transport: "Jeepney / Tricycle"
     },
@@ -137,7 +137,7 @@ const placesData = {
         landmarks: ["Calamba Crossing", "Near Calamba Medical Center"],
         howToGetThere: "Accessible via almost all Jeepneys heading to Calamba Crossing. It is located right at the major intersection of the city.",
         about: "SM City Calamba is a major shopping mall providing retail, dining, and entertainment options for residents of Calamba and nearby towns.",
-        fare: "₱13",
+        fare: "₱14",
         travelTime: "5–10 mins",
         transport: "Jeepney / Bus"
     },
@@ -185,7 +185,7 @@ const placesData = {
         landmarks: ["Near Calamba Plaza", "Bayan", "Elepaño Subdivision"],
         howToGetThere: "Ride any jeepney going to Calamba Bayan. Drop off at Elepaño Subdivision / Plaza area. The coffee shop is within walking distance.",
         about: "A cozy local favorite offering affordable coffee, snacks, and a chill atmosphere. Features amenities like billiards and dynamic seating, making it a great hangout spot.",
-        fare: "₱13–₱30",
+        fare: "₱14–₱30",
         travelTime: "10–15 mins",
         transport: "Jeepney / Tricycle"
     }

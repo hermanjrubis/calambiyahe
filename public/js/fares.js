@@ -2,14 +2,14 @@
  * Calzada - Fares Page Logic
  * Renders LTFRB Traditional Jeepney Fare Guide & Live Calculator
  * Single source of truth: ../data/jeepney-fares.json
- * Floating-point-safe rounding, dynamic templates, no hardcoded numbers/dates.
+ * The fare formula is js/fare-calc.js (window.CalzadaFare), shared with the Planner and Routie.
  */
 
 (function () {
     'use strict';
 
     let fareData = null;
-    const PDF_FALLBACK_URL = '/assets/docs/Fare-Guide_Traditional-PUJ-Provisional-Fare-Increase_08Oct2023.pdf';
+    const PDF_FALLBACK_URL = window.CalzadaFare.FALLBACK_FARES.guidePdf;
 
     function getLang() {
         return (window.getCurrentLang && window.getCurrentLang()) ||
@@ -51,14 +51,9 @@
         }
     }
 
-    /**
-     * Floating-point-safe fare computation
-     * fare(km, tier) = roundToNearest(roundTo, tier.baseFare + max(0, km - baseKm) * tier.perKm)
-     */
-    function computeFare(km, tier, baseKm, roundTo) {
-        const raw = tier.baseFare + Math.max(0, km - baseKm) * tier.perKm;
-        const rounded = Math.round((raw + Number.EPSILON) / roundTo) * roundTo;
-        return rounded.toFixed(2);
+    // Fare for a distance as shown in the table and calculator ("16.00"), via the shared formula.
+    function computeFare(km, tierName) {
+        return window.CalzadaFare.fareFor(km, tierName, fareData).toFixed(2);
     }
 
     async function loadFareData() {
@@ -84,7 +79,7 @@
         const effectiveDateFormatted = formatEffectiveDate(fareData.effectiveDate, lang);
         const roundCentavos = Math.round(fareData.roundTo * 100);
         const maxKm = fareData.maxKm;
-        const discFirstFare = computeFare(fareData.baseKm, fareData.discounted, fareData.baseKm, fareData.roundTo);
+        const discFirstFare = computeFare(fareData.baseKm, 'discounted');
 
         const templateVars = {
             effectiveDate: effectiveDateFormatted,
@@ -101,7 +96,7 @@
             source: fareData.source,
             vehicle: fareData.vehicle,
             region: fareData.region,
-            sourceNote: fareData.sourceNote
+            sourceNote: (lang === 'tl' && fareData.sourceNoteTl) ? fareData.sourceNoteTl : fareData.sourceNote
         };
 
         // 1. Effective Note
@@ -113,7 +108,7 @@
         // 2. Calculator Input Setup
         const calcInput = document.getElementById('fareKmInput');
         if (calcInput) {
-            calcInput.maxLength = String(maxKm).length;
+            calcInput.maxLength = String(maxKm).length + 3; // room for a decimal, e.g. "12.5"
             calcInput.setAttribute('aria-label', translate('fares_page.calc_label'));
         }
 
@@ -202,8 +197,8 @@
         function createTableHtml(startKm, endKm) {
             let rowsHtml = '';
             for (let km = startKm; km <= endKm; km++) {
-                const reg = computeFare(km, fareData.regular, fareData.baseKm, fareData.roundTo);
-                const disc = computeFare(km, fareData.discounted, fareData.baseKm, fareData.roundTo);
+                const reg = computeFare(km, 'regular');
+                const disc = computeFare(km, 'discounted');
                 rowsHtml += `
                     <tr data-km="${km}">
                         <th scope="row" class="km-cell">${km}</th>
@@ -248,10 +243,12 @@
 
         const maxKm = fareData.maxKm;
         const rawVal = calcInput.value.trim();
-        const parsed = parseInt(rawVal, 10);
-        const isValid = rawVal !== '' && !isNaN(parsed) && parsed >= 1 && parsed <= maxKm;
+        const distance = /^\d+(\.\d+)?$/.test(rawVal) ? parseFloat(rawVal) : NaN;
+        // Any part of a km counts as a full km, as in the fare guide and the Planner (4.5 km -> 5 km).
+        const counted = isNaN(distance) ? NaN : window.CalzadaFare.countedKm(distance);
+        const isValid = !isNaN(distance) && distance > 0 && counted <= maxKm;
 
-        const vars = { maxKm: maxKm };
+        const vars = { maxKm: maxKm, km: counted };
 
         if (!isValid) {
             hintEl.textContent = interpolate(translate('fares_page.calc_hint_error'), vars);
@@ -260,13 +257,12 @@
             discValEl.textContent = '—';
             clearTableHighlights();
         } else {
-            hintEl.textContent = interpolate(translate('fares_page.calc_hint'), vars);
+            const partKm = counted !== distance;
+            hintEl.textContent = interpolate(translate(partKm ? 'fares_page.calc_hint_counted' : 'fares_page.calc_hint'), vars);
             hintEl.classList.remove('is-error');
-            const regFare = computeFare(parsed, fareData.regular, fareData.baseKm, fareData.roundTo);
-            const discFare = computeFare(parsed, fareData.discounted, fareData.baseKm, fareData.roundTo);
-            regValEl.textContent = '₱' + regFare;
-            discValEl.textContent = '₱' + discFare;
-            highlightTableRow(parsed);
+            regValEl.textContent = '₱' + computeFare(counted, 'regular');
+            discValEl.textContent = '₱' + computeFare(counted, 'discounted');
+            highlightTableRow(counted);
         }
     }
 
@@ -289,10 +285,14 @@
         if (!calcInput) return;
 
         calcInput.addEventListener('input', function () {
-            // Keep only digits
-            let clean = this.value.replace(/\D/g, '');
-            if (fareData && clean.length > String(fareData.maxKm).length) {
-                clean = clean.slice(0, String(fareData.maxKm).length);
+            // Digits and one decimal point (e.g. 4.5); part of a km counts as a full km
+            let clean = this.value.replace(/,/g, '.').replace(/[^\d.]/g, '');
+            const dot = clean.indexOf('.');
+            if (dot !== -1) clean = clean.slice(0, dot + 1) + clean.slice(dot + 1).replace(/\./g, '').slice(0, 2);
+            const whole = dot === -1 ? clean : clean.slice(0, dot);
+            const maxDigits = fareData ? String(fareData.maxKm).length : 2;
+            if (whole.length > maxDigits) {
+                clean = whole.slice(0, maxDigits) + (dot === -1 ? '' : clean.slice(dot));
             }
             this.value = clean;
             updateCalculator();
@@ -302,7 +302,7 @@
             // Allow arrows, backspace, tab, delete, enter
             if (['ArrowUp', 'ArrowDown'].includes(e.key)) {
                 e.preventDefault();
-                let current = parseInt(this.value, 10) || 0;
+                let current = Math.ceil(parseFloat(this.value)) || 0;
                 if (e.key === 'ArrowUp') current = Math.min((fareData ? fareData.maxKm : 50), current + 1);
                 if (e.key === 'ArrowDown') current = Math.max(1, current - 1);
                 this.value = current;

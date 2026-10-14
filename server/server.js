@@ -116,6 +116,7 @@ function getGroqClient() {
 }
 
 const { normalizeLang, fallbackReply, interpretModelOutput } = require('./chat-reply');
+const { getFareData, fareFactsSection, fareEstimateBlock } = require('./fare-info');
 const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -165,7 +166,8 @@ const TUTORIALS = [
     {
         id: 'fares',
         name: 'VIEW FARES',
-        triggers: 'fare, pamasahe, magkano, presyo, bayad, fare table, how much, cost, price, pay',
+        // Where to SEE fares on the site. Questions about an amount ("magkano", "how much") are rule 8, not this.
+        triggers: 'fare table, fares page, where to see fares, view fares, saan makikita ang pamasahe, tingnan ang pamasahe, fare calculator',
         en: `Here's how to see the fares:
 1. Open the Fares page: on the Home page (click the Calzada logo), click {homeFares} (or {aboutFares} on the {about} page).
 2. Check the {fareTable}, or use {fareCalc} to enter your distance in km and see the cost.
@@ -260,12 +262,13 @@ ${renderLabels(tutorial.tl, labels)}`).join('\n\n');
 
 HOW TO ANSWER
 1. If the user asks how to do something that matches a tutorial (see its triggers), reply with that tutorial: the intro line, the numbered steps in the same order, and the tip if it has one. Use the English version for English messages and the Tagalog version for Tagalog/Taglish messages. Keep every quoted label exactly as written. NEVER add, remove, merge or reorder steps, and NEVER mention any button, page, link or feature that is not in the tutorial. Give the tutorial and nothing else: no help line, no extra offer of other topics.
-2. If several tutorials match, pick by what the user wants: fare, pamasahe, cost, price or payment means VIEW FARES; getting from one place to another means PLAN A ROUTE; kinds of places means EXPLORE PLACES. Give only one tutorial. LOGGING IN is a short answer, not steps: give it as written.
+2. If several tutorials match, pick by what the user wants: asking where or how to see fares on Calzada means VIEW FARES (asking how much a ride costs is rule 8, not a tutorial); getting from one place to another means PLAN A ROUTE; kinds of places means EXPLORE PLACES. Give only one tutorial. LOGGING IN is a short answer, not steps: give it as written.
 3. Greeting or small talk ("hi", "hello", "kumusta", "good morning", "how are you"): reply with ONE short friendly sentence and stop there. No help line, and do not list or hint at any topics.
 4. Thanks or acknowledgement ("thank you", "thank u", "salamat", "ok", "sige", "nice", "cool", "got it", "ayos"): reply with ONE short warm sentence and stop there, such as "You're welcome!" or "Walang anuman!". No help line, and do not list or hint at any topics.
 5. Anything unrelated to using Calzada (weather, other cities, general knowledge, math, and so on): ONE short polite sentence saying you can only help with using Calzada. No steps and no help line.
 6. Only when the user asks how to do something on Calzada, or about a Calzada feature, that no tutorial covers (including the separate Discover page, which is not the Explore page): NEVER guess a procedure. Say in one short sentence that you don't have steps for that, then add the help line once. This is the ONLY case in which the help line may appear.
-7. If the message has a [ROUTE INFO] block and the user asks about that trip (time, fare, distance), answer briefly from it. Otherwise ignore it.
+7. If the message has a [ROUTE INFO] block and the user asks about that trip (time, fare, distance), answer briefly from it and call the fare an estimate based on the LTFRB fare guide. Otherwise ignore it.
+8. FARE AMOUNTS. If the user asks how much a jeepney ride costs (magkano, how much, the fare for a distance, the student/senior/PWD fare), answer from FARE FACTS in one to three short sentences and say it is an estimate based on the LTFRB fare guide. If the message has a [FARE ESTIMATE] or [FARE MINIMUM] block, quote its figures exactly (never ₱11.20: the student minimum is the rounded amount), and mention the counted km when it differs from the distance asked. Never work out a fare any other way. If the user asks about a trip between two places and there is no [ROUTE INFO] block, give the minimum fares (regular and student/senior/PWD), say the total depends on the distance, and suggest planning the trip in the “${labels.planner}” to see its fare. Mention modern jeepneys only if the user asks about them. This is not a tutorial: no numbered steps and no help line.
 
 THE HELP LINE - STRICT
 Never append the list of things you can help with unless the user asked how to do something on Calzada that is not covered by a tutorial (case 6 above). Do NOT add it to greetings, thanks, small talk, out-of-scope replies, or tutorial answers. In all of those, keep the reply to one or two sentences and end there. The help line is rare: most replies must not contain it.
@@ -281,12 +284,25 @@ HELP LINE (for case 6 only - use the version in the user's language)
 English: ${HELP_LINE.en}
 Tagalog: ${HELP_LINE.tl}
 
+${fareFactsSection()}
+
 TUTORIALS (the only procedures you may teach)
 ${tutorials}`;
 }
 
-// Built once per site language; a bad {label} in a tutorial fails here, at startup, rather than mid-chat.
-const SYSTEM_PROMPTS = { en: buildSystemPrompt('en'), tl: buildSystemPrompt('tl') };
+// Built per site language and rebuilt only when the fare rates in public/data/jeepney-fares.json change.
+// Built once here at startup too, so a bad {label} in a tutorial fails at startup rather than mid-chat.
+const systemPromptCache = {};
+function getSystemPrompt(uiLang) {
+    const { version } = getFareData();
+    const cached = systemPromptCache[uiLang];
+    if (cached && cached.version === version) return cached.prompt;
+    const prompt = buildSystemPrompt(uiLang);
+    systemPromptCache[uiLang] = { version, prompt };
+    return prompt;
+}
+getSystemPrompt('en');
+getSystemPrompt('tl');
 const UI_LABEL_LISTS = { en: Object.values(UI_LABELS.en), tl: Object.values(UI_LABELS.tl) };
 
 // Per-model request options. All of them take JSON mode; the gpt-oss models reason before they answer, so they get a low
@@ -753,11 +769,12 @@ app.post('/api/chat', async (req, res) => {
         routeInfo = `[ROUTE INFO]\nOrigin: ${route.origin}\nDestination: ${route.destination}\nETA: ${route.eta}\nFare: ${route.fare}\nDistance: ${route.distance}\n\n`;
     }
 
-    const fullUserMessage = `${routeInfo}${message || ''}`;
+    // When the user names a distance, the fare is worked out here with the Planner's formula, not by the model.
+    const fullUserMessage = `${routeInfo}${fareEstimateBlock(message)}${message || ''}`;
 
     try {
         const chatCompletion = await callGroqWithRetry(client, [
-            { role: 'system', content: SYSTEM_PROMPTS[replyLang] },
+            { role: 'system', content: getSystemPrompt(replyLang) },
             { role: 'user', content: fullUserMessage },
         ]);
 

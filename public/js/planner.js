@@ -1648,10 +1648,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return res;
         };
 
+        // Peso amount as shown everywhere in the planner: "₱16", or "₱16.25" when there are centavos
+        function formatPeso(amount) {
+            return window.CalzadaFare ? window.CalzadaFare.formatPeso(amount) : `₱${amount}`;
+        }
+
+        // Fare rates: fetch /data/jeepney-fares.json once, early, so the first route already has them
+        if (window.CalzadaFare) window.CalzadaFare.load();
+
         // Helper: update fare display across desktop and mobile navigation cards
         function updatePillFareUI(remFare = null) {
             const fare = remFare !== null ? remFare : currentFare;
-            const fareText = selectedMode === 'walking' ? 'Free' : `₱${fare}`;
+            const fareText = selectedMode === 'walking' ? 'Free' : formatPeso(fare);
             const lblText = selectedMode === 'walking' ? 'MODE' : 'PHP';
 
             document.querySelectorAll('.nav-stat-php, #navPanelFare, #dNavPhp, #pillPhp').forEach(el => {
@@ -1718,7 +1726,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pillRemDist.textContent = distStr;
             }
 
-            // Left line 2: "Arrive 20:24 · Walking · Free" or "Arrive 19:06 · Jeepney · ₱15"
+            // Left line 2: "Arrive 20:24 · Walking · Free" or "Arrive 19:06 · Jeepney · ₱16"
             const arriveLabel = t('planner.arrive_time', { time: arrivalText }) || `Arrive ${arrivalText}`;
             const isWalkOnly = selectedMode === 'walking';
             const modeName = isWalkOnly
@@ -1726,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : (t('planner.nav_jeepney') || 'Jeepney');
             const fareLabel = isWalkOnly
                 ? (t('planner.free') || 'Free')
-                : `₱${currentFare}`;
+                : formatPeso(currentFare);
 
             const pillSubLine = document.getElementById('pillSubLine');
             if (pillSubLine) {
@@ -2995,7 +3003,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const correctedTransitDur = (currentTransitDist / JEEPNEY_SPEED_KPH) * 3600 + BOARDING_BUFFER_SEC;
             currentTransitDur = Math.ceil(correctedTransitDur / 60);
 
-            // Single centralized fare calculation based on actual transit distance
+            // Single centralized fare calculation based on actual transit distance (fare rates loaded
+            // once; waits at most 2 s for them, then uses the built-in copy)
+            if (window.CalzadaFare) {
+                await Promise.race([window.CalzadaFare.load(), new Promise(r => setTimeout(r, 2000))]);
+            }
             currentFare = computeLTFRBFare(currentTransitDist);
 
             drawRoutes(wRes.coordinates, tRes.coordinates);
@@ -3076,11 +3088,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         };
 
+        // Regular traditional jeepney fare for a distance, from /data/jeepney-fares.json via the shared
+        // formula in js/fare-calc.js (same as the Fares page and Routie): whole km with any part of a
+        // km rounded up, then rounded to the nearest 0.25. Until the file has loaded (or if it cannot
+        // load) the built-in copy of the current rates is used, so routing never waits or breaks.
         const computeLTFRBFare = (distKm) => {
-            const base = 14, perKm = 2.00; // Traditional Jeepney LTFRB fare: ₱14 for first 4 km, +₱2.00/km excess
-            if (!distKm || distKm <= 4) return base;
-            const total = base + (distKm - 4) * perKm;
-            return Math.round(total); // rounded to nearest whole peso
+            const F = window.CalzadaFare;
+            if (!F) return 14; // fare-calc.js missing: the minimum fare rather than no fare
+            return F.fareFor(distKm, 'regular', F.current());
         };
 
         const drawRoutes = (walkCoords, transitCoords) => {
@@ -3389,7 +3404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </span>
                             <span class="timeline-jeep-meta">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km</span>
                         </div>
-                        <span class="timeline-jeep-fare">₱${currentFare}</span>
+                        <span class="timeline-jeep-fare">${formatPeso(currentFare)}</span>
                     </div>
                     ${signboardHtml}
                 </div>
@@ -3493,7 +3508,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isWalkOnly = selectedMode === 'walking';
             const freeLabel = window.t ? (window.t('planner.fare_free') || window.t('planner.free') || 'Free') : 'Free';
-            const fareLabel = isWalkOnly ? freeLabel : `₱${currentFare}`;
+            const fareLabel = isWalkOnly ? freeLabel : formatPeso(currentFare);
 
             if (st) st.textContent = `${totalMin} min`;
             if (sf) sf.textContent = fareLabel;
@@ -3512,7 +3527,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (peek) {
                 peek.textContent = selectedMode === 'walking'
                     ? `${totalMin} min • Walk`
-                    : `${totalMin} min • ₱${currentFare}`;
+                    : `${totalMin} min • ${formatPeso(currentFare)}`;
             }
             if (blk) {
                 blk.style.removeProperty('display');
@@ -3621,7 +3636,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="nav-leg-title">Jeepney towards ${escapeHtml(alightAt)}</div>
                         <div class="nav-leg-meta">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km (Board: ${escapeHtml(boardAt)})</div>
                     </div>
-                    <div class="nav-leg-fare">₱${currentFare}</div>
+                    <div class="nav-leg-fare">${formatPeso(currentFare)}</div>
                 </div>
             `;
                 legCount = 2;
@@ -4762,7 +4777,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'jeepney',
                     durationMin: Math.round(currentTransitDur),
                     distanceKm: roundTo(currentTransitDist, 2),
-                    fare: Math.round(currentFare),
+                    fare: roundTo(currentFare, 2), // keeps centavos (e.g. 16.25), as the ticket shows
                     boardStop: clip(stops.boardAt || 'National Highway', 120),
                     alightStop: clip(stops.alightAt, 120)
                 });
