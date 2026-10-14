@@ -2436,9 +2436,12 @@ body.chat-active .chat-toggle-pill {
         background: rgba(55, 138, 221, 0.1);
     }
 
-    .mobile-nav-icon-btn .ti-bell {
-        font-size: 22px;
-        line-height: 1;
+    /* Bell and user: inline Tabler outline icons, 22px */
+    .mobile-nav-icon-btn .mobile-nav-svg {
+        width: 22px;
+        height: 22px;
+        display: block;
+        flex-shrink: 0;
     }
 
     /* Bell dot (unread activity): inside the button's top-right corner, so the avatar never covers it */
