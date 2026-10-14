@@ -2440,6 +2440,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             walkRouteGeojson = null;
             transitRouteGeojson = null;
+            window.walkRouteGeojson = null;
+            window.transitRouteGeojson = null;
             window.activeRouteSteps = [];
             window.currentStepIndex = 0;
 
@@ -2474,8 +2476,27 @@ document.addEventListener('DOMContentLoaded', () => {
             clearDestField();
         });
 
+        // Link parameters that open the planner with a route (see URL PARAMETERS below)
+        const ROUTE_URL_PARAMS = ['destName', 'dest', 'destLat', 'dlat', 'destLng', 'dlng',
+            'originName', 'origName', 'origin', 'originLat', 'origLat', 'olat', 'originLng', 'origLng', 'olng'];
+        const clearRouteUrlParams = () => {
+            try {
+                const url = new URL(window.location.href);
+                const had = ROUTE_URL_PARAMS.filter(k => url.searchParams.has(k));
+                if (!had.length) return;
+                had.forEach(k => url.searchParams.delete(k));
+                history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+            } catch (_) { /* URL API unavailable: the route may come back on reload */ }
+        };
+
         document.getElementById('closeDirectionsBtn')?.addEventListener('click', () => {
             clearAllPlannerState();
+            // Back to the open, empty sheet a fresh /planner starts with. A collapsed sheet keeps the
+            // offset worked out for its taller route content, which would push the now shorter sheet
+            // off the screen.
+            setSheetState('expanded');
+            // The link the planner was opened with would bring the route back on reload
+            clearRouteUrlParams();
         });
 
         const updateODDisplay = () => {
@@ -2951,12 +2972,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Strategy: find step containing "Highway", "National", or "Maharlika"
-            const HIGHWAY_KEYWORDS = ['national highway', 'maharlika', 'highway', 'diversion', 'road 1'];
+            const HIGHWAY_KEYWORDS = ['national highway', 'maharlika', 'highway', 'diversion'];
+            // "Road 1" is the national road only when OSM gives it a route number (ref); subdivisions
+            // have their own streets named Road 1, Road 10, Road 11...
+            const isJeepneyRoadStep = (step) => {
+                const name = (step.name || '').toLowerCase();
+                return HIGHWAY_KEYWORDS.some(k => name.includes(k)) || (/\broad 1\b/.test(name) && !!step.ref);
+            };
             const findHighwayBoardingPoint = (routeResult) => {
                 const steps = routeResult.steps || [];
                 for (let i = 0; i < steps.length; i++) {
-                    const name = (steps[i].name || '').toLowerCase();
-                    if (HIGHWAY_KEYWORDS.some(k => name.includes(k))) {
+                    if (isJeepneyRoadStep(steps[i])) {
                         const geom = steps[i].geometry?.coordinates;
                         if (geom && geom.length > 0) return [geom[0][1], geom[0][0]]; // [lat, lng]
                     }
@@ -3008,6 +3034,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     duration: Math.max(60, fullCarRes.duration),
                     steps: fullCarRes.steps || []
                 };
+            }
+
+            // The boarding point above is where the car route joins the highway. The walk can reach the
+            // jeepney's road earlier (e.g. from a subdivision exit further up) and then follow it to that
+            // point. Board where the walk reaches the road instead, so nobody walks along the jeepney's
+            // own route for more than ~150 m, provided the jeepney from there passes the old boarding
+            // point (right direction, no detour). The fare follows the new, longer ride.
+            const earlierBoarding = await boardWhereWalkReachesJeepneyRoad(wRes, tRes, boardingPt, dPt, isJeepneyRoadStep);
+            if (earlierBoarding) {
+                wRes = earlierBoarding.walk;
+                tRes = earlierBoarding.transit;
             }
 
             walkRouteGeojson = wRes;
@@ -3121,17 +3158,93 @@ document.addEventListener('DOMContentLoaded', () => {
         const OSRM_FOOT_URL = 'https://routing.openstreetmap.de/routed-foot/route/v1';
         const FOOT_ROUTE_TIMEOUT_MS = 5000;
 
-        // First route of an OSRM response, or null (HTTP error, timeout, no route).
-        const requestOsrmRoute = async (url, timeoutMs = 0) => {
+        // OSRM response JSON, or null (HTTP error, timeout, code other than Ok).
+        const requestOsrmJson = async (url, timeoutMs = 0) => {
             const controller = timeoutMs ? new AbortController() : null;
             const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
             try {
                 const res = await fetch(url, controller ? { signal: controller.signal } : undefined);
                 if (!res.ok) return null;
                 const json = await res.json();
-                return (json.code === 'Ok' && json.routes && json.routes.length > 0) ? json.routes[0] : null;
+                return json.code === 'Ok' ? json : null;
             } finally {
                 if (timer) clearTimeout(timer);
+            }
+        };
+
+        // First route of an OSRM response with the response's waypoints attached, or null.
+        const requestOsrmRoute = async (url, timeoutMs = 0) => {
+            const json = await requestOsrmJson(url, timeoutMs);
+            return (json && json.routes && json.routes.length > 0) ? { ...json.routes[0], waypoints: json.waypoints || [] } : null;
+        };
+
+        // Walks that start or end inside a gated subdivision. Its roads are tagged access=private in
+        // OpenStreetMap and the FOSSGIS foot router will not use them at all, so it moves the start (or
+        // end) onto the nearest public street, often across houses and through the wrong exit. The demo
+        // server's profile does use private roads at the start and end of a route, and so leaves through
+        // the subdivision's own gate. Such a walk takes the demo route inside the private area and the
+        // FOSSGIS foot route from the first public road on; if the two cannot be joined reliably, the
+        // whole walk uses the demo route.
+        const PRIVATE_SNAP_M = 30;  // FOSSGIS moved the point further than this: it is on a private road
+        const PUBLIC_SNAP_M = 10;   // a point this close to a FOSSGIS foot path is on a public road
+        const walkThroughPrivateArea = async (coords, query, footRoute) => {
+            const wps = footRoute.waypoints || [];
+            const startPrivate = wps.length > 0 && (wps[0].distance || 0) > PRIVATE_SNAP_M;
+            const endPrivate = wps.length > 1 && (wps[wps.length - 1].distance || 0) > PRIVATE_SNAP_M;
+            if (!startPrivate && !endPrivate) return null;
+
+            const demo = await requestOsrmRoute(`${OSRM_DEMO_URL}/foot/${coords}?${query}`);
+            if (!demo) return null; // keep the FOSSGIS route
+            const whole = { route: demo, source: 'OSRM demo server (whole walk, private area)' };
+            const steps = (demo.legs && demo.legs[0] && demo.legs[0].steps) || [];
+            if (steps.length < 2) return whole;
+
+            try {
+                // Which turns of the demo route are on public roads: one FOSSGIS table request gives
+                // the distance from each to the nearest foot path.
+                const turnPts = steps.map(s => s.maneuver.location);
+                const table = await requestOsrmJson(`${OSRM_FOOT_URL.replace('/route/v1', '/table/v1')}/foot/${turnPts.map(p => `${p[0]},${p[1]}`).join(';')}?destinations=0`, FOOT_ROUTE_TIMEOUT_MS);
+                if (!table || !table.sources || table.sources.length !== turnPts.length) return whole;
+                const isPublic = table.sources.map(w => (w.distance || 0) <= PUBLIC_SNAP_M);
+                const last = steps.length - 1;
+                let from = 0, to = last;
+                if (startPrivate) { from = isPublic.findIndex((p, i) => i > 0 && p); if (from < 0) return whole; }
+                if (endPrivate) { to = -1; for (let i = last - 1; i > from; i--) if (isPublic[i]) { to = i; break; } if (to < 0) return whole; }
+                if (to <= from) return whole;
+
+                const a = turnPts[from], b = turnPts[to];
+                const mid = await requestOsrmRoute(`${OSRM_FOOT_URL}/foot/${a[0]},${a[1]};${b[0]},${b[1]}?${query}`, FOOT_ROUTE_TIMEOUT_MS);
+                const midWps = mid ? mid.waypoints : [];
+                if (!mid || midWps.length < 2 || midWps.some(w => (w.distance || 0) > PUBLIC_SNAP_M)) return whole;
+
+                // Demo route up to the join turn, FOSSGIS between the joins, demo route after the end join
+                const demoCoords = demo.geometry.coordinates;
+                const nearestIdx = (pt) => {
+                    let idx = 0, best = Infinity;
+                    demoCoords.forEach((c, i) => { const d = (c[0] - pt[0]) ** 2 + (c[1] - pt[1]) ** 2; if (d < best) { best = d; idx = i; } });
+                    return idx;
+                };
+                const iA = from > 0 ? nearestIdx(a) : 0;
+                const iB = to < last ? nearestIdx(b) : demoCoords.length - 1;
+                if (iB < iA) return whole;
+                const geometry = [
+                    ...demoCoords.slice(0, from > 0 ? iA + 1 : 0),
+                    ...mid.geometry.coordinates,
+                    ...demoCoords.slice(to < last ? iB : demoCoords.length)
+                ];
+                let midSteps = (mid.legs[0].steps || []).slice();
+                // The join keeps the demo route's own turn there instead of a second "Walk towards"
+                if (from > 0 && midSteps.length) midSteps[0] = { ...midSteps[0], maneuver: { ...steps[from].maneuver } };
+                if (to < last) midSteps = midSteps.filter(s => s.maneuver.type !== 'arrive');
+                const joinedSteps = [...steps.slice(0, from), ...midSteps, ...(to < last ? steps.slice(to) : [])];
+                const sum = (list) => list.reduce((m, s) => m + (s.distance || 0), 0);
+                const distance = sum(steps.slice(0, from)) + mid.distance + (to < last ? sum(steps.slice(to)) : 0);
+                return {
+                    route: { geometry: { type: 'LineString', coordinates: geometry }, distance, duration: demo.duration, legs: [{ steps: joinedSteps }], waypoints: demo.waypoints },
+                    source: `OSRM demo server inside the private area${startPrivate ? ' (start)' : ''}${endPrivate ? ' (end)' : ''}, FOSSGIS foot server for the rest`
+                };
+            } catch (_) {
+                return whole;
             }
         };
 
@@ -3140,20 +3253,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = 'overview=full&geometries=geojson&steps=true&alternatives=false';
             try {
                 let rt = null;
-                let usedFootServer = false;
+                let walkSource = null;
                 if (profile === 'foot') {
                     try {
                         rt = await requestOsrmRoute(`${OSRM_FOOT_URL}/foot/${coords}?${query}`, FOOT_ROUTE_TIMEOUT_MS);
-                        usedFootServer = !!rt;
+                        if (rt) walkSource = 'FOSSGIS foot server';
                     } catch (_) { rt = null; /* failed or timed out: fall back below */ }
+                    if (rt) {
+                        const viaGate = await walkThroughPrivateArea(coords, query, rt);
+                        if (viaGate) { rt = viaGate.route; walkSource = viaGate.source; }
+                    }
                 }
                 if (!rt) {
                     // OSRM public instance supports: foot, car (not 'driving')
                     const osrmProfile = profile === 'foot' ? 'foot' : 'car';
                     rt = await requestOsrmRoute(`${OSRM_DEMO_URL}/${osrmProfile}/${coords}?${query}`);
+                    if (rt && profile === 'foot') walkSource = 'OSRM demo server (fallback)';
                 }
                 if (profile === 'foot') {
-                    console.info(`Walk route: ${usedFootServer ? 'FOSSGIS foot server' : (rt ? 'OSRM demo server (fallback)' : 'no route from either server')}`);
+                    console.info(`Walk route: ${walkSource || 'no route from either server'}`);
                 }
                 if (rt) {
                     const distM = rt.distance;
@@ -3171,6 +3289,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (e) { console.error('OSRM Error:', e); }
             return null;
+        };
+
+        // Jeepney trips: if the walk to the boarding point ends with more than this much walking along the
+        // jeepney's own roads, the user boards where the walk first reaches them instead.
+        const MAX_WALK_ALONG_JEEPNEY_M = 150;
+
+        // Returns { walk, transit } with the earlier boarding point, or null to keep the trip as it is.
+        // One extra car route request, only when the walk does follow the jeepney's road for long.
+        const boardWhereWalkReachesJeepneyRoad = async (walk, transit, boardPt, destPt, isJeepneyRoadStep) => {
+            const steps = walk && walk.steps ? walk.steps : [];
+            if (steps.length < 2 || !transit || !transit.steps || !transit.steps.length) return null;
+            const jeepRoads = new Set(transit.steps.map(s => (s.name || '').trim().toLowerCase()).filter(Boolean));
+            const onJeepRoad = (s) => {
+                const name = (s.name || '').trim().toLowerCase();
+                return !!name && (jeepRoads.has(name) || isJeepneyRoadStep(s));
+            };
+            // The walk's last stretch on the jeepney's roads (steps tailStart..end)
+            let tailStart = steps.length;
+            while (tailStart > 0 && (steps[tailStart - 1].maneuver?.type === 'arrive' || onJeepRoad(steps[tailStart - 1]))) tailStart--;
+            const tail = steps.slice(tailStart).filter(s => s.maneuver?.type !== 'arrive');
+            const alongM = tail.reduce((m, s) => m + (s.distance || 0), 0);
+            if (!tail.length || tailStart === 0 || alongM <= MAX_WALK_ALONG_JEEPNEY_M) return null;
+
+            const loc = tail[0].maneuver && tail[0].maneuver.location;
+            if (!loc) return null;
+            const newBoard = [loc[1], loc[0]];
+            const newTransit = await fetchOSRMRouteCoords(newBoard, destPt, 'car');
+            if (!newTransit || !newTransit.coordinates || newTransit.coordinates.length < 2) return null;
+            // Right direction: the jeepney from the new point runs through the old boarding point and the
+            // ride is longer only by about the stretch the walk would have covered.
+            const passesOldBoarding = newTransit.coordinates.some(c => getHaversineDist(c[0], c[1], boardPt[0], boardPt[1]) * 1000 <= 40);
+            if (!passesOldBoarding || newTransit.distance > transit.distance + alongM + 300) return null;
+
+            // Walk up to where it reaches the jeepney's road
+            let cut = 0, best = Infinity;
+            walk.coordinates.forEach((c, i) => {
+                const d = getHaversineDist(c[0], c[1], newBoard[0], newBoard[1]);
+                if (d < best) { best = d; cut = i; }
+            });
+            const coordinates = walk.coordinates.slice(0, cut + 1);
+            if (best * 1000 > 1) coordinates.push(newBoard);
+            const kept = steps.slice(0, tailStart);
+            const distance = kept.reduce((m, s) => m + (s.distance || 0), 0);
+            const arrive = { ...tail[0], distance: 0, duration: 0, maneuver: { ...tail[0].maneuver, type: 'arrive', modifier: undefined } };
+            return {
+                walk: { coordinates, distance, duration: (distance / 1000 / WALK_SPEED_KPH) * 3600, steps: [...kept, arrive] },
+                transit: newTransit
+            };
         };
 
         // Regular traditional jeepney fare for a distance, from /data/jeepney-fares.json via the shared
