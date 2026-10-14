@@ -393,17 +393,19 @@
         .sort((a, b) => b.score - a.score || ((a.distM != null && b.distM != null) ? a.distM - b.distM : 0))
         .slice(0, 6);
 
-    // Geoapify through our server. Throws (so Esri takes over) on no key (204), an error or 3 s.
+    // Geoapify through our server. Throws (so Esri takes over) on no key (204), too many searches (429), an error or 3 s.
     const searchGeocode = async (query, signal) => {
         const bias = userFix() || CALAMBA;
-        const params = new URLSearchParams({ q: query, lat: bias.lat.toFixed(4), lng: bias.lng.toFixed(4) });
+        // POST body, so the search text never appears in a URL or request log
+        const body = JSON.stringify({ q: query, lat: +bias.lat.toFixed(4), lng: +bias.lng.toFixed(4) });
         const timeout = new AbortController();
         const timer = setTimeout(() => timeout.abort(), GEOCODE_TIMEOUT_MS);
         const onAbort = () => timeout.abort();
         signal.addEventListener('abort', onAbort);
         try {
-            const res = await fetch(`${GEOCODE_URL}?${params}`, { signal: timeout.signal });
+            const res = await fetch(GEOCODE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: timeout.signal });
             if (res.status === 204) throw new Error('no geocoder key');
+            if (res.status === 429) throw new Error('too many searches'); // Esri takes over
             if (!res.ok) throw new Error(`geocode HTTP ${res.status}`);
             const data = await res.json();
             return (data.results || []).map(r => ({

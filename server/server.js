@@ -420,7 +420,7 @@ const callGroqWithRetry = async (client, messages, retries = 2) => {
 
 app.get('/api/ping', (req, res) => res.json({ status: 'ok' }));
 
-// GET /api/geocode?q=&lat=&lng= - place autocomplete for the planner search (Geoapify).
+// POST /api/geocode { q, lat, lng } - place autocomplete for the planner search (Geoapify).
 // The API key stays on the server. Privacy: the position is rounded to 2 decimals (~1 km) before it
 // leaves this server, and neither the search text nor the position is ever logged. Without a key the
 // endpoint answers 204 at once, so the page goes straight to its Esri fallback.
@@ -444,15 +444,41 @@ const geocodeKind = (r) => {
     return 'pin';
 };
 
-app.get('/api/geocode', async (req, res) => {
+// Per-visitor limit: 30 requests per minute (sliding window, in memory per server instance).
+// Kept only as timestamps per address; addresses are never logged.
+const GEOCODE_RATE_MAX = 30;
+const GEOCODE_RATE_WINDOW_MS = 60 * 1000;
+const geocodeHits = new Map(); // address -> [timestamps]
+const visitorAddress = (req) => {
+    // On Vercel these headers are set by the platform (client values are overwritten)
+    const fwd = String(req.headers['x-vercel-forwarded-for'] || req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+    return fwd || req.socket.remoteAddress || 'unknown';
+};
+const overGeocodeLimit = (req) => {
+    const now = Date.now();
+    const addr = visitorAddress(req);
+    const recent = (geocodeHits.get(addr) || []).filter(t => now - t < GEOCODE_RATE_WINDOW_MS);
+    const over = recent.length >= GEOCODE_RATE_MAX;
+    if (!over) recent.push(now);
+    geocodeHits.set(addr, recent);
+    if (geocodeHits.size > 5000) {
+        for (const [a, list] of geocodeHits) if (!list.some(t => now - t < GEOCODE_RATE_WINDOW_MS)) geocodeHits.delete(a);
+    }
+    return over;
+};
+
+// POST with a JSON body { q, lat, lng }, so the search text never appears in a URL or request log
+app.post('/api/geocode', async (req, res) => {
+    if (overGeocodeLimit(req)) return res.status(429).json({ error: 'Too many searches, try again in a minute' });
     const key = process.env.GEOAPIFY_KEY;
     if (!key) return res.status(204).end();
 
-    const q = String(req.query.q || '').trim().slice(0, 120);
+    const body = req.body || {};
+    const q = String(body.q || '').trim().slice(0, 120);
     if (q.length < 2) return res.status(400).json({ error: 'Search text too short' });
     const round2 = (v) => { const n = Number(v); return Number.isFinite(n) ? Math.round(n * 100) / 100 : null; };
-    let lat = round2(req.query.lat);
-    let lng = round2(req.query.lng);
+    let lat = round2(body.lat);
+    let lng = round2(body.lng);
     if (lat === null || lng === null || Math.abs(lat) > 90 || Math.abs(lng) > 180) ({ lat, lng } = GEOCODE_DEFAULT_POINT);
 
     const cacheKey = `${q.toLowerCase()}|${lat}|${lng}`;
