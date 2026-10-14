@@ -1,0 +1,639 @@
+/* =============================================================================
+   TRIPS: trip summary ticket, in-app confirm, My Trips modal
+   Loaded on demand by js/trip-ticket.js on every page (the planner does not load
+   style.css), so everything here is self-contained.
+   Design system: #378ADD / #2272C3 / #0E2A47 / #475569 / #64748B / #94A3B8 /
+   #E2E8F0 / #F1F5F9 / #FFFFFF / #E5484D, Sora + Outfit. No gradients except the
+   perforation mask.
+   ============================================================================= */
+
+/* ── Ticket dialog ─────────────────────────────────────────────────────────── */
+/* Elements toggled with the hidden attribute must stay hidden despite their display rules */
+.trip-ticket [hidden],
+.tkt-confirm-overlay [hidden] {
+    display: none !important;
+}
+
+.tkt-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(14, 42, 71, 0.45);
+    z-index: 100000;
+    display: none;
+}
+
+.tkt-overlay.visible {
+    display: block;
+}
+
+/* Centred with inset + auto margins rather than translate(-50%), which put the card
+   on half pixels (blurry text and a see-through seam under the perforation). */
+.trip-ticket {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: 320px;
+    height: fit-content;
+    max-width: calc(100vw - 32px);
+    transform: scale(0.96);
+    z-index: 100001;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s linear 0.22s;
+}
+
+.trip-ticket.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    transition: opacity 0.22s ease, transform 0.22s ease, visibility 0s;
+}
+
+@media (min-width: 769px) {
+    .trip-ticket {
+        width: 360px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .trip-ticket,
+    .trip-ticket.visible {
+        transition: none;
+    }
+}
+
+/* The card paints no background of its own: the header, perforation strip and
+   body do, so the perforation notches are real holes onto whatever is behind.
+   On short screens only the ticket scrolls; the buttons stay in view. */
+.tkt-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 24px;
+    overflow: hidden;
+    max-height: calc(100vh - 32px);
+    max-height: calc(100dvh - 32px);
+    box-shadow: 0 18px 40px rgba(14, 42, 71, 0.30);
+}
+
+.tkt-sheet {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+}
+
+.tkt-sheet::-webkit-scrollbar {
+    display: none;
+}
+
+.tkt-head {
+    background: #378ADD;
+    color: #FFFFFF;
+    padding: 20px 22px 22px;
+}
+
+.tkt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px 5px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.tkt-dest {
+    margin: 14px 0 6px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    color: #FFFFFF;
+    overflow-wrap: anywhere;
+}
+
+.tkt-from {
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    line-height: 1.35;
+    color: #FFFFFF;
+    overflow-wrap: anywhere;
+}
+
+/* Perforation: dashed rule with a 22px half-circle notch cut out of each side. */
+.tkt-perf {
+    position: relative;
+    /* 22px visible; it overlaps the header and body by 1px each so no edge row can show through */
+    height: 24px;
+    margin: -1px 0;
+    background: #FFFFFF;
+    -webkit-mask:
+        radial-gradient(circle 11px at 0 50%, transparent 10.5px, #000 11px),
+        radial-gradient(circle 11px at 100% 50%, transparent 10.5px, #000 11px);
+    -webkit-mask-composite: source-in;
+    mask:
+        radial-gradient(circle 11px at 0 50%, transparent 10.5px, #000 11px),
+        radial-gradient(circle 11px at 100% 50%, transparent 10.5px, #000 11px);
+    mask-composite: intersect;
+}
+
+.tkt-perf::before {
+    content: '';
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    top: 50%;
+    border-top: 2px dashed #E2E8F0;
+    transform: translateY(-1px);
+}
+
+.tkt-body {
+    background: #FFFFFF;
+    padding: 2px 20px 16px;
+}
+
+.tkt-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding-bottom: 14px;
+    border-bottom: 1px solid #F1F5F9;
+    text-align: center;
+}
+
+.tkt-stat {
+    padding: 0 4px;
+    min-width: 0;
+}
+
+.tkt-stat + .tkt-stat {
+    border-left: 1px solid #F1F5F9;
+}
+
+.tkt-stat-val {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 1.2;
+    color: #0E2A47;
+    white-space: nowrap;
+}
+
+.tkt-stat-fare {
+    color: #2272C3;
+}
+
+.tkt-stat-lbl {
+    margin-top: 3px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12.5px;
+    line-height: 1.25;
+    color: #64748B;
+}
+
+.tkt-stat-est {
+    margin-top: 1px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    line-height: 1.25;
+    color: #94A3B8;
+}
+
+.tkt-stat-est:empty {
+    display: none;
+}
+
+/* Timeline: same layout as the planner itinerary ([time][rail][content]) */
+.tkt-timeline {
+    margin-top: 14px;
+}
+
+.tkt-row {
+    display: grid;
+    grid-template-columns: 40px 22px 1fr;
+    column-gap: 8px;
+    align-items: flex-start;
+}
+
+.tkt-time {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: #64748B;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    line-height: 1.2;
+    margin-top: 2px;
+}
+
+.tkt-rail {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tkt-stop {
+    padding: 4px 0;
+}
+
+.tkt-stop .tkt-rail {
+    height: 18px;
+    margin-top: 2px;
+}
+
+.tkt-ring {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    box-sizing: border-box;
+}
+
+.tkt-ring--origin { border: 3px solid #378ADD; }
+.tkt-ring--stop { border: 3px solid #0E2A47; }
+.tkt-ring--dest { border: 3px solid #E5484D; }
+
+.tkt-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tkt-stop-name {
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #0E2A47;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.tkt-stop-sub {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: #64748B;
+    line-height: 1.3;
+    margin-top: 2px;
+}
+
+.tkt-leg {
+    min-height: 38px;
+    padding: 2px 0;
+}
+
+.tkt-leg .tkt-rail {
+    align-self: stretch;
+    align-items: stretch;
+    min-height: 38px;
+}
+
+.tkt-line--walk {
+    width: 0;
+    border-left: 3px dotted #94A3B8;
+}
+
+.tkt-line--jeepney {
+    width: 4px;
+    border-radius: 2px;
+    background: #378ADD;
+}
+
+.tkt-walk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.3;
+}
+
+.tkt-walk svg {
+    flex-shrink: 0;
+}
+
+.tkt-jeep {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+}
+
+.tkt-jeep-left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-width: 0;
+}
+
+.tkt-jeep-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 7px;
+    background: #378ADD;
+    color: #FFFFFF;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    line-height: 1;
+}
+
+.tkt-jeep-badge img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
+.tkt-jeep-meta {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.tkt-jeep-fare {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #2272C3;
+    white-space: nowrap;
+}
+
+.tkt-foot {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #F1F5F9;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #64748B;
+}
+
+.tkt-domain {
+    margin-left: 6px;
+    color: #94A3B8;
+}
+
+/* ── Ticket actions (not part of the saved image) ─────────────────────────── */
+.tkt-actions {
+    flex-shrink: 0;
+    padding: 4px 20px 20px;
+    background: #FFFFFF;
+}
+
+.trip-ticket.tkt-scrolls .tkt-actions {
+    padding-top: 12px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.tkt-btn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.tkt-btn {
+    height: 48px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tkt-btn:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+.tkt-btn--secondary {
+    background: #FFFFFF;
+    border: 1.5px solid #E2E8F0;
+    color: #2272C3;
+}
+
+.tkt-btn--primary {
+    background: #378ADD;
+    border: none;
+    color: #FFFFFF;
+}
+
+.tkt-btn--primary:active {
+    background: #2272C3;
+}
+
+.tkt-btn--danger {
+    background: #E5484D;
+    border: none;
+    color: #FFFFFF;
+}
+
+.tkt-btn-icon,
+.tkt-btn-spinner {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.tkt-btn-icon svg {
+    display: block;
+}
+
+/* Busy: the spinner takes the icon's 18px slot, so the button does not change size. */
+.tkt-btn-spinner {
+    display: none;
+    box-sizing: border-box;
+    border-radius: 50%;
+    border: 2px solid #E2E8F0;
+    border-top-color: #2272C3;
+    animation: tkt-spin 0.8s linear infinite;
+}
+
+.tkt-btn.is-busy {
+    cursor: progress;
+}
+
+.tkt-btn.is-busy .tkt-btn-icon {
+    display: none;
+}
+
+.tkt-btn.is-busy .tkt-btn-spinner {
+    display: block;
+}
+
+@keyframes tkt-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── In-app confirm ────────────────────────────────────────────────────────── */
+.tkt-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100010;
+    background: rgba(14, 42, 71, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.tkt-confirm-overlay.visible {
+    display: flex;
+}
+
+.tkt-confirm {
+    width: 100%;
+    max-width: 320px;
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 22px 20px 20px;
+    box-shadow: 0 18px 40px rgba(14, 42, 71, 0.30);
+    box-sizing: border-box;
+}
+
+.tkt-confirm-title {
+    margin: 0 0 6px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    color: #0E2A47;
+}
+
+.tkt-confirm-msg {
+    margin: 0 0 18px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #475569;
+}
+
+/* ── My Trips (account modal) ──────────────────────────────────────────────
+   Built like My Visits: a .profile-modal-overlay from user-stats.js using the
+   .profile-modal-* / .visit-item-* / .saved-empty-* classes from style.css (on the
+   planner: css/account-modals-planner.css). These rules add only what My Trips has on
+   top (mode icon, delete, load more). */
+body #modalMyTrips .visit-item-card.trip-item {
+    gap: 12px;
+}
+
+/* Phones: keep the row (style.css stacks visit cards at this width) and let the
+   destination wrap to two lines, as My Visits does. "body" outranks the planner fallback. */
+@media (max-width: 480px) {
+    body #modalMyTrips .visit-item-card.trip-item {
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 8px 12px 12px;
+    }
+
+    body #modalMyTrips .trip-item .visit-item-info {
+        width: auto;
+        flex: 1 1 0;
+    }
+
+    body #modalMyTrips .trip-item .visit-item-name {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+
+    body #calzadaModalsRoot #modalMyTrips .profile-modal-body {
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+}
+
+.trip-item-mode {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(55, 138, 221, 0.1);
+    color: #378ADD;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trip-item-fare {
+    color: #2272C3;
+    font-weight: 600;
+}
+
+.trip-item-delete {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: #64748B;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.trip-item-delete:hover {
+    background: rgba(229, 72, 77, 0.1);
+    color: #E5484D;
+}
+
+.trip-item-delete:focus-visible,
+.trips-load-more:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+.trip-item-delete:disabled {
+    opacity: 0.5;
+    cursor: progress;
+}
+
+.trips-load-more {
+    width: 100%;
+    height: 44px;
+    margin-top: 4px;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    background: #FFFFFF;
+    color: #2272C3;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.trips-load-more:disabled {
+    color: #94A3B8;
+    cursor: progress;
+}
+
+.trips-status {
+    margin: 4px 0 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: #64748B;
+    text-align: center;
+}

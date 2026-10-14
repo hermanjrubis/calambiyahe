@@ -26,9 +26,73 @@ service cloud.firestore {
       );
     }
 
-    // User profiles & activity data
-    match /users/{userId}/{document=**} {
+    // User profiles & activity data.
+    // Same access as the former /users/{userId}/{document=**} wildcard, except that it no
+    // longer covers trips: rules are OR-ed, so a broad match there would override the
+    // stricter trips rules below.
+    match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    match /users/{userId}/{collectionId}/{rest=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId
+        && collectionId != 'trips';
+    }
+
+    // Trip history: users/{uid}/trips/{tripId} (tripId = the journey id).
+    // Owner only, create-only (no edits), signed-in non-anonymous accounts only.
+    // The origin is stored as a label, never as coordinates.
+    function isValidTripLeg(leg) {
+      // Kept lean: rules stop at 1000 evaluated expressions per request and this runs once
+      // per leg (up to 10). Reading a missing key fails, so all four keys are required.
+      return leg.keys().hasOnly(['type', 'minutes', 'km', 'fare'])
+        && leg.type in ['walk', 'jeepney']
+        && leg.minutes is number && leg.km is number && leg.fare is number;
+    }
+
+    function hasValidTripLegs(legs) {
+      return legs is list && legs.size() <= 10
+        && (legs.size() < 1 || isValidTripLeg(legs[0]))
+        && (legs.size() < 2 || isValidTripLeg(legs[1]))
+        && (legs.size() < 3 || isValidTripLeg(legs[2]))
+        && (legs.size() < 4 || isValidTripLeg(legs[3]))
+        && (legs.size() < 5 || isValidTripLeg(legs[4]))
+        && (legs.size() < 6 || isValidTripLeg(legs[5]))
+        && (legs.size() < 7 || isValidTripLeg(legs[6]))
+        && (legs.size() < 8 || isValidTripLeg(legs[7]))
+        && (legs.size() < 9 || isValidTripLeg(legs[8]))
+        && (legs.size() < 10 || isValidTripLeg(legs[9]));
+    }
+
+    function isValidTrip(trip) {
+      return trip.keys().hasOnly([
+          'destName', 'destLat', 'destLng', 'destCategory', 'originLabel', 'mode', 'legs',
+          'startedAt', 'arrivedAt', 'actualMinutes', 'estimatedMinutes', 'distanceKm', 'fare', 'createdAt'
+        ])
+        && trip.keys().size() == 14
+        && trip.destName is string && trip.destName.size() >= 1 && trip.destName.size() <= 120
+        && trip.destLat is number && trip.destLng is number
+        && (trip.destCategory == null || (trip.destCategory is string && trip.destCategory.size() <= 40))
+        && trip.originLabel is string && trip.originLabel.size() <= 120
+        // no coordinates hidden in the label (a number with 3+ decimals)
+        && !trip.originLabel.matches('.*[0-9]+[.][0-9]{3,}.*')
+        && trip.mode in ['walk', 'jeepney']
+        && hasValidTripLegs(trip.legs)
+        && (trip.startedAt == null || trip.startedAt is timestamp)
+        && trip.arrivedAt is timestamp
+        && (trip.actualMinutes == null || trip.actualMinutes is number)
+        && trip.estimatedMinutes is number
+        && trip.distanceKm is number
+        && trip.fare is number
+        && trip.createdAt == request.time;
+    }
+
+    match /users/{userId}/trips/{tripId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && isValidTrip(request.resource.data);
+      allow update: if false;
     }
 
     // Submissions collection security rules (Legacy / Preserved)

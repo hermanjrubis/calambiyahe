@@ -26,7 +26,11 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.6.8">
+    <link rel="stylesheet" href="../css/planner.css?v=2.7.0">
+    <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
+    <link rel="stylesheet" href="../css/account-modals-planner.css?v=1.0.0">
+    <!-- Ticket styles up front: the arrival ticket must look right even if the network drops on the way -->
+    <link rel="stylesheet" href="../css/trips.css?v=1.1.1" data-calzada-trips-css>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -233,6 +237,14 @@
                                 <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.my_visits">My Visits</span>
+                        </button>
+
+                        <!-- My Trips -->
+                        <button type="button" class="profile-nav-btn" id="menuMyTrips">
+                            <span class="nav-btn-icon">
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" /><path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" /></svg>
+                            </span>
+                            <span class="nav-btn-title" data-i18n="nav.user.my_trips">My Trips</span>
                         </button>
 
                         <!-- 2. Saved Places -->
@@ -579,60 +591,6 @@
     </div>
 
 
-    <!-- Arrival Success Modal -->
-    <div class="arrival-overlay" id="arrivalOverlay"></div>
-    <div class="trip-receipt" id="arrivalScreen">
-        <div class="receipt-paper">
-            <div class="receipt-header">
-                <div class="receipt-logo">CALZADA</div>
-                <div class="receipt-tagline">TRIP SUMMARY</div>
-                <div class="receipt-dashes">--------------------------------</div>
-            </div>
-            <div class="receipt-destination" id="rcptDestination"></div>
-            <div class="receipt-dashes">--------------------------------</div>
-            <div class="receipt-meta-row">
-                <span class="receipt-label">DATE</span>
-                <span class="receipt-value" id="rcptDate">--</span>
-            </div>
-            <div class="receipt-meta-row">
-                <span class="receipt-label">DEPARTED</span>
-                <span class="receipt-value" id="rcptTimeOut">--:--</span>
-            </div>
-            <div class="receipt-meta-row">
-                <span class="receipt-label">ARRIVED</span>
-                <span class="receipt-value" id="rcptTimeArrived">--:--</span>
-            </div>
-            <div class="receipt-meta-row">
-                <span class="receipt-label">FROM</span>
-                <span class="receipt-value" id="rcptOrigin">--</span>
-            </div>
-            <div class="receipt-dashes">--------------------------------</div>
-            <div class="receipt-items" id="rcptItems"></div>
-            <div class="receipt-dashes">--------------------------------</div>
-            <div class="receipt-total-row">
-                <span>TOTAL FARE</span>
-                <span id="rcptTotalFare">₱0</span>
-            </div>
-            <div class="receipt-total-row receipt-total-dist">
-                <span>TOTAL DIST</span>
-                <span id="rcptTotalDist">-- km</span>
-            </div>
-            <div class="receipt-total-row receipt-total-time">
-                <span>TRAVEL TIME</span>
-                <span id="rcptTravelTime">-- min</span>
-            </div>
-            <div class="receipt-dashes">--------------------------------</div>
-            <div class="receipt-footer">
-                <div>SALAMAT SA PAGSAKAY!</div>
-                <div>calzada.app</div>
-                <div class="receipt-barcode">||| || | ||| | || ||| || | |||</div>
-            </div>
-            <div class="receipt-tear"></div>
-            <button class="receipt-done-btn" id="arrivalCloseBtn">
-                <ion-icon name="checkmark-outline"></ion-icon> Done
-            </button>
-        </div>
-    </div>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
@@ -856,16 +814,17 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="../js/transitions.js?v=2.6.3"></script>
+    <script src="../js/transitions.js?v=2.6.4"></script>
     <script src="../js/places-shared.js?v=2.6.3"></script>
-    <script src="../js/planner.js?v=2.6.8"></script>
+    <script src="../js/trip-ticket.js?v=1.1.2"></script>
+    <script src="../js/planner.js?v=2.7.3"></script>
     <script src="../js/legal-modal.js?v=2.6.3"></script>
     <script src="../js/script.js?v=2.6.3"></script>
-    <script src="../js/i18n.js?v=2.6.3"></script>
+    <script src="../js/i18n.js?v=2.6.6"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.4"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.6"></script>
 </body>
 
 </html>

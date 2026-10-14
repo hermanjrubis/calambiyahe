@@ -439,6 +439,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, beforeId);
             }
 
+            if (!map.getSource('route-connector')) {
+                map.addSource('route-connector', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] }
+                });
+                map.addLayer({
+                    id: 'route-connector-layer',
+                    type: 'line',
+                    source: 'route-connector',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+                    paint: {
+                        'line-color': '#94A3B8',
+                        'line-width': 3,
+                        'line-dasharray': [0, 2],
+                        'line-opacity': 1
+                    }
+                }, beforeId);
+            }
+
             routeLayersInitialized = true;
         };
 
@@ -466,6 +485,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        const updateRouteConnectors = (features) => {
+            initRouteLayers();
+            const src = map.getSource('route-connector');
+            if (!src) return;
+            src.setData({
+                type: 'FeatureCollection',
+                features: features || []
+            });
+            window._calzadaRouteConnectors = features || [];
+        };
+
         // NATIONAL_HIGHWAY_COORDS removed — OSRM handles road routing universally.
 
         let currentLocation = { lat: 14.2045, lng: 121.1641 }; // Default
@@ -473,6 +503,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let originPlaceName = '';
         let destPlaceName = '';
         window.selectedCoords = selectedCoords;
+        Object.defineProperty(window, 'originPlaceName', {
+            get: () => originPlaceName,
+            set: (v) => { originPlaceName = v; },
+            configurable: true
+        });
+        Object.defineProperty(window, 'destPlaceName', {
+            get: () => destPlaceName,
+            set: (v) => { destPlaceName = v; },
+            configurable: true
+        });
 
         // URL parameters parsed later
         let isTrackingArrival = false;
@@ -791,6 +831,101 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         window.computeCameraPadding = computeCameraPadding;
 
+        // Clear space kept around origin and destination in route preview. The destination
+        // pin is anchored at its tip and stands 36px above the point, so the top edge also
+        // reserves the pin height to keep its head out from under the top bar.
+        const PREVIEW_EDGE_MARGIN = 28;
+        const DEST_PIN_HEIGHT = 36;
+
+        function computePreviewPadding() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            const topBar = document.getElementById('mapTopBar');
+            const rTop = (topBar && getComputedStyle(topBar).display !== 'none') ? topBar.getBoundingClientRect() : null;
+            const topEdge = (rTop && rTop.bottom > 0) ? rTop.bottom : 110;
+
+            const sheet = document.getElementById('directionsCard');
+
+            if (vw <= 768) {
+                let sheetTop = vh;
+                if (sheet && getComputedStyle(sheet).display !== 'none') {
+                    let sheetY = 0;
+                    const m = sheet.style.transform?.match(/translateY\(([-\d.]+)px\)/);
+                    if (m) {
+                        sheetY = parseFloat(m[1]);
+                    } else if (typeof getSheetNaturalTranslate === 'function') {
+                        sheetY = getSheetNaturalTranslate();
+                    }
+                    sheetTop = sheet.offsetTop + sheetY;
+                }
+                const visibleHeight = sheetTop - topEdge;
+                const padTop = Math.round(topEdge) + PREVIEW_EDGE_MARGIN + DEST_PIN_HEIGHT;
+                const padBottom = Math.round(vh - sheetTop) + PREVIEW_EDGE_MARGIN;
+                return { top: padTop, bottom: padBottom, left: PREVIEW_EDGE_MARGIN, right: PREVIEW_EDGE_MARGIN, visibleHeight, sheetTop, topEdge };
+            } else {
+                const sheetRight = (sheet && getComputedStyle(sheet).display !== 'none') ? sheet.getBoundingClientRect().right : 340;
+                return {
+                    top: Math.round(topEdge) + PREVIEW_EDGE_MARGIN + DEST_PIN_HEIGHT,
+                    bottom: 40,
+                    left: Math.round(sheetRight) + PREVIEW_EDGE_MARGIN,
+                    right: 40,
+                    visibleHeight: vh - topEdge - 40,
+                    sheetTop: vh,
+                    topEdge
+                };
+            }
+        }
+        window.computePreviewPadding = computePreviewPadding;
+
+        function fitRoutePreviewBounds(duration = 300) {
+            // Requirement 4: Do not move the camera in navigation mode; this is preview only.
+            if (!map || isTrackingArrival || document.body.classList.contains('navigation-active')) return;
+            if (!selectedCoords.origin || !selectedCoords.destination) return;
+
+            const bounds = new maplibregl.LngLatBounds();
+            if (selectedCoords.origin) bounds.extend(toLngLat(selectedCoords.origin));
+            if (selectedCoords.destination) bounds.extend(toLngLat(selectedCoords.destination));
+            if (walkRouteGeojson && Array.isArray(walkRouteGeojson.coordinates)) {
+                walkRouteGeojson.coordinates.forEach(c => bounds.extend([c[1], c[0]]));
+            }
+            if (transitRouteGeojson && Array.isArray(transitRouteGeojson.coordinates)) {
+                transitRouteGeojson.coordinates.forEach(c => bounds.extend([c[1], c[0]]));
+            }
+            if (bounds.isEmpty()) return;
+
+            window._calzadaLastPreviewBounds = bounds;
+            window._calzadaPreviewRouteBounds = bounds;
+
+            const pad = computePreviewPadding();
+
+            // Requirement 2: If the visible map height is under 160px (sheet fully expanded),
+            // do not fit; refit when the user lowers the sheet.
+            if (window.innerWidth <= 768 && pad.visibleHeight < 160) {
+                return;
+            }
+
+            const cleanPadding = { top: pad.top, bottom: pad.bottom, left: pad.left, right: pad.right };
+            window._calzadaPreviewPadding = cleanPadding;
+
+            // Fit: ONE easeTo, 300 ms
+            const camera = map.cameraForBounds(bounds, {
+                padding: cleanPadding,
+                maxZoom: 16,
+                bearing: 0
+            });
+            if (camera) {
+                map.easeTo({
+                    center: camera.center,
+                    zoom: camera.zoom,
+                    bearing: 0,
+                    pitch: 0,
+                    duration: prefersReducedMotion() ? 0 : duration
+                });
+            }
+        }
+        window.fitRoutePreviewBounds = fitRoutePreviewBounds;
+
         let selectedMode = 'jeepney';
         let userExplicitMode = false;
 
@@ -798,6 +933,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let originMarker = null, destMarker = null, userMarker = null, gpsCircle = null;
         let walkPolyline = null, transitPolyline = null, completedTransitPolyline = null;
         let midpointBubbleMarker = null;
+
+        function isMyLocationOrigin() {
+            return originPlaceName === 'My Location';
+        }
 
         function createOriginMarker(coords) {
             if (originMarker) { originMarker.remove(); originMarker = null; }
@@ -828,6 +967,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function ensureOriginMarker() {
             if (isTrackingArrival) return;
+            if (isMyLocationOrigin()) {
+                if (originMarker) {
+                    originMarker.remove();
+                    originMarker = null;
+                }
+                return;
+            }
             if (selectedCoords.origin && Array.isArray(selectedCoords.origin) && selectedCoords.origin.length >= 2) {
                 if (!originMarker) {
                     createOriginMarker(selectedCoords.origin);
@@ -1462,6 +1608,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentWalkDist = 0, currentWalkDur = 0, currentTransitDist = 0, currentTransitDur = 0;
         let currentFare = 0;
         let walkRouteGeojson = null, transitRouteGeojson = null;
+        let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
+        let journeyId = null;        // one id per journey, so its trip is saved to the account once
+        // 20 characters from the Firestore auto-ID alphabet
+        const newJourneyId = () => {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const bytes = new Uint8Array(20);
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes, b => chars[b % chars.length]).join('');
+        };
         let currentCorridor = 'unknown'; // FIX: was referenced but never declared
 
         // ── CONSTANTS ──────────────────────────────────────────────────────────
@@ -1692,12 +1847,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const SHEET_PEEK_HEIGHT = 80; // px exposed when collapsed
 
-        const getSheetNaturalTranslate = () => {
-            const sheetH = directionsCard.offsetHeight;
-            return directionsCard.classList.contains('collapsed')
-                ? sheetH - SHEET_PEEK_HEIGHT
-                : 0;
+        const getSheetPositions = () => {
+            const isMobile = window.innerWidth <= 768;
+            if (!isMobile) {
+                return { expanded: 0, peek: 0, collapsed: 0 };
+            }
+            const sheetH = directionsCard ? directionsCard.offsetHeight : 592;
+            const collapseAt = Math.max(0, sheetH - SHEET_PEEK_HEIGHT);
+            // Peek at ~55% of collapseAt places sheetTop around ~360px (leaving ~230px visible map above sheet)
+            const peekAt = Math.round(collapseAt * 0.55);
+            return {
+                expanded: 0,
+                peek: peekAt,
+                collapsed: collapseAt
+            };
         };
+
+        const getSheetNaturalTranslate = () => {
+            const pos = getSheetPositions();
+            if (directionsCard.classList.contains('collapsed')) return pos.collapsed;
+            if (directionsCard.classList.contains('peek')) return pos.peek;
+            return pos.expanded;
+        };
+
+        const setSheetState = (state, animate = true) => {
+            if (!directionsCard) return;
+            const isMobile = window.innerWidth <= 768;
+            if (!isMobile) return;
+
+            const pos = getSheetPositions();
+            const targetY = pos[state] ?? 0;
+            const prevState = ['expanded', 'peek', 'collapsed'].find(s => directionsCard.classList.contains(s)) || 'expanded';
+
+            directionsCard.style.transition = animate ? 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
+            directionsCard.style.transform = `translateY(${targetY}px)`;
+
+            directionsCard.classList.remove('expanded', 'peek', 'collapsed');
+            directionsCard.classList.add(state);
+
+            const dsPeekInfo = document.getElementById('dsPeekInfo');
+            if (dsPeekInfo) {
+                dsPeekInfo.style.display = state === 'collapsed' ? 'block' : 'none';
+            }
+
+            if (typeof updateMidpointBubbleVisibility === 'function') {
+                updateMidpointBubbleVisibility(state === 'collapsed');
+            }
+            if (typeof updateCategoryBarVisibility === 'function') {
+                updateCategoryBarVisibility();
+            }
+
+            // Refit route preview (one easeTo, 300 ms) when the sheet changes between expanded,
+            // peek and collapsed. A snap back to the same state leaves the user's panning alone.
+            if (state !== prevState) fitRoutePreviewBounds(300);
+        };
+        window._calzadaSetSheetState = setSheetState;
 
         const setSheetTranslate = (y) => {
             directionsCard.style.transition = 'none';
@@ -1717,7 +1921,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasRoute = routeSummary && routeSummary.style.display !== 'none';
             const isCollapsed = directionsCard.classList.contains('collapsed');
             const isHidden = directionsCard.classList.contains('journey-active-hidden');
-            const isExpanded = !isCollapsed && !isHidden;
+            const isExpanded = !isCollapsed && !isHidden && !directionsCard.classList.contains('peek');
             const isTallerThanHalf = directionsCard.offsetHeight > (window.innerHeight / 2);
 
             if (hasRoute && isExpanded && isTallerThanHalf) {
@@ -1732,36 +1936,31 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', updateCategoryBarVisibility);
 
         const snapSheet = (velocity) => {
-            const sheetH = directionsCard.offsetHeight;
-            const collapseAt = sheetH - SHEET_PEEK_HEIGHT;
+            const pos = getSheetPositions();
+            const current = parseFloat(
+                directionsCard.style.transform?.match(/translateY\(([^)]+)px\)/)?.[1]
+                ?? getSheetNaturalTranslate()
+            );
 
-            // Get current translate from the live style
-            const current = parseFloat(directionsCard.style.transform?.match(/translateY\(([^)]+)px\)/)?.[1] ?? getSheetNaturalTranslate());
-
-            // Decide collapse vs expand based on position + fling velocity
-            const flingDown = velocity > 0.4;   // fast downward fling → collapse
-            const flingUp = velocity < -0.4;  // fast upward fling → expand
-            const midpoint = collapseAt / 2;
-
-            let shouldCollapse = flingDown || (!flingUp && current > midpoint);
-
-            directionsCard.style.transition = 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)';
-
-            if (shouldCollapse) {
-                directionsCard.style.transform = `translateY(${collapseAt}px)`;
-                directionsCard.classList.add('collapsed');
-                directionsCard.classList.remove('expanded');
-                document.getElementById('dsPeekInfo').style.display = 'block';
-                updateMidpointBubbleVisibility(true);
-                updateCategoryBarVisibility();
+            let targetState = 'expanded';
+            if (velocity > 0.4) {
+                targetState = current < pos.peek ? 'peek' : 'collapsed';
+            } else if (velocity < -0.4) {
+                targetState = current > pos.peek ? 'peek' : 'expanded';
             } else {
-                directionsCard.style.transform = `translateY(0px)`;
-                directionsCard.classList.remove('collapsed');
-                directionsCard.classList.add('expanded');
-                document.getElementById('dsPeekInfo').style.display = 'none';
-                updateMidpointBubbleVisibility(false);
-                updateCategoryBarVisibility();
+                const dExpanded = Math.abs(current - pos.expanded);
+                const dPeek = Math.abs(current - pos.peek);
+                const dCollapsed = Math.abs(current - pos.collapsed);
+                if (dExpanded <= dPeek && dExpanded <= dCollapsed) {
+                    targetState = 'expanded';
+                } else if (dPeek <= dCollapsed) {
+                    targetState = 'peek';
+                } else {
+                    targetState = 'collapsed';
+                }
             }
+
+            setSheetState(targetState, true);
         };
 
         directionsCard.addEventListener('touchstart', (e) => {
@@ -1818,13 +2017,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('dsPeekInfo').addEventListener('click', () => {
-            directionsCard.style.transition = 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)';
-            directionsCard.style.transform = 'translateY(0px)';
-            directionsCard.classList.remove('collapsed');
-            directionsCard.classList.add('expanded');
-            document.getElementById('dsPeekInfo').style.display = 'none';
-            updateMidpointBubbleVisibility(false);
-            updateCategoryBarVisibility();
+            setSheetState('expanded', true);
         });
 
         // ── MOBILE MAP CONTROLS FOLLOW THE SHEET ─────────────────────────────────
@@ -2022,7 +2215,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const clearDestBtn = document.getElementById('clearDestBtn');
 
             if (origEl) {
-                if (hasOrigin) {
+                if (isLocatingOrigin) {
+                    const isFil = (localStorage.getItem('calzada_lang') || 'en').toLowerCase() === 'tl';
+                    origEl.textContent = isFil ? 'Hinahanap ang lokasyon mo...' : 'Finding your location...';
+                    origEl.classList.remove('unfilled');
+                } else if (hasOrigin) {
                     origEl.textContent = originPlaceName;
                     origEl.classList.remove('unfilled');
                 } else {
@@ -2126,6 +2323,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // B2: Clear origin only
         const clearOriginField = () => {
+            if (myLocWatchTimer) { clearTimeout(myLocWatchTimer); myLocWatchTimer = null; }
+            if (myLocWatchId !== null && navigator.geolocation) {
+                try { navigator.geolocation.clearWatch(myLocWatchId); } catch (_) {}
+                myLocWatchId = null;
+            }
+            isLocatingOrigin = false;
+
             selectedCoords.origin = null;
             originPlaceName = '';
             if (originMarker) { originMarker.remove(); originMarker = null; }
@@ -2140,6 +2344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('walk-route', []);
             updateRouteSource('transit-route', []);
             updateRouteSource('completed-route', []);
+            updateRouteConnectors([]);
             window._calzadaRouteContext = null;
             try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
 
@@ -2167,6 +2372,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('walk-route', []);
             updateRouteSource('transit-route', []);
             updateRouteSource('completed-route', []);
+            updateRouteConnectors([]);
             window._calzadaRouteContext = null;
             try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
 
@@ -2180,6 +2386,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // B1: Clear EVERYTHING (header X button)
         const clearAllPlannerState = () => {
+            if (myLocWatchTimer) { clearTimeout(myLocWatchTimer); myLocWatchTimer = null; }
+            if (myLocWatchId !== null && navigator.geolocation) {
+                try { navigator.geolocation.clearWatch(myLocWatchId); } catch (_) {}
+                myLocWatchId = null;
+            }
+            isLocatingOrigin = false;
+
             userExplicitMode = false;
             selectedMode = 'jeepney';
             setModeUI('jeepney');
@@ -2202,6 +2415,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('walk-route', []);
             updateRouteSource('transit-route', []);
             updateRouteSource('completed-route', []);
+            updateRouteConnectors([]);
 
             window._calzadaRouteContext = null;
             try {
@@ -2237,6 +2451,131 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPlannerState();
         };
 
+        let isLocatingOrigin = false;
+        let myLocWatchId = null;
+        let myLocWatchTimer = null;
+        let lastPreviewReplanTime = 0;
+        let previewReplanTimer = null;
+        let pendingReplanCoords = null;
+
+        function triggerPreviewReplan(lat, lng) {
+            pendingReplanCoords = [lat, lng];
+            if (previewReplanTimer) {
+                clearTimeout(previewReplanTimer);
+                previewReplanTimer = null;
+            }
+
+            const executeReplanIfAllowed = () => {
+                const now = Date.now();
+                const elapsed = now - lastPreviewReplanTime;
+                if (elapsed >= 15000) {
+                    lastPreviewReplanTime = now;
+                    const coords = pendingReplanCoords;
+                    pendingReplanCoords = null;
+                    if (coords && isMyLocationOrigin() && !isTrackingArrival && !document.body.classList.contains('navigation-active') && selectedCoords.destination) {
+                        window.__calzadaPreviewReplanCount = (window.__calzadaPreviewReplanCount || 0) + 1;
+                        selectedCoords.origin = coords;
+                        currentLocation = { lat: coords[0], lng: coords[1] };
+                        executeRouteQuery();
+                    }
+                } else {
+                    const delay = Math.max(100, 15000 - elapsed);
+                    previewReplanTimer = setTimeout(executeReplanIfAllowed, delay);
+                }
+            };
+
+            previewReplanTimer = setTimeout(executeReplanIfAllowed, 300);
+        }
+
+        function requestMyLocationOrigin() {
+            closeLocationModal();
+
+            isLocatingOrigin = true;
+            const isFil = (localStorage.getItem('calzada_lang') || 'en').toLowerCase() === 'tl';
+            const waitingText = isFil ? 'Hinahanap ang lokasyon mo...' : 'Finding your location...';
+
+            const origEl = document.getElementById('openOriginModal');
+            if (origEl) {
+                origEl.textContent = waitingText;
+                origEl.classList.remove('unfilled');
+            }
+            originPlaceName = waitingText;
+
+            // Drop any earlier origin while waiting, so a destination picked during the
+            // wait cannot route from a stale point.
+            selectedCoords.origin = null;
+            if (originMarker) { originMarker.remove(); originMarker = null; }
+
+            let bestFix = null;
+            let resolved = false;
+
+            if (myLocWatchTimer) { clearTimeout(myLocWatchTimer); myLocWatchTimer = null; }
+            if (myLocWatchId !== null && navigator.geolocation) {
+                try { navigator.geolocation.clearWatch(myLocWatchId); } catch (_) {}
+                myLocWatchId = null;
+            }
+
+            const finalizeFix = (pos) => {
+                if (resolved) return;
+                resolved = true;
+                isLocatingOrigin = false;
+
+                if (myLocWatchTimer) { clearTimeout(myLocWatchTimer); myLocWatchTimer = null; }
+                if (myLocWatchId !== null && navigator.geolocation) {
+                    try { navigator.geolocation.clearWatch(myLocWatchId); } catch (_) {}
+                    myLocWatchId = null;
+                }
+
+                if (pos && pos.coords) {
+                    currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                    selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
+                    originPlaceName = 'My Location';
+                    window.__calzadaMyLocOriginFix = {
+                        lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy
+                    };
+                    updateODDisplay();
+
+                    if (typeof window._calzadaSetUserFix === 'function') {
+                        window._calzadaSetUserFix(pos.coords.longitude, pos.coords.latitude);
+                    }
+
+                    if (selectedCoords.destination) {
+                        executeRouteQuery();
+                    }
+                } else {
+                    showToast(t('planner.toast_locate_failed'), 'error');
+                    originPlaceName = '';
+                    selectedCoords.origin = null;
+                    updateODDisplay();
+                }
+            };
+
+            if (!navigator.geolocation) {
+                finalizeFix(null);
+                return;
+            }
+
+            const accuracyOf = (p) => (p && p.coords && typeof p.coords.accuracy === 'number')
+                ? p.coords.accuracy
+                : Infinity;
+
+            // Watch until a fix is accurate to 30 m; after 8 s take the best one seen.
+            myLocWatchId = navigator.geolocation.watchPosition(
+                (pos) => {
+                    if (resolved) return;
+                    if (!bestFix || accuracyOf(pos) < accuracyOf(bestFix)) bestFix = pos;
+                    if (accuracyOf(pos) <= 30) finalizeFix(pos);
+                },
+                (err) => {
+                    if (resolved) return;
+                    // Permission denied will not recover; timeouts wait for the 8 s cap.
+                    if (err && err.code === 1) finalizeFix(null);
+                },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
+            );
+            myLocWatchTimer = setTimeout(() => finalizeFix(bestFix), 8000);
+        }
+
         const renderModalDefaultOptions = () => {
             const isOrig = activeSelectingField === 'origin';
             locOptionsList.innerHTML = '';
@@ -2247,24 +2586,7 @@ document.addEventListener('DOMContentLoaded', () => {
             locAttribution.style.display = 'none';
 
             document.getElementById('optMyLoc')?.addEventListener('click', () => {
-                const locText = document.querySelector('#optMyLoc .loc-text');
-                if (locText) locText.textContent = 'Getting your location...';
-
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                        selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
-                        originPlaceName = 'My Location';
-                        updateODDisplay();
-                        closeLocationModal();
-                        if (selectedCoords.destination) executeRouteQuery();
-                    },
-                    () => {
-                        closeLocationModal();
-                        showToast(t('planner.toast_locate_failed'), 'error');
-                    },
-                    { enableHighAccuracy: true, timeout: 8000 }
-                );
+                requestMyLocationOrigin();
             });
             document.getElementById('optPinLoc')?.addEventListener('click', () => {
                 closeLocationModal();
@@ -2299,6 +2621,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 executeRouteQuery();
             }
         };
+        window.selectLocation = selectLocation;
 
         // Mode Selection (Single source of truth for all mode-toggle UI elements)
         const setModeUI = (mode) => {
@@ -2423,23 +2746,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 locOptionsList.innerHTML += `<div class="loc-row" id="optMyLocSearch"><div class="loc-icon bg-blue"><ion-icon name="locate"></ion-icon></div><div class="loc-text">My Location</div></div>`;
                 setTimeout(() => {
                     document.getElementById('optMyLocSearch')?.addEventListener('click', () => {
-                        const locText = document.querySelector('#optMyLocSearch .loc-text');
-                        if (locText) locText.textContent = 'Getting your location...';
-                        navigator.geolocation.getCurrentPosition(
-                            (pos) => {
-                                currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                                selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
-                                originPlaceName = 'My Location';
-                                updateODDisplay();
-                                closeLocationModal();
-                                if (selectedCoords.destination) executeRouteQuery();
-                            },
-                            () => {
-                                closeLocationModal();
-                                showToast(t('planner.toast_locate_failed'), 'error');
-                            },
-                            { enableHighAccuracy: true, timeout: 8000 }
-                        );
+                        requestMyLocationOrigin();
                     });
                 }, 0);
             }
@@ -2495,12 +2802,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 Math.sin(dLon / 2) * Math.sin(dLon / 2);
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         };
+        window.getHaversineDist = getHaversineDist;
 
         // =============================================
         // ROUTING EXECUTOR — UNIVERSAL 2-LEG (OSRM)
         // =============================================
 
         // (fmt24h declared earlier in scope)
+
+        // Straight-line metres between a point and a route end (0 if either is missing).
+        const gapToRouteM = (a, b) => (a && b) ? getHaversineDist(a[0], a[1], b[0], b[1]) * 1000 : 0;
 
         const executeRouteQuery = async () => {
             if (!selectedCoords.origin || !selectedCoords.destination) {
@@ -2552,8 +2863,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 walkRouteGeojson = wRes;
                 transitRouteGeojson = { coordinates: [], distance: 0, duration: 0, steps: [] };
+                window.walkRouteGeojson = walkRouteGeojson;
+                window.transitRouteGeojson = transitRouteGeojson;
 
-                currentWalkDist = wRes.distance / 1000;
+                // OSRM measures from the road points it snapped to, so add the on-foot gaps
+                // from the origin to the route start and from the route end to the destination.
+                const walkCoordsW = wRes.coordinates || [];
+                const walkGapsM = gapToRouteM(oPt, walkCoordsW[0]) + gapToRouteM(walkCoordsW[walkCoordsW.length - 1], dPt);
+                currentWalkDist = (wRes.distance + walkGapsM) / 1000;
                 currentWalkDur = computeWalkDurationMin(currentWalkDist);
                 currentTransitDist = 0;
                 currentTransitDur = 0;
@@ -2664,8 +2981,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             walkRouteGeojson = wRes;
             transitRouteGeojson = tRes;
+            window.walkRouteGeojson = walkRouteGeojson;
+            window.transitRouteGeojson = transitRouteGeojson;
 
-            currentWalkDist = wRes.distance / 1000;
+            // When the origin is on (or snaps to) the highway, the boarding point is the origin's
+            // own snap point and OSRM returns a 0 m walk. The walk from the origin to that point
+            // is real, so count it.
+            currentWalkDist = (wRes.distance + gapToRouteM(oPt, (wRes.coordinates || [])[0])) / 1000;
             currentWalkDur = computeWalkDurationMin(currentWalkDist);
             currentTransitDist = tRes.distance / 1000;
 
@@ -2703,7 +3025,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderItinerary();
             renderPlannerState();
+            fitRoutePreviewBounds();
         };
+        window.executeRouteQuery = executeRouteQuery;
 
         // =============================================
         // SESSION PERSISTENCE HELPER
@@ -2719,6 +3043,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     activeLegIndex: activeLegIndex,
                     currentStepIndex: window.currentStepIndex || 0,
                     isJourneyActive: isTrackingArrival,
+                    startedAt: journeyStartedAt,
+                    journeyId,
                     savedAt: Date.now()
                 }));
             } catch (e) { /* sessionStorage unavailable */ }
@@ -2800,13 +3126,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            // ── Connectors from origin to route start and route end to destination ──
+            const connectorFeatures = [];
+            const pathStartPt = (safeWalkCoords && safeWalkCoords.length > 0) ? safeWalkCoords[0] : (transitCoords && transitCoords.length > 0 ? transitCoords[0] : null);
+            if (selectedCoords.origin && pathStartPt) {
+                const startDistM = getHaversineDist(selectedCoords.origin[0], selectedCoords.origin[1], pathStartPt[0], pathStartPt[1]) * 1000;
+                if (startDistM > 10) {
+                    connectorFeatures.push({
+                        type: 'Feature',
+                        properties: { role: 'origin-connector', distanceM: startDistM },
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                [selectedCoords.origin[1], selectedCoords.origin[0]],
+                                [pathStartPt[1], pathStartPt[0]]
+                            ]
+                        }
+                    });
+                }
+            }
+
+            const pathEndPt = (transitCoords && transitCoords.length > 0) ? transitCoords[transitCoords.length - 1] : (safeWalkCoords && safeWalkCoords.length > 0 ? safeWalkCoords[safeWalkCoords.length - 1] : null);
+            if (selectedCoords.destination && pathEndPt) {
+                const endDistM = getHaversineDist(pathEndPt[0], pathEndPt[1], selectedCoords.destination[0], selectedCoords.destination[1]) * 1000;
+                if (endDistM > 10) {
+                    connectorFeatures.push({
+                        type: 'Feature',
+                        properties: { role: 'dest-connector', distanceM: endDistM },
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [
+                                [pathEndPt[1], pathEndPt[0]],
+                                [selectedCoords.destination[1], selectedCoords.destination[0]]
+                            ]
+                        }
+                    });
+                }
+            }
+
+            updateRouteConnectors(connectorFeatures);
+
             const bounds = new maplibregl.LngLatBounds();
             if (selectedCoords.origin) bounds.extend(toLngLat(selectedCoords.origin));
             if (selectedCoords.destination) bounds.extend(toLngLat(selectedCoords.destination));
             walkLngLat.forEach(pt => bounds.extend(pt));
             transitLngLat.forEach(pt => bounds.extend(pt));
             if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, { padding: 60, maxZoom: 16, bearing: map.getBearing() });
+                fitRoutePreviewBounds(300);
             }
 
             document.getElementById('startJourneyBtn').disabled = false;
@@ -2814,10 +3180,14 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => map.resize(), 200);
         };
 
+        // Stop names from the last rendered itinerary, reused by the arrival ticket so both agree.
+        let lastItineraryStops = null;
+
         const renderItinerary = () => {
             const container = document.getElementById('itineraryLegs');
             if (!container) return;
             container.innerHTML = '';
+            lastItineraryStops = null;
 
             const isWalkOnly = selectedMode === 'walking';
             const t = (k, p) => (window.t ? window.t(k, p) : null);
@@ -3034,6 +3404,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const finalDestTime = new Date(finalAlightTime.getTime() + finalWalkDur * 60 * 1000);
 
                 const getOffSub = t('planner.get_off_here') || 'Get off here';
+                lastItineraryStops = { boardAt, alightAt, finalWalkM: finalWalkDist, finalWalkMin: finalWalkDur };
                 container.appendChild(createStopRow({
                     time: fmt24h(finalAlightTime),
                     ringClass: 'timeline-ring--intermediate',
@@ -3075,6 +3446,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const lastTransitStep = (tSteps || []).slice().reverse().find(s => (s.stopName || s.name || '').trim() !== '');
                 const alightingPointName = (lastTransitStep?.stopName || lastTransitStep?.name || alightAt || '').trim();
+
+                lastItineraryStops = {
+                    boardAt,
+                    alightAt: alightingPointName && norm(alightingPointName) !== norm(finalDestName) ? alightingPointName : null,
+                    finalWalkM: 0,
+                    finalWalkMin: 0
+                };
 
                 let getOffSub;
                 if (alightingPointName && norm(alightingPointName) !== norm(finalDestName)) {
@@ -3460,6 +3838,8 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('navigation-active');
 
             isTrackingArrival = false;
+            journeyStartedAt = null;
+            journeyId = null;
             setMapAutoFollow(false);
             if (reCenterBtn) {
                 reCenterBtn.classList.remove('is-visible');
@@ -3535,12 +3915,15 @@ document.addEventListener('DOMContentLoaded', () => {
             directionsCard.style.display = '';
             directionsCard.style.transition = 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)';
             directionsCard.style.transform = 'translateY(0px)';
+            directionsCard.classList.remove('collapsed', 'peek');
             directionsCard.classList.add('expanded');
-            directionsCard.classList.remove('collapsed');
             document.getElementById('dsPeekInfo').style.display = 'none';
             updateMidpointBubbleVisibility(false);
             updateCategoryBarVisibility();
             map.resize();
+            // drawRoutes above fitted while the sheet was hidden; refit for the restored sheet
+            // (skipped on phones when the expanded sheet leaves under 160px of map).
+            fitRoutePreviewBounds(300);
         }
 
         window._calzadaStartJourney = startActiveJourneyUI;
@@ -3627,6 +4010,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateGuideStepsUI();
 
             isTrackingArrival = true;
+            journeyStartedAt = Date.now();
+            journeyId = newJourneyId();
+            saveJourneyState();
+            if (window.CalzadaTicket) window.CalzadaTicket.preload();
             setMapAutoFollow(true);
             if (reCenterBtn) {
                 reCenterBtn.classList.remove('is-visible');
@@ -4310,6 +4697,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+        // =============================================
+        // ARRIVAL TICKET + TRIP HISTORY
+        // The ticket itself is js/trip-ticket.js (window.CalzadaTicket); saving to the
+        // account is js/user-stats.js (window.CalzadaTrips).
+        // =============================================
+        const PLACE_CATEGORY_LABELS = {
+            malls: 'Mall', eateries: 'Eatery', coffee: 'Coffee', schools: 'School',
+            terminals: 'Terminal', establishments: 'Establishment'
+        };
+        const clip = (s, max) => (s == null ? null : String(s).trim().slice(0, max));
+        const roundTo = (n, decimals) => {
+            const f = Math.pow(10, decimals);
+            return Math.round((Number(n) || 0) * f) / f;
+        };
+
+        // Destination category for visits and badges: the known place with the same name,
+        // else one within 80 m of the destination; badge rules match these singular labels.
+        // null when the destination is not a known place.
+        const destinationCategory = () => {
+            const dest = selectedCoords.destination;
+            const places = [...(pickerKnownPlaces || []), ...CALAMBA_PLACES_FALLBACK];
+            const name = (destPlaceName || '').trim().toLowerCase();
+            let place = name ? places.find(p => (p.name || '').trim().toLowerCase() === name) : null;
+            if (!place && dest) {
+                place = places.find(p => p.lat && p.lng && getHaversineDist(dest[0], dest[1], p.lat, p.lng) * 1000 <= 80);
+            }
+            const raw = String(place?.category || '').toLowerCase();
+            return PLACE_CATEGORY_LABELS[raw] || null;
+        };
+
+        // The origin is stored as a label only, never as coordinates. Any label that could hold
+        // coordinates (map-picker pins, URL params, search text, restored or swapped names) is
+        // saved as the language-neutral "Pinned location", translated where it is shown. The
+        // pattern matches the one the Firestore rules reject (a number with 3+ decimals).
+        const COORDINATE_LIKE = /[0-9]+\.[0-9]{3,}/;
+        const isPinnedLabel = (label) => {
+            const l = label.toLowerCase();
+            const known = ['pinned location', 'naka-pin na lokasyon', String(t('planner.pinned_location')).toLowerCase()];
+            return known.includes(l) || l.startsWith('pinned location (');
+        };
+        const originLabelForTrip = () => {
+            const label = (originPlaceName || '').trim();
+            if (!label || label === 'My Location') return 'My Location';
+            if (COORDINATE_LIKE.test(label) || isPinnedLabel(label)) return 'Pinned location';
+            return clip(label, 120);
+        };
+
+        // Snapshot of the finished trip in the users/{uid}/trips shape (times as epoch ms).
+        // Times are real when START JOURNEY recorded journeyStartedAt; leg durations only
+        // exist as the planner's estimates.
+        const buildTrip = () => {
+            const arrivedAt = Date.now();
+            const startedAt = Number.isFinite(journeyStartedAt) && journeyStartedAt <= arrivedAt ? journeyStartedAt : null;
+            const walkOnly = selectedMode === 'walking';
+            const stops = (!walkOnly && lastItineraryStops) || {};
+            const legs = [];
+            // A walk under 10 m means the origin is on the route itself: no leg to show.
+            if (currentWalkDist * 1000 >= 10) {
+                legs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: roundTo(currentWalkDist, 2), fare: 0, boardStop: null, alightStop: null });
+            }
+            if (!walkOnly) {
+                legs.push({
+                    type: 'jeepney',
+                    durationMin: Math.round(currentTransitDur),
+                    distanceKm: roundTo(currentTransitDist, 2),
+                    fare: Math.round(currentFare),
+                    boardStop: clip(stops.boardAt || 'National Highway', 120),
+                    alightStop: clip(stops.alightAt, 120)
+                });
+                if (stops.finalWalkM >= 10) {
+                    legs.push({ type: 'walk', durationMin: Math.round(stops.finalWalkMin), distanceKm: roundTo(stops.finalWalkM / 1000, 2), fare: 0, boardStop: null, alightStop: null });
+                }
+            }
+            return {
+                destName: clip(destPlaceName || 'Destination', 120),
+                originLabel: originLabelForTrip(),
+                startedAt,
+                arrivedAt,
+                durationMin: startedAt != null ? Math.max(1, Math.round((arrivedAt - startedAt) / 60000)) : null,
+                estimatedMin: Math.round(currentWalkDur + currentTransitDur),
+                distanceKm: roundTo(legs.reduce((sum, l) => sum + l.distanceKm, 0), 1),
+                fare: legs.reduce((sum, l) => sum + l.fare, 0),
+                mode: walkOnly ? 'walk' : 'jeepney',
+                legs: legs.slice(0, 10)
+            };
+        };
+
         const triggerArrival = () => {
             stopLiveTracking();
             sessionStorage.removeItem('calzada_journey');
@@ -4318,56 +4792,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (originMarker) originMarker.addTo(map);
             map.setBearing(0);
 
-            const now = new Date();
-            const startMs = now.getTime() - ((currentWalkDur + currentTransitDur) * 60 * 1000);
-            const dateStr = now.toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric', weekday: 'short' });
+            const trip = buildTrip();
+            // States saved before journeyId existed have none: one id for this arrival is enough.
+            if (!journeyId) journeyId = newJourneyId();
 
-            document.getElementById('rcptDestination').textContent = (destPlaceName || 'Destination').toUpperCase();
-            document.getElementById('rcptOrigin').textContent = originPlaceName || 'Origin';
-            document.getElementById('rcptDate').textContent = dateStr;
-            document.getElementById('rcptTimeOut').textContent = fmt24h(new Date(startMs));
-            document.getElementById('rcptTimeArrived').textContent = fmt24h(now);
-
-            const itemsEl = document.getElementById('rcptItems');
-            itemsEl.innerHTML = '';
-
-            const walkItem = document.createElement('div');
-            walkItem.className = 'receipt-item';
-            walkItem.innerHTML = `
-          <div class="receipt-item-left">
-            <div class="receipt-item-name">🚶 WALK</div>
-            <div class="receipt-item-sub">${(currentWalkDist).toFixed(2)} km · ${currentWalkDur} min</div>
-          </div>
-          <div class="receipt-item-price">FREE</div>`;
-            itemsEl.appendChild(walkItem);
-
-            if (selectedMode !== 'walking') {
-                const modeLabel = 'JEEPNEY';
-                const modeEmoji = '🚐';
-                const transitItem = document.createElement('div');
-                transitItem.className = 'receipt-item';
-                transitItem.innerHTML = `
-            <div class="receipt-item-left">
-              <div class="receipt-item-name">${modeEmoji} ${modeLabel}</div>
-              <div class="receipt-item-sub">${currentTransitDist.toFixed(2)} km · ${currentTransitDur} min</div>
-            </div>
-            <div class="receipt-item-price">₱${currentFare}</div>`;
-                itemsEl.appendChild(transitItem);
+            // Signed-in accounts keep the trip (once per journey, not awaited so the ticket is
+            // never delayed); guests and anonymous users keep nothing.
+            const trips = window.CalzadaTrips;
+            if (trips && trips.canSave()) {
+                const dest = selectedCoords.destination || [];
+                trips.saveTrip(trip, journeyId, { lat: dest[0], lng: dest[1], category: destinationCategory() });
             }
 
-            document.getElementById('rcptTotalFare').textContent = selectedMode === 'walking' ? 'FREE' : `₱${currentFare}`;
-            document.getElementById('rcptTotalDist').textContent = `${(currentWalkDist + currentTransitDist).toFixed(1)} km`;
-            document.getElementById('rcptTravelTime').textContent = `${currentWalkDur + currentTransitDur} min`;
-
-            document.getElementById('arrivalOverlay').classList.add('visible');
-            document.getElementById('arrivalScreen').classList.add('visible');
+            if (!window.CalzadaTicket) { cancelActiveJourney(); return; }
+            window.CalzadaTicket.open(trip, { onClose: () => cancelActiveJourney() });
         };
-
-        document.getElementById('arrivalCloseBtn').addEventListener('click', () => {
-            document.getElementById('arrivalOverlay').classList.remove('visible');
-            document.getElementById('arrivalScreen').classList.remove('visible');
-            cancelActiveJourney();
-        });
+        window._calzadaTriggerArrival = triggerArrival;
 
         // =============================================
         // GET MY LOCATION (Initial)
@@ -4516,14 +4956,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const data = await res.json();
                     const readableAddr = formatReverseAddress(data.address);
-                    const finalLabel = readableAddr || data.name || 'Pinned Location';
+                    const finalLabel = readableAddr || data.name || t('planner.pinned_location');
 
                     if (isMapPicking) {
                         updatePickerDisplay(finalLabel, `${currentCenter.lat.toFixed(4)}, ${currentCenter.lng.toFixed(4)}`);
                     }
                 } catch (err) {
                     if (err.name !== 'AbortError' && isMapPicking) {
-                        updatePickerDisplay('Pinned Location', `${currentCenter.lat.toFixed(4)}, ${currentCenter.lng.toFixed(4)}`);
+                        updatePickerDisplay(t('planner.pinned_location'), `${currentCenter.lat.toFixed(4)}, ${currentCenter.lng.toFixed(4)}`);
                     }
                 }
             }, 350);
@@ -4546,7 +4986,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const c = map.getCenter();
             const selectedLabel = (currentPickerLabel && currentPickerLabel !== 'Move map to select location...')
                 ? currentPickerLabel
-                : `Pinned Location (${c.lat.toFixed(4)}, ${c.lng.toFixed(4)})`;
+                : t('planner.pinned_location'); // coordinates stay in the picker, never in the label
             selectLocation(selectedLabel, [c.lat, c.lng]);
             cancelMapPicking();
         });
@@ -4794,8 +5234,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 const next = { lng: pos.coords.longitude, lat: pos.coords.latitude };
                 moveTo(next);
                 setActive(true);
-                if (recenter || (!hasCentered && !routeOnMap())) centerOn(next);
+                const inPreview = () => !!(selectedCoords.origin && selectedCoords.destination);
+                if (recenter) {
+                    centerOn(next);
+                } else if (!hasCentered && !inPreview() && !routeOnMap()) {
+                    centerOn(next);
+                }
                 hasCentered = true;
+
+                // Requirement B: If origin is "My Location", check if live position moved > 30m before START JOURNEY
+                if (!isTrackingArrival && !navActive() && isMyLocationOrigin() && selectedCoords.origin && selectedCoords.destination) {
+                    const distFromOrigin = getHaversineDist(
+                        pos.coords.latitude, pos.coords.longitude,
+                        selectedCoords.origin[0], selectedCoords.origin[1]
+                    ) * 1000;
+                    if (distFromOrigin > 30) {
+                        triggerPreviewReplan(pos.coords.latitude, pos.coords.longitude);
+                    }
+                }
+            };
+
+            window._calzadaSetUserFix = (lng, lat) => {
+                const next = { lng, lat };
+                moveTo(next);
+                setActive(true);
+                hasCentered = true;
+                startWatch();
             };
 
             const clearLocation = () => {
@@ -5026,6 +5490,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window.addEventListener('calzada_lang_changed', () => {
             syncDrawerLangState();
+            if (isLocatingOrigin) {
+                const origEl = document.getElementById('openOriginModal');
+                if (origEl) {
+                    const isFil = (localStorage.getItem('calzada_lang') || 'en').toLowerCase() === 'tl';
+                    origEl.textContent = isFil ? 'Hinahanap ang lokasyon mo...' : 'Finding your location...';
+                }
+            }
             if (isTrackingArrival || document.body.classList.contains('navigation-active')) {
                 updateGuideStepsUI();
                 syncNavDisplays();
@@ -5410,6 +5881,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.removeItem('calzada_journey');
                 dismissBanner();
             });
+
+            // Keep the real start time across the reload (absent in states saved before it existed)
+            journeyStartedAt = wasActive && Number.isFinite(state.startedAt) ? state.startedAt : null;
+            journeyId = wasActive && typeof state.journeyId === 'string' && /^[A-Za-z0-9]{20}$/.test(state.journeyId) ? state.journeyId : null;
 
             // Restore OD state
             selectedCoords.origin = state.origin;

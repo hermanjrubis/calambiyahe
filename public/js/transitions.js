@@ -248,6 +248,8 @@
         if (!anchor || !anchor.href) return false;
         // Skip hash-only, javascript:, mailto:, tel:, legal modals, and external links
         if (anchor.hasAttribute('data-open-legal')) return false;
+        // File downloads (e.g. the trip ticket PNG from a blob: URL) are not page navigations
+        if (anchor.hasAttribute('download')) return false;
         if (anchor.getAttribute('href').startsWith('#')) return false;
         if (anchor.getAttribute('href').startsWith('javascript:')) return false;
         if (anchor.getAttribute('href').startsWith('mailto:')) return false;
@@ -255,6 +257,7 @@
         // Must be same origin
         try {
             const url = new URL(anchor.href, window.location.origin);
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
             if (url.origin !== window.location.origin) return false;
             // Must be a page, not an asset or an API endpoint. Pages are served on clean
             // extension-less URLs now (/about), so identify them by the absence of a file

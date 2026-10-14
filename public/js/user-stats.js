@@ -19,6 +19,8 @@ import {
     query, 
     where,
     orderBy, 
+    limit,
+    startAfter,
     serverTimestamp,
     onAuthStateChanged,
     signOut,
@@ -220,6 +222,7 @@ window._calzadaDeleteActivityItem = function (id) {
  * Reset all user-specific state, cached data, DOM displays, and modal contents on logout/guest state.
  */
 export function clearUserState() {
+    const signedOutUid = activeUser && activeUser.uid;
     activeUser = null;
     currentVisits = [];
     currentSaved = [];
@@ -238,10 +241,12 @@ export function clearUserState() {
         localStorage.removeItem('calzada_pref_name');
         localStorage.removeItem('calzada_pref_photo');
         sessionStorage.removeItem('calzadaChatHistory');
+        // Saved-journey guard list of the account that signed out
+        if (signedOutUid) localStorage.removeItem(`calzada_trips_saved_${signedOutUid}`);
         
         // Remove any orphan user-scoped keys
         Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('calzada_activity_feed_') || k.startsWith('calzada_visits_') || k.startsWith('calzada_saved_')) {
+            if (k.startsWith('calzada_activity_feed_') || k.startsWith('calzada_visits_') || k.startsWith('calzada_saved_') || k.startsWith('calzada_trips_saved_')) {
                 localStorage.removeItem(k);
             }
         });
@@ -327,8 +332,9 @@ export function clearUserState() {
     renderVisitsList();
     renderAchievementsList();
 
-    // 5. Close any open modal overlays
+    // 5. Close any open modal overlays (and forget the signed-out user's trips)
     document.querySelectorAll('.profile-modal-overlay.active').forEach(m => m.classList.remove('active'));
+    resetTrips();
 
     // 6. Ensure Admin link is removed
     renderAdminMenuLink(false);
@@ -477,6 +483,16 @@ export async function recordVisit(placeName, category) {
     currentVisits.unshift(item);
     currentBadges = BADGE_DEFINITIONS.filter(b => b.checkUnlocked(currentVisits));
 
+    // Store newly unlocked badges now rather than on the next page load
+    if (user && !user.isAnonymous) {
+        currentBadges.filter(b => !prevBadgeIds.includes(b.id)).forEach(b => {
+            setDoc(doc(db, `users/${user.uid}/badges`, b.id), {
+                badgeName: b.name,
+                unlockedAt: serverTimestamp()
+            }, { merge: true }).catch(() => {});
+        });
+    }
+
     // Notify: visit logged
     addActivity('visit', `Visited ${placeName} (${category || 'Establishment'})`);
 
@@ -558,6 +574,330 @@ export async function toggleSavePlace(placeName, category, placeId = null) {
     updateUINumbers();
     renderSavedList();
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TRIPS: users/{uid}/trips/{journeyId}
+// One document per finished journey, written on arrival by signed-in (non-anonymous)
+// accounts only. Guests and anonymous users get nothing stored, in Firestore or locally.
+// My Trips follows the My Visits pattern: a profile modal built in createProfileModals().
+// The confirm dialog and the shared formatters come from js/trip-ticket.js (loaded on demand).
+// ─────────────────────────────────────────────────────────────────────────────
+const TRIP_TICKET_SRC = '/js/trip-ticket.js?v=1.1.2';
+const TRIPS_PAGE_SIZE = 20;
+const SAVED_JOURNEYS_KEEP = 50; // journey ids remembered per account
+const savedJourneysMemory = new Set();
+let trips = {
+    uid: null,       // whose trips are loaded
+    items: [],       // newest first
+    cursor: null,    // last document snapshot, for "Load more"
+    hasMore: false,
+    loaded: false,
+    loading: false,
+    error: false
+};
+const resetTrips = (uid = null) => {
+    trips = { uid, items: [], cursor: null, hasMore: false, loaded: false, loading: false, error: false };
+};
+
+const canSaveTrips = () => {
+    const user = auth.currentUser;
+    return !!(user && !user.isAnonymous);
+};
+
+// Remember which journeys were saved (signed-in accounts only, latest 50, removed on sign-out)
+// so a reload or a second arrival trigger neither writes the trip again nor logs a second visit. The document id is
+// the journeyId and the rules forbid updates, so the server refuses a repeat write as well.
+function claimJourney(uid, journeyId) {
+    const key = `calzada_trips_saved_${uid}`;
+    if (savedJourneysMemory.has(`${uid}/${journeyId}`)) return false;
+    try {
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        if (list.includes(journeyId)) return false;
+        list.push(journeyId);
+        localStorage.setItem(key, JSON.stringify(list.slice(-SAVED_JOURNEYS_KEEP)));
+    } catch (_) { /* storage unavailable: the in-memory set still guards this page */ }
+    savedJourneysMemory.add(`${uid}/${journeyId}`);
+    return true;
+}
+
+/**
+ * Save a finished trip (the values the ticket shows) and record the visit, once per journey.
+ * Never awaited by the planner, so the ticket is not delayed: offline, the SDK queues the
+ * write and sends it when the connection returns; a refused write only logs a warning.
+ * @param trip  ticket trip: { destName, originLabel, startedAt, arrivedAt, durationMin, estimatedMin, distanceKm, fare, mode, legs }
+ * @param journeyId  20-character id created at START JOURNEY; also the document id
+ * @param dest  { lat, lng, category|null }
+ */
+export function saveTrip(trip, journeyId, dest = {}) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous || !trip) return false;
+    if (typeof journeyId !== 'string' || !/^[A-Za-z0-9]{20}$/.test(journeyId)) return false;
+    if (!claimJourney(user.uid, journeyId)) return false;
+
+    const category = dest.category ? String(dest.category).slice(0, 40) : null;
+    const data = {
+        destName: String(trip.destName || '').slice(0, 120),
+        destLat: Number(dest.lat),
+        destLng: Number(dest.lng),
+        destCategory: category,
+        originLabel: String(trip.originLabel || 'My Location').slice(0, 120),
+        mode: trip.mode === 'jeepney' ? 'jeepney' : 'walk',
+        legs: (trip.legs || []).slice(0, 10).map(l => ({
+            type: l.type === 'jeepney' ? 'jeepney' : 'walk',
+            minutes: Number(l.durationMin) || 0,
+            km: Number(l.distanceKm) || 0,
+            fare: Number(l.fare) || 0
+        })),
+        startedAt: trip.startedAt != null ? new Date(trip.startedAt) : null,
+        arrivedAt: new Date(trip.arrivedAt),
+        actualMinutes: trip.durationMin != null ? trip.durationMin : null,
+        estimatedMinutes: Number(trip.estimatedMin) || 0,
+        distanceKm: Number(trip.distanceKm) || 0,
+        fare: Number(trip.fare) || 0,
+        createdAt: serverTimestamp()
+    };
+
+    setDoc(doc(db, `users/${user.uid}/trips`, journeyId), data)
+        .catch((e) => console.warn('Trip not saved to your account:', (e && e.code) || e));
+    // The list is stale now; reload it next time My Trips opens
+    if (trips.uid === user.uid) resetTrips(user.uid);
+
+    recordVisit(data.destName, category || undefined);
+    return true;
+}
+
+const tsToMs = (ts) => {
+    if (!ts) return null;
+    if (typeof ts.toMillis === 'function') return ts.toMillis();
+    if (ts instanceof Date) return ts.getTime();
+    return null;
+};
+
+// Next page of trips, newest first. Fetches one extra to know whether there is more.
+async function loadTripsPage() {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous || trips.loading) return;
+    if (trips.uid !== user.uid) resetTrips(user.uid);
+    trips.loading = true;
+    trips.error = false;
+    try {
+        const parts = [collection(db, `users/${user.uid}/trips`), orderBy('arrivedAt', 'desc')];
+        if (trips.cursor) parts.push(startAfter(trips.cursor));
+        parts.push(limit(TRIPS_PAGE_SIZE + 1));
+        const snap = await getDocs(query(...parts));
+        const docs = snap.docs.slice(0, TRIPS_PAGE_SIZE);
+        trips.items.push(...docs.map(d => {
+            const data = d.data();
+            return { ...data, id: d.id, startedAt: tsToMs(data.startedAt), arrivedAt: tsToMs(data.arrivedAt) || Date.now() };
+        }));
+        trips.cursor = docs.length ? docs[docs.length - 1] : trips.cursor;
+        trips.hasMore = snap.docs.length > TRIPS_PAGE_SIZE;
+        trips.loaded = true;
+    } catch (e) {
+        console.warn('Trips could not be loaded:', (e && e.code) || e);
+        trips.error = true;
+    } finally {
+        trips.loading = false;
+    }
+}
+
+let ticketLibPromise = null;
+function loadTicketLib() {
+    if (window.CalzadaTicket) return window.CalzadaTicket.ensureStyles().then(() => window.CalzadaTicket);
+    if (!ticketLibPromise) {
+        ticketLibPromise = new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = TRIP_TICKET_SRC;
+            s.onload = () => window.CalzadaTicket
+                ? window.CalzadaTicket.ensureStyles().then(() => resolve(window.CalzadaTicket))
+                : reject(new Error('trip-ticket missing'));
+            s.onerror = () => { ticketLibPromise = null; reject(new Error('trip-ticket failed to load')); };
+            document.head.appendChild(s);
+        });
+    }
+    return ticketLibPromise;
+}
+
+const TRIPS_EN = {
+    'trips.title': 'My Trips',
+    'trips.subtitle': 'Journeys you finished with the planner, newest first.',
+    'trips.loading': 'Loading your trips...',
+    'trips.load_more': 'Load more',
+    'trips.load_failed': "Couldn't load your trips. Try again.",
+    'trips.empty_title': 'No trips yet',
+    'trips.empty_desc': 'Finished journeys will show up here.',
+    'trips.signed_out_title': 'Sign in to see your trips',
+    'trips.signed_out_desc': 'Trips you finish while signed in are kept in your account.',
+    'trips.sign_in': 'Sign in',
+    'trips.mode_walk': 'Walk',
+    'trips.mode_jeepney': 'Jeepney',
+    'trips.delete_label': 'Delete trip to {dest}',
+    'trips.delete_confirm_title': 'Delete this trip?',
+    'trips.delete_confirm_msg': 'Your visit and badges from this trip stay.',
+    'trips.delete': 'Delete',
+    'trips.cancel': 'Cancel',
+    'trips.delete_failed': "Couldn't delete the trip. Try again.",
+    'trips.close': 'Close',
+    'ticket.est': 'Est. {min}',
+    'planner.free': 'Free'
+};
+const ttr = (key, params) => {
+    let s = window.t ? window.t(key, params) : null;
+    if (!s || s === key) {
+        s = TRIPS_EN[key] || key;
+        if (params) Object.entries(params).forEach(([k, v]) => { s = s.split(`{${k}}`).join(v); });
+    }
+    return s;
+};
+
+const ICON_TRIPS_ROUTE = '<svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" /><path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" /></svg>';
+// Tabler walk / bus / trash (outline, stroke 2)
+const ICON_TRIP_WALK = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /><path d="M7 21l3 -4" /><path d="M16 21l-2 -4l-3 -3l1 -6" /><path d="M6 12l2 -3l4 -1l3 3l3 1" /></svg>';
+const ICON_TRIP_JEEP = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M18 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8" /><path d="M16 5l1.5 7l4.5 0" /><path d="M2 10l15 0" /><path d="M7 5l0 5" /><path d="M12 5l0 5" /></svg>';
+const ICON_TRIP_TRASH = '<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>';
+
+// Same formatting as the ticket (js/trip-ticket.js), with fallbacks if it has not loaded
+const tripFmt = () => (window.CalzadaTicket && window.CalzadaTicket.format) || {
+    minutes: (m) => `${Math.max(1, Math.round(m))} min`,
+    time: (ms) => { const d = new Date(ms); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; },
+    km: (km) => (km < 1 ? `${Math.round(km * 100) * 10} m` : `${Number(km).toFixed(1)} km`),
+    fare: (mode, fare) => (mode === 'jeepney' && fare > 0 ? `₱${fare}` : ttr('planner.free'))
+};
+
+function renderTripsModalText() {
+    const modal = document.getElementById('modalMyTrips');
+    if (!modal) return;
+    modal.querySelector('.modal-header-heading').textContent = ttr('trips.title');
+    modal.querySelector('.modal-subtitle').textContent = ttr('trips.subtitle');
+    modal.querySelector('.modal-close-btn').setAttribute('aria-label', ttr('trips.close'));
+}
+
+function renderTripsList() {
+    const container = document.getElementById('tripsListContainer');
+    if (!container) return;
+    renderTripsModalText();
+
+    const emptyState = (title, desc, action = '') => `
+        <div class="saved-empty-state">
+            <div class="saved-empty-icon-box">${ICON_TRIPS_ROUTE.replace('width="22" height="22"', 'width="34" height="34"')}</div>
+            <h4 class="saved-empty-title">${escapeHtml(title)}</h4>
+            <p class="saved-empty-desc">${escapeHtml(desc)}</p>
+            ${action}
+        </div>`;
+
+    if (!canSaveTrips()) {
+        const back = encodeURIComponent(window.location.pathname + window.location.search);
+        container.innerHTML = emptyState(ttr('trips.signed_out_title'), ttr('trips.signed_out_desc'),
+            `<a href="/login?redirect=${back}" class="saved-empty-explore-btn"><span>${escapeHtml(ttr('trips.sign_in'))}</span></a>`);
+        return;
+    }
+    if (!trips.loaded) {
+        container.innerHTML = trips.error
+            ? `<p class="trips-status" role="alert">${escapeHtml(ttr('trips.load_failed'))}</p>`
+            : `<p class="trips-status" aria-busy="true">${escapeHtml(ttr('trips.loading'))}</p>`;
+        return;
+    }
+    if (!trips.items.length) {
+        container.innerHTML = emptyState(ttr('trips.empty_title'), ttr('trips.empty_desc'));
+        return;
+    }
+
+    const fmt = tripFmt();
+    const locale = localStorage.getItem('calzada_lang') === 'tl' ? 'fil-PH' : 'en-US';
+    const thisYear = new Date().getFullYear();
+    const rows = trips.items.map(trip => {
+        const arrived = new Date(trip.arrivedAt);
+        const dateOpts = { weekday: 'short', month: 'short', day: 'numeric' };
+        if (arrived.getFullYear() !== thisYear) dateOpts.year = 'numeric';
+        const when = `${arrived.toLocaleDateString(locale, dateOpts)} · ${fmt.time(trip.arrivedAt)}`;
+        const duration = trip.actualMinutes != null
+            ? fmt.minutes(trip.actualMinutes)
+            : ttr('ticket.est', { min: fmt.minutes(trip.estimatedMinutes || 1) });
+        const isJeep = trip.mode === 'jeepney';
+        const dest = trip.destName || '';
+        return `
+            <div class="visit-item-card trip-item" data-trip-id="${escapeHtml(trip.id)}">
+                <span class="trip-item-mode" title="${escapeHtml(ttr(isJeep ? 'trips.mode_jeepney' : 'trips.mode_walk'))}">${isJeep ? ICON_TRIP_JEEP : ICON_TRIP_WALK}</span>
+                <div class="visit-item-info">
+                    <h4 class="visit-item-name" title="${escapeHtml(dest)}">${escapeHtml(dest)}</h4>
+                    <span class="visit-item-subtitle">${escapeHtml(when)}</span>
+                    <span class="visit-item-subtitle">${escapeHtml(duration)} · ${escapeHtml(fmt.km(trip.distanceKm))} · <span class="trip-item-fare">${escapeHtml(fmt.fare(trip.mode, trip.fare))}</span></span>
+                </div>
+                <button type="button" class="trip-item-delete" data-trip-del="${escapeHtml(trip.id)}"
+                    aria-label="${escapeHtml(ttr('trips.delete_label', { dest }))}">${ICON_TRIP_TRASH}</button>
+            </div>`;
+    }).join('');
+
+    const more = trips.hasMore
+        ? `<button type="button" class="trips-load-more" id="tripsLoadMore" ${trips.loading ? 'disabled' : ''}>${escapeHtml(ttr(trips.loading ? 'trips.loading' : 'trips.load_more'))}</button>`
+        : '';
+    const err = trips.error ? `<p class="trips-status" role="alert">${escapeHtml(ttr('trips.load_failed'))}</p>` : '';
+    container.innerHTML = rows + more + err;
+}
+
+async function deleteTripFromList(tripId, btn) {
+    const user = auth.currentUser;
+    const trip = trips.items.find(t => t.id === tripId);
+    if (!user || user.isAnonymous || !trip) return;
+    const T = await loadTicketLib();
+    const ok = await T.confirm({
+        title: ttr('trips.delete_confirm_title'),
+        message: ttr('trips.delete_confirm_msg'),
+        confirmLabel: ttr('trips.delete'),
+        cancelLabel: ttr('trips.cancel')
+    });
+    if (!ok) return;
+    if (btn) btn.disabled = true;
+    try {
+        // Only the trip document: the visit and badges it earned stay.
+        await deleteDoc(doc(db, `users/${user.uid}/trips`, tripId));
+        trips.items = trips.items.filter(t => t.id !== tripId);
+        renderTripsList();
+    } catch (e) {
+        console.warn('Trip delete failed:', (e && e.code) || e);
+        if (btn) btn.disabled = false;
+        T.notify(ttr('trips.delete_failed'));
+    }
+}
+
+export async function openTripsModal() {
+    // Confirm dialog + styles (also the planner fallback for this modal)
+    try { await loadTicketLib(); } catch (e) { console.warn(e); }
+    openModal('modalMyTrips');
+    const user = auth.currentUser;
+    if (user && !user.isAnonymous && trips.uid !== user.uid) resetTrips(user.uid);
+    renderTripsList();
+    requestAnimationFrame(() => document.querySelector('#modalMyTrips .modal-close-btn')?.focus({ preventScroll: true }));
+    if (canSaveTrips() && !trips.loaded) {
+        await loadTripsPage();
+        renderTripsList();
+    }
+}
+
+// Load more / delete inside the My Trips modal
+document.addEventListener('click', async (e) => {
+    const moreBtn = e.target.closest('#tripsLoadMore');
+    if (moreBtn) {
+        e.preventDefault();
+        const p = loadTripsPage();
+        renderTripsList();
+        await p;
+        renderTripsList();
+        return;
+    }
+    const delBtn = e.target.closest('#modalMyTrips .trip-item-delete');
+    if (delBtn) {
+        e.preventDefault();
+        deleteTripFromList(delBtn.dataset.tripDel, delBtn);
+    }
+});
+
+window.addEventListener('calzada_lang_changed', () => {
+    const modal = document.getElementById('modalMyTrips');
+    if (modal && modal.classList.contains('active')) renderTripsList();
+});
+
+window.CalzadaTrips = { canSave: canSaveTrips, saveTrip, open: openTripsModal };
 
 /**
  * Update UI Counter numbers
@@ -879,6 +1219,14 @@ export function setupProfileUI() {
             closeDropdown();
             openModal('modalMyVisits');
             renderVisitsList();
+            return;
+        }
+
+        const itemTrips = e.target.closest('#menuMyTrips');
+        if (itemTrips) {
+            e.preventDefault();
+            closeDropdown();
+            openTripsModal();
             return;
         }
 
@@ -1871,6 +2219,23 @@ function createProfileModals() {
                 <div class="profile-modal-body">
                     <p class="modal-subtitle">Places you have searched, navigated to, and visited in Calamba City.</p>
                     <div class="visits-list-wrap" id="visitsListContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: My Trips (same pattern as My Visits; texts set by renderTripsList) -->
+        <div class="profile-modal-overlay" id="modalMyTrips">
+            <div class="profile-modal-box">
+                <div class="profile-modal-header">
+                    <div class="modal-header-title">
+                        <div class="modal-header-icon-box">${ICON_TRIPS_ROUTE}</div>
+                        <h3 class="modal-header-heading">My Trips</h3>
+                    </div>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+                </div>
+                <div class="profile-modal-body">
+                    <p class="modal-subtitle"></p>
+                    <div class="visits-list-wrap" id="tripsListContainer"></div>
                 </div>
             </div>
         </div>
