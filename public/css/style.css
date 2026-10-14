@@ -2398,42 +2398,10 @@ body.chat-active .chat-toggle-pill {
         width: 40px !important;
         height: 40px !important;
         flex-shrink: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        border-radius: 50% !important;
-        background: #EAF2FC !important;
-        box-shadow: none !important;
-        transition: background 0.15s ease !important;
-        -webkit-tap-highlight-color: transparent;
     }
 
     .mobile-menu-btn:active {
-        background: #D6E6F8 !important;
-    }
-
-    /* Menu icon (Tabler "menu-deep"): three right-aligned lines that turn into an X when open */
-    .menu-toggle-icon.menu-deep,
-    .menu-toggle-icon.menu-deep.open {
-        transform: none;
-    }
-
-    .menu-deep .md-line {
-        transform-box: view-box;
-        transform-origin: 12px 12px;
-        vector-effect: non-scaling-stroke;
-        transition: transform 0.3s ease, opacity 0.2s ease;
-    }
-
-    .menu-deep.open .md-top {
-        transform: rotate(45deg) translate(0, 6px);
-    }
-
-    .menu-deep.open .md-mid {
-        opacity: 0;
-    }
-
-    .menu-deep.open .md-bot {
-        transform: rotate(-45deg) translate(-8px, -6px) scaleX(2);
+        opacity: 0.7;
     }
 
     /* Mobile icon cluster: bell, sign in / avatar, then the menu button.
@@ -2456,7 +2424,7 @@ body.chat-active .chat-toggle-pill {
         height: 40px;
         padding: 0;
         border-radius: 50%;
-        background: #EAF2FC;
+        background: transparent;
         border: none;
         box-shadow: none;
         color: #2272C3;
@@ -2469,8 +2437,8 @@ body.chat-active .chat-toggle-pill {
         -webkit-tap-highlight-color: transparent;
     }
 
-    .mobile-nav-icon-btn:active {
-        background: #D6E6F8;
+    .mobile-nav-icon-btn:not(.mobile-avatar-btn):active {
+        opacity: 0.7;
     }
 
     .mobile-nav-icon-btn:focus-visible,
@@ -2480,10 +2448,10 @@ body.chat-active .chat-toggle-pill {
         outline-offset: 2px;
     }
 
-    /* Bell: inline Tabler outline icon, 21px */
+    /* Bell: inline Tabler outline icon, 22px */
     .mobile-nav-icon-btn .mobile-nav-svg {
-        width: 21px;
-        height: 21px;
+        width: 22px;
+        height: 22px;
         display: block;
         flex-shrink: 0;
     }
@@ -2530,7 +2498,7 @@ body.chat-active .chat-toggle-pill {
         display: none;
     }
 
-    /* Bell dot (unread activity): inside the circle's top-right; the ring matches the circle */
+    /* Bell dot (unread activity): inside the tap area's top-right, with a white ring */
     .mobile-bell-badge {
         position: absolute;
         top: 7px;
@@ -2540,7 +2508,7 @@ body.chat-active .chat-toggle-pill {
         box-sizing: content-box;
         border-radius: 50%;
         background: #E5484D;
-        border: 2px solid #EAF2FC;
+        border: 2px solid #FFFFFF;
         display: none;
         font-size: 0;
         line-height: 0;
