@@ -100,6 +100,19 @@ document.addEventListener('DOMContentLoaded', () => {
         chatWidget.classList.remove('hide-on-scroll');
     }
 
+    // Keep the floating Routie pill above the site footer, so it never covers footer links
+    const siteFooter = document.querySelector('.site-footer');
+    if (chatWidget && siteFooter) {
+        const liftPillAboveFooter = () => {
+            const overlap = window.innerHeight - siteFooter.getBoundingClientRect().top;
+            if (overlap > 0) chatWidget.style.setProperty('bottom', `${Math.round(overlap) + 24}px`, 'important');
+            else chatWidget.style.removeProperty('bottom');
+        };
+        window.addEventListener('scroll', liftPillAboveFooter, { passive: true });
+        window.addEventListener('resize', liftPillAboveFooter);
+        liftPillAboveFooter();
+    }
+
     // === AUTO-COLLAPSE FEATURES BAR WHEN CLICKING OUTSIDE (Mobile only) ===
     document.addEventListener('click', function (e) {
         if (!featuresBar) return;
@@ -750,6 +763,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     window.closeChat = closeChat;
+
+    // Escape closes Routie on every page that has the chat widget
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && chatWindow && chatWindow.classList.contains('open')) closeChat();
+    });
 
     function resetInactivityTimer() {
         clearTimeout(inactivityTimer);

@@ -218,6 +218,24 @@ body.about-page .about-page-container {
     line-height: 1.3;
 }
 
+/* A way to get around that the Planner does not route yet: muted, with a plain "Coming soon" note */
+.about-plain-row.is-coming-soon .about-plain-row-icon img {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+
+.about-plain-row.is-coming-soon .about-plain-row-label {
+    color: #64748B;
+}
+
+.about-plain-row-soon {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748B;
+    line-height: 1.3;
+}
+
 /* --------------------------------------------------------------------------
    4. Routie Row
    White fill, NO border, 14px radius, 20px 28px padding

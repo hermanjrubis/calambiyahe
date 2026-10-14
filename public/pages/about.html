@@ -31,7 +31,7 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="../css/style.css?v=2.6.3">
-    <link rel="stylesheet" href="../css/about.css?v=2.6.3">
+    <link rel="stylesheet" href="../css/about.css?v=2.6.4">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <script>document.documentElement.classList.add('js-enabled');</script>
@@ -385,8 +385,8 @@
                 <h1 class="about-main-title" data-i18n="about_page.title">About</h1>
                 <p class="about-lead-text" data-i18n="about_page.lead">Calzada is the word for road or pathway. It's also a commuter guide for getting around Calamba, built around direction, clarity, and movement.</p>
                 <div class="about-intro-cols">
-                    <p class="about-intro-p" data-i18n="about_page.p1">Calzada helps you discover places worth visiting around Calamba, then shows you how to get there. Compare travel options based on estimated duration, fare cost, and walking distance — using a jeepney or tricycle — to find the most convenient way to reach your destination.</p>
-                    <p class="about-intro-p" data-i18n="about_page.p2">Need to transfer between a jeepney and tricycle to reach your destination? Calzada supports that too. The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.</p>
+                    <p class="about-intro-p" data-i18n="about_page.p1">Calzada helps you discover places worth visiting around Calamba, then shows you how to get there. Compare travel options based on estimated duration, fare cost, and walking distance — by jeepney or on foot — to find the most convenient way to reach your destination.</p>
+                    <p class="about-intro-p" data-i18n="about_page.p2">The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.</p>
                 </div>
             </section>
 
@@ -415,11 +415,12 @@
                                 </span>
                                 <span class="about-plain-row-label" data-i18n="about_page.mode.jeepney">Jeepney</span>
                             </div>
-                            <div class="about-plain-row">
+                            <div class="about-plain-row is-coming-soon">
                                 <span class="about-plain-row-icon">
                                     <img src="../assets/icons/tricycle-icon.png" alt="" aria-hidden="true" draggable="false" width="24" height="24" loading="lazy" decoding="async">
                                 </span>
                                 <span class="about-plain-row-label" data-i18n="about_page.mode.tricycle">Tricycle</span>
+                                <span class="about-plain-row-soon" data-i18n="about_page.mode.coming_soon">Coming soon</span>
                             </div>
                             <div class="about-plain-row">
                                 <span class="about-plain-row-icon">
@@ -732,7 +733,7 @@
                 <div class="about-cta-banner">
                     <div class="about-cta-text-group">
                         <h2 class="about-cta-title" data-i18n="about_page.cta.heading">Ready to plan your journey?</h2>
-                        <p class="about-cta-sub" data-i18n="about_page.cta.sub">Find a place worth visiting, then get there by jeepney or tricycle — all in one app.</p>
+                        <p class="about-cta-sub" data-i18n="about_page.cta.sub">Find a place worth visiting, then get there by jeepney or on foot — all in one app.</p>
                     </div>
                     <a href="/planner" class="btn-about-cta" data-i18n="about_page.cta.btn">Plan Your Route Now</a>
                 </div>
@@ -740,6 +741,16 @@
         </div>
     </main>
 
+
+    <!-- Floating Chat Widget (Routie Pill) -->
+    <div class="chat-widget-container">
+        <button class="chat-toggle-pill" id="chatToggleBtn" type="button" aria-label="Ask Routie">
+            <img src="../assets/DyipTok-icon.png" alt="Routie" class="chat-pill-avatar" width="66" height="66" loading="lazy" decoding="async">
+            <div class="chat-pill-text-wrap">
+                <span class="chat-label" data-i18n="chat.label">Ask Routie</span>
+            </div>
+        </button>
+    </div>
 
     <!-- Chatbot Window -->
     <div class="chat-window" id="chatWindow">
@@ -780,9 +791,9 @@
         </div>
     </div>
 
-    <script src="../js/legal-modal.js?v=2.6.3"></script>
-    <script src="../js/script.js?v=2.6.3"></script>
-    <script src="../js/i18n.js?v=2.7.1"></script>
+    <script src="../js/legal-modal.js?v=2.6.4"></script>
+    <script src="../js/script.js?v=2.6.4"></script>
+    <script src="../js/i18n.js?v=2.7.2"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.7"></script>

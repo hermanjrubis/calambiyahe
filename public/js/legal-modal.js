@@ -28,7 +28,7 @@
                     <p>Calzada is a place-finding and commuting guide for Calamba City, Laguna. The App helps users:</p>
                     <ul>
                         <li>Discover places of interest within Calamba City</li>
-                        <li>Find how to get there by jeepney or tricycle</li>
+                        <li>Find how to get there by jeepney or on foot</li>
                         <li>View general fare estimates and routing directions</li>
                         <li>Chat with Routie, an AI-powered assistant for commuting and place queries</li>
                     </ul>
