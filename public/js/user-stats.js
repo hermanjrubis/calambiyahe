@@ -116,6 +116,33 @@ function addActivity(type, message) {
     renderActivityFeed();
 }
 
+// Header avatars: the initial on the brand fill by default. The photo replaces it only once it has
+// actually loaded (real pixels), so a missing, broken or empty photo never leaves a blank or black circle.
+function showAvatar(imgEl, initialsEl, photo, initial) {
+    if (initialsEl) {
+        initialsEl.textContent = initial || 'U';
+        initialsEl.style.display = 'block';
+    }
+    if (!imgEl) return;
+    imgEl.onload = null;
+    imgEl.onerror = null;
+    imgEl.style.display = 'none';
+    if (!photo) { imgEl.removeAttribute('src'); return; }
+    const reveal = () => {
+        if (imgEl.naturalWidth > 0 && imgEl.naturalHeight > 0) {
+            imgEl.style.display = 'block';
+            if (initialsEl) initialsEl.style.display = 'none';
+        }
+    };
+    imgEl.onload = reveal;
+    imgEl.onerror = () => {
+        imgEl.style.display = 'none';
+        if (initialsEl) initialsEl.style.display = 'block';
+    };
+    imgEl.src = photo;
+    if (imgEl.complete) reveal();
+}
+
 function updateBellBadge() {
     const badge = document.getElementById('bellBadge');
     const mobileBadge = document.getElementById('mobileBellBadge');
@@ -133,8 +160,8 @@ function updateBellBadge() {
         badge.style.display = 'flex';
     }
     if (mobileBadge) {
-        mobileBadge.textContent = text;
-        mobileBadge.style.display = 'flex';
+        mobileBadge.textContent = ''; // 8px dot: no number inside
+        mobileBadge.style.display = 'block';
     }
 }
 
@@ -952,6 +979,8 @@ export function setupProfileUI() {
             if (nameEl) nameEl.textContent = cachedName;
             if (profNameEl) profNameEl.textContent = cachedName;
             if (initialsEl) initialsEl.textContent = cachedName.charAt(0).toUpperCase();
+            const mobileInitialsEl = document.getElementById('mobileAvatarInitials');
+            if (mobileInitialsEl) mobileInitialsEl.textContent = cachedName.charAt(0).toUpperCase();
         }
     }
 
@@ -1010,54 +1039,20 @@ export function setupProfileUI() {
                 const accTemplate = window.t ? window.t('planner.account_menu') : 'Account menu, {name}';
                 avatarBtn.setAttribute('aria-label', accTemplate.replace('{name}', name));
             }
-            const customPhoto = localStorage.getItem('calzada_pref_photo') || user.photoURL;
-            if (customPhoto && userAvatarImg) {
-                const isDefault = !customPhoto || customPhoto.includes('brand-logo') || customPhoto.includes('default-avatar') || customPhoto.includes('logo');
+            const customPhoto = localStorage.getItem('calzada_pref_photo') || user.photoURL || '';
+            if (userAvatarImg) {
+                const isDefault = customPhoto.includes('brand-logo') || customPhoto.includes('default-avatar') || customPhoto.includes('logo');
                 userAvatarImg.classList.toggle('is-default', isDefault);
-                userAvatarImg.onerror = function() {
-                    this.onerror = null;
-                    this.style.display = 'none';
-                    if (userAvatarInitials) userAvatarInitials.style.display = 'block';
-                };
-                userAvatarImg.src = customPhoto;
-                userAvatarImg.style.display = 'block';
-                if (userAvatarInitials) userAvatarInitials.style.display = 'none';
-            } else if (userAvatarInitials) {
-                userAvatarInitials.textContent = initial;
-                userAvatarInitials.style.display = 'block';
-                if (userAvatarImg) userAvatarImg.style.display = 'none';
             }
+            showAvatar(userAvatarImg, userAvatarInitials, customPhoto, initial);
 
             // 1b. Mobile avatar button
-            if (customPhoto && mobileAvatarImg) {
-                mobileAvatarImg.onerror = function() {
-                    this.onerror = null;
-                    this.style.display = 'none';
-                    if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'block';
-                };
-                mobileAvatarImg.src = customPhoto;
-                mobileAvatarImg.style.display = 'block';
-                if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'none';
-            } else if (mobileAvatarInitials) {
-                mobileAvatarInitials.textContent = initial;
-                mobileAvatarInitials.style.display = 'block';
-                if (mobileAvatarImg) mobileAvatarImg.style.display = 'none';
-            }
+            showAvatar(mobileAvatarImg, mobileAvatarInitials, customPhoto, initial);
 
             // 2. Dropdown Header
             if (profileDisplayName) profileDisplayName.textContent = name;
             if (profileEmail) profileEmail.textContent = email;
-            if (profileHeaderInitials) profileHeaderInitials.textContent = initial;
-            if (customPhoto && profileHeaderImg) {
-                profileHeaderImg.onerror = function() {
-                    this.onerror = null;
-                    this.style.display = 'none';
-                    if (profileHeaderInitials) profileHeaderInitials.style.display = 'block';
-                };
-                profileHeaderImg.src = customPhoto;
-                profileHeaderImg.style.display = 'block';
-                if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
-            }
+            showAvatar(profileHeaderImg, profileHeaderInitials, customPhoto, initial);
 
             // 3. Settings modal previews & inputs
             renderSettingsModal();
@@ -2122,22 +2117,11 @@ async function saveUserSettings() {
             const mobileAvatarImg = document.getElementById('mobileAvatarImg');
             const mobileAvatarInitials = document.getElementById('mobileAvatarInitials');
 
-            if (userAvatarImg) {
-                userAvatarImg.classList.remove('is-default');
-                userAvatarImg.src = pendingAvatarDataUrl;
-                userAvatarImg.style.display = 'block';
-            }
-            if (userAvatarInitials) userAvatarInitials.style.display = 'none';
-            if (profileHeaderImg) {
-                profileHeaderImg.src = pendingAvatarDataUrl;
-                profileHeaderImg.style.display = 'block';
-            }
-            if (profileHeaderInitials) profileHeaderInitials.style.display = 'none';
-            if (mobileAvatarImg) {
-                mobileAvatarImg.src = pendingAvatarDataUrl;
-                mobileAvatarImg.style.display = 'block';
-            }
-            if (mobileAvatarInitials) mobileAvatarInitials.style.display = 'none';
+            const savedInitial = ((newName || (user && user.displayName) || (user && user.email) || 'U').charAt(0) || 'U').toUpperCase();
+            if (userAvatarImg) userAvatarImg.classList.remove('is-default');
+            showAvatar(userAvatarImg, userAvatarInitials, pendingAvatarDataUrl, savedInitial);
+            showAvatar(profileHeaderImg, profileHeaderInitials, pendingAvatarDataUrl, savedInitial);
+            showAvatar(mobileAvatarImg, mobileAvatarInitials, pendingAvatarDataUrl, savedInitial);
         }
 
         if (user && !user.isAnonymous) {

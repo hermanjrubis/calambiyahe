@@ -2395,18 +2395,20 @@ body.chat-active .chat-toggle-pill {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        width: 36px !important;
-        height: 36px !important;
+        width: 40px !important;
+        height: 40px !important;
         flex-shrink: 0 !important;
     }
 
-    /* Mobile icon cluster: search, bell, sign in / avatar */
+    /* Mobile icon cluster: bell, sign in / avatar, then the menu button.
+       Every slot is a 40x40 tap target, vertically centred, 8px apart. */
     .mobile-nav-icons {
         display: flex !important;
         align-items: center !important;
-        gap: 2px !important;
+        gap: 8px !important;
         margin-left: auto !important;
-        margin-right: 2px !important;
+        /* + the navbar gap (4px) = 8px to the menu button on pages where it follows this group */
+        margin-right: 4px !important;
         flex: 0 0 auto !important;
     }
 
@@ -2414,8 +2416,9 @@ body.chat-active .chat-toggle-pill {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        height: 40px;
+        padding: 0;
         border-radius: 50%;
         background: transparent;
         border: none;
@@ -2433,23 +2436,33 @@ body.chat-active .chat-toggle-pill {
         background: rgba(55, 138, 221, 0.1);
     }
 
-    /* Mobile bell badge dot */
-    .mobile-bell-badge {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #EF4444;
-        display: none;
-        border: 1.5px solid white;
+    .mobile-nav-icon-btn .ti-bell {
+        font-size: 22px;
+        line-height: 1;
     }
 
-    /* Mobile Avatar Pill Button (Logged In) */
+    /* Bell dot (unread activity): inside the button's top-right corner, so the avatar never covers it */
+    .mobile-bell-badge {
+        position: absolute;
+        top: 7px;
+        right: 8px;
+        width: 8px;
+        height: 8px;
+        box-sizing: content-box;
+        border-radius: 50%;
+        background: #E5484D;
+        border: 2px solid #FFFFFF;
+        display: none;
+        font-size: 0;
+        line-height: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    /* Mobile Avatar Button (Logged In) */
     .mobile-avatar-btn {
-        width: 36px;
-        height: 36px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         background: transparent;
         border: none;
@@ -2464,16 +2477,21 @@ body.chat-active .chat-toggle-pill {
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #378ADD, #1C6EF2);
+        background: #378ADD;
         color: #FFFFFF;
-        font-weight: 700;
-        font-size: 0.85rem;
         display: flex;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        box-shadow: 0 2px 6px rgba(55, 138, 221, 0.25);
-        border: 1.5px solid #E2E8F0;
+        flex-shrink: 0;
+    }
+
+    .mobile-avatar-initials {
+        font-family: 'Sora', sans-serif;
+        font-weight: 600;
+        font-size: 14px;
+        line-height: 1;
+        color: #FFFFFF;
     }
 
     .mobile-avatar-img {
@@ -2481,6 +2499,7 @@ body.chat-active .chat-toggle-pill {
         height: 100%;
         object-fit: cover;
         border-radius: 50%;
+        display: block;
     }
 
     /* Ensure Dropdown Menus render fixed above page on mobile view */
@@ -7840,7 +7859,7 @@ input#searchInput,
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #378ADD, #1C6EF2);
+    background: #378ADD;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -7857,6 +7876,14 @@ input#searchInput,
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
+}
+
+.user-avatar-initials {
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
+    color: #FFFFFF;
 }
 
 .user-avatar-img.is-default {

@@ -566,8 +566,9 @@ body {
 
 .user-avatar-initials {
     font-family: 'Sora', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 1;
     color: #FFFFFF;
 }
 
