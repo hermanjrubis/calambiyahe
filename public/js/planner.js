@@ -6165,9 +6165,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const banner = document.createElement('div');
             banner.id = 'recoveryBanner';
             banner.innerHTML = `
-            <span>Your last route was restored.</span>
-            <button id="recoveryDismissBtn" title="Start fresh">×</button>
+            <span class="recovery-banner-text"></span>
+            <button id="recoveryDismissBtn" type="button">×</button>
         `;
+            // Texts follow the site language, also when it is switched while the banner shows
+            const setBannerTexts = () => {
+                banner.querySelector('.recovery-banner-text').textContent = t('planner.route_restored_banner');
+                const dismiss = banner.querySelector('#recoveryDismissBtn');
+                dismiss.title = t('planner.route_restored_dismiss');
+                dismiss.setAttribute('aria-label', t('planner.route_restored_dismiss'));
+            };
+            setBannerTexts();
+            window.addEventListener('calzada_lang_changed', setBannerTexts);
             banner.style.cssText = [
                 'position:fixed', 'bottom:90px', 'left:50%', 'transform:translateX(-50%)',
                 'background:rgba(30,41,59,0.95)', 'color:#f8fafc', 'padding:10px 18px',
@@ -6179,7 +6188,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 'background:none;border:none;color:#94a3b8;font-size:1.1rem;cursor:pointer;padding:0 4px;line-height:1;';
             document.body.appendChild(banner);
 
-            const dismissBanner = () => banner.remove();
+            const dismissBanner = () => {
+                window.removeEventListener('calzada_lang_changed', setBannerTexts);
+                banner.remove();
+            };
             banner.querySelector('#recoveryDismissBtn').addEventListener('click', () => {
                 sessionStorage.removeItem('calzada_journey');
                 dismissBanner();
@@ -6194,6 +6206,12 @@ document.addEventListener('DOMContentLoaded', () => {
             originPlaceName = state.originName || '';
             destPlaceName = state.destName || '';
             selectedMode = (state.selectedMode === 'walking' ? 'walking' : 'jeepney');
+            // Keep the mode saved with the preview (no re-pick by distance), as the journey restore does.
+            // Previews saved without a mode keep the distance-based choice.
+            if (state.selectedMode === 'walking' || state.selectedMode === 'jeepney') {
+                userExplicitMode = true;
+                setModeUI(selectedMode);
+            }
             updateODDisplay();
 
             // Re-fetch fresh OSRM route for the preview

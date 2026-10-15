@@ -154,7 +154,7 @@ const UI_LABELS_EN = {
 // On the Tagalog site only these labels change; every other label above is static English there too.
 const UI_LABELS = {
     en: UI_LABELS_EN,
-    tl: { ...UI_LABELS_EN, about: 'Tungkol sa Amin', explore: 'Tuklasin', signIn: 'Mag-Sign in', homeFares: 'Tantiya sa pamasahe' }
+    tl: { ...UI_LABELS_EN, about: 'Tungkol sa Amin', explore: 'Tuklasin', signIn: 'Mag-sign in', homeFares: 'Tantiya sa pamasahe' }
 };
 
 const HELP_LINE = {
