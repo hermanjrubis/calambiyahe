@@ -317,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
             touchPitch: false,
             pitchWithRotate: false,
             maxPitch: 0,
+            preserveDrawingBuffer: true,
             // Attribution is added below as a compact control at the bottom-left
             attributionControl: false,
             locale: {
@@ -2305,6 +2306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const itineraryLegs = document.getElementById('itineraryLegs');
             const walkHintEl = document.getElementById('walkableTripHint');
             const startBtn = document.getElementById('startJourneyBtn');
+            const savePdfBtn = document.getElementById('saveRoutePdfBtn');
             const startHelper = document.getElementById('startJourneyHelper');
 
             if (hasRoute) {
@@ -2324,6 +2326,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 if (startBtn) startBtn.disabled = false;
+                if (savePdfBtn) savePdfBtn.style.display = 'inline-flex';
                 if (startHelper) startHelper.style.display = 'none';
             } else {
                 if (directionsCard) directionsCard.classList.remove('has-route');
@@ -2340,6 +2343,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (itineraryLegs) itineraryLegs.innerHTML = '';
                 if (walkHintEl) walkHintEl.style.display = 'none';
+                if (savePdfBtn) savePdfBtn.style.display = 'none';
                 const peekSummary = document.getElementById('peekSummary');
                 if (peekSummary) peekSummary.textContent = '-- min • ₱ --';
                 const dsPeekInfo = document.getElementById('dsPeekInfo');
@@ -4103,6 +4107,38 @@ document.addEventListener('DOMContentLoaded', () => {
         window._calzadaExecuteRouteQuery = executeRouteQuery;
         window._calzadaUpdateSummaryRow = updateSummaryRow;
         window._calzadaRenderItinerary = renderItinerary;
+
+        window._calzadaGetRouteExportData = () => {
+            const walkStepsClean = (walkRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'foot' }));
+            const transitStepsClean = (transitRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'driving' }));
+            const finalWalkClean = (window.finalWalkRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'foot' }));
+            const steps = window.activeRouteSteps && window.activeRouteSteps.length > 0
+                ? window.activeRouteSteps
+                : (typeof deduplicateSteps === 'function'
+                    ? deduplicateSteps([...walkStepsClean, ...transitStepsClean, ...finalWalkClean])
+                    : [...walkStepsClean, ...transitStepsClean, ...finalWalkClean]);
+
+            return {
+                originName: originPlaceName,
+                destName: destPlaceName,
+                originCoords: selectedCoords.origin,
+                destCoords: selectedCoords.destination,
+                selectedMode,
+                walkDur: currentWalkDur,
+                walkDist: currentWalkDist,
+                transitDur: currentTransitDur,
+                transitDist: currentTransitDist,
+                fare: currentFare,
+                journeyStartedAt,
+                isTrackingArrival,
+                walkRouteGeojson,
+                transitRouteGeojson,
+                finalWalkRouteGeojson: window.finalWalkRouteGeojson,
+                activeRouteSteps: steps,
+                lastItineraryStops,
+                map
+            };
+        };
         window._calzadaRenderPlannerState = renderPlannerState;
         window._calzadaClearAllPlannerState = clearAllPlannerState;
         window._calzadaClearOriginField = clearOriginField;
@@ -4191,6 +4227,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cancelBtn) {
                 e.preventDefault();
                 cancelActiveJourney();
+            }
+        });
+
+        // Delegated click handler for Save as PDF buttons
+        document.addEventListener('click', (e) => {
+            const pdfBtn = e.target.closest('.save-route-pdf-btn');
+            if (pdfBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (window.CalzadaRoutePdf && typeof window.CalzadaRoutePdf.exportCurrentRoute === 'function') {
+                    window.CalzadaRoutePdf.exportCurrentRoute();
+                }
             }
         });
 

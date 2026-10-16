@@ -1934,6 +1934,67 @@ span#sumFare.sum-fare-pill {
 }
 
 /* =============================================
+   SAVE AS PDF BUTTON (OFFLINE ROUTE EXPORT)
+   ============================================= */
+.save-route-pdf-btn {
+    margin: 0 16px 12px;
+    background: #FFFFFF;
+    color: #0E2A47;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 14px;
+    height: 44px;
+    min-height: 44px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(14, 42, 71, 0.05);
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc(100% - 32px);
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.save-route-pdf-btn:hover:not(:disabled) {
+    background: #F8FAFC;
+    border-color: #378ADD;
+    color: #378ADD;
+    box-shadow: 0 2px 8px rgba(55, 138, 221, 0.15);
+}
+
+.save-route-pdf-btn:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.save-route-pdf-btn:disabled,
+.save-route-pdf-btn.is-busy {
+    opacity: 0.75;
+    cursor: not-allowed;
+    background: #F1F5F9;
+}
+
+.save-route-pdf-btn svg {
+    flex-shrink: 0;
+}
+
+.nav-save-pdf-btn {
+    margin: 12px 16px 14px;
+    width: calc(100% - 32px);
+}
+
+@keyframes spin-pdf-loader {
+    to { transform: rotate(360deg); }
+}
+
+.save-pdf-spinner {
+    animation: spin-pdf-loader 0.8s linear infinite;
+}
+
+/* =============================================
    ACTIVE NAVIGATION — UNIFIED PANELS (Screen 3)
    ============================================= */
 
@@ -6090,6 +6151,13 @@ html.lang-swapping-out [data-lang-fade] {
         background: #378ADD !important;
         color: #FFFFFF !important;
         margin: 12px 16px 8px !important;
+        width: calc(100% - 32px) !important;
+    }
+
+    .save-route-pdf-btn {
+        height: 44px !important;
+        min-height: 44px !important;
+        margin: 0 16px 10px !important;
         width: calc(100% - 32px) !important;
     }
 }
