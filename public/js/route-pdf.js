@@ -256,16 +256,29 @@
             addCoordList(transitCoords);
             addCoordList(finalWalkCoords);
 
-            if (bounds.isEmpty()) return null;
+            if (bounds.isEmpty() && window._calzadaPreviewRouteBounds && !window._calzadaPreviewRouteBounds.isEmpty()) {
+                bounds = window._calzadaPreviewRouteBounds;
+            }
+            if (bounds.isEmpty() && typeof map.getBounds === 'function') {
+                try {
+                    const mb = map.getBounds();
+                    if (mb && !mb.isEmpty()) bounds = mb;
+                } catch (_) {}
+            }
 
-            const camera = map.cameraForBounds(bounds, {
-                padding: { top: 60, bottom: 60, left: 60, right: 60 },
-                bearing: 0,
-                pitch: 0,
-                maxZoom: 16
-            });
+            let camera = null;
+            if (!bounds.isEmpty()) {
+                try {
+                    camera = map.cameraForBounds(bounds, {
+                        padding: { top: 60, bottom: 60, left: 60, right: 60 },
+                        bearing: 0,
+                        pitch: 0,
+                        maxZoom: 16
+                    });
+                } catch (_) {}
+            }
 
-            if (camera) {
+            if (camera && camera.center && isFinite(camera.center.lng) && isFinite(camera.center.lat) && isFinite(camera.zoom)) {
                 map.jumpTo({
                     center: camera.center,
                     zoom: camera.zoom,
@@ -274,34 +287,63 @@
                 });
             }
 
+            // Await tile loading and render completion
+            await new Promise((resolve) => {
+                let resolved = false;
+                const done = () => {
+                    if (resolved) return;
+                    resolved = true;
+                    resolve();
+                };
+
+                if (map.areTilesLoaded()) {
+                    map.once('render', done);
+                    map.triggerRepaint();
+                    setTimeout(done, 300);
+                } else {
+                    map.once('idle', done);
+                    map.once('render', () => {
+                        if (map.areTilesLoaded()) done();
+                    });
+                    map.triggerRepaint();
+                    setTimeout(done, 1200);
+                }
+            });
+
             const mapCanvas = map.getCanvas();
             const snapCanvas = document.createElement('canvas');
             snapCanvas.width = mapCanvas.width;
             snapCanvas.height = mapCanvas.height;
             const ctx = snapCanvas.getContext('2d');
 
-            // Capture right on render callback
-            await new Promise((resolve) => {
-                let resolved = false;
-                const done = () => {
-                    if (resolved) return;
-                    resolved = true;
-                    try {
-                        ctx.drawImage(map.getCanvas(), 0, 0);
-                    } catch (_) {}
-                    resolve();
-                };
-
-                map.once('render', done);
-                map.triggerRepaint();
-                setTimeout(() => {
-                    if (!resolved) {
-                        map.triggerRepaint();
-                        map.once('render', done);
+            // On iOS Safari WebKit, reading directly from WebGL canvas via toDataURL is synchronous and reliable
+            let copied = false;
+            try {
+                const mapDataUrl = mapCanvas.toDataURL('image/png');
+                if (mapDataUrl && mapDataUrl.length > 1000) {
+                    const tempImg = new Image();
+                    tempImg.src = mapDataUrl;
+                    if (typeof tempImg.decode === 'function') {
+                        try { await tempImg.decode(); } catch (_) {}
+                    } else if (!tempImg.complete) {
+                        await new Promise((r) => { tempImg.onload = r; tempImg.onerror = r; setTimeout(r, 200); });
                     }
-                }, 150);
-                setTimeout(done, 500);
-            });
+                    if (tempImg.naturalWidth > 0) {
+                        ctx.drawImage(tempImg, 0, 0);
+                        copied = true;
+                    }
+                }
+            } catch (e) {
+                console.warn('toDataURL on mapCanvas failed:', e);
+            }
+
+            if (!copied) {
+                try {
+                    ctx.drawImage(mapCanvas, 0, 0);
+                } catch (e) {
+                    console.warn('drawImage mapCanvas failed:', e);
+                }
+            }
 
             // Overlay origin marker (blue circle with white ring)
             if (origLL) {
@@ -398,13 +440,22 @@
                 }
             }
 
+            let sW = maxX - minX;
+            let sH = maxY - minY;
+            if (sW <= 10 || sH <= 10 || !isFinite(sW) || !isFinite(sH)) {
+                minX = 0;
+                minY = 0;
+                sW = snapCanvas.width;
+                sH = snapCanvas.height;
+            }
+
             const cropCanvas = document.createElement('canvas');
             cropCanvas.width = 800;
             cropCanvas.height = 350;
             const cropCtx = cropCanvas.getContext('2d');
             cropCtx.drawImage(
                 snapCanvas,
-                minX, minY, maxX - minX, maxY - minY,
+                minX, minY, sW, sH,
                 0, 0, cropCanvas.width, cropCanvas.height
             );
 
@@ -590,7 +641,9 @@
                     <!-- 1. Header -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #378ADD; padding-bottom: 12px; margin-bottom: 14px;">
                         <div>
-                            ${logoDataUrl ? `<img src="${logoDataUrl}" alt="Calzada" style="height: 30px; width: auto; display: block; margin-bottom: 5px;">` : `<div style="font-size: 22px; font-weight: 800; color: #378ADD; letter-spacing: -0.02em; font-family: 'Sora', sans-serif;">CALZADA</div>`}
+                            <div id="pdfLogoBox" style="height: 30px; display: inline-block; margin-bottom: 5px;">
+                                ${logoDataUrl ? `<img src="${logoDataUrl}" alt="Calzada" style="height: 30px; width: auto; display: block;">` : `<div style="font-size: 22px; font-weight: 800; color: #378ADD; letter-spacing: -0.02em; font-family: 'Sora', sans-serif;">CALZADA</div>`}
+                            </div>
                             <div style="font-size: 18px; font-weight: 700; color: #0E2A47; font-family: 'Sora', sans-serif;">
                                 ${escapeHtml(routeTitle)}
                             </div>
@@ -642,7 +695,7 @@
                     <!-- 3. Map Snapshot -->
                     ${mapSnapshotDataUrl ? `
                     <div style="margin-bottom: 12px;">
-                        <div style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0;">
+                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: 100%; height: 195px; position: relative;">
                             <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: 100%; height: 195px; object-fit: cover; display: block;">
                         </div>
                         <div style="font-size: 9px; color: #64748B; margin-top: 3px; text-align: right;">
@@ -685,7 +738,9 @@
                     <!-- Header Continuation -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #378ADD; padding-bottom: 12px; margin-bottom: 14px;">
                         <div>
-                            ${logoDataUrl ? `<img src="${logoDataUrl}" alt="Calzada" style="height: 30px; width: auto; display: block; margin-bottom: 5px;">` : `<div style="font-size: 22px; font-weight: 800; color: #378ADD; letter-spacing: -0.02em; font-family: 'Sora', sans-serif;">CALZADA</div>`}
+                            <div id="pdfLogoBoxPage2" style="height: 30px; display: inline-block; margin-bottom: 5px;">
+                                ${logoDataUrl ? `<img src="${logoDataUrl}" alt="Calzada" style="height: 30px; width: auto; display: block;">` : `<div style="font-size: 22px; font-weight: 800; color: #378ADD; letter-spacing: -0.02em; font-family: 'Sora', sans-serif;">CALZADA</div>`}
+                            </div>
                             <div style="font-size: 18px; font-weight: 700; color: #0E2A47; font-family: 'Sora', sans-serif;">
                                 ${escapeHtml(routeTitle)} <span style="font-size: 14px; font-weight: 500; color: #5B6B7C;">(${isTl ? 'Itutuloy' : 'Continued'})</span>
                             </div>
@@ -847,6 +902,48 @@
             offscreenContainer.appendChild(page2El);
         }
 
+        const pdfW = 210;
+        const pdfH = 297;
+
+        // Await all images inside offscreenContainer to decode
+        const imgs = Array.from(offscreenContainer.querySelectorAll('img'));
+        await Promise.all(imgs.map(async (img) => {
+            if (img.complete && img.naturalWidth > 0) return;
+            if (typeof img.decode === 'function') {
+                try { await img.decode(); return; } catch (_) {}
+            }
+            await new Promise((r) => { img.onload = r; img.onerror = r; setTimeout(r, 300); });
+        }));
+
+        // Measure placeholder boxes in mm on the A4 page (210 x 297 mm)
+        const page1Rect = page1El.getBoundingClientRect();
+        const mapBoxEl = page1El.querySelector('#pdfMapSnapshotBox');
+        let mapMm = null;
+        if (mapBoxEl && page1Rect.width > 0 && page1Rect.height > 0) {
+            const r = mapBoxEl.getBoundingClientRect();
+            mapMm = {
+                x: ((r.left - page1Rect.left) / page1Rect.width) * pdfW,
+                y: ((r.top - page1Rect.top) / page1Rect.height) * pdfH,
+                w: (r.width / page1Rect.width) * pdfW,
+                h: (r.height / page1Rect.height) * pdfH
+            };
+        }
+
+        const logoBoxEl = page1El.querySelector('#pdfLogoBox');
+        let logoMm = null;
+        if (logoBoxEl && page1Rect.width > 0 && page1Rect.height > 0) {
+            const r = logoBoxEl.getBoundingClientRect();
+            logoMm = {
+                x: ((r.left - page1Rect.left) / page1Rect.width) * pdfW,
+                y: ((r.top - page1Rect.top) / page1Rect.height) * pdfH,
+                w: (r.width / page1Rect.width) * pdfW,
+                h: (r.height / page1Rect.height) * pdfH
+            };
+        }
+
+        const isWebKit = /iP(hone|ad|od)/i.test(navigator.userAgent) || 
+                         (/Safari\//i.test(navigator.userAgent) && !/Chrome|Chromium|Android/i.test(navigator.userAgent));
+
         const opts = {
             pixelRatio: 2,
             fontEmbedCSS: fontEmbedCSS || undefined,
@@ -856,6 +953,13 @@
         };
 
         try {
+            if (isWebKit) {
+                // First warm-up pass for WebKit SVG foreignObject paint bug
+                try {
+                    await htmlToImage.toCanvas(page1El, opts);
+                } catch (_) {}
+            }
+
             // Render Page 1 to canvas
             const page1Canvas = await htmlToImage.toCanvas(page1El, opts);
             const page1Jpeg = page1Canvas.toDataURL('image/jpeg', 0.90);
@@ -867,16 +971,53 @@
                 compress: true
             });
 
-            const pdfW = 210;
-            const pdfH = 297;
-
             doc.addImage(page1Jpeg, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
 
+            // DIRECT jsPDF INJECTION:
+            // If html-to-image on WebKit dropped the <img> inside foreignObject,
+            // directly overlay the map snapshot and logo at their exact measured coordinates!
+            if (mapSnapshotDataUrl && mapMm) {
+                try {
+                    doc.addImage(mapSnapshotDataUrl, 'JPEG', mapMm.x, mapMm.y, mapMm.w, mapMm.h, undefined, 'FAST');
+                } catch (e) {
+                    console.warn('Direct map image injection failed:', e);
+                }
+            }
+
+            if (logoDataUrl && logoMm) {
+                try {
+                    doc.addImage(logoDataUrl, 'PNG', logoMm.x, logoMm.y, logoMm.w, logoMm.h, undefined, 'FAST');
+                } catch (e) {
+                    console.warn('Direct logo image injection failed:', e);
+                }
+            }
+
             if (needsMultiPage && page2El) {
+                const page2Rect = page2El.getBoundingClientRect();
+                const logoBox2El = page2El.querySelector('#pdfLogoBoxPage2');
+                let logoMm2 = null;
+                if (logoBox2El && page2Rect.width > 0 && page2Rect.height > 0) {
+                    const r = logoBox2El.getBoundingClientRect();
+                    logoMm2 = {
+                        x: ((r.left - page2Rect.left) / page2Rect.width) * pdfW,
+                        y: ((r.top - page2Rect.top) / page2Rect.height) * pdfH,
+                        w: (r.width / page2Rect.width) * pdfW,
+                        h: (r.height / page2Rect.height) * pdfH
+                    };
+                }
+
+                if (isWebKit) {
+                    try { await htmlToImage.toCanvas(page2El, opts); } catch (_) {}
+                }
                 const page2Canvas = await htmlToImage.toCanvas(page2El, opts);
                 const page2Jpeg = page2Canvas.toDataURL('image/jpeg', 0.90);
                 doc.addPage();
                 doc.addImage(page2Jpeg, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
+                if (logoDataUrl && logoMm2) {
+                    try {
+                        doc.addImage(logoDataUrl, 'PNG', logoMm2.x, logoMm2.y, logoMm2.w, logoMm2.h, undefined, 'FAST');
+                    } catch (_) {}
+                }
             }
 
             return doc.output('blob');
