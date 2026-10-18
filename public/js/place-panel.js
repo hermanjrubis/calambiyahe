@@ -625,7 +625,49 @@ let inline360LoadTimeout = null;
 let inline360HintTimer = null;
 let inline360HintShown = false;
 let inline360SkeletonFadeTimer = null;
+let inline360IdleWaitHandle = null;
+let inline360IdleWaitIsTimeout = false;
+let inline360RafWaitHandle = null;
 let placePanel360ManifestCache = null;
+
+function cancelViewerRenderWait() {
+    if (inline360RafWaitHandle) {
+        cancelAnimationFrame(inline360RafWaitHandle);
+        inline360RafWaitHandle = null;
+    }
+    if (inline360IdleWaitHandle !== null) {
+        if (inline360IdleWaitIsTimeout) {
+            clearTimeout(inline360IdleWaitHandle);
+        } else if (typeof window.cancelIdleCallback === 'function') {
+            window.cancelIdleCallback(inline360IdleWaitHandle);
+        }
+        inline360IdleWaitHandle = null;
+        inline360IdleWaitIsTimeout = false;
+    }
+}
+
+function waitForFirstRender(callback) {
+    cancelViewerRenderWait();
+    inline360RafWaitHandle = requestAnimationFrame(() => {
+        inline360RafWaitHandle = requestAnimationFrame(() => {
+            inline360RafWaitHandle = null;
+            if (typeof window.requestIdleCallback === 'function') {
+                inline360IdleWaitIsTimeout = false;
+                inline360IdleWaitHandle = window.requestIdleCallback(() => {
+                    inline360IdleWaitHandle = null;
+                    callback();
+                }, { timeout: 600 });
+            } else {
+                inline360IdleWaitIsTimeout = true;
+                inline360IdleWaitHandle = setTimeout(() => {
+                    inline360IdleWaitHandle = null;
+                    inline360IdleWaitIsTimeout = false;
+                    callback();
+                }, 300);
+            }
+        });
+    });
+}
 
 async function fetchManifestNode(nodeId) {
     if (!nodeId) return null;
@@ -663,6 +705,10 @@ function hideFirstTimeHint(instant = false) {
     }
     const hint = document.getElementById('ppInline360Hint');
     if (hint) {
+        if (window._inline360HintAnimEndHandler) {
+            hint.removeEventListener('animationend', window._inline360HintAnimEndHandler);
+            window._inline360HintAnimEndHandler = null;
+        }
         hint.classList.remove('entering');
         if (instant) {
             hint.classList.remove('hiding');
@@ -688,6 +734,7 @@ function hideFirstTimeHint(instant = false) {
 }
 
 function destroyInline360Viewer() {
+    cancelViewerRenderWait();
     hideFirstTimeHint(true);
     inline360HintShown = false;
     if (inline360SkeletonFadeTimer) {
@@ -739,6 +786,7 @@ function attachInline360Containment(containerEl) {
 }
 
 function triggerInline360Error() {
+    cancelViewerRenderWait();
     if (inline360LoadTimeout) {
         clearTimeout(inline360LoadTimeout);
         inline360LoadTimeout = null;
@@ -794,13 +842,43 @@ function showFirstTimeHint() {
         clearTimeout(inline360HintTimer);
         inline360HintTimer = null;
     }
+    if (window._inline360HintAnimEndHandler) {
+        hint.removeEventListener('animationend', window._inline360HintAnimEndHandler);
+        window._inline360HintAnimEndHandler = null;
+    }
 
     function onDismiss() {
         hideFirstTimeHint(false);
     }
     window._inline360HintDismissHandler = onDismiss;
 
-    inline360HintTimer = setTimeout(onDismiss, 2500);
+    function startTimer() {
+        if (inline360HintTimer) {
+            clearTimeout(inline360HintTimer);
+            inline360HintTimer = null;
+        }
+        inline360HintTimer = setTimeout(onDismiss, 2500);
+    }
+
+    const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        startTimer();
+    } else {
+        let safetyTimer = null;
+        const onAnimationEnd = (e) => {
+            if (e && (e.target !== hint || e.animationName !== 'hintEnter')) return;
+            if (safetyTimer) {
+                clearTimeout(safetyTimer);
+                safetyTimer = null;
+            }
+            hint.removeEventListener('animationend', onAnimationEnd);
+            window._inline360HintAnimEndHandler = null;
+            startTimer();
+        };
+        window._inline360HintAnimEndHandler = onAnimationEnd;
+        hint.addEventListener('animationend', onAnimationEnd);
+        safetyTimer = setTimeout(onAnimationEnd, 600);
+    }
 
     const container = document.getElementById('ppInline360Container');
     if (container) {
@@ -945,12 +1023,17 @@ async function initInline360Viewer(place) {
                 inline360SkeletonFadeTimer = setTimeout(() => {
                     skeleton.style.display = 'none';
                     inline360SkeletonFadeTimer = null;
-                    // Show hint ONLY after skeleton has fully faded out
-                    showFirstTimeHint();
                 }, 200);
-            } else {
-                showFirstTimeHint();
             }
+            // Wait until first frames are actually rendered before showing hint:
+            // two requestAnimationFrame callbacks plus a short idle wait (requestIdleCallback with a 600 ms timeout, falling back to setTimeout 300 ms)
+            waitForFirstRender(() => {
+                const panel = document.getElementById('placePanel');
+                if (!panel || !panel.classList.contains('active')) return;
+                if (currentCarouselIndex !== 1) return;
+                if (skeleton) skeleton.style.display = 'none';
+                showFirstTimeHint();
+            });
         });
 
         inline360Viewer.on('error', () => {
@@ -1283,6 +1366,7 @@ function goToCarouselSlide(index) {
 
     // Lazy initialization & resize of inline 360 viewer
     if (index === 0) {
+        cancelViewerRenderWait();
         hideFirstTimeHint(true);
     } else if (index === 1 && inline360Place) {
         const hasPano = Boolean(inline360Place.pano || inline360Place.fallbackNodeId);
@@ -1297,7 +1381,12 @@ function goToCarouselSlide(index) {
                 if (typeof inline360Viewer.isLoaded === 'function' && inline360Viewer.isLoaded()) {
                     const skeleton = document.getElementById('ppInline360Skeleton');
                     if (!skeleton || skeleton.style.display === 'none') {
-                        showFirstTimeHint();
+                        waitForFirstRender(() => {
+                            const panel = document.getElementById('placePanel');
+                            if (!panel || !panel.classList.contains('active')) return;
+                            if (currentCarouselIndex !== 1) return;
+                            showFirstTimeHint();
+                        });
                     }
                 }
             }
