@@ -1684,7 +1684,13 @@ async function handleRemindersDispatch(req, res) {
                         } else if (!userRecord.email) {
                             skipReason = 'User account does not have an email address';
                         } else if (!userRecord.emailVerified) {
-                            skipReason = 'User email address is not verified';
+                            const isGoogle = Array.isArray(userRecord.providerData) &&
+                                userRecord.providerData.some(p => p.providerId === 'google.com');
+                            if (!isGoogle) {
+                                skipReason = 'User email address is not verified';
+                            } else {
+                                userEmail = userRecord.email.trim();
+                            }
                         } else {
                             userEmail = userRecord.email.trim();
                         }
@@ -1698,12 +1704,17 @@ async function handleRemindersDispatch(req, res) {
         }
 
         if (!userEmail || !transporter) {
+            const isUnrecoverableSkip = !userEmail;
             const attempts = reminderData.attempts || 1;
-            const newStatus = attempts >= 3 ? 'failed' : 'scheduled';
-            await reminderRef.update({
+            const newStatus = isUnrecoverableSkip || attempts >= 3 ? 'failed' : 'scheduled';
+            const updatePayload = {
                 status: newStatus,
                 lastError: !userEmail ? (skipReason || 'User email address not found or unverified') : 'Email transporter not configured'
-            });
+            };
+            if (newStatus === 'failed') {
+                updatePayload.failedAt = new Date();
+            }
+            await reminderRef.update(updatePayload);
             failed++;
             continue;
         }

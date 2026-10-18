@@ -6560,6 +6560,20 @@ html.lang-swapping-out [data-lang-fade] {
     text-overflow: ellipsis;
 }
 
+.set-reminder-notice {
+    padding: 10px 12px;
+    background: #FEF3C7;
+    border: 1px solid #FCD34D;
+    color: #92400E;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .reminder-channel-badge {
     font-size: 11px;
     font-weight: 700;
@@ -6568,6 +6582,11 @@ html.lang-swapping-out [data-lang-fade] {
     padding: 3px 8px;
     border-radius: 6px;
     flex-shrink: 0;
+}
+
+.reminder-channel-badge.unverified {
+    color: #B45309;
+    background: #FEF3C7;
 }
 
 .set-reminder-save-btn {
@@ -6588,8 +6607,14 @@ html.lang-swapping-out [data-lang-fade] {
     margin-top: 4px;
 }
 
-.set-reminder-save-btn:hover {
+.set-reminder-save-btn:hover:not(:disabled) {
     background: #1B5EA3;
+}
+
+.set-reminder-save-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    background: #94A3B8;
 }
 
 /* My Reminders Modal List Items */

@@ -6409,63 +6409,163 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        if (remindMeBtn) {
-            remindMeBtn.addEventListener('click', () => {
-                const user = window.CalzadaAuth?.getCurrentUser();
-                if (!user || user.isAnonymous) {
-                    if (reminderSignInOverlay) reminderSignInOverlay.classList.add('visible');
-                    if (reminderSignInModal) {
-                        reminderSignInModal.style.display = 'block';
-                        reminderSignInModal.classList.add('visible');
-                    }
-                    return;
+        const openSetReminderModal = () => {
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) {
+                if (reminderSignInOverlay) reminderSignInOverlay.classList.add('visible');
+                if (reminderSignInModal) {
+                    reminderSignInModal.style.display = 'block';
+                    reminderSignInModal.classList.add('visible');
                 }
+                return;
+            }
 
-                const leaveCalc = window._calzadaLeaveCalculation;
-                if (!leaveCalc || !leaveCalc.leaveAt) {
-                    showToast(t('reminders.error_past') || 'Please select a future schedule.', 'warning');
-                    return;
+            const leaveCalc = window._calzadaLeaveCalculation;
+            if (!leaveCalc || !leaveCalc.leaveAt) {
+                showToast((window.t ? window.t('reminders.error_past') : null) || 'Please select a future schedule.', 'warning');
+                return;
+            }
+
+            const destEl = document.getElementById('setReminderDest');
+            const leaveTextEl = document.getElementById('setReminderLeaveText');
+            const emailEl = document.getElementById('setReminderEmail');
+            const noticeEl = document.getElementById('setReminderNotice');
+            const noticeTextEl = document.getElementById('setReminderNoticeText');
+            const badgeEl = document.querySelector('.reminder-channel-badge');
+
+            if (destEl) destEl.textContent = leaveCalc.destName || 'Destination';
+            if (leaveTextEl) leaveTextEl.textContent = document.getElementById('leaveTimeHintText')?.textContent || '';
+            if (emailEl) emailEl.textContent = user.email || 'your account email';
+
+            // Check email verification status: Google sign-ins count as verified
+            const isGoogleUser = Array.isArray(user.providerData) && user.providerData.some(p => p.providerId === 'google.com');
+            const isEmailVerified = !!user.emailVerified || isGoogleUser;
+
+            const now = Date.now();
+            const leaveMs = leaveCalc.leaveAt.getTime();
+            const optBtns = reminderWhenOptions ? Array.from(reminderWhenOptions.querySelectorAll('.reminder-opt-btn')) : [];
+
+            // Find currently active offset
+            const currentlyActiveBtn = reminderWhenOptions?.querySelector('.reminder-opt-btn.active');
+            const activeOffset = currentlyActiveBtn ? (parseInt(currentlyActiveBtn.dataset.offset, 10) || 0) : 10;
+
+            const validBtns = [];
+            optBtns.forEach(btn => {
+                const offset = parseInt(btn.dataset.offset, 10) || 0;
+                const remindMs = leaveMs - offset * 60 * 1000;
+                if (remindMs <= now) {
+                    btn.disabled = true;
+                    btn.classList.remove('active');
+                } else {
+                    btn.disabled = false;
+                    validBtns.push(btn);
                 }
-
-                const destEl = document.getElementById('setReminderDest');
-                const leaveTextEl = document.getElementById('setReminderLeaveText');
-                const emailEl = document.getElementById('setReminderEmail');
-
-                if (destEl) destEl.textContent = leaveCalc.destName || 'Destination';
-                if (leaveTextEl) leaveTextEl.textContent = document.getElementById('leaveTimeHintText')?.textContent || '';
-                if (emailEl) emailEl.textContent = user.email || 'your account email';
-
-                const now = Date.now();
-                const leaveMs = leaveCalc.leaveAt.getTime();
-                const optBtns = reminderWhenOptions ? reminderWhenOptions.querySelectorAll('.reminder-opt-btn') : [];
-
-                let firstValid = null;
-                optBtns.forEach(btn => {
-                    const offset = parseInt(btn.dataset.offset, 10) || 0;
-                    const remindMs = leaveMs - offset * 60 * 1000;
-                    if (remindMs <= now) {
-                        btn.disabled = true;
-                        btn.classList.remove('active');
-                    } else {
-                        btn.disabled = false;
-                        if (!firstValid) firstValid = btn;
-                    }
-                });
-
-                const opt10 = Array.from(optBtns).find(b => b.dataset.offset === '10' && !b.disabled);
-                const targetBtn = opt10 || firstValid;
-                if (targetBtn) {
-                    optBtns.forEach(b => b.classList.remove('active'));
-                    targetBtn.classList.add('active');
-                }
-
-                if (setReminderOverlay) setReminderOverlay.classList.add('visible');
-                if (setReminderModal) setReminderModal.classList.add('visible');
             });
+
+            // Preselect nearest valid option:
+            // If the active option is still valid, keep it.
+            // Otherwise choose the valid option with the nearest offset.
+            let targetBtn = validBtns.find(b => (parseInt(b.dataset.offset, 10) || 0) === activeOffset);
+            if (!targetBtn && validBtns.length > 0) {
+                targetBtn = validBtns.reduce((closest, curr) => {
+                    const currOffset = parseInt(curr.dataset.offset, 10) || 0;
+                    const closestOffset = parseInt(closest.dataset.offset, 10) || 0;
+                    return Math.abs(currOffset - activeOffset) < Math.abs(closestOffset - activeOffset) ? curr : closest;
+                }, validBtns[0]);
+            }
+
+            if (targetBtn) {
+                optBtns.forEach(b => b.classList.remove('active'));
+                targetBtn.classList.add('active');
+            }
+
+            let canSave = true;
+            let noticeMsg = '';
+
+            if (!isEmailVerified) {
+                canSave = false;
+                noticeMsg = (window.t ? window.t('reminders.verify_email') : null) || 'Verify your email to get reminders';
+                if (badgeEl) {
+                    const isTl = (window.currentLang === 'tl' || localStorage.getItem('calzada_lang') === 'tl');
+                    badgeEl.textContent = isTl ? 'Hindi na-verify' : 'Unverified';
+                    badgeEl.classList.add('unverified');
+                }
+            } else if (validBtns.length === 0) {
+                canSave = false;
+                noticeMsg = (window.t ? window.t('reminders.almost_time') : null) || "It's almost time to leave";
+                if (badgeEl) {
+                    badgeEl.textContent = 'Active';
+                    badgeEl.classList.remove('unverified');
+                }
+            } else {
+                if (badgeEl) {
+                    badgeEl.textContent = 'Active';
+                    badgeEl.classList.remove('unverified');
+                }
+            }
+
+            if (noticeEl && noticeTextEl) {
+                if (noticeMsg) {
+                    noticeTextEl.textContent = noticeMsg;
+                    noticeEl.style.display = 'flex';
+                } else {
+                    noticeTextEl.textContent = '';
+                    noticeEl.style.display = 'none';
+                }
+            }
+
+            if (saveReminderBtn) {
+                saveReminderBtn.disabled = !canSave;
+            }
+
+            if (setReminderOverlay) setReminderOverlay.classList.add('visible');
+            if (setReminderModal) setReminderModal.classList.add('visible');
+        };
+
+        window._calzadaOpenSetReminderModal = openSetReminderModal;
+
+        window.addEventListener('calzada_lang_changed', () => {
+            if (setReminderModal && setReminderModal.classList.contains('visible')) {
+                const user = window.CalzadaAuth?.getCurrentUser();
+                if (!user) return;
+                const isGoogleUser = Array.isArray(user.providerData) && user.providerData.some(p => p.providerId === 'google.com');
+                const isEmailVerified = !!user.emailVerified || isGoogleUser;
+                const isTl = (window.currentLang === 'tl' || localStorage.getItem('calzada_lang') === 'tl');
+                const badgeEl = document.querySelector('.reminder-channel-badge');
+                const noticeTextEl = document.getElementById('setReminderNoticeText');
+                const optBtns = reminderWhenOptions ? Array.from(reminderWhenOptions.querySelectorAll('.reminder-opt-btn')) : [];
+                const validBtns = optBtns.filter(b => !b.disabled);
+
+                if (!isEmailVerified) {
+                    if (noticeTextEl) noticeTextEl.textContent = (window.t ? window.t('reminders.verify_email') : null) || 'Verify your email to get reminders';
+                    if (badgeEl) {
+                        badgeEl.textContent = isTl ? 'Hindi na-verify' : 'Unverified';
+                    }
+                } else if (validBtns.length === 0) {
+                    if (noticeTextEl) noticeTextEl.textContent = (window.t ? window.t('reminders.almost_time') : null) || "It's almost time to leave";
+                }
+            }
+        });
+
+        if (remindMeBtn) {
+            remindMeBtn.addEventListener('click', openSetReminderModal);
         }
 
         if (saveReminderBtn) {
             saveReminderBtn.addEventListener('click', async () => {
+                const user = window.CalzadaAuth?.getCurrentUser();
+                if (!user || user.isAnonymous) {
+                    closeSetReminder();
+                    return;
+                }
+
+                const isGoogleUser = Array.isArray(user.providerData) && user.providerData.some(p => p.providerId === 'google.com');
+                const isEmailVerified = !!user.emailVerified || isGoogleUser;
+                if (!isEmailVerified) {
+                    showToast((window.t ? window.t('reminders.verify_email') : null) || 'Verify your email to get reminders', 'warning');
+                    return;
+                }
+
                 const leaveCalc = window._calzadaLeaveCalculation;
                 if (!leaveCalc || !leaveCalc.leaveAt) {
                     closeSetReminder();
@@ -6473,11 +6573,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const activeOpt = reminderWhenOptions?.querySelector('.reminder-opt-btn.active');
-                const offset = activeOpt ? parseInt(activeOpt.dataset.offset, 10) : 10;
+                if (!activeOpt || activeOpt.disabled) {
+                    showToast((window.t ? window.t('reminders.almost_time') : null) || "It's almost time to leave", 'warning');
+                    return;
+                }
+                const offset = parseInt(activeOpt.dataset.offset, 10) || 0;
                 const remindAt = new Date(leaveCalc.leaveAt.getTime() - offset * 60 * 1000);
 
                 if (remindAt.getTime() <= Date.now()) {
-                    showToast(t('reminders.error_past') || 'Reminder time must be in the future.', 'warning');
+                    showToast((window.t ? window.t('reminders.almost_time') : null) || "It's almost time to leave", 'warning');
                     return;
                 }
 

@@ -26,7 +26,7 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.7.6">
+    <link rel="stylesheet" href="../css/planner.css?v=2.7.7">
     <link rel="stylesheet" href="../css/place-search.css?v=1.0.0">
     <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
     <link rel="stylesheet" href="../css/account-modals-planner.css?v=1.1.0">
@@ -857,6 +857,16 @@
                 <div class="set-reminder-leave-text" id="setReminderLeaveText">Leave by --:-- to arrive by --:--</div>
             </div>
 
+            <!-- Notice for unverified email or almost time to leave -->
+            <div class="set-reminder-notice" id="setReminderNotice" style="display: none;" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="setReminderNoticeText"></span>
+            </div>
+
             <!-- When Section -->
             <div class="set-reminder-section">
                 <label class="set-reminder-label" data-i18n="reminders.when_label">When to remind</label>
@@ -923,10 +933,10 @@
     <script src="../js/trip-ticket.js?v=1.1.4"></script>
     <script src="../js/place-search.js?v=1.0.1"></script>
     <script src="../js/route-pdf.js?v=1.0.4"></script>
-    <script src="../js/planner.js?v=2.8.5"></script>
+    <script src="../js/planner.js?v=2.8.6"></script>
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.7.8"></script>
+    <script src="../js/i18n.js?v=2.7.9"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
