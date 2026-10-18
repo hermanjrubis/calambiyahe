@@ -26,7 +26,7 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.7.4">
+    <link rel="stylesheet" href="../css/planner.css?v=2.7.6">
     <link rel="stylesheet" href="../css/place-search.css?v=1.0.0">
     <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
     <link rel="stylesheet" href="../css/account-modals-planner.css?v=1.1.0">
@@ -726,38 +726,42 @@
     <div class="dt-picker-overlay" id="dtPickerOverlay"></div>
     <div class="dt-picker-modal glass-panel" id="dtPickerModal">
         <div class="dt-picker-header">
-            <button class="dt-back-btn" id="dtBackBtn" aria-label="Back to departure options"><ion-icon name="arrow-back-outline"></ion-icon></button>
+            <button type="button" class="dt-back-btn" id="dtBackBtn" aria-label="Back to departure options"><ion-icon name="arrow-back-outline"></ion-icon></button>
             <div class="dt-toggle">
-                <button class="dt-toggle-btn active" id="dtLeaveBtn" data-i18n="planner.dt_leave">Leave</button>
-                <button class="dt-toggle-btn" id="dtArriveBtn" data-i18n="planner.dt_arrive">Arrive</button>
+                <button type="button" class="dt-toggle-btn active" id="dtLeaveBtn" data-i18n="planner.dt_leave">Leave</button>
+                <button type="button" class="dt-toggle-btn" id="dtArriveBtn" data-i18n="planner.dt_arrive">Arrive</button>
             </div>
-            <button class="dt-now-btn" id="dtNowBtn" data-i18n="planner.dt_now">Now</button>
+            <button type="button" class="dt-now-btn" id="dtNowBtn" data-i18n="planner.dt_now">Now</button>
         </div>
-        <div class="dt-time-display" id="dtTimeDisplay">12:00 pm</div>
-        <div class="dt-sliders">
-            <div class="dt-slider-row"><span class="dt-slider-label">HR</span><input type="range" class="dt-slider"
-                    id="dtHrSlider" aria-label="Select hour" min="1" max="12" value="12"></div>
-            <div class="dt-slider-row"><span class="dt-slider-label">MIN</span><input type="range" class="dt-slider"
-                    id="dtMinSlider" aria-label="Select minute" min="0" max="59" value="0"></div>
-            <div class="dt-ampm-row">
-                <button class="dt-ampm-btn active" id="dtAmBtn" data-i18n="planner.dt_am">AM</button>
-                <button class="dt-ampm-btn" id="dtPmBtn" data-i18n="planner.dt_pm">PM</button>
-            </div>
-        </div>
-        <div class="dt-calendar">
-            <div class="dt-cal-header">
-                <span class="dt-cal-monthyear" id="dtCalMonthYear">January 2026</span>
-                <div class="dt-cal-nav">
-                    <button class="dt-cal-nav-btn" id="dtPrevMonth">&#9664;</button>
-                    <button class="dt-cal-nav-btn" id="dtNextMonth">&#9654;</button>
+        <div class="dt-picker-body">
+            <div class="dt-time-display" id="dtTimeDisplay">12:00 PM</div>
+            <div class="dt-sliders">
+                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_hr">HR</span><input type="range" class="dt-slider"
+                        id="dtHrSlider" aria-label="Select hour" min="1" max="12" value="12"></div>
+                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_min">MIN</span><input type="range" class="dt-slider"
+                        id="dtMinSlider" aria-label="Select minute" min="0" max="59" value="0"></div>
+                <div class="dt-ampm-row">
+                    <button type="button" class="dt-ampm-btn active" id="dtAmBtn" data-i18n="planner.dt_am">AM</button>
+                    <button type="button" class="dt-ampm-btn" id="dtPmBtn" data-i18n="planner.dt_pm">PM</button>
                 </div>
             </div>
-            <div class="dt-cal-weekdays">
-                <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            <div class="dt-calendar">
+                <div class="dt-cal-header">
+                    <span class="dt-cal-monthyear" id="dtCalMonthYear">January 2026</span>
+                    <div class="dt-cal-nav">
+                        <button type="button" class="dt-cal-nav-btn" id="dtPrevMonth" aria-label="Previous month">&#9664;</button>
+                        <button type="button" class="dt-cal-nav-btn" id="dtNextMonth" aria-label="Next month">&#9654;</button>
+                    </div>
+                </div>
+                <div class="dt-cal-weekdays">
+                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+                </div>
+                <div class="dt-cal-days" id="dtCalDays"></div>
             </div>
-            <div class="dt-cal-days" id="dtCalDays"></div>
         </div>
-        <button class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set Schedule</button>
+        <div class="dt-picker-footer">
+            <button type="button" class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set Schedule</button>
+        </div>
     </div>
 
 
@@ -918,11 +922,11 @@
     <script src="../js/fare-calc.js?v=1.0.1"></script>
     <script src="../js/trip-ticket.js?v=1.1.4"></script>
     <script src="../js/place-search.js?v=1.0.1"></script>
-    <script src="../js/route-pdf.js?v=1.0.2"></script>
-    <script src="../js/planner.js?v=2.8.3"></script>
+    <script src="../js/route-pdf.js?v=1.0.4"></script>
+    <script src="../js/planner.js?v=2.8.5"></script>
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.7.6"></script>
+    <script src="../js/i18n.js?v=2.7.8"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>

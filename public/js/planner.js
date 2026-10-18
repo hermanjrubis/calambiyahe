@@ -3343,11 +3343,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Helper: format meters
             const fmtM = (m) => m < 1000 ? `${Math.round(m / 50) * 50} m` : `${(m / 1000).toFixed(1)} km`;
 
-            // Base departure time (now) and arrival time
-            const depTime = new Date();
+            // Base departure time and arrival time
+            const hasSchedule = !!(window._calzadaLeaveCalculation && window._calzadaLeaveCalculation.leaveAt);
+            const depTime = hasSchedule ? new Date(window._calzadaLeaveCalculation.leaveAt) : new Date();
             const totalSecs = (currentWalkDur + currentTransitDur) * 60;
-            if (!isTrackingArrival) cachedRemainingSeconds = totalSecs;
-            const arrTime = new Date(Date.now() + cachedRemainingSeconds * 1000);
+            if (!hasSchedule && !isTrackingArrival) cachedRemainingSeconds = totalSecs;
+            const arrTime = hasSchedule
+                ? new Date(depTime.getTime() + totalSecs * 1000)
+                : new Date(Date.now() + cachedRemainingSeconds * 1000);
 
             // Stop row factory: [time column 44px] [rail 22px] [content]
             const createStopRow = ({ time, ringClass, name, subText }) => {
@@ -3655,14 +3658,126 @@ document.addEventListener('DOMContentLoaded', () => {
             const totalMin = currentWalkDur + currentTransitDur;
             const totalDistRaw = (currentWalkDist + currentTransitDist).toFixed(1);
             const totalDist = String(totalDistRaw).replace(/\s*km/gi, '').trim();
-
-            // ETA must use cachedRemainingSeconds for consistency with the bottom pill
             const totalSecs = (currentWalkDur + currentTransitDur) * 60;
-            if (!isTrackingArrival) cachedRemainingSeconds = totalSecs; // sync only before journey starts
-            const d = new Date(Date.now() + cachedRemainingSeconds * 1000);
-            const eta = fmt24h(d);
-
             const isWalkOnly = selectedMode === 'walking';
+
+            // Leave-time calculation for planned schedule (rule-based)
+            const hintBanner = document.getElementById('leaveTimeHintBanner');
+            const hintText = document.getElementById('leaveTimeHintText');
+            const remindBtn = document.getElementById('remindMeBtn');
+
+            const formatManila = (d) => {
+                if (!d) return '--:--';
+                const date = d instanceof Date ? d : new Date(d);
+                return new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'Asia/Manila',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                }).format(date);
+            };
+
+            let scheduledArriveAt = null;
+
+            if (hintBanner && hintText) {
+                if (window._calzadaPlannedSchedule && window._calzadaPlannedSchedule.targetTime) {
+                    const sched = window._calzadaPlannedSchedule;
+                    const bufferMin = isWalkOnly ? 0 : 10;
+                    let leaveAt, arriveAt;
+
+                    if (sched.mode === 'arrive') {
+                        leaveAt = new Date(sched.targetTime.getTime() - (totalMin + bufferMin) * 60 * 1000);
+                        arriveAt = new Date(sched.targetTime.getTime());
+                    } else {
+                        leaveAt = new Date(sched.targetTime.getTime());
+                        arriveAt = new Date(sched.targetTime.getTime() + (totalMin + bufferMin) * 60 * 1000);
+                    }
+
+                    // 1. Depart at T in the past: treat as Leave now and notify
+                    if (sched.mode === 'depart' && sched.targetTime.getTime() <= Date.now()) {
+                        window._calzadaPlannedSchedule = null;
+                        window._calzadaLeaveCalculation = null;
+                        const schedTextEl = document.getElementById('scheduleSelectedText');
+                        if (schedTextEl) {
+                            schedTextEl.textContent = window.t ? window.t('planner.leave_now') : 'Leave now';
+                        }
+                        const schedOpts = document.getElementById('scheduleOptions');
+                        if (schedOpts) {
+                            schedOpts.querySelectorAll('li').forEach(l => l.classList.toggle('active', l.dataset.value === 'now'));
+                        }
+                        hintBanner.classList.remove('warning');
+                        hintBanner.style.display = 'none';
+                        if (typeof window.showToast === 'function') {
+                            const msg = (window.t ? window.t('reminders.depart_passed') : null)
+                                || 'That departure time has already passed. Showing route for leaving now.';
+                            window.showToast(msg, 'warning');
+                        }
+                    }
+                    // 2. Arrive by T: if leaveAt is already in the past, show warning instead of leave-by hint
+                    else if (sched.mode === 'arrive' && leaveAt.getTime() <= Date.now()) {
+                        const targetStr = formatManila(sched.targetTime);
+                        const estArriveWhenLeavingNow = new Date(Date.now() + (totalMin + bufferMin) * 60 * 1000);
+                        const estArriveStr = formatManila(estArriveWhenLeavingNow);
+                        const warnMsg = window.t
+                            ? window.t('reminders.cant_make_it', { targetTime: targetStr, arriveTime: estArriveStr })
+                            : `You can't make it by ${targetStr}. Leave now to arrive around ${estArriveStr}.`;
+
+                        hintText.textContent = warnMsg;
+                        hintBanner.classList.add('warning');
+                        hintBanner.style.removeProperty('display');
+                        hintBanner.style.display = 'flex';
+
+                        if (remindBtn) remindBtn.style.display = 'none';
+                        window._calzadaLeaveCalculation = null;
+                    }
+                    // 3. Valid future schedule
+                    else {
+                        scheduledArriveAt = arriveAt;
+                        const leaveStr = formatManila(leaveAt);
+                        const arriveStr = formatManila(arriveAt);
+                        const hintMsg = window.t
+                            ? window.t('reminders.leave_by_arrive', { leaveTime: leaveStr, arriveTime: arriveStr })
+                            : `Leave by ${leaveStr} to arrive by ${arriveStr}`;
+
+                        hintText.textContent = hintMsg;
+                        hintBanner.classList.remove('warning');
+                        hintBanner.style.removeProperty('display');
+                        hintBanner.style.display = 'flex';
+
+                        window._calzadaLeaveCalculation = {
+                            leaveAt,
+                            arriveAt,
+                            mode: isWalkOnly ? 'walk' : 'jeepney',
+                            totalMin,
+                            bufferMin,
+                            targetTime: sched.targetTime,
+                            fare: currentFare,
+                            destName: destPlaceName,
+                            destCoords: selectedCoords ? selectedCoords.destination : null,
+                            originLabel: originPlaceName
+                        };
+
+                        if (remindBtn) {
+                            remindBtn.style.display = leaveAt.getTime() > Date.now() ? 'inline-flex' : 'none';
+                        }
+                    }
+                } else {
+                    hintBanner.classList.remove('warning');
+                    hintBanner.style.display = 'none';
+                    window._calzadaLeaveCalculation = null;
+                }
+            }
+
+            // ETA: use scheduled arrival when a future schedule is set; otherwise use now + remaining
+            let etaDate;
+            if (scheduledArriveAt) {
+                etaDate = scheduledArriveAt;
+            } else {
+                if (!isTrackingArrival) cachedRemainingSeconds = totalSecs;
+                etaDate = new Date(Date.now() + cachedRemainingSeconds * 1000);
+            }
+            const eta = fmt24h(etaDate);
+
             const freeLabel = window.t ? (window.t('planner.fare_free') || window.t('planner.free') || 'Free') : 'Free';
             const fareLabel = isWalkOnly ? freeLabel : formatPeso(currentFare);
 
@@ -3706,70 +3821,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalDistance: totalDist,
                 eta: eta
             };
-
-            // Leave-time calculation for planned schedule (rule-based)
-            const hintBanner = document.getElementById('leaveTimeHintBanner');
-            const hintText = document.getElementById('leaveTimeHintText');
-            const remindBtn = document.getElementById('remindMeBtn');
-
-            if (hintBanner && hintText) {
-                if (window._calzadaPlannedSchedule && window._calzadaPlannedSchedule.targetTime) {
-                    const sched = window._calzadaPlannedSchedule;
-                    const bufferMin = isWalkOnly ? 0 : 10;
-                    let leaveAt, arriveAt;
-
-                    if (sched.mode === 'arrive') {
-                        leaveAt = new Date(sched.targetTime.getTime() - (totalMin + bufferMin) * 60 * 1000);
-                        arriveAt = new Date(sched.targetTime.getTime());
-                    } else {
-                        leaveAt = new Date(sched.targetTime.getTime());
-                        arriveAt = new Date(sched.targetTime.getTime() + (totalMin + bufferMin) * 60 * 1000);
-                    }
-
-                    const formatManila = (d) => {
-                        if (!d) return '--:--';
-                        const date = d instanceof Date ? d : new Date(d);
-                        return new Intl.DateTimeFormat('en-US', {
-                            timeZone: 'Asia/Manila',
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                        }).format(date);
-                    };
-
-                    const leaveStr = formatManila(leaveAt);
-                    const arriveStr = formatManila(arriveAt);
-                    const hintMsg = window.t
-                        ? window.t('reminders.leave_by_arrive', { leaveTime: leaveStr, arriveTime: arriveStr })
-                        : `Leave by ${leaveStr} to arrive by ${arriveStr}`;
-
-                    hintText.textContent = hintMsg;
-                    hintBanner.style.removeProperty('display');
-                    hintBanner.style.display = 'flex';
-
-                    // Save context for Remind me action
-                    window._calzadaLeaveCalculation = {
-                        leaveAt,
-                        arriveAt,
-                        mode: isWalkOnly ? 'walk' : 'jeepney',
-                        totalMin,
-                        bufferMin,
-                        targetTime: sched.targetTime,
-                        fare: currentFare,
-                        destName: destPlaceName,
-                        destCoords: selectedCoords ? selectedCoords.destination : null,
-                        originLabel: originPlaceName
-                    };
-
-                    // Only show Remind me button if leaveAt is in the future
-                    if (remindBtn) {
-                        remindBtn.style.display = leaveAt.getTime() > Date.now() ? 'inline-flex' : 'none';
-                    }
-                } else {
-                    hintBanner.style.display = 'none';
-                    window._calzadaLeaveCalculation = null;
-                }
-            }
 
             renderItinerary();
         };
@@ -4218,6 +4269,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 fare: currentFare,
                 journeyStartedAt,
                 isTrackingArrival,
+                leaveAt: (window._calzadaLeaveCalculation && window._calzadaLeaveCalculation.leaveAt) ? window._calzadaLeaveCalculation.leaveAt : null,
+                arriveAt: (window._calzadaLeaveCalculation && window._calzadaLeaveCalculation.arriveAt) ? window._calzadaLeaveCalculation.arriveAt : null,
+                plannedSchedule: window._calzadaPlannedSchedule,
                 walkRouteGeojson,
                 transitRouteGeojson,
                 finalWalkRouteGeojson: window.finalWalkRouteGeojson,
@@ -6014,17 +6068,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const pad2 = n => String(n).padStart(2, '0');
 
+        function convert12To24Hour(hour12, period) {
+            const p = String(period || 'am').trim().toLowerCase();
+            let h = parseInt(hour12, 10);
+            if (isNaN(h)) h = 12;
+            h = h % 12; // 12 -> 0, 1..11 -> 1..11
+            if (p === 'pm') {
+                h += 12;
+            }
+            return h;
+        }
+        window._calzadaConvert12To24Hour = convert12To24Hour;
+
         const updateDtTimeDisplay = () => {
             if (!dtHrSlider || !dtMinSlider || !dtTimeDisplay) return;
             const h = parseInt(dtHrSlider.value, 10) || 12;
             const m = parseInt(dtMinSlider.value, 10) || 0;
-            dtTimeDisplay.textContent = `${pad2(h)}:${pad2(m)} ${dtAmPm}`;
+            const period = String(dtAmPm || 'am').toUpperCase();
+            dtTimeDisplay.textContent = `${pad2(h)}:${pad2(m)} ${period}`;
         };
 
         const setDtAmPm = (val) => {
-            dtAmPm = val;
-            if (dtAmBtn) dtAmBtn.classList.toggle('active', val === 'am');
-            if (dtPmBtn) dtPmBtn.classList.toggle('active', val === 'pm');
+            dtAmPm = String(val || 'am').trim().toLowerCase();
+            if (dtAmBtn) dtAmBtn.classList.toggle('active', dtAmPm === 'am');
+            if (dtPmBtn) dtPmBtn.classList.toggle('active', dtAmPm === 'pm');
             updateDtTimeDisplay();
         };
 
@@ -6038,11 +6105,32 @@ document.addEventListener('DOMContentLoaded', () => {
             dtCalDays.innerHTML = '';
             const today = new Date();
             const todayFloor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const maxDateFloor = new Date(todayFloor.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+            // Restrict navigation: allow only current and next month (covering the 30-day limit)
+            const currentMY = today.getFullYear() * 12 + today.getMonth();
+            const calMY = dtCalDate.getFullYear() * 12 + dtCalDate.getMonth();
+            const nextMY = currentMY + 1;
+
+            if (dtPrevMonth) {
+                const disablePrev = calMY <= currentMY;
+                dtPrevMonth.disabled = disablePrev;
+                dtPrevMonth.style.opacity = disablePrev ? '0.35' : '1';
+                dtPrevMonth.style.cursor = disablePrev ? 'not-allowed' : 'pointer';
+            }
+            if (dtNextMonth) {
+                const disableNext = calMY >= nextMY;
+                dtNextMonth.disabled = disableNext;
+                dtNextMonth.style.opacity = disableNext ? '0.35' : '1';
+                dtNextMonth.style.cursor = disableNext ? 'not-allowed' : 'pointer';
+            }
+
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
             for (let i = 0; i < firstDay; i++) {
                 const empty = document.createElement('button');
+                empty.type = 'button';
                 empty.className = 'dt-cal-day empty';
                 empty.disabled = true;
                 dtCalDays.appendChild(empty);
@@ -6050,6 +6138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (let d = 1; d <= daysInMonth; d++) {
                 const btn = document.createElement('button');
+                btn.type = 'button';
                 btn.className = 'dt-cal-day';
                 btn.textContent = d;
 
@@ -6057,15 +6146,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isToday = todayFloor.getTime() === thisDate.getTime();
                 const isSelected = new Date(dtSelectedDate.getFullYear(), dtSelectedDate.getMonth(), dtSelectedDate.getDate()).getTime() === thisDate.getTime();
                 const isPast = thisDate < todayFloor;
+                const isBeyond30 = thisDate > maxDateFloor;
 
                 if (isToday) btn.classList.add('today');
                 if (isSelected) btn.classList.add('selected');
-                if (isPast) {
+                if (isPast || isBeyond30) {
                     btn.classList.add('past');
                     btn.disabled = true;
                 }
 
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
                     dtSelectedDate = new Date(year, month, d);
                     renderDtCalendar();
                 });
@@ -6076,11 +6167,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const setDtNow = () => {
             const now = new Date();
-            let h = now.getHours();
+            let h24 = now.getHours();
             const m = now.getMinutes();
-            const period = h >= 12 ? 'pm' : 'am';
-            h = h % 12 || 12;
-            if (dtHrSlider) dtHrSlider.value = h;
+            const period = h24 >= 12 ? 'pm' : 'am';
+            const h12 = h24 % 12 || 12;
+            if (dtHrSlider) dtHrSlider.value = h12;
             if (dtMinSlider) dtMinSlider.value = m;
             setDtAmPm(period);
             dtSelectedDate = new Date();
@@ -6105,23 +6196,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dtHrSlider) dtHrSlider.addEventListener('input', updateDtTimeDisplay);
         if (dtMinSlider) dtMinSlider.addEventListener('input', updateDtTimeDisplay);
-        if (dtAmBtn) dtAmBtn.addEventListener('click', () => setDtAmPm('am'));
-        if (dtPmBtn) dtPmBtn.addEventListener('click', () => setDtAmPm('pm'));
-        if (dtNowBtn) dtNowBtn.addEventListener('click', setDtNow);
-        if (dtBackBtn) dtBackBtn.addEventListener('click', closeDtPicker);
+        if (dtAmBtn) dtAmBtn.addEventListener('click', (e) => { e.preventDefault(); setDtAmPm('am'); });
+        if (dtPmBtn) dtPmBtn.addEventListener('click', (e) => { e.preventDefault(); setDtAmPm('pm'); });
+        if (dtNowBtn) dtNowBtn.addEventListener('click', (e) => { e.preventDefault(); setDtNow(); });
+        if (dtBackBtn) dtBackBtn.addEventListener('click', (e) => { e.preventDefault(); closeDtPicker(); });
         if (dtOverlay) dtOverlay.addEventListener('click', closeDtPicker);
-        if (dtPrevMonth) dtPrevMonth.addEventListener('click', () => { dtCalDate.setMonth(dtCalDate.getMonth() - 1); renderDtCalendar(); });
-        if (dtNextMonth) dtNextMonth.addEventListener('click', () => { dtCalDate.setMonth(dtCalDate.getMonth() + 1); renderDtCalendar(); });
+        if (dtPrevMonth) {
+            dtPrevMonth.addEventListener('click', (e) => {
+                e.preventDefault();
+                const now = new Date();
+                const currentMY = now.getFullYear() * 12 + now.getMonth();
+                const calMY = dtCalDate.getFullYear() * 12 + dtCalDate.getMonth();
+                if (calMY > currentMY) {
+                    dtCalDate.setMonth(dtCalDate.getMonth() - 1);
+                    renderDtCalendar();
+                }
+            });
+        }
+        if (dtNextMonth) {
+            dtNextMonth.addEventListener('click', (e) => {
+                e.preventDefault();
+                const now = new Date();
+                const currentMY = now.getFullYear() * 12 + now.getMonth();
+                const calMY = dtCalDate.getFullYear() * 12 + dtCalDate.getMonth();
+                if (calMY < currentMY + 1) {
+                    dtCalDate.setMonth(dtCalDate.getMonth() + 1);
+                    renderDtCalendar();
+                }
+            });
+        }
 
         if (dtLeaveBtn) {
-            dtLeaveBtn.addEventListener('click', () => {
+            dtLeaveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 dtPickerMode = 'depart';
                 dtLeaveBtn.classList.add('active');
                 if (dtArriveBtn) dtArriveBtn.classList.remove('active');
             });
         }
         if (dtArriveBtn) {
-            dtArriveBtn.addEventListener('click', () => {
+            dtArriveBtn.addEventListener('click', (e) => {
+                e.preventDefault();
                 dtPickerMode = 'arrive';
                 dtArriveBtn.classList.add('active');
                 if (dtLeaveBtn) dtLeaveBtn.classList.remove('active');
@@ -6140,20 +6255,58 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (dtConfirmBtn) {
-            dtConfirmBtn.addEventListener('click', () => {
-                let h = parseInt(dtHrSlider.value, 10) || 12;
-                const m = parseInt(dtMinSlider.value, 10) || 0;
-                if (dtAmPm === 'pm' && h < 12) h += 12;
-                if (dtAmPm === 'am' && h === 12) h = 0;
+            dtConfirmBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const activePeriod = (dtPmBtn && dtPmBtn.classList.contains('active'))
+                    ? 'pm'
+                    : ((dtAmBtn && dtAmBtn.classList.contains('active')) ? 'am' : String(dtAmPm || 'am').toLowerCase());
+
+                const h12 = parseInt(dtHrSlider ? dtHrSlider.value : 12, 10) || 12;
+                const m = parseInt(dtMinSlider ? dtMinSlider.value : 0, 10) || 0;
+                const h24 = convert12To24Hour(h12, activePeriod);
+
+                // Date bounds: clamp dtSelectedDate between today and 30 days
+                const now = new Date();
+                const todayFloor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const maxDateFloor = new Date(todayFloor.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+                let selDate = new Date(dtSelectedDate.getFullYear(), dtSelectedDate.getMonth(), dtSelectedDate.getDate());
+                if (selDate < todayFloor) selDate = todayFloor;
+                if (selDate > maxDateFloor) selDate = maxDateFloor;
 
                 const targetTime = new Date(
-                    dtSelectedDate.getFullYear(),
-                    dtSelectedDate.getMonth(),
-                    dtSelectedDate.getDate(),
-                    h,
+                    selDate.getFullYear(),
+                    selDate.getMonth(),
+                    selDate.getDate(),
+                    h24,
                     m,
+                    0,
                     0
                 );
+
+                // Depart at T in the past: treat as Leave now and tell the user
+                if (dtPickerMode === 'depart' && targetTime.getTime() <= Date.now()) {
+                    window._calzadaPlannedSchedule = null;
+                    const schedTextEl = document.getElementById('scheduleSelectedText');
+                    if (schedTextEl) {
+                        schedTextEl.textContent = window.t ? window.t('planner.leave_now') : 'Leave now';
+                    }
+                    const schedOpts = document.getElementById('scheduleOptions');
+                    if (schedOpts) {
+                        schedOpts.querySelectorAll('li').forEach(l => l.classList.toggle('active', l.dataset.value === 'now'));
+                    }
+                    closeDtPicker();
+                    if (selectedCoords && selectedCoords.destination) {
+                        updateSummaryRow();
+                    }
+                    if (typeof window.showToast === 'function') {
+                        const msg = (window.t ? window.t('reminders.depart_passed') : null)
+                            || 'That departure time has already passed. Showing route for leaving now.';
+                        window.showToast(msg, 'warning');
+                    }
+                    return;
+                }
 
                 window._calzadaPlannedSchedule = {
                     mode: dtPickerMode,
@@ -6213,6 +6366,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+        window._calzadaOpenDtPicker = openDtPicker;
 
         // =============================================
         // SMART TRAVEL REMINDERS UI

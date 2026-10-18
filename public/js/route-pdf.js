@@ -452,7 +452,7 @@
 
             let boxW = maxX - minX;
             let boxH = maxY - minY;
-            const targetRatio = 1420 / 510;
+            const targetRatio = 1420 / 1480; // ~3:4 portrait matching 710x740 container
 
             if (boxW / boxH < targetRatio) {
                 boxW = boxH * targetRatio;
@@ -482,7 +482,7 @@
 
             const cropCanvas = document.createElement('canvas');
             cropCanvas.width = 1420;
-            cropCanvas.height = 510;
+            cropCanvas.height = 1480;
             const cropCtx = cropCanvas.getContext('2d');
             cropCtx.drawImage(
                 snapCanvas,
@@ -595,7 +595,7 @@
         return rowsHtml;
     }
 
-    function buildDirectionsList(routeData) {
+    function buildDirectionsList(routeData, startIndex = 0) {
         const steps = routeData.activeRouteSteps || [];
         if (!steps || steps.length === 0) {
             return '<div style="font-size: 11px; color: #5B6B7C;">No step-by-step directions available.</div>';
@@ -640,10 +640,11 @@
             }
 
             const distStr = step.distance ? fmtDist(step.distance) : '';
+            const stepNum = (startIndex || 0) + idx + 1;
 
             return `
                 <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; font-size: 11px; line-height: 1.35;">
-                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #F1F5F9; color: #0E2A47; font-size: 9.5px; font-weight: 700; flex-shrink: 0;">${idx + 1}</span>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #F1F5F9; color: #0E2A47; font-size: 9.5px; font-weight: 700; flex-shrink: 0;">${stepNum}</span>
                     <span style="color: #0E2A47; flex-grow: 1;">${escapeHtml(text)}</span>
                     ${distStr ? `<span style="color: #64748B; font-size: 10px; font-weight: 500; flex-shrink: 0;">${escapeHtml(distStr)}</span>` : ''}
                 </div>
@@ -667,7 +668,9 @@
         timelineRowsHtml,
         directionsListHtml,
         isTl,
-        isContinuation = false
+        isContinuation = false,
+        pageNumber = 1,
+        totalPages = 1
     }) {
         const page = document.createElement('div');
         page.className = 'calzada-pdf-page';
@@ -694,7 +697,7 @@
                     <!-- 1. Header -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #378ADD; padding-bottom: 12px; margin-bottom: 14px;">
                         <div>
-                            <div id="pdfLogoBox" style="height: 30px; display: inline-block; margin-bottom: 5px;">
+                            <div class="pdf-logo-box" style="height: 30px; display: inline-block; margin-bottom: 5px;">
                                 ${logoDataUrl ? `<img src="${logoDataUrl}" alt="Calzada" style="height: 30px; width: auto; display: block;">` : `<div style="font-size: 22px; font-weight: 800; color: #378ADD; letter-spacing: -0.02em; font-family: 'Sora', sans-serif;">CALZADA</div>`}
                             </div>
                             <div style="font-size: 18px; font-weight: 700; color: #0E2A47; font-family: 'Sora', sans-serif;">
@@ -710,7 +713,7 @@
                     </div>
 
                     <!-- 2. Summary Card -->
-                    <div style="background: #F8FAFC; border: 1px solid #DCE5EE; border-radius: 9px; padding: 10px 14px; margin-bottom: 12px;">
+                    <div style="background: #F8FAFC; border: 1px solid #DCE5EE; border-radius: 9px; padding: 10px 14px; margin-bottom: 14px;">
                         <div style="display: grid; grid-template-columns: 1.1fr 1.1fr 0.9fr 0.9fr; gap: 8px; margin-bottom: 8px;">
                             <div>
                                 <div style="font-size: 9px; font-weight: 700; text-transform: uppercase; color: #5B6B7C; letter-spacing: 0.04em;">${isTl ? 'MULA SA' : 'FROM'}</div>
@@ -745,19 +748,19 @@
                         </div>
                     </div>
 
-                    <!-- 3. Map Snapshot -->
                     ${mapSnapshotDataUrl ? `
-                    <div style="margin-bottom: 12px;">
-                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: 100%; height: 255px; position: relative;">
-                            <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: 100%; height: 255px; object-fit: cover; display: block;">
+                    <!-- 3. Portrait Route Map Snapshot (Page 1) -->
+                    <div style="margin-bottom: 8px;">
+                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: 710px; height: 740px; position: relative;">
+                            <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: 710px; height: 740px; object-fit: contain; display: block;">
                         </div>
-                        <div style="font-size: 9px; color: #64748B; margin-top: 3px; text-align: right;">
+                        <div style="font-size: 9px; color: #64748B; margin-top: 4px; text-align: right;">
                             © OpenStreetMap contributors
                         </div>
                     </div>
-                    ` : ''}
-
-                    <!-- 4. Trip Legs Timeline -->
+                    ` : `
+                    <!-- Fallback: Timeline & Directions if map is unavailable -->
+                    ${timelineRowsHtml ? `
                     <div style="margin-bottom: 12px;">
                         <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
                             ${isTl ? 'TIMELINE NG BYAHE' : 'TRIP LEGS TIMELINE'}
@@ -766,8 +769,8 @@
                             ${timelineRowsHtml}
                         </div>
                     </div>
-
-                    <!-- 5. Step-by-Step Directions -->
+                    ` : ''}
+                    ${directionsListHtml ? `
                     <div style="margin-bottom: 10px;">
                         <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
                             ${isTl ? 'MGA HAKBANG SA DIREKSYON' : 'STEP-BY-STEP DIRECTIONS'}
@@ -776,22 +779,27 @@
                             ${directionsListHtml}
                         </div>
                     </div>
+                    ` : ''}
+                    `}
                 </div>
 
-                <!-- 6. Footer -->
+                <!-- Footer -->
                 <div style="border-top: 1px solid #E2E8F0; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: #64748B;">
                     <div>${isTl ? 'Ang mga pasahe ay pagtatantya batay sa gabay ng LTFRB na may bisang Setyembre 28, 2026.' : 'Fares are estimates based on the LTFRB fare guide effective September 28, 2026.'}</div>
-                    <div style="font-weight: 600; color: #378ADD;">calzadaph.com</div>
+                    <div style="display: flex; gap: 14px; align-items: center;">
+                        <span>${isTl ? 'Pahina' : 'Page'} ${pageNumber} / ${totalPages}</span>
+                        <span style="font-weight: 600; color: #378ADD;">calzadaph.com</span>
+                    </div>
                 </div>
             `;
         } else {
-            // Continuation page (if directions overflow)
+            // Continuation page (Page 2+: Timeline & Directions)
             page.innerHTML = `
                 <div>
                     <!-- Header Continuation -->
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #378ADD; padding-bottom: 12px; margin-bottom: 14px;">
                         <div>
-                            <div id="pdfLogoBoxPage2" style="height: 30px; display: inline-block; margin-bottom: 5px;">
+                            <div class="pdf-logo-box" style="height: 30px; display: inline-block; margin-bottom: 5px;">
                                 ${logoDataUrl ? `<img src="${logoDataUrl}" alt="Calzada" style="height: 30px; width: auto; display: block;">` : `<div style="font-size: 22px; font-weight: 800; color: #378ADD; letter-spacing: -0.02em; font-family: 'Sora', sans-serif;">CALZADA</div>`}
                             </div>
                             <div style="font-size: 18px; font-weight: 700; color: #0E2A47; font-family: 'Sora', sans-serif;">
@@ -806,10 +814,22 @@
                         </div>
                     </div>
 
-                    <!-- Step-by-Step Directions Continuation -->
+                    ${timelineRowsHtml ? `
+                    <!-- Trip Legs Timeline -->
+                    <div style="margin-bottom: 14px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+                            ${isTl ? 'TIMELINE NG BYAHE' : 'TRIP LEGS TIMELINE'}
+                        </div>
+                        <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; background: #FFFFFF;">
+                            ${timelineRowsHtml}
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Step-by-Step Directions -->
                     <div style="margin-bottom: 10px;">
                         <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
-                            ${isTl ? 'MGA HAKBANG SA DIREKSYON (KASUNOD)' : 'STEP-BY-STEP DIRECTIONS (CONTINUED)'}
+                            ${isTl ? 'MGA HAKBANG SA DIREKSYON' : 'STEP-BY-STEP DIRECTIONS'}
                         </div>
                         <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; background: #FFFFFF;">
                             ${directionsListHtml}
@@ -820,7 +840,10 @@
                 <!-- Footer -->
                 <div style="border-top: 1px solid #E2E8F0; padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: #64748B;">
                     <div>${isTl ? 'Ang mga pasahe ay pagtatantya batay sa gabay ng LTFRB na may bisang Setyembre 28, 2026.' : 'Fares are estimates based on the LTFRB fare guide effective September 28, 2026.'}</div>
-                    <div style="font-weight: 600; color: #378ADD;">calzadaph.com</div>
+                    <div style="display: flex; gap: 14px; align-items: center;">
+                        <span>${isTl ? 'Pahina' : 'Page'} ${pageNumber} / ${totalPages}</span>
+                        <span style="font-weight: 600; color: #378ADD;">calzadaph.com</span>
+                    </div>
                 </div>
             `;
         }
@@ -849,9 +872,13 @@
         const isWalkOnly = routeData.selectedMode === 'walking';
         const modeLabel = isWalkOnly ? (isTl ? 'Lakad' : 'Walk') : 'Jeepney';
 
-        const depTime = routeData.journeyStartedAt ? new Date(routeData.journeyStartedAt) : now;
+        const depTime = routeData.journeyStartedAt
+            ? new Date(routeData.journeyStartedAt)
+            : (routeData.leaveAt ? new Date(routeData.leaveAt) : now);
         const totalMin = (routeData.walkDur || 0) + (routeData.transitDur || 0);
-        const arrTime = new Date(depTime.getTime() + totalMin * 60 * 1000);
+        const arrTime = routeData.arriveAt
+            ? new Date(routeData.arriveAt)
+            : new Date(depTime.getTime() + totalMin * 60 * 1000);
         const timesLabel = isTl
             ? `Alis ${formatTime12(depTime)} · Dating ${formatTime12(arrTime)}`
             : `Leave ${formatTime12(depTime)} · Arrive ${formatTime12(arrTime)}`;
@@ -911,46 +938,94 @@
         } catch (_) {}
 
         // Measure / Paginate
+        // Requirement: Put map on its own page (page 1: header + summary + map; page 2+: legs timeline and step-by-step)
         const steps = routeData.activeRouteSteps || [];
-        const MAX_STEPS_SINGLE_PAGE = 11;
-        const needsMultiPage = steps.length > MAX_STEPS_SINGLE_PAGE;
+        const pageConfigs = [];
 
-        let page1Steps = steps;
-        let page2Steps = [];
-        if (needsMultiPage) {
-            page1Steps = steps.slice(0, 8);
-            page2Steps = steps.slice(8);
+        if (mapSnapshotDataUrl) {
+            // Page 1: Dedicated to Header + Summary + Map
+            pageConfigs.push({
+                isContinuation: false,
+                mapSnapshotDataUrl: mapSnapshotDataUrl,
+                timelineRowsHtml: '',
+                directionsListHtml: '',
+                steps: []
+            });
+
+            // Page 2+: Timeline + Steps
+            if (steps.length <= 11) {
+                pageConfigs.push({
+                    isContinuation: true,
+                    mapSnapshotDataUrl: null,
+                    timelineRowsHtml: timelineRowsHtml,
+                    directionsListHtml: buildDirectionsList({ activeRouteSteps: steps, startIndex: 0 }),
+                    steps: steps
+                });
+            } else {
+                // Page 2: Timeline + first 10 steps
+                const p2Steps = steps.slice(0, 10);
+                pageConfigs.push({
+                    isContinuation: true,
+                    mapSnapshotDataUrl: null,
+                    timelineRowsHtml: timelineRowsHtml,
+                    directionsListHtml: buildDirectionsList({ activeRouteSteps: p2Steps, startIndex: 0 }),
+                    steps: p2Steps
+                });
+                // Subsequent pages: remaining steps
+                let remSteps = steps.slice(10);
+                let curIdx = 10;
+                while (remSteps.length > 0) {
+                    const chunk = remSteps.slice(0, 15);
+                    remSteps = remSteps.slice(15);
+                    pageConfigs.push({
+                        isContinuation: true,
+                        mapSnapshotDataUrl: null,
+                        timelineRowsHtml: '',
+                        directionsListHtml: buildDirectionsList({ activeRouteSteps: chunk, startIndex: curIdx }),
+                        steps: chunk
+                    });
+                    curIdx += chunk.length;
+                }
+            }
+        } else {
+            // No map snapshot available
+            if (steps.length <= 8) {
+                pageConfigs.push({
+                    isContinuation: false,
+                    mapSnapshotDataUrl: null,
+                    timelineRowsHtml: timelineRowsHtml,
+                    directionsListHtml: buildDirectionsList({ activeRouteSteps: steps, startIndex: 0 }),
+                    steps: steps
+                });
+            } else {
+                const p1Steps = steps.slice(0, 6);
+                pageConfigs.push({
+                    isContinuation: false,
+                    mapSnapshotDataUrl: null,
+                    timelineRowsHtml: timelineRowsHtml,
+                    directionsListHtml: buildDirectionsList({ activeRouteSteps: p1Steps, startIndex: 0 }),
+                    steps: p1Steps
+                });
+                let remSteps = steps.slice(6);
+                let curIdx = 6;
+                while (remSteps.length > 0) {
+                    const chunk = remSteps.slice(0, 15);
+                    remSteps = remSteps.slice(15);
+                    pageConfigs.push({
+                        isContinuation: true,
+                        mapSnapshotDataUrl: null,
+                        timelineRowsHtml: '',
+                        directionsListHtml: buildDirectionsList({ activeRouteSteps: chunk, startIndex: curIdx }),
+                        steps: chunk
+                    });
+                    curIdx += chunk.length;
+                }
+            }
         }
 
-        const page1DirectionsHtml = buildDirectionsList({ activeRouteSteps: page1Steps });
-        const page1El = createPageElement({
-            logoDataUrl,
-            routeTitle,
-            generatedDateText,
-            originLabel,
-            destLabel,
-            modeLabel,
-            timesLabel,
-            totalDurationText,
-            totalDistanceText,
-            fareSummaryText,
-            mapSnapshotDataUrl,
-            timelineRowsHtml,
-            directionsListHtml: page1DirectionsHtml,
-            isTl,
-            isContinuation: false
-        });
-
-        // Offscreen container
-        const offscreenContainer = document.createElement('div');
-        offscreenContainer.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1000;width:794px;';
-        offscreenContainer.appendChild(page1El);
-        document.body.appendChild(offscreenContainer);
-
-        let page2El = null;
-        if (needsMultiPage) {
-            const page2DirectionsHtml = buildDirectionsList({ activeRouteSteps: page2Steps });
-            page2El = createPageElement({
+        const totalPages = pageConfigs.length;
+        const pageElements = pageConfigs.map((cfg, idx) => {
+            return createPageElement({
                 logoDataUrl,
                 routeTitle,
                 generatedDateText,
@@ -961,14 +1036,21 @@
                 totalDurationText,
                 totalDistanceText,
                 fareSummaryText,
-                mapSnapshotDataUrl: null,
-                timelineRowsHtml: '',
-                directionsListHtml: page2DirectionsHtml,
+                mapSnapshotDataUrl: cfg.mapSnapshotDataUrl,
+                timelineRowsHtml: cfg.timelineRowsHtml,
+                directionsListHtml: cfg.directionsListHtml,
                 isTl,
-                isContinuation: true
+                isContinuation: cfg.isContinuation,
+                pageNumber: idx + 1,
+                totalPages
             });
-            offscreenContainer.appendChild(page2El);
-        }
+        });
+
+        // Offscreen container
+        const offscreenContainer = document.createElement('div');
+        offscreenContainer.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1000;width:794px;';
+        pageElements.forEach(el => offscreenContainer.appendChild(el));
+        document.body.appendChild(offscreenContainer);
 
         const pdfW = 210;
         const pdfH = 297;
@@ -983,32 +1065,6 @@
             await new Promise((r) => { img.onload = r; img.onerror = r; setTimeout(r, 300); });
         }));
 
-        // Measure placeholder boxes in mm on the A4 page (210 x 297 mm)
-        const page1Rect = page1El.getBoundingClientRect();
-        const mapBoxEl = page1El.querySelector('#pdfMapSnapshotBox');
-        let mapMm = null;
-        if (mapBoxEl && page1Rect.width > 0 && page1Rect.height > 0) {
-            const r = mapBoxEl.getBoundingClientRect();
-            mapMm = {
-                x: ((r.left - page1Rect.left) / page1Rect.width) * pdfW,
-                y: ((r.top - page1Rect.top) / page1Rect.height) * pdfH,
-                w: (r.width / page1Rect.width) * pdfW,
-                h: (r.height / page1Rect.height) * pdfH
-            };
-        }
-
-        const logoBoxEl = page1El.querySelector('#pdfLogoBox');
-        let logoMm = null;
-        if (logoBoxEl && page1Rect.width > 0 && page1Rect.height > 0) {
-            const r = logoBoxEl.getBoundingClientRect();
-            logoMm = {
-                x: ((r.left - page1Rect.left) / page1Rect.width) * pdfW,
-                y: ((r.top - page1Rect.top) / page1Rect.height) * pdfH,
-                w: (r.width / page1Rect.width) * pdfW,
-                h: (r.height / page1Rect.height) * pdfH
-            };
-        }
-
         const isWebKit = /iP(hone|ad|od)/i.test(navigator.userAgent) || 
                          (/Safari\//i.test(navigator.userAgent) && !/Chrome|Chromium|Android/i.test(navigator.userAgent));
 
@@ -1021,17 +1077,6 @@
         };
 
         try {
-            if (isWebKit) {
-                // First warm-up pass for WebKit SVG foreignObject paint bug
-                try {
-                    await htmlToImage.toCanvas(page1El, opts);
-                } catch (_) {}
-            }
-
-            // Render Page 1 to canvas
-            const page1Canvas = await htmlToImage.toCanvas(page1El, opts);
-            const page1Jpeg = page1Canvas.toDataURL('image/jpeg', 0.90);
-
             const doc = new JsPdfCtor({
                 orientation: 'portrait',
                 unit: 'mm',
@@ -1039,52 +1084,52 @@
                 compress: true
             });
 
-            doc.addImage(page1Jpeg, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
-
-            // DIRECT jsPDF INJECTION:
-            // If html-to-image on WebKit dropped the <img> inside foreignObject,
-            // directly overlay the map snapshot and logo at their exact measured coordinates!
-            if (mapSnapshotDataUrl && mapMm) {
-                try {
-                    doc.addImage(mapSnapshotDataUrl, 'JPEG', mapMm.x, mapMm.y, mapMm.w, mapMm.h, undefined, 'FAST');
-                } catch (e) {
-                    console.warn('Direct map image injection failed:', e);
-                }
-            }
-
-            if (logoDataUrl && logoMm) {
-                try {
-                    doc.addImage(logoDataUrl, 'PNG', logoMm.x, logoMm.y, logoMm.w, logoMm.h, undefined, 'FAST');
-                } catch (e) {
-                    console.warn('Direct logo image injection failed:', e);
-                }
-            }
-
-            if (needsMultiPage && page2El) {
-                const page2Rect = page2El.getBoundingClientRect();
-                const logoBox2El = page2El.querySelector('#pdfLogoBoxPage2');
-                let logoMm2 = null;
-                if (logoBox2El && page2Rect.width > 0 && page2Rect.height > 0) {
-                    const r = logoBox2El.getBoundingClientRect();
-                    logoMm2 = {
-                        x: ((r.left - page2Rect.left) / page2Rect.width) * pdfW,
-                        y: ((r.top - page2Rect.top) / page2Rect.height) * pdfH,
-                        w: (r.width / page2Rect.width) * pdfW,
-                        h: (r.height / page2Rect.height) * pdfH
-                    };
-                }
+            window._calzadaLastPdfPages = [];
+            for (let i = 0; i < pageElements.length; i++) {
+                const pageEl = pageElements[i];
+                if (i > 0) doc.addPage();
 
                 if (isWebKit) {
-                    try { await htmlToImage.toCanvas(page2El, opts); } catch (_) {}
+                    try { await htmlToImage.toCanvas(pageEl, opts); } catch (_) {}
                 }
-                const page2Canvas = await htmlToImage.toCanvas(page2El, opts);
-                const page2Jpeg = page2Canvas.toDataURL('image/jpeg', 0.90);
-                doc.addPage();
-                doc.addImage(page2Jpeg, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
-                if (logoDataUrl && logoMm2) {
-                    try {
-                        doc.addImage(logoDataUrl, 'PNG', logoMm2.x, logoMm2.y, logoMm2.w, logoMm2.h, undefined, 'FAST');
-                    } catch (_) {}
+
+                const canvas = await htmlToImage.toCanvas(pageEl, opts);
+                const jpeg = canvas.toDataURL('image/jpeg', 0.90);
+                window._calzadaLastPdfPages.push(jpeg);
+                doc.addImage(jpeg, 'JPEG', 0, 0, pdfW, pdfH, undefined, 'FAST');
+
+                // DIRECT jsPDF INJECTION FOR MAP SNAPSHOT (if on this page)
+                const mapBox = pageEl.querySelector('#pdfMapSnapshotBox');
+                if (mapSnapshotDataUrl && mapBox) {
+                    const pR = pageEl.getBoundingClientRect();
+                    const r = mapBox.getBoundingClientRect();
+                    if (pR.width > 0 && pR.height > 0) {
+                        const mx = ((r.left - pR.left) / pR.width) * pdfW;
+                        const my = ((r.top - pR.top) / pR.height) * pdfH;
+                        const mw = (r.width / pR.width) * pdfW;
+                        const mh = (r.height / pR.height) * pdfH;
+                        try {
+                            doc.addImage(mapSnapshotDataUrl, 'JPEG', mx, my, mw, mh, undefined, 'FAST');
+                        } catch (e) {
+                            console.warn('Direct map image injection failed:', e);
+                        }
+                    }
+                }
+
+                // DIRECT jsPDF INJECTION FOR LOGO
+                const logoBox = pageEl.querySelector('#pdfLogoBox, .pdf-logo-box');
+                if (logoDataUrl && logoBox) {
+                    const pR = pageEl.getBoundingClientRect();
+                    const r = logoBox.getBoundingClientRect();
+                    if (pR.width > 0 && pR.height > 0) {
+                        const lx = ((r.left - pR.left) / pR.width) * pdfW;
+                        const ly = ((r.top - pR.top) / pR.height) * pdfH;
+                        const lw = (r.width / pR.width) * pdfW;
+                        const lh = (r.height / pR.height) * pdfH;
+                        try {
+                            doc.addImage(logoDataUrl, 'PNG', lx, ly, lw, lh, undefined, 'FAST');
+                        } catch (_) {}
+                    }
                 }
             }
 
@@ -1127,8 +1172,45 @@
 
         setButtonsBusy(true);
 
+        let timeoutId = null;
+        let blob = null;
+
         try {
-            const blob = await generateRoutePdfBlob(data);
+            // PDF generation with 20s timeout fallback
+            const timeoutPromise = new Promise((_, reject) => {
+                timeoutId = setTimeout(() => {
+                    const err = new Error('PDF generation timed out');
+                    err.name = 'TimeoutError';
+                    reject(err);
+                }, 20000);
+            });
+
+            blob = await Promise.race([
+                generateRoutePdfBlob(data),
+                timeoutPromise
+            ]);
+        } catch (err) {
+            console.error('Export route to PDF failed:', err);
+            if (typeof window.showToast === 'function') {
+                let failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't generate PDF. Please try again.";
+                if (err && err.name === 'TimeoutError') {
+                    failMsg = (window.t ? window.t('planner.pdf_timeout') : null) || 'PDF generation timed out. Please try again.';
+                }
+                window.showToast(failMsg, 'error');
+            }
+            return;
+        } finally {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+            // Always restore button spinner immediately after PDF is generated or on failure!
+            setButtonsBusy(false);
+        }
+
+        if (!blob) return;
+
+        try {
             const fileName = buildPdfFileName(data.destName);
 
             // iOS Web Share API with file support
@@ -1154,9 +1236,9 @@
                 window.showToast(msg, 'success');
             }
         } catch (err) {
-            console.error('Export route to PDF failed:', err);
+            console.error('Save/share PDF failed:', err);
             if (typeof window.showToast === 'function') {
-                const failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't generate PDF. Please try again.";
+                const failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't save PDF. Please try again.";
                 window.showToast(failMsg, 'error');
             }
         } finally {
