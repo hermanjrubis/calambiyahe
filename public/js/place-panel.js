@@ -36,6 +36,8 @@ const placesData = {
     "STI College Calamba": {
         name: "STI College - Calamba",
         category: "School",
+        has_360: true,
+        nodeId: "14.202352_121.158453",
         image: "../assets/places/sti-college/sti-1.webp",
         images: [
             "../assets/places/sti-college/sti-1.webp",
@@ -66,6 +68,8 @@ const placesData = {
     "STI College - Calamba": {
         name: "STI College - Calamba",
         category: "School",
+        has_360: true,
+        nodeId: "14.202352_121.158453",
         image: "../assets/places/sti-college/sti-1.webp",
         images: [
             "../assets/places/sti-college/sti-1.webp",
@@ -245,7 +249,8 @@ function initPlacePanelDOM() {
 
                 <!-- 360 Photosphere Preview Section (Static placeholder, full photo loads only when opened) -->
                 <div class="panel-360-section" id="pp360Section" style="display:none;">
-                    <div class="panel-360-container">
+                    <div class="panel-360-skeleton" id="pp360Skeleton" style="display:none;"></div>
+                    <div class="panel-360-container" id="pp360Container" style="display:none;">
                         <div class="popup-360-thumb-wrap" id="pp360ThumbWrap" title="Click to view 360° photo" role="button" tabindex="0">
                             <div class="popup-360-placeholder" id="pp360Placeholder">
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1520,6 +1525,84 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
 
 
 
+// 360 Photosphere Place Links Integration for Place Panel
+const DEFAULT_360_LINKS = [
+    { placeId: "13", placeName: "STI College - Calamba", nodeId: "14.202352_121.158453", distance: 18.5 },
+    { placeId: "19", placeName: "PWU CDCEC Calamba", nodeId: "14.205243_121.156249", distance: 1.6 }
+];
+
+let placePanel360LinksMap = new Map();
+DEFAULT_360_LINKS.forEach(link => {
+    if (link.placeId) placePanel360LinksMap.set(String(link.placeId).trim(), link);
+    if (link.placeName) {
+        placePanel360LinksMap.set(link.placeName.trim().toLowerCase(), link);
+        placePanel360LinksMap.set(link.placeName.replace(/[^a-z0-9]/gi, '').toLowerCase(), link);
+    }
+});
+
+let placePanel360LoadPromise = null;
+
+function loadPlacePanel360Links() {
+    if (!placePanel360LoadPromise) {
+        placePanel360LoadPromise = (async () => {
+            try {
+                const res = await fetch('../assets/360/place-links.json');
+                if (res.ok) {
+                    const data = await res.json();
+                    (data.links || []).forEach(link => {
+                        if (link.placeId) placePanel360LinksMap.set(String(link.placeId).trim(), link);
+                        if (link.placeName) {
+                            placePanel360LinksMap.set(link.placeName.trim().toLowerCase(), link);
+                            placePanel360LinksMap.set(link.placeName.replace(/[^a-z0-9]/gi, '').toLowerCase(), link);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn('[360 Links] Could not load place-links in place-panel:', err);
+            }
+        })();
+    }
+    return placePanel360LoadPromise;
+}
+
+loadPlacePanel360Links();
+
+function getPlacePanel360Link(placeId, placeName) {
+    if (placeId && placePanel360LinksMap.has(String(placeId).trim())) {
+        return placePanel360LinksMap.get(String(placeId).trim());
+    }
+    if (placeName) {
+        const norm = placeName.trim().toLowerCase();
+        if (placePanel360LinksMap.has(norm)) {
+            return placePanel360LinksMap.get(norm);
+        }
+        const stripped = placeName.replace(/[^a-z0-9]/gi, '').toLowerCase();
+        if (placePanel360LinksMap.has(stripped)) {
+            return placePanel360LinksMap.get(stripped);
+        }
+    }
+    return null;
+}
+
+let placePanelCollapseTimeout = null;
+
+function collapse360Section() {
+    const sec360 = document.getElementById('pp360Section');
+    if (!sec360 || sec360.style.display === 'none' || sec360.classList.contains('collapsed')) return;
+
+    sec360.classList.add('collapsed');
+    if (placePanelCollapseTimeout) clearTimeout(placePanelCollapseTimeout);
+    placePanelCollapseTimeout = setTimeout(() => {
+        if (sec360.classList.contains('collapsed')) {
+            sec360.style.display = 'none';
+            const sk360 = document.getElementById('pp360Skeleton');
+            if (sk360) sk360.style.display = 'none';
+            const cont360 = document.getElementById('pp360Container');
+            if (cont360) cont360.style.display = 'none';
+        }
+    }, 260);
+}
+
 /**
  * Open Place Detail Panel
  */
@@ -1571,6 +1654,16 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     }
     if (seeMoreBtn) seeMoreBtn.style.display = 'none';
 
+    if (placePanelCollapseTimeout) {
+        clearTimeout(placePanelCollapseTimeout);
+        placePanelCollapseTimeout = null;
+    }
+    const sec360 = document.getElementById('pp360Section');
+    const sk360 = document.getElementById('pp360Skeleton');
+    const cont360 = document.getElementById('pp360Container');
+    const thumbWrap360 = document.getElementById('pp360ThumbWrap');
+    const btn360 = document.getElementById('pp360Btn');
+
     // 3. Find base data or construct fallback
     const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const normalizedKey = Object.keys(placesData).find(
@@ -1602,6 +1695,39 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     if (optLng != null) data.lng = optLng;
 
     currentActivePlace = data;
+
+    // Check upfront if place has a known 360 photo
+    const upfront360Link = (data && data.has_360 && data.nodeId)
+        ? { nodeId: data.nodeId, placeName: data.name }
+        : getPlacePanel360Link(data?.id, data?.name || placeName);
+
+    if (upfront360Link && upfront360Link.nodeId) {
+        // Place is known to have 360: render card immediately with placeholder thumbnail
+        if (sec360) {
+            sec360.classList.remove('collapsed');
+            sec360.style.display = 'block';
+        }
+        if (sk360) sk360.style.display = 'none';
+        if (cont360) cont360.style.display = 'flex';
+        if (thumbWrap360) {
+            thumbWrap360.onclick = () => window._open360Viewer(upfront360Link.nodeId);
+            thumbWrap360.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    window._open360Viewer(upfront360Link.nodeId);
+                }
+            };
+        }
+        if (btn360) btn360.onclick = () => window._open360Viewer(upfront360Link.nodeId);
+    } else {
+        // Not known yet: reserve space with skeleton (#EAF2FC shimmer)
+        if (sec360) {
+            sec360.classList.remove('collapsed');
+            sec360.style.display = 'block';
+        }
+        if (sk360) sk360.style.display = 'block';
+        if (cont360) cont360.style.display = 'none';
+    }
 
     // 4. Set Place Name in header immediately
     const nameEl = document.getElementById('ppName');
@@ -1757,6 +1883,39 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         console.warn('Could not fetch place details from API:', e);
     }
 
+    // Check and update 360 photosphere section once place data arrives
+    try {
+        await loadPlacePanel360Links();
+        const live360Link = (data && data.has_360 && data.nodeId)
+            ? { nodeId: data.nodeId, placeName: data.name }
+            : getPlacePanel360Link(placeId || data.id, data.name || placeName);
+
+        if (live360Link && live360Link.nodeId) {
+            if (sec360) {
+                sec360.classList.remove('collapsed');
+                sec360.style.display = 'block';
+            }
+            if (sk360) sk360.style.display = 'none';
+            if (cont360) cont360.style.display = 'flex';
+            if (thumbWrap360) {
+                thumbWrap360.onclick = () => window._open360Viewer(live360Link.nodeId);
+                thumbWrap360.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        window._open360Viewer(live360Link.nodeId);
+                    }
+                };
+            }
+            if (btn360) btn360.onclick = () => window._open360Viewer(live360Link.nodeId);
+        } else {
+            // No 360 photo: collapse reserved space with short height transition so it does not jump
+            collapse360Section();
+        }
+    } catch (e) {
+        console.warn('Error evaluating 360 link in place-panel:', e);
+        collapse360Section();
+    }
+
     // 12. Fetch carousel images & setup ratings/reviews
     let placeImages = null;
     if (placeId) {
@@ -1799,66 +1958,9 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     } catch (_) {}
 
-    // 14. Check and render 360 photosphere section if linked
-    try {
-        await loadPlacePanel360Links();
-        const link360 = getPlacePanel360Link(placeId, data.name || placeName);
-        const sec360 = document.getElementById('pp360Section');
-        const thumb360 = document.getElementById('pp360Thumb');
-        const thumbWrap360 = document.getElementById('pp360ThumbWrap');
-        const btn360 = document.getElementById('pp360Btn');
-
-        if (link360 && link360.nodeId && sec360) {
-            // Static placeholder is shown; full 360 photo loads only when opened (req 5)
-            if (thumbWrap360) thumbWrap360.onclick = () => window._open360Viewer(link360.nodeId);
-            if (btn360) btn360.onclick = () => window._open360Viewer(link360.nodeId);
-            sec360.style.display = 'block';
-        } else if (sec360) {
-            sec360.style.display = 'none';
-        }
-    } catch (e) {
-        console.warn('Error displaying 360 link in place-panel:', e);
-    }
-
-    // 15. Localize popup strings
+    // 14. Localize popup strings
     updatePlacePanelI18n();
 };
-
-// 360 Photosphere Place Links Integration for Place Panel
-let placePanel360LinksMap = new Map();
-let placePanel360LoadPromise = null;
-
-function loadPlacePanel360Links() {
-    if (!placePanel360LoadPromise) {
-        placePanel360LoadPromise = (async () => {
-            try {
-                const res = await fetch('../assets/360/place-links.json');
-                if (res.ok) {
-                    const data = await res.json();
-                    (data.links || []).forEach(link => {
-                        if (link.placeId) placePanel360LinksMap.set(String(link.placeId).trim(), link);
-                        if (link.placeName) placePanel360LinksMap.set(link.placeName.trim().toLowerCase(), link);
-                    });
-                }
-            } catch (err) {
-                console.warn('[360 Links] Could not load place-links in place-panel:', err);
-            }
-        })();
-    }
-    return placePanel360LoadPromise;
-}
-
-loadPlacePanel360Links();
-
-function getPlacePanel360Link(placeId, placeName) {
-    if (placeId && placePanel360LinksMap.has(String(placeId).trim())) {
-        return placePanel360LinksMap.get(String(placeId).trim());
-    }
-    if (placeName && placePanel360LinksMap.has(placeName.trim().toLowerCase())) {
-        return placePanel360LinksMap.get(placeName.trim().toLowerCase());
-    }
-    return null;
-}
 
 // Fallback global handler for opening 360 viewer if not already provided
 if (!window._open360Viewer) {
@@ -1935,6 +2037,21 @@ window.closePlacePanel = function(updateHistory = true) {
     if (backdrop) backdrop.classList.remove('active');
     if (panel) panel.classList.remove('active');
     document.body.style.overflow = ''; 
+
+    // Reset 360 section and skeleton
+    if (placePanelCollapseTimeout) {
+        clearTimeout(placePanelCollapseTimeout);
+        placePanelCollapseTimeout = null;
+    }
+    const sec360 = document.getElementById('pp360Section');
+    if (sec360) {
+        sec360.classList.remove('collapsed');
+        sec360.style.display = 'none';
+    }
+    const sk360 = document.getElementById('pp360Skeleton');
+    if (sk360) sk360.style.display = 'none';
+    const cont360 = document.getElementById('pp360Container');
+    if (cont360) cont360.style.display = 'none';
 
     // Reset skeletons and carousel slides for next open
     const heroSkeleton = document.getElementById('ppHeroSkeleton');
