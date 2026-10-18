@@ -622,6 +622,9 @@ let inline360PanoUrl = null;
 let inline360Place = null;
 let inline360Initialized = false;
 let inline360LoadTimeout = null;
+let inline360HintTimer = null;
+let inline360HintShown = false;
+let inline360SkeletonFadeTimer = null;
 let placePanel360ManifestCache = null;
 
 async function fetchManifestNode(nodeId) {
@@ -653,7 +656,44 @@ async function fetchManifestNode(nodeId) {
     return null;
 }
 
+function hideFirstTimeHint(instant = false) {
+    if (inline360HintTimer) {
+        clearTimeout(inline360HintTimer);
+        inline360HintTimer = null;
+    }
+    const hint = document.getElementById('ppInline360Hint');
+    if (hint) {
+        hint.classList.remove('entering');
+        if (instant) {
+            hint.classList.remove('hiding');
+            hint.style.display = 'none';
+        } else {
+            hint.classList.add('hiding');
+            setTimeout(() => {
+                if (hint.classList.contains('hiding')) {
+                    hint.style.display = 'none';
+                    hint.classList.remove('hiding');
+                }
+            }, 180);
+        }
+    }
+    const container = document.getElementById('ppInline360Container');
+    if (container && window._inline360HintDismissHandler) {
+        container.removeEventListener('pointerdown', window._inline360HintDismissHandler, true);
+        container.removeEventListener('touchstart', window._inline360HintDismissHandler, true);
+        container.removeEventListener('mousedown', window._inline360HintDismissHandler, true);
+        container.removeEventListener('wheel', window._inline360HintDismissHandler, true);
+        window._inline360HintDismissHandler = null;
+    }
+}
+
 function destroyInline360Viewer() {
+    hideFirstTimeHint(true);
+    inline360HintShown = false;
+    if (inline360SkeletonFadeTimer) {
+        clearTimeout(inline360SkeletonFadeTimer);
+        inline360SkeletonFadeTimer = null;
+    }
     if (inline360LoadTimeout) {
         clearTimeout(inline360LoadTimeout);
         inline360LoadTimeout = null;
@@ -703,10 +743,13 @@ function triggerInline360Error() {
         clearTimeout(inline360LoadTimeout);
         inline360LoadTimeout = null;
     }
+    if (inline360SkeletonFadeTimer) {
+        clearTimeout(inline360SkeletonFadeTimer);
+        inline360SkeletonFadeTimer = null;
+    }
+    hideFirstTimeHint(true);
     const skeleton = document.getElementById('ppInline360Skeleton');
     if (skeleton) skeleton.style.display = 'none';
-    const hint = document.getElementById('ppInline360Hint');
-    if (hint) hint.style.display = 'none';
     const errorPanel = document.getElementById('ppInline360Error');
     if (errorPanel) errorPanel.style.display = 'flex';
 }
@@ -718,52 +761,53 @@ function showFirstTimeHint() {
     } catch (_) {
         seen = Boolean(window._calzada360HintSeen);
     }
-    if (seen) return;
+    if (seen || inline360HintShown) return;
+
+    // Check popup is open and user is currently on slide 2
+    const panel = document.getElementById('placePanel');
+    if (!panel || !panel.classList.contains('active')) return;
+    if (currentCarouselIndex !== 1) return;
+
+    // Viewer must be loaded and skeleton gone
+    if (!inline360Viewer || (typeof inline360Viewer.isLoaded === 'function' && !inline360Viewer.isLoaded())) return;
+    const errorPanel = document.getElementById('ppInline360Error');
+    if (errorPanel && (errorPanel.style.display === 'flex' || window.getComputedStyle(errorPanel).display === 'flex')) return;
+    const skeleton = document.getElementById('ppInline360Skeleton');
+    if (skeleton && (skeleton.style.display !== 'none' || skeleton.style.opacity === '1')) return;
 
     const hint = document.getElementById('ppInline360Hint');
     if (!hint) return;
+
+    // Mark seen only when hint is actually shown
+    inline360HintShown = true;
+    try {
+        localStorage.setItem('calzada_360_hint_seen', '1');
+    } catch (_) {
+        window._calzada360HintSeen = true;
+    }
 
     hint.style.display = 'flex';
     hint.classList.remove('hiding');
     hint.classList.add('entering');
 
-    let dismissed = false;
-    function dismissHint() {
-        if (dismissed) return;
-        dismissed = true;
-        try {
-            localStorage.setItem('calzada_360_hint_seen', '1');
-        } catch (_) {
-            window._calzada360HintSeen = true;
-        }
-        hint.classList.remove('entering');
-        hint.classList.add('hiding');
-        setTimeout(() => {
-            if (hint.classList.contains('hiding')) {
-                hint.style.display = 'none';
-            }
-        }, 180);
-
-        const container = document.getElementById('ppInline360Container');
-        if (container) {
-            container.removeEventListener('pointerdown', onAction, true);
-            container.removeEventListener('touchstart', onAction, true);
-            container.removeEventListener('wheel', onAction, true);
-        }
+    if (inline360HintTimer) {
+        clearTimeout(inline360HintTimer);
+        inline360HintTimer = null;
     }
 
-    const timer = setTimeout(dismissHint, 2500);
-
-    function onAction() {
-        clearTimeout(timer);
-        dismissHint();
+    function onDismiss() {
+        hideFirstTimeHint(false);
     }
+    window._inline360HintDismissHandler = onDismiss;
+
+    inline360HintTimer = setTimeout(onDismiss, 2500);
 
     const container = document.getElementById('ppInline360Container');
     if (container) {
-        container.addEventListener('pointerdown', onAction, { capture: true, once: true });
-        container.addEventListener('touchstart', onAction, { capture: true, once: true });
-        container.addEventListener('wheel', onAction, { capture: true, once: true });
+        container.addEventListener('pointerdown', onDismiss, { capture: true, once: true });
+        container.addEventListener('touchstart', onDismiss, { capture: true, once: true });
+        container.addEventListener('mousedown', onDismiss, { capture: true, once: true });
+        container.addEventListener('wheel', onDismiss, { capture: true, once: true });
     }
 }
 
@@ -895,11 +939,18 @@ async function initInline360Viewer(place) {
             }
             if (skeleton) {
                 skeleton.style.opacity = '0';
-                setTimeout(() => {
+                if (inline360SkeletonFadeTimer) {
+                    clearTimeout(inline360SkeletonFadeTimer);
+                }
+                inline360SkeletonFadeTimer = setTimeout(() => {
                     skeleton.style.display = 'none';
+                    inline360SkeletonFadeTimer = null;
+                    // Show hint ONLY after skeleton has fully faded out
+                    showFirstTimeHint();
                 }, 200);
+            } else {
+                showFirstTimeHint();
             }
-            showFirstTimeHint();
         });
 
         inline360Viewer.on('error', () => {
@@ -1231,7 +1282,9 @@ function goToCarouselSlide(index) {
     }
 
     // Lazy initialization & resize of inline 360 viewer
-    if (index === 1 && inline360Place) {
+    if (index === 0) {
+        hideFirstTimeHint(true);
+    } else if (index === 1 && inline360Place) {
         const hasPano = Boolean(inline360Place.pano || inline360Place.fallbackNodeId);
         if (hasPano) {
             if (!inline360Initialized) {
@@ -1241,6 +1294,12 @@ function goToCarouselSlide(index) {
                 requestAnimationFrame(() => {
                     try { inline360Viewer.resize(); } catch (_) {}
                 });
+                if (typeof inline360Viewer.isLoaded === 'function' && inline360Viewer.isLoaded()) {
+                    const skeleton = document.getElementById('ppInline360Skeleton');
+                    if (!skeleton || skeleton.style.display === 'none') {
+                        showFirstTimeHint();
+                    }
+                }
             }
         }
     }
