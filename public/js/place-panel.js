@@ -209,10 +209,9 @@ function initPlacePanelDOM() {
             
             <!-- Hero Carousel / Image Container (12px radius) -->
             <div class="panel-hero" id="ppHero">
+                <div class="panel-hero-skeleton" id="ppHeroSkeleton"></div>
                 <div class="carousel-container" id="ppCarousel">
-                    <div class="carousel-slides" id="ppCarouselSlides">
-                        <img id="ppImage" class="carousel-slide" alt="Place Hero" loading="lazy" decoding="async">
-                    </div>
+                    <div class="carousel-slides" id="ppCarouselSlides"></div>
                     <button class="carousel-nav carousel-prev" id="ppCarouselPrev" aria-label="Previous Image" type="button" style="display:none;">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
                     </button>
@@ -335,7 +334,8 @@ function initPlacePanelDOM() {
                 <div class="panel-rating-section" id="ppRatingCard">
                     <div class="rating-header">
                         <span class="rating-label" id="ppRatingLabel">Rating & reviews</span>
-                        <div class="rating-summary" id="ppRatingSummary">
+                        <div class="rating-summary-skeleton" id="ppRatingSummarySkeleton" style="display:none;"></div>
+                        <div class="rating-summary" id="ppRatingSummary" style="display:none;">
                             <span class="rating-score" id="ppRatingScore">0.0</span>
                             <svg class="rating-star-badge" width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                             <span class="rating-count" id="ppRatingCount">(0)</span>
@@ -399,13 +399,21 @@ function initPlacePanelDOM() {
 
                 <!-- 4. Customer Reviews List -->
                 <div class="panel-reviews-section" id="ppReviewsSection">
-                    <div class="reviews-section-header" id="ppReviewsHeader">
+                    <div class="reviews-header-skeleton" id="ppReviewsHeaderSkeleton" style="display:none;"></div>
+                    <div class="reviews-section-header" id="ppReviewsHeader" style="display:none;">
                         <span class="reviews-section-title" id="ppReviewsTitle">Customer reviews (0)</span>
                         <button type="button" class="reviews-see-more-btn" id="ppReviewsSeeMoreBtn" style="display:none;">See more</button>
                     </div>
 
                     <div class="reviews-container" id="ppReviewsContainer">
                         <div class="reviews-loading-state" id="ppReviewsLoading" style="display:none;">
+                            <div class="review-skeleton-item">
+                                <div class="skeleton-avatar"></div>
+                                <div class="skeleton-lines">
+                                    <div class="skeleton-line short"></div>
+                                    <div class="skeleton-line"></div>
+                                </div>
+                            </div>
                             <div class="review-skeleton-item">
                                 <div class="skeleton-avatar"></div>
                                 <div class="skeleton-lines">
@@ -594,18 +602,19 @@ function setupCarousel(images) {
     const prevBtn = document.getElementById('ppCarouselPrev');
     const nextBtn = document.getElementById('ppCarouselNext');
     const carouselEl = document.getElementById('ppCarousel');
+    const heroSkeleton = document.getElementById('ppHeroSkeleton');
 
     if (!slidesContainer) return;
     slidesContainer.innerHTML = '';
-    dotsContainer.innerHTML = '';
+    if (dotsContainer) dotsContainer.innerHTML = '';
     currentCarouselIndex = 0;
     carouselImagesList = images || [];
 
     if (carouselImagesList.length === 0) {
-        slidesContainer.innerHTML = `<img class="carousel-slide" src="../assets/hero-places-bg.png" alt="Place Hero">`;
+        if (heroSkeleton) heroSkeleton.style.display = 'none';
         if (prevBtn) prevBtn.style.display = 'none';
         if (nextBtn) nextBtn.style.display = 'none';
-        dotsContainer.style.display = 'none';
+        if (dotsContainer) dotsContainer.style.display = 'none';
         return;
     }
 
@@ -614,21 +623,37 @@ function setupCarousel(images) {
         imgEl.className = 'carousel-slide';
         const rawSrc = imgObj && (imgObj.image_path || imgObj.image || imgObj);
         imgEl.src = resolvePlaceImageUrl(typeof rawSrc === 'string' ? rawSrc : '');
-        imgEl.onerror = function() { this.src = '../assets/hero-places-bg.png'; };
         imgEl.alt = `Place Image ${idx + 1}`;
         slidesContainer.appendChild(imgEl);
 
-        if (carouselImagesList.length > 1) {
+        if (idx === 0) {
+            function revealPhoto() {
+                imgEl.classList.add('photo-fade-in');
+                if (heroSkeleton) heroSkeleton.style.display = 'none';
+            }
+            if (imgEl.complete && imgEl.naturalWidth > 0) {
+                revealPhoto();
+            } else {
+                imgEl.addEventListener('load', revealPhoto, { once: true });
+                imgEl.addEventListener('error', () => {
+                    if (heroSkeleton) heroSkeleton.style.display = 'none';
+                }, { once: true });
+            }
+        }
+
+        if (carouselImagesList.length > 1 && dotsContainer) {
             const dot = document.createElement('div');
             dot.className = `carousel-dot ${idx === 0 ? 'active' : ''}`;
             dotsContainer.appendChild(dot);
         }
     });
 
-    if (carouselImagesList.length > 1) {
-        dotsContainer.style.display = 'flex';
-    } else {
-        dotsContainer.style.display = 'none';
+    if (dotsContainer) {
+        if (carouselImagesList.length > 1) {
+            dotsContainer.style.display = 'flex';
+        } else {
+            dotsContainer.style.display = 'none';
+        }
     }
 
     if (prevBtn && nextBtn) {
@@ -1292,15 +1317,38 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
     const reviewsError = document.getElementById('ppReviewsError');
     const reviewsEmpty = document.getElementById('ppReviewsEmpty');
 
+    const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
+    const ratingSummary = document.getElementById('ppRatingSummary');
+    const reviewsHeaderSkeleton = document.getElementById('ppReviewsHeaderSkeleton');
+    const reviewsHeader = document.getElementById('ppReviewsHeader');
+
     if (!activeId) {
+        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
+        if (ratingSummary) ratingSummary.style.display = 'none';
+        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
+        if (reviewsHeader) reviewsHeader.style.display = 'none';
         if (reviewsLoading) reviewsLoading.style.display = 'none';
-        if (reviewsEmpty) reviewsEmpty.style.display = 'block';
+        if (reviewsList) reviewsList.style.display = 'none';
+        if (reviewsEmpty) {
+            reviewsEmpty.textContent = typeof window.t === 'function'
+                ? window.t('places.popup.no_reviews_yet')
+                : 'No reviews yet. Be the first to rate this place.';
+            reviewsEmpty.className = 'reviews-empty-state reviews-empty-single-line';
+            reviewsEmpty.style.display = 'block';
+        }
         return;
     }
 
     if (resetList) {
         reviewsOffset = 0;
-        if (reviewsList) reviewsList.innerHTML = '';
+        if (reviewsList) {
+            reviewsList.innerHTML = '';
+            reviewsList.style.display = 'none';
+        }
+        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'block';
+        if (ratingSummary) ratingSummary.style.display = 'none';
+        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'block';
+        if (reviewsHeader) reviewsHeader.style.display = 'none';
         if (reviewsLoading) reviewsLoading.style.display = 'flex';
         if (reviewsError) reviewsError.style.display = 'none';
         if (reviewsEmpty) reviewsEmpty.style.display = 'none';
@@ -1320,11 +1368,14 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
+        // Hide Skeletons now that reviews request has finished
+        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
+        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
+        if (reviewsLoading) reviewsLoading.style.display = 'none';
+
         // Update Rating Card Summary & Reviews Header
         const avg = parseFloat(data.average_rating) || 0;
         const total = parseInt(data.total_ratings, 10) || 0;
-        const ratingSummary = document.getElementById('ppRatingSummary');
-        const reviewsHeader = document.getElementById('ppReviewsHeader');
 
         if (total > 0) {
             if (scoreEl) scoreEl.textContent = avg.toFixed(1);
@@ -1336,6 +1387,9 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
             }
             if (ratingSummary) ratingSummary.style.display = 'flex';
             if (reviewsHeader) reviewsHeader.style.display = 'flex';
+        } else {
+            if (ratingSummary) ratingSummary.style.display = 'none';
+            if (reviewsHeader) reviewsHeader.style.display = 'none';
         }
 
         // Handle Caller's Existing Review
@@ -1369,8 +1423,6 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
             if (deleteBtn) deleteBtn.style.display = 'none';
             if (authNotice) authNotice.style.display = 'none';
         }
-
-        if (reviewsLoading) reviewsLoading.style.display = 'none';
 
         const reviews = data.reviews || [];
 
@@ -1450,9 +1502,17 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
         }
     } catch (err) {
         console.warn('Error fetching place reviews:', err);
+        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
+        if (ratingSummary) ratingSummary.style.display = 'none';
+        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
+        if (reviewsHeader) reviewsHeader.style.display = 'none';
         if (reviewsLoading) reviewsLoading.style.display = 'none';
+        if (reviewsList) reviewsList.style.display = 'none';
         if (resetList && reviewsEmpty) {
-            reviewsEmpty.textContent = 'No reviews available.';
+            reviewsEmpty.textContent = typeof window.t === 'function'
+                ? window.t('places.popup.no_reviews_yet')
+                : 'No reviews yet. Be the first to rate this place.';
+            reviewsEmpty.className = 'reviews-empty-state reviews-empty-single-line';
             reviewsEmpty.style.display = 'block';
         }
     }
@@ -1476,6 +1536,40 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     if (backdrop) backdrop.classList.add('active');
     if (panel) panel.classList.add('active');
     document.body.style.overflow = 'hidden';
+
+    // Show skeletons immediately for photo, rating summary, and reviews
+    const heroSkeleton = document.getElementById('ppHeroSkeleton');
+    if (heroSkeleton) heroSkeleton.style.display = 'block';
+    const slidesContainer = document.getElementById('ppCarouselSlides');
+    if (slidesContainer) slidesContainer.innerHTML = '';
+    const prevBtn = document.getElementById('ppCarouselPrev');
+    const nextBtn = document.getElementById('ppCarouselNext');
+    const dotsContainer = document.getElementById('ppCarouselDots');
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+    if (dotsContainer) dotsContainer.style.display = 'none';
+
+    const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
+    const ratingSummary = document.getElementById('ppRatingSummary');
+    if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'block';
+    if (ratingSummary) ratingSummary.style.display = 'none';
+
+    const reviewsHeaderSkeleton = document.getElementById('ppReviewsHeaderSkeleton');
+    const reviewsHeader = document.getElementById('ppReviewsHeader');
+    const reviewsLoading = document.getElementById('ppReviewsLoading');
+    const reviewsEmpty = document.getElementById('ppReviewsEmpty');
+    const reviewsList = document.getElementById('ppReviewsList');
+    const seeMoreBtn = document.getElementById('ppReviewsSeeMoreBtn');
+
+    if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'block';
+    if (reviewsHeader) reviewsHeader.style.display = 'none';
+    if (reviewsLoading) reviewsLoading.style.display = 'flex';
+    if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+    if (reviewsList) {
+        reviewsList.innerHTML = '';
+        reviewsList.style.display = 'none';
+    }
+    if (seeMoreBtn) seeMoreBtn.style.display = 'none';
 
     // 3. Find base data or construct fallback
     const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1611,12 +1705,6 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     }
 
-    // 10. Initial setup with hero image
-    const initialImages = Array.isArray(data.images) && data.images.length > 0
-        ? data.images.map(img => typeof img === 'string' ? { image_path: resolvePlaceImageUrl(img) } : { ...img, image_path: resolvePlaceImageUrl(img.image_path || img.image) })
-        : [{ image_path: resolvePlaceImageUrl(data.image_path || data.image || '../assets/hero-places-bg.png') }];
-    setupCarousel(initialImages);
-
     // Update URL history
     try {
         const url = new URL(window.location);
@@ -1669,18 +1757,36 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         console.warn('Could not fetch place details from API:', e);
     }
 
-    // 12. Fetch carousel images & setup ratings/reviews if place ID found
+    // 12. Fetch carousel images & setup ratings/reviews
+    let placeImages = null;
     if (placeId) {
         try {
             const imgRes = await fetch(`/api/places/${placeId}/images`);
             if (imgRes.ok) {
-                const images = await imgRes.json();
-                if (images.length > 0) setupCarousel(images);
+                const fetchedImages = await imgRes.json();
+                if (Array.isArray(fetchedImages) && fetchedImages.length > 0) {
+                    placeImages = fetchedImages;
+                }
             }
         } catch (e) {
             console.warn('Error fetching place carousel images:', e);
         }
+    }
 
+    if (!placeImages) {
+        if (Array.isArray(data.images) && data.images.length > 0) {
+            placeImages = data.images.map(img => typeof img === 'string' ? { image_path: resolvePlaceImageUrl(img) } : { ...img, image_path: resolvePlaceImageUrl(img.image_path || img.image) });
+        } else if (data.image_path || data.image) {
+            const raw = data.image_path || data.image;
+            if (raw && !raw.includes('hero-places-bg')) {
+                placeImages = [{ image_path: resolvePlaceImageUrl(raw) }];
+            }
+        }
+    }
+
+    setupCarousel(placeImages || []);
+
+    if (placeId) {
         await setupRatingAndReviews(placeId);
     } else {
         await setupRatingAndReviews(null);
@@ -1829,6 +1935,31 @@ window.closePlacePanel = function(updateHistory = true) {
     if (backdrop) backdrop.classList.remove('active');
     if (panel) panel.classList.remove('active');
     document.body.style.overflow = ''; 
+
+    // Reset skeletons and carousel slides for next open
+    const heroSkeleton = document.getElementById('ppHeroSkeleton');
+    if (heroSkeleton) heroSkeleton.style.display = 'block';
+    const slidesContainer = document.getElementById('ppCarouselSlides');
+    if (slidesContainer) slidesContainer.innerHTML = ''; 
+
+    const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
+    const ratingSummary = document.getElementById('ppRatingSummary');
+    if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
+    if (ratingSummary) ratingSummary.style.display = 'none';
+
+    const reviewsHeaderSkeleton = document.getElementById('ppReviewsHeaderSkeleton');
+    const reviewsHeader = document.getElementById('ppReviewsHeader');
+    const reviewsLoading = document.getElementById('ppReviewsLoading');
+    const reviewsEmpty = document.getElementById('ppReviewsEmpty');
+    const reviewsList = document.getElementById('ppReviewsList');
+    if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
+    if (reviewsHeader) reviewsHeader.style.display = 'none';
+    if (reviewsLoading) reviewsLoading.style.display = 'none';
+    if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+    if (reviewsList) {
+        reviewsList.innerHTML = '';
+        reviewsList.style.display = 'none';
+    } 
 
     if (updateHistory) {
         const url = new URL(window.location);
