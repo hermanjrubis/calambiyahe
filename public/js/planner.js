@@ -5179,12 +5179,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (Array.isArray(data) && data.length > 0) {
                         pickerKnownPlaces = data.filter(p => p.lat && p.lng && !isBannedPickerPlace(p.name));
+                        if (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > pickerKnownPlaces.length) {
+                            const knownIds = new Set(pickerKnownPlaces.map(p => p.id || p.name));
+                            for (const fp of window.FALLBACK_PLACES) {
+                                if (fp.lat && fp.lng && !isBannedPickerPlace(fp.name) && !knownIds.has(fp.id) && !knownIds.has(fp.name)) {
+                                    pickerKnownPlaces.push(fp);
+                                }
+                            }
+                        }
                         return;
                     }
                 }
             } catch (_) { }
 
-            const fallback = (typeof CALAMBA_PLACES_FALLBACK !== 'undefined') ? CALAMBA_PLACES_FALLBACK : [];
+            const fallback = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0)
+                ? window.FALLBACK_PLACES
+                : ((typeof CALAMBA_PLACES_FALLBACK !== 'undefined') ? CALAMBA_PLACES_FALLBACK : []);
             pickerKnownPlaces = fallback.filter(p => p.lat && p.lng && !isBannedPickerPlace(p.name));
         };
         loadPickerPlaces();

@@ -2462,6 +2462,20 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
              k.toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm
     );
     let data = normalizedKey ? activeDataStore[normalizedKey] : null;
+
+    if (!data && typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES)) {
+        const fpMatch = window.FALLBACK_PLACES.find(p =>
+            (p.name && p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) ||
+            (p.name && (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm) ||
+            p.id === placeName
+        );
+        if (fpMatch) {
+            data = {
+                ...fpMatch,
+                image: fpMatch.photo || fpMatch.image_path || '../assets/hero-places-bg.png'
+            };
+        }
+    }
     
     if (!data) {
         data = {
@@ -2611,11 +2625,16 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     let placeId = data.id || null;
     try {
         const searchRes = await fetch(`/api/places?category=all`);
+        let allPlaces = [];
         if (searchRes.ok) {
-            const allPlaces = await searchRes.json();
-            const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-            const match = allPlaces.find(p => p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) ||
-                          allPlaces.find(p => (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm);
+            try { allPlaces = await searchRes.json(); } catch (_) {}
+        }
+        if (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > allPlaces.length) {
+            allPlaces = window.FALLBACK_PLACES;
+        }
+        const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const match = allPlaces.find(p => (p.name && p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) || p.id === placeName) ||
+                      allPlaces.find(p => (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm);
             if (match) {
                 placeId = match.id;
                 currentPlaceId = match.id;
@@ -2645,7 +2664,6 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
                     rowPhone.style.display = 'flex';
                 }
             }
-        }
     } catch (e) {
         console.warn('Could not fetch place details from API:', e);
     }

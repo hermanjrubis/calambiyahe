@@ -505,7 +505,7 @@
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
     <script src="../js/i18n.js?v=2.8.3"></script>
-    <script src="../js/places-shared.js?v=2.6.3"></script>
+    <script src="../js/places-shared.js?v=2.6.4"></script>
     <script>
         function escapeHtml(str) {
             if (!str) return '';
@@ -546,34 +546,34 @@
         }
         window.resolvePlaceImageUrl = resolvePlaceImageUrl;
 
-        const FALLBACK_PLACES = [
-            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.1986374, lng: 121.1604888, image_path: '../assets/places/citymall-calamba/citymall-calamba-1.webp', description: 'Commercial shopping center along National Highway' },
-            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.193, lng: 121.1625, image_path: '../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp', description: 'Major supermarket and shopping store in Halang' },
+        const FALLBACK_PLACES = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0) ? window.FALLBACK_PLACES : [
+            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.1986374, lng: 121.1604888, image_path: '../assets/places/citymall-calamba/photo.webp', description: 'Commercial shopping center along National Highway' },
+            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.193, lng: 121.1625, image_path: '../assets/places/puregold-halang-calamba/photo.webp', description: 'Major supermarket and shopping store in Halang' },
             { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.2025089, lng: 121.1583962, image_path: '../assets/places/sti-college/sti-1.webp', description: 'Higher education institution along Manila South Road' },
-            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.1987583, lng: 121.1519236, image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.webp', description: 'Private basic and secondary education institution' },
-            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', barangay: 'Bucal', municipality: 'Calamba', lat: 14.188, lng: 121.165, image_path: '../assets/places/letran-calamba/letran-calamba-1.webp', description: 'Catholic higher education institution in Bucal' },
-            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', barangay: 'Halang', municipality: 'Calamba', lat: 14.191, lng: 121.162, image_path: '../assets/places/halang-elementary-school/halang-elementary-school-1.webp', description: 'Public elementary school in Brgy. Halang' },
+            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.1987583, lng: 121.1519236, image_path: '../assets/places/saint-benilde-international-school/photo.webp', description: 'Private basic and secondary education institution' },
+            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', barangay: 'Bucal', municipality: 'Calamba', lat: 14.188, lng: 121.165, image_path: '../assets/places/letran-calamba/photo.webp', description: 'Catholic higher education institution in Bucal' },
+            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', barangay: 'Halang', municipality: 'Calamba', lat: 14.191, lng: 121.162, image_path: '../assets/places/halang-elementary-school/photo.webp', description: 'Public elementary school in Brgy. Halang' },
             { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', barangay: 'Real', municipality: 'Calamba', lat: 14.19895, lng: 121.16335, image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp', description: 'Major central public transportation hub' },
             { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2025, lng: 121.1575, image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp', description: 'Popular fast-food chain branch along National Highway' },
-            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2035, lng: 121.156, image_path: '../assets/places/uncle-johns/uncle-johns-1.webp', description: '24/7 convenience store with hot fried chicken and meals' },
-            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1925, lng: 121.162, image_path: '../assets/places/ding-hao/ding-hao-1.webp', description: 'Chinese restaurant along National Highway' },
-            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2028, lng: 121.1565, image_path: '../assets/places/teng-tengs/teng-tengs-1.webp', description: 'Popular local dining eatery in Real' },
-            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2018, lng: 121.1578, image_path: '../assets/places/mariz-food-town/mariz-food-town-1.webp', description: 'Casual food court and carinderia' },
-            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.1565, image_path: '../assets/places/ton-tons-sisig/ton-tons-sisig-1.webp', description: 'Specialty sizzling sisig dining spot' },
+            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2035, lng: 121.156, image_path: '../assets/places/uncle-johns/photo.webp', description: '24/7 convenience store with hot fried chicken and meals' },
+            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1925, lng: 121.162, image_path: '../assets/places/ding-hao/photo.webp', description: 'Chinese restaurant along National Highway' },
+            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2028, lng: 121.1565, image_path: '../assets/places/teng-tengs/photo.webp', description: 'Popular local dining eatery in Real' },
+            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2018, lng: 121.1578, image_path: '../assets/places/mariz-food-town/photo.webp', description: 'Casual food court and carinderia' },
+            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.1565, image_path: '../assets/places/ton-tons-sisig/photo.webp', description: 'Specialty sizzling sisig dining spot' },
             { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.192, lng: 121.1625, image_path: '../assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.webp', description: 'Famous Filipino grilled chicken restaurant' },
-            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1905, lng: 121.1615, image_path: '../assets/places/creekside-halang/creekside-halang-1.webp', description: 'Local grill and dining spot along the creek' },
-            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.203, lng: 121.157, image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/dear-hotpot-unlimited-japanese-hotpot-1.webp', description: 'Unlimited Japanese hotpot and shabu-shabu' },
-            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2022, lng: 121.1555, image_path: '../assets/places/d-fresco/d-fresco-1.webp', description: 'Refreshing beverages and casual food' },
+            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1905, lng: 121.1615, image_path: '../assets/places/creekside-halang/photo.webp', description: 'Local grill and dining spot along the creek' },
+            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.203, lng: 121.157, image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/photo.webp', description: 'Unlimited Japanese hotpot and shabu-shabu' },
+            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2022, lng: 121.1555, image_path: '../assets/places/d-fresco/photo.webp', description: 'Refreshing beverages and casual food' },
             { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2008, lng: 121.1562, image_path: '../assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.webp', description: 'Traditional Filipino home-cooked dishes' },
-            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', barangay: 'Real', municipality: 'Calamba', lat: 14.2015, lng: 121.156, image_path: '../assets/places/krav-cafe/krav-cafe-1.webp', description: 'Artisanal coffee and specialty cafe drinks' },
-            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.157, image_path: '../assets/places/card-sme-bank/card-sme-bank-1.webp', description: 'Thrift bank and financial service institution' },
-            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.195, lng: 121.155, image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp', description: 'Home improvement and construction supplies depot' },
-            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.199, lng: 121.1595, image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.webp', description: 'Local government barangay hall for Barangay 1' },
+            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', barangay: 'Real', municipality: 'Calamba', lat: 14.2015, lng: 121.156, image_path: '../assets/places/krav-cafe/photo.webp', description: 'Artisanal coffee and specialty cafe drinks' },
+            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.202, lng: 121.157, image_path: '../assets/places/card-sme-bank/photo.webp', description: 'Thrift bank and financial service institution' },
+            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.195, lng: 121.155, image_path: '../assets/places/wilcon-depot-calamba/photo.webp', description: 'Home improvement and construction supplies depot' },
+            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.199, lng: 121.1595, image_path: '../assets/places/barangay-uno-hall/photo.webp', description: 'Local government barangay hall for Barangay 1' },
             { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.196, lng: 121.151, image_path: '../assets/places/laguna-logistics/laguna-logistics-1.webp', description: 'Logistics and freight handling services' },
-            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2005, lng: 121.154, image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.webp', description: 'Automotive repair and maintenance service' },
-            { id: 'news-star', name: 'News Star', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.212, lng: 121.165, image_path: '../assets/places/news-star/news-star-1.webp', description: 'Local commercial publication and printing office' },
+            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2005, lng: 121.154, image_path: '../assets/places/rj-auto-shop/photo.webp', description: 'Automotive repair and maintenance service' },
+            { id: 'news-star', name: 'News Star', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.212, lng: 121.165, image_path: '../assets/places/news-star/photo.webp', description: 'Local commercial publication and printing office' },
             { id: 'd-and-q', name: 'D & Q', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.201, lng: 121.158, image_path: '../assets/places/d-and-q/d-and-q-1.webp', description: 'Commercial establishment in Real' },
-            { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2045, lng: 121.1585, image_path: '../assets/places/morales-bercasio/morales-bercasio-1.webp', description: 'Professional services and business office' },
+            { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.2045, lng: 121.1585, image_path: '../assets/places/morales-bercasio/photo.webp', description: 'Professional services and business office' },
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -792,14 +792,23 @@
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     if (Array.isArray(data)) {
-                        // Keep all places even if image_path is missing (req 10)
-                        allFetchedPlaces = data;
+                        const fallbackList = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0) ? window.FALLBACK_PLACES : FALLBACK_PLACES;
+                        let sourcePlaces = (fallbackList && fallbackList.length > data.length) ? fallbackList : data;
+                        if (sourcePlaces === fallbackList && category && category.toLowerCase() !== 'all') {
+                            const catNorm = category.toLowerCase().trim();
+                            allFetchedPlaces = sourcePlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm));
+                        } else {
+                            allFetchedPlaces = sourcePlaces;
+                        }
                         renderPlaces(allFetchedPlaces, searchTerm);
                         return;
                     }
                 } catch (error) {
                     console.warn('[Places] API fetch failed or database unavailable, using fallback places data:', error);
-                    allFetchedPlaces = FALLBACK_PLACES;
+                    const fallbackList = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0) ? window.FALLBACK_PLACES : FALLBACK_PLACES;
+                    allFetchedPlaces = (category && category.toLowerCase() !== 'all')
+                        ? fallbackList.filter(p => (p.category || '').toLowerCase().includes(category.toLowerCase().trim()))
+                        : fallbackList;
                     renderPlaces(allFetchedPlaces, searchTerm);
                     return;
                 }
@@ -955,7 +964,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="../js/bookmark-confetti.js?v=2.6.3"></script>
-    <script src="../js/place-panel.js?v=2.9.2"></script>
+    <script src="../js/place-panel.js?v=2.9.3"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
