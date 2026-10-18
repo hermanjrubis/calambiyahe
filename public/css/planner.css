@@ -1978,8 +1978,9 @@ span#sumFare.sum-fare-pill {
 
 .header-icon-btn.save-route-pdf-btn:disabled,
 .header-icon-btn.save-route-pdf-btn.is-busy {
-    opacity: 0.75 !important;
+    opacity: 0.5 !important;
     cursor: not-allowed !important;
+    pointer-events: none !important;
 }
 
 .header-icon-btn.save-route-pdf-btn svg {
@@ -1993,16 +1994,8 @@ span#sumFare.sum-fare-pill {
     transition: transform 0.2s ease;
 }
 
-.header-icon-btn.save-route-pdf-btn.is-busy svg {
-    animation: spin-pdf-loader 0.8s linear infinite !important;
-}
-
 @keyframes spin-pdf-loader {
     to { transform: rotate(360deg); }
-}
-
-.save-pdf-spinner {
-    animation: spin-pdf-loader 0.8s linear infinite;
 }
 
 /* =============================================
@@ -3823,6 +3816,10 @@ body.navigation-active #hamburgerBtn {
 
 .cz-toast--success { --toast-accent: #1E9E62; }
 .cz-toast--error { --toast-accent: #D14343; }
+.cz-toast--loading { --toast-accent: #2272C3; }
+.cz-toast--loading .cz-toast-icon {
+    animation: spin-pdf-loader 0.8s linear infinite !important;
+}
 
 .cz-toast.is-leaving {
     opacity: 0;

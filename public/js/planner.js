@@ -318,6 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
             pitchWithRotate: false,
             maxPitch: 0,
             preserveDrawingBuffer: true,
+            canvasContextAttributes: {
+                preserveDrawingBuffer: true
+            },
             // Attribution is added below as a compact control at the bottom-left
             attributionControl: false,
             locale: {
@@ -5354,7 +5357,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
                 location: '<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
                 success: '<circle cx="12" cy="12" r="9"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>',
-                error: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>'
+                error: '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>',
+                loading: '<path class="cz-toast-spinner-path" d="M12 3a9 9 0 1 0 9 9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>'
             };
             const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             const region = document.getElementById('toastRegion');
@@ -5445,7 +5449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const closeBtn = el.querySelector('.cz-toast-close');
                 closeBtn.setAttribute('aria-label', t('planner.toast_dismiss'));
 
-                const item = { el, message, remaining: TOAST_MS, timer: null, startedAt: 0 };
+                const item = { el, message, remaining: (kind === 'loading' ? 25000 : TOAST_MS), timer: null, startedAt: 0 };
                 closeBtn.addEventListener('click', () => remove(item));
                 el.addEventListener('keydown', (e) => { if (e.key === 'Escape') remove(item); });
                 el.addEventListener('mouseenter', () => pauseTimer(item));

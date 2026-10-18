@@ -200,9 +200,360 @@
         return [];
     }
 
-    async function captureRouteMapSnapshot(map, routeData) {
-        if (!map) return null;
+    function waitForMapTilesLoaded(map, timeoutMs = 12000) {
+        return new Promise((resolve, reject) => {
+            let timer = null;
+            let resolved = false;
 
+            const cleanup = () => {
+                if (timer) clearTimeout(timer);
+                map.off('idle', onCheck);
+                map.off('render', onCheck);
+            };
+
+            const onCheck = () => {
+                if (resolved) return;
+                if (map.areTilesLoaded() && map.loaded()) {
+                    resolved = true;
+                    cleanup();
+                    requestAnimationFrame(() => {
+                        setTimeout(() => resolve(true), 80);
+                    });
+                }
+            };
+
+            timer = setTimeout(() => {
+                if (resolved) return;
+                resolved = true;
+                cleanup();
+                if (map.areTilesLoaded()) {
+                    resolve(true);
+                } else {
+                    reject(new Error('Map tiles load timeout or offline'));
+                }
+            }, timeoutMs);
+
+            map.on('idle', onCheck);
+            map.on('render', onCheck);
+            map.triggerRepaint();
+            onCheck();
+        });
+    }
+
+    function createOfflineRouteDiagram(routeData, isTl) {
+        const width = 1420;
+        const height = 800;
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // Clean neutral background
+        ctx.fillStyle = '#F8FAFC';
+        ctx.fillRect(0, 0, width, height);
+
+        // Subtle background grid
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.lineWidth = 1;
+        for (let x = 40; x < width; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+        for (let y = 40; y < height; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+
+        const toLL = (c) => {
+            if (!c) return null;
+            if (Array.isArray(c)) {
+                if (c.length < 2) return null;
+                const a = Number(c[0]);
+                const b = Number(c[1]);
+                if (!isFinite(a) || !isFinite(b)) return null;
+                if (a > 100 && b < 100) return [a, b];
+                if (b > 100 && a < 100) return [b, a];
+                return [b, a];
+            }
+            if (typeof c === 'object') {
+                const lat = c.lat !== undefined ? c.lat : c.latitude;
+                const lng = c.lng !== undefined ? c.lng : (c.lon !== undefined ? c.lon : c.longitude);
+                const numLat = Number(lat);
+                const numLng = Number(lng);
+                if (!isFinite(numLat) || !isFinite(numLng)) return null;
+                return [numLng, numLat];
+            }
+            return null;
+        };
+
+        const origLL = toLL(routeData.originCoords);
+        const destLL = toLL(routeData.destCoords);
+        const walkCoords = routeData.walkCoordinates || extractGeojsonCoords(routeData.walkRouteGeojson) || [];
+        const transitCoords = routeData.transitCoordinates || extractGeojsonCoords(routeData.transitRouteGeojson) || [];
+        const finalWalkCoords = routeData.finalWalkCoordinates || extractGeojsonCoords(routeData.finalWalkRouteGeojson) || [];
+
+        const boardingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[0]) : null;
+        const alightingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[transitCoords.length - 1]) : null;
+
+        const pts = [];
+        if (origLL) pts.push(origLL);
+        if (destLL) pts.push(destLL);
+        if (boardingLL) pts.push(boardingLL);
+        if (alightingLL) pts.push(alightingLL);
+        [...walkCoords, ...transitCoords, ...finalWalkCoords].forEach(c => {
+            const ll = toLL(c);
+            if (ll) pts.push(ll);
+        });
+
+        let projectPt = null;
+        if (pts.length >= 2) {
+            let minLng = Math.min(...pts.map(p => p[0]));
+            let maxLng = Math.max(...pts.map(p => p[0]));
+            let minLat = Math.min(...pts.map(p => p[1]));
+            let maxLat = Math.max(...pts.map(p => p[1]));
+
+            if (maxLng - minLng < 0.002) { maxLng += 0.005; minLng -= 0.005; }
+            if (maxLat - minLat < 0.002) { maxLat += 0.005; minLat -= 0.005; }
+
+            const padX = 140;
+            const padY = 120;
+            const availW = width - padX * 2;
+            const availH = height - padY * 2;
+            const latCorr = Math.cos((minLat + maxLat) / 2 * Math.PI / 180);
+
+            const scaleX = availW / ((maxLng - minLng) * latCorr);
+            const scaleY = availH / (maxLat - minLat);
+            const scale = Math.min(scaleX, scaleY);
+            const offsetX = (width - (maxLng - minLng) * latCorr * scale) / 2;
+            const offsetY = (height - (maxLat - minLat) * scale) / 2;
+
+            projectPt = (ll) => ({
+                x: offsetX + (ll[0] - minLng) * latCorr * scale,
+                y: height - (offsetY + (ll[1] - minLat) * scale)
+            });
+        } else {
+            // Linear schematic fallback
+            const isWalkOnly = routeData.selectedMode === 'walking';
+            if (isWalkOnly) {
+                projectPt = (ll) => (ll === origLL ? { x: 260, y: 380 } : { x: 1160, y: 380 });
+            } else {
+                projectPt = (ll) => {
+                    if (ll === origLL) return { x: 200, y: 380 };
+                    if (ll === boardingLL) return { x: 480, y: 380 };
+                    if (ll === alightingLL) return { x: 940, y: 380 };
+                    return { x: 1220, y: 380 };
+                };
+            }
+        }
+
+        const drawLeg = (coords, isDotted, color, lineWidth) => {
+            if (!coords || coords.length < 2) return;
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            if (isDotted) {
+                ctx.setLineDash([10, 10]);
+            } else {
+                ctx.setLineDash([]);
+            }
+            ctx.beginPath();
+            coords.forEach((c, idx) => {
+                const ll = toLL(c);
+                if (!ll) return;
+                const p = projectPt(ll);
+                if (idx === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.stroke();
+            ctx.restore();
+        };
+
+        // 1. Walk leg 1 (dotted)
+        if (walkCoords.length >= 2) {
+            drawLeg(walkCoords, true, '#64748B', 5);
+        } else if (origLL && boardingLL) {
+            drawLeg([origLL, boardingLL], true, '#64748B', 5);
+        }
+
+        // 2. Transit jeepney leg (solid #378ADD)
+        if (transitCoords.length >= 2) {
+            drawLeg(transitCoords, false, '#378ADD', 8);
+        } else if (boardingLL && alightingLL) {
+            drawLeg([boardingLL, alightingLL], false, '#378ADD', 8);
+        }
+
+        // 3. Final walk leg (dotted)
+        if (finalWalkCoords.length >= 2) {
+            drawLeg(finalWalkCoords, true, '#64748B', 5);
+        } else if (alightingLL && destLL && Math.hypot(alightingLL[0] - destLL[0], alightingLL[1] - destLL[1]) > 0.0001) {
+            drawLeg([alightingLL, destLL], true, '#64748B', 5);
+        } else if (routeData.selectedMode === 'walking' && origLL && destLL && walkCoords.length < 2) {
+            drawLeg([origLL, destLL], true, '#64748B', 5);
+        }
+
+        // Draw pill label helper
+        const drawLabelPill = (text, x, y, isAbove = true) => {
+            if (!text) return;
+            ctx.save();
+            ctx.font = '600 18px Outfit, sans-serif';
+            const metrics = ctx.measureText(text);
+            const padH = 14;
+            const padV = 6;
+            const pw = metrics.width + padH * 2;
+            const ph = 28;
+            const px = Math.max(16, Math.min(width - pw - 16, x - pw / 2));
+            const py = isAbove ? (y - ph - 16) : (y + 16);
+
+            ctx.shadowColor = 'rgba(14, 42, 71, 0.12)';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.strokeStyle = '#DCE5EE';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.roundRect(px, py, pw, ph, 14);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.shadowColor = 'transparent';
+            ctx.fillStyle = '#0E2A47';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, px + pw / 2, py + ph / 2);
+            ctx.restore();
+        };
+
+        // Draw Markers
+        // 1. Origin marker
+        if (origLL) {
+            const p = projectPt(origLL);
+            ctx.save();
+            ctx.shadowColor = 'rgba(28, 110, 242, 0.45)';
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 9, 0, Math.PI * 2);
+            ctx.fillStyle = '#1C6EF2';
+            ctx.fill();
+            ctx.restore();
+            drawLabelPill(sanitizeOriginLabel(routeData.originName, isTl), p.x, p.y, true);
+        }
+
+        // 2. Boarding point marker & label
+        if (boardingLL && (!origLL || Math.hypot(boardingLL[0] - origLL[0], boardingLL[1] - origLL[1]) > 0.0001)) {
+            const p = projectPt(boardingLL);
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#3B82F6';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.restore();
+
+            const boardName = routeData.lastItineraryStops?.boardAt || (isTl ? 'Sakayan' : 'Boarding');
+            drawLabelPill(boardName, p.x, p.y, false);
+        }
+
+        // 3. Drop-off point marker & label
+        if (alightingLL && destLL && Math.hypot(alightingLL[0] - destLL[0], alightingLL[1] - destLL[1]) > 0.0001) {
+            const p = projectPt(alightingLL);
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+            ctx.fillStyle = '#2272C3';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fill();
+            ctx.restore();
+
+            const alightName = routeData.lastItineraryStops?.alightAt || (isTl ? 'Babaan' : 'Drop-off');
+            drawLabelPill(alightName, p.x, p.y, true);
+        }
+
+        // 4. Destination marker & label
+        if (destLL) {
+            const p = projectPt(destLL);
+            ctx.save();
+            ctx.shadowColor = 'rgba(239, 68, 68, 0.45)';
+            ctx.shadowBlur = 10;
+            ctx.translate(p.x, p.y);
+            ctx.scale(1.15, 1.15);
+            ctx.translate(-14, -36);
+            ctx.fillStyle = '#EF4444';
+            ctx.beginPath();
+            ctx.moveTo(14, 0);
+            ctx.bezierCurveTo(6.268, 0, 0, 6.268, 0, 14);
+            ctx.bezierCurveTo(0, 22.75, 14, 36, 14, 36);
+            ctx.bezierCurveTo(14, 36, 28, 22.75, 28, 14);
+            ctx.bezierCurveTo(28, 6.268, 21.732, 0, 14, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(14, 14, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            drawLabelPill(routeData.destName || (isTl ? 'Pupuntahan' : 'Destination'), p.x, p.y, false);
+        }
+
+        // Note: "Map preview unavailable offline"
+        ctx.save();
+        ctx.font = '600 20px Outfit, sans-serif';
+        const noteText = isTl ? 'Hindi available ang preview ng mapa offline' : 'Map preview unavailable offline';
+        const metrics = ctx.measureText(noteText);
+        const pillW = metrics.width + 48;
+        const pillH = 40;
+        const pillX = (width - pillW) / 2;
+        const pillY = height - 56;
+
+        ctx.shadowColor = 'rgba(14, 42, 71, 0.12)';
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.strokeStyle = '#CBD5E1';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 20);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.shadowColor = 'transparent';
+        ctx.fillStyle = '#64748B';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(noteText, width / 2, pillY + pillH / 2);
+        ctx.restore();
+
+        return {
+            dataUrl: canvas.toDataURL('image/png'),
+            width,
+            height,
+            isOffline: true
+        };
+    }
+
+    async function captureRouteMapSnapshot(map, routeData, isTl) {
+        if (!map) return createOfflineRouteDiagram(routeData, isTl);
+
+        let prevSheetState = null;
         const prevCamera = {
             center: map.getCenter(),
             zoom: map.getZoom(),
@@ -237,9 +588,9 @@
             const origLL = toLL(routeData.originCoords);
             const destLL = toLL(routeData.destCoords);
 
-            const walkCoords = routeData.walkCoordinates || extractGeojsonCoords(routeData.walkRouteGeojson);
-            const transitCoords = routeData.transitCoordinates || extractGeojsonCoords(routeData.transitRouteGeojson);
-            const finalWalkCoords = routeData.finalWalkCoordinates || extractGeojsonCoords(routeData.finalWalkRouteGeojson);
+            const walkCoords = routeData.walkCoordinates || extractGeojsonCoords(routeData.walkRouteGeojson) || [];
+            const transitCoords = routeData.transitCoordinates || extractGeojsonCoords(routeData.transitRouteGeojson) || [];
+            const finalWalkCoords = routeData.finalWalkCoordinates || extractGeojsonCoords(routeData.finalWalkRouteGeojson) || [];
 
             const boardingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[0]) : null;
             const alightingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[transitCoords.length - 1]) : null;
@@ -271,11 +622,83 @@
                 } catch (_) {}
             }
 
+            // Calculate visible map rectangle excluding sheet/panel and top controls
+            const isDesktop = window.innerWidth > 768;
+            const topBar = document.getElementById('mapTopBar');
+            const topBarRect = topBar ? topBar.getBoundingClientRect() : null;
+            const topControlsBottom = topBarRect && topBarRect.bottom > 0 ? topBarRect.bottom : 0;
+            const activeGuide = document.getElementById('activeGuideCard');
+            const guideRect = (activeGuide && getComputedStyle(activeGuide).display !== 'none') ? activeGuide.getBoundingClientRect() : null;
+            const topInset = Math.max(topControlsBottom, guideRect && guideRect.bottom > 0 ? guideRect.bottom : 0, 16);
+
+            const directionsCard = document.getElementById('directionsCard');
+            const activeNavPanel = document.getElementById('activeNavPanel');
+
+            prevSheetState = null;
+            if (!isDesktop && directionsCard && typeof window._calzadaSetSheetState === 'function') {
+                const currentY = parseFloat(directionsCard.style.transform?.match(/translateY\(([^)]+)px\)/)?.[1] || 0);
+                const isExpanded = directionsCard.classList.contains('expanded') || currentY < 100;
+                if (isExpanded) {
+                    prevSheetState = 'expanded';
+                    window._calzadaSetSheetState('peek', false);
+                }
+            }
+
+            const dcRect = (directionsCard && getComputedStyle(directionsCard).display !== 'none') ? directionsCard.getBoundingClientRect() : null;
+            const navRect = (activeNavPanel && getComputedStyle(activeNavPanel).display !== 'none') ? activeNavPanel.getBoundingClientRect() : null;
+
+            let leftInset = 0;
+            let bottomInset = 0;
+            let visibleWidth = window.innerWidth;
+            let visibleHeight = window.innerHeight;
+
+            const margin = isDesktop ? 35 : 25;
+
+            if (isDesktop) {
+                const leftPanelRight = Math.max(dcRect && dcRect.right > 0 ? dcRect.right : 0, navRect && navRect.right > 0 ? navRect.right : 0);
+                leftInset = Math.max(leftPanelRight, 0);
+                visibleWidth = Math.max(200, window.innerWidth - leftInset);
+                visibleHeight = Math.max(200, window.innerHeight - topInset);
+            } else {
+                const sheetTop = dcRect && dcRect.top > 0 ? dcRect.top : (navRect && navRect.top > 0 ? navRect.top : window.innerHeight);
+                bottomInset = Math.max(0, window.innerHeight - sheetTop);
+                visibleWidth = window.innerWidth;
+                visibleHeight = Math.max(120, sheetTop - topInset);
+            }
+
+            const fitPadding = isDesktop ? {
+                left: leftInset + margin,
+                top: topInset + margin,
+                right: margin,
+                bottom: margin
+            } : {
+                left: margin,
+                right: margin,
+                top: topInset + margin,
+                bottom: bottomInset + margin
+            };
+
             let camera = null;
             if (!bounds.isEmpty()) {
                 try {
                     camera = map.cameraForBounds(bounds, {
-                        padding: { top: 70, bottom: 70, left: 70, right: 70 },
+                        padding: fitPadding,
+                        bearing: 0,
+                        pitch: 0,
+                        maxZoom: 16.5
+                    });
+                } catch (_) {}
+            }
+
+            if (!camera && !bounds.isEmpty()) {
+                try {
+                    camera = map.cameraForBounds(bounds, {
+                        padding: {
+                            left: Math.min(fitPadding.left, 30),
+                            right: Math.min(fitPadding.right, 30),
+                            top: Math.min(fitPadding.top, 40),
+                            bottom: Math.min(fitPadding.bottom, 40)
+                        },
                         bearing: 0,
                         pitch: 0,
                         maxZoom: 16.5
@@ -292,210 +715,131 @@
                 });
             }
 
-            // Await map idle, tile loading and text glyphs/labels render completion
-            await new Promise((resolve) => {
-                let resolved = false;
-                const done = () => {
-                    if (resolved) return;
-                    resolved = true;
-                    resolve();
-                };
+            // Wait for 'idle' and map.areTilesLoaded() (timeout 12s)
+            await waitForMapTilesLoaded(map, 12000);
 
-                const checkReady = () => {
-                    if (map.areTilesLoaded() && map.loaded()) {
-                        map.once('render', done);
-                        map.triggerRepaint();
-                        setTimeout(done, 350);
-                    } else {
-                        map.once('idle', done);
-                        map.triggerRepaint();
-                    }
-                };
-
-                map.once('idle', done);
-                map.triggerRepaint();
-                checkReady();
-                setTimeout(done, 2500); // Safety timeout
-            });
+            // Fresh repaint right before cropping WebGL canvas
+            map.triggerRepaint();
+            await new Promise(r => map.once('render', r));
 
             const mapCanvas = map.getCanvas();
-            const snapCanvas = document.createElement('canvas');
-            snapCanvas.width = mapCanvas.width;
-            snapCanvas.height = mapCanvas.height;
-            const ctx = snapCanvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
 
-            // Copy WebGL canvas content
-            let copied = false;
-            try {
-                const mapDataUrl = mapCanvas.toDataURL('image/png');
-                if (mapDataUrl && mapDataUrl.length > 1000) {
-                    const tempImg = new Image();
-                    tempImg.src = mapDataUrl;
-                    if (typeof tempImg.decode === 'function') {
-                        try { await tempImg.decode(); } catch (_) {}
-                    } else if (!tempImg.complete) {
-                        await new Promise((r) => { tempImg.onload = r; tempImg.onerror = r; setTimeout(r, 200); });
-                    }
-                    if (tempImg.naturalWidth > 0) {
-                        ctx.drawImage(tempImg, 0, 0);
-                        copied = true;
-                    }
-                }
-            } catch (e) {
-                console.warn('toDataURL on mapCanvas failed:', e);
-            }
+            const cropX = isDesktop ? leftInset : 0;
+            const cropY = topInset;
+            const cropW = visibleWidth;
+            const cropH = visibleHeight;
 
-            if (!copied) {
-                try {
-                    ctx.drawImage(mapCanvas, 0, 0);
-                } catch (e) {
-                    console.warn('drawImage mapCanvas failed:', e);
-                }
-            }
+            const sx = Math.max(0, Math.round(cropX * dpr));
+            const sy = Math.max(0, Math.round(cropY * dpr));
+            const sw = Math.max(1, Math.min(mapCanvas.width - sx, Math.round(cropW * dpr)));
+            const sh = Math.max(1, Math.min(mapCanvas.height - sy, Math.round(cropH * dpr)));
 
-            // 1. Overlay origin marker (blue dot with white ring)
+            const cropCanvas = document.createElement('canvas');
+            cropCanvas.width = sw;
+            cropCanvas.height = sh;
+            const ctx = cropCanvas.getContext('2d');
+            ctx.drawImage(mapCanvas, sx, sy, sw, sh, 0, 0, sw, sh);
+
+            // Draw DOM markers onto the cropped image at their exact positions using map.project()
+            const toCanvasPt = (ll) => {
+                const pt = map.project(ll);
+                return {
+                    x: (pt.x - cropX) * dpr,
+                    y: (pt.y - cropY) * dpr
+                };
+            };
+
+            // 1. Origin marker (blue dot, white ring)
             if (origLL) {
-                const pt = map.project(origLL);
+                const p = toCanvasPt(origLL);
                 ctx.save();
                 ctx.shadowColor = 'rgba(28, 110, 242, 0.45)';
-                ctx.shadowBlur = 8;
-                // Outer white ring
+                ctx.shadowBlur = 6 * dpr;
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, 11, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 8 * dpr, 0, Math.PI * 2);
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fill();
-                // Inner blue circle
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, 7.5, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 5 * dpr, 0, Math.PI * 2);
                 ctx.fillStyle = '#1C6EF2';
                 ctx.fill();
                 ctx.restore();
             }
 
-            // 2. Overlay boarding point marker (white circle with #2272C3 ring)
-            if (boardingLL && (!origLL || Math.hypot(map.project(boardingLL).x - map.project(origLL).x, map.project(boardingLL).y - map.project(origLL).y) > 12)) {
-                const pt = map.project(boardingLL);
+            // 2. Boarding point marker (white circle with blue ring)
+            if (boardingLL && (!origLL || Math.hypot(boardingLL[0] - origLL[0], boardingLL[1] - origLL[1]) > 0.0001)) {
+                const p = toCanvasPt(boardingLL);
                 ctx.save();
-                ctx.shadowColor = 'rgba(14, 42, 71, 0.35)';
-                ctx.shadowBlur = 6;
-                // Outer blue ring
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                ctx.shadowBlur = 4 * dpr;
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, 10, 0, Math.PI * 2);
-                ctx.fillStyle = '#2272C3';
+                ctx.arc(p.x, p.y, 7 * dpr, 0, Math.PI * 2);
+                ctx.fillStyle = '#3B82F6';
                 ctx.fill();
-                // Inner white circle
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fill();
                 ctx.restore();
             }
 
-            // 3. Overlay destination marker (red pin)
+            // 3. Drop-off point marker (alighting point)
+            if (alightingLL && destLL && Math.hypot(alightingLL[0] - destLL[0], alightingLL[1] - destLL[1]) > 0.0001) {
+                const p = toCanvasPt(alightingLL);
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                ctx.shadowBlur = 4 * dpr;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 7 * dpr, 0, Math.PI * 2);
+                ctx.fillStyle = '#2272C3';
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // 4. Destination marker (red pin)
             if (destLL) {
-                const pt = map.project(destLL);
+                const p = toCanvasPt(destLL);
                 ctx.save();
                 ctx.shadowColor = 'rgba(239, 68, 68, 0.45)';
-                ctx.shadowBlur = 8;
-                ctx.translate(pt.x, pt.y);
+                ctx.shadowBlur = 6 * dpr;
+                ctx.translate(p.x, p.y);
+                ctx.scale(dpr, dpr);
+                ctx.translate(-14, -36);
                 ctx.fillStyle = '#EF4444';
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.bezierCurveTo(-8, -12, -14, -20, -14, -28);
-                ctx.arc(0, -28, 14, Math.PI, 0, false);
-                ctx.bezierCurveTo(14, -20, 8, -12, 0, 0);
+                ctx.moveTo(14, 0);
+                ctx.bezierCurveTo(6.268, 0, 0, 6.268, 0, 14);
+                ctx.bezierCurveTo(0, 22.75, 14, 36, 14, 36);
+                ctx.bezierCurveTo(14, 36, 28, 22.75, 28, 14);
+                ctx.bezierCurveTo(28, 6.268, 21.732, 0, 14, 0);
                 ctx.closePath();
                 ctx.fill();
 
-                // Inner white circle
-                ctx.beginPath();
-                ctx.arc(0, -28, 5.5, 0, Math.PI * 2);
                 ctx.fillStyle = '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(14, 14, 6, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             }
 
-            // Crop to route bounding box with comfortable padding maintaining 1420:510 aspect ratio
-            let minX = snapCanvas.width, minY = snapCanvas.height, maxX = 0, maxY = 0;
-            const pts = [origLL, destLL, boardingLL, alightingLL].filter(Boolean);
-            const allCoords = [...walkCoords, ...transitCoords, ...finalWalkCoords];
-            allCoords.forEach(c => {
-                const ll = toLL(c);
-                if (ll) pts.push(ll);
-            });
-
-            pts.forEach(ll => {
-                try {
-                    const pt = map.project(ll);
-                    if (pt && isFinite(pt.x) && isFinite(pt.y)) {
-                        minX = Math.min(minX, pt.x);
-                        maxX = Math.max(maxX, pt.x);
-                        minY = Math.min(minY, pt.y);
-                        maxY = Math.max(maxY, pt.y);
-                    }
-                } catch (_) {}
-            });
-
-            if (minX >= maxX || minY >= maxY) {
-                minX = 0; minY = 0; maxX = snapCanvas.width; maxY = snapCanvas.height;
-            }
-
-            const padX = Math.max(50, (maxX - minX) * 0.12);
-            const padY = Math.max(50, (maxY - minY) * 0.12);
-            minX -= padX;
-            maxX += padX;
-            minY -= padY;
-            maxY += padY;
-
-            const cx = (minX + maxX) / 2;
-            const cy = (minY + maxY) / 2;
-
-            let boxW = maxX - minX;
-            let boxH = maxY - minY;
-            const targetRatio = 1420 / 1480; // ~3:4 portrait matching 710x740 container
-
-            if (boxW / boxH < targetRatio) {
-                boxW = boxH * targetRatio;
-            } else {
-                boxH = boxW / targetRatio;
-            }
-
-            if (boxW > snapCanvas.width || boxH > snapCanvas.height) {
-                const scale = Math.max(boxW / snapCanvas.width, boxH / snapCanvas.height);
-                boxW /= scale;
-                boxH /= scale;
-            }
-
-            let sX = cx - boxW / 2;
-            let sY = cy - boxH / 2;
-
-            if (sX < 0) sX = 0;
-            if (sY < 0) sY = 0;
-            if (sX + boxW > snapCanvas.width) sX = snapCanvas.width - boxW;
-            if (sY + boxH > snapCanvas.height) sY = snapCanvas.height - boxH;
-
-            if (sX < 0 || sY < 0 || boxW <= 10 || boxH <= 10) {
-                sX = 0; sY = 0;
-                boxW = snapCanvas.width;
-                boxH = snapCanvas.height;
-            }
-
-            const cropCanvas = document.createElement('canvas');
-            cropCanvas.width = 1420;
-            cropCanvas.height = 1480;
-            const cropCtx = cropCanvas.getContext('2d');
-            cropCtx.drawImage(
-                snapCanvas,
-                sX, sY, boxW, boxH,
-                0, 0, cropCanvas.width, cropCanvas.height
-            );
-
-            return cropCanvas.toDataURL('image/jpeg', 0.92);
+            return {
+                dataUrl: cropCanvas.toDataURL('image/jpeg', 0.92),
+                width: sw,
+                height: sh,
+                isOffline: false
+            };
         } catch (err) {
-            window._calzadaMapSnapshotLastError = String(err && err.stack ? err.stack : err);
-            console.error('MAP_SNAPSHOT_ERROR:', err);
-            return null;
+            console.warn('Map capture using tiles failed or offline:', err);
+            return createOfflineRouteDiagram(routeData, isTl);
         } finally {
+            if (prevSheetState && typeof window._calzadaSetSheetState === 'function') {
+                try { window._calzadaSetSheetState(prevSheetState, false); } catch (_) {}
+            }
             map.jumpTo(prevCamera);
         }
     }
@@ -665,6 +1009,9 @@
         totalDistanceText,
         fareSummaryText,
         mapSnapshotDataUrl,
+        mapSnapshotWidth,
+        mapSnapshotHeight,
+        mapIsOffline,
         timelineRowsHtml,
         directionsListHtml,
         isTl,
@@ -672,6 +1019,20 @@
         pageNumber = 1,
         totalPages = 1
     }) {
+        let boxWidth = 710;
+        let boxHeight = 740;
+        if (mapSnapshotWidth && mapSnapshotHeight) {
+            const ratio = mapSnapshotWidth / mapSnapshotHeight;
+            const naturalHeight = Math.round(710 / ratio);
+            if (naturalHeight > 750) {
+                boxHeight = 750;
+                boxWidth = Math.round(750 * ratio);
+            } else {
+                boxHeight = naturalHeight;
+                boxWidth = 710;
+            }
+        }
+
         const page = document.createElement('div');
         page.className = 'calzada-pdf-page';
         page.style.cssText = `
@@ -750,13 +1111,15 @@
 
                     ${mapSnapshotDataUrl ? `
                     <!-- 3. Portrait Route Map Snapshot (Page 1) -->
-                    <div style="margin-bottom: 8px;">
-                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: 710px; height: 740px; position: relative;">
-                            <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: 710px; height: 740px; object-fit: contain; display: block;">
+                    <div style="margin-bottom: 8px; display: flex; flex-direction: column; align-items: center;">
+                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: ${boxWidth}px; height: ${boxHeight}px; position: relative;">
+                            <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: ${boxWidth}px; height: ${boxHeight}px; object-fit: contain; display: block;">
                         </div>
-                        <div style="font-size: 9px; color: #64748B; margin-top: 4px; text-align: right;">
+                        ${!mapIsOffline ? `
+                        <div style="width: ${boxWidth}px; font-size: 9px; color: #64748B; margin-top: 4px; text-align: right;">
                             © OpenStreetMap contributors
                         </div>
+                        ` : ''}
                     </div>
                     ` : `
                     <!-- Fallback: Timeline & Directions if map is unavailable -->
@@ -917,14 +1280,22 @@
         }
 
         // Map snapshot
-        let mapSnapshotDataUrl = null;
+        let mapSnapshotData = null;
         if (routeData.map) {
             try {
-                mapSnapshotDataUrl = await captureRouteMapSnapshot(routeData.map, routeData);
+                mapSnapshotData = await captureRouteMapSnapshot(routeData.map, routeData, isTl);
             } catch (e) {
                 console.warn('Map capture failed:', e);
+                mapSnapshotData = createOfflineRouteDiagram(routeData, isTl);
             }
+        } else {
+            mapSnapshotData = createOfflineRouteDiagram(routeData, isTl);
         }
+
+        const mapSnapshotDataUrl = mapSnapshotData?.dataUrl;
+        const mapSnapshotWidth = mapSnapshotData?.width;
+        const mapSnapshotHeight = mapSnapshotData?.height;
+        const mapIsOffline = !!mapSnapshotData?.isOffline;
 
         // Timeline
         const timelineRowsHtml = buildTimelineRows(routeData, isTl, depTime, arrTime);
@@ -947,6 +1318,9 @@
             pageConfigs.push({
                 isContinuation: false,
                 mapSnapshotDataUrl: mapSnapshotDataUrl,
+                mapSnapshotWidth: mapSnapshotWidth,
+                mapSnapshotHeight: mapSnapshotHeight,
+                mapIsOffline: mapIsOffline,
                 timelineRowsHtml: '',
                 directionsListHtml: '',
                 steps: []
@@ -1037,6 +1411,9 @@
                 totalDistanceText,
                 fareSummaryText,
                 mapSnapshotDataUrl: cfg.mapSnapshotDataUrl,
+                mapSnapshotWidth: cfg.mapSnapshotWidth,
+                mapSnapshotHeight: cfg.mapSnapshotHeight,
+                mapIsOffline: cfg.mapIsOffline,
                 timelineRowsHtml: cfg.timelineRowsHtml,
                 directionsListHtml: cfg.directionsListHtml,
                 isTl,
@@ -1109,7 +1486,7 @@
                         const mw = (r.width / pR.width) * pdfW;
                         const mh = (r.height / pR.height) * pdfH;
                         try {
-                            doc.addImage(mapSnapshotDataUrl, 'JPEG', mx, my, mw, mh, undefined, 'FAST');
+                            doc.addImage(mapSnapshotDataUrl, mapIsOffline ? 'PNG' : 'JPEG', mx, my, mw, mh, undefined, 'FAST');
                         } catch (e) {
                             console.warn('Direct map image injection failed:', e);
                         }
@@ -1172,6 +1549,12 @@
 
         setButtonsBusy(true);
 
+        let prepToastHandle = null;
+        if (typeof window.showToast === 'function') {
+            const prepMsg = (window.t ? window.t('planner.preparing_pdf') : null) || 'Preparing your PDF…';
+            prepToastHandle = window.showToast(prepMsg, 'loading');
+        }
+
         let timeoutId = null;
         let blob = null;
 
@@ -1189,13 +1572,19 @@
                 generateRoutePdfBlob(data),
                 timeoutPromise
             ]);
+
+            if (prepToastHandle && typeof prepToastHandle.dismiss === 'function') {
+                prepToastHandle.dismiss();
+                prepToastHandle = null;
+            }
         } catch (err) {
             console.error('Export route to PDF failed:', err);
+            if (prepToastHandle && typeof prepToastHandle.dismiss === 'function') {
+                prepToastHandle.dismiss();
+                prepToastHandle = null;
+            }
             if (typeof window.showToast === 'function') {
-                let failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't generate PDF. Please try again.";
-                if (err && err.name === 'TimeoutError') {
-                    failMsg = (window.t ? window.t('planner.pdf_timeout') : null) || 'PDF generation timed out. Please try again.';
-                }
+                const failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't create the PDF. Try again.";
                 window.showToast(failMsg, 'error');
             }
             return;
@@ -1204,16 +1593,18 @@
                 clearTimeout(timeoutId);
                 timeoutId = null;
             }
-            // Always restore button spinner immediately after PDF is generated or on failure!
-            setButtonsBusy(false);
+            if (!blob) {
+                setButtonsBusy(false);
+            }
         }
 
         if (!blob) return;
 
         try {
             const fileName = buildPdfFileName(data.destName);
+            const isDesktop = window.innerWidth > 768;
 
-            // iOS Web Share API with file support
+            // iOS / Web Share API with file support
             const file = new File([blob], fileName, { type: 'application/pdf' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
@@ -1231,14 +1622,14 @@
             // Fallback download
             downloadBlob(blob, fileName);
 
-            if (typeof window.showToast === 'function') {
+            if (isDesktop && typeof window.showToast === 'function') {
                 const msg = (window.t ? window.t('planner.pdf_saved') : null) || 'PDF saved';
                 window.showToast(msg, 'success');
             }
         } catch (err) {
             console.error('Save/share PDF failed:', err);
             if (typeof window.showToast === 'function') {
-                const failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't save PDF. Please try again.";
+                const failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't create the PDF. Try again.";
                 window.showToast(failMsg, 'error');
             }
         } finally {
