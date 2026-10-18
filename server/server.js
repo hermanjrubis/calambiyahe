@@ -681,8 +681,8 @@ app.get('/api/places/:id/images', (req, res) => {
         return res.status(404).json({ error: 'Place not found' });
     }
 
-    if (place && place.image_path) {
-        return res.json([{ id: 1, place_id: place.id, image_path: place.image_path, display_order: 0 }]);
+    if (place && (place.photo || place.image_path)) {
+        return res.json([{ id: 1, place_id: place.id, image_path: place.photo || place.image_path, display_order: 0 }]);
     }
 
     return res.json([]);

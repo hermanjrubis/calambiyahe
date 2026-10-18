@@ -36,8 +36,6 @@ const placesData = {
     "STI College Calamba": {
         name: "STI College - Calamba",
         category: "School",
-        has_360: true,
-        nodeId: "14.202352_121.158453",
         image: "../assets/places/sti-college/sti-1.webp",
         images: [
             "../assets/places/sti-college/sti-1.webp",
@@ -68,8 +66,6 @@ const placesData = {
     "STI College - Calamba": {
         name: "STI College - Calamba",
         category: "School",
-        has_360: true,
-        nodeId: "14.202352_121.158453",
         image: "../assets/places/sti-college/sti-1.webp",
         images: [
             "../assets/places/sti-college/sti-1.webp",
@@ -195,6 +191,10 @@ const placesData = {
     }
 };
 
+if (typeof window !== 'undefined') {
+    window.placesData = Object.assign(window.placesData || {}, placesData);
+}
+
 let currentActivePlace = null;
 let currentPlaceId = null;
 let panelDOMInitialized = false;
@@ -244,33 +244,6 @@ function initPlacePanelDOM() {
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
                         </button>
-                    </div>
-                </div>
-
-                <!-- 360 Photosphere Preview Section (Static placeholder, full photo loads only when opened) -->
-                <div class="panel-360-section" id="pp360Section" style="display:none;">
-                    <div class="panel-360-skeleton" id="pp360Skeleton" style="display:none;"></div>
-                    <div class="panel-360-container" id="pp360Container" style="display:none;">
-                        <div class="popup-360-thumb-wrap" id="pp360ThumbWrap" title="Click to view 360° photo" role="button" tabindex="0">
-                            <div class="popup-360-placeholder" id="pp360Placeholder">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="9"/>
-                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                                </svg>
-                                <span class="popup-360-badge">360°</span>
-                            </div>
-                        </div>
-                        <div class="popup-360-action-wrap">
-                            <button type="button" class="popup-360-btn" id="pp360Btn">
-                                <svg class="popup-360-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="9"/>
-                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                                </svg>
-                                <span>View 360°</span>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -599,9 +572,8 @@ function handleUrlParamsOnLoad() {
 
 
 let currentCarouselIndex = 0;
-let carouselImagesList = [];
 
-function setupCarousel(images) {
+function setupCarousel(place) {
     const slidesContainer = document.getElementById('ppCarouselSlides');
     const dotsContainer = document.getElementById('ppCarouselDots');
     const prevBtn = document.getElementById('ppCarouselPrev');
@@ -613,65 +585,170 @@ function setupCarousel(images) {
     slidesContainer.innerHTML = '';
     if (dotsContainer) dotsContainer.innerHTML = '';
     currentCarouselIndex = 0;
-    carouselImagesList = images || [];
 
-    if (carouselImagesList.length === 0) {
-        if (heroSkeleton) heroSkeleton.style.display = 'none';
-        if (prevBtn) prevBtn.style.display = 'none';
-        if (nextBtn) nextBtn.style.display = 'none';
-        if (dotsContainer) dotsContainer.style.display = 'none';
-        return;
-    }
+    const placeName = place?.name || '';
+    const rawPhoto = place?.photo !== undefined ? place.photo : (place?.image_path || place?.image || null);
+    const photo = (typeof rawPhoto === 'string' && rawPhoto.trim() !== '' && !rawPhoto.includes('hero-places-bg'))
+        ? rawPhoto.trim()
+        : null;
 
-    carouselImagesList.forEach((imgObj, idx) => {
+    const pano = (place?.pano && typeof place.pano === 'string' && place.pano.trim() !== '')
+        ? place.pano.trim()
+        : null;
+    const panoThumb = (place?.pano_thumb && typeof place.pano_thumb === 'string' && place.pano_thumb.trim() !== '')
+        ? place.pano_thumb.trim()
+        : null;
+
+    // Check Street View fallback (e.g. STI College fallback from place-links.json)
+    const fallbackNodeId = place?.fallbackNodeId || null;
+    const hasPano = Boolean(pano || fallbackNodeId);
+
+    // --- SLIDE 1: Establishment Photo ---
+    const slide1Wrap = document.createElement('div');
+    slide1Wrap.className = 'carousel-slide-wrap';
+
+    const chip1 = document.createElement('span');
+    chip1.className = 'hero-slide-chip';
+    chip1.id = 'ppHeroChipPhoto';
+    chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
+    slide1Wrap.appendChild(chip1);
+
+    if (photo) {
+        if (heroSkeleton) heroSkeleton.style.display = 'block';
         const imgEl = document.createElement('img');
         imgEl.className = 'carousel-slide';
-        const rawSrc = imgObj && (imgObj.image_path || imgObj.image || imgObj);
-        imgEl.src = resolvePlaceImageUrl(typeof rawSrc === 'string' ? rawSrc : '');
-        imgEl.alt = `Place Image ${idx + 1}`;
-        slidesContainer.appendChild(imgEl);
+        imgEl.alt = `${placeName} photo`;
+        imgEl.src = resolvePlaceImageUrl(photo);
 
-        if (idx === 0) {
-            function revealPhoto() {
-                imgEl.classList.add('photo-fade-in');
-                if (heroSkeleton) heroSkeleton.style.display = 'none';
-            }
-            if (imgEl.complete && imgEl.naturalWidth > 0) {
-                revealPhoto();
-            } else {
-                imgEl.addEventListener('load', revealPhoto, { once: true });
-                imgEl.addEventListener('error', () => {
-                    if (heroSkeleton) heroSkeleton.style.display = 'none';
-                }, { once: true });
-            }
+        function revealPhoto() {
+            imgEl.classList.add('photo-fade-in');
+            if (heroSkeleton) heroSkeleton.style.display = 'none';
         }
 
-        if (carouselImagesList.length > 1 && dotsContainer) {
-            const dot = document.createElement('div');
-            dot.className = `carousel-dot ${idx === 0 ? 'active' : ''}`;
-            dotsContainer.appendChild(dot);
-        }
-    });
-
-    if (dotsContainer) {
-        if (carouselImagesList.length > 1) {
-            dotsContainer.style.display = 'flex';
+        if (imgEl.complete && imgEl.naturalWidth > 0) {
+            revealPhoto();
         } else {
-            dotsContainer.style.display = 'none';
+            imgEl.addEventListener('load', revealPhoto, { once: true });
+            imgEl.addEventListener('error', () => {
+                if (heroSkeleton) heroSkeleton.style.display = 'none';
+                renderPhotoPlaceholder(slide1Wrap);
+            }, { once: true });
         }
+        slide1Wrap.appendChild(imgEl);
+    } else {
+        if (heroSkeleton) heroSkeleton.style.display = 'none';
+        renderPhotoPlaceholder(slide1Wrap);
     }
 
+    slidesContainer.appendChild(slide1Wrap);
+
+    // --- SLIDE 2: 360° of the Establishment ---
+    const slide2Wrap = document.createElement('div');
+    slide2Wrap.className = 'carousel-slide-wrap';
+
+    const chip2 = document.createElement('span');
+    chip2.className = 'hero-slide-chip';
+    chip2.id = 'ppHeroChipPano';
+    chip2.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_360') : '360°';
+    slide2Wrap.appendChild(chip2);
+
+    if (hasPano) {
+        if (panoThumb) {
+            const thumbImg = document.createElement('img');
+            thumbImg.className = 'carousel-slide';
+            thumbImg.alt = `${placeName} 360° preview`;
+            thumbImg.src = resolvePlaceImageUrl(panoThumb);
+            slide2Wrap.appendChild(thumbImg);
+        } else {
+            const iconPlaceholder = document.createElement('div');
+            iconPlaceholder.className = 'hero-placeholder-slide';
+            iconPlaceholder.innerHTML = `
+                <svg class="hero-placeholder-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"/>
+                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                </svg>
+            `;
+            slide2Wrap.appendChild(iconPlaceholder);
+        }
+
+        const actionBtn = document.createElement('button');
+        actionBtn.type = 'button';
+        actionBtn.className = 'hero-360-action-btn';
+        actionBtn.id = 'ppHero360ActionBtn';
+        actionBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°');
+        actionBtn.innerHTML = `
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+            </svg>
+            <span id="ppHero360BtnText">${typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°'}</span>
+        `;
+        actionBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (fallbackNodeId) {
+                if (typeof window.launch360Viewer === 'function') {
+                    window.launch360Viewer(fallbackNodeId);
+                } else if (typeof window._open360Viewer === 'function') {
+                    window._open360Viewer(fallbackNodeId);
+                }
+            } else if (pano) {
+                launchPlacePano(pano, placeName);
+            }
+        };
+        slide2Wrap.appendChild(actionBtn);
+    } else {
+        const placeholderSlide = document.createElement('div');
+        placeholderSlide.className = 'hero-placeholder-slide';
+        placeholderSlide.innerHTML = `
+            <svg class="hero-placeholder-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+            </svg>
+            <span class="hero-placeholder-text" id="ppPanoComingSoonText">${typeof window.t === 'function' ? window.t('places.popup.pano_coming_soon') : '360° view coming soon'}</span>
+        `;
+        slide2Wrap.appendChild(placeholderSlide);
+    }
+
+    slidesContainer.appendChild(slide2Wrap);
+
+    // --- DOTS: Always exactly 2 dots ---
+    if (dotsContainer) {
+        dotsContainer.innerHTML = `
+            <button type="button" class="carousel-dot active" data-index="0" aria-label="Slide 1: Photo" tabindex="0"></button>
+            <button type="button" class="carousel-dot" data-index="1" aria-label="Slide 2: 360°" tabindex="0"></button>
+        `;
+        dotsContainer.style.display = 'flex';
+        const dots = dotsContainer.querySelectorAll('.carousel-dot');
+        dots.forEach((dot, idx) => {
+            dot.onclick = (e) => {
+                e.stopPropagation();
+                goToCarouselSlide(idx);
+            };
+            dot.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    goToCarouselSlide(idx);
+                }
+            };
+        });
+    }
+
+    // --- DESKTOP ARROWS ---
     if (prevBtn && nextBtn) {
         prevBtn.onclick = (e) => {
             e.stopPropagation();
-            goToCarouselSlide(currentCarouselIndex - 1);
+            goToCarouselSlide(0);
         };
         nextBtn.onclick = (e) => {
             e.stopPropagation();
-            goToCarouselSlide(currentCarouselIndex + 1);
+            goToCarouselSlide(1);
         };
     }
 
+    // --- TOUCH SWIPE ---
     if (carouselEl) {
         let touchStartX = 0;
         let touchStartY = 0;
@@ -690,11 +767,11 @@ function setupCarousel(images) {
                 const diffX = touchStartX - touchEndX;
                 const diffY = touchStartY - touchEndY;
 
-                if (Math.abs(diffX) > 30 && Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
                     if (diffX > 0) {
-                        goToCarouselSlide(currentCarouselIndex + 1);
+                        goToCarouselSlide(1);
                     } else {
-                        goToCarouselSlide(currentCarouselIndex - 1);
+                        goToCarouselSlide(0);
                     }
                 }
             }
@@ -704,12 +781,24 @@ function setupCarousel(images) {
     goToCarouselSlide(0);
 }
 
-function goToCarouselSlide(index) {
-    if (carouselImagesList.length === 0) return;
-    if (index < 0) index = 0;
-    if (index >= carouselImagesList.length) index = carouselImagesList.length - 1;
+function renderPhotoPlaceholder(container) {
+    const existing = container.querySelector('.hero-placeholder-slide');
+    if (existing) return;
+    const placeholder = document.createElement('div');
+    placeholder.className = 'hero-placeholder-slide';
+    placeholder.innerHTML = `
+        <svg class="hero-placeholder-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/>
+        </svg>
+        <span class="hero-placeholder-text" id="ppPhotoComingSoonText">${typeof window.t === 'function' ? window.t('places.popup.photo_coming_soon') : 'Photo coming soon'}</span>
+    `;
+    container.appendChild(placeholder);
+}
 
+function goToCarouselSlide(index) {
+    index = Math.max(0, Math.min(1, index));
     currentCarouselIndex = index;
+
     const slidesContainer = document.getElementById('ppCarouselSlides');
     if (slidesContainer) {
         slidesContainer.style.transform = `translateX(-${index * 100}%)`;
@@ -719,23 +808,143 @@ function goToCarouselSlide(index) {
     dots.forEach((dot, idx) => {
         if (idx === index) {
             dot.classList.add('active');
+            dot.setAttribute('aria-current', 'true');
         } else {
             dot.classList.remove('active');
+            dot.removeAttribute('aria-current');
         }
     });
 
     const prevBtn = document.getElementById('ppCarouselPrev');
     const nextBtn = document.getElementById('ppCarouselNext');
     if (prevBtn && nextBtn) {
-        if (carouselImagesList.length <= 1) {
-            prevBtn.style.display = 'none';
-            nextBtn.style.display = 'none';
-        } else {
-            prevBtn.style.display = index > 0 ? 'flex' : 'none';
-            nextBtn.style.display = index < carouselImagesList.length - 1 ? 'flex' : 'none';
-        }
+        prevBtn.style.display = index === 1 ? 'flex' : 'none';
+        nextBtn.style.display = index === 0 ? 'flex' : 'none';
     }
 }
+
+// Global Keyboard Left / Right navigation for popup hero slides
+window.addEventListener('keydown', (e) => {
+    const panel = document.getElementById('placePanel');
+    if (!panel || !panel.classList.contains('active')) return;
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToCarouselSlide(0);
+    } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        goToCarouselSlide(1);
+    }
+});
+
+/**
+ * Launch single establishment 360 panorama in the existing Pannellum viewer overlay
+ * @param {string} panoUrl
+ * @param {string} placeName
+ */
+function launchPlacePano(panoUrl, placeName) {
+    if (!panoUrl) return;
+
+    const targetOverlay = document.getElementById('calzadaStreetviewOverlay');
+    const targetContainer = document.getElementById('calzadaPannellumContainer');
+    if (!targetOverlay || !targetContainer || typeof window.pannellum === 'undefined') {
+        console.warn('Pannellum viewer overlay not available');
+        return;
+    }
+
+    // Hide street view tour minimap and ground cursor for single place panorama
+    const targetMinimap = document.getElementById('streetviewMinimapCard');
+    const targetGroundArrow = document.getElementById('calzadaGroundArrow');
+    if (targetMinimap) targetMinimap.style.display = 'none';
+    if (targetGroundArrow) targetGroundArrow.style.display = 'none';
+
+    // Show place pill with establishment title
+    const targetPlacePill = document.getElementById('streetviewPlacePill');
+    const targetPlaceName = document.getElementById('streetviewPlaceName');
+    if (targetPlacePill) targetPlacePill.style.display = 'flex';
+    if (targetPlaceName) targetPlaceName.textContent = placeName || '360° Panorama';
+
+    // HUD hint
+    const targetHud = document.getElementById('streetviewControlsHud');
+    if (targetHud) {
+        const textSpan = targetHud.querySelector('span');
+        if (textSpan) textSpan.textContent = 'Drag to look around';
+        targetHud.style.display = 'flex';
+        targetHud.style.opacity = '1';
+        setTimeout(() => {
+            if (targetHud) targetHud.style.opacity = '0';
+        }, 4000);
+    }
+
+    // Prevent background scrolling
+    document.body.style.overflow = 'hidden';
+
+    // Reveal overlay
+    targetOverlay.style.display = 'block';
+    requestAnimationFrame(() => targetOverlay.classList.add('active'));
+
+    // Clear and create viewer
+    targetContainer.innerHTML = '';
+    if (window._placePannellumViewer) {
+        try { window._placePannellumViewer.destroy(); } catch (_) {}
+        window._placePannellumViewer = null;
+    }
+
+    const resolvedPanoUrl = resolvePlaceImageUrl(panoUrl);
+    try {
+        window._placePannellumViewer = window.pannellum.viewer('calzadaPannellumContainer', {
+            type: 'equirectangular',
+            panorama: resolvedPanoUrl,
+            autoLoad: true,
+            showZoomCtrl: true,
+            showFullscreenCtrl: true,
+            compass: false,
+            hfov: 100,
+            pitch: -5,
+            yaw: 0
+        });
+    } catch (err) {
+        console.error('[launchPlacePano] Viewer error:', err.message || err);
+    }
+
+    function closeSinglePano() {
+        if (!targetOverlay) return;
+        targetOverlay.classList.remove('active');
+        if (targetHud) targetHud.style.display = 'none';
+        setTimeout(() => {
+            targetOverlay.style.display = 'none';
+            document.body.style.overflow = '';
+            if (targetMinimap) targetMinimap.style.display = '';
+            if (targetGroundArrow) targetGroundArrow.style.display = '';
+            if (window._placePannellumViewer) {
+                try { window._placePannellumViewer.destroy(); } catch (_) {}
+                window._placePannellumViewer = null;
+            }
+        }, 280);
+        window.removeEventListener('keydown', onEscKey);
+        const targetCloseBtn = document.getElementById('streetviewCloseBtn');
+        if (targetCloseBtn) targetCloseBtn.removeEventListener('click', onCloseClick);
+    }
+
+    function onEscKey(e) {
+        if (e.key === 'Escape' && targetOverlay.classList.contains('active') && window._placePannellumViewer) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeSinglePano();
+        }
+    }
+
+    function onCloseClick(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeSinglePano();
+    }
+
+    window.addEventListener('keydown', onEscKey);
+    const targetCloseBtn = document.getElementById('streetviewCloseBtn');
+    if (targetCloseBtn) targetCloseBtn.addEventListener('click', onCloseClick, { once: true });
+}
+window.launchPlacePano = launchPlacePano;
 
 /**
  * Format Opening Hours status and schedule map
@@ -1584,25 +1793,6 @@ function getPlacePanel360Link(placeId, placeName) {
     return null;
 }
 
-let placePanelCollapseTimeout = null;
-
-function collapse360Section() {
-    const sec360 = document.getElementById('pp360Section');
-    if (!sec360 || sec360.style.display === 'none' || sec360.classList.contains('collapsed')) return;
-
-    sec360.classList.add('collapsed');
-    if (placePanelCollapseTimeout) clearTimeout(placePanelCollapseTimeout);
-    placePanelCollapseTimeout = setTimeout(() => {
-        if (sec360.classList.contains('collapsed')) {
-            sec360.style.display = 'none';
-            const sk360 = document.getElementById('pp360Skeleton');
-            if (sk360) sk360.style.display = 'none';
-            const cont360 = document.getElementById('pp360Container');
-            if (cont360) cont360.style.display = 'none';
-        }
-    }, 260);
-}
-
 /**
  * Open Place Detail Panel
  */
@@ -1654,23 +1844,14 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     }
     if (seeMoreBtn) seeMoreBtn.style.display = 'none';
 
-    if (placePanelCollapseTimeout) {
-        clearTimeout(placePanelCollapseTimeout);
-        placePanelCollapseTimeout = null;
-    }
-    const sec360 = document.getElementById('pp360Section');
-    const sk360 = document.getElementById('pp360Skeleton');
-    const cont360 = document.getElementById('pp360Container');
-    const thumbWrap360 = document.getElementById('pp360ThumbWrap');
-    const btn360 = document.getElementById('pp360Btn');
-
     // 3. Find base data or construct fallback
+    const activeDataStore = (typeof window !== 'undefined' && window.placesData) ? window.placesData : placesData;
     const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const normalizedKey = Object.keys(placesData).find(
+    const normalizedKey = Object.keys(activeDataStore).find(
         k => k.toLowerCase().trim() === placeName.toLowerCase().trim() ||
              k.toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm
     );
-    let data = normalizedKey ? placesData[normalizedKey] : null;
+    let data = normalizedKey ? activeDataStore[normalizedKey] : null;
     
     if (!data) {
         data = {
@@ -1696,38 +1877,14 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
 
     currentActivePlace = data;
 
-    // Check upfront if place has a known 360 photo
-    const upfront360Link = (data && data.has_360 && data.nodeId)
-        ? { nodeId: data.nodeId, placeName: data.name }
-        : getPlacePanel360Link(data?.id, data?.name || placeName);
-
-    if (upfront360Link && upfront360Link.nodeId) {
-        // Place is known to have 360: render card immediately with placeholder thumbnail
-        if (sec360) {
-            sec360.classList.remove('collapsed');
-            sec360.style.display = 'block';
-        }
-        if (sk360) sk360.style.display = 'none';
-        if (cont360) cont360.style.display = 'flex';
-        if (thumbWrap360) {
-            thumbWrap360.onclick = () => window._open360Viewer(upfront360Link.nodeId);
-            thumbWrap360.onkeydown = (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    window._open360Viewer(upfront360Link.nodeId);
-                }
-            };
-        }
-        if (btn360) btn360.onclick = () => window._open360Viewer(upfront360Link.nodeId);
-    } else {
-        // Not known yet: reserve space with skeleton (#EAF2FC shimmer)
-        if (sec360) {
-            sec360.classList.remove('collapsed');
-            sec360.style.display = 'block';
-        }
-        if (sk360) sk360.style.display = 'block';
-        if (cont360) cont360.style.display = 'none';
-    }
+    // Upfront setup for 2-slide hero (Slide 1: photo, Slide 2: 360)
+    const upfrontLink = getPlacePanel360Link(data?.id, data?.name || placeName);
+    const isStiUpfront = /\bsti\b/i.test(data?.name || '') || /\bsti\b/i.test(placeName || '');
+    const upfrontFallbackNodeId = isStiUpfront ? (upfrontLink?.nodeId || '14.202352_121.158453') : null;
+    setupCarousel({
+        ...data,
+        fallbackNodeId: upfrontFallbackNodeId
+    });
 
     // 4. Set Place Name in header immediately
     const nameEl = document.getElementById('ppName');
@@ -1883,67 +2040,20 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         console.warn('Could not fetch place details from API:', e);
     }
 
-    // Check and update 360 photosphere section once place data arrives
+    // Update 2-slide hero with full API data and check for Street View fallback
     try {
         await loadPlacePanel360Links();
-        const live360Link = (data && data.has_360 && data.nodeId)
-            ? { nodeId: data.nodeId, placeName: data.name }
-            : getPlacePanel360Link(placeId || data.id, data.name || placeName);
-
-        if (live360Link && live360Link.nodeId) {
-            if (sec360) {
-                sec360.classList.remove('collapsed');
-                sec360.style.display = 'block';
-            }
-            if (sk360) sk360.style.display = 'none';
-            if (cont360) cont360.style.display = 'flex';
-            if (thumbWrap360) {
-                thumbWrap360.onclick = () => window._open360Viewer(live360Link.nodeId);
-                thumbWrap360.onkeydown = (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        window._open360Viewer(live360Link.nodeId);
-                    }
-                };
-            }
-            if (btn360) btn360.onclick = () => window._open360Viewer(live360Link.nodeId);
-        } else {
-            // No 360 photo: collapse reserved space with short height transition so it does not jump
-            collapse360Section();
-        }
+        const live360Link = getPlacePanel360Link(placeId || data.id, data.name || placeName);
+        const liveIsSti = /\bsti\b/i.test(data?.name || '') || /\bsti\b/i.test(placeName || '');
+        const liveFallbackNodeId = liveIsSti ? (live360Link?.nodeId || '14.202352_121.158453') : null;
+        setupCarousel({
+            ...data,
+            fallbackNodeId: liveFallbackNodeId
+        });
     } catch (e) {
         console.warn('Error evaluating 360 link in place-panel:', e);
-        collapse360Section();
+        setupCarousel(data);
     }
-
-    // 12. Fetch carousel images & setup ratings/reviews
-    let placeImages = null;
-    if (placeId) {
-        try {
-            const imgRes = await fetch(`/api/places/${placeId}/images`);
-            if (imgRes.ok) {
-                const fetchedImages = await imgRes.json();
-                if (Array.isArray(fetchedImages) && fetchedImages.length > 0) {
-                    placeImages = fetchedImages;
-                }
-            }
-        } catch (e) {
-            console.warn('Error fetching place carousel images:', e);
-        }
-    }
-
-    if (!placeImages) {
-        if (Array.isArray(data.images) && data.images.length > 0) {
-            placeImages = data.images.map(img => typeof img === 'string' ? { image_path: resolvePlaceImageUrl(img) } : { ...img, image_path: resolvePlaceImageUrl(img.image_path || img.image) });
-        } else if (data.image_path || data.image) {
-            const raw = data.image_path || data.image;
-            if (raw && !raw.includes('hero-places-bg')) {
-                placeImages = [{ image_path: resolvePlaceImageUrl(raw) }];
-            }
-        }
-    }
-
-    setupCarousel(placeImages || []);
 
     if (placeId) {
         await setupRatingAndReviews(placeId);
@@ -2038,21 +2148,6 @@ window.closePlacePanel = function(updateHistory = true) {
     if (panel) panel.classList.remove('active');
     document.body.style.overflow = ''; 
 
-    // Reset 360 section and skeleton
-    if (placePanelCollapseTimeout) {
-        clearTimeout(placePanelCollapseTimeout);
-        placePanelCollapseTimeout = null;
-    }
-    const sec360 = document.getElementById('pp360Section');
-    if (sec360) {
-        sec360.classList.remove('collapsed');
-        sec360.style.display = 'none';
-    }
-    const sk360 = document.getElementById('pp360Skeleton');
-    if (sk360) sk360.style.display = 'none';
-    const cont360 = document.getElementById('pp360Container');
-    if (cont360) cont360.style.display = 'none';
-
     // Reset skeletons and carousel slides for next open
     const heroSkeleton = document.getElementById('ppHeroSkeleton');
     if (heroSkeleton) heroSkeleton.style.display = 'block';
@@ -2103,6 +2198,26 @@ window.addEventListener('keydown', (e) => {
 });
 
 function updatePlacePanelI18n() {
+    const chipPhoto = document.getElementById('ppHeroChipPhoto');
+    if (chipPhoto) {
+        chipPhoto.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
+    }
+    const chipPano = document.getElementById('ppHeroChipPano');
+    if (chipPano) {
+        chipPano.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_360') : '360°';
+    }
+    const photoComingSoon = document.getElementById('ppPhotoComingSoonText');
+    if (photoComingSoon) {
+        photoComingSoon.textContent = typeof window.t === 'function' ? window.t('places.popup.photo_coming_soon') : 'Photo coming soon';
+    }
+    const panoComingSoon = document.getElementById('ppPanoComingSoonText');
+    if (panoComingSoon) {
+        panoComingSoon.textContent = typeof window.t === 'function' ? window.t('places.popup.pano_coming_soon') : '360° view coming soon';
+    }
+    const hero360BtnText = document.getElementById('ppHero360BtnText');
+    if (hero360BtnText) {
+        hero360BtnText.textContent = typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°';
+    }
     const ratingLabel = document.getElementById('ppRatingLabel');
     if (ratingLabel) {
         ratingLabel.textContent = typeof window.t === 'function' ? window.t('places.popup.rating_reviews') : 'Rating & reviews';
@@ -2110,10 +2225,6 @@ function updatePlacePanelI18n() {
     const planBtn = document.getElementById('ppPlanBtn');
     if (planBtn) {
         planBtn.textContent = typeof window.t === 'function' ? window.t('places.popup.plan_route') : 'Plan route';
-    }
-    const btn360Text = document.querySelector('#pp360Btn span');
-    if (btn360Text) {
-        btn360Text.textContent = typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°';
     }
     const seeMoreBtn = document.getElementById('ppReviewsSeeMoreBtn');
     if (seeMoreBtn) {

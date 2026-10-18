@@ -199,7 +199,20 @@ html {
     width: 100%;
     height: 100%;
     display: flex;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.carousel-slide-wrap {
+    width: 100%;
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #EAF2FC;
 }
 
 .carousel-slide {
@@ -210,6 +223,7 @@ html {
     flex-shrink: 0;
     user-select: none;
     border-radius: 0;
+    display: block;
 }
 
 .carousel-slide.photo-fade-in {
@@ -225,15 +239,117 @@ html {
     }
 }
 
+/* Neutral Placeholder Slide (#EAF2FC with clean icon + label) */
+.hero-placeholder-slide {
+    width: 100%;
+    min-width: 100%;
+    height: 100%;
+    background-color: #EAF2FC;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    padding: 24px;
+    user-select: none;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.hero-placeholder-icon {
+    color: #378ADD;
+    display: block;
+    flex-shrink: 0;
+}
+
+.hero-placeholder-text {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: center;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.01em;
+}
+
+/* Slide Label Chip (Top-Left) */
+.hero-slide-chip {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 10;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    color: #ffffff;
+    font-family: 'Sora', 'Outfit', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    pointer-events: none;
+    letter-spacing: 0.02em;
+    line-height: 1.3;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
+}
+
+/* Slide 2 "View 360°" Pill Action Button */
+.hero-360-action-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 12;
+    background: linear-gradient(135deg, #378ADD 0%, #256bb8 100%);
+    color: #FFFFFF !important;
+    font-family: 'Sora', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    box-shadow: 0 4px 14px rgba(37, 107, 184, 0.42);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    white-space: nowrap;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+}
+
+.hero-360-action-btn:hover {
+    background: linear-gradient(135deg, #256bb8 0%, #1d528f 100%);
+    transform: translate(-50%, -50%) scale(1.05);
+    box-shadow: 0 6px 18px rgba(37, 107, 184, 0.52);
+    color: #FFFFFF !important;
+}
+
+.hero-360-action-btn:active {
+    transform: translate(-50%, -50%) scale(0.98);
+}
+
+.hero-360-action-btn svg {
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.hero-360-action-btn:hover svg {
+    transform: rotate(20deg);
+}
+
 /* Large Carousel Navigation Buttons */
 .carousel-nav {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(15, 23, 42, 0.65);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     color: #ffffff;
@@ -249,8 +365,8 @@ html {
 }
 
 .carousel-nav svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     display: block;
 }
 
@@ -260,35 +376,45 @@ html {
 }
 
 .carousel-prev {
-    left: 14px;
+    left: 12px;
 }
 
 .carousel-next {
-    right: 14px;
+    right: 12px;
+}
+
+@media (max-width: 768px) {
+    .carousel-nav {
+        display: none !important;
+    }
 }
 
 .carousel-dots {
     position: absolute;
-    bottom: 14px;
+    bottom: 12px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 6px;
     z-index: 15;
-    pointer-events: none;
+    pointer-events: auto;
 }
 
 .carousel-dot {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.55);
     transition: background 0.2s, transform 0.2s;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    outline: none;
 }
 
 .carousel-dot.active {
     background: #ffffff;
-    transform: scale(1.25);
+    transform: scale(1.3);
 }
 
 
@@ -1049,165 +1175,7 @@ html {
     box-shadow: none;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   360 PHOTOSPHERE PREVIEW & "VIEW 360°" ACTION (INFO PANEL)
-   ───────────────────────────────────────────────────────────── */
-.panel-360-section {
-    margin: 4px 0 12px 0;
-    height: 70px;
-    overflow: hidden;
-    transition: height 0.25s cubic-bezier(0.16, 1, 0.3, 1), margin 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-}
 
-.panel-360-section.collapsed {
-    height: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .panel-360-section {
-        transition: none !important;
-    }
-}
-
-.panel-360-skeleton {
-    width: 100%;
-    height: 70px;
-    box-sizing: border-box;
-    border-radius: 12px;
-    background-color: #EAF2FC;
-    background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.55) 50%, rgba(255, 255, 255, 1) 100%);
-    background-size: 200% 100%;
-    background-repeat: no-repeat;
-    animation: sk-shimmer 1.6s ease-in-out infinite;
-    border: 1px solid #D1E5F8;
-}
-
-.panel-360-container {
-    height: 70px;
-    box-sizing: border-box;
-    padding: 8px 10px;
-    background: #F8FAFC;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.panel-360-container:hover {
-    background: #F1F5F9;
-    border-color: #CBD5E1;
-}
-
-.popup-360-thumb-wrap {
-    position: relative;
-    width: 80px;
-    height: 52px;
-    flex-shrink: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-    background: #EAF2FC;
-    border: 1px solid #D1E5F8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.popup-360-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #EAF2FC;
-    color: #378ADD;
-}
-
-.popup-360-thumb {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.popup-360-thumb-wrap:hover .popup-360-thumb {
-    transform: scale(1.08);
-}
-
-.popup-360-badge {
-    position: absolute;
-    bottom: 3px;
-    right: 3px;
-    background: rgba(15, 23, 42, 0.78);
-    color: #FFFFFF;
-    font-family: 'Sora', sans-serif;
-    font-size: 8.5px;
-    font-weight: 700;
-    padding: 1px 4px;
-    border-radius: 4px;
-    line-height: 1.2;
-    backdrop-filter: blur(4px);
-    pointer-events: none;
-    letter-spacing: 0.02em;
-}
-
-.popup-360-action-wrap {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    min-width: 0;
-}
-
-.popup-360-btn {
-    background: linear-gradient(135deg, #378ADD 0%, #256bb8 100%);
-    color: #FFFFFF !important;
-    text-decoration: none;
-    font-family: 'Sora', sans-serif;
-    font-size: 11.5px;
-    font-weight: 700;
-    padding: 7px 14px;
-    border: none;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    box-shadow: 0 3px 10px rgba(55, 138, 221, 0.3);
-    cursor: pointer;
-    transition: all 150ms ease;
-    line-height: 1;
-    white-space: nowrap;
-    width: fit-content;
-}
-
-.popup-360-btn:hover {
-    background: linear-gradient(135deg, #256bb8 0%, #1d528f 100%);
-    box-shadow: 0 5px 14px rgba(55, 138, 221, 0.42);
-    transform: translateY(-1px);
-    color: #FFFFFF !important;
-}
-
-.popup-360-btn:active {
-    transform: translateY(0);
-}
-
-.popup-360-icon {
-    flex-shrink: 0;
-    transition: transform 150ms ease;
-}
-
-.popup-360-btn:hover .popup-360-icon {
-    transform: rotate(20deg);
-}
 
 /* Modal for 360 Viewer */
 .calzada-360-modal-overlay {
