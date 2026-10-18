@@ -216,11 +216,11 @@ function initPlacePanelDOM() {
                 <div class="panel-hero-skeleton" id="ppHeroSkeleton"></div>
                 <div class="carousel-container" id="ppCarousel">
                     <div class="carousel-slides" id="ppCarouselSlides"></div>
-                    <button class="carousel-nav carousel-prev" id="ppCarouselPrev" aria-label="Previous Image" type="button" style="display:none;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    <button class="carousel-nav carousel-prev" id="ppCarouselPrev" aria-label="Previous" type="button" style="visibility:hidden;pointer-events:none;">
+                        <svg class="carousel-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6l6 6"/></svg>
                     </button>
-                    <button class="carousel-nav carousel-next" id="ppCarouselNext" aria-label="Next Image" type="button" style="display:none;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    <button class="carousel-nav carousel-next" id="ppCarouselNext" aria-label="Next" type="button">
+                        <svg class="carousel-nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6l-6 6"/></svg>
                     </button>
                     <div class="carousel-dots" id="ppCarouselDots"></div>
                 </div>
@@ -431,6 +431,50 @@ function initPlacePanelDOM() {
     if (backdrop) backdrop.addEventListener('click', closePlacePanel);
     if (closeBtn) closeBtn.addEventListener('click', closePlacePanel);
 
+    // Mobile Sheet Drag Handle Gesture
+    const dragHandle = document.querySelector('.panel-drag-handle');
+    if (dragHandle) {
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+        const panel = document.getElementById('placePanel');
+
+        dragHandle.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches.length > 0) {
+                startY = e.touches[0].clientY;
+                currentY = startY;
+                isDragging = true;
+            }
+        }, { passive: true });
+
+        dragHandle.addEventListener('touchmove', (e) => {
+            if (!isDragging || !e.touches || e.touches.length === 0) return;
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+            if (deltaY > 0 && panel) {
+                panel.style.transform = `translateY(${deltaY}px)`;
+                panel.style.transition = 'none';
+            }
+        }, { passive: true });
+
+        dragHandle.addEventListener('touchend', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            const deltaY = currentY - startY;
+            if (panel) {
+                panel.style.transform = '';
+                panel.style.transition = '';
+            }
+            if (deltaY > 50) {
+                closePlacePanel();
+            }
+        });
+
+        dragHandle.addEventListener('click', () => {
+            closePlacePanel();
+        });
+    }
+
     // Opening Hours Accordion Toggle
     if (hoursToggle && hoursWrapper) {
         hoursToggle.addEventListener('click', (e) => {
@@ -572,6 +616,300 @@ function handleUrlParamsOnLoad() {
 
 
 let currentCarouselIndex = 0;
+window.currentCarouselIndex = 0;
+let inline360Viewer = null;
+let inline360PanoUrl = null;
+let inline360Place = null;
+let inline360Initialized = false;
+let inline360LoadTimeout = null;
+let placePanel360ManifestCache = null;
+
+async function fetchManifestNode(nodeId) {
+    if (!nodeId) return null;
+    if (!placePanel360ManifestCache) {
+        try {
+            const res = await fetch('../assets/360/manifest.json');
+            if (res.ok) {
+                const data = await res.json();
+                placePanel360ManifestCache = {};
+                (data.nodes || []).forEach(n => {
+                    placePanel360ManifestCache[n.id] = n;
+                });
+            }
+        } catch (e) {
+            console.warn('[360 Manifest] Could not load manifest.json in place-panel:', e);
+        }
+    }
+    if (placePanel360ManifestCache && placePanel360ManifestCache[nodeId]) {
+        return placePanel360ManifestCache[nodeId];
+    }
+    if (nodeId === '14.202352_121.158453') {
+        return {
+            id: '14.202352_121.158453',
+            file: '14.202352, 121.158453.jpg',
+            northOffset: 61.5
+        };
+    }
+    return null;
+}
+
+function destroyInline360Viewer() {
+    if (inline360LoadTimeout) {
+        clearTimeout(inline360LoadTimeout);
+        inline360LoadTimeout = null;
+    }
+    if (inline360Viewer) {
+        try {
+            inline360Viewer.destroy();
+        } catch (_) {}
+        inline360Viewer = null;
+    }
+    window._inline360Viewer = null;
+    window.inline360Viewer = null;
+    const container = document.getElementById('ppInline360Container');
+    if (container) {
+        container.innerHTML = '';
+    }
+    inline360Initialized = false;
+    inline360Place = null;
+    inline360PanoUrl = null;
+}
+window.destroyInline360Viewer = destroyInline360Viewer;
+
+function attachInline360Containment(containerEl) {
+    if (!containerEl) return;
+
+    // Prevent scrolling parent .panel-body or page during 360 touch drag & pinch
+    containerEl.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+
+    // Prevent wheel from scrolling the page or panel-body, while letting Pannellum zoom
+    containerEl.addEventListener('wheel', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+
+    // Prevent Safari/iOS pinch-to-zoom on the webpage
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(evt => {
+        containerEl.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        }, { passive: false });
+    });
+}
+
+function triggerInline360Error() {
+    if (inline360LoadTimeout) {
+        clearTimeout(inline360LoadTimeout);
+        inline360LoadTimeout = null;
+    }
+    const skeleton = document.getElementById('ppInline360Skeleton');
+    if (skeleton) skeleton.style.display = 'none';
+    const hint = document.getElementById('ppInline360Hint');
+    if (hint) hint.style.display = 'none';
+    const errorPanel = document.getElementById('ppInline360Error');
+    if (errorPanel) errorPanel.style.display = 'flex';
+}
+
+function showFirstTimeHint() {
+    let seen = false;
+    try {
+        seen = localStorage.getItem('calzada_360_hint_seen') === '1';
+    } catch (_) {
+        seen = Boolean(window._calzada360HintSeen);
+    }
+    if (seen) return;
+
+    const hint = document.getElementById('ppInline360Hint');
+    if (!hint) return;
+
+    hint.style.display = 'flex';
+    hint.classList.remove('hiding');
+    hint.classList.add('entering');
+
+    let dismissed = false;
+    function dismissHint() {
+        if (dismissed) return;
+        dismissed = true;
+        try {
+            localStorage.setItem('calzada_360_hint_seen', '1');
+        } catch (_) {
+            window._calzada360HintSeen = true;
+        }
+        hint.classList.remove('entering');
+        hint.classList.add('hiding');
+        setTimeout(() => {
+            if (hint.classList.contains('hiding')) {
+                hint.style.display = 'none';
+            }
+        }, 180);
+
+        const container = document.getElementById('ppInline360Container');
+        if (container) {
+            container.removeEventListener('pointerdown', onAction, true);
+            container.removeEventListener('touchstart', onAction, true);
+            container.removeEventListener('wheel', onAction, true);
+        }
+    }
+
+    const timer = setTimeout(dismissHint, 2500);
+
+    function onAction() {
+        clearTimeout(timer);
+        dismissHint();
+    }
+
+    const container = document.getElementById('ppInline360Container');
+    if (container) {
+        container.addEventListener('pointerdown', onAction, { capture: true, once: true });
+        container.addEventListener('touchstart', onAction, { capture: true, once: true });
+        container.addEventListener('wheel', onAction, { capture: true, once: true });
+    }
+}
+
+async function initInline360Viewer(place) {
+    if (!place) return;
+    if (place.name && typeof window !== 'undefined' && window.placesData && window.placesData[place.name]) {
+        place = { ...place, ...window.placesData[place.name] };
+    }
+    const container = document.getElementById('ppInline360Container');
+    const skeleton = document.getElementById('ppInline360Skeleton');
+    const errorPanel = document.getElementById('ppInline360Error');
+    const retryBtn = document.getElementById('ppInline360RetryBtn');
+    const fsBtn = document.getElementById('ppHeroFullscreenBtn');
+    if (!container) return;
+
+    if (skeleton) {
+        skeleton.style.display = 'flex';
+        skeleton.style.opacity = '1';
+    }
+    if (errorPanel) {
+        errorPanel.style.display = 'none';
+    }
+
+    if (inline360LoadTimeout) {
+        clearTimeout(inline360LoadTimeout);
+        inline360LoadTimeout = null;
+    }
+
+    if (inline360Viewer) {
+        try { inline360Viewer.destroy(); } catch (_) {}
+        inline360Viewer = null;
+    }
+    container.innerHTML = '';
+
+    let panoUrl = null;
+    let northOffsetVal = 0;
+    const fallbackNodeId = place.fallbackNodeId;
+
+    if (fallbackNodeId) {
+        let nodeConfig = await fetchManifestNode(fallbackNodeId);
+        if (!nodeConfig && fallbackNodeId === '14.202352_121.158453') {
+            nodeConfig = { file: '14.202352, 121.158453.jpg', northOffset: 61.5 };
+        }
+        if (nodeConfig && nodeConfig.file) {
+            panoUrl = `../assets/360/${encodeURIComponent(nodeConfig.file)}`;
+            northOffsetVal = nodeConfig.northOffset || 0;
+        } else {
+            const defaultFilename = `${fallbackNodeId.replace('_', ', ')}.jpg`;
+            panoUrl = `../assets/360/${encodeURIComponent(defaultFilename)}`;
+        }
+    } else if (place.pano) {
+        panoUrl = resolvePlaceImageUrl(place.pano);
+    }
+
+    if (!panoUrl) {
+        triggerInline360Error();
+        return;
+    }
+
+    inline360PanoUrl = panoUrl;
+
+    if (retryBtn) {
+        retryBtn.onclick = (e) => {
+            e.stopPropagation();
+            initInline360Viewer(place);
+        };
+    }
+
+    if (fsBtn) {
+        fsBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (fallbackNodeId) {
+                if (typeof window.launch360Viewer === 'function') {
+                    window.launch360Viewer(fallbackNodeId);
+                } else if (typeof window._open360Viewer === 'function') {
+                    window._open360Viewer(fallbackNodeId);
+                }
+            } else if (place.pano) {
+                let curYaw = 0;
+                let curPitch = -5;
+                let curHfov = 100;
+                if (inline360Viewer) {
+                    try {
+                        curYaw = inline360Viewer.getYaw();
+                        curPitch = inline360Viewer.getPitch();
+                        curHfov = inline360Viewer.getHfov();
+                    } catch (_) {}
+                }
+                launchPlacePano(place.pano, place.name, {
+                    yaw: curYaw,
+                    pitch: curPitch,
+                    hfov: curHfov
+                });
+            }
+        };
+    }
+
+    inline360LoadTimeout = setTimeout(() => {
+        triggerInline360Error();
+    }, 15000);
+
+    try {
+        inline360Viewer = window.pannellum.viewer('ppInline360Container', {
+            type: 'equirectangular',
+            panorama: panoUrl,
+            autoLoad: true,
+            showControls: false,
+            showFullscreenCtrl: false,
+            showZoomCtrl: false,
+            mouseZoom: true,
+            draggable: true,
+            keyboardZoom: true,
+            hfov: 100,
+            minHfov: 50,
+            maxHfov: 120,
+            autoRotate: 0,
+            compass: false,
+            friction: 0.15,
+            northOffset: northOffsetVal || 0
+        });
+
+        window._inline360Viewer = inline360Viewer;
+        window.inline360Viewer = inline360Viewer;
+
+        inline360Viewer.on('load', () => {
+            if (inline360LoadTimeout) {
+                clearTimeout(inline360LoadTimeout);
+                inline360LoadTimeout = null;
+            }
+            if (skeleton) {
+                skeleton.style.opacity = '0';
+                setTimeout(() => {
+                    skeleton.style.display = 'none';
+                }, 200);
+            }
+            showFirstTimeHint();
+        });
+
+        inline360Viewer.on('error', () => {
+            triggerInline360Error();
+        });
+    } catch (err) {
+        console.warn('[Inline360] init error:', err);
+        triggerInline360Error();
+    }
+}
 
 function setupCarousel(place) {
     const slidesContainer = document.getElementById('ppCarouselSlides');
@@ -582,9 +920,16 @@ function setupCarousel(place) {
     const heroSkeleton = document.getElementById('ppHeroSkeleton');
 
     if (!slidesContainer) return;
+
+    // Reset previous inline 360 viewer instance
+    destroyInline360Viewer();
+    inline360Place = place;
+    inline360Initialized = false;
+
     slidesContainer.innerHTML = '';
     if (dotsContainer) dotsContainer.innerHTML = '';
     currentCarouselIndex = 0;
+    window.currentCarouselIndex = 0;
 
     const placeName = place?.name || '';
     const rawPhoto = place?.photo !== undefined ? place.photo : (place?.image_path || place?.image || null);
@@ -594,9 +939,6 @@ function setupCarousel(place) {
 
     const pano = (place?.pano && typeof place.pano === 'string' && place.pano.trim() !== '')
         ? place.pano.trim()
-        : null;
-    const panoThumb = (place?.pano_thumb && typeof place.pano_thumb === 'string' && place.pano_thumb.trim() !== '')
-        ? place.pano_thumb.trim()
         : null;
 
     // Check Street View fallback (e.g. STI College fallback from place-links.json)
@@ -645,6 +987,7 @@ function setupCarousel(place) {
     // --- SLIDE 2: 360° of the Establishment ---
     const slide2Wrap = document.createElement('div');
     slide2Wrap.className = 'carousel-slide-wrap';
+    slide2Wrap.id = 'ppSlide2Wrap';
 
     const chip2 = document.createElement('span');
     chip2.className = 'hero-slide-chip';
@@ -653,56 +996,99 @@ function setupCarousel(place) {
     slide2Wrap.appendChild(chip2);
 
     if (hasPano) {
-        if (panoThumb) {
-            const thumbImg = document.createElement('img');
-            thumbImg.className = 'carousel-slide';
-            thumbImg.alt = `${placeName} 360° preview`;
-            thumbImg.src = resolvePlaceImageUrl(panoThumb);
-            slide2Wrap.appendChild(thumbImg);
-        } else {
-            const iconPlaceholder = document.createElement('div');
-            iconPlaceholder.className = 'hero-placeholder-slide';
-            iconPlaceholder.innerHTML = `
-                <svg class="hero-placeholder-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="9"/>
-                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                </svg>
-            `;
-            slide2Wrap.appendChild(iconPlaceholder);
-        }
+        // Container for Pannellum
+        const inlineContainer = document.createElement('div');
+        inlineContainer.className = 'inline-360-container';
+        inlineContainer.id = 'ppInline360Container';
+        inlineContainer.setAttribute('role', 'application');
+        inlineContainer.setAttribute('tabindex', '0');
+        const ariaLabel = typeof window.t === 'function'
+            ? window.t('places.popup.aria_360_label', { name: placeName })
+            : `${placeName} 360° view`;
+        inlineContainer.setAttribute('aria-label', ariaLabel);
+        attachInline360Containment(inlineContainer);
+        slide2Wrap.appendChild(inlineContainer);
 
-        const actionBtn = document.createElement('button');
-        actionBtn.type = 'button';
-        actionBtn.className = 'hero-360-action-btn';
-        actionBtn.id = 'ppHero360ActionBtn';
-        actionBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°');
-        actionBtn.innerHTML = `
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="9"/>
-                <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+        // Skeleton overlay
+        const skeleton = document.createElement('div');
+        skeleton.className = 'inline-360-skeleton';
+        skeleton.id = 'ppInline360Skeleton';
+        const loadText = typeof window.t === 'function' ? window.t('places.popup.loading_360') : 'Loading 360°…';
+        skeleton.innerHTML = `
+            <svg class="inline-360-skeleton-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 15.328c2.414 -.718 4 -1.94 4 -3.328c0 -2.21 -4.03 -4 -9 -4s-9 1.79 -9 4s4.03 4 9 4"/>
+                <path d="M9 13l3 3l-3 3"/>
             </svg>
-            <span id="ppHero360BtnText">${typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°'}</span>
+            <p class="inline-360-skeleton-text" id="ppInline360LoadingText">${loadText}</p>
         `;
-        actionBtn.onclick = (e) => {
-            e.stopPropagation();
-            if (fallbackNodeId) {
-                if (typeof window.launch360Viewer === 'function') {
-                    window.launch360Viewer(fallbackNodeId);
-                } else if (typeof window._open360Viewer === 'function') {
-                    window._open360Viewer(fallbackNodeId);
-                }
-            } else if (pano) {
-                launchPlacePano(pano, placeName);
-            }
-        };
-        slide2Wrap.appendChild(actionBtn);
+        slide2Wrap.appendChild(skeleton);
+
+        // Error panel
+        const errorPanel = document.createElement('div');
+        errorPanel.className = 'inline-360-error';
+        errorPanel.id = 'ppInline360Error';
+        errorPanel.style.display = 'none';
+        const errText = typeof window.t === 'function' ? window.t('places.popup.error_360') : "Couldn't load the 360° view.";
+        const retText = typeof window.t === 'function' ? window.t('places.popup.retry') : 'Retry';
+        errorPanel.innerHTML = `
+            <svg class="inline-360-error-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p class="inline-360-error-text" id="ppInline360ErrorText">${errText}</p>
+            <button type="button" class="inline-360-retry-btn" id="ppInline360RetryBtn">${retText}</button>
+        `;
+        slide2Wrap.appendChild(errorPanel);
+
+        // Fullscreen button
+        const fsBtn = document.createElement('button');
+        fsBtn.type = 'button';
+        fsBtn.className = 'hero-fullscreen-btn';
+        fsBtn.id = 'ppHeroFullscreenBtn';
+        const fsAria = typeof window.t === 'function' ? window.t('places.popup.fullscreen') : 'Full screen';
+        fsBtn.setAttribute('aria-label', fsAria);
+        fsBtn.innerHTML = `
+            <svg class="hero-fullscreen-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8v-2a2 2 0 0 1 2 -2h2"/>
+                <path d="M4 16v2a2 2 0 0 0 2 2h2"/>
+                <path d="M16 4h2a2 2 0 0 1 2 2v2"/>
+                <path d="M16 20h2a2 2 0 0 0 2 -2v-2"/>
+            </svg>
+        `;
+        slide2Wrap.appendChild(fsBtn);
+
+        // First-time hint
+        const hint = document.createElement('div');
+        hint.className = 'inline-360-hint';
+        hint.id = 'ppInline360Hint';
+        hint.setAttribute('role', 'status');
+        hint.setAttribute('aria-live', 'polite');
+        hint.style.display = 'none';
+        const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+        const hintLine1 = typeof window.t === 'function' ? window.t('places.popup.hint_drag') : 'Drag to look around';
+        const hintLine2Key = isTouch ? 'places.popup.hint_zoom_touch' : 'places.popup.hint_zoom_desktop';
+        const hintLine2 = typeof window.t === 'function' ? window.t(hintLine2Key) : (isTouch ? 'Pinch to zoom' : 'Scroll to zoom');
+        hint.innerHTML = `
+            <div class="inline-360-hint-icon-circle">
+                <svg class="inline-360-hint-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M8 13v-8.5a1.5 1.5 0 0 1 3 0v7.5"/>
+                    <path d="M11 11.5v-2a1.5 1.5 0 0 1 3 0v2.5"/>
+                    <path d="M14 10.5a1.5 1.5 0 0 1 3 0v1.5"/>
+                    <path d="M17 11.5a1.5 1.5 0 0 1 3 0v4.5a6 6 0 0 1 -6 6h-2h.208a6 6 0 0 1 -5.012 -2.7a69.74 69.74 0 0 1 -.196 -.3c-.312 -.479 -1.407 -2.388 -3.286 -5.728a1.5 1.5 0 0 1 .536 -2.022a1.867 1.867 0 0 1 2.28 .28l1.47 1.47"/>
+                </svg>
+            </div>
+            <div class="inline-360-hint-text">
+                <span class="inline-360-hint-line1" id="ppInline360HintLine1">${hintLine1}</span>
+                <span class="inline-360-hint-line2" id="ppInline360HintLine2">${hintLine2}</span>
+            </div>
+        `;
+        slide2Wrap.appendChild(hint);
     } else {
         const placeholderSlide = document.createElement('div');
         placeholderSlide.className = 'hero-placeholder-slide';
         placeholderSlide.innerHTML = `
-            <svg class="hero-placeholder-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg class="hero-placeholder-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="9"/>
                 <path d="M3.6 9h16.8M3.6 15h16.8"/>
                 <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
@@ -716,9 +1102,11 @@ function setupCarousel(place) {
 
     // --- DOTS: Always exactly 2 dots ---
     if (dotsContainer) {
+        const dot1Aria = typeof window.t === 'function' ? window.t('places.popup.dot_photo') : 'Slide 1 of 2 – Photo';
+        const dot2Aria = typeof window.t === 'function' ? window.t('places.popup.dot_360') : 'Slide 2 of 2 – 360°';
         dotsContainer.innerHTML = `
-            <button type="button" class="carousel-dot active" data-index="0" aria-label="Slide 1: Photo" tabindex="0"></button>
-            <button type="button" class="carousel-dot" data-index="1" aria-label="Slide 2: 360°" tabindex="0"></button>
+            <button type="button" class="carousel-dot active" data-index="0" aria-label="${dot1Aria}" tabindex="0" aria-current="true"></button>
+            <button type="button" class="carousel-dot" data-index="1" aria-label="${dot2Aria}" tabindex="0"></button>
         `;
         dotsContainer.style.display = 'flex';
         const dots = dotsContainer.querySelectorAll('.carousel-dot');
@@ -736,8 +1124,17 @@ function setupCarousel(place) {
         });
     }
 
-    // --- DESKTOP ARROWS ---
+    // --- ARROWS ---
     if (prevBtn && nextBtn) {
+        prevBtn.style.display = 'flex';
+        nextBtn.style.display = 'flex';
+        prevBtn.style.visibility = 'hidden';
+        prevBtn.style.pointerEvents = 'none';
+        nextBtn.style.visibility = 'visible';
+        nextBtn.style.pointerEvents = 'auto';
+        prevBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.prev') : 'Previous');
+        nextBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.next') : 'Next');
+
         prevBtn.onclick = (e) => {
             e.stopPropagation();
             goToCarouselSlide(0);
@@ -754,6 +1151,7 @@ function setupCarousel(place) {
         let touchStartY = 0;
 
         carouselEl.ontouchstart = (e) => {
+            if (e.target && e.target.closest('#ppInline360Container')) return;
             if (e.touches && e.touches.length > 0) {
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
@@ -761,17 +1159,17 @@ function setupCarousel(place) {
         };
 
         carouselEl.ontouchend = (e) => {
+            if (e.target && e.target.closest('#ppInline360Container')) return;
             if (e.changedTouches && e.changedTouches.length > 0) {
                 const touchEndX = e.changedTouches[0].clientX;
                 const touchEndY = e.changedTouches[0].clientY;
                 const diffX = touchStartX - touchEndX;
                 const diffY = touchStartY - touchEndY;
 
+                // Swipe on slide 1 goes to slide 2; swipe on slide 2 does NOT change slides
                 if (Math.abs(diffX) > 35 && Math.abs(diffX) > Math.abs(diffY)) {
-                    if (diffX > 0) {
+                    if (currentCarouselIndex === 0 && diffX > 0) {
                         goToCarouselSlide(1);
-                    } else {
-                        goToCarouselSlide(0);
                     }
                 }
             }
@@ -798,6 +1196,7 @@ function renderPhotoPlaceholder(container) {
 function goToCarouselSlide(index) {
     index = Math.max(0, Math.min(1, index));
     currentCarouselIndex = index;
+    window.currentCarouselIndex = index;
 
     const slidesContainer = document.getElementById('ppCarouselSlides');
     if (slidesContainer) {
@@ -818,16 +1217,62 @@ function goToCarouselSlide(index) {
     const prevBtn = document.getElementById('ppCarouselPrev');
     const nextBtn = document.getElementById('ppCarouselNext');
     if (prevBtn && nextBtn) {
-        prevBtn.style.display = index === 1 ? 'flex' : 'none';
-        nextBtn.style.display = index === 0 ? 'flex' : 'none';
+        if (index === 0) {
+            prevBtn.style.visibility = 'hidden';
+            prevBtn.style.pointerEvents = 'none';
+            nextBtn.style.visibility = 'visible';
+            nextBtn.style.pointerEvents = 'auto';
+        } else {
+            prevBtn.style.visibility = 'visible';
+            prevBtn.style.pointerEvents = 'auto';
+            nextBtn.style.visibility = 'hidden';
+            nextBtn.style.pointerEvents = 'none';
+        }
+    }
+
+    // Lazy initialization & resize of inline 360 viewer
+    if (index === 1 && inline360Place) {
+        const hasPano = Boolean(inline360Place.pano || inline360Place.fallbackNodeId);
+        if (hasPano) {
+            if (!inline360Initialized) {
+                inline360Initialized = true;
+                initInline360Viewer(inline360Place);
+            } else if (inline360Viewer) {
+                requestAnimationFrame(() => {
+                    try { inline360Viewer.resize(); } catch (_) {}
+                });
+            }
+        }
     }
 }
+window.goToCarouselSlide = goToCarouselSlide;
+
+// Window resize & orientationchange for inline 360 viewer
+window.addEventListener('resize', () => {
+    if (currentCarouselIndex === 1 && inline360Viewer) {
+        try { inline360Viewer.resize(); } catch (_) {}
+    }
+});
+window.addEventListener('orientationchange', () => {
+    if (currentCarouselIndex === 1 && inline360Viewer) {
+        setTimeout(() => {
+            try { inline360Viewer.resize(); } catch (_) {}
+        }, 150);
+    }
+});
 
 // Global Keyboard Left / Right navigation for popup hero slides
 window.addEventListener('keydown', (e) => {
     const panel = document.getElementById('placePanel');
     if (!panel || !panel.classList.contains('active')) return;
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+
+    // Do NOT navigate slides if focus is inside the 360 container (allow keys to pan the 360)
+    const inlineContainer = document.getElementById('ppInline360Container');
+    if (inlineContainer && (e.target === inlineContainer || inlineContainer.contains(e.target))) {
+        return;
+    }
+
     if (e.key === 'ArrowLeft') {
         e.preventDefault();
         goToCarouselSlide(0);
@@ -837,12 +1282,21 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
+// Cleanup on unload
+window.addEventListener('pagehide', () => {
+    destroyInline360Viewer();
+});
+window.addEventListener('beforeunload', () => {
+    destroyInline360Viewer();
+});
+
 /**
  * Launch single establishment 360 panorama in the existing Pannellum viewer overlay
  * @param {string} panoUrl
  * @param {string} placeName
+ * @param {object} [initialView]
  */
-function launchPlacePano(panoUrl, placeName) {
+function launchPlacePano(panoUrl, placeName, initialView) {
     if (!panoUrl) return;
 
     const targetOverlay = document.getElementById('calzadaStreetviewOverlay');
@@ -899,9 +1353,9 @@ function launchPlacePano(panoUrl, placeName) {
             showZoomCtrl: true,
             showFullscreenCtrl: true,
             compass: false,
-            hfov: 100,
-            pitch: -5,
-            yaw: 0
+            hfov: (initialView && typeof initialView.hfov === 'number') ? initialView.hfov : 100,
+            pitch: (initialView && typeof initialView.pitch === 'number') ? initialView.pitch : -5,
+            yaw: (initialView && typeof initialView.yaw === 'number') ? initialView.yaw : 0
         });
     } catch (err) {
         console.error('[launchPlacePano] Viewer error:', err.message || err);
@@ -1818,8 +2272,16 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     const prevBtn = document.getElementById('ppCarouselPrev');
     const nextBtn = document.getElementById('ppCarouselNext');
     const dotsContainer = document.getElementById('ppCarouselDots');
-    if (prevBtn) prevBtn.style.display = 'none';
-    if (nextBtn) nextBtn.style.display = 'none';
+    if (prevBtn) {
+        prevBtn.style.display = 'flex';
+        prevBtn.style.visibility = 'hidden';
+        prevBtn.style.pointerEvents = 'none';
+    }
+    if (nextBtn) {
+        nextBtn.style.display = 'flex';
+        nextBtn.style.visibility = 'visible';
+        nextBtn.style.pointerEvents = 'auto';
+    }
     if (dotsContainer) dotsContainer.style.display = 'none';
 
     const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
@@ -2141,12 +2603,15 @@ if (!window._open360Viewer) {
     };
 }
 
-window.closePlacePanel = function(updateHistory = true) {
+function closePlacePanel(updateHistory = true) {
     const backdrop = document.getElementById('placePanelBackdrop');
     const panel = document.getElementById('placePanel');
     if (backdrop) backdrop.classList.remove('active');
     if (panel) panel.classList.remove('active');
     document.body.style.overflow = ''; 
+
+    // Destroy inline 360 viewer
+    destroyInline360Viewer();
 
     // Reset skeletons and carousel slides for next open
     const heroSkeleton = document.getElementById('ppHeroSkeleton');
@@ -2185,7 +2650,8 @@ window.closePlacePanel = function(updateHistory = true) {
             window._lastFocusedPlaceCard.focus();
         } catch (_) {}
     }
-};
+}
+window.closePlacePanel = closePlacePanel;
 
 // Escape key to close place panel and return focus (req 9)
 window.addEventListener('keydown', (e) => {
@@ -2205,6 +2671,52 @@ function updatePlacePanelI18n() {
     const chipPano = document.getElementById('ppHeroChipPano');
     if (chipPano) {
         chipPano.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_360') : '360°';
+    }
+    const prevBtn = document.getElementById('ppCarouselPrev');
+    if (prevBtn) {
+        prevBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.prev') : 'Previous');
+    }
+    const nextBtn = document.getElementById('ppCarouselNext');
+    if (nextBtn) {
+        nextBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.next') : 'Next');
+    }
+    const dots = document.querySelectorAll('#ppCarouselDots .carousel-dot');
+    if (dots && dots.length >= 2) {
+        dots[0].setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.dot_photo') : 'Slide 1 of 2 – Photo');
+        dots[1].setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.dot_360') : 'Slide 2 of 2 – 360°');
+    }
+    const inlineContainer = document.getElementById('ppInline360Container');
+    if (inlineContainer && currentActivePlace) {
+        const aLabel = typeof window.t === 'function'
+            ? window.t('places.popup.aria_360_label', { name: currentActivePlace.name || '' })
+            : `${currentActivePlace.name} 360° view`;
+        inlineContainer.setAttribute('aria-label', aLabel);
+    }
+    const loadingText = document.getElementById('ppInline360LoadingText');
+    if (loadingText) {
+        loadingText.textContent = typeof window.t === 'function' ? window.t('places.popup.loading_360') : 'Loading 360°…';
+    }
+    const errorText = document.getElementById('ppInline360ErrorText');
+    if (errorText) {
+        errorText.textContent = typeof window.t === 'function' ? window.t('places.popup.error_360') : "Couldn't load the 360° view.";
+    }
+    const retryBtn = document.getElementById('ppInline360RetryBtn');
+    if (retryBtn) {
+        retryBtn.textContent = typeof window.t === 'function' ? window.t('places.popup.retry') : 'Retry';
+    }
+    const fsBtn = document.getElementById('ppHeroFullscreenBtn');
+    if (fsBtn) {
+        fsBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.fullscreen') : 'Full screen');
+    }
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    const hintLine1 = document.getElementById('ppInline360HintLine1');
+    if (hintLine1) {
+        hintLine1.textContent = typeof window.t === 'function' ? window.t('places.popup.hint_drag') : 'Drag to look around';
+    }
+    const hintLine2 = document.getElementById('ppInline360HintLine2');
+    if (hintLine2) {
+        const line2Key = isTouch ? 'places.popup.hint_zoom_touch' : 'places.popup.hint_zoom_desktop';
+        hintLine2.textContent = typeof window.t === 'function' ? window.t(line2Key) : (isTouch ? 'Pinch to zoom' : 'Scroll to zoom');
     }
     const photoComingSoon = document.getElementById('ppPhotoComingSoonText');
     if (photoComingSoon) {
