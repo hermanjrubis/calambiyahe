@@ -3707,6 +3707,70 @@ document.addEventListener('DOMContentLoaded', () => {
                 eta: eta
             };
 
+            // Leave-time calculation for planned schedule (rule-based)
+            const hintBanner = document.getElementById('leaveTimeHintBanner');
+            const hintText = document.getElementById('leaveTimeHintText');
+            const remindBtn = document.getElementById('remindMeBtn');
+
+            if (hintBanner && hintText) {
+                if (window._calzadaPlannedSchedule && window._calzadaPlannedSchedule.targetTime) {
+                    const sched = window._calzadaPlannedSchedule;
+                    const bufferMin = isWalkOnly ? 0 : 10;
+                    let leaveAt, arriveAt;
+
+                    if (sched.mode === 'arrive') {
+                        leaveAt = new Date(sched.targetTime.getTime() - (totalMin + bufferMin) * 60 * 1000);
+                        arriveAt = new Date(sched.targetTime.getTime());
+                    } else {
+                        leaveAt = new Date(sched.targetTime.getTime());
+                        arriveAt = new Date(sched.targetTime.getTime() + (totalMin + bufferMin) * 60 * 1000);
+                    }
+
+                    const formatManila = (d) => {
+                        if (!d) return '--:--';
+                        const date = d instanceof Date ? d : new Date(d);
+                        return new Intl.DateTimeFormat('en-US', {
+                            timeZone: 'Asia/Manila',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                        }).format(date);
+                    };
+
+                    const leaveStr = formatManila(leaveAt);
+                    const arriveStr = formatManila(arriveAt);
+                    const hintMsg = window.t
+                        ? window.t('reminders.leave_by_arrive', { leaveTime: leaveStr, arriveTime: arriveStr })
+                        : `Leave by ${leaveStr} to arrive by ${arriveStr}`;
+
+                    hintText.textContent = hintMsg;
+                    hintBanner.style.removeProperty('display');
+                    hintBanner.style.display = 'flex';
+
+                    // Save context for Remind me action
+                    window._calzadaLeaveCalculation = {
+                        leaveAt,
+                        arriveAt,
+                        mode: isWalkOnly ? 'walk' : 'jeepney',
+                        totalMin,
+                        bufferMin,
+                        targetTime: sched.targetTime,
+                        fare: currentFare,
+                        destName: destPlaceName,
+                        destCoords: selectedCoords ? selectedCoords.destination : null,
+                        originLabel: originPlaceName
+                    };
+
+                    // Only show Remind me button if leaveAt is in the future
+                    if (remindBtn) {
+                        remindBtn.style.display = leaveAt.getTime() > Date.now() ? 'inline-flex' : 'none';
+                    }
+                } else {
+                    hintBanner.style.display = 'none';
+                    window._calzadaLeaveCalculation = null;
+                }
+            }
+
             renderItinerary();
         };
 
@@ -5923,25 +5987,387 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // =============================================
+        // DATETIME PICKER (LEAVE / ARRIVE) & SCHEDULE TRIGGER
+        // =============================================
+        const dtOverlay = document.getElementById('dtPickerOverlay');
+        const dtModal = document.getElementById('dtPickerModal');
+        const dtHrSlider = document.getElementById('dtHrSlider');
+        const dtMinSlider = document.getElementById('dtMinSlider');
+        const dtTimeDisplay = document.getElementById('dtTimeDisplay');
+        const dtAmBtn = document.getElementById('dtAmBtn');
+        const dtPmBtn = document.getElementById('dtPmBtn');
+        const dtLeaveBtn = document.getElementById('dtLeaveBtn');
+        const dtArriveBtn = document.getElementById('dtArriveBtn');
+        const dtNowBtn = document.getElementById('dtNowBtn');
+        const dtBackBtn = document.getElementById('dtBackBtn');
+        const dtConfirmBtn = document.getElementById('dtConfirmBtn');
+        const dtCalDays = document.getElementById('dtCalDays');
+        const dtCalMonthYear = document.getElementById('dtCalMonthYear');
+        const dtPrevMonth = document.getElementById('dtPrevMonth');
+        const dtNextMonth = document.getElementById('dtNextMonth');
+
+        let dtPickerMode = 'depart'; // 'depart' | 'arrive'
+        let dtAmPm = 'pm';
+        let dtCalDate = new Date();
+        let dtSelectedDate = new Date();
+
+        const pad2 = n => String(n).padStart(2, '0');
+
+        const updateDtTimeDisplay = () => {
+            if (!dtHrSlider || !dtMinSlider || !dtTimeDisplay) return;
+            const h = parseInt(dtHrSlider.value, 10) || 12;
+            const m = parseInt(dtMinSlider.value, 10) || 0;
+            dtTimeDisplay.textContent = `${pad2(h)}:${pad2(m)} ${dtAmPm}`;
+        };
+
+        const setDtAmPm = (val) => {
+            dtAmPm = val;
+            if (dtAmBtn) dtAmBtn.classList.toggle('active', val === 'am');
+            if (dtPmBtn) dtPmBtn.classList.toggle('active', val === 'pm');
+            updateDtTimeDisplay();
+        };
+
+        const renderDtCalendar = () => {
+            if (!dtCalDays || !dtCalMonthYear) return;
+            const year = dtCalDate.getFullYear();
+            const month = dtCalDate.getMonth();
+            const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            dtCalMonthYear.textContent = `${MONTHS[month]} ${year}`;
+
+            dtCalDays.innerHTML = '';
+            const today = new Date();
+            const todayFloor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('button');
+                empty.className = 'dt-cal-day empty';
+                empty.disabled = true;
+                dtCalDays.appendChild(empty);
+            }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const btn = document.createElement('button');
+                btn.className = 'dt-cal-day';
+                btn.textContent = d;
+
+                const thisDate = new Date(year, month, d);
+                const isToday = todayFloor.getTime() === thisDate.getTime();
+                const isSelected = new Date(dtSelectedDate.getFullYear(), dtSelectedDate.getMonth(), dtSelectedDate.getDate()).getTime() === thisDate.getTime();
+                const isPast = thisDate < todayFloor;
+
+                if (isToday) btn.classList.add('today');
+                if (isSelected) btn.classList.add('selected');
+                if (isPast) {
+                    btn.classList.add('past');
+                    btn.disabled = true;
+                }
+
+                btn.addEventListener('click', () => {
+                    dtSelectedDate = new Date(year, month, d);
+                    renderDtCalendar();
+                });
+
+                dtCalDays.appendChild(btn);
+            }
+        };
+
+        const setDtNow = () => {
+            const now = new Date();
+            let h = now.getHours();
+            const m = now.getMinutes();
+            const period = h >= 12 ? 'pm' : 'am';
+            h = h % 12 || 12;
+            if (dtHrSlider) dtHrSlider.value = h;
+            if (dtMinSlider) dtMinSlider.value = m;
+            setDtAmPm(period);
+            dtSelectedDate = new Date();
+            dtCalDate = new Date();
+            renderDtCalendar();
+            updateDtTimeDisplay();
+        };
+
+        const openDtPicker = (mode = 'depart') => {
+            dtPickerMode = mode;
+            if (dtLeaveBtn) dtLeaveBtn.classList.toggle('active', mode === 'depart');
+            if (dtArriveBtn) dtArriveBtn.classList.toggle('active', mode === 'arrive');
+            setDtNow();
+            if (dtOverlay) dtOverlay.classList.add('visible');
+            if (dtModal) dtModal.classList.add('visible');
+        };
+
+        const closeDtPicker = () => {
+            if (dtModal) dtModal.classList.remove('visible');
+            if (dtOverlay) dtOverlay.classList.remove('visible');
+        };
+
+        if (dtHrSlider) dtHrSlider.addEventListener('input', updateDtTimeDisplay);
+        if (dtMinSlider) dtMinSlider.addEventListener('input', updateDtTimeDisplay);
+        if (dtAmBtn) dtAmBtn.addEventListener('click', () => setDtAmPm('am'));
+        if (dtPmBtn) dtPmBtn.addEventListener('click', () => setDtAmPm('pm'));
+        if (dtNowBtn) dtNowBtn.addEventListener('click', setDtNow);
+        if (dtBackBtn) dtBackBtn.addEventListener('click', closeDtPicker);
+        if (dtOverlay) dtOverlay.addEventListener('click', closeDtPicker);
+        if (dtPrevMonth) dtPrevMonth.addEventListener('click', () => { dtCalDate.setMonth(dtCalDate.getMonth() - 1); renderDtCalendar(); });
+        if (dtNextMonth) dtNextMonth.addEventListener('click', () => { dtCalDate.setMonth(dtCalDate.getMonth() + 1); renderDtCalendar(); });
+
+        if (dtLeaveBtn) {
+            dtLeaveBtn.addEventListener('click', () => {
+                dtPickerMode = 'depart';
+                dtLeaveBtn.classList.add('active');
+                if (dtArriveBtn) dtArriveBtn.classList.remove('active');
+            });
+        }
+        if (dtArriveBtn) {
+            dtArriveBtn.addEventListener('click', () => {
+                dtPickerMode = 'arrive';
+                dtArriveBtn.classList.add('active');
+                if (dtLeaveBtn) dtLeaveBtn.classList.remove('active');
+            });
+        }
+
+        const formatManilaDisplayTime = (d) => {
+            if (!d) return '--:--';
+            const date = d instanceof Date ? d : new Date(d);
+            return new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Manila',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            }).format(date);
+        };
+
+        if (dtConfirmBtn) {
+            dtConfirmBtn.addEventListener('click', () => {
+                let h = parseInt(dtHrSlider.value, 10) || 12;
+                const m = parseInt(dtMinSlider.value, 10) || 0;
+                if (dtAmPm === 'pm' && h < 12) h += 12;
+                if (dtAmPm === 'am' && h === 12) h = 0;
+
+                const targetTime = new Date(
+                    dtSelectedDate.getFullYear(),
+                    dtSelectedDate.getMonth(),
+                    dtSelectedDate.getDate(),
+                    h,
+                    m,
+                    0
+                );
+
+                window._calzadaPlannedSchedule = {
+                    mode: dtPickerMode,
+                    targetTime: targetTime
+                };
+
+                const prefix = dtPickerMode === 'depart'
+                    ? (window.t ? window.t('planner.depart_at_pre') : 'Depart at')
+                    : (window.t ? window.t('planner.arrive_by_pre') : 'Arrive by');
+                const timeText = formatManilaDisplayTime(targetTime);
+                const schedTextEl = document.getElementById('scheduleSelectedText');
+                if (schedTextEl) {
+                    schedTextEl.textContent = `${prefix} ${timeText}`;
+                }
+
+                closeDtPicker();
+
+                // If a route is already calculated, refresh summary
+                if (selectedCoords && selectedCoords.destination) {
+                    updateSummaryRow();
+                }
+            });
+        }
+
         // Schedule Dropdown Trigger
         const schedSelect = document.getElementById('scheduleSelected');
         const schedOpts = document.getElementById('scheduleOptions');
-        schedSelect.addEventListener('click', () => schedOpts.classList.toggle('open'));
-        schedOpts.addEventListener('click', (e) => {
-            if (e.target.tagName === 'LI') {
-                const val = e.target.dataset.value;
-                // FIX ∗11: Depart/Arrive options not implemented — show toast instead of opening flatpickr
-                if (val !== 'now') {
-                    showToast(t('planner.toast_sched_soon'), 'info');
+        if (schedSelect) schedSelect.addEventListener('click', () => schedOpts.classList.toggle('open'));
+        if (schedOpts) {
+            schedOpts.addEventListener('click', (e) => {
+                const li = e.target.closest('li');
+                if (li) {
+                    const val = li.dataset.value;
                     schedOpts.classList.remove('open');
+                    schedOpts.querySelectorAll('li').forEach(l => l.classList.remove('active'));
+                    li.classList.add('active');
+
+                    if (val === 'now') {
+                        window._calzadaPlannedSchedule = null;
+                        const schedText = document.getElementById('scheduleSelectedText');
+                        if (schedText) schedText.textContent = li.textContent;
+                        if (selectedCoords && selectedCoords.destination) {
+                            updateSummaryRow();
+                        }
+                        return;
+                    }
+
+                    if (val === 'depart') {
+                        openDtPicker('depart');
+                        return;
+                    }
+
+                    if (val === 'arrive') {
+                        openDtPicker('arrive');
+                        return;
+                    }
+                }
+            });
+        }
+
+        // =============================================
+        // SMART TRAVEL REMINDERS UI
+        // =============================================
+        const remindMeBtn = document.getElementById('remindMeBtn');
+        const setReminderOverlay = document.getElementById('setReminderOverlay');
+        const setReminderModal = document.getElementById('setReminderModal');
+        const closeSetReminderBtn = document.getElementById('closeSetReminderBtn');
+        const saveReminderBtn = document.getElementById('saveReminderBtn');
+        const reminderWhenOptions = document.getElementById('reminderWhenOptions');
+        const reminderSignInOverlay = document.getElementById('reminderSignInOverlay');
+        const reminderSignInModal = document.getElementById('reminderSignInModal');
+        const closeReminderSignInBtn = document.getElementById('closeReminderSignInBtn');
+
+        const closeSetReminder = () => {
+            if (setReminderModal) setReminderModal.classList.remove('visible');
+            if (setReminderOverlay) setReminderOverlay.classList.remove('visible');
+        };
+
+        const closeReminderSignIn = () => {
+            if (reminderSignInModal) {
+                reminderSignInModal.classList.remove('visible');
+                reminderSignInModal.style.display = 'none';
+            }
+            if (reminderSignInOverlay) reminderSignInOverlay.classList.remove('visible');
+        };
+
+        if (closeSetReminderBtn) closeSetReminderBtn.addEventListener('click', closeSetReminder);
+        if (setReminderOverlay) setReminderOverlay.addEventListener('click', closeSetReminder);
+        if (closeReminderSignInBtn) closeReminderSignInBtn.addEventListener('click', closeReminderSignIn);
+        if (reminderSignInOverlay) reminderSignInOverlay.addEventListener('click', closeReminderSignIn);
+
+        if (reminderWhenOptions) {
+            reminderWhenOptions.addEventListener('click', (e) => {
+                const btn = e.target.closest('.reminder-opt-btn');
+                if (btn && !btn.disabled) {
+                    reminderWhenOptions.querySelectorAll('.reminder-opt-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        if (remindMeBtn) {
+            remindMeBtn.addEventListener('click', () => {
+                const user = window.CalzadaAuth?.getCurrentUser();
+                if (!user || user.isAnonymous) {
+                    if (reminderSignInOverlay) reminderSignInOverlay.classList.add('visible');
+                    if (reminderSignInModal) {
+                        reminderSignInModal.style.display = 'block';
+                        reminderSignInModal.classList.add('visible');
+                    }
                     return;
                 }
-                document.getElementById('scheduleSelectedText').textContent = e.target.textContent;
-                schedOpts.classList.remove('open');
-                schedOpts.querySelectorAll('li').forEach(l => l.classList.remove('active'));
-                e.target.classList.add('active');
-            }
-        });
+
+                const leaveCalc = window._calzadaLeaveCalculation;
+                if (!leaveCalc || !leaveCalc.leaveAt) {
+                    showToast(t('reminders.error_past') || 'Please select a future schedule.', 'warning');
+                    return;
+                }
+
+                const destEl = document.getElementById('setReminderDest');
+                const leaveTextEl = document.getElementById('setReminderLeaveText');
+                const emailEl = document.getElementById('setReminderEmail');
+
+                if (destEl) destEl.textContent = leaveCalc.destName || 'Destination';
+                if (leaveTextEl) leaveTextEl.textContent = document.getElementById('leaveTimeHintText')?.textContent || '';
+                if (emailEl) emailEl.textContent = user.email || 'your account email';
+
+                const now = Date.now();
+                const leaveMs = leaveCalc.leaveAt.getTime();
+                const optBtns = reminderWhenOptions ? reminderWhenOptions.querySelectorAll('.reminder-opt-btn') : [];
+
+                let firstValid = null;
+                optBtns.forEach(btn => {
+                    const offset = parseInt(btn.dataset.offset, 10) || 0;
+                    const remindMs = leaveMs - offset * 60 * 1000;
+                    if (remindMs <= now) {
+                        btn.disabled = true;
+                        btn.classList.remove('active');
+                    } else {
+                        btn.disabled = false;
+                        if (!firstValid) firstValid = btn;
+                    }
+                });
+
+                const opt10 = Array.from(optBtns).find(b => b.dataset.offset === '10' && !b.disabled);
+                const targetBtn = opt10 || firstValid;
+                if (targetBtn) {
+                    optBtns.forEach(b => b.classList.remove('active'));
+                    targetBtn.classList.add('active');
+                }
+
+                if (setReminderOverlay) setReminderOverlay.classList.add('visible');
+                if (setReminderModal) setReminderModal.classList.add('visible');
+            });
+        }
+
+        if (saveReminderBtn) {
+            saveReminderBtn.addEventListener('click', async () => {
+                const leaveCalc = window._calzadaLeaveCalculation;
+                if (!leaveCalc || !leaveCalc.leaveAt) {
+                    closeSetReminder();
+                    return;
+                }
+
+                const activeOpt = reminderWhenOptions?.querySelector('.reminder-opt-btn.active');
+                const offset = activeOpt ? parseInt(activeOpt.dataset.offset, 10) : 10;
+                const remindAt = new Date(leaveCalc.leaveAt.getTime() - offset * 60 * 1000);
+
+                if (remindAt.getTime() <= Date.now()) {
+                    showToast(t('reminders.error_past') || 'Reminder time must be in the future.', 'warning');
+                    return;
+                }
+
+                const spinner = document.getElementById('reminderSpinner');
+                saveReminderBtn.disabled = true;
+                if (spinner) spinner.style.display = 'inline-block';
+
+                try {
+                    if (!window.CalzadaReminders || !window.CalzadaReminders.createReminder) {
+                        throw new Error('MODULE_UNAVAILABLE');
+                    }
+
+                    const lang = (localStorage.getItem('calzada_lang') === 'tl') ? 'tl' : 'en';
+
+                    await window.CalzadaReminders.createReminder({
+                        destName: leaveCalc.destName,
+                        destLat: leaveCalc.destCoords ? leaveCalc.destCoords[0] : 0,
+                        destLng: leaveCalc.destCoords ? leaveCalc.destCoords[1] : 0,
+                        originLabel: leaveCalc.originLabel || 'My Location',
+                        mode: leaveCalc.mode || 'jeepney',
+                        leaveAt: leaveCalc.leaveAt,
+                        arriveBy: leaveCalc.arriveAt,
+                        remindAt: remindAt,
+                        lang: lang
+                    });
+
+                    closeSetReminder();
+                    const timeStr = formatManilaDisplayTime(remindAt);
+                    showToast(t('reminders.toast_saved', { time: timeStr }) || `Reminder set! We'll email you at ${timeStr}.`, 'success');
+                } catch (err) {
+                    console.error('Failed to create reminder:', err);
+                    if (err.message === 'LIMIT_REACHED') {
+                        showToast(t('reminders.error_limit') || 'Maximum of 10 scheduled reminders reached.', 'warning');
+                    } else if (err.message === 'TIME_IN_PAST') {
+                        showToast(t('reminders.error_past') || 'Reminder time must be in the future.', 'warning');
+                    } else {
+                        showToast(t('reminders.error_save') || "Couldn't save reminder. Try again.", 'error');
+                    }
+                } finally {
+                    saveReminderBtn.disabled = false;
+                    if (spinner) spinner.style.display = 'none';
+                }
+            });
+        }
 
         // Chatbot Trigger
         const drawerRoutieBtn = document.getElementById('drawerRoutieLink');

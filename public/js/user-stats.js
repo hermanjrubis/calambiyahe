@@ -16,12 +16,14 @@ import {
     getDocs, 
     addDoc, 
     deleteDoc,
+    updateDoc,
     query, 
     where,
     orderBy, 
     limit,
     startAfter,
     serverTimestamp,
+    Timestamp,
     onAuthStateChanged,
     signOut,
     updateProfile,
@@ -930,6 +932,250 @@ window.addEventListener('calzada_lang_changed', () => {
 
 window.CalzadaTrips = { canSave: canSaveTrips, saveTrip, open: openTripsModal };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TRAVEL REMINDERS: users/{uid}/reminders/{reminderId}
+// ─────────────────────────────────────────────────────────────────────────────
+let remindersState = {
+    uid: null,
+    items: [],
+    loaded: false,
+    loading: false,
+    error: false
+};
+const resetReminders = (uid = null) => {
+    remindersState = { uid, items: [], loaded: false, loading: false, error: false };
+};
+
+const ICON_REMINDER_BELL = '<svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg>';
+
+function renderRemindersModalText() {
+    const modal = document.getElementById('modalMyReminders');
+    if (!modal) return;
+    modal.querySelector('.modal-header-heading').textContent = ttr('reminders.my_title');
+    modal.querySelector('.modal-subtitle').textContent = ttr('reminders.my_subtitle');
+    modal.querySelector('.modal-close-btn').setAttribute('aria-label', ttr('trips.close'));
+}
+
+async function loadReminders() {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) {
+        resetReminders();
+        return;
+    }
+    remindersState.loading = true;
+    remindersState.error = false;
+    remindersState.uid = user.uid;
+
+    try {
+        const q = query(
+            collection(db, `users/${user.uid}/reminders`),
+            orderBy('createdAt', 'desc')
+        );
+        const snap = await getDocs(q);
+        const now = Date.now();
+        const cutoff24h = now - 24 * 60 * 60 * 1000;
+
+        remindersState.items = snap.docs.map(d => {
+            const data = d.data();
+            return {
+                id: d.id,
+                ...data,
+                leaveAtMs: tsToMs(data.leaveAt),
+                remindAtMs: tsToMs(data.remindAt),
+                createdAtMs: tsToMs(data.createdAt)
+            };
+        }).filter(item => {
+            // Past ones hidden after 24h:
+            if (item.leaveAtMs && item.leaveAtMs < cutoff24h) {
+                return false;
+            }
+            return true;
+        });
+
+        remindersState.loaded = true;
+    } catch (e) {
+        console.warn('Failed to load reminders:', e);
+        remindersState.error = true;
+    } finally {
+        remindersState.loading = false;
+    }
+}
+
+export function renderRemindersList() {
+    const container = document.getElementById('remindersListContainer');
+    if (!container) return;
+    renderRemindersModalText();
+
+    const emptyState = (title, desc, action = '') => `
+        <div class="saved-empty-state">
+            <div class="saved-empty-icon-box">${ICON_REMINDER_BELL.replace('width="22" height="22"', 'width="34" height="34"')}</div>
+            <h4 class="saved-empty-title">${escapeHtml(title)}</h4>
+            <p class="saved-empty-desc">${escapeHtml(desc)}</p>
+            ${action}
+        </div>`;
+
+    if (!canSaveTrips()) {
+        const back = encodeURIComponent(window.location.pathname + window.location.search);
+        container.innerHTML = emptyState(ttr('reminders.signed_out_title'), ttr('reminders.signed_out_desc'),
+            `<a href="/login?redirect=${back}" class="saved-empty-explore-btn"><span>${escapeHtml(ttr('reminders.sign_in'))}</span></a>`);
+        return;
+    }
+    if (!remindersState.loaded) {
+        container.innerHTML = remindersState.error
+            ? `<p class="trips-status" role="alert">${escapeHtml(ttr('reminders.error_save'))}</p>`
+            : `<p class="trips-status" aria-busy="true">${escapeHtml(ttr('trips.loading'))}</p>`;
+        return;
+    }
+    if (!remindersState.items.length) {
+        container.innerHTML = emptyState(ttr('reminders.empty_title'), ttr('reminders.empty_desc'));
+        return;
+    }
+
+    const fmtManila = (ms) => {
+        if (!ms) return '--:--';
+        return new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Manila',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        }).format(new Date(ms));
+    };
+
+    const rows = remindersState.items.map(rem => {
+        const dest = rem.destName || 'Destination';
+        const leaveFormatted = fmtManila(rem.leaveAtMs);
+        const remindFormatted = fmtManila(rem.remindAtMs);
+        const isJeep = rem.mode === 'jeepney';
+        const status = rem.status || 'scheduled';
+        const statusText = ttr(`reminders.status_${status}`) || status;
+        const canCancel = status === 'scheduled';
+
+        return `
+            <div class="reminder-item" data-reminder-id="${escapeHtml(rem.id)}">
+                <div class="reminder-item-left">
+                    <span class="reminder-item-icon" title="${escapeHtml(ttr(isJeep ? 'trips.mode_jeepney' : 'trips.mode_walk'))}">
+                        ${isJeep ? ICON_TRIP_JEEP : ICON_TRIP_WALK}
+                    </span>
+                    <div class="reminder-item-details">
+                        <div class="reminder-item-dest" title="${escapeHtml(dest)}">${escapeHtml(dest)}</div>
+                        <div class="reminder-item-time">Leave: <strong>${escapeHtml(leaveFormatted)}</strong></div>
+                        <div class="reminder-item-meta">Remind at: ${escapeHtml(remindFormatted)}</div>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="reminder-badge ${escapeHtml(status)}">${escapeHtml(statusText)}</span>
+                    ${canCancel ? `
+                        <button type="button" class="reminder-item-cancel" data-reminder-cancel="${escapeHtml(rem.id)}"
+                            aria-label="${escapeHtml(ttr('reminders.cancel_label', { dest }))}">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>`;
+    }).join('');
+
+    container.innerHTML = rows;
+}
+
+export async function openRemindersModal() {
+    try { await loadTicketLib(); } catch (e) { console.warn(e); }
+    openModal('modalMyReminders');
+    const user = auth.currentUser;
+    if (user && !user.isAnonymous && remindersState.uid !== user.uid) resetReminders(user.uid);
+    renderRemindersList();
+    requestAnimationFrame(() => document.querySelector('#modalMyReminders .modal-close-btn')?.focus({ preventScroll: true }));
+    if (canSaveTrips() && !remindersState.loaded) {
+        await loadReminders();
+        renderRemindersList();
+    }
+}
+
+async function cancelReminderAction(reminderId, btn) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
+    const T = await loadTicketLib();
+    const ok = await T.confirm({
+        title: ttr('reminders.cancel_confirm_title'),
+        message: ttr('reminders.cancel_confirm_msg'),
+        confirmLabel: ttr('reminders.cancel_btn'),
+        cancelLabel: ttr('reminders.keep_btn')
+    });
+    if (!ok) return;
+    if (btn) btn.disabled = true;
+
+    try {
+        await updateDoc(doc(db, `users/${user.uid}/reminders`, reminderId), {
+            status: 'cancelled'
+        });
+        const target = remindersState.items.find(r => r.id === reminderId);
+        if (target) target.status = 'cancelled';
+        renderRemindersList();
+        T.notify(ttr('reminders.toast_cancelled'));
+    } catch (e) {
+        console.warn('Reminder cancel failed:', (e && e.code) || e);
+        if (btn) btn.disabled = false;
+        T.notify(ttr('reminders.error_cancel'));
+    }
+}
+
+export async function createReminder(reminder) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) {
+        throw new Error('AUTH_REQUIRED');
+    }
+
+    // Limit check: at most 10 scheduled reminders
+    const q = query(
+        collection(db, `users/${user.uid}/reminders`),
+        where('status', '==', 'scheduled')
+    );
+    const snap = await getDocs(q);
+    if (snap.size >= 10) {
+        throw new Error('LIMIT_REACHED');
+    }
+
+    const remindAtMs = reminder.remindAt instanceof Date ? reminder.remindAt.getTime() : reminder.remindAt;
+    if (remindAtMs <= Date.now()) {
+        throw new Error('TIME_IN_PAST');
+    }
+
+    const data = {
+        destName: String(reminder.destName || '').slice(0, 120),
+        destLat: Number(reminder.destLat),
+        destLng: Number(reminder.destLng),
+        originLabel: String(reminder.originLabel || 'My Location').slice(0, 120),
+        mode: reminder.mode === 'walk' ? 'walk' : 'jeepney',
+        leaveAt: Timestamp.fromDate(reminder.leaveAt instanceof Date ? reminder.leaveAt : new Date(reminder.leaveAt)),
+        arriveBy: reminder.arriveBy ? Timestamp.fromDate(reminder.arriveBy instanceof Date ? reminder.arriveBy : new Date(reminder.arriveBy)) : null,
+        remindAt: Timestamp.fromDate(new Date(remindAtMs)),
+        channel: 'email',
+        lang: reminder.lang === 'tl' ? 'tl' : 'en',
+        status: 'scheduled',
+        createdAt: serverTimestamp(),
+        sentAt: null
+    };
+
+    const docRef = await addDoc(collection(db, `users/${user.uid}/reminders`), data);
+    remindersState.loaded = false; // reload next time list opens
+    return docRef.id;
+}
+
+export async function cancelReminder(reminderId) {
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) throw new Error('AUTH_REQUIRED');
+    await updateDoc(doc(db, `users/${user.uid}/reminders`, reminderId), {
+        status: 'cancelled'
+    });
+    remindersState.loaded = false;
+}
+
+window.CalzadaReminders = { open: openRemindersModal, createReminder, cancelReminder, loadReminders };
+
 /**
  * Update UI Counter numbers
  */
@@ -1226,6 +1472,21 @@ export function setupProfileUI() {
             e.preventDefault();
             closeDropdown();
             openTripsModal();
+            return;
+        }
+
+        const itemReminders = e.target.closest('#menuMyReminders');
+        if (itemReminders) {
+            e.preventDefault();
+            closeDropdown();
+            openRemindersModal();
+            return;
+        }
+
+        const itemCancelReminder = e.target.closest('#modalMyReminders [data-reminder-cancel]');
+        if (itemCancelReminder) {
+            e.preventDefault();
+            cancelReminderAction(itemCancelReminder.dataset.reminderCancel, itemCancelReminder);
             return;
         }
 
@@ -2224,6 +2485,23 @@ function createProfileModals() {
                 <div class="profile-modal-body">
                     <p class="modal-subtitle"></p>
                     <div class="visits-list-wrap" id="tripsListContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: My Reminders -->
+        <div class="profile-modal-overlay" id="modalMyReminders">
+            <div class="profile-modal-box">
+                <div class="profile-modal-header">
+                    <div class="modal-header-title">
+                        <div class="modal-header-icon-box">${ICON_REMINDER_BELL}</div>
+                        <h3 class="modal-header-heading">My Reminders</h3>
+                    </div>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+                </div>
+                <div class="profile-modal-body">
+                    <p class="modal-subtitle"></p>
+                    <div class="visits-list-wrap" id="remindersListContainer"></div>
                 </div>
             </div>
         </div>

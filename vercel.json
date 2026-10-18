@@ -76,5 +76,11 @@
         { "key": "Cache-Control", "value": "no-store" }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/reminders/dispatch",
+      "schedule": "0 0 * * *"
+    }
   ]
 }

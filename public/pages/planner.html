@@ -248,6 +248,14 @@
                             <span class="nav-btn-title" data-i18n="nav.user.my_trips">My Trips</span>
                         </button>
 
+                        <!-- My Reminders -->
+                        <button type="button" class="profile-nav-btn" id="menuMyReminders">
+                            <span class="nav-btn-icon">
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg>
+                            </span>
+                            <span class="nav-btn-title" data-i18n="nav.user.my_reminders">My Reminders</span>
+                        </button>
+
                         <!-- 2. Saved Places -->
                         <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                             <span class="nav-btn-icon">
@@ -421,6 +429,23 @@
                         <div class="summary-right">
                             <span id="sumFare" class="sum-fare-pill">--</span>
                         </div>
+                    </div>
+                    <!-- Leave-time Hint & Remind Me Row (Visible when Depart at / Arrive by is scheduled) -->
+                    <div class="leave-time-hint-banner" id="leaveTimeHintBanner" style="display: none;">
+                        <div class="leave-time-hint-left">
+                            <svg class="leave-time-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span class="leave-time-hint-text" id="leaveTimeHintText">Leave by --:-- to arrive by --:--</span>
+                        </div>
+                        <button class="remind-me-btn" id="remindMeBtn" type="button" aria-label="Remind me" title="Remind me">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                                <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                            </svg>
+                            <span data-i18n="reminders.remind_me">Remind me</span>
+                        </button>
                     </div>
                     <!-- Sequential Timeline Itinerary -->
                     <div class="itinerary-legs" id="itineraryLegs"></div>
@@ -804,6 +829,82 @@
                 <span id="authBtnText" data-i18n="planner.mobile_login">Continue with Mobile</span>
                 <div class="btn-spinner" id="authSpinner" style="display:none;"></div>
             </button>
+        </div>
+    </div>
+
+    <!-- ===== SET TRAVEL REMINDER MODAL ===== -->
+    <div class="modal-overlay" id="setReminderOverlay"></div>
+    <div class="set-reminder-modal glass-panel" id="setReminderModal" role="dialog" aria-modal="true" aria-labelledby="setReminderTitle">
+        <div class="set-reminder-header">
+            <div class="set-reminder-title-box">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                </svg>
+                <h3 class="set-reminder-title" id="setReminderTitle" data-i18n="reminders.set_title">Set Travel Reminder</h3>
+            </div>
+            <button class="modal-close-btn set-reminder-close-btn" id="closeSetReminderBtn" type="button" aria-label="Close reminder dialog">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <div class="set-reminder-body">
+            <div class="set-reminder-summary-box">
+                <div class="set-reminder-dest" id="setReminderDest">--</div>
+                <div class="set-reminder-leave-text" id="setReminderLeaveText">Leave by --:-- to arrive by --:--</div>
+            </div>
+
+            <!-- When Section -->
+            <div class="set-reminder-section">
+                <label class="set-reminder-label" data-i18n="reminders.when_label">When to remind</label>
+                <div class="set-reminder-options" id="reminderWhenOptions" role="radiogroup">
+                    <button type="button" class="reminder-opt-btn" data-offset="0" data-i18n="reminders.at_leave_time">At leave time</button>
+                    <button type="button" class="reminder-opt-btn active" data-offset="10" data-i18n="reminders.10_before">10 min before</button>
+                    <button type="button" class="reminder-opt-btn" data-offset="15" data-i18n="reminders.15_before">15 min before</button>
+                    <button type="button" class="reminder-opt-btn" data-offset="30" data-i18n="reminders.30_before">30 min before</button>
+                </div>
+            </div>
+
+            <!-- Channel Section -->
+            <div class="set-reminder-section">
+                <label class="set-reminder-label" data-i18n="reminders.channel_label">Channel</label>
+                <div class="set-reminder-channel-card">
+                    <div class="reminder-channel-left">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                        </svg>
+                        <div class="reminder-channel-info">
+                            <span class="reminder-channel-name" data-i18n="reminders.channel_email">Email</span>
+                            <span class="reminder-channel-account" id="setReminderEmail">--</span>
+                        </div>
+                    </div>
+                    <span class="reminder-channel-badge">Active</span>
+                </div>
+            </div>
+
+            <button type="button" class="cta-btn set-reminder-save-btn" id="saveReminderBtn">
+                <span data-i18n="reminders.save_btn">Save Reminder</span>
+                <div class="btn-spinner" id="reminderSpinner" style="display:none;"></div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Sign-in Prompt for Reminders -->
+    <div class="modal-overlay" id="reminderSignInOverlay"></div>
+    <div class="auth-modal glass-panel" id="reminderSignInModal" style="display:none;" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <div class="modal-title-row">
+                <ion-icon name="person-circle-outline" class="modal-icon-blue"></ion-icon>
+                <h3 id="reminderSignInTitle" data-i18n="reminders.toast_sign_in">Sign in to get reminders</h3>
+            </div>
+            <button class="modal-close-btn" id="closeReminderSignInBtn" aria-label="Close modal"><ion-icon name="close-outline"></ion-icon></button>
+        </div>
+        <div class="auth-body">
+            <p class="auth-desc" data-i18n="reminders.signed_out_desc">Reminders you schedule while signed in are kept in your account.</p>
+            <a href="/login?redirect=/planner" class="cta-btn reminder-signin-cta" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <ion-icon name="log-in-outline"></ion-icon>
+                <span data-i18n="reminders.sign_in">Sign in</span>
+            </a>
         </div>
     </div>
 

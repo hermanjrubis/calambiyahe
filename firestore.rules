@@ -36,7 +36,7 @@ service cloud.firestore {
 
     match /users/{userId}/{collectionId}/{rest=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId
-        && collectionId != 'trips';
+        && collectionId != 'trips' && collectionId != 'reminders';
     }
 
     // Trip history: users/{uid}/trips/{tripId} (tripId = the journey id).
@@ -93,6 +93,49 @@ service cloud.firestore {
         && request.auth.token.firebase.sign_in_provider != 'anonymous'
         && isValidTrip(request.resource.data);
       allow update: if false;
+    }
+
+    // Smart Travel Reminders: users/{uid}/reminders/{reminderId}
+    // Owner read & delete; owner create (non-anonymous, exact 13 fields, bounds & 30-day limits);
+    // owner update ONLY to set status from "scheduled" to "cancelled".
+    function isValidReminder(r) {
+      return r.keys().hasOnly([
+          'destName', 'destLat', 'destLng', 'originLabel', 'mode',
+          'leaveAt', 'arriveBy', 'remindAt', 'channel', 'lang',
+          'status', 'createdAt', 'sentAt'
+        ])
+        && r.keys().size() == 13
+        && r.destName is string && r.destName.size() >= 1 && r.destName.size() <= 120
+        && r.destLat is number && r.destLng is number
+        && r.destLat >= 13.9 && r.destLat <= 14.6
+        && r.destLng >= 120.9 && r.destLng <= 121.7
+        && r.originLabel is string && r.originLabel.size() <= 120
+        // no coordinates hidden in the label (a number with 3+ decimals)
+        && !r.originLabel.matches('.*[0-9]+[.][0-9]{3,}.*')
+        && r.mode in ['walk', 'jeepney']
+        && r.leaveAt is timestamp
+        && r.leaveAt >= request.time
+        && r.leaveAt < request.time + duration.value(30, 'd')
+        && (r.arriveBy == null || r.arriveBy is timestamp)
+        && r.remindAt is timestamp
+        && r.remindAt > request.time
+        && r.remindAt < request.time + duration.value(30, 'd')
+        && r.channel == 'email'
+        && r.lang in ['en', 'tl']
+        && r.status == 'scheduled'
+        && r.createdAt == request.time
+        && r.sentAt == null;
+    }
+
+    match /users/{userId}/reminders/{reminderId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && isValidReminder(request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && resource.data.status == 'scheduled'
+        && request.resource.data.status == 'cancelled';
     }
 
     // Submissions collection security rules (Legacy / Preserved)

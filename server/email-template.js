@@ -258,11 +258,124 @@ function generateFeedbackThankYouEmailHtml({ name, category }) {
     });
 }
 
+/**
+ * Smart Travel Reminder Email (Sent when remindAt is reached)
+ */
+function generateReminderEmailHtml({
+    destName,
+    originLabel,
+    leaveTimeStr,
+    arriveTimeStr,
+    modeStr,
+    fareStr,
+    plannerUrl,
+    lang = 'en'
+}) {
+    const isTl = lang === 'tl';
+    const safeDest = escapeHtml(destName || 'your destination');
+    const safeOrigin = escapeHtml(originLabel || 'Current Location');
+    const safeLeave = escapeHtml(leaveTimeStr || '--:--');
+    const safeArrive = escapeHtml(arriveTimeStr || '--:--');
+    const safeMode = escapeHtml(modeStr || (isTl ? 'Dyip' : 'Jeepney'));
+    const safeFare = escapeHtml(fareStr || (isTl ? 'Libre' : 'Free'));
+    const safeUrl = escapeHtml(plannerUrl || 'https://calzadaph.com/planner');
+
+    const subject = isTl
+        ? `Oras na para umalis papuntang ${destName}`
+        : `Time to leave for ${destName}`;
+
+    const headline = isTl ? 'Oras na para umalis!' : "It's time to leave!";
+    const subheader = isTl
+        ? `Narito ang paalala para sa iyong byahe papuntang <strong style="color: #042C53;">${safeDest}</strong>.`
+        : `Here are the details for your trip to <strong style="color: #042C53;">${safeDest}</strong>.`;
+
+    const labelLeave = isTl ? 'Umalis bago mag' : 'Leave by';
+    const labelArrive = isTl ? 'Tinatayang dating' : 'Estimated arrival';
+    const labelMode = isTl ? 'Sasakyan' : 'Mode';
+    const labelFare = isTl ? 'Pamasahe' : 'Fare estimate';
+    const labelOrigin = isTl ? 'Pinanggalingan' : 'Starting from';
+    const ctaText = isTl ? 'Buksan sa Calzada Planner' : 'Open in Calzada Planner';
+
+    const contentHtml = `
+      <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #2272C3; margin-bottom: 8px;">
+        ${isTl ? 'Paalala sa Byahe' : 'Travel Reminder'}
+      </div>
+      <h2 style="font-size: 22px; font-weight: 800; color: #042C53; margin: 0 0 12px 0; line-height: 1.3;">
+        ${headline}
+      </h2>
+      <p style="font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 24px 0;">
+        ${subheader}
+      </p>
+
+      <!-- Highlight Card -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; margin-bottom: 24px; overflow: hidden;">
+        <tr>
+          <td style="padding: 20px; border-bottom: 1px solid #E2E8F0; background: #EFF6FF;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #1D4ED8; margin-bottom: 4px;">
+              ${labelLeave}
+            </div>
+            <div style="font-size: 26px; font-weight: 800; color: #1E3A8A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              ${safeLeave}
+            </div>
+            <div style="font-size: 13px; color: #475569; margin-top: 4px;">
+              ${labelArrive}: <strong style="color: #0F172A;">${safeArrive}</strong>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 18px 20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding: 6px 0; font-size: 13px; color: #64748B; width: 120px;">${labelMode}</td>
+                <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${safeMode}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelFare}</td>
+                <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${safeFare}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelOrigin}</td>
+                <td style="padding: 6px 0; font-size: 14px; color: #334155;">${safeOrigin}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <!-- CTA Button -->
+      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+        <tr>
+          <td align="center">
+            <a href="${safeUrl}" style="display: inline-block; background-color: #2272C3; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              ${ctaText} &rarr;
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <div style="font-size: 13px; color: #64748B; line-height: 1.5; border-top: 1px solid #F1F5F9; padding-top: 16px;">
+        ${isTl
+          ? 'Naka-iskedyul ang paalalang ito batay sa iyong napiling oras sa Calzada.'
+          : 'This reminder was scheduled based on your chosen departure time on Calzada.'}
+      </div>
+    `;
+
+    return {
+        subject,
+        html: renderEmailShell({
+            title: subject,
+            contentHtml,
+            showFooter: false
+        })
+    };
+}
+
 module.exports = {
     escapeHtml,
     formatRating,
     getCategoryStyle,
     renderEmailShell,
     generateFeedbackEmailHtml,
-    generateFeedbackThankYouEmailHtml
+    generateFeedbackThankYouEmailHtml,
+    generateReminderEmailHtml
 };

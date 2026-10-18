@@ -1430,7 +1430,7 @@ app.delete(['/api/user/photo', '/api/users/:uid/photo'], async (req, res) => {
 // FEEDBACK NOTIFICATION & STORAGE API
 // =============================================
 const nodemailer = require('nodemailer');
-const { generateFeedbackEmailHtml, generateFeedbackThankYouEmailHtml } = require('./email-template');
+const { generateFeedbackEmailHtml, generateFeedbackThankYouEmailHtml, generateReminderEmailHtml } = require('./email-template');
 
 function getEmailTransporter() {
     const user = process.env.GMAIL_USER;
@@ -1566,6 +1566,246 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
         emailSent,
         thankYouEmailSent
     });
+});
+
+// =============================================
+// TRAVEL REMINDERS DISPATCH API (CRON PROTECTED)
+// =============================================
+
+// Helper: Reset reminders stuck in 'sending' status for > 5 minutes
+async function resetStuckSendingReminders(adminDb) {
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    try {
+        const stuckSnap = await adminDb.collectionGroup('reminders')
+            .where('status', '==', 'sending')
+            .get();
+
+        for (const doc of stuckSnap.docs) {
+            const data = doc.data();
+            const sendingTime = data.sendingAt
+                ? (typeof data.sendingAt.toDate === 'function' ? data.sendingAt.toDate() : new Date(data.sendingAt))
+                : (data.lastAttemptAt ? (typeof data.lastAttemptAt.toDate === 'function' ? data.lastAttemptAt.toDate() : new Date(data.lastAttemptAt)) : null);
+
+            if (!sendingTime || sendingTime <= fiveMinutesAgo) {
+                const attempts = data.attempts || 1;
+                const newStatus = attempts >= 3 ? 'failed' : 'scheduled';
+                await doc.ref.update({
+                    status: newStatus,
+                    lastError: 'Reset from stuck sending state'
+                });
+                console.log(`[REMINDERS] Reset stuck reminder ${doc.id} to ${newStatus} (attempts: ${attempts})`);
+            }
+        }
+    } catch (stuckErr) {
+        console.error('[REMINDERS] Error resetting stuck reminders:', stuckErr.message);
+    }
+}
+
+// Core dispatch runner (shared by GET and POST)
+async function handleRemindersDispatch(req, res) {
+    let adminDb = null;
+    try {
+        adminDb = getFirestore();
+    } catch (_) {}
+
+    if (!adminDb) {
+        return res.status(500).json({ error: 'Firestore database not available' });
+    }
+
+    // 1. Reset stuck "sending" reminders (> 5 minutes)
+    await resetStuckSendingReminders(adminDb);
+
+    // 2. Query scheduled reminders where remindAt <= now
+    const now = new Date();
+    let snapshot;
+    try {
+        snapshot = await adminDb.collectionGroup('reminders')
+            .where('status', '==', 'scheduled')
+            .where('remindAt', '<=', now)
+            .get();
+    } catch (queryErr) {
+        console.error('[REMINDERS] Collection group query error:', queryErr.message);
+        return res.status(500).json({ error: 'Failed to query scheduled reminders' });
+    }
+
+    let processed = 0;
+    let sent = 0;
+    let failed = 0;
+    const transporter = getEmailTransporter();
+
+    for (const doc of snapshot.docs) {
+        processed++;
+        const reminderRef = doc.ref;
+        let canSend = false;
+        let reminderData = null;
+        let uid = null;
+
+        try {
+            await adminDb.runTransaction(async (t) => {
+                const fresh = await t.get(reminderRef);
+                if (!fresh.exists) return;
+                const data = fresh.data();
+                if (data.status !== 'scheduled') return;
+
+                const attempts = (data.attempts || 0) + 1;
+                const sendTime = new Date();
+                t.update(reminderRef, {
+                    status: 'sending',
+                    attempts: attempts,
+                    sendingAt: sendTime,
+                    lastAttemptAt: sendTime
+                });
+
+                canSend = true;
+                reminderData = { ...data, attempts };
+                uid = reminderRef.parent && reminderRef.parent.parent ? reminderRef.parent.parent.id : null;
+            });
+        } catch (txErr) {
+            console.error('[REMINDERS] Transaction lock error for reminder doc:', txErr.message);
+            continue;
+        }
+
+        if (!canSend || !reminderData) {
+            continue;
+        }
+
+        // Resolve recipient email address from Firebase Auth Admin SDK at send time (never from client)
+        let userEmail = null;
+        let skipReason = null;
+        try {
+            if (uid) {
+                const adminAuth = getAuth();
+                if (adminAuth) {
+                    try {
+                        const userRecord = await adminAuth.getUser(uid);
+                        const isAnonymous = !userRecord.providerData || userRecord.providerData.length === 0;
+                        if (isAnonymous) {
+                            skipReason = 'Anonymous user (not eligible for email reminders)';
+                        } else if (!userRecord.email) {
+                            skipReason = 'User account does not have an email address';
+                        } else if (!userRecord.emailVerified) {
+                            skipReason = 'User email address is not verified';
+                        } else {
+                            userEmail = userRecord.email.trim();
+                        }
+                    } catch (authErr) {
+                        skipReason = authErr.message;
+                    }
+                }
+            }
+        } catch (uErr) {
+            skipReason = uErr.message;
+        }
+
+        if (!userEmail || !transporter) {
+            const attempts = reminderData.attempts || 1;
+            const newStatus = attempts >= 3 ? 'failed' : 'scheduled';
+            await reminderRef.update({
+                status: newStatus,
+                lastError: !userEmail ? (skipReason || 'User email address not found or unverified') : 'Email transporter not configured'
+            });
+            failed++;
+            continue;
+        }
+
+        // Format times in Asia/Manila timezone
+        const formatManila = (ts) => {
+            if (!ts) return '--:--';
+            const d = typeof ts.toDate === 'function' ? ts.toDate() : (ts instanceof Date ? ts : new Date(ts));
+            return new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Asia/Manila',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            }).format(d);
+        };
+
+        const leaveTimeStr = formatManila(reminderData.leaveAt);
+        const arriveTimeStr = formatManila(reminderData.arriveBy);
+        const isWalk = reminderData.mode === 'walk';
+        const isTl = reminderData.lang === 'tl';
+        const modeStr = isWalk ? (isTl ? 'Lakad' : 'Walk') : (isTl ? 'Dyip' : 'Jeepney');
+        const fareStr = isWalk
+            ? (isTl ? 'Libre' : 'Free')
+            : (reminderData.fare != null ? (reminderData.fare === 0 ? (isTl ? 'Libre' : 'Free') : `₱${reminderData.fare}`) : '₱14.00');
+
+        const destQuery = encodeURIComponent(reminderData.destName || '');
+        const plannerUrl = `https://calzadaph.com/planner?dest=${destQuery}&destLat=${reminderData.destLat}&destLng=${reminderData.destLng}`;
+
+        const { subject, html } = generateReminderEmailHtml({
+            destName: reminderData.destName,
+            originLabel: reminderData.originLabel,
+            leaveTimeStr,
+            arriveTimeStr,
+            modeStr,
+            fareStr,
+            plannerUrl,
+            lang: reminderData.lang
+        });
+
+        try {
+            await transporter.sendMail({
+                from: `"Calzada" <${process.env.GMAIL_USER}>`,
+                to: userEmail,
+                subject: subject,
+                html: html
+            });
+
+            await reminderRef.update({
+                status: 'sent',
+                sentAt: new Date()
+            });
+            sent++;
+            console.log(`[REMINDERS] Reminder dispatched successfully (ID: ${reminderRef.id})`);
+        } catch (mailErr) {
+            console.error('[REMINDERS] Mail dispatch failed:', mailErr.message);
+            const attempts = reminderData.attempts || 1;
+            const newStatus = attempts >= 3 ? 'failed' : 'scheduled';
+            await reminderRef.update({
+                status: newStatus,
+                lastError: mailErr.message
+            });
+            failed++;
+        }
+    }
+
+    return res.json({
+        success: true,
+        processed,
+        sent,
+        failed
+    });
+}
+
+// GET /api/reminders/dispatch - Vercel Cron (Bearer auth only)
+app.get('/api/reminders/dispatch', async (req, res) => {
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = req.headers['authorization'];
+
+    const isAuthorized = !!cronSecret && authHeader === `Bearer ${cronSecret}`;
+    if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized: missing or invalid bearer token' });
+    }
+
+    return handleRemindersDispatch(req, res);
+});
+
+// POST /api/reminders/dispatch - External Cron (cron-job.org with X-Cron-Secret header or Bearer)
+app.post('/api/reminders/dispatch', async (req, res) => {
+    const cronSecret = process.env.CRON_SECRET;
+    const authHeader = req.headers['authorization'];
+    const customHeader = req.headers['x-cron-secret'];
+
+    const isAuthorized = !!cronSecret && (
+        customHeader === cronSecret ||
+        authHeader === `Bearer ${cronSecret}`
+    );
+
+    if (!isAuthorized) {
+        return res.status(401).json({ error: 'Unauthorized: invalid or missing cron secret' });
+    }
+
+    return handleRemindersDispatch(req, res);
 });
 
 
