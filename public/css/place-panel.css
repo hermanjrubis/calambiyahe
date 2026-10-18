@@ -2,6 +2,10 @@
    PLACE / BUSINESS INFO CARD COMPONENT (Clean, Intentional, Flat Product Surface)
    ========================================================================== */
 
+html {
+    scrollbar-gutter: stable;
+}
+
 /* 1. Backdrop */
 .place-panel-backdrop {
     position: fixed;
@@ -113,24 +117,24 @@
     border-radius: 2px;
 }
 
-/* Close Button (Simple flat outline icon) */
+/* Close Button (Aligned with title alongside save button, 40x40) */
 .panel-close-btn {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     background: #ffffff;
     border: 1px solid #e2e8f0;
-    border-radius: 50%;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #64748b;
     cursor: pointer;
     z-index: 30;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     padding: 0;
+    flex: none;
 }
 
 .panel-close-btn:hover {
@@ -277,7 +281,7 @@
 /* Header Row: 18px semibold Name + Save Bookmark */
 .panel-header-row {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 12px;
 }
@@ -285,7 +289,7 @@
 .panel-place-title {
     flex: 1 1 auto;
     min-width: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Sora', sans-serif;
     font-size: 18px;
     font-weight: 600;
     color: #0f172a;
@@ -295,13 +299,19 @@
     word-break: break-word;
 }
 
+.panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
 .panel-save-btn {
     flex: none;
     width: 40px;
     height: 40px;
     min-width: 40px;
-    align-self: flex-start;
-    margin-top: -8.5px;
+    min-height: 40px;
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
@@ -310,7 +320,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     padding: 0;
 }
 
@@ -908,10 +918,10 @@
 
 .panel-cta-btn {
     width: 100%;
-    background: #0f172a;
+    background: #378ADD;
     color: #ffffff;
     font-weight: 600;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Sora', sans-serif;
     font-size: 14px;
     padding: 12px 20px;
     border: none;
@@ -921,12 +931,12 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    transition: background 0.15s;
+    transition: background 0.15s ease;
     box-shadow: none;
 }
 
 .panel-cta-btn:hover {
-    background: #27272a;
+    background: #2272C3;
     transform: none;
     box-shadow: none;
 }
@@ -962,8 +972,22 @@
     border-radius: 8px;
     overflow: hidden;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    background: #E2E8F0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    background: #EAF2FC;
+    border: 1px solid #D1E5F8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-360-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #EAF2FC;
+    color: #378ADD;
 }
 
 .popup-360-thumb {
@@ -1160,4 +1184,45 @@
     background: #10B981;
     border-radius: 50%;
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ACCESSIBILITY FOCUS RINGS & CARD PLACEHOLDERS
+   ───────────────────────────────────────────────────────────── */
+.ref-card:focus,
+.ref-card:focus-visible,
+.panel-save-btn:focus-visible,
+.panel-close-btn:focus-visible,
+.panel-cta-btn:focus-visible,
+.popup-360-btn:focus-visible,
+.popup-360-thumb-wrap:focus-visible,
+.star-btn:focus-visible,
+.category-tab:focus-visible {
+    outline: 2px solid #378ADD !important;
+    outline-offset: 2px !important;
+}
+
+/* Card Neutral Image Placeholder (#EAF2FC with building icon) */
+.ref-img-placeholder,
+.card-img-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #EAF2FC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #378ADD;
+}
+
+.card-img-placeholder svg {
+    color: #378ADD;
+}
+
+/* Ratings Empty State Single Line */
+.reviews-empty-single-line {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13.5px;
+    color: #64748b;
+    padding: 2px 0 6px 0;
+    line-height: 1.4;
 }

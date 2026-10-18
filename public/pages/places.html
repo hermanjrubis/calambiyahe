@@ -33,8 +33,9 @@
     <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.6.3">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
-    <link rel="stylesheet" href="../css/place-panel.css?v=7">
+    <link rel="stylesheet" href="../css/place-panel.css?v=8">
     <style>
+        html { scrollbar-gutter: stable; }
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
     </style>
@@ -387,16 +388,16 @@
                         <span data-i18n="places.cat_all">All Places</span>
                     </button>
                     <button class="category-tab" data-category="malls">
-                        <span>Malls</span>
+                        <span data-i18n="places.cat_malls">Malls</span>
                     </button>
                     <button class="category-tab" data-category="eateries">
-                        <span>Eateries</span>
+                        <span data-i18n="places.cat_eateries">Eateries</span>
                     </button>
                     <button class="category-tab" data-category="schools">
                         <span data-i18n="places.cat_schools">Schools</span>
                     </button>
                     <button class="category-tab" data-category="terminals">
-                        <span>Terminals</span>
+                        <span data-i18n="places.cat_terminals">Terminals</span>
                     </button>
                     <button class="category-tab" data-category="coffee">
                         <span data-i18n="places.cat_coffee">Coffee Shops</span>
@@ -503,7 +504,7 @@
 
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.7.4"></script>
+    <script src="../js/i18n.js?v=2.8.1"></script>
     <script src="../js/places-shared.js?v=2.6.3"></script>
     <script>
         function escapeHtml(str) {
@@ -583,49 +584,80 @@
 
             let allFetchedPlaces = [];
 
-            // Render places array into .places-grid (ONLY places with a valid, non-empty image)
+            function getCategoryLabel(category) {
+                if (!category) return '';
+                const norm = category.toLowerCase().trim();
+                let key = '';
+                if (norm === 'malls' || norm === 'mall') key = 'places.cat_malls';
+                else if (norm === 'eateries' || norm === 'eatery' || norm.includes('eat')) key = 'places.cat_eateries';
+                else if (norm === 'schools' || norm === 'school') key = 'places.cat_schools';
+                else if (norm === 'terminals' || norm === 'terminal') key = 'places.cat_terminals';
+                else if (norm === 'coffee' || norm.includes('coffee')) key = 'places.cat_coffee';
+                else if (norm === 'establishments' || norm === 'establishment' || norm.includes('est')) key = 'places.cat_est';
+
+                if (key && typeof window.t === 'function') {
+                    const translated = window.t(key);
+                    if (translated && translated !== key) return translated;
+                }
+                return category.charAt(0).toUpperCase() + category.slice(1);
+            }
+
+            function getSearchRank(place, query) {
+                if (!query) return 0;
+                const nameLower = (place.name || '').toLowerCase().trim();
+                if (nameLower.startsWith(query)) return 1;
+                const words = nameLower.split(/[\s\-_/.]+/);
+                if (words.some(w => w.startsWith(query))) return 2;
+                return 3;
+            }
+
+            // Render places array into .places-grid (includes all places with or without image_path)
             function renderPlaces(places, searchTerm = '') {
                 if (!placesGrid) return;
                 placesGrid.innerHTML = '';
-                let visibleCount = 0;
-
-                // Exclude any place records without a real photo
-                const validPlaces = (places || []).filter(p => p && p.image_path && typeof p.image_path === 'string' && p.image_path.trim() !== '');
 
                 const activeTab = document.querySelector('.category-tab.active');
                 const activeCategory = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
 
-                validPlaces.forEach((place, index) => {
+                // Filter places
+                const filteredPlaces = (places || []).filter(place => {
+                    if (!place) return false;
+                    const category = (place.category || '').toLowerCase();
+                    const matchesCategory = activeCategory === 'all' || category.includes(activeCategory);
+                    if (!matchesCategory) return false;
+
+                    if (!searchTerm) return true;
+
+                    const nameLower = (place.name || '').toLowerCase();
+                    const catSlug = (place.category || '').toLowerCase();
+                    const catLabel = getCategoryLabel(place.category).toLowerCase();
+                    const barangayLower = (place.barangay || '').toLowerCase();
+
+                    // Match name, category label and barangay only (not description - req 8)
+                    return nameLower.includes(searchTerm) ||
+                           catSlug.includes(searchTerm) ||
+                           catLabel.includes(searchTerm) ||
+                           barangayLower.includes(searchTerm);
+                });
+
+                // Order results: name starts with query first, then word in name starts with query, then other matches (req 8)
+                if (searchTerm) {
+                    filteredPlaces.sort((a, b) => getSearchRank(a, searchTerm) - getSearchRank(b, searchTerm));
+                }
+
+                filteredPlaces.forEach((place, index) => {
                     const name = place.name || 'Unnamed Place';
                     const category = place.category || '';
                     const barangay = place.barangay || '';
                     const municipality = place.municipality || 'Calamba';
-                    const rawImagePath = place.image_path.trim();
-                    const imagePath = resolvePlaceImageUrl(rawImagePath);
+                    const hasImagePath = place.image_path && typeof place.image_path === 'string' && place.image_path.trim() !== '';
+                    const imagePath = hasImagePath ? resolvePlaceImageUrl(place.image_path.trim()) : '';
                     const description = place.description || '';
 
-                    // Category filtering
-                    const matchesCategory = activeCategory === 'all' || category.toLowerCase().includes(activeCategory);
-                    if (!matchesCategory) return;
-
-                    // Local search filtering
-                    const matchesSearch = !searchTerm ||
-                        name.toLowerCase().includes(searchTerm) ||
-                        category.toLowerCase().includes(searchTerm) ||
-                        barangay.toLowerCase().includes(searchTerm) ||
-                        municipality.toLowerCase().includes(searchTerm) ||
-                        description.toLowerCase().includes(searchTerm);
-
-                    if (!matchesSearch) return;
-
-                    visibleCount++;
-
-                    // Subtitle text format
-                    let subtitle = category;
-                    if (barangay || municipality) {
-                        const locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
-                        subtitle = subtitle ? `${subtitle} • ${locStr}` : locStr;
-                    }
+                    // Subtitle: map category slug to translated label (req 7)
+                    const catLabel = getCategoryLabel(category);
+                    let locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
+                    let subtitle = catLabel ? (locStr ? `${catLabel} • ${locStr}` : catLabel) : locStr;
 
                     const placeLat = place.lat != null ? place.lat : null;
                     const placeLng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
@@ -648,23 +680,45 @@
                         };
                     }
 
+                    // Card element with a11y: role="button", tabindex="0", Enter/Space to open (req 9)
                     const cardEl = document.createElement('div');
                     cardEl.className = 'ref-card';
+                    cardEl.setAttribute('role', 'button');
+                    cardEl.setAttribute('tabindex', '0');
+                    cardEl.setAttribute('aria-label', `${name}, ${subtitle}`);
                     cardEl.setAttribute('data-category', category);
                     if (placeLat != null) cardEl.setAttribute('data-lat', placeLat);
                     if (placeLng != null) cardEl.setAttribute('data-lng', placeLng);
                     cardEl.setAttribute('data-name', name);
                     cardEl.style.cursor = 'pointer';
                     cardEl.style.animation = `heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.05 * index}s both`;
-                    cardEl.onclick = () => {
+
+                    function handleCardOpen() {
+                        window._lastFocusedPlaceCard = cardEl;
                         if (typeof window.openPlacePanel === 'function') {
                             window.openPlacePanel(name, placeLat, placeLng);
                         }
-                    };
+                    }
+
+                    cardEl.onclick = handleCardOpen;
+                    cardEl.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                            e.preventDefault();
+                            handleCardOpen();
+                        }
+                    });
+
+                    // Image container: photo if available, or neutral placeholder (#EAF2FC with building icon) (req 10)
+                    let mediaHtml = '';
+                    if (hasImagePath) {
+                        mediaHtml = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'ref-img-placeholder\\'><svg width=\\'32\\' height=\\'32\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'#378ADD\\' stroke-width=\\'1.75\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1\\'/></svg></div>';">`;
+                    } else {
+                        mediaHtml = `<div class="ref-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/></svg></div>`;
+                    }
 
                     cardEl.innerHTML = `
                         <div class="ref-img-container">
-                            <img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='../assets/hero-places-bg.png'">
+                            ${mediaHtml}
                         </div>
                         <div class="ref-card-body">
                             <h3>${escapeHtml(name)}</h3>
@@ -675,8 +729,26 @@
                     placesGrid.appendChild(cardEl);
                 });
 
+                // Empty state messaging (req 8)
                 if (noResults) {
-                    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+                    if (filteredPlaces.length === 0) {
+                        const rawVal = searchInput ? searchInput.value.trim() : '';
+                        let msg = '';
+                        if (rawVal) {
+                            msg = typeof window.t === 'function' 
+                                ? window.t('search.no_results', { q: rawVal }) 
+                                : `No places found for "${rawVal}"`;
+                        } else {
+                            msg = typeof window.t === 'function'
+                                ? window.t('places.no_results')
+                                : 'No places found in this category.';
+                        }
+                        const p = noResults.querySelector('p');
+                        if (p) p.textContent = msg;
+                        noResults.style.display = 'block';
+                    } else {
+                        noResults.style.display = 'none';
+                    }
                 }
             }
 
@@ -712,8 +784,8 @@
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     if (Array.isArray(data)) {
-                        // Filter out places with no image globally
-                        allFetchedPlaces = data.filter(p => p && p.image_path && typeof p.image_path === 'string' && p.image_path.trim() !== '');
+                        // Keep all places even if image_path is missing (req 10)
+                        allFetchedPlaces = data;
                         renderPlaces(allFetchedPlaces, searchTerm);
                         return;
                     }
@@ -734,12 +806,11 @@
                     const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
                     const cardSubtitle = card.querySelector('.card-subtitle')?.textContent.toLowerCase() || '';
                     const cardCats = card.getAttribute('data-category') || '';
-                    const hasImg = !!card.querySelector('img');
 
                     const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
                     const matchesSearch = (!searchTerm || cardName.includes(searchTerm) || cardSubtitle.includes(searchTerm));
 
-                    if (hasImg && matchesCategory && matchesSearch) {
+                    if (matchesCategory && matchesSearch) {
                         card.style.display = 'flex';
                         totalVisible++;
                     } else {
@@ -748,9 +819,28 @@
                 });
 
                 if (noResults) {
-                    noResults.style.display = totalVisible === 0 ? 'block' : 'none';
+                    if (totalVisible === 0) {
+                        const rawVal = searchInput ? searchInput.value.trim() : '';
+                        let msg = '';
+                        if (rawVal) {
+                            msg = typeof window.t === 'function' ? window.t('search.no_results', { q: rawVal }) : `No places found for "${rawVal}"`;
+                        } else {
+                            msg = typeof window.t === 'function' ? window.t('places.no_results') : 'No places found in this category.';
+                        }
+                        const p = noResults.querySelector('p');
+                        if (p) p.textContent = msg;
+                        noResults.style.display = 'block';
+                    } else {
+                        noResults.style.display = 'none';
+                    }
                 }
             }
+
+            // Re-render when language switches (req 7)
+            window.addEventListener('calzada_lang_changed', () => {
+                const rawVal = searchInput ? searchInput.value.trim() : '';
+                renderPlaces(allFetchedPlaces.length > 0 ? allFetchedPlaces : FALLBACK_PLACES, rawVal.toLowerCase());
+            });
 
             // Check URL query parameters for category
             const urlParams = new URLSearchParams(window.location.search);
@@ -857,7 +947,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="../js/bookmark-confetti.js?v=2.6.3"></script>
-    <script src="../js/place-panel.js?v=2.6.5"></script>
+    <script src="../js/place-panel.js?v=2.7.0"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->

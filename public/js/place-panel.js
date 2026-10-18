@@ -206,12 +206,6 @@ function initPlacePanelDOM() {
         <div class="place-panel-backdrop" id="placePanelBackdrop"></div>
         <div class="place-panel-container" id="placePanel">
             <div class="panel-drag-handle"><div class="panel-drag-pill"></div></div>
-            <button class="panel-close-btn" id="closePanelBtn" aria-label="Close details" type="button">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
             
             <!-- Hero Carousel / Image Container (12px radius) -->
             <div class="panel-hero" id="ppHero">
@@ -232,22 +226,36 @@ function initPlacePanelDOM() {
 
             <!-- Details Body -->
             <div class="panel-body" id="ppBody">
-                <!-- 1. Header Row: 18px semibold Name + Save Button -->
+                <!-- 1. Header Row: 18px semibold Name + Save & Close Actions side by side -->
                 <div class="panel-header-row">
                     <h3 class="panel-place-title" id="ppName">Place Name</h3>
-                    <button class="panel-save-btn" id="ppSaveBtn" type="button" aria-label="Save place" title="Save place" aria-pressed="false">
-                        <svg class="save-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                    </button>
+                    <div class="panel-header-actions">
+                        <button class="panel-save-btn" id="ppSaveBtn" type="button" aria-label="Save place" title="Save place" aria-pressed="false">
+                            <svg class="save-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                        </button>
+                        <button class="panel-close-btn" id="closePanelBtn" aria-label="Close details" type="button" title="Close details">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- 360 Photosphere Preview Section (Rendered only if placeId has linked 360 photo) -->
+                <!-- 360 Photosphere Preview Section (Static placeholder, full photo loads only when opened) -->
                 <div class="panel-360-section" id="pp360Section" style="display:none;">
                     <div class="panel-360-container">
-                        <div class="popup-360-thumb-wrap" id="pp360ThumbWrap" title="Click to view 360° photo">
-                            <img alt="360 View" class="popup-360-thumb" id="pp360Thumb" loading="lazy" decoding="async">
-                            <span class="popup-360-badge">360°</span>
+                        <div class="popup-360-thumb-wrap" id="pp360ThumbWrap" title="Click to view 360° photo" role="button" tabindex="0">
+                            <div class="popup-360-placeholder" id="pp360Placeholder">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="9"/>
+                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                                </svg>
+                                <span class="popup-360-badge">360°</span>
+                            </div>
                         </div>
                         <div class="popup-360-action-wrap">
                             <button type="button" class="popup-360-btn" id="pp360Btn">
@@ -326,8 +334,8 @@ function initPlacePanelDOM() {
                 <!-- 3. Rating Section (5 Outline Stars, interactive on hover/click) -->
                 <div class="panel-rating-section" id="ppRatingCard">
                     <div class="rating-header">
-                        <span class="rating-label">Rating & reviews</span>
-                        <div class="rating-summary">
+                        <span class="rating-label" id="ppRatingLabel">Rating & reviews</span>
+                        <div class="rating-summary" id="ppRatingSummary">
                             <span class="rating-score" id="ppRatingScore">0.0</span>
                             <svg class="rating-star-badge" width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                             <span class="rating-count" id="ppRatingCount">(0)</span>
@@ -391,7 +399,7 @@ function initPlacePanelDOM() {
 
                 <!-- 4. Customer Reviews List -->
                 <div class="panel-reviews-section" id="ppReviewsSection">
-                    <div class="reviews-section-header">
+                    <div class="reviews-section-header" id="ppReviewsHeader">
                         <span class="reviews-section-title" id="ppReviewsTitle">Customer reviews (0)</span>
                         <button type="button" class="reviews-see-more-btn" id="ppReviewsSeeMoreBtn" style="display:none;">See more</button>
                     </div>
@@ -734,7 +742,7 @@ function formatOpeningHoursStatus(openingHours) {
 
     const currentMins = now.getHours() * 60 + now.getMinutes();
     let isOpen = false;
-    let statusText = 'Closed';
+    let statusText = typeof window.t === 'function' ? window.t('places.popup.closed') : 'Closed';
 
     if (todaySchedule && todaySchedule.toLowerCase() !== 'closed') {
         const parts = todaySchedule.split('-').map(s => s.trim());
@@ -745,19 +753,25 @@ function formatOpeningHoursStatus(openingHours) {
             if (startMins !== null && endMins !== null) {
                 if (currentMins >= startMins && currentMins < endMins) {
                     isOpen = true;
-                    statusText = `Open · Closes ${parts[1]}`;
+                    statusText = typeof window.t === 'function'
+                        ? window.t('places.popup.open_closes', { time: parts[1] })
+                        : `Open · Closes ${parts[1]}`;
                 } else if (currentMins < startMins) {
                     isOpen = false;
-                    statusText = `Closed · Opens ${parts[0]}`;
+                    statusText = typeof window.t === 'function'
+                        ? window.t('places.popup.closed_opens', { time: parts[0] })
+                        : `Closed · Opens ${parts[0]}`;
                 } else {
                     isOpen = false;
                     const nextDayKey = days[(currentDayIdx + 1) % 7];
                     const nextSched = hoursObj[nextDayKey];
                     if (nextSched && nextSched.toLowerCase() !== 'closed') {
                         const nextStart = nextSched.split('-')[0].trim();
-                        statusText = `Closed · Opens ${nextStart} tomorrow`;
+                        statusText = typeof window.t === 'function'
+                            ? window.t('places.popup.closed_opens_tomorrow', { time: nextStart })
+                            : `Closed · Opens ${nextStart} tomorrow`;
                     } else {
-                        statusText = 'Closed';
+                        statusText = typeof window.t === 'function' ? window.t('places.popup.closed') : 'Closed';
                     }
                 }
             } else {
@@ -772,9 +786,11 @@ function formatOpeningHoursStatus(openingHours) {
         const nextSched = hoursObj[nextDayKey];
         if (nextSched && nextSched.toLowerCase() !== 'closed') {
             const nextStart = nextSched.split('-')[0].trim();
-            statusText = `Closed · Opens ${nextStart} tomorrow`;
+            statusText = typeof window.t === 'function'
+                ? window.t('places.popup.closed_opens_tomorrow', { time: nextStart })
+                : `Closed · Opens ${nextStart} tomorrow`;
         } else {
-            statusText = 'Closed today';
+            statusText = typeof window.t === 'function' ? window.t('places.popup.closed_today') : 'Closed today';
         }
     }
 
@@ -784,6 +800,34 @@ function formatOpeningHoursStatus(openingHours) {
         hoursMap: hoursObj,
         todayKey
     };
+}
+
+function renderOpeningHoursTable(hoursData, hoursTableEl) {
+    if (!hoursData || !hoursData.hoursMap || !hoursTableEl) return;
+    const dayNames = {
+        mon: typeof window.t === 'function' ? window.t('places.day_mon') : 'Monday',
+        tue: typeof window.t === 'function' ? window.t('places.day_tue') : 'Tuesday',
+        wed: typeof window.t === 'function' ? window.t('places.day_wed') : 'Wednesday',
+        thu: typeof window.t === 'function' ? window.t('places.day_thu') : 'Thursday',
+        fri: typeof window.t === 'function' ? window.t('places.day_fri') : 'Friday',
+        sat: typeof window.t === 'function' ? window.t('places.day_sat') : 'Saturday',
+        sun: typeof window.t === 'function' ? window.t('places.day_sun') : 'Sunday'
+    };
+    const todayTag = typeof window.t === 'function' ? ` ${window.t('places.today_tag')}` : ' (Today)';
+    const orderedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    hoursTableEl.innerHTML = orderedDays.map(dKey => {
+        const isToday = dKey === hoursData.todayKey;
+        let timeStr = hoursData.hoursMap[dKey] || 'Closed';
+        if (timeStr.toLowerCase() === 'closed') {
+            timeStr = typeof window.t === 'function' ? window.t('places.popup.closed') : 'Closed';
+        }
+        return `
+            <tr class="${isToday ? 'today-row' : ''}">
+                <td class="day-col">${dayNames[dKey]}${isToday ? todayTag : ''}</td>
+                <td class="time-col">${timeStr}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
 /**
@@ -810,19 +854,25 @@ function formatRelativeTime(dateString) {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return '';
     const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
+    const diffInSeconds = Math.max(0, Math.floor((now - date) / 1000));
 
-    if (diffInSeconds < 60) return 'just now';
+    const lang = localStorage.getItem('calzada_lang') || document.documentElement.lang || 'en';
+    const isTl = lang === 'tl';
+
+    if (diffInSeconds < 60) return isTl ? 'ngayon lang' : 'just now';
     const diffInMinutes = Math.floor(diffInSeconds / 60);
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 60) return isTl ? `${diffInMinutes}m ang nakalipas` : `${diffInMinutes}m ago`;
     const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 24) return isTl ? `${diffInHours}h ang nakalipas` : `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays === 1) return 'yesterday';
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    if (diffInDays < 30) return `${Math.floor(diffInDays / 7)}w ago`;
-    
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    if (diffInDays === 1) return isTl ? 'kahapon' : 'yesterday';
+    if (diffInDays < 7) return isTl ? `${diffInDays}d ang nakalipas` : `${diffInDays}d ago`;
+    if (diffInDays < 30) {
+        const weeks = Math.floor(diffInDays / 7);
+        return isTl ? `${weeks}w ang nakalipas` : `${weeks}w ago`;
+    }
+
+    return date.toLocaleDateString(isTl ? 'fil-PH' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
 /**
@@ -1270,13 +1320,23 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
 
-        // Update Rating Card Summary
+        // Update Rating Card Summary & Reviews Header
         const avg = parseFloat(data.average_rating) || 0;
         const total = parseInt(data.total_ratings, 10) || 0;
+        const ratingSummary = document.getElementById('ppRatingSummary');
+        const reviewsHeader = document.getElementById('ppReviewsHeader');
 
-        if (scoreEl) scoreEl.textContent = avg.toFixed(1);
-        if (countEl) countEl.textContent = `(${total})`;
-        if (reviewsTitle) reviewsTitle.textContent = `Customer reviews (${total})`;
+        if (total > 0) {
+            if (scoreEl) scoreEl.textContent = avg.toFixed(1);
+            if (countEl) countEl.textContent = `(${total})`;
+            if (reviewsTitle) {
+                reviewsTitle.textContent = typeof window.t === 'function'
+                    ? window.t('places.popup.customer_reviews_count', { count: total })
+                    : `Customer reviews (${total})`;
+            }
+            if (ratingSummary) ratingSummary.style.display = 'flex';
+            if (reviewsHeader) reviewsHeader.style.display = 'flex';
+        }
 
         // Handle Caller's Existing Review
         const authenticated = isUserLoggedIn();
@@ -1316,8 +1376,13 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
 
         // Empty state check
         if (total === 0 || (resetList && reviews.length === 0)) {
+            if (ratingSummary) ratingSummary.style.display = 'none';
+            if (reviewsHeader) reviewsHeader.style.display = 'none';
             if (reviewsEmpty) {
-                reviewsEmpty.textContent = 'No ratings yet.';
+                reviewsEmpty.textContent = typeof window.t === 'function'
+                    ? window.t('places.popup.no_reviews_yet')
+                    : 'No reviews yet. Be the first to rate this place.';
+                reviewsEmpty.className = 'reviews-empty-state reviews-empty-single-line';
                 reviewsEmpty.style.display = 'block';
             }
             if (reviewsList) reviewsList.style.display = 'none';
@@ -1325,6 +1390,8 @@ async function fetchAndRenderReviews(placeId, resetList = true) {
             return;
         }
 
+        if (ratingSummary) ratingSummary.style.display = 'flex';
+        if (reviewsHeader) reviewsHeader.style.display = 'flex';
         if (reviewsEmpty) reviewsEmpty.style.display = 'none';
         if (reviewsList) reviewsList.style.display = 'flex';
 
@@ -1487,26 +1554,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
             hoursStatusEl.className = `panel-hours-status ${hoursData.isOpen ? 'open' : 'closed'}`;
 
             if (hoursData.hoursMap && typeof hoursData.hoursMap === 'object') {
-                const dayNames = {
-                    mon: 'Monday',
-                    tue: 'Tuesday',
-                    wed: 'Wednesday',
-                    thu: 'Thursday',
-                    fri: 'Friday',
-                    sat: 'Saturday',
-                    sun: 'Sunday'
-                };
-                const orderedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-                hoursTableEl.innerHTML = orderedDays.map(dKey => {
-                    const isToday = dKey === hoursData.todayKey;
-                    const timeStr = hoursData.hoursMap[dKey] || 'Closed';
-                    return `
-                        <tr class="${isToday ? 'today-row' : ''}">
-                            <td class="day-col">${dayNames[dKey]}${isToday ? ' (Today)' : ''}</td>
-                            <td class="time-col">${timeStr}</td>
-                        </tr>
-                    `;
-                }).join('');
+                renderOpeningHoursTable(hoursData, hoursTableEl);
             } else {
                 hoursTableEl.innerHTML = `<tr><td colspan="2" style="padding:4px 6px;color:#64748b;">${hoursData.statusText}</td></tr>`;
             }
@@ -1655,9 +1703,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         const btn360 = document.getElementById('pp360Btn');
 
         if (link360 && link360.nodeId && sec360) {
-            const photoFilename = `${link360.nodeId.replace('_', ', ')}.jpg`;
-            const photoUrl = `../assets/360/${encodeURIComponent(photoFilename)}`;
-            if (thumb360) thumb360.src = photoUrl;
+            // Static placeholder is shown; full 360 photo loads only when opened (req 5)
             if (thumbWrap360) thumbWrap360.onclick = () => window._open360Viewer(link360.nodeId);
             if (btn360) btn360.onclick = () => window._open360Viewer(link360.nodeId);
             sec360.style.display = 'block';
@@ -1667,6 +1713,9 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     } catch (e) {
         console.warn('Error displaying 360 link in place-panel:', e);
     }
+
+    // 15. Localize popup strings
+    updatePlacePanelI18n();
 };
 
 // 360 Photosphere Place Links Integration for Place Panel
@@ -1786,4 +1835,60 @@ window.closePlacePanel = function(updateHistory = true) {
         url.searchParams.delete('place');
         window.history.pushState({}, '', url);
     }
+
+    // Restore focus to the card that opened the panel (Accessibility req 9)
+    if (window._lastFocusedPlaceCard && typeof window._lastFocusedPlaceCard.focus === 'function') {
+        try {
+            window._lastFocusedPlaceCard.focus();
+        } catch (_) {}
+    }
 };
+
+// Escape key to close place panel and return focus (req 9)
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const panel = document.getElementById('placePanel');
+        if (panel && panel.classList.contains('active')) {
+            closePlacePanel();
+        }
+    }
+});
+
+function updatePlacePanelI18n() {
+    const ratingLabel = document.getElementById('ppRatingLabel');
+    if (ratingLabel) {
+        ratingLabel.textContent = typeof window.t === 'function' ? window.t('places.popup.rating_reviews') : 'Rating & reviews';
+    }
+    const planBtn = document.getElementById('ppPlanBtn');
+    if (planBtn) {
+        planBtn.textContent = typeof window.t === 'function' ? window.t('places.popup.plan_route') : 'Plan route';
+    }
+    const btn360Text = document.querySelector('#pp360Btn span');
+    if (btn360Text) {
+        btn360Text.textContent = typeof window.t === 'function' ? window.t('places.popup.view_360') : 'View 360°';
+    }
+    const seeMoreBtn = document.getElementById('ppReviewsSeeMoreBtn');
+    if (seeMoreBtn) {
+        seeMoreBtn.textContent = typeof window.t === 'function' ? window.t('places.popup.see_more') : 'See more';
+    }
+    if (currentActivePlace && currentActivePlace.opening_hours) {
+        const hoursData = formatOpeningHoursStatus(currentActivePlace.opening_hours);
+        const hoursStatusEl = document.getElementById('ppHoursStatus');
+        const hoursTableEl = document.getElementById('ppHoursTable');
+        if (hoursData && hoursStatusEl) {
+            hoursStatusEl.textContent = hoursData.statusText;
+            hoursStatusEl.className = `panel-hours-status ${hoursData.isOpen ? 'open' : 'closed'}`;
+        }
+        if (hoursData && hoursData.hoursMap && hoursTableEl) {
+            renderOpeningHoursTable(hoursData, hoursTableEl);
+        }
+    }
+}
+window.updatePlacePanelI18n = updatePlacePanelI18n;
+
+window.addEventListener('calzada_lang_changed', () => {
+    updatePlacePanelI18n();
+    if (currentPlaceId) {
+        fetchAndRenderReviews(currentPlaceId, true);
+    }
+});

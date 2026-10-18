@@ -752,13 +752,25 @@ app.get('/api/places/:id/reviews', async (req, res) => {
 
         snap.forEach(doc => {
             const d = doc.data();
+            const rawDate = d.createdAt || d.updatedAt || null;
+            let parsedDate = null;
+            if (rawDate) {
+                if (typeof rawDate.toDate === 'function') {
+                    parsedDate = rawDate.toDate();
+                } else if (rawDate instanceof Date) {
+                    parsedDate = rawDate;
+                } else {
+                    const parsed = new Date(rawDate);
+                    parsedDate = isNaN(parsed.getTime()) ? null : parsed;
+                }
+            }
             const rev = {
                 id: doc.id,
                 place_id: placeId,
                 user_id: d.userId,
                 rating: d.rating,
                 comment_text: d.commentText,
-                created_at: d.createdAt ? (d.createdAt.toDate ? d.createdAt.toDate() : d.createdAt) : new Date(),
+                created_at: parsedDate ? parsedDate.toISOString() : null,
                 reviewer_name: d.reviewerName || 'Calzada Commuter'
             };
             sum += Number(d.rating) || 0;
@@ -768,7 +780,12 @@ app.get('/api/places/:id/reviews', async (req, res) => {
             }
         });
 
-        allReviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        allReviews.sort((a, b) => {
+            if (!a.created_at && !b.created_at) return 0;
+            if (!a.created_at) return 1;
+            if (!b.created_at) return -1;
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
         const totalRatings = allReviews.length;
         const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
         const pagedReviews = allReviews.slice(offset, offset + limit);
@@ -811,14 +828,19 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
         const adminDb = getFirestore();
         const reviewDocId = `${placeId}_${userId}`;
         const reviewRef = adminDb.collection('place_reviews').doc(reviewDocId);
+        const existingDoc = await reviewRef.get();
+        const now = new Date();
         const reviewData = {
             placeId,
             userId,
             reviewerName,
             rating,
             commentText,
-            updatedAt: new Date()
+            updatedAt: now
         };
+        if (!existingDoc.exists) {
+            reviewData.createdAt = now;
+        }
 
         await reviewRef.set(reviewData, { merge: true });
 
@@ -828,6 +850,19 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
         snap.forEach(d => { sum += Number(d.data().rating) || 0; });
         const totalRatings = snap.size;
         const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
+
+        const effectiveCreatedAt = existingDoc.exists
+            ? (existingDoc.data().createdAt || existingDoc.data().updatedAt || now)
+            : now;
+        let parsedCreatedAt = null;
+        if (effectiveCreatedAt) {
+            if (typeof effectiveCreatedAt.toDate === 'function') parsedCreatedAt = effectiveCreatedAt.toDate();
+            else if (effectiveCreatedAt instanceof Date) parsedCreatedAt = effectiveCreatedAt;
+            else {
+                const p = new Date(effectiveCreatedAt);
+                parsedCreatedAt = isNaN(p.getTime()) ? null : p;
+            }
+        }
 
         return res.json({
             message: 'Rating submitted successfully',
@@ -839,6 +874,7 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
                 user_id: userId,
                 rating,
                 comment_text: commentText,
+                created_at: parsedCreatedAt ? parsedCreatedAt.toISOString() : null,
                 reviewer_name: reviewerName
             }
         });
