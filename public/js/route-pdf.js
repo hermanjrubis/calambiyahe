@@ -237,8 +237,17 @@
             const origLL = toLL(routeData.originCoords);
             const destLL = toLL(routeData.destCoords);
 
+            const walkCoords = routeData.walkCoordinates || extractGeojsonCoords(routeData.walkRouteGeojson);
+            const transitCoords = routeData.transitCoordinates || extractGeojsonCoords(routeData.transitRouteGeojson);
+            const finalWalkCoords = routeData.finalWalkCoordinates || extractGeojsonCoords(routeData.finalWalkRouteGeojson);
+
+            const boardingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[0]) : null;
+            const alightingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[transitCoords.length - 1]) : null;
+
             if (origLL) bounds.extend(origLL);
             if (destLL) bounds.extend(destLL);
+            if (boardingLL) bounds.extend(boardingLL);
+            if (alightingLL) bounds.extend(alightingLL);
 
             const addCoordList = (coords) => {
                 if (!coords || !Array.isArray(coords)) return;
@@ -247,10 +256,6 @@
                     if (ll && isFinite(ll[0]) && isFinite(ll[1])) bounds.extend(ll);
                 });
             };
-
-            const walkCoords = routeData.walkCoordinates || extractGeojsonCoords(routeData.walkRouteGeojson);
-            const transitCoords = routeData.transitCoordinates || extractGeojsonCoords(routeData.transitRouteGeojson);
-            const finalWalkCoords = routeData.finalWalkCoordinates || extractGeojsonCoords(routeData.finalWalkRouteGeojson);
 
             addCoordList(walkCoords);
             addCoordList(transitCoords);
@@ -270,10 +275,10 @@
             if (!bounds.isEmpty()) {
                 try {
                     camera = map.cameraForBounds(bounds, {
-                        padding: { top: 60, bottom: 60, left: 60, right: 60 },
+                        padding: { top: 70, bottom: 70, left: 70, right: 70 },
                         bearing: 0,
                         pitch: 0,
-                        maxZoom: 16
+                        maxZoom: 16.5
                     });
                 } catch (_) {}
             }
@@ -287,7 +292,7 @@
                 });
             }
 
-            // Await tile loading and render completion
+            // Await map idle, tile loading and text glyphs/labels render completion
             await new Promise((resolve) => {
                 let resolved = false;
                 const done = () => {
@@ -296,18 +301,21 @@
                     resolve();
                 };
 
-                if (map.areTilesLoaded()) {
-                    map.once('render', done);
-                    map.triggerRepaint();
-                    setTimeout(done, 300);
-                } else {
-                    map.once('idle', done);
-                    map.once('render', () => {
-                        if (map.areTilesLoaded()) done();
-                    });
-                    map.triggerRepaint();
-                    setTimeout(done, 1200);
-                }
+                const checkReady = () => {
+                    if (map.areTilesLoaded() && map.loaded()) {
+                        map.once('render', done);
+                        map.triggerRepaint();
+                        setTimeout(done, 350);
+                    } else {
+                        map.once('idle', done);
+                        map.triggerRepaint();
+                    }
+                };
+
+                map.once('idle', done);
+                map.triggerRepaint();
+                checkReady();
+                setTimeout(done, 2500); // Safety timeout
             });
 
             const mapCanvas = map.getCanvas();
@@ -316,7 +324,7 @@
             snapCanvas.height = mapCanvas.height;
             const ctx = snapCanvas.getContext('2d');
 
-            // On iOS Safari WebKit, reading directly from WebGL canvas via toDataURL is synchronous and reliable
+            // Copy WebGL canvas content
             let copied = false;
             try {
                 const mapDataUrl = mapCanvas.toDataURL('image/png');
@@ -345,131 +353,150 @@
                 }
             }
 
-            // Overlay origin marker (blue circle with white ring)
+            // 1. Overlay origin marker (blue dot with white ring)
             if (origLL) {
                 const pt = map.project(origLL);
                 ctx.save();
-                ctx.shadowColor = 'rgba(28, 110, 242, 0.4)';
-                ctx.shadowBlur = 6;
+                ctx.shadowColor = 'rgba(28, 110, 242, 0.45)';
+                ctx.shadowBlur = 8;
+                // Outer white ring
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, 9, 0, Math.PI * 2);
+                ctx.arc(pt.x, pt.y, 11, 0, Math.PI * 2);
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fill();
+                // Inner blue circle
                 ctx.beginPath();
-                ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
+                ctx.arc(pt.x, pt.y, 7.5, 0, Math.PI * 2);
                 ctx.fillStyle = '#1C6EF2';
                 ctx.fill();
                 ctx.restore();
             }
 
-            // Overlay destination marker (red pin)
-            if (destLL) {
-                const pt = map.project(destLL);
+            // 2. Overlay boarding point marker (white circle with #2272C3 ring)
+            if (boardingLL && (!origLL || Math.hypot(map.project(boardingLL).x - map.project(origLL).x, map.project(boardingLL).y - map.project(origLL).y) > 12)) {
+                const pt = map.project(boardingLL);
                 ctx.save();
-                ctx.shadowColor = 'rgba(239, 68, 68, 0.4)';
+                ctx.shadowColor = 'rgba(14, 42, 71, 0.35)';
                 ctx.shadowBlur = 6;
-                ctx.translate(pt.x, pt.y);
-                ctx.fillStyle = '#EF4444';
+                // Outer blue ring
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.bezierCurveTo(-7, -10, -12, -18, -12, -24);
-                ctx.arc(0, -24, 12, Math.PI, 0, false);
-                ctx.bezierCurveTo(12, -18, 7, -10, 0, 0);
-                ctx.closePath();
+                ctx.arc(pt.x, pt.y, 10, 0, Math.PI * 2);
+                ctx.fillStyle = '#2272C3';
                 ctx.fill();
-
                 // Inner white circle
                 ctx.beginPath();
-                ctx.arc(0, -24, 4.5, 0, Math.PI * 2);
+                ctx.arc(pt.x, pt.y, 6.5, 0, Math.PI * 2);
                 ctx.fillStyle = '#FFFFFF';
                 ctx.fill();
                 ctx.restore();
             }
 
-            // Crop to route bounding box with comfortable padding
-            let minX = 0, minY = 0, maxX = snapCanvas.width, maxY = snapCanvas.height;
-            if (origLL && destLL) {
-                const ptO = map.project(origLL);
-                const ptD = map.project(destLL);
-                minX = Math.min(ptO.x, ptD.x);
-                maxX = Math.max(ptO.x, ptD.x);
-                minY = Math.min(ptO.y, ptD.y);
-                maxY = Math.max(ptO.y, ptD.y);
+            // 3. Overlay destination marker (red pin)
+            if (destLL) {
+                const pt = map.project(destLL);
+                ctx.save();
+                ctx.shadowColor = 'rgba(239, 68, 68, 0.45)';
+                ctx.shadowBlur = 8;
+                ctx.translate(pt.x, pt.y);
+                ctx.fillStyle = '#EF4444';
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-8, -12, -14, -20, -14, -28);
+                ctx.arc(0, -28, 14, Math.PI, 0, false);
+                ctx.bezierCurveTo(14, -20, 8, -12, 0, 0);
+                ctx.closePath();
+                ctx.fill();
 
-                const checkList = [
-                    ...walkCoords,
-                    ...transitCoords,
-                    ...finalWalkCoords
-                ];
-                checkList.forEach(c => {
-                    const ll = toLL(c);
-                    if (ll && isFinite(ll[0]) && isFinite(ll[1])) {
-                        try {
-                            const pt = map.project(ll);
-                            if (pt && isFinite(pt.x) && isFinite(pt.y)) {
-                                minX = Math.min(minX, pt.x);
-                                maxX = Math.max(maxX, pt.x);
-                                minY = Math.min(minY, pt.y);
-                                maxY = Math.max(maxY, pt.y);
-                            }
-                        } catch (_) {}
-                    }
-                });
-
-                const padX = Math.max(45, (maxX - minX) * 0.16);
-                const padY = Math.max(45, (maxY - minY) * 0.16);
-                minX = Math.max(0, minX - padX);
-                maxX = Math.min(snapCanvas.width, maxX + padX);
-                minY = Math.max(0, minY - padY);
-                maxY = Math.min(snapCanvas.height, maxY + padY);
-
-                // Target aspect ratio 2.3:1
-                let boxW = maxX - minX;
-                let boxH = maxY - minY;
-                const targetRatio = 2.3;
-                if (boxW / boxH < targetRatio) {
-                    const newW = boxH * targetRatio;
-                    const diff = (newW - boxW) / 2;
-                    minX = Math.max(0, minX - diff);
-                    maxX = Math.min(snapCanvas.width, minX + newW);
-                } else {
-                    const newH = boxW / targetRatio;
-                    const diff = (newH - boxH) / 2;
-                    minY = Math.max(0, minY - diff);
-                    maxY = Math.min(snapCanvas.height, minY + newH);
-                }
+                // Inner white circle
+                ctx.beginPath();
+                ctx.arc(0, -28, 5.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fill();
+                ctx.restore();
             }
 
-            let sW = maxX - minX;
-            let sH = maxY - minY;
-            if (sW <= 10 || sH <= 10 || !isFinite(sW) || !isFinite(sH)) {
-                minX = 0;
-                minY = 0;
-                sW = snapCanvas.width;
-                sH = snapCanvas.height;
+            // Crop to route bounding box with comfortable padding maintaining 1420:510 aspect ratio
+            let minX = snapCanvas.width, minY = snapCanvas.height, maxX = 0, maxY = 0;
+            const pts = [origLL, destLL, boardingLL, alightingLL].filter(Boolean);
+            const allCoords = [...walkCoords, ...transitCoords, ...finalWalkCoords];
+            allCoords.forEach(c => {
+                const ll = toLL(c);
+                if (ll) pts.push(ll);
+            });
+
+            pts.forEach(ll => {
+                try {
+                    const pt = map.project(ll);
+                    if (pt && isFinite(pt.x) && isFinite(pt.y)) {
+                        minX = Math.min(minX, pt.x);
+                        maxX = Math.max(maxX, pt.x);
+                        minY = Math.min(minY, pt.y);
+                        maxY = Math.max(maxY, pt.y);
+                    }
+                } catch (_) {}
+            });
+
+            if (minX >= maxX || minY >= maxY) {
+                minX = 0; minY = 0; maxX = snapCanvas.width; maxY = snapCanvas.height;
+            }
+
+            const padX = Math.max(50, (maxX - minX) * 0.12);
+            const padY = Math.max(50, (maxY - minY) * 0.12);
+            minX -= padX;
+            maxX += padX;
+            minY -= padY;
+            maxY += padY;
+
+            const cx = (minX + maxX) / 2;
+            const cy = (minY + maxY) / 2;
+
+            let boxW = maxX - minX;
+            let boxH = maxY - minY;
+            const targetRatio = 1420 / 510;
+
+            if (boxW / boxH < targetRatio) {
+                boxW = boxH * targetRatio;
+            } else {
+                boxH = boxW / targetRatio;
+            }
+
+            if (boxW > snapCanvas.width || boxH > snapCanvas.height) {
+                const scale = Math.max(boxW / snapCanvas.width, boxH / snapCanvas.height);
+                boxW /= scale;
+                boxH /= scale;
+            }
+
+            let sX = cx - boxW / 2;
+            let sY = cy - boxH / 2;
+
+            if (sX < 0) sX = 0;
+            if (sY < 0) sY = 0;
+            if (sX + boxW > snapCanvas.width) sX = snapCanvas.width - boxW;
+            if (sY + boxH > snapCanvas.height) sY = snapCanvas.height - boxH;
+
+            if (sX < 0 || sY < 0 || boxW <= 10 || boxH <= 10) {
+                sX = 0; sY = 0;
+                boxW = snapCanvas.width;
+                boxH = snapCanvas.height;
             }
 
             const cropCanvas = document.createElement('canvas');
-            cropCanvas.width = 800;
-            cropCanvas.height = 350;
+            cropCanvas.width = 1420;
+            cropCanvas.height = 510;
             const cropCtx = cropCanvas.getContext('2d');
             cropCtx.drawImage(
                 snapCanvas,
-                minX, minY, sW, sH,
+                sX, sY, boxW, boxH,
                 0, 0, cropCanvas.width, cropCanvas.height
             );
 
-            return cropCanvas.toDataURL('image/jpeg', 0.88);
+            return cropCanvas.toDataURL('image/jpeg', 0.92);
         } catch (err) {
             window._calzadaMapSnapshotLastError = String(err && err.stack ? err.stack : err);
             console.error('MAP_SNAPSHOT_ERROR:', err);
             return null;
         } finally {
-            if (document.body.classList.contains('navigation-active') || window.isTrackingArrival) {
-                map.jumpTo(prevCamera);
-            } else if (typeof window.fitRoutePreviewBounds === 'function') {
-                window.fitRoutePreviewBounds(0);
-            }
+            map.jumpTo(prevCamera);
         }
     }
 
@@ -482,7 +509,12 @@
         const walkDistM = Math.round((routeData.walkDist || 0) * 1000);
         const transitDur = routeData.transitDur || 0;
         const transitDistKm = (routeData.transitDist || 0).toFixed(1);
-        const fareStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(routeData.fare || 14) : `₱${(routeData.fare || 14).toFixed(2)}`;
+        const regularFare = (typeof routeData.fare === 'number' && routeData.fare > 0)
+            ? routeData.fare
+            : ((window.CalzadaFare && typeof window.CalzadaFare.fareFor === 'function')
+                ? window.CalzadaFare.fareFor(routeData.transitDist || 0, 'regular')
+                : 14);
+        const fareStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(regularFare) : `₱${regularFare.toFixed(2)}`;
 
         const boardTime = new Date(depTime.getTime() + walkDur * 60 * 1000);
         const stopsInfo = routeData.lastItineraryStops || {};
@@ -553,7 +585,11 @@
             rowsHtml += renderLeg(true, walk2Meta, freeLabel);
             rowsHtml += renderStop(formatTime12(arrTime), '#EF4444', routeData.destName, null);
         } else {
-            rowsHtml += renderStop(formatTime12(arrTime), '#EF4444', routeData.destName, getOffSub);
+            let alightSub = getOffSub;
+            if (alightAt && alightAt.toLowerCase() !== (routeData.destName || '').toLowerCase()) {
+                alightSub = isTl ? `Bumaba sa ${alightAt}` : `Get off at ${alightAt}`;
+            }
+            rowsHtml += renderStop(formatTime12(arrTime), '#EF4444', routeData.destName, alightSub);
         }
 
         return rowsHtml;
@@ -565,6 +601,10 @@
             return '<div style="font-size: 11px; color: #5B6B7C;">No step-by-step directions available.</div>';
         }
 
+        const stopsInfo = routeData.lastItineraryStops || {};
+        const boardAt = (stopsInfo.boardAt || '').trim();
+        const alightAt = (stopsInfo.alightAt || routeData.destName || '').trim();
+
         const fmtDist = (m) => formatDistanceMeters(m);
 
         return steps.map((step, idx) => {
@@ -573,6 +613,17 @@
             const prevStep = idx > 0 ? steps[idx - 1] : null;
             const prevName = prevStep ? (prevStep.name || '').trim() : '';
 
+            let stepStopName = (step.stopName || '').trim();
+            let stepGetOffStop = (step.getOffStop || '').trim();
+
+            if (step.mode === 'foot' && nextMode && (nextMode === 'driving' || nextMode === 'jeepney')) {
+                stepStopName = boardAt || stepStopName;
+            }
+            if ((step.mode === 'driving' || step.mode === 'jeepney') && (isLast || (nextMode && nextMode === 'foot'))) {
+                stepStopName = alightAt || stepStopName;
+                stepGetOffStop = alightAt || stepGetOffStop;
+            }
+
             let text = '';
             if (typeof window.formatStepInstruction === 'function') {
                 text = window.formatStepInstruction(step, step.mode, {
@@ -580,7 +631,9 @@
                     nextMode,
                     steps,
                     index: idx,
-                    prevName
+                    prevName,
+                    stopName: stepStopName,
+                    getOffStop: stepGetOffStop
                 });
             } else {
                 text = step.instruction || step.name || 'Proceed along route';
@@ -695,8 +748,8 @@
                     <!-- 3. Map Snapshot -->
                     ${mapSnapshotDataUrl ? `
                     <div style="margin-bottom: 12px;">
-                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: 100%; height: 195px; position: relative;">
-                            <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: 100%; height: 195px; object-fit: cover; display: block;">
+                        <div id="pdfMapSnapshotBox" style="border-radius: 8px; overflow: hidden; border: 1px solid #DCE5EE; background: #E2E8F0; width: 100%; height: 255px; position: relative;">
+                            <img src="${mapSnapshotDataUrl}" alt="Route Map" style="width: 100%; height: 255px; object-fit: cover; display: block;">
                         </div>
                         <div style="font-size: 9px; color: #64748B; margin-top: 3px; text-align: right;">
                             © OpenStreetMap contributors
@@ -810,11 +863,26 @@
         if (isWalkOnly) {
             fareSummaryText = isTl ? 'Libre' : 'Free';
         } else {
-            const transitDist = routeData.transitDist || 0;
+            const transitDist = Number(routeData.transitDist) || 0;
             const fareData = (window.CalzadaFare && typeof window.CalzadaFare.fares === 'function')
                 ? window.CalzadaFare.fares(transitDist)
                 : { regular: 14.00, discounted: 11.20 };
-            const regStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(fareData.regular) : `₱${fareData.regular.toFixed(2)}`;
+
+            // Use the same per-leg fare values the planner/itinerary already computed (fare-calc.js on the jeepney leg distance only)
+            let regularFare = (typeof routeData.fare === 'number' && routeData.fare > 0)
+                ? routeData.fare
+                : fareData.regular;
+
+            // Runtime check: PDF fare == on-screen fare for the same route
+            if (typeof routeData.fare === 'number' && routeData.fare > 0 && Math.abs(regularFare - routeData.fare) > 0.01) {
+                console.warn(`[RoutePDF] Fare reconciliation: adjusting PDF fare ₱${regularFare} to match on-screen fare ₱${routeData.fare}`);
+                regularFare = routeData.fare;
+            }
+
+            routeData._pdfRegularFare = regularFare;
+            routeData._pdfDiscountedFare = fareData.discounted;
+
+            const regStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(regularFare) : `₱${regularFare.toFixed(2)}`;
             const discStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(fareData.discounted) : `₱${fareData.discounted.toFixed(2)}`;
             fareSummaryText = isTl
                 ? `Regular: ${regStr} · Estudyante/Senior/PWD: ${discStr}`

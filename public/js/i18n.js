@@ -1227,7 +1227,10 @@ function applyLang(lang) {
 
             const attr = el.getAttribute('data-i18n-attr');
             if (attr) {
-                el.setAttribute(attr, val);
+                attr.split(',').forEach(a => {
+                    const cleanAttr = a.trim();
+                    if (cleanAttr) el.setAttribute(cleanAttr, val);
+                });
             } else {
                 // Special handling for HTML strings in translations
                 el.innerHTML = val;

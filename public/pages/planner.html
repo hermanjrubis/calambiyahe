@@ -26,7 +26,7 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.7.3">
+    <link rel="stylesheet" href="../css/planner.css?v=2.7.4">
     <link rel="stylesheet" href="../css/place-search.css?v=1.0.0">
     <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
     <link rel="stylesheet" href="../css/account-modals-planner.css?v=1.1.0">
@@ -327,8 +327,17 @@
                 <div class="ds-peek-info" id="dsPeekInfo" style="display:none;">
                     <span id="peekSummary" class="peek-summary-text">-- min • ₱ --</span>
                 </div>
+                <!-- 40x40 Save as PDF icon button (Tabler file-download, 22px, stroke #2272C3, no background) -->
+                <button class="header-icon-btn save-route-pdf-btn" id="headerSavePdfBtn" type="button" aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf" data-i18n-attr="aria-label,title" style="display:none;">
+                    <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                        <path d="M12 17v-6"></path>
+                        <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+                    </svg>
+                </button>
                 <!-- Close X logic will reset planner -->
-                <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Clear route" data-i18n="planner.clear_route" data-i18n-attr="aria-label" title="Clear route" style="display:none;"><ion-icon
+                <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Clear route" data-i18n="planner.clear_route" data-i18n-attr="aria-label,title" title="Clear route" style="display:none;"><ion-icon
                         name="close"></ion-icon></button>
             </div>
 
@@ -428,16 +437,6 @@
                     </svg>
                     <span class="start-journey-text">START JOURNEY</span>
                 </button>
-                <button class="save-route-pdf-btn" id="saveRoutePdfBtn" type="button" style="display:none;" aria-label="Save as PDF">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="18" x2="12" y2="12"></line>
-                        <line x1="9" y1="15" x2="12" y2="18"></line>
-                        <line x1="15" y1="15" x2="12" y2="18"></line>
-                    </svg>
-                    <span class="save-pdf-text" data-i18n="planner.save_pdf">Save as PDF</span>
-                </button>
                 <div class="start-journey-helper" id="startJourneyHelper">Enter a destination to continue</div>
             </div>
         </div>
@@ -447,6 +446,17 @@
 
         <!-- 3A. UNIFIED DESKTOP ACTIVE NAVIGATION PANEL (Top-Left ~420px) -->
         <div class="active-nav-panel" id="activeNavPanel" style="display:none;">
+            <div class="active-nav-header">
+                <span class="active-nav-title" data-i18n="planner.trip_active">Trip Active</span>
+                <button class="header-icon-btn save-route-pdf-btn" id="navSavePdfBtnDesktop" type="button" aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf" data-i18n-attr="aria-label,title">
+                    <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                        <path d="M12 17v-6"></path>
+                        <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+                    </svg>
+                </button>
+            </div>
             <!-- Segmented Mode Toggle (Walk / Jeep) -->
             <div class="nav-panel-mode-track">
                 <button class="nav-panel-mode-btn" data-mode="walking" type="button" aria-label="Walking route">
@@ -500,16 +510,6 @@
                 </button>
                 <div class="nav-panel-full-route-body" id="navPanelFullRouteBody">
                     <div class="nav-panel-legs-list" id="navPanelLegsList"></div>
-                    <button class="save-route-pdf-btn nav-save-pdf-btn" id="navSavePdfBtnDesktop" type="button" aria-label="Save as PDF">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                            <polyline points="14 2 14 8 20 8"></polyline>
-                            <line x1="12" y1="18" x2="12" y2="12"></line>
-                            <line x1="9" y1="15" x2="12" y2="18"></line>
-                            <line x1="15" y1="15" x2="12" y2="18"></line>
-                        </svg>
-                        <span class="save-pdf-text" data-i18n="planner.save_pdf">Save as PDF</span>
-                    </button>
                 </div>
             </div>
 
@@ -555,6 +555,14 @@
                     </div>
                 </div>
                 <div class="nav-collapsed-right">
+                    <button class="header-icon-btn save-route-pdf-btn" id="navSavePdfBtnMobile" type="button" aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf" data-i18n-attr="aria-label,title">
+                        <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                            <path d="M12 17v-6"></path>
+                            <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+                        </svg>
+                    </button>
                     <button class="btn-cancel-route nav-end-btn" id="navEndRouteBtn" type="button" aria-label="End route" title="End route">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -569,16 +577,6 @@
             <!-- Expanded Part A timeline -->
             <div class="nav-expanded-content" id="navExpandedContent" style="display:none;">
                 <div class="nav-expanded-itinerary" id="pillItineraryLegs"></div>
-                <button class="save-route-pdf-btn nav-save-pdf-btn" id="navSavePdfBtnMobile" type="button" aria-label="Save as PDF">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="12" y1="18" x2="12" y2="12"></line>
-                        <line x1="9" y1="15" x2="12" y2="18"></line>
-                        <line x1="15" y1="15" x2="12" y2="18"></line>
-                    </svg>
-                    <span class="save-pdf-text" data-i18n="planner.save_pdf">Save as PDF</span>
-                </button>
             </div>
 
             <!-- Hidden compatibility elements for existing JS selectors -->
@@ -819,11 +817,11 @@
     <script src="../js/fare-calc.js?v=1.0.1"></script>
     <script src="../js/trip-ticket.js?v=1.1.4"></script>
     <script src="../js/place-search.js?v=1.0.1"></script>
-    <script src="../js/route-pdf.js?v=1.0.1"></script>
-    <script src="../js/planner.js?v=2.8.2"></script>
+    <script src="../js/route-pdf.js?v=1.0.2"></script>
+    <script src="../js/planner.js?v=2.8.3"></script>
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.7.5"></script>
+    <script src="../js/i18n.js?v=2.7.6"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>

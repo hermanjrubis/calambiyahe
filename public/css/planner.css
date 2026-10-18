@@ -1430,6 +1430,7 @@ body.navigation-active .calzada-map-card {
     align-items: center;
     padding: 10px 20px 14px;
     flex-shrink: 0;
+    gap: 8px;
 }
 
 .ds-title {
@@ -1936,54 +1937,64 @@ span#sumFare.sum-fare-pill {
 /* =============================================
    SAVE AS PDF BUTTON (OFFLINE ROUTE EXPORT)
    ============================================= */
-.save-route-pdf-btn {
-    margin: 0 16px 12px;
-    background: #FFFFFF;
-    color: #0E2A47;
-    border: 1.5px solid #CBD5E1;
-    border-radius: 14px;
-    height: 44px;
-    min-height: 44px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(14, 42, 71, 0.05);
-    transition: all 0.15s ease;
+/* 40x40 Icon Button in Header (Tabler file-download, 22px, stroke #2272C3, no background) */
+.header-icon-btn.save-route-pdf-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    max-width: 40px !important;
+    max-height: 40px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    border-radius: 50% !important;
+    box-shadow: none !important;
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: calc(100% - 32px);
-    box-sizing: border-box;
-    flex-shrink: 0;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: background-color 0.15s ease, transform 0.1s ease !important;
 }
 
-.save-route-pdf-btn:hover:not(:disabled) {
-    background: #F8FAFC;
-    border-color: #378ADD;
-    color: #378ADD;
-    box-shadow: 0 2px 8px rgba(55, 138, 221, 0.15);
+.header-icon-btn.save-route-pdf-btn[style*="display: none"],
+.header-icon-btn.save-route-pdf-btn[style*="display:none"] {
+    display: none !important;
 }
 
-.save-route-pdf-btn:active:not(:disabled) {
-    transform: scale(0.98);
+.header-icon-btn.save-route-pdf-btn:hover:not(:disabled) {
+    background-color: rgba(34, 114, 195, 0.08) !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-.save-route-pdf-btn:disabled,
-.save-route-pdf-btn.is-busy {
-    opacity: 0.75;
-    cursor: not-allowed;
-    background: #F1F5F9;
+.header-icon-btn.save-route-pdf-btn:active:not(:disabled) {
+    transform: scale(0.92) !important;
+    background-color: rgba(34, 114, 195, 0.16) !important;
 }
 
-.save-route-pdf-btn svg {
-    flex-shrink: 0;
+.header-icon-btn.save-route-pdf-btn:disabled,
+.header-icon-btn.save-route-pdf-btn.is-busy {
+    opacity: 0.75 !important;
+    cursor: not-allowed !important;
 }
 
-.nav-save-pdf-btn {
-    margin: 12px 16px 14px;
-    width: calc(100% - 32px);
+.header-icon-btn.save-route-pdf-btn svg {
+    width: 22px !important;
+    height: 22px !important;
+    stroke: #2272C3 !important;
+    fill: none !important;
+    stroke-width: 2 !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.2s ease;
+}
+
+.header-icon-btn.save-route-pdf-btn.is-busy svg {
+    animation: spin-pdf-loader 0.8s linear infinite !important;
 }
 
 @keyframes spin-pdf-loader {
@@ -2017,6 +2028,21 @@ span#sumFare.sum-fare-pill {
     animation: navPanelSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.active-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 2px;
+}
+
+.active-nav-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0E2A47;
+    letter-spacing: -0.01em;
+}
+
 @keyframes navPanelSlideIn {
     from {
         opacity: 0;
@@ -2035,7 +2061,7 @@ span#sumFare.sum-fare-pill {
     background: #F1F5F9;
     border-radius: 999px;
     padding: 4px;
-    margin: 18px 20px 12px;
+    margin: 10px 20px 12px;
     gap: 4px;
 }
 
@@ -2610,6 +2636,9 @@ body.navigation-active #hamburgerBtn {
     }
 
     .nav-collapsed-right {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
         flex-shrink: 0;
     }
 

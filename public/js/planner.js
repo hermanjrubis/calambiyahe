@@ -2306,7 +2306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const itineraryLegs = document.getElementById('itineraryLegs');
             const walkHintEl = document.getElementById('walkableTripHint');
             const startBtn = document.getElementById('startJourneyBtn');
-            const savePdfBtn = document.getElementById('saveRoutePdfBtn');
+            const savePdfBtn = document.getElementById('headerSavePdfBtn') || document.getElementById('saveRoutePdfBtn');
             const startHelper = document.getElementById('startJourneyHelper');
 
             if (hasRoute) {
@@ -3595,9 +3595,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const lastTransitStep = (tSteps || []).slice().reverse().find(s => (s.stopName || s.name || '').trim() !== '');
                 const alightingPointName = (lastTransitStep?.stopName || lastTransitStep?.name || alightAt || '').trim();
 
+                const resolvedAlightAt = (alightingPointName && norm(alightingPointName) !== norm(finalDestName))
+                    ? alightingPointName
+                    : finalDestName;
+
                 lastItineraryStops = {
                     boardAt,
-                    alightAt: alightingPointName && norm(alightingPointName) !== norm(finalDestName) ? alightingPointName : null,
+                    alightAt: resolvedAlightAt,
                     finalWalkM: 0,
                     finalWalkMin: 0
                 };
@@ -3616,6 +3620,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     name: finalDestName,
                     subText: getOffSub
                 }));
+            }
+
+            // Ensure step instructions and timeline share identical boarding and alighting stop names
+            if (window.activeRouteSteps && window.activeRouteSteps.length > 0 && lastItineraryStops) {
+                const targetBoard = lastItineraryStops.boardAt || boardAt;
+                const targetAlight = lastItineraryStops.alightAt || alightAt || destName;
+                for (let i = 0; i < window.activeRouteSteps.length; i++) {
+                    const curr = window.activeRouteSteps[i];
+                    const next = (i + 1 < window.activeRouteSteps.length) ? window.activeRouteSteps[i + 1] : null;
+                    if (curr.mode === 'foot' && next && (next.mode === 'driving' || next.mode === 'jeepney')) {
+                        curr.stopName = targetBoard;
+                        curr.boardAt = targetBoard;
+                    }
+                    if ((curr.mode === 'driving' || curr.mode === 'jeepney') && (!next || next.mode === 'foot')) {
+                        curr.stopName = targetAlight;
+                        curr.getOffStop = targetAlight;
+                        curr.alightAt = targetAlight;
+                    }
+                }
             }
 
             renderActiveNavLegs();
