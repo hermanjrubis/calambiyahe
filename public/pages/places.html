@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.6.9">
+    <link rel="stylesheet" href="../css/style.css?v=2.7.1">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -69,7 +69,7 @@
     </script>
 </head>
 
-<body>
+<body data-header-autohide="true">
 
     <!-- Mobile Search Overlay -->
     <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
@@ -176,8 +176,13 @@
                 <a href="/planner" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
             </nav>
 
-            <!-- [Right Side]: Language, Activity Feed Bell, User Profile / Sign In -->
+            <!-- [Right Side]: Search Pill, Language, Activity Feed Bell, User Profile / Sign In -->
             <div class="nav-right">
+                <button type="button" class="header-search-pill-btn" id="headerSearchPillBtn" aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
+                    <i class="ti ti-search header-search-icon" aria-hidden="true"></i>
+                    <span class="header-search-text" data-i18n="places.search_btn_text">Search places</span>
+                </button>
+
                 <div class="lang-dropdown-container">
                     <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
                         <i class="ti ti-language lang-icon" aria-hidden="true"></i>
@@ -227,6 +232,9 @@
 
             <!-- Mobile-only icon cluster -->
             <div class="mobile-nav-icons" id="mobileNavIcons">
+                <button type="button" class="mobile-nav-icon-btn header-search-mobile-btn" id="headerSearchMobileBtn" aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
+                    <i class="ti ti-search header-search-mobile-icon" aria-hidden="true"></i>
+                </button>
                 <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
                     <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
                     <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
@@ -378,42 +386,101 @@
         </div>
     </header>
 
-    <!-- Mobile Sticky Search & Category Bar (< 1024px) -->
-    <div class="places-mobile-bar" id="placesMobileBar" role="region" aria-label="Search and category filters">
-        <div class="places-mobile-bar-inner">
-            <div class="mobile-search-row">
-                <label for="mobilePlaceSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
-                <div class="mobile-search-box">
-                    <i class="ti ti-search mobile-search-icon" aria-hidden="true"></i>
-                    <input type="text" id="mobilePlaceSearchInput" class="mobile-search-input" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Search for a place..." autocomplete="off">
-                    <button type="button" id="mobileSearchClearBtn" class="mobile-search-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
+    <!-- Search Panel Overlay (Desktop only) -->
+    <div class="search-panel-overlay" id="searchPanelOverlay" aria-hidden="true"></div>
+
+    <!-- Nike-Style Header Search Panel (Desktop slide-down / Mobile full-screen) -->
+    <div class="header-search-panel" id="headerSearchPanel" role="dialog" aria-modal="true" aria-label="Search places" data-i18n-aria-label="places.search_dialog_label">
+        <div class="search-panel-inner">
+            <!-- Top Row -->
+            <div class="search-panel-top">
+                <!-- Calzada Logo (Desktop visual only) -->
+                <div class="search-panel-logo" aria-hidden="true">
+                    <img src="../assets/logo-header-blue.webp" alt="" width="500" height="175" class="search-logo-img">
+                </div>
+
+                <!-- Search Input Box -->
+                <div class="search-panel-input-wrap">
+                    <label for="headerPanelSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
+                    <i class="ti ti-search search-panel-icon" aria-hidden="true"></i>
+                    <input
+                        type="text"
+                        id="headerPanelSearchInput"
+                        class="search-panel-input"
+                        role="combobox"
+                        aria-expanded="false"
+                        aria-autocomplete="list"
+                        aria-controls="searchPanelResultsList"
+                        data-i18n="places.search_placeholder"
+                        data-i18n-attr="placeholder"
+                        placeholder="Search for a place..."
+                        autocomplete="off"
+                        autocorrect="off"
+                        autocapitalize="off"
+                        spellcheck="false"
+                    >
+                    <button type="button" id="searchPanelClearBtn" class="search-panel-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
                         <i class="ti ti-x" aria-hidden="true"></i>
                     </button>
                 </div>
+
+                <!-- Cancel Button -->
+                <button type="button" class="search-panel-cancel-btn" id="searchPanelCancelBtn" data-i18n="places.cancel">
+                    Cancel
+                </button>
             </div>
-            <nav class="mobile-category-chips" id="mobileCategoryChips" aria-label="Place category chips">
-                <button type="button" class="category-chip active" data-category="all" aria-pressed="true">
-                    <span data-i18n="places.cat_all">All Places</span>
-                </button>
-                <button type="button" class="category-chip" data-category="malls" aria-pressed="false">
-                    <span data-i18n="places.cat_malls">Malls</span>
-                </button>
-                <button type="button" class="category-chip" data-category="eateries" aria-pressed="false">
-                    <span data-i18n="places.cat_eateries">Eateries</span>
-                </button>
-                <button type="button" class="category-chip" data-category="schools" aria-pressed="false">
-                    <span data-i18n="places.cat_schools">Schools</span>
-                </button>
-                <button type="button" class="category-chip" data-category="terminals" aria-pressed="false">
-                    <span data-i18n="places.cat_terminals">Terminals</span>
-                </button>
-                <button type="button" class="category-chip" data-category="coffee" aria-pressed="false">
-                    <span data-i18n="places.cat_coffee">Coffee Shops</span>
-                </button>
-                <button type="button" class="category-chip" data-category="establishments" aria-pressed="false">
-                    <span data-i18n="places.cat_est">Establishments</span>
-                </button>
-            </nav>
+
+            <!-- Panel Body -->
+            <div class="search-panel-body" id="searchPanelBody">
+                <!-- A. Input Empty State: Browse by Category & Recent Searches -->
+                <div class="search-panel-browse" id="searchPanelBrowse">
+                    <!-- Browse by category -->
+                    <div class="panel-section">
+                        <div class="panel-section-label" data-i18n="places.browse_by_category">Browse by category</div>
+                        <div class="panel-category-chips" id="panelCategoryChips" role="group" aria-label="Browse categories">
+                            <button type="button" class="panel-category-chip active" data-category="all" aria-pressed="true">
+                                <span data-i18n="places.cat_all">All Places</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="malls" aria-pressed="false">
+                                <span data-i18n="places.cat_malls">Malls</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="eateries" aria-pressed="false">
+                                <span data-i18n="places.cat_eateries">Eateries</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="schools" aria-pressed="false">
+                                <span data-i18n="places.cat_schools">Schools</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="terminals" aria-pressed="false">
+                                <span data-i18n="places.cat_terminals">Terminals</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="coffee" aria-pressed="false">
+                                <span data-i18n="places.cat_coffee">Coffee Shops</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="establishments" aria-pressed="false">
+                                <span data-i18n="places.cat_est">Establishments</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent searches -->
+                    <div class="panel-section" id="panelRecentSection" style="display: none;">
+                        <div class="panel-section-header">
+                            <span class="panel-section-label" data-i18n="places.recent_searches">Recent searches</span>
+                            <button type="button" class="panel-clear-recents-btn" id="panelClearRecentsBtn" data-i18n="places.clear_recents">Clear</button>
+                        </div>
+                        <div class="panel-recent-chips" id="panelRecentChips" role="group" aria-label="Recent searches"></div>
+                    </div>
+                </div>
+
+                <!-- B. Typing State: Live Results -->
+                <div class="search-panel-results" id="searchPanelResults" style="display: none;">
+                    <ul class="search-results-list" id="searchPanelResultsList" role="listbox" aria-label="Search results"></ul>
+                    <div class="search-panel-no-results" id="searchPanelNoResults" style="display: none;">
+                        <p class="no-results-msg" id="searchPanelNoResultsMsg"></p>
+                        <button type="button" class="panel-browse-cat-link" id="panelNoResultsBrowseLink" data-i18n="places.browse_by_category">Browse by category</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -449,10 +516,7 @@
 
             <!-- Main Content Area: Content Header + 4-Column Card Grid -->
             <div class="places-content">
-                <!-- Desktop Sentinel for Sticky Toolbar -->
-                <div id="placesToolbarSentinel" class="places-toolbar-sentinel" aria-hidden="true"></div>
-
-                <!-- Page Content Header with Sticky Search Toolbar -->
+                <!-- Page Content Header with In-page Search Toolbar -->
                 <div class="places-content-header" id="placesToolbar">
                     <div class="places-toolbar-count" id="placesResultCount" aria-live="polite">
                         96 places
@@ -553,8 +617,9 @@
 
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.8.4"></script>
+    <script src="../js/i18n.js?v=2.8.6"></script>
     <script src="../js/places-shared.js?v=2.6.6"></script>
+    <script src="../js/header-autohide.js?v=1.0.0"></script>
     <script>
         function escapeHtml(str) {
             if (!str) return '';
@@ -629,16 +694,62 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
-            const chips = document.querySelectorAll('.category-chip');
             const noResults = document.getElementById('noResults');
             const searchInput = document.getElementById('placeSearchInput');
-            const mobileSearchInput = document.getElementById('mobilePlaceSearchInput');
             const clearBtn = document.getElementById('placeSearchClearBtn');
-            const mobileClearBtn = document.getElementById('mobileSearchClearBtn');
             const placesGrid = document.querySelector('.places-grid');
             const resultCountEl = document.getElementById('placesResultCount');
 
+            // Header Search Panel Elements
+            const searchPanel = document.getElementById('headerSearchPanel');
+            const searchOverlay = document.getElementById('searchPanelOverlay');
+            const headerSearchPillBtn = document.getElementById('headerSearchPillBtn');
+            const headerSearchMobileBtn = document.getElementById('headerSearchMobileBtn');
+            const headerPanelInput = document.getElementById('headerPanelSearchInput');
+            const searchPanelClearBtn = document.getElementById('searchPanelClearBtn');
+            const searchPanelCancelBtn = document.getElementById('searchPanelCancelBtn');
+            const searchPanelBrowse = document.getElementById('searchPanelBrowse');
+            const searchPanelResults = document.getElementById('searchPanelResults');
+            const searchPanelResultsList = document.getElementById('searchPanelResultsList');
+            const searchPanelNoResults = document.getElementById('searchPanelNoResults');
+            const searchPanelNoResultsMsg = document.getElementById('searchPanelNoResultsMsg');
+            const panelNoResultsBrowseLink = document.getElementById('panelNoResultsBrowseLink');
+            const panelClearRecentsBtn = document.getElementById('panelClearRecentsBtn');
+
+            // Master places dataset (contains ALL places from fallback or API)
+            let allMasterPlaces = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0)
+                ? window.FALLBACK_PLACES
+                : FALLBACK_PLACES;
             let allFetchedPlaces = [];
+
+            // Panel State
+            let isPanelOpen = false;
+            let savedScrollY = 0;
+            let hasHistoryPushed = false;
+            let lastOpenedBy = null;
+            let highlightedIndex = -1;
+            let currentResultsCount = 0;
+            let debounceTimeout = null;
+            const RECENT_SEARCHES_KEY = 'calzada_recent_searches';
+
+            const CATEGORY_NAMES_ALL = {
+                malls: ['malls', 'mall', 'mga mall'],
+                eateries: ['eateries', 'eatery', 'kainan', 'mga kainan', 'restaurant', 'food'],
+                schools: ['schools', 'school', 'paaralan', 'mga paaralan', 'college', 'university'],
+                terminals: ['terminals', 'terminal', 'mga terminal', 'sakayan', 'station'],
+                coffee: ['coffee', 'coffee shops', 'kapehan', 'mga kapehan', 'cafe'],
+                establishments: ['establishments', 'establishment', 'establisyimento', 'mga establisyimento']
+            };
+
+            function normalizeStr(str) {
+                if (!str) return '';
+                return String(str)
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .toLowerCase()
+                    .replace(/['’`"]/g, '')
+                    .trim();
+            }
 
             function getCategoryLabel(category) {
                 if (!category) return '';
@@ -660,11 +771,53 @@
 
             function getSearchRank(place, query) {
                 if (!query) return 0;
-                const nameLower = (place.name || '').toLowerCase().trim();
-                if (nameLower.startsWith(query)) return 1;
-                const words = nameLower.split(/[\s\-_/.]+/);
-                if (words.some(w => w.startsWith(query))) return 2;
+                const normQ = normalizeStr(query);
+                const normName = normalizeStr(place.name || '');
+                if (normName.startsWith(normQ)) return 1;
+                if (normName.includes(normQ)) return 2;
                 return 3;
+            }
+
+            function matchesPlaceSearch(place, query) {
+                if (!query) return true;
+                const normQ = normalizeStr(query);
+                if (!normQ) return true;
+
+                const normName = normalizeStr(place.name || '');
+                if (normName.includes(normQ)) return true;
+
+                const catSlug = (place.category || '').toLowerCase();
+                const currentCatLabel = normalizeStr(getCategoryLabel(place.category));
+                if (catSlug.includes(normQ) || currentCatLabel.includes(normQ)) return true;
+
+                for (const [key, aliases] of Object.entries(CATEGORY_NAMES_ALL)) {
+                    if (catSlug.includes(key)) {
+                        if (aliases.some(a => normalizeStr(a).includes(normQ))) return true;
+                    }
+                }
+
+                const normBrgy = normalizeStr(place.barangay || '');
+                if (normBrgy.includes(normQ)) return true;
+
+                const normMuni = normalizeStr(place.municipality || 'Calamba');
+                if (normMuni.includes(normQ)) return true;
+
+                return false;
+            }
+
+            function highlightMatch(text, query) {
+                if (!text) return '';
+                if (!query || !query.trim()) return escapeHtml(text);
+                const trimmed = query.trim();
+                const chars = trimmed.split('').map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+                const pattern = chars.join("['’`\"]?");
+                try {
+                    const regex = new RegExp(`(${pattern})`, 'gi');
+                    const escaped = escapeHtml(text);
+                    return escaped.replace(regex, '<mark>$1</mark>');
+                } catch (_) {
+                    return escapeHtml(text);
+                }
             }
 
             function formatResultCount(count, category, query) {
@@ -691,9 +844,45 @@
 
             function updateResultCount(count, searchTerm) {
                 if (!resultCountEl) return;
-                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
+                const activeTab = document.querySelector('.category-tab.active');
                 const category = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
                 resultCountEl.textContent = formatResultCount(count, category, searchTerm);
+            }
+
+            function registerPlaceInDictionary(place) {
+                if (!place || typeof window.placesData === 'undefined') return;
+                const name = place.name || 'Unnamed Place';
+                const category = place.category || 'Destination';
+                const barangay = place.barangay || '';
+                const municipality = place.municipality || 'Calamba';
+                const rawImg = place.photo || place.image_path || '';
+                const imagePath = rawImg ? resolvePlaceImageUrl(rawImg) : '../assets/hero-places-bg.png';
+                const description = place.description || '';
+                const placeLat = place.lat != null ? place.lat : null;
+                const placeLng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
+
+                const existing = window.placesData[name] || {};
+                window.placesData[name] = {
+                    ...existing,
+                    id: place.id || existing.id || null,
+                    slug: place.slug || existing.slug || '',
+                    name: name,
+                    category: category,
+                    image: imagePath || existing.image || '../assets/hero-places-bg.png',
+                    photo: place.photo !== undefined ? place.photo : (existing.photo !== undefined ? existing.photo : null),
+                    pano: place.pano !== undefined ? place.pano : (existing.pano !== undefined ? existing.pano : null),
+                    pano_thumb: place.pano_thumb !== undefined ? place.pano_thumb : (existing.pano_thumb !== undefined ? existing.pano_thumb : null),
+                    barangay: barangay ? `Brgy. ${barangay}, ${municipality}` : (existing.barangay || municipality),
+                    full_address: place.full_address || existing.full_address || null,
+                    phone: place.phone || null,
+                    website: place.website || null,
+                    opening_hours: place.opening_hours || null,
+                    landmarks: [description || 'Destination in Calamba'],
+                    howToGetThere: 'Use the Route Planner for detailed directions to this location.',
+                    about: description || `Located in ${barangay ? 'Brgy. ' + barangay + ', ' : ''}${municipality}.`,
+                    lat: placeLat != null ? placeLat : existing.lat,
+                    lng: placeLng != null ? placeLng : existing.lng
+                };
             }
 
             // Render places array into .places-grid
@@ -701,7 +890,7 @@
                 if (!placesGrid) return;
                 placesGrid.innerHTML = '';
 
-                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
+                const activeTab = document.querySelector('.category-tab.active');
                 const activeCategory = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
 
                 // Filter places
@@ -713,25 +902,10 @@
 
                     if (!searchTerm) return true;
 
-                    const nameLower = (place.name || '').toLowerCase();
-                    const catSlug = (place.category || '').toLowerCase();
-                    const catLabel = getCategoryLabel(place.category).toLowerCase();
-                    const barangayLower = (place.barangay || '').toLowerCase();
-
-                    // Match name, category label and barangay only (not description)
-                    const searchWords = searchTerm.trim().split(/\s+/).filter(Boolean);
-                    const allWordsMatch = searchWords.length > 1 && searchWords.every(w =>
-                        nameLower.includes(w) || catSlug.includes(w) || catLabel.includes(w) || barangayLower.includes(w)
-                    );
-
-                    return nameLower.includes(searchTerm) ||
-                           catSlug.includes(searchTerm) ||
-                           catLabel.includes(searchTerm) ||
-                           barangayLower.includes(searchTerm) ||
-                           allWordsMatch;
+                    return matchesPlaceSearch(place, searchTerm);
                 });
 
-                // Order results: name starts with query first, then word in name starts with query, then other matches
+                // Order results: rank 1 first, then rank 2, then rank 3
                 if (searchTerm) {
                     filteredPlaces.sort((a, b) => getSearchRank(a, searchTerm) - getSearchRank(b, searchTerm));
                 }
@@ -746,7 +920,6 @@
                     const imagePath = hasImagePath ? resolvePlaceImageUrl(rawImg.trim()) : '';
                     const description = place.description || '';
 
-                    // Subtitle: map category slug to translated label
                     const catLabel = getCategoryLabel(category);
                     let locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
                     let subtitle = catLabel ? (locStr ? `${catLabel} • ${locStr}` : catLabel) : locStr;
@@ -754,33 +927,8 @@
                     const placeLat = place.lat != null ? place.lat : null;
                     const placeLng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
 
-                    // Register into place-panel data dictionary if available
-                    if (typeof window.placesData !== 'undefined') {
-                        const existing = window.placesData[name] || {};
-                        window.placesData[name] = {
-                            ...existing,
-                            id: place.id || existing.id || null,
-                            slug: place.slug || existing.slug || '',
-                            name: name,
-                            category: category || existing.category || 'Destination',
-                            image: imagePath || existing.image || '../assets/hero-places-bg.png',
-                            photo: place.photo !== undefined ? place.photo : (existing.photo !== undefined ? existing.photo : null),
-                            pano: place.pano !== undefined ? place.pano : (existing.pano !== undefined ? existing.pano : null),
-                            pano_thumb: place.pano_thumb !== undefined ? place.pano_thumb : (existing.pano_thumb !== undefined ? existing.pano_thumb : null),
-                            barangay: barangay ? `Brgy. ${barangay}, ${municipality}` : (existing.barangay || municipality),
-                            full_address: place.full_address || existing.full_address || null,
-                            phone: place.phone || null,
-                            website: place.website || null,
-                            opening_hours: place.opening_hours || null,
-                            landmarks: [description || 'Destination in Calamba'],
-                            howToGetThere: 'Use the Route Planner for detailed directions to this location.',
-                            about: description || `Located in ${barangay ? 'Brgy. ' + barangay + ', ' : ''}${municipality}.`,
-                            lat: placeLat != null ? placeLat : existing.lat,
-                            lng: placeLng != null ? placeLng : existing.lng
-                        };
-                    }
+                    registerPlaceInDictionary(place);
 
-                    // Card element with a11y: role="button", tabindex="0", Enter/Space to open
                     const cardEl = document.createElement('div');
                     cardEl.className = 'ref-card';
                     cardEl.setAttribute('role', 'button');
@@ -808,7 +956,6 @@
                         }
                     });
 
-                    // Image container
                     let mediaHtml = '';
                     if (hasImagePath) {
                         mediaHtml = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'ref-img-placeholder\\'><svg width=\\'32\\' height=\\'32\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'#378ADD\\' stroke-width=\\'1.75\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1\\'/></svg></div>';">`;
@@ -829,7 +976,6 @@
                     placesGrid.appendChild(cardEl);
                 });
 
-                // Empty state messaging
                 if (noResults) {
                     if (filteredPlaces.length === 0) {
                         const rawVal = getCurrentSearchTerm();
@@ -870,115 +1016,51 @@
             }
 
             async function fetchPlacesFromAPI() {
-                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
+                const activeTab = document.querySelector('.category-tab.active');
                 const category = activeTab ? activeTab.getAttribute('data-category') : 'all';
                 const searchTerm = getCurrentSearchTerm().toLowerCase();
 
                 showSkeletons();
 
                 let endpoint = '/api/places';
-                if (category && category.toLowerCase() !== 'all') {
-                    endpoint += `?category=${encodeURIComponent(category)}`;
-                }
 
                 try {
                     const response = await fetch(endpoint);
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
-                    if (Array.isArray(data)) {
-                        const fallbackList = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0) ? window.FALLBACK_PLACES : FALLBACK_PLACES;
-                        let sourcePlaces = (fallbackList && fallbackList.length > data.length) ? fallbackList : data;
-                        if (sourcePlaces === fallbackList && category && category.toLowerCase() !== 'all') {
-                            const catNorm = category.toLowerCase().trim();
-                            allFetchedPlaces = sourcePlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm));
-                        } else {
-                            allFetchedPlaces = sourcePlaces;
+                    if (Array.isArray(data) && data.length > 0) {
+                        if (data.length >= allMasterPlaces.length) {
+                            allMasterPlaces = data;
                         }
-                        renderPlaces(allFetchedPlaces, searchTerm);
-                        return;
                     }
                 } catch (error) {
                     console.warn('[Places] API fetch failed or database unavailable, using fallback places data:', error);
-                    const fallbackList = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0) ? window.FALLBACK_PLACES : FALLBACK_PLACES;
-                    allFetchedPlaces = (category && category.toLowerCase() !== 'all')
-                        ? fallbackList.filter(p => (p.category || '').toLowerCase().includes(category.toLowerCase().trim()))
-                        : fallbackList;
-                    renderPlaces(allFetchedPlaces, searchTerm);
-                    return;
                 }
 
-                filterStaticCards(category, searchTerm);
-            }
+                const catNorm = (category || 'all').toLowerCase().trim();
+                allFetchedPlaces = (catNorm !== 'all')
+                    ? allMasterPlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm))
+                    : allMasterPlaces;
 
-            function filterStaticCards(category, searchTerm) {
-                let totalVisible = 0;
-                const gridCards = document.querySelectorAll('.places-grid .ref-card');
-                gridCards.forEach(card => {
-                    const cardName = card.querySelector('h3')?.textContent.toLowerCase() || '';
-                    const cardSubtitle = card.querySelector('.card-subtitle')?.textContent.toLowerCase() || '';
-                    const cardCats = card.getAttribute('data-category') || '';
-
-                    const matchesCategory = (category === 'all' || cardCats.toLowerCase().includes(category.toLowerCase()));
-                    const matchesSearch = (!searchTerm || cardName.includes(searchTerm) || cardSubtitle.includes(searchTerm));
-
-                    if (matchesCategory && matchesSearch) {
-                        card.style.display = 'flex';
-                        totalVisible++;
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
-
-                if (noResults) {
-                    if (totalVisible === 0) {
-                        const rawVal = getCurrentSearchTerm();
-                        let msg = '';
-                        if (rawVal) {
-                            msg = typeof window.t === 'function' ? window.t('search.no_results', { q: rawVal }) : `No places found for "${rawVal}"`;
-                        } else {
-                            msg = typeof window.t === 'function' ? window.t('places.no_results') : 'No places found in this category.';
-                        }
-                        const p = noResults.querySelector('p');
-                        if (p) p.textContent = msg;
-                        noResults.style.display = 'block';
-                    } else {
-                        noResults.style.display = 'none';
-                    }
-                }
-
-                updateResultCount(totalVisible, searchTerm);
-            }
-
-            function scrollActiveChipIntoView(chip) {
-                if (!chip) return;
-                const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                chip.scrollIntoView({
-                    behavior: prefersReduced ? 'auto' : 'smooth',
-                    inline: 'center',
-                    block: 'nearest'
-                });
+                renderPlaces(allFetchedPlaces, searchTerm);
             }
 
             function scrollGridTopIntoView() {
                 const grid = document.querySelector('.places-grid');
                 if (!grid) return;
                 const navbar = document.getElementById('navbar');
-                const mobileBar = document.getElementById('placesMobileBar');
                 const headerHeight = navbar ? navbar.offsetHeight : 68;
-                const barHeight = (mobileBar && window.innerWidth < 1024) ? mobileBar.offsetHeight : 0;
-                const totalOffset = headerHeight + barHeight + 12;
+                const totalOffset = headerHeight + 16;
 
                 const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
                 const gridTop = grid.getBoundingClientRect().top + currentScrollY;
                 const targetScrollY = Math.max(0, gridTop - totalOffset);
 
-                if (currentScrollY > targetScrollY + 20) {
-                    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                    window.scrollTo({
-                        top: targetScrollY,
-                        behavior: prefersReduced ? 'instant' : 'smooth'
-                    });
-                }
+                const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                window.scrollTo({
+                    top: targetScrollY,
+                    behavior: prefersReduced ? 'instant' : 'smooth'
+                });
             }
 
             function selectCategory(categoryName, shouldScrollTop = false) {
@@ -996,23 +1078,9 @@
                     t.setAttribute('aria-pressed', match ? 'true' : 'false');
                 });
 
-                chips.forEach(c => {
-                    const cat = (c.getAttribute('data-category') || '').toLowerCase();
-                    const match = cat === norm ||
-                        (norm.includes('coffee') && cat === 'coffee') ||
-                        (norm.includes('mall') && cat === 'malls') ||
-                        (norm.includes('eat') && cat === 'eateries') ||
-                        (norm.includes('school') && cat === 'schools') ||
-                        (norm.includes('term') && cat === 'terminals') ||
-                        (norm.includes('est') && cat === 'establishments');
-                    c.classList.toggle('active', match);
-                    c.setAttribute('aria-pressed', match ? 'true' : 'false');
-                    if (match) {
-                        scrollActiveChipIntoView(c);
-                    }
-                });
+                syncPanelCategoryChips();
 
-                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
+                const activeTab = document.querySelector('.category-tab.active');
                 const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
 
                 const url = new URL(window.location);
@@ -1021,45 +1089,43 @@
                 } else {
                     url.searchParams.delete('category');
                 }
-                window.history.pushState({}, '', url);
+                if (hasHistoryPushed) {
+                    window.history.replaceState({}, '', url);
+                    hasHistoryPushed = false;
+                } else {
+                    window.history.pushState({}, '', url);
+                }
 
-                // Always show mobile bar when category changes
-                setMobileBarHidden(false);
+                const catNorm = resolvedCat.toLowerCase().trim();
+                allFetchedPlaces = (catNorm !== 'all')
+                    ? allMasterPlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm))
+                    : allMasterPlaces;
+
+                const searchTerm = getCurrentSearchTerm().toLowerCase();
+                renderPlaces(allFetchedPlaces, searchTerm);
 
                 if (shouldScrollTop) {
                     scrollGridTopIntoView();
                 }
-
-                fetchPlacesFromAPI();
             }
 
             function getCurrentSearchTerm() {
-                const val = (searchInput ? searchInput.value : (mobileSearchInput ? mobileSearchInput.value : '')) || '';
-                return val.trim();
+                return (searchInput ? searchInput.value : '').trim();
             }
 
-            function handleSearchInput(value, source) {
+            function handleSearchInput(value) {
                 const rawVal = value || '';
                 const trimmed = rawVal.trim();
                 const searchTerm = trimmed.toLowerCase();
 
-                if (source !== 'desktop' && searchInput) {
+                if (searchInput && searchInput.value !== rawVal) {
                     searchInput.value = rawVal;
-                }
-                if (source !== 'mobile' && mobileSearchInput) {
-                    mobileSearchInput.value = rawVal;
                 }
 
                 const hasVal = rawVal.length > 0;
                 if (clearBtn) clearBtn.style.display = hasVal ? 'flex' : 'none';
-                if (mobileClearBtn) mobileClearBtn.style.display = hasVal ? 'flex' : 'none';
 
-                if (allFetchedPlaces.length > 0) {
-                    renderPlaces(allFetchedPlaces, searchTerm);
-                } else {
-                    const activeCat = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
-                    filterStaticCards(activeCat, searchTerm);
-                }
+                renderPlaces(allFetchedPlaces, searchTerm);
             }
 
             // Tabs click
@@ -1069,16 +1135,9 @@
                 });
             });
 
-            // Mobile chips click
-            chips.forEach(chip => {
-                chip.addEventListener('click', () => {
-                    selectCategory(chip.getAttribute('data-category') || 'all', true);
-                });
-            });
-
-            // Search input listeners
+            // In-page search input listeners
             if (searchInput) {
-                searchInput.addEventListener('input', () => handleSearchInput(searchInput.value, 'desktop'));
+                searchInput.addEventListener('input', () => handleSearchInput(searchInput.value));
                 searchInput.addEventListener('focus', () => {
                     if ((window.pageYOffset || document.documentElement.scrollTop) > 100) {
                         scrollGridTopIntoView();
@@ -1098,161 +1157,577 @@
                 });
             }
 
-            if (mobileSearchInput) {
-                mobileSearchInput.addEventListener('input', () => handleSearchInput(mobileSearchInput.value, 'mobile'));
-                mobileSearchInput.addEventListener('focus', () => {
-                    setMobileBarHidden(false);
-                    scrollGridTopIntoView();
-                });
-                mobileSearchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        const rawVal = mobileSearchInput.value.trim();
-                        if (rawVal.length >= 2) {
-                            try {
-                                if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
-                                    window.CalzadaActivity.addSearchHistory(rawVal);
-                                }
-                            } catch (_) {}
-                        }
-                    }
-                });
-            }
-
             if (clearBtn) {
                 clearBtn.addEventListener('click', () => {
-                    handleSearchInput('', 'clear');
+                    handleSearchInput('');
                     if (searchInput) searchInput.focus();
                 });
             }
 
-            if (mobileClearBtn) {
-                mobileClearBtn.addEventListener('click', () => {
-                    handleSearchInput('', 'clear');
-                    if (mobileSearchInput) mobileSearchInput.focus();
-                });
+            // =============================================
+            // NIKE-STYLE SEARCH PANEL LOGIC
+            // =============================================
+
+            function getRecentSearches() {
+                try {
+                    const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
+                    if (!raw) return [];
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        return parsed.filter(item => typeof item === 'string' && item.trim().length > 0).slice(0, 5);
+                    }
+                } catch (_) {}
+                return [];
             }
 
-            // Desktop Toolbar Sticky Sentinel Observer (IntersectionObserver)
-            const sentinel = document.getElementById('placesToolbarSentinel');
-            const toolbar = document.getElementById('placesToolbar');
-            let toolbarObserver = null;
-
-            function setupToolbarObserver() {
-                if (!sentinel || !toolbar || !('IntersectionObserver' in window)) return;
-                if (toolbarObserver) toolbarObserver.disconnect();
-                const navbar = document.getElementById('navbar');
-                const topMargin = navbar ? navbar.offsetHeight : 80;
-
-                toolbarObserver = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        const isAbove = entry.boundingClientRect.top <= (topMargin + 2);
-                        if (!entry.isIntersecting && isAbove) {
-                            toolbar.classList.add('is-stuck');
-                        } else if (entry.isIntersecting || !isAbove) {
-                            toolbar.classList.remove('is-stuck');
-                        }
-                    });
-                }, {
-                    rootMargin: `-${topMargin}px 0px 0px 0px`,
-                    threshold: [0, 1]
-                });
-                toolbarObserver.observe(sentinel);
-            }
-            setupToolbarObserver();
-            window.addEventListener('resize', setupToolbarObserver);
-
-            // Mobile Bar Hide-on-scroll logic
-            let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
-            let scrollDownAccumulator = 0;
-            let scrollUpAccumulator = 0;
-            let ticking = false;
-
-            function setMobileBarHidden(hidden) {
-                const bar = document.getElementById('placesMobileBar');
-                if (!bar) return;
-                if (hidden) {
-                    bar.classList.add('is-hidden');
-                } else {
-                    bar.classList.remove('is-hidden');
-                }
+            function saveRecentSearch(query) {
+                if (!query) return;
+                const q = query.trim();
+                if (!q) return;
+                try {
+                    const recents = getRecentSearches();
+                    const normQ = normalizeStr(q);
+                    const filtered = recents.filter(item => normalizeStr(item) !== normQ);
+                    filtered.unshift(q);
+                    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered.slice(0, 5)));
+                    renderRecentSearches();
+                } catch (_) {}
             }
 
-            function updateMobileBarScroll() {
-                if (window.innerWidth >= 1024) return;
-                const bar = document.getElementById('placesMobileBar');
-                if (!bar) return;
-                const barHeight = bar.offsetHeight || 114;
-                const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+            function removeRecentSearch(query) {
+                try {
+                    const recents = getRecentSearches();
+                    const normQ = normalizeStr(query);
+                    const filtered = recents.filter(item => normalizeStr(item) !== normQ);
+                    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered));
+                    renderRecentSearches();
+                } catch (_) {}
+            }
 
-                const isSearchFocused = (
-                    document.activeElement === mobileSearchInput ||
-                    document.activeElement === searchInput
-                );
+            function clearAllRecentSearches() {
+                try {
+                    localStorage.removeItem(RECENT_SEARCHES_KEY);
+                    renderRecentSearches();
+                } catch (_) {}
+            }
 
-                // Rule: Always show when scrollY < bar height, or when search field is focused
-                if (currentScrollY < barHeight || isSearchFocused) {
-                    setMobileBarHidden(false);
-                    lastScrollY = currentScrollY;
-                    scrollDownAccumulator = 0;
-                    scrollUpAccumulator = 0;
+            function renderRecentSearches() {
+                if (!panelClearRecentsBtn || !panelRecentChips) return;
+                const recents = getRecentSearches();
+                const section = document.getElementById('panelRecentSection');
+
+                if (recents.length === 0) {
+                    if (section) section.style.display = 'none';
+                    panelRecentChips.innerHTML = '';
                     return;
                 }
 
-                const diff = currentScrollY - lastScrollY;
+                if (section) section.style.display = 'block';
+                panelRecentChips.innerHTML = '';
 
-                if (diff > 0) {
-                    // Scrolling down
-                    scrollUpAccumulator = 0;
-                    scrollDownAccumulator += diff;
-                    // when user scrolls down more than 80px past the bar
-                    if (currentScrollY > barHeight && scrollDownAccumulator >= 80) {
-                        setMobileBarHidden(true);
-                    }
-                } else if (diff < 0) {
-                    // Scrolling up
-                    scrollDownAccumulator = 0;
-                    scrollUpAccumulator += Math.abs(diff);
-                    // when user scrolls up by >= 12px, slide it back
-                    if (scrollUpAccumulator >= 12) {
-                        setMobileBarHidden(false);
-                    }
-                }
+                recents.forEach(query => {
+                    const chip = document.createElement('button');
+                    chip.type = 'button';
+                    chip.className = 'panel-recent-chip';
+                    chip.setAttribute('role', 'button');
+                    chip.setAttribute('aria-label', query);
 
-                lastScrollY = currentScrollY;
-            }
+                    const labelSpan = document.createElement('span');
+                    labelSpan.textContent = query;
+                    chip.appendChild(labelSpan);
 
-            window.addEventListener('scroll', () => {
-                if (!ticking) {
-                    window.requestAnimationFrame(() => {
-                        updateMobileBarScroll();
-                        ticking = false;
+                    const removeBtn = document.createElement('span');
+                    removeBtn.className = 'recent-chip-remove';
+                    removeBtn.setAttribute('role', 'button');
+                    removeBtn.setAttribute('tabindex', '0');
+                    removeBtn.setAttribute('aria-label', `Remove ${query}`);
+                    removeBtn.innerHTML = '<i class="ti ti-x" style="font-size:14px;" aria-hidden="true"></i>';
+
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        removeRecentSearch(query);
                     });
-                    ticking = true;
-                }
-            }, { passive: true });
+                    removeBtn.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            removeRecentSearch(query);
+                        }
+                    });
 
-            function updateLayoutDimensions() {
-                const navbar = document.getElementById('navbar');
-                const mobileBar = document.getElementById('placesMobileBar');
-                if (navbar) {
-                    const h = navbar.offsetHeight || (window.innerWidth >= 1024 ? 80 : 68);
-                    document.documentElement.style.setProperty('--header-height', `${h}px`);
-                }
-                if (mobileBar && window.innerWidth < 1024) {
-                    const mbH = mobileBar.offsetHeight || 114;
-                    document.documentElement.style.setProperty('--mobile-bar-height', `${mbH}px`);
-                }
+                    chip.appendChild(removeBtn);
+
+                    chip.addEventListener('click', () => {
+                        if (headerPanelInput) {
+                            headerPanelInput.value = query;
+                            handlePanelInput(query);
+                        }
+                    });
+
+                    panelRecentChips.appendChild(chip);
+                });
             }
-            window.addEventListener('resize', updateLayoutDimensions);
-            updateLayoutDimensions();
 
-            // Re-render when language switches
-            window.addEventListener('calzada_lang_changed', () => {
-                const rawVal = getCurrentSearchTerm();
-                renderPlaces(allFetchedPlaces.length > 0 ? allFetchedPlaces : FALLBACK_PLACES, rawVal.toLowerCase());
+            const panelRecentChips = document.getElementById('panelRecentChips');
+            if (panelClearRecentsBtn) {
+                panelClearRecentsBtn.addEventListener('click', clearAllRecentSearches);
+            }
+
+            function syncPanelCategoryChips() {
+                const activeTab = document.querySelector('.category-tab.active');
+                const activeCat = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
+                document.querySelectorAll('.panel-category-chip').forEach(chip => {
+                    const cat = (chip.getAttribute('data-category') || 'all').toLowerCase();
+                    const isMatch = cat === activeCat;
+                    chip.classList.toggle('active', isMatch);
+                    chip.setAttribute('aria-pressed', isMatch ? 'true' : 'false');
+                    const span = chip.querySelector('span');
+                    if (span && typeof window.t === 'function') {
+                        const key = (cat === 'all') ? 'places.cat_all' :
+                                    (cat === 'malls') ? 'places.cat_malls' :
+                                    (cat === 'eateries') ? 'places.cat_eateries' :
+                                    (cat === 'schools') ? 'places.cat_schools' :
+                                    (cat === 'terminals') ? 'places.cat_terminals' :
+                                    (cat === 'coffee') ? 'places.cat_coffee' :
+                                    (cat === 'establishments') ? 'places.cat_est' : '';
+                        if (key) span.textContent = window.t(key);
+                    }
+                });
+            }
+
+            document.querySelectorAll('.panel-category-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    const cat = chip.getAttribute('data-category') || 'all';
+                    closeSearchPanel({ restoreScroll: false, historyAction: 'none' });
+                    selectCategory(cat, true);
+                });
             });
 
-            // Check URL query parameters for category
+            function lockBodyScroll() {
+                savedScrollY = window.pageYOffset || document.documentElement.scrollTop;
+                if (window.innerWidth >= 1024) {
+                    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                    document.body.style.overflow = 'hidden';
+                    if (scrollbarWidth > 0) {
+                        document.body.style.paddingRight = `${scrollbarWidth}px`;
+                    }
+                } else {
+                    document.body.style.position = 'fixed';
+                    document.body.style.top = `-${savedScrollY}px`;
+                    document.body.style.width = '100%';
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+
+            function unlockBodyScroll(restoreScroll = true) {
+                if (window.innerWidth >= 1024) {
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                } else {
+                    document.body.style.position = '';
+                    document.body.style.top = '';
+                    document.body.style.width = '';
+                    document.body.style.overflow = '';
+                    if (restoreScroll) {
+                        window.scrollTo(0, savedScrollY);
+                    }
+                }
+            }
+
+            function openSearchPanel(triggerEl) {
+                if (isPanelOpen) return;
+                isPanelOpen = true;
+                lastOpenedBy = triggerEl || document.activeElement;
+
+                // Push history on mobile (< 1024px) for back gesture
+                if (window.innerWidth < 1024) {
+                    try {
+                        window.history.pushState({ calzadaSearchPanel: true }, '');
+                        hasHistoryPushed = true;
+                    } catch (_) {}
+                }
+
+                lockBodyScroll();
+
+                if (searchOverlay) searchOverlay.classList.add('open');
+                if (searchPanel) searchPanel.classList.add('open');
+
+                syncPanelCategoryChips();
+                renderRecentSearches();
+
+                if (headerPanelInput) {
+                    headerPanelInput.value = '';
+                    headerPanelInput.setAttribute('aria-expanded', 'false');
+                    headerPanelInput.removeAttribute('aria-activedescendant');
+                    headerPanelInput.focus();
+                    setTimeout(() => {
+                        try { headerPanelInput.focus(); } catch (_) {}
+                    }, 50);
+                }
+
+                if (searchPanelClearBtn) searchPanelClearBtn.style.display = 'none';
+                if (searchPanelBrowse) searchPanelBrowse.style.display = 'block';
+                if (searchPanelResults) searchPanelResults.style.display = 'none';
+                if (searchPanelResultsList) searchPanelResultsList.innerHTML = '';
+                if (searchPanelNoResults) searchPanelNoResults.style.display = 'none';
+                highlightedIndex = -1;
+                currentResultsCount = 0;
+            }
+
+            function closeSearchPanel(options = {}) {
+                if (!isPanelOpen) return;
+                isPanelOpen = false;
+
+                const restoreScroll = options.restoreScroll !== false;
+
+                if (searchOverlay) searchOverlay.classList.remove('open');
+                if (searchPanel) searchPanel.classList.remove('open');
+
+                unlockBodyScroll(restoreScroll);
+
+                if (hasHistoryPushed) {
+                    hasHistoryPushed = false;
+                    if (options.historyAction === 'replace') {
+                        try {
+                            window.history.replaceState({}, '', window.location.href);
+                        } catch (_) {}
+                    } else if (options.historyAction !== 'none') {
+                        try {
+                            window.history.back();
+                        } catch (_) {}
+                    }
+                }
+
+                if (options.focusReturn !== false && lastOpenedBy && typeof lastOpenedBy.focus === 'function') {
+                    setTimeout(() => {
+                        try { lastOpenedBy.focus(); } catch (_) {}
+                    }, 20);
+                }
+            }
+
+            // Mobile back gesture popstate handler
+            window.addEventListener('popstate', () => {
+                if (isPanelOpen) {
+                    hasHistoryPushed = false; // already popped by browser
+                    closeSearchPanel({ restoreScroll: true });
+                }
+            });
+
+            // Entry point triggers
+            if (headerSearchPillBtn) {
+                headerSearchPillBtn.addEventListener('click', () => openSearchPanel(headerSearchPillBtn));
+            }
+            if (headerSearchMobileBtn) {
+                headerSearchMobileBtn.addEventListener('click', () => openSearchPanel(headerSearchMobileBtn));
+            }
+
+            // Cancel button & Overlay
+            if (searchPanelCancelBtn) {
+                searchPanelCancelBtn.addEventListener('click', () => closeSearchPanel({ restoreScroll: true }));
+            }
+            if (searchOverlay) {
+                searchOverlay.addEventListener('click', () => closeSearchPanel({ restoreScroll: true }));
+            }
+
+            // Global keyboard shortcuts (Escape to close panel, '/' to open panel)
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isPanelOpen) {
+                    e.preventDefault();
+                    closeSearchPanel({ restoreScroll: true });
+                    return;
+                }
+
+                if (e.key === '/' && !isPanelOpen) {
+                    const active = document.activeElement;
+                    const tag = (active && active.tagName) ? active.tagName.toLowerCase() : '';
+                    const isEditable = active && (active.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select');
+                    const isModalOpen = document.body.classList.contains('legal-modal-open') ||
+                                        document.querySelector('.place-panel-backdrop.active') ||
+                                        document.querySelector('#placePanel.active');
+                    if (!isEditable && !isModalOpen) {
+                        e.preventDefault();
+                        const btn = (window.innerWidth >= 1024) ? headerSearchPillBtn : headerSearchMobileBtn;
+                        openSearchPanel(btn);
+                    }
+                }
+            });
+
+            // Focus trap inside search panel
+            if (searchPanel) {
+                searchPanel.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab') {
+                        const focusables = Array.from(searchPanel.querySelectorAll(
+                            'button:not([disabled]):not([style*="display: none"]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                        )).filter(el => el.offsetParent !== null);
+                        if (focusables.length === 0) return;
+                        const first = focusables[0];
+                        const last = focusables[focusables.length - 1];
+
+                        if (e.shiftKey && document.activeElement === first) {
+                            e.preventDefault();
+                            last.focus();
+                        } else if (!e.shiftKey && document.activeElement === last) {
+                            e.preventDefault();
+                            first.focus();
+                        }
+                    }
+                });
+            }
+
+            // Clear search panel input button
+            if (searchPanelClearBtn) {
+                searchPanelClearBtn.addEventListener('click', () => {
+                    if (headerPanelInput) {
+                        headerPanelInput.value = '';
+                        handlePanelInput('');
+                        headerPanelInput.focus();
+                    }
+                });
+            }
+
+            // "Browse by category" link in no results state
+            if (panelNoResultsBrowseLink) {
+                panelNoResultsBrowseLink.addEventListener('click', () => {
+                    if (headerPanelInput) {
+                        headerPanelInput.value = '';
+                        handlePanelInput('');
+                        headerPanelInput.focus();
+                    }
+                });
+            }
+
+            function updateHighlightedRow() {
+                if (!searchPanelResultsList) return;
+                const rows = searchPanelResultsList.querySelectorAll('.search-result-row, .search-see-all-row');
+                rows.forEach((row, idx) => {
+                    const isSelected = idx === highlightedIndex;
+                    row.classList.toggle('highlighted', isSelected);
+                    row.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+                    if (isSelected) {
+                        headerPanelInput.setAttribute('aria-activedescendant', row.id);
+                        row.scrollIntoView({ block: 'nearest' });
+                    }
+                });
+                if (highlightedIndex === -1) {
+                    headerPanelInput.removeAttribute('aria-activedescendant');
+                }
+            }
+
+            function handlePanelInput(value) {
+                const query = (value || '').trim();
+                const hasText = query.length > 0;
+
+                if (searchPanelClearBtn) {
+                    searchPanelClearBtn.style.display = hasText ? 'flex' : 'none';
+                }
+
+                if (!hasText) {
+                    if (searchPanelBrowse) searchPanelBrowse.style.display = 'block';
+                    if (searchPanelResults) searchPanelResults.style.display = 'none';
+                    if (searchPanelResultsList) searchPanelResultsList.innerHTML = '';
+                    if (searchPanelNoResults) searchPanelNoResults.style.display = 'none';
+                    headerPanelInput.setAttribute('aria-expanded', 'false');
+                    headerPanelInput.removeAttribute('aria-activedescendant');
+                    highlightedIndex = -1;
+                    currentResultsCount = 0;
+                    return;
+                }
+
+                if (searchPanelBrowse) searchPanelBrowse.style.display = 'none';
+                if (searchPanelResults) searchPanelResults.style.display = 'block';
+
+                // Search matching places over all master places
+                const matches = allMasterPlaces.filter(p => matchesPlaceSearch(p, query));
+                matches.sort((a, b) => getSearchRank(a, query) - getSearchRank(b, query));
+
+                searchPanelResultsList.innerHTML = '';
+                highlightedIndex = -1;
+
+                if (matches.length === 0) {
+                    if (searchPanelNoResults) {
+                        const msg = (typeof window.t === 'function')
+                            ? window.t('places.no_places_found', { q: query })
+                            : `No places found for "${query}"`;
+                        if (searchPanelNoResultsMsg) searchPanelNoResultsMsg.textContent = msg;
+                        searchPanelNoResults.style.display = 'flex';
+                    }
+                    searchPanelResultsList.style.display = 'none';
+                    headerPanelInput.setAttribute('aria-expanded', 'false');
+                    headerPanelInput.removeAttribute('aria-activedescendant');
+                    currentResultsCount = 0;
+                    return;
+                }
+
+                if (searchPanelNoResults) searchPanelNoResults.style.display = 'none';
+                searchPanelResultsList.style.display = 'flex';
+                headerPanelInput.setAttribute('aria-expanded', 'true');
+
+                const displayPlaces = matches.slice(0, 8);
+                const hasSeeAll = matches.length > 8;
+                currentResultsCount = displayPlaces.length + (hasSeeAll ? 1 : 0);
+
+                displayPlaces.forEach((place, idx) => {
+                    const row = document.createElement('li');
+                    row.className = 'search-result-row';
+                    row.id = `searchResultItem_${idx}`;
+                    row.setAttribute('role', 'option');
+                    row.setAttribute('aria-selected', 'false');
+                    row.setAttribute('tabindex', '-1');
+
+                    const rawImg = place.photo || place.image_path || '';
+                    const hasImg = rawImg && typeof rawImg === 'string' && rawImg.trim() !== '';
+                    const imgSrc = hasImg ? resolvePlaceImageUrl(rawImg) : '';
+
+                    const catLabel = getCategoryLabel(place.category);
+                    const brgy = place.barangay ? `Brgy. ${place.barangay}` : (place.municipality || 'Calamba');
+                    const subText = catLabel && brgy ? `${catLabel} · ${brgy}` : (catLabel || brgy || '');
+
+                    const thumbHtml = hasImg
+                        ? `<img src="${escapeHtml(imgSrc)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'search-result-thumb-placeholder\\'><i class=\\'ti ti-map-pin\\' aria-hidden=\\'true\\'></i></div>';">`
+                        : `<div class="search-result-thumb-placeholder"><i class="ti ti-map-pin" aria-hidden="true"></i></div>`;
+
+                    row.innerHTML = `
+                        <div class="search-result-thumb" aria-hidden="true">
+                            ${thumbHtml}
+                        </div>
+                        <div class="search-result-info">
+                            <span class="search-result-name">${highlightMatch(place.name, query)}</span>
+                            <span class="search-result-sub">${escapeHtml(subText)}</span>
+                        </div>
+                    `;
+
+                    row.addEventListener('click', () => {
+                        saveRecentSearch(query);
+                        closeSearchPanel({ restoreScroll: true, historyAction: 'replace', focusReturn: false });
+                        registerPlaceInDictionary(place);
+                        if (typeof window.openPlacePanel === 'function') {
+                            const lat = place.lat != null ? place.lat : null;
+                            const lng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
+                            window.openPlacePanel(place.name, lat, lng);
+                        }
+                    });
+
+                    searchPanelResultsList.appendChild(row);
+                });
+
+                if (hasSeeAll) {
+                    const seeAllRow = document.createElement('li');
+                    seeAllRow.className = 'search-see-all-row';
+                    seeAllRow.id = `searchResultItem_${displayPlaces.length}`;
+                    seeAllRow.setAttribute('role', 'option');
+                    seeAllRow.setAttribute('aria-selected', 'false');
+                    seeAllRow.setAttribute('tabindex', '-1');
+
+                    const seeAllText = (typeof window.t === 'function')
+                        ? window.t('places.see_all_results', { n: matches.length })
+                        : `See all ${matches.length} results`;
+                    seeAllRow.textContent = seeAllText;
+
+                    seeAllRow.addEventListener('click', () => {
+                        saveRecentSearch(query);
+                        closeSearchPanel({ restoreScroll: false, historyAction: 'replace' });
+                        handleSearchInput(query);
+                        scrollGridTopIntoView();
+                    });
+
+                    searchPanelResultsList.appendChild(seeAllRow);
+                }
+            }
+
+            if (headerPanelInput) {
+                headerPanelInput.addEventListener('input', () => {
+                    clearTimeout(debounceTimeout);
+                    debounceTimeout = setTimeout(() => {
+                        handlePanelInput(headerPanelInput.value);
+                    }, 120);
+                });
+
+                headerPanelInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        e.preventDefault();
+                        closeSearchPanel({ restoreScroll: true });
+                        return;
+                    }
+
+                    if (currentResultsCount > 0) {
+                        if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            highlightedIndex = (highlightedIndex + 1) % currentResultsCount;
+                            updateHighlightedRow();
+                            return;
+                        }
+
+                        if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            highlightedIndex = (highlightedIndex - 1 + currentResultsCount) % currentResultsCount;
+                            updateHighlightedRow();
+                            return;
+                        }
+
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const rows = searchPanelResultsList.querySelectorAll('.search-result-row, .search-see-all-row');
+                            if (highlightedIndex >= 0 && highlightedIndex < rows.length) {
+                                rows[highlightedIndex].click();
+                            } else {
+                                // Default Enter: run "See all" with query
+                                const query = headerPanelInput.value.trim();
+                                if (query) {
+                                    saveRecentSearch(query);
+                                    closeSearchPanel({ restoreScroll: false });
+                                    handleSearchInput(query);
+                                    scrollGridTopIntoView();
+                                }
+                            }
+                            return;
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const query = headerPanelInput.value.trim();
+                        if (query) {
+                            saveRecentSearch(query);
+                            closeSearchPanel({ restoreScroll: false });
+                            handleSearchInput(query);
+                            scrollGridTopIntoView();
+                        }
+                    }
+                });
+            }
+
+            // Language switch event listener
+            window.addEventListener('calzada_lang_changed', () => {
+                const rawVal = getCurrentSearchTerm();
+                renderPlaces(allFetchedPlaces, rawVal.toLowerCase());
+                renderRecentSearches();
+                syncPanelCategoryChips();
+
+                // Update static labels in the search panel
+                if (searchPanelCancelBtn && typeof window.t === 'function') {
+                    searchPanelCancelBtn.textContent = window.t('places.cancel');
+                }
+                const browseLabel = document.querySelector('.panel-section-label[data-i18n="places.browse_by_category"]');
+                if (browseLabel && typeof window.t === 'function') {
+                    browseLabel.textContent = window.t('places.browse_by_category');
+                }
+                const recentsLabel = document.querySelector('.panel-section-label[data-i18n="places.recent_searches"]');
+                if (recentsLabel && typeof window.t === 'function') {
+                    recentsLabel.textContent = window.t('places.recent_searches');
+                }
+                const clearRecentsBtn = document.getElementById('panelClearRecentsBtn');
+                if (clearRecentsBtn && typeof window.t === 'function') {
+                    clearRecentsBtn.textContent = window.t('places.clear_recents');
+                }
+                if (headerPanelInput) {
+                    if (typeof window.t === 'function') {
+                        headerPanelInput.setAttribute('placeholder', window.t('places.search_placeholder'));
+                    }
+                    if (headerPanelInput.value.trim()) {
+                        handlePanelInput(headerPanelInput.value);
+                    }
+                }
+            });
+
+            // Check URL query parameters for initial category
             const urlParams = new URLSearchParams(window.location.search);
             const initialCat = urlParams.get('category');
             if (initialCat) {
