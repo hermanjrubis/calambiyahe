@@ -4731,6 +4731,18 @@ body.legal-modal-open {
     scrollbar-width: thin;
 }
 
+.places-sidebar::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% - 1px);
+    left: -32px;
+    right: 0;
+    height: calc(var(--header-height, 80px) + 48px);
+    background: var(--bg, #f0f6fc);
+    pointer-events: none;
+    z-index: 1;
+}
+
 .sidebar-title {
     font-family: 'Outfit', sans-serif;
     font-size: 1.1rem;
@@ -4845,6 +4857,18 @@ body.legal-modal-open {
     background: #FFFFFF;
     border-bottom: 1px solid #E2E8F0;
     box-shadow: none;
+}
+
+.places-content-header.is-stuck::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% - 1px);
+    left: -40px;
+    right: -32px;
+    height: calc(var(--header-height, 80px) + 32px);
+    background: var(--bg, #f0f6fc);
+    pointer-events: none;
+    z-index: 1;
 }
 
 .places-toolbar-count {
@@ -5092,6 +5116,19 @@ body.legal-modal-open {
         transform: translateY(0);
         transition: transform 200ms ease-out;
         will-change: transform;
+    }
+
+    .places-mobile-bar::before {
+        content: '';
+        position: absolute;
+        bottom: calc(100% - 1px);
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: calc(var(--header-height, 68px) + 32px);
+        background: var(--bg, #f0f6fc);
+        pointer-events: none;
+        z-index: -1;
     }
 
     .places-mobile-bar.is-hidden {
