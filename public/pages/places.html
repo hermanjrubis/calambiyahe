@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.6.7">
+    <link rel="stylesheet" href="../css/style.css?v=2.6.8">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -378,31 +378,70 @@
         </div>
     </header>
 
+    <!-- Mobile Sticky Search & Category Bar (< 1024px) -->
+    <div class="places-mobile-bar" id="placesMobileBar" role="region" aria-label="Search and category filters">
+        <div class="places-mobile-bar-inner">
+            <div class="mobile-search-row">
+                <label for="mobilePlaceSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
+                <div class="mobile-search-box">
+                    <i class="ti ti-search mobile-search-icon" aria-hidden="true"></i>
+                    <input type="text" id="mobilePlaceSearchInput" class="mobile-search-input" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Search for a place..." autocomplete="off">
+                    <button type="button" id="mobileSearchClearBtn" class="mobile-search-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
+                        <i class="ti ti-x" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+            <nav class="mobile-category-chips" id="mobileCategoryChips" aria-label="Place category chips">
+                <button type="button" class="category-chip active" data-category="all" aria-pressed="true">
+                    <span data-i18n="places.cat_all">All Places</span>
+                </button>
+                <button type="button" class="category-chip" data-category="malls" aria-pressed="false">
+                    <span data-i18n="places.cat_malls">Malls</span>
+                </button>
+                <button type="button" class="category-chip" data-category="eateries" aria-pressed="false">
+                    <span data-i18n="places.cat_eateries">Eateries</span>
+                </button>
+                <button type="button" class="category-chip" data-category="schools" aria-pressed="false">
+                    <span data-i18n="places.cat_schools">Schools</span>
+                </button>
+                <button type="button" class="category-chip" data-category="terminals" aria-pressed="false">
+                    <span data-i18n="places.cat_terminals">Terminals</span>
+                </button>
+                <button type="button" class="category-chip" data-category="coffee" aria-pressed="false">
+                    <span data-i18n="places.cat_coffee">Coffee Shops</span>
+                </button>
+                <button type="button" class="category-chip" data-category="establishments" aria-pressed="false">
+                    <span data-i18n="places.cat_est">Establishments</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
     <main class="places-page">
         <div class="places-layout">
             <!-- Persistent Left Sidebar Category Navigation (7 Categories) -->
-            <aside class="places-sidebar">
-                <h1 class="sidebar-title">Categories</h1>
-                <nav class="sidebar-category-list" id="categoryTabs">
-                    <button class="category-tab active" data-category="all">
+            <aside class="places-sidebar" aria-label="Categories">
+                <h1 class="sidebar-title" data-i18n="places.categories_title">Categories</h1>
+                <nav class="sidebar-category-list" id="categoryTabs" aria-label="Place Categories">
+                    <button type="button" class="category-tab active" data-category="all" aria-pressed="true">
                         <span data-i18n="places.cat_all">All Places</span>
                     </button>
-                    <button class="category-tab" data-category="malls">
+                    <button type="button" class="category-tab" data-category="malls" aria-pressed="false">
                         <span data-i18n="places.cat_malls">Malls</span>
                     </button>
-                    <button class="category-tab" data-category="eateries">
+                    <button type="button" class="category-tab" data-category="eateries" aria-pressed="false">
                         <span data-i18n="places.cat_eateries">Eateries</span>
                     </button>
-                    <button class="category-tab" data-category="schools">
+                    <button type="button" class="category-tab" data-category="schools" aria-pressed="false">
                         <span data-i18n="places.cat_schools">Schools</span>
                     </button>
-                    <button class="category-tab" data-category="terminals">
+                    <button type="button" class="category-tab" data-category="terminals" aria-pressed="false">
                         <span data-i18n="places.cat_terminals">Terminals</span>
                     </button>
-                    <button class="category-tab" data-category="coffee">
+                    <button type="button" class="category-tab" data-category="coffee" aria-pressed="false">
                         <span data-i18n="places.cat_coffee">Coffee Shops</span>
                     </button>
-                    <button class="category-tab" data-category="establishments">
+                    <button type="button" class="category-tab" data-category="establishments" aria-pressed="false">
                         <span data-i18n="places.cat_est">Establishments</span>
                     </button>
                 </nav>
@@ -410,11 +449,21 @@
 
             <!-- Main Content Area: Content Header + 4-Column Card Grid -->
             <div class="places-content">
-                <!-- Page Content Header with Search Input -->
-                <div class="places-content-header">
+                <!-- Desktop Sentinel for Sticky Toolbar -->
+                <div id="placesToolbarSentinel" class="places-toolbar-sentinel" aria-hidden="true"></div>
+
+                <!-- Page Content Header with Sticky Search Toolbar -->
+                <div class="places-content-header" id="placesToolbar">
+                    <div class="places-toolbar-count" id="placesResultCount" aria-live="polite">
+                        96 places
+                    </div>
                     <div class="content-search-wrap">
-                        <ion-icon name="search-outline" class="content-search-icon"></ion-icon>
+                        <label for="placeSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
+                        <i class="ti ti-search content-search-icon" aria-hidden="true"></i>
                         <input type="text" id="placeSearchInput" class="content-search-input" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Search for a place..." autocomplete="off">
+                        <button type="button" id="placeSearchClearBtn" class="desktop-search-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
+                            <i class="ti ti-x" aria-hidden="true"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -504,7 +553,7 @@
 
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.8.3"></script>
+    <script src="../js/i18n.js?v=2.8.4"></script>
     <script src="../js/places-shared.js?v=2.6.6"></script>
     <script>
         function escapeHtml(str) {
@@ -580,9 +629,14 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
+            const chips = document.querySelectorAll('.category-chip');
             const noResults = document.getElementById('noResults');
             const searchInput = document.getElementById('placeSearchInput');
+            const mobileSearchInput = document.getElementById('mobilePlaceSearchInput');
+            const clearBtn = document.getElementById('placeSearchClearBtn');
+            const mobileClearBtn = document.getElementById('mobileSearchClearBtn');
             const placesGrid = document.querySelector('.places-grid');
+            const resultCountEl = document.getElementById('placesResultCount');
 
             let allFetchedPlaces = [];
 
@@ -613,12 +667,41 @@
                 return 3;
             }
 
-            // Render places array into .places-grid (includes all places with or without image_path)
+            function formatResultCount(count, category, query) {
+                const isTagalog = (document.documentElement.lang === 'tl') || (localStorage.getItem('calzada_lang') === 'tl');
+                if (query && query.trim()) {
+                    const q = query.trim();
+                    if (isTagalog) {
+                        return count === 1 ? `1 resulta para sa "${q}"` : `${count} resulta para sa "${q}"`;
+                    } else {
+                        return count === 1 ? `1 result for "${q}"` : `${count} results for "${q}"`;
+                    }
+                }
+                const cat = (category || 'all').toLowerCase();
+                if (cat !== 'all') {
+                    const catLabel = getCategoryLabel(cat);
+                    return `${count} ${catLabel}`;
+                }
+                if (isTagalog) {
+                    return `${count} na lugar`;
+                } else {
+                    return count === 1 ? '1 place' : `${count} places`;
+                }
+            }
+
+            function updateResultCount(count, searchTerm) {
+                if (!resultCountEl) return;
+                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
+                const category = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
+                resultCountEl.textContent = formatResultCount(count, category, searchTerm);
+            }
+
+            // Render places array into .places-grid
             function renderPlaces(places, searchTerm = '') {
                 if (!placesGrid) return;
                 placesGrid.innerHTML = '';
 
-                const activeTab = document.querySelector('.category-tab.active');
+                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
                 const activeCategory = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
 
                 // Filter places
@@ -635,7 +718,7 @@
                     const catLabel = getCategoryLabel(place.category).toLowerCase();
                     const barangayLower = (place.barangay || '').toLowerCase();
 
-                    // Match name, category label and barangay only (not description - req 8)
+                    // Match name, category label and barangay only (not description)
                     const searchWords = searchTerm.trim().split(/\s+/).filter(Boolean);
                     const allWordsMatch = searchWords.length > 1 && searchWords.every(w =>
                         nameLower.includes(w) || catSlug.includes(w) || catLabel.includes(w) || barangayLower.includes(w)
@@ -648,7 +731,7 @@
                            allWordsMatch;
                 });
 
-                // Order results: name starts with query first, then word in name starts with query, then other matches (req 8)
+                // Order results: name starts with query first, then word in name starts with query, then other matches
                 if (searchTerm) {
                     filteredPlaces.sort((a, b) => getSearchRank(a, searchTerm) - getSearchRank(b, searchTerm));
                 }
@@ -663,7 +746,7 @@
                     const imagePath = hasImagePath ? resolvePlaceImageUrl(rawImg.trim()) : '';
                     const description = place.description || '';
 
-                    // Subtitle: map category slug to translated label (req 7)
+                    // Subtitle: map category slug to translated label
                     const catLabel = getCategoryLabel(category);
                     let locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
                     let subtitle = catLabel ? (locStr ? `${catLabel} • ${locStr}` : catLabel) : locStr;
@@ -697,7 +780,7 @@
                         };
                     }
 
-                    // Card element with a11y: role="button", tabindex="0", Enter/Space to open (req 9)
+                    // Card element with a11y: role="button", tabindex="0", Enter/Space to open
                     const cardEl = document.createElement('div');
                     cardEl.className = 'ref-card';
                     cardEl.setAttribute('role', 'button');
@@ -725,7 +808,7 @@
                         }
                     });
 
-                    // Image container: photo if available, or neutral placeholder (#EAF2FC with building icon) (req 10)
+                    // Image container
                     let mediaHtml = '';
                     if (hasImagePath) {
                         mediaHtml = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'ref-img-placeholder\\'><svg width=\\'32\\' height=\\'32\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'#378ADD\\' stroke-width=\\'1.75\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1\\'/></svg></div>';">`;
@@ -746,10 +829,10 @@
                     placesGrid.appendChild(cardEl);
                 });
 
-                // Empty state messaging (req 8)
+                // Empty state messaging
                 if (noResults) {
                     if (filteredPlaces.length === 0) {
-                        const rawVal = searchInput ? searchInput.value.trim() : '';
+                        const rawVal = getCurrentSearchTerm();
                         let msg = '';
                         if (rawVal) {
                             msg = typeof window.t === 'function' 
@@ -767,6 +850,8 @@
                         noResults.style.display = 'none';
                     }
                 }
+
+                updateResultCount(filteredPlaces.length, searchTerm);
             }
 
             function showSkeletons() {
@@ -785,9 +870,9 @@
             }
 
             async function fetchPlacesFromAPI() {
-                const activeTab = document.querySelector('.category-tab.active');
+                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
                 const category = activeTab ? activeTab.getAttribute('data-category') : 'all';
-                const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+                const searchTerm = getCurrentSearchTerm().toLowerCase();
 
                 showSkeletons();
 
@@ -846,7 +931,7 @@
 
                 if (noResults) {
                     if (totalVisible === 0) {
-                        const rawVal = searchInput ? searchInput.value.trim() : '';
+                        const rawVal = getCurrentSearchTerm();
                         let msg = '';
                         if (rawVal) {
                             msg = typeof window.t === 'function' ? window.t('search.no_results', { q: rawVal }) : `No places found for "${rawVal}"`;
@@ -860,95 +945,145 @@
                         noResults.style.display = 'none';
                     }
                 }
+
+                updateResultCount(totalVisible, searchTerm);
             }
 
-            // Re-render when language switches (req 7)
-            window.addEventListener('calzada_lang_changed', () => {
-                const rawVal = searchInput ? searchInput.value.trim() : '';
-                renderPlaces(allFetchedPlaces.length > 0 ? allFetchedPlaces : FALLBACK_PLACES, rawVal.toLowerCase());
-            });
-
-            // Check URL query parameters for category
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialCat = urlParams.get('category');
-            if (initialCat) {
-                const normCat = initialCat.toLowerCase();
-                const targetTab = Array.from(tabs).find(t => {
-                    const cat = t.getAttribute('data-category')?.toLowerCase();
-                    return cat === normCat ||
-                           (normCat.includes('coffee') && cat === 'coffee') ||
-                           (normCat.includes('mall') && cat === 'malls') ||
-                           (normCat.includes('eat') && cat === 'eateries') ||
-                           (normCat.includes('school') && cat === 'schools') ||
-                           (normCat.includes('term') && cat === 'terminals') ||
-                           (normCat.includes('est') && cat === 'establishments');
+            function scrollActiveChipIntoView(chip) {
+                if (!chip) return;
+                const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                chip.scrollIntoView({
+                    behavior: prefersReduced ? 'auto' : 'smooth',
+                    inline: 'center',
+                    block: 'nearest'
                 });
-                if (targetTab) {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    targetTab.classList.add('active');
+            }
+
+            function scrollGridTopIntoView() {
+                const grid = document.querySelector('.places-grid');
+                if (!grid) return;
+                const navbar = document.getElementById('navbar');
+                const mobileBar = document.getElementById('placesMobileBar');
+                const headerHeight = navbar ? navbar.offsetHeight : 68;
+                const barHeight = (mobileBar && window.innerWidth < 1024) ? mobileBar.offsetHeight : 0;
+                const totalOffset = headerHeight + barHeight + 12;
+
+                const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+                const gridTop = grid.getBoundingClientRect().top + currentScrollY;
+                const targetScrollY = Math.max(0, gridTop - totalOffset);
+
+                if (currentScrollY > targetScrollY + 20) {
+                    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                    window.scrollTo({
+                        top: targetScrollY,
+                        behavior: prefersReduced ? 'instant' : 'smooth'
+                    });
                 }
             }
 
+            function selectCategory(categoryName, shouldScrollTop = false) {
+                const norm = (categoryName || 'all').toLowerCase();
+                tabs.forEach(t => {
+                    const cat = (t.getAttribute('data-category') || '').toLowerCase();
+                    const match = cat === norm ||
+                        (norm.includes('coffee') && cat === 'coffee') ||
+                        (norm.includes('mall') && cat === 'malls') ||
+                        (norm.includes('eat') && cat === 'eateries') ||
+                        (norm.includes('school') && cat === 'schools') ||
+                        (norm.includes('term') && cat === 'terminals') ||
+                        (norm.includes('est') && cat === 'establishments');
+                    t.classList.toggle('active', match);
+                    t.setAttribute('aria-pressed', match ? 'true' : 'false');
+                });
+
+                chips.forEach(c => {
+                    const cat = (c.getAttribute('data-category') || '').toLowerCase();
+                    const match = cat === norm ||
+                        (norm.includes('coffee') && cat === 'coffee') ||
+                        (norm.includes('mall') && cat === 'malls') ||
+                        (norm.includes('eat') && cat === 'eateries') ||
+                        (norm.includes('school') && cat === 'schools') ||
+                        (norm.includes('term') && cat === 'terminals') ||
+                        (norm.includes('est') && cat === 'establishments');
+                    c.classList.toggle('active', match);
+                    c.setAttribute('aria-pressed', match ? 'true' : 'false');
+                    if (match) {
+                        scrollActiveChipIntoView(c);
+                    }
+                });
+
+                const activeTab = document.querySelector('.category-tab.active') || document.querySelector('.category-chip.active');
+                const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
+
+                const url = new URL(window.location);
+                if (resolvedCat !== 'all') {
+                    url.searchParams.set('category', resolvedCat);
+                } else {
+                    url.searchParams.delete('category');
+                }
+                window.history.pushState({}, '', url);
+
+                // Always show mobile bar when category changes
+                setMobileBarHidden(false);
+
+                if (shouldScrollTop) {
+                    scrollGridTopIntoView();
+                }
+
+                fetchPlacesFromAPI();
+            }
+
+            function getCurrentSearchTerm() {
+                const val = (searchInput ? searchInput.value : (mobileSearchInput ? mobileSearchInput.value : '')) || '';
+                return val.trim();
+            }
+
+            function handleSearchInput(value, source) {
+                const rawVal = value || '';
+                const trimmed = rawVal.trim();
+                const searchTerm = trimmed.toLowerCase();
+
+                if (source !== 'desktop' && searchInput) {
+                    searchInput.value = rawVal;
+                }
+                if (source !== 'mobile' && mobileSearchInput) {
+                    mobileSearchInput.value = rawVal;
+                }
+
+                const hasVal = rawVal.length > 0;
+                if (clearBtn) clearBtn.style.display = hasVal ? 'flex' : 'none';
+                if (mobileClearBtn) mobileClearBtn.style.display = hasVal ? 'flex' : 'none';
+
+                if (allFetchedPlaces.length > 0) {
+                    renderPlaces(allFetchedPlaces, searchTerm);
+                } else {
+                    const activeCat = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
+                    filterStaticCards(activeCat, searchTerm);
+                }
+            }
+
+            // Tabs click
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
-                    tabs.forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-
-                    const newCat = tab.getAttribute('data-category') || 'all';
-                    const url = new URL(window.location);
-                    if (newCat !== 'all') {
-                        url.searchParams.set('category', newCat);
-                    } else {
-                        url.searchParams.delete('category');
-                    }
-                    window.history.pushState({}, '', url);
-
-                    fetchPlacesFromAPI();
+                    selectCategory(tab.getAttribute('data-category') || 'all', false);
                 });
             });
 
-            // Handle Explore navbar dropdown item clicks on places.html
-            const exploreMenu = document.getElementById('exploreDropdownMenu');
-            if (exploreMenu) {
-                exploreMenu.querySelectorAll('.nav-dropdown-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        const href = item.getAttribute('href');
-                        if (href && href.startsWith('/places')) {
-                            e.preventDefault();
-                            const itemUrl = new URL(href, window.location.origin);
-                            const catParam = (itemUrl.searchParams.get('category') || 'all').toLowerCase();
-                            const targetTab = Array.from(tabs).find(t => {
-                                const cat = t.getAttribute('data-category')?.toLowerCase();
-                                return cat === catParam ||
-                                       (catParam.includes('coffee') && cat === 'coffee') ||
-                                       (catParam.includes('mall') && cat === 'malls') ||
-                                       (catParam.includes('eat') && cat === 'eateries') ||
-                                       (catParam.includes('school') && cat === 'schools') ||
-                                       (catParam.includes('term') && cat === 'terminals') ||
-                                       (catParam.includes('est') && cat === 'establishments');
-                            });
-                            if (targetTab) {
-                                targetTab.click();
-                            }
-                            const exploreDropdown = document.getElementById('exploreDropdown');
-                            if (exploreDropdown) exploreDropdown.classList.remove('open');
-                        }
-                    });
+            // Mobile chips click
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    selectCategory(chip.getAttribute('data-category') || 'all', true);
                 });
-            }
+            });
 
+            // Search input listeners
             if (searchInput) {
-                searchInput.addEventListener('input', () => {
-                    const rawVal = searchInput.value.trim();
-                    const searchTerm = rawVal.toLowerCase();
-                    if (allFetchedPlaces.length > 0) {
-                        renderPlaces(allFetchedPlaces, searchTerm);
-                    } else {
-                        const activeCat = document.querySelector('.category-tab.active')?.getAttribute('data-category') || 'all';
-                        filterStaticCards(activeCat, searchTerm);
+                searchInput.addEventListener('input', () => handleSearchInput(searchInput.value, 'desktop'));
+                searchInput.addEventListener('focus', () => {
+                    if ((window.pageYOffset || document.documentElement.scrollTop) > 100) {
+                        scrollGridTopIntoView();
                     }
                 });
-
                 searchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') {
                         const rawVal = searchInput.value.trim();
@@ -960,6 +1095,185 @@
                             } catch (_) {}
                         }
                     }
+                });
+            }
+
+            if (mobileSearchInput) {
+                mobileSearchInput.addEventListener('input', () => handleSearchInput(mobileSearchInput.value, 'mobile'));
+                mobileSearchInput.addEventListener('focus', () => {
+                    setMobileBarHidden(false);
+                    scrollGridTopIntoView();
+                });
+                mobileSearchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        const rawVal = mobileSearchInput.value.trim();
+                        if (rawVal.length >= 2) {
+                            try {
+                                if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
+                                    window.CalzadaActivity.addSearchHistory(rawVal);
+                                }
+                            } catch (_) {}
+                        }
+                    }
+                });
+            }
+
+            if (clearBtn) {
+                clearBtn.addEventListener('click', () => {
+                    handleSearchInput('', 'clear');
+                    if (searchInput) searchInput.focus();
+                });
+            }
+
+            if (mobileClearBtn) {
+                mobileClearBtn.addEventListener('click', () => {
+                    handleSearchInput('', 'clear');
+                    if (mobileSearchInput) mobileSearchInput.focus();
+                });
+            }
+
+            // Desktop Toolbar Sticky Sentinel Observer (IntersectionObserver)
+            const sentinel = document.getElementById('placesToolbarSentinel');
+            const toolbar = document.getElementById('placesToolbar');
+            let toolbarObserver = null;
+
+            function setupToolbarObserver() {
+                if (!sentinel || !toolbar || !('IntersectionObserver' in window)) return;
+                if (toolbarObserver) toolbarObserver.disconnect();
+                const navbar = document.getElementById('navbar');
+                const topMargin = navbar ? navbar.offsetHeight : 80;
+
+                toolbarObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        const isAbove = entry.boundingClientRect.top <= (topMargin + 2);
+                        if (!entry.isIntersecting && isAbove) {
+                            toolbar.classList.add('is-stuck');
+                        } else if (entry.isIntersecting || !isAbove) {
+                            toolbar.classList.remove('is-stuck');
+                        }
+                    });
+                }, {
+                    rootMargin: `-${topMargin}px 0px 0px 0px`,
+                    threshold: [0, 1]
+                });
+                toolbarObserver.observe(sentinel);
+            }
+            setupToolbarObserver();
+            window.addEventListener('resize', setupToolbarObserver);
+
+            // Mobile Bar Hide-on-scroll logic
+            let lastScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+            let scrollDownAccumulator = 0;
+            let scrollUpAccumulator = 0;
+            let ticking = false;
+
+            function setMobileBarHidden(hidden) {
+                const bar = document.getElementById('placesMobileBar');
+                if (!bar) return;
+                if (hidden) {
+                    bar.classList.add('is-hidden');
+                } else {
+                    bar.classList.remove('is-hidden');
+                }
+            }
+
+            function updateMobileBarScroll() {
+                if (window.innerWidth >= 1024) return;
+                const bar = document.getElementById('placesMobileBar');
+                if (!bar) return;
+                const barHeight = bar.offsetHeight || 114;
+                const currentScrollY = Math.max(0, window.pageYOffset || document.documentElement.scrollTop);
+
+                const isSearchFocused = (
+                    document.activeElement === mobileSearchInput ||
+                    document.activeElement === searchInput
+                );
+
+                // Rule: Always show when scrollY < bar height, or when search field is focused
+                if (currentScrollY < barHeight || isSearchFocused) {
+                    setMobileBarHidden(false);
+                    lastScrollY = currentScrollY;
+                    scrollDownAccumulator = 0;
+                    scrollUpAccumulator = 0;
+                    return;
+                }
+
+                const diff = currentScrollY - lastScrollY;
+
+                if (diff > 0) {
+                    // Scrolling down
+                    scrollUpAccumulator = 0;
+                    scrollDownAccumulator += diff;
+                    // when user scrolls down more than 80px past the bar
+                    if (currentScrollY > barHeight && scrollDownAccumulator >= 80) {
+                        setMobileBarHidden(true);
+                    }
+                } else if (diff < 0) {
+                    // Scrolling up
+                    scrollDownAccumulator = 0;
+                    scrollUpAccumulator += Math.abs(diff);
+                    // when user scrolls up by >= 12px, slide it back
+                    if (scrollUpAccumulator >= 12) {
+                        setMobileBarHidden(false);
+                    }
+                }
+
+                lastScrollY = currentScrollY;
+            }
+
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    window.requestAnimationFrame(() => {
+                        updateMobileBarScroll();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            }, { passive: true });
+
+            function updateLayoutDimensions() {
+                const navbar = document.getElementById('navbar');
+                const mobileBar = document.getElementById('placesMobileBar');
+                if (navbar) {
+                    const h = navbar.offsetHeight || (window.innerWidth >= 1024 ? 80 : 68);
+                    document.documentElement.style.setProperty('--header-height', `${h}px`);
+                }
+                if (mobileBar && window.innerWidth < 1024) {
+                    const mbH = mobileBar.offsetHeight || 114;
+                    document.documentElement.style.setProperty('--mobile-bar-height', `${mbH}px`);
+                }
+            }
+            window.addEventListener('resize', updateLayoutDimensions);
+            updateLayoutDimensions();
+
+            // Re-render when language switches
+            window.addEventListener('calzada_lang_changed', () => {
+                const rawVal = getCurrentSearchTerm();
+                renderPlaces(allFetchedPlaces.length > 0 ? allFetchedPlaces : FALLBACK_PLACES, rawVal.toLowerCase());
+            });
+
+            // Check URL query parameters for category
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialCat = urlParams.get('category');
+            if (initialCat) {
+                selectCategory(initialCat, false);
+            }
+
+            // Handle Explore navbar dropdown item clicks on places.html
+            const exploreMenu = document.getElementById('exploreDropdownMenu');
+            if (exploreMenu) {
+                exploreMenu.querySelectorAll('.nav-dropdown-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        const href = item.getAttribute('href');
+                        if (href && href.startsWith('/places')) {
+                            e.preventDefault();
+                            const itemUrl = new URL(href, window.location.origin);
+                            const catParam = (itemUrl.searchParams.get('category') || 'all').toLowerCase();
+                            selectCategory(catParam, true);
+                            const exploreDropdown = document.getElementById('exploreDropdown');
+                            if (exploreDropdown) exploreDropdown.classList.remove('open');
+                        }
+                    });
                 });
             }
 
