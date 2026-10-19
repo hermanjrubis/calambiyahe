@@ -1903,6 +1903,44 @@
         "phone": null,
         "website": null,
         "opening_hours": null
+    },
+    {
+        "id": "barangay-real-hall",
+        "slug": "barangay-real-hall",
+        "name": "Barangay Real Hall",
+        "category": "establishments",
+        "barangay": "Real",
+        "municipality": "Calamba",
+        "lat": 14.197837,
+        "lng": 121.149711,
+        "image_path": "../assets/places/barangay-real-hall/photo.webp",
+        "photo": "../assets/places/barangay-real-hall/photo.webp",
+        "pano": "../assets/places/barangay-real-hall/360.jpg",
+        "pano_thumb": "../assets/places/barangay-real-hall/360-thumb.webp",
+        "description": "",
+        "full_address": "Narra St. corner Yakal St., Brgy. Real, Calamba City, Laguna",
+        "phone": null,
+        "website": null,
+        "opening_hours": null
+    },
+    {
+        "id": "barangay-halang-hall",
+        "slug": "barangay-halang-hall",
+        "name": "Barangay Halang Hall (Multi-Purpose Building)",
+        "category": "establishments",
+        "barangay": "Halang",
+        "municipality": "Calamba",
+        "lat": 14.196813,
+        "lng": 121.161062,
+        "image_path": "../assets/places/barangay-halang-hall/photo.webp",
+        "photo": "../assets/places/barangay-halang-hall/photo.webp",
+        "pano": "../assets/places/barangay-halang-hall/360.jpg",
+        "pano_thumb": "../assets/places/barangay-halang-hall/360-thumb.webp",
+        "description": "",
+        "full_address": "Rosal St., Brgy. Halang, Calamba City, Laguna",
+        "phone": null,
+        "website": null,
+        "opening_hours": null
     }
 ];
 
