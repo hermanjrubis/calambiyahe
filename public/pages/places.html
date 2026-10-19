@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.7.1">
+    <link rel="stylesheet" href="../css/style.css?v=2.7.2">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -516,17 +516,26 @@
 
             <!-- Main Content Area: Content Header + 4-Column Card Grid -->
             <div class="places-content">
-                <!-- Page Content Header with In-page Search Toolbar -->
-                <div class="places-content-header" id="placesToolbar">
-                    <div class="places-toolbar-count" id="placesResultCount" aria-live="polite">
-                        96 places
+                <!-- Nike-Style Title Row (Flat Calzada) -->
+                <div class="places-title-row" id="placesTitleRow">
+                    <div class="places-title-left">
+                        <div class="places-title-main-row">
+                            <h2 class="places-title-heading" id="placesTitleHeading">
+                                <span class="places-title-text" id="placesTitleText">All Places</span>
+                                <span class="places-title-count desktop-only" id="placesTitleCountDesktop"> (98)</span>
+                            </h2>
+                            <button type="button" class="places-clear-query-btn" id="placesClearQueryBtn" style="display: none;" aria-label="Clear search query" data-i18n-aria-label="places.clear">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                <span class="clear-query-text" id="clearQueryText" data-i18n="places.clear">Clear</span>
+                            </button>
+                        </div>
+                        <div class="places-title-sub mobile-only" id="placesTitleSubMobile">98 places</div>
                     </div>
-                    <div class="content-search-wrap">
-                        <label for="placeSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
-                        <i class="ti ti-search content-search-icon" aria-hidden="true"></i>
-                        <input type="text" id="placeSearchInput" class="content-search-input" data-i18n="places.search_placeholder" data-i18n-attr="placeholder" placeholder="Search for a place..." autocomplete="off">
-                        <button type="button" id="placeSearchClearBtn" class="desktop-search-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
-                            <i class="ti ti-x" aria-hidden="true"></i>
+                    <div class="places-title-right mobile-only">
+                        <button type="button" class="places-mobile-filter-btn" id="placesMobileFilterBtn" aria-label="Filter" data-i18n-aria-label="places.filter">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10" /><path d="M4 12h4" /><path d="M4 18h8" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="14" cy="18" r="2" /></svg>
+                            <span id="placesFilterBtnText" data-i18n="places.filter">Filter</span>
+                            <span class="filter-active-dot" id="filterActiveDot" style="display: none;" aria-hidden="true"></span>
                         </button>
                     </div>
                 </div>
@@ -534,7 +543,8 @@
                 <!-- No Results State -->
                 <div class="no-results" id="noResults">
                     <ion-icon name="search-outline"></ion-icon>
-                    <p>No places found in this category</p>
+                    <p id="noResultsText">No places found in this category</p>
+                    <button type="button" class="no-results-clear-btn" id="noResultsClearBtn" style="display: none;" data-i18n="places.clear_search">Clear search</button>
                 </div>
 
                 <div class="places-grid">
@@ -617,7 +627,7 @@
 
     <script src="../js/legal-modal.js?v=2.6.4"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.8.6"></script>
+    <script src="../js/i18n.js?v=2.8.7"></script>
     <script src="../js/places-shared.js?v=2.6.6"></script>
     <script src="../js/header-autohide.js?v=1.0.0"></script>
     <script>
@@ -695,10 +705,20 @@
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
             const noResults = document.getElementById('noResults');
-            const searchInput = document.getElementById('placeSearchInput');
-            const clearBtn = document.getElementById('placeSearchClearBtn');
+            const noResultsText = document.getElementById('noResultsText');
+            const noResultsClearBtn = document.getElementById('noResultsClearBtn');
             const placesGrid = document.querySelector('.places-grid');
-            const resultCountEl = document.getElementById('placesResultCount');
+            const placesTitleText = document.getElementById('placesTitleText');
+            const placesTitleCountDesktop = document.getElementById('placesTitleCountDesktop');
+            const placesTitleSubMobile = document.getElementById('placesTitleSubMobile');
+            const placesClearQueryBtn = document.getElementById('placesClearQueryBtn');
+            const placesMobileFilterBtn = document.getElementById('placesMobileFilterBtn');
+            const filterActiveDot = document.getElementById('filterActiveDot');
+            const clearQueryText = document.getElementById('clearQueryText');
+            const placesFilterBtnText = document.getElementById('placesFilterBtnText');
+
+            // Grid Search Query state (from panel "See all" or ?q= URL parameter)
+            let currentGridQuery = '';
 
             // Header Search Panel Elements
             const searchPanel = document.getElementById('headerSearchPanel');
@@ -755,7 +775,8 @@
                 if (!category) return '';
                 const norm = category.toLowerCase().trim();
                 let key = '';
-                if (norm === 'malls' || norm === 'mall') key = 'places.cat_malls';
+                if (norm === 'all') key = 'places.cat_all';
+                else if (norm === 'malls' || norm === 'mall') key = 'places.cat_malls';
                 else if (norm === 'eateries' || norm === 'eatery' || norm.includes('eat')) key = 'places.cat_eateries';
                 else if (norm === 'schools' || norm === 'school') key = 'places.cat_schools';
                 else if (norm === 'terminals' || norm === 'terminal') key = 'places.cat_terminals';
@@ -766,6 +787,7 @@
                     const translated = window.t(key);
                     if (translated && translated !== key) return translated;
                 }
+                if (norm === 'all') return 'All Places';
                 return category.charAt(0).toUpperCase() + category.slice(1);
             }
 
@@ -820,33 +842,58 @@
                 }
             }
 
-            function formatResultCount(count, category, query) {
+            function updateTitleRow(count) {
                 const isTagalog = (document.documentElement.lang === 'tl') || (localStorage.getItem('calzada_lang') === 'tl');
-                if (query && query.trim()) {
-                    const q = query.trim();
-                    if (isTagalog) {
-                        return count === 1 ? `1 resulta para sa "${q}"` : `${count} resulta para sa "${q}"`;
-                    } else {
-                        return count === 1 ? `1 result for "${q}"` : `${count} results for "${q}"`;
+                const activeTab = document.querySelector('.category-tab.active');
+                const category = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
+                const catLabel = getCategoryLabel(category);
+
+                if (filterActiveDot) {
+                    filterActiveDot.style.display = (category !== 'all') ? 'inline-block' : 'none';
+                }
+
+                if (currentGridQuery) {
+                    const titleText = isTagalog
+                        ? `Mga resulta para sa "${currentGridQuery}"`
+                        : `Results for "${currentGridQuery}"`;
+                    if (placesTitleText) placesTitleText.textContent = titleText;
+                    if (placesTitleCountDesktop) placesTitleCountDesktop.textContent = ` (${count})`;
+                    if (placesTitleSubMobile) {
+                        placesTitleSubMobile.textContent = isTagalog ? `${count} lugar` : (count === 1 ? '1 place' : `${count} places`);
                     }
-                }
-                const cat = (category || 'all').toLowerCase();
-                if (cat !== 'all') {
-                    const catLabel = getCategoryLabel(cat);
-                    return `${count} ${catLabel}`;
-                }
-                if (isTagalog) {
-                    return `${count} na lugar`;
+                    if (placesClearQueryBtn) placesClearQueryBtn.style.display = 'inline-flex';
                 } else {
-                    return count === 1 ? '1 place' : `${count} places`;
+                    if (placesTitleText) placesTitleText.textContent = catLabel;
+                    if (placesTitleCountDesktop) placesTitleCountDesktop.textContent = ` (${count})`;
+                    if (placesTitleSubMobile) {
+                        placesTitleSubMobile.textContent = isTagalog ? `${count} lugar` : (count === 1 ? '1 place' : `${count} places`);
+                    }
+                    if (placesClearQueryBtn) placesClearQueryBtn.style.display = 'none';
                 }
             }
 
-            function updateResultCount(count, searchTerm) {
-                if (!resultCountEl) return;
+            function syncUrlState(replace = false) {
                 const activeTab = document.querySelector('.category-tab.active');
-                const category = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
-                resultCountEl.textContent = formatResultCount(count, category, searchTerm);
+                const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
+                const url = new URL(window.location);
+
+                if (resolvedCat !== 'all') {
+                    url.searchParams.set('category', resolvedCat);
+                } else {
+                    url.searchParams.delete('category');
+                }
+
+                if (currentGridQuery) {
+                    url.searchParams.set('q', currentGridQuery);
+                } else {
+                    url.searchParams.delete('q');
+                }
+
+                if (replace) {
+                    window.history.replaceState({}, '', url);
+                } else {
+                    window.history.pushState({}, '', url);
+                }
             }
 
             function registerPlaceInDictionary(place) {
@@ -976,28 +1023,30 @@
                     placesGrid.appendChild(cardEl);
                 });
 
+                const isTagalog = (document.documentElement.lang === 'tl') || (localStorage.getItem('calzada_lang') === 'tl');
                 if (noResults) {
                     if (filteredPlaces.length === 0) {
-                        const rawVal = getCurrentSearchTerm();
                         let msg = '';
-                        if (rawVal) {
-                            msg = typeof window.t === 'function' 
-                                ? window.t('search.no_results', { q: rawVal }) 
-                                : `No places found for "${rawVal}"`;
+                        if (currentGridQuery) {
+                            msg = isTagalog 
+                                ? `Walang nahanap na lugar para sa "${currentGridQuery}"` 
+                                : `No places found for "${currentGridQuery}"`;
+                            if (noResultsClearBtn) noResultsClearBtn.style.display = 'inline-flex';
                         } else {
-                            msg = typeof window.t === 'function'
-                                ? window.t('places.no_results')
+                            msg = isTagalog
+                                ? 'Walang nahanap na lugar sa kategoryang ito.'
                                 : 'No places found in this category.';
+                            if (noResultsClearBtn) noResultsClearBtn.style.display = 'none';
                         }
-                        const p = noResults.querySelector('p');
-                        if (p) p.textContent = msg;
+                        if (noResultsText) noResultsText.textContent = msg;
                         noResults.style.display = 'block';
                     } else {
                         noResults.style.display = 'none';
+                        if (noResultsClearBtn) noResultsClearBtn.style.display = 'none';
                     }
                 }
 
-                updateResultCount(filteredPlaces.length, searchTerm);
+                updateTitleRow(filteredPlaces.length);
             }
 
             function showSkeletons() {
@@ -1018,7 +1067,6 @@
             async function fetchPlacesFromAPI() {
                 const activeTab = document.querySelector('.category-tab.active');
                 const category = activeTab ? activeTab.getAttribute('data-category') : 'all';
-                const searchTerm = getCurrentSearchTerm().toLowerCase();
 
                 showSkeletons();
 
@@ -1042,7 +1090,7 @@
                     ? allMasterPlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm))
                     : allMasterPlaces;
 
-                renderPlaces(allFetchedPlaces, searchTerm);
+                renderPlaces(allFetchedPlaces, currentGridQuery);
             }
 
             function scrollGridTopIntoView() {
@@ -1063,7 +1111,7 @@
                 });
             }
 
-            function selectCategory(categoryName, shouldScrollTop = false) {
+            function applyCategoryAndQuery(categoryName, query, updateHistory = false, historyAction = 'push') {
                 const norm = (categoryName || 'all').toLowerCase();
                 tabs.forEach(t => {
                     const cat = (t.getAttribute('data-category') || '').toLowerCase();
@@ -1080,52 +1128,39 @@
 
                 syncPanelCategoryChips();
 
+                currentGridQuery = (query || '').trim().slice(0, 80);
+
+                if (updateHistory) {
+                    syncUrlState(historyAction === 'replace');
+                }
+
                 const activeTab = document.querySelector('.category-tab.active');
                 const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
-
-                const url = new URL(window.location);
-                if (resolvedCat !== 'all') {
-                    url.searchParams.set('category', resolvedCat);
-                } else {
-                    url.searchParams.delete('category');
-                }
-                if (hasHistoryPushed) {
-                    window.history.replaceState({}, '', url);
-                    hasHistoryPushed = false;
-                } else {
-                    window.history.pushState({}, '', url);
-                }
-
                 const catNorm = resolvedCat.toLowerCase().trim();
                 allFetchedPlaces = (catNorm !== 'all')
                     ? allMasterPlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm))
                     : allMasterPlaces;
 
-                const searchTerm = getCurrentSearchTerm().toLowerCase();
-                renderPlaces(allFetchedPlaces, searchTerm);
+                renderPlaces(allFetchedPlaces, currentGridQuery);
+            }
 
+            function selectCategory(categoryName, shouldScrollTop = false) {
+                applyCategoryAndQuery(categoryName, '', true, 'push');
                 if (shouldScrollTop) {
                     scrollGridTopIntoView();
                 }
             }
 
-            function getCurrentSearchTerm() {
-                return (searchInput ? searchInput.value : '').trim();
+            function setGridQuery(query) {
+                const activeTab = document.querySelector('.category-tab.active');
+                const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
+                applyCategoryAndQuery(resolvedCat, query, true, 'push');
             }
 
-            function handleSearchInput(value) {
-                const rawVal = value || '';
-                const trimmed = rawVal.trim();
-                const searchTerm = trimmed.toLowerCase();
-
-                if (searchInput && searchInput.value !== rawVal) {
-                    searchInput.value = rawVal;
-                }
-
-                const hasVal = rawVal.length > 0;
-                if (clearBtn) clearBtn.style.display = hasVal ? 'flex' : 'none';
-
-                renderPlaces(allFetchedPlaces, searchTerm);
+            function clearGridQuery() {
+                const activeTab = document.querySelector('.category-tab.active');
+                const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
+                applyCategoryAndQuery(resolvedCat, '', true, 'push');
             }
 
             // Tabs click
@@ -1135,32 +1170,18 @@
                 });
             });
 
-            // In-page search input listeners
-            if (searchInput) {
-                searchInput.addEventListener('input', () => handleSearchInput(searchInput.value));
-                searchInput.addEventListener('focus', () => {
-                    if ((window.pageYOffset || document.documentElement.scrollTop) > 100) {
-                        scrollGridTopIntoView();
-                    }
-                });
-                searchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        const rawVal = searchInput.value.trim();
-                        if (rawVal.length >= 2) {
-                            try {
-                                if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
-                                    window.CalzadaActivity.addSearchHistory(rawVal);
-                                }
-                            } catch (_) {}
-                        }
-                    }
-                });
+            // Clear query button clicks
+            if (placesClearQueryBtn) {
+                placesClearQueryBtn.addEventListener('click', clearGridQuery);
+            }
+            if (noResultsClearBtn) {
+                noResultsClearBtn.addEventListener('click', clearGridQuery);
             }
 
-            if (clearBtn) {
-                clearBtn.addEventListener('click', () => {
-                    handleSearchInput('');
-                    if (searchInput) searchInput.focus();
+            // Mobile filter button click
+            if (placesMobileFilterBtn) {
+                placesMobileFilterBtn.addEventListener('click', () => {
+                    openSearchPanel(placesMobileFilterBtn, { autoFocus: false });
                 });
             }
 
@@ -1334,7 +1355,7 @@
                 }
             }
 
-            function openSearchPanel(triggerEl) {
+            function openSearchPanel(triggerEl, options = {}) {
                 if (isPanelOpen) return;
                 isPanelOpen = true;
                 lastOpenedBy = triggerEl || document.activeElement;
@@ -1355,14 +1376,17 @@
                 syncPanelCategoryChips();
                 renderRecentSearches();
 
+                const shouldAutoFocus = options.autoFocus !== false;
                 if (headerPanelInput) {
                     headerPanelInput.value = '';
                     headerPanelInput.setAttribute('aria-expanded', 'false');
                     headerPanelInput.removeAttribute('aria-activedescendant');
-                    headerPanelInput.focus();
-                    setTimeout(() => {
-                        try { headerPanelInput.focus(); } catch (_) {}
-                    }, 50);
+                    if (shouldAutoFocus) {
+                        headerPanelInput.focus();
+                        setTimeout(() => {
+                            try { headerPanelInput.focus(); } catch (_) {}
+                        }, 50);
+                    }
                 }
 
                 if (searchPanelClearBtn) searchPanelClearBtn.style.display = 'none';
@@ -1411,6 +1435,10 @@
                     hasHistoryPushed = false; // already popped by browser
                     closeSearchPanel({ restoreScroll: true });
                 }
+                const params = new URLSearchParams(window.location.search);
+                const catParam = params.get('category') || 'all';
+                const qParam = (params.get('q') || '').trim().slice(0, 80);
+                applyCategoryAndQuery(catParam, qParam, false);
             });
 
             // Entry point triggers
@@ -1626,7 +1654,7 @@
                     seeAllRow.addEventListener('click', () => {
                         saveRecentSearch(query);
                         closeSearchPanel({ restoreScroll: false, historyAction: 'replace' });
-                        handleSearchInput(query);
+                        setGridQuery(query);
                         scrollGridTopIntoView();
                     });
 
@@ -1675,7 +1703,7 @@
                                 if (query) {
                                     saveRecentSearch(query);
                                     closeSearchPanel({ restoreScroll: false });
-                                    handleSearchInput(query);
+                                    setGridQuery(query);
                                     scrollGridTopIntoView();
                                 }
                             }
@@ -1687,7 +1715,7 @@
                         if (query) {
                             saveRecentSearch(query);
                             closeSearchPanel({ restoreScroll: false });
-                            handleSearchInput(query);
+                            setGridQuery(query);
                             scrollGridTopIntoView();
                         }
                     }
@@ -1696,10 +1724,20 @@
 
             // Language switch event listener
             window.addEventListener('calzada_lang_changed', () => {
-                const rawVal = getCurrentSearchTerm();
-                renderPlaces(allFetchedPlaces, rawVal.toLowerCase());
+                renderPlaces(allFetchedPlaces, currentGridQuery);
                 renderRecentSearches();
                 syncPanelCategoryChips();
+
+                // Update Filter button, Clear query button, and noResults button labels
+                if (placesFilterBtnText && typeof window.t === 'function') {
+                    placesFilterBtnText.textContent = window.t('places.filter');
+                }
+                if (clearQueryText && typeof window.t === 'function') {
+                    clearQueryText.textContent = window.t('places.clear');
+                }
+                if (noResultsClearBtn && typeof window.t === 'function') {
+                    noResultsClearBtn.textContent = window.t('places.clear_search');
+                }
 
                 // Update static labels in the search panel
                 if (searchPanelCancelBtn && typeof window.t === 'function') {
@@ -1727,11 +1765,12 @@
                 }
             });
 
-            // Check URL query parameters for initial category
+            // Check URL query parameters for initial category and search query
             const urlParams = new URLSearchParams(window.location.search);
-            const initialCat = urlParams.get('category');
-            if (initialCat) {
-                selectCategory(initialCat, false);
+            const initialCat = urlParams.get('category') || 'all';
+            const initialQ = (urlParams.get('q') || '').trim().slice(0, 80);
+            if (initialCat !== 'all' || initialQ) {
+                applyCategoryAndQuery(initialCat, initialQ, false);
             }
 
             // Handle Explore navbar dropdown item clicks on places.html
