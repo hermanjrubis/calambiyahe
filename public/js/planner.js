@@ -1093,7 +1093,6 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', lat: 14.2020, lng: 121.1570, full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/card-sme-bank/card-sme-bank-1.webp' },
             { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', lat: 14.1950, lng: 121.1550, full_address: 'National Highway, Calamba City, Laguna', image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp' },
             { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', lat: 14.1990, lng: 121.1595, full_address: 'Barangay 1 (Uno), Calamba City, Laguna', image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.webp' },
-            { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', lat: 14.1960, lng: 121.1510, full_address: 'Calamba City, Laguna', image_path: '../assets/places/laguna-logistics/laguna-logistics-1.webp' },
             { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', lat: 14.2005, lng: 121.1540, full_address: 'Calamba City, Laguna', image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.webp' },
             { id: 'news-star', name: 'News Star', category: 'establishments', lat: 14.2120, lng: 121.1650, full_address: 'Calamba City, Laguna', image_path: '../assets/places/news-star/news-star-1.webp' },
             // Schools
@@ -6898,7 +6897,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         "jollibee – real, calamba city": [14.2025, 121.1575],
                         "jollibee real": [14.2025, 121.1575],
                         "krav cafe": [14.2015, 121.156],
-                        "laguna logistics": [14.196, 121.151],
                         "mang inasal – halang, calamba": [14.192, 121.1625],
                         "mang inasal halang": [14.192, 121.1625],
                         "mariz food town": [14.2018, 121.1578],

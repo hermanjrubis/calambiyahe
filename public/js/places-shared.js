@@ -499,25 +499,6 @@
         "opening_hours": null
     },
     {
-        "id": "laguna-logistics",
-        "slug": "laguna-logistics",
-        "name": "Laguna Logistics",
-        "category": "establishments",
-        "barangay": "Real",
-        "municipality": "Calamba",
-        "lat": 14.196,
-        "lng": 121.151,
-        "image_path": "../assets/places/laguna-logistics/laguna-logistics-1.webp",
-        "photo": "../assets/places/laguna-logistics/laguna-logistics-1.webp",
-        "pano": null,
-        "pano_thumb": null,
-        "description": "Logistics and freight handling services",
-        "full_address": "Calamba City, Laguna",
-        "phone": null,
-        "website": null,
-        "opening_hours": null
-    },
-    {
         "id": "rj-auto-shop",
         "slug": "rj-auto-shop",
         "name": "RJ Auto Shop",
