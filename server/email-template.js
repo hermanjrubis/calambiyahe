@@ -268,6 +268,8 @@ function generateReminderEmailHtml({
     arriveTimeStr,
     modeStr,
     fareStr,
+    fareRegular,
+    fareDiscounted,
     plannerUrl,
     lang = 'en'
 }) {
@@ -277,8 +279,17 @@ function generateReminderEmailHtml({
     const safeLeave = escapeHtml(leaveTimeStr || '--:--');
     const safeArrive = escapeHtml(arriveTimeStr || '--:--');
     const safeMode = escapeHtml(modeStr || (isTl ? 'Dyip' : 'Jeepney'));
-    const safeFare = escapeHtml(fareStr || (isTl ? 'Libre' : 'Free'));
     const safeUrl = escapeHtml(plannerUrl || 'https://calzadaph.com/planner');
+
+    let resolvedFareStr = null;
+    if (typeof fareRegular === 'number' && typeof fareDiscounted === 'number') {
+        if (fareRegular === 0) {
+            resolvedFareStr = isTl ? 'Libre' : 'Free';
+        } else {
+            const discLabel = isTl ? 'Estudyante/Senior/PWD' : 'Student/Senior/PWD';
+            resolvedFareStr = `₱${fareRegular.toFixed(2)} (${discLabel} ₱${fareDiscounted.toFixed(2)})`;
+        }
+    }
 
     const subject = isTl
         ? `Oras na para umalis papuntang ${destName}`
@@ -295,6 +306,12 @@ function generateReminderEmailHtml({
     const labelFare = isTl ? 'Pamasahe' : 'Fare estimate';
     const labelOrigin = isTl ? 'Pinanggalingan' : 'Starting from';
     const ctaText = isTl ? 'Buksan sa Calzada Planner' : 'Open in Calzada Planner';
+
+    const fareRowHtml = resolvedFareStr ? `
+              <tr>
+                <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelFare}</td>
+                <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${escapeHtml(resolvedFareStr)}</td>
+              </tr>` : '';
 
     const contentHtml = `
       <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #2272C3; margin-bottom: 8px;">
@@ -328,11 +345,7 @@ function generateReminderEmailHtml({
               <tr>
                 <td style="padding: 6px 0; font-size: 13px; color: #64748B; width: 120px;">${labelMode}</td>
                 <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${safeMode}</td>
-              </tr>
-              <tr>
-                <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelFare}</td>
-                <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${safeFare}</td>
-              </tr>
+              </tr>${fareRowHtml}
               <tr>
                 <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelOrigin}</td>
                 <td style="padding: 6px 0; font-size: 14px; color: #334155;">${safeOrigin}</td>

@@ -1772,9 +1772,13 @@ async function handleRemindersDispatch(req, res) {
         const isWalk = reminderData.mode === 'walk';
         const isTl = reminderData.lang === 'tl';
         const modeStr = isWalk ? (isTl ? 'Lakad' : 'Walk') : (isTl ? 'Dyip' : 'Jeepney');
-        const fareStr = isWalk
-            ? (isTl ? 'Libre' : 'Free')
-            : (reminderData.fare != null ? (reminderData.fare === 0 ? (isTl ? 'Libre' : 'Free') : `₱${reminderData.fare}`) : '₱14.00');
+
+        let fareRegular = typeof reminderData.fareRegular === 'number' ? reminderData.fareRegular : null;
+        let fareDiscounted = typeof reminderData.fareDiscounted === 'number' ? reminderData.fareDiscounted : null;
+        if (isWalk && fareRegular == null) {
+            fareRegular = 0;
+            fareDiscounted = 0;
+        }
 
         const destQuery = encodeURIComponent(reminderData.destName || '');
         const plannerUrl = `https://calzadaph.com/planner?dest=${destQuery}&destLat=${reminderData.destLat}&destLng=${reminderData.destLng}`;
@@ -1785,7 +1789,8 @@ async function handleRemindersDispatch(req, res) {
             leaveTimeStr,
             arriveTimeStr,
             modeStr,
-            fareStr,
+            fareRegular,
+            fareDiscounted,
             plannerUrl,
             lang: reminderData.lang
         });

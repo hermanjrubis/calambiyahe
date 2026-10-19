@@ -1160,6 +1160,13 @@ export async function createReminder(reminder) {
         sentAt: null
     };
 
+    if (typeof reminder.fareRegular === 'number' && !isNaN(reminder.fareRegular)) {
+        data.fareRegular = Math.max(0, reminder.fareRegular);
+    }
+    if (typeof reminder.fareDiscounted === 'number' && !isNaN(reminder.fareDiscounted)) {
+        data.fareDiscounted = Math.max(0, reminder.fareDiscounted);
+    }
+
     const docRef = await addDoc(collection(db, `users/${user.uid}/reminders`), data);
     remindersState.loaded = false; // reload next time list opens
     return docRef.id;

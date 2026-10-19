@@ -1927,6 +1927,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             directionsCard.classList.remove('expanded', 'peek', 'collapsed');
             directionsCard.classList.add(state);
+            if (state === 'collapsed') {
+                const sc = document.getElementById('dsScrollContainer');
+                if (sc) sc.scrollTop = 0;
+            }
 
             const dsPeekInfo = document.getElementById('dsPeekInfo');
             if (dsPeekInfo) {
@@ -2006,57 +2010,159 @@ document.addEventListener('DOMContentLoaded', () => {
             setSheetState(targetState, true);
         };
 
-        directionsCard.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('.ds-drag-handle')) {
-                const scrollBody = e.target.closest('.ds-body');
-                if (scrollBody && scrollBody.scrollTop > 0) return;
-            }
+        let sheetCandidateDrag = false;
+        let sheetStartX = 0;
 
-            sheetStartY = e.touches[0].clientY;
+        directionsCard.addEventListener('touchstart', (e) => {
+            const isMobile = window.innerWidth <= 768;
+            if (!isMobile || e.touches.length !== 1) return;
+
+            const isInteractive = !!e.target.closest('button, input, select, textarea, a, .share-btn');
+            const isHandle = !!e.target.closest('.ds-drag-handle');
+            const isCollapsed = directionsCard.classList.contains('collapsed');
+            const isPeek = directionsCard.classList.contains('peek');
+
+            const touch = e.touches[0];
+            sheetStartY = touch.clientY;
+            sheetStartX = touch.clientX;
             sheetLastY = sheetStartY;
             sheetLastTime = Date.now();
             sheetVelocity = 0;
-            sheetDragging = true;
+
             sheetBaseTranslateY = parseFloat(
                 directionsCard.style.transform?.match(/translateY\(([^)]+)px\)/)?.[1]
                 ?? getSheetNaturalTranslate()
             );
-            directionsCard.style.transition = 'none';
+
+            if (isHandle) {
+                sheetDragging = true;
+                sheetCandidateDrag = false;
+                directionsCard.style.transition = 'none';
+            } else if (isCollapsed || isPeek) {
+                // In collapsed or peek states, non-interactive touches can drag the sheet
+                sheetDragging = false;
+                sheetCandidateDrag = !isInteractive;
+            } else {
+                // Expanded sheet: only initiate drag if user pulls down at top of scroll container
+                sheetDragging = false;
+                if (!isInteractive) {
+                    const scrollContainer = document.getElementById('dsScrollContainer');
+                    sheetCandidateDrag = !scrollContainer || scrollContainer.scrollTop <= 0;
+                } else {
+                    sheetCandidateDrag = false;
+                }
+            }
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
-            if (!sheetDragging) return;
+            if (!sheetDragging && !sheetCandidateDrag) return;
+            if (e.touches.length !== 1) return;
 
-            const y = e.touches[0].clientY;
-            const now = Date.now();
-            const dt = Math.max(1, now - sheetLastTime);
-            const dy = y - sheetLastY;
-            sheetVelocity = dy / dt; // px/ms
-            sheetLastY = y;
-            sheetLastTime = now;
+            const touch = e.touches[0];
+            const y = touch.clientY;
+            const x = touch.clientX;
+            const dy = y - sheetStartY;
+            const dx = x - sheetStartX;
 
-            const sheetH = directionsCard.offsetHeight;
-            const collapseAt = sheetH - SHEET_PEEK_HEIGHT;
-            const raw = sheetBaseTranslateY + (y - sheetStartY);
+            if (!sheetDragging && sheetCandidateDrag) {
+                const isCollapsed = directionsCard.classList.contains('collapsed');
+                const isPeek = directionsCard.classList.contains('peek');
+                const isExpanded = !isCollapsed && !isPeek;
 
-            // Clamp with rubber-band resistance at extremes
-            let clamped;
-            if (raw < 0) {
-                clamped = raw * 0.2; // rubber-band when pulling above top
-            } else if (raw > collapseAt) {
-                const over = raw - collapseAt;
-                clamped = collapseAt + over * 0.2; // rubber-band past peek
-            } else {
-                clamped = raw;
+                if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) {
+                    if (isExpanded) {
+                        const scrollContainer = document.getElementById('dsScrollContainer');
+                        const atTop = !scrollContainer || scrollContainer.scrollTop <= 0;
+                        if (atTop && dy > 8) {
+                            // User is at the top of scroll container and pulling down -> drag sheet
+                            sheetDragging = true;
+                            sheetCandidateDrag = false;
+                            directionsCard.style.transition = 'none';
+                            sheetStartY = y;
+                            sheetLastY = y;
+                            sheetLastTime = Date.now();
+                            sheetBaseTranslateY = parseFloat(
+                                directionsCard.style.transform?.match(/translateY\(([^)]+)px\)/)?.[1]
+                                ?? getSheetNaturalTranslate()
+                            );
+                        } else {
+                            // Swiping up (scrolling content) or not at top
+                            sheetCandidateDrag = false;
+                            return;
+                        }
+                    } else if (isPeek) {
+                        // In peek/half state, pulling up or down drags sheet
+                        sheetDragging = true;
+                        sheetCandidateDrag = false;
+                        directionsCard.style.transition = 'none';
+                        sheetStartY = y;
+                        sheetLastY = y;
+                        sheetLastTime = Date.now();
+                    } else if (isCollapsed) {
+                        // In collapsed state, swiping up drags sheet
+                        if (dy < -8) {
+                            sheetDragging = true;
+                            sheetCandidateDrag = false;
+                            directionsCard.style.transition = 'none';
+                            sheetStartY = y;
+                            sheetLastY = y;
+                            sheetLastTime = Date.now();
+                        } else {
+                            sheetCandidateDrag = false;
+                            return;
+                        }
+                    }
+                } else if (Math.abs(dx) > 8) {
+                    sheetCandidateDrag = false;
+                    return;
+                } else {
+                    return;
+                }
             }
 
-            setSheetTranslate(clamped);
-        }, { passive: true });
+            if (sheetDragging) {
+                if (e.cancelable) e.preventDefault();
+
+                const now = Date.now();
+                const dt = Math.max(1, now - sheetLastTime);
+                const stepDy = y - sheetLastY;
+                sheetVelocity = stepDy / dt; // px/ms
+                sheetLastY = y;
+                sheetLastTime = now;
+
+                const pos = getSheetPositions();
+                const collapseAt = pos.collapsed;
+                const raw = sheetBaseTranslateY + (y - sheetStartY);
+
+                // Clamp with rubber-band resistance at extremes
+                let clamped;
+                if (raw < 0) {
+                    clamped = raw * 0.2; // rubber-band when pulling above top
+                } else if (raw > collapseAt) {
+                    const over = raw - collapseAt;
+                    clamped = collapseAt + over * 0.2; // rubber-band past peek
+                } else {
+                    clamped = raw;
+                }
+
+                setSheetTranslate(clamped);
+            }
+        }, { passive: false });
 
         document.addEventListener('touchend', () => {
-            if (!sheetDragging) return;
-            sheetDragging = false;
-            snapSheet(sheetVelocity);
+            if (sheetDragging) {
+                sheetDragging = false;
+                snapSheet(sheetVelocity);
+            }
+            sheetCandidateDrag = false;
+        });
+
+        document.addEventListener('touchcancel', () => {
+            if (sheetDragging) {
+                sheetDragging = false;
+                snapSheet(sheetVelocity);
+            }
+            sheetCandidateDrag = false;
         });
 
         document.getElementById('dsPeekInfo').addEventListener('click', () => {
@@ -2482,6 +2588,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) {}
 
             updateMidpointBubbleVisibility(false);
+            const sc = document.getElementById('dsScrollContainer');
+            if (sc) sc.scrollTop = 0;
             renderPlannerState();
 
             if (currentLocation && currentLocation.lat && currentLocation.lng) {
@@ -3747,6 +3855,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         hintBanner.style.removeProperty('display');
                         hintBanner.style.display = 'flex';
 
+                        let regFare = 0;
+                        let discFare = 0;
+                        if (!isWalkOnly) {
+                            if (window.CalzadaFare) {
+                                const f = window.CalzadaFare.fares(currentTransitDist);
+                                regFare = Number(f.regular) || 0;
+                                discFare = Number(f.discounted) || 0;
+                            } else {
+                                regFare = Number(currentFare) || 14;
+                                discFare = Math.round(regFare * 0.8 * 4) / 4;
+                            }
+                        }
+
                         window._calzadaLeaveCalculation = {
                             leaveAt,
                             arriveAt,
@@ -3755,6 +3876,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             bufferMin,
                             targetTime: sched.targetTime,
                             fare: currentFare,
+                            fareRegular: regFare,
+                            fareDiscounted: discFare,
                             destName: destPlaceName,
                             destCoords: selectedCoords ? selectedCoords.destination : null,
                             originLabel: originPlaceName
@@ -6610,6 +6733,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const lang = (localStorage.getItem('calzada_lang') === 'tl') ? 'tl' : 'en';
 
+                    const isWalk = leaveCalc.mode === 'walk';
+                    let fareReg = isWalk ? 0 : Number(leaveCalc.fareRegular ?? leaveCalc.fare ?? 0);
+                    let fareDisc = isWalk ? 0 : Number(leaveCalc.fareDiscounted ?? 0);
+                    if (!isWalk && fareReg > 0 && fareDisc <= 0) {
+                        fareDisc = Math.round(fareReg * 0.8 * 4) / 4;
+                    }
+
                     await window.CalzadaReminders.createReminder({
                         destName: leaveCalc.destName,
                         destLat: leaveCalc.destCoords ? leaveCalc.destCoords[0] : 0,
@@ -6619,6 +6749,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         leaveAt: leaveCalc.leaveAt,
                         arriveBy: leaveCalc.arriveAt,
                         remindAt: remindAt,
+                        fareRegular: fareReg,
+                        fareDiscounted: fareDisc,
                         lang: lang
                     });
 

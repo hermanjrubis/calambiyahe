@@ -102,9 +102,10 @@ service cloud.firestore {
       return r.keys().hasOnly([
           'destName', 'destLat', 'destLng', 'originLabel', 'mode',
           'leaveAt', 'arriveBy', 'remindAt', 'channel', 'lang',
-          'status', 'createdAt', 'sentAt'
+          'status', 'createdAt', 'sentAt',
+          'fareRegular', 'fareDiscounted'
         ])
-        && r.keys().size() == 13
+        && (r.keys().size() == 13 || r.keys().size() == 15)
         && r.destName is string && r.destName.size() >= 1 && r.destName.size() <= 120
         && r.destLat is number && r.destLng is number
         && r.destLat >= 13.9 && r.destLat <= 14.6
@@ -124,7 +125,9 @@ service cloud.firestore {
         && r.lang in ['en', 'tl']
         && r.status == 'scheduled'
         && r.createdAt == request.time
-        && r.sentAt == null;
+        && r.sentAt == null
+        && (!('fareRegular' in r) || (r.fareRegular is number && r.fareRegular >= 0))
+        && (!('fareDiscounted' in r) || (r.fareDiscounted is number && r.fareDiscounted >= 0));
     }
 
     match /users/{userId}/reminders/{reminderId} {
