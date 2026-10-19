@@ -118,16 +118,16 @@
     "slug": "sm-transport-term",
     "name": "SM City Calamba Transport Terminal",
     "category": "terminals",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.19895,
-    "lng": 121.16335,
-    "image_path": "/assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp",
-    "photo": "/assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp",
-    "pano": null,
-    "pano_thumb": null,
+    "lat": 14.203278,
+    "lng": 121.157683,
+    "image_path": "/assets/places/sm-city-calamba-transport-terminal/photo.webp",
+    "photo": "/assets/places/sm-city-calamba-transport-terminal/photo.webp",
+    "pano": "/assets/places/sm-city-calamba-transport-terminal/360.jpg",
+    "pano_thumb": "/assets/places/sm-city-calamba-transport-terminal/360-thumb.webp",
     "description": "Major central public transportation hub",
-    "full_address": "SM City Calamba Complex, Calamba City",
+    "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -156,16 +156,16 @@
     "slug": "uncle-johns",
     "name": "Uncle John's",
     "category": "eateries",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.2035,
-    "lng": 121.156,
+    "lat": 14.205386,
+    "lng": 121.156122,
     "image_path": "/assets/places/uncle-johns/photo.webp",
     "photo": "/assets/places/uncle-johns/photo.webp",
     "pano": "/assets/places/_shared/saint-rose-transit-360.jpg",
     "pano_thumb": "/assets/places/_shared/saint-rose-transit-360-thumb.webp",
     "description": "24/7 convenience store with hot fried chicken and meals",
-    "full_address": "Manila S Rd, Calamba City, Laguna",
+    "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -175,16 +175,16 @@
     "slug": "ding-hao",
     "name": "Ding Hao",
     "category": "eateries",
-    "barangay": "Halang",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.1925,
-    "lng": 121.162,
+    "lat": 14.202775,
+    "lng": 121.158008,
     "image_path": "/assets/places/ding-hao/photo.webp",
     "photo": "/assets/places/ding-hao/photo.webp",
     "pano": "/assets/places/ding-hao/360.jpg",
     "pano_thumb": "/assets/places/ding-hao/360-thumb.webp",
     "description": "Chinese restaurant along National Highway",
-    "full_address": "National Highway, Brgy. Halang, Calamba City",
+    "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -194,16 +194,16 @@
     "slug": "teng-tengs",
     "name": "Teng-Teng's",
     "category": "eateries",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.2028,
-    "lng": 121.1565,
+    "lat": 14.204044,
+    "lng": 121.155939,
     "image_path": "/assets/places/teng-tengs/photo.webp",
     "photo": "/assets/places/teng-tengs/photo.webp",
     "pano": "/assets/places/teng-tengs/360.jpg",
     "pano_thumb": "/assets/places/teng-tengs/360-thumb.webp",
     "description": "Popular local dining eatery in Real",
-    "full_address": "Calamba City, Laguna",
+    "full_address": "Cadena de Amor Street, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -213,16 +213,16 @@
     "slug": "mariz-food-town",
     "name": "Mariz Food Town",
     "category": "eateries",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.2018,
-    "lng": 121.1578,
+    "lat": 14.203908,
+    "lng": 121.156072,
     "image_path": "/assets/places/mariz-food-town/photo.webp",
     "photo": "/assets/places/mariz-food-town/photo.webp",
     "pano": "/assets/places/mariz-food-town/360.jpg",
     "pano_thumb": "/assets/places/mariz-food-town/360-thumb.webp",
     "description": "Casual food court and carinderia",
-    "full_address": "Calamba City, Laguna",
+    "full_address": "Cadena de Amor Street, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -232,16 +232,16 @@
     "slug": "ton-tons-sisig",
     "name": "Ton-Ton's Sisig",
     "category": "eateries",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.202,
-    "lng": 121.1565,
+    "lat": 14.203803,
+    "lng": 121.156225,
     "image_path": "/assets/places/ton-tons-sisig/photo.webp",
     "photo": "/assets/places/ton-tons-sisig/photo.webp",
     "pano": "/assets/places/ton-tons-sisig/360.jpg",
     "pano_thumb": "/assets/places/ton-tons-sisig/360-thumb.webp",
     "description": "Specialty sizzling sisig dining spot",
-    "full_address": "Calamba City, Laguna",
+    "full_address": "Cadena de Amor Street, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -365,16 +365,16 @@
     "slug": "card-sme-bank",
     "name": "CARD SME Bank – Calamba Branch",
     "category": "establishments",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.202,
-    "lng": 121.157,
+    "lat": 14.202178,
+    "lng": 121.158622,
     "image_path": "/assets/places/card-sme-bank/photo.webp",
     "photo": "/assets/places/card-sme-bank/photo.webp",
     "pano": "/assets/places/card-sme-bank/360.jpg",
     "pano_thumb": "/assets/places/card-sme-bank/360-thumb.webp",
     "description": "Thrift bank and financial service institution",
-    "full_address": "National Highway, Brgy. Real, Calamba City, Laguna",
+    "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -405,14 +405,14 @@
     "category": "establishments",
     "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.199,
-    "lng": 121.1595,
+    "lat": 14.204469,
+    "lng": 121.155589,
     "image_path": "/assets/places/barangay-uno-hall/photo.webp",
     "photo": "/assets/places/barangay-uno-hall/photo.webp",
     "pano": "/assets/places/barangay-uno-hall/360.jpg",
     "pano_thumb": "/assets/places/barangay-uno-hall/360-thumb.webp",
     "description": "Local government barangay hall for Barangay 1",
-    "full_address": "Barangay 1 (Uno), Calamba City, Laguna",
+    "full_address": "Cadena de Amor Street, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -441,16 +441,16 @@
     "slug": "rj-auto-shop",
     "name": "RJ Auto Shop",
     "category": "establishments",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.2005,
-    "lng": 121.154,
+    "lat": 14.202467,
+    "lng": 121.158378,
     "image_path": "/assets/places/rj-auto-shop/photo.webp",
     "photo": "/assets/places/rj-auto-shop/photo.webp",
     "pano": "/assets/places/rj-auto-shop/360.jpg",
     "pano_thumb": "/assets/places/rj-auto-shop/360-thumb.webp",
     "description": "Automotive repair and maintenance service",
-    "full_address": "Calamba City, Laguna",
+    "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -460,16 +460,16 @@
     "slug": "news-star",
     "name": "News Star",
     "category": "establishments",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.212,
-    "lng": 121.165,
+    "lat": 14.205297,
+    "lng": 121.156236,
     "image_path": "/assets/places/news-star/photo.webp",
     "photo": "/assets/places/news-star/photo.webp",
     "pano": "/assets/places/news-star/360.jpg",
     "pano_thumb": "/assets/places/news-star/360-thumb.webp",
     "description": "Local commercial publication and printing office",
-    "full_address": "Calamba City, Laguna",
+    "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -498,16 +498,16 @@
     "slug": "morales-bercasio",
     "name": "Morales Bercasio",
     "category": "establishments",
-    "barangay": "Real",
+    "barangay": "Uno",
     "municipality": "Calamba",
-    "lat": 14.2045,
-    "lng": 121.1585,
+    "lat": 14.203511,
+    "lng": 121.157392,
     "image_path": "/assets/places/morales-bercasio/photo.webp",
     "photo": "/assets/places/morales-bercasio/photo.webp",
     "pano": "/assets/places/morales-bercasio/360.jpg",
     "pano_thumb": "/assets/places/morales-bercasio/360-thumb.webp",
     "description": "Professional services and business office",
-    "full_address": "Calamba City, Laguna",
+    "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
     "opening_hours": null
@@ -1047,8 +1047,8 @@
   {
     "id": 56,
     "slug": "mb-parking",
-    "name": "MB Parking",
-    "category": "establishments",
+    "name": "Morales-Bercasio Commercial Center Parking",
+    "category": "terminals",
     "barangay": "Uno",
     "municipality": "Calamba",
     "lat": 14.203347,
@@ -1198,25 +1198,6 @@
   },
   {
     "id": 64,
-    "slug": "sm-city-calamba",
-    "name": "SM City Calamba",
-    "category": "malls",
-    "barangay": "Uno",
-    "municipality": "Calamba",
-    "lat": 14.203278,
-    "lng": 121.157683,
-    "image_path": "/assets/places/sm-city-calamba/photo.webp",
-    "photo": "/assets/places/sm-city-calamba/photo.webp",
-    "pano": "/assets/places/sm-city-calamba/360.jpg",
-    "pano_thumb": "/assets/places/sm-city-calamba/360-thumb.webp",
-    "description": "",
-    "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
-    "phone": null,
-    "website": null,
-    "opening_hours": null
-  },
-  {
-    "id": 65,
     "slug": "smiles-hotel",
     "name": "Smiles Hotel",
     "category": "establishments",
@@ -1235,7 +1216,7 @@
     "opening_hours": null
   },
   {
-    "id": 66,
+    "id": 65,
     "slug": "south-supermarket",
     "name": "South Supermarket",
     "category": "malls",
@@ -1254,7 +1235,7 @@
     "opening_hours": null
   },
   {
-    "id": 67,
+    "id": 66,
     "slug": "studio-8-hair-beauty-salon",
     "name": "Studio 8 Hair & Beauty Salon",
     "category": "establishments",
@@ -1273,7 +1254,7 @@
     "opening_hours": null
   },
   {
-    "id": 68,
+    "id": 67,
     "slug": "suerte-motoplaza",
     "name": "Suerte Motoplaza",
     "category": "establishments",
@@ -1292,7 +1273,7 @@
     "opening_hours": null
   },
   {
-    "id": 69,
+    "id": 68,
     "slug": "sungold-upholstery-supply",
     "name": "Sungold Upholstery Supply",
     "category": "establishments",
@@ -1311,7 +1292,7 @@
     "opening_hours": null
   },
   {
-    "id": 70,
+    "id": 69,
     "slug": "tranquility-serviced-homes",
     "name": "Tranquility Serviced Homes",
     "category": "establishments",
@@ -1330,7 +1311,7 @@
     "opening_hours": null
   },
   {
-    "id": 71,
+    "id": 70,
     "slug": "2go",
     "name": "2GO",
     "category": "establishments",
@@ -1349,7 +1330,7 @@
     "opening_hours": null
   },
   {
-    "id": 72,
+    "id": 71,
     "slug": "amsi-doctors-medical-center",
     "name": "AMSI Doctors Medical Center",
     "category": "establishments",
@@ -1368,7 +1349,7 @@
     "opening_hours": null
   },
   {
-    "id": 73,
+    "id": 72,
     "slug": "angels-pizza",
     "name": "Angel's Pizza",
     "category": "eateries",
@@ -1387,7 +1368,7 @@
     "opening_hours": null
   },
   {
-    "id": 74,
+    "id": 73,
     "slug": "army-navy",
     "name": "Army Navy",
     "category": "eateries",
@@ -1406,7 +1387,7 @@
     "opening_hours": null
   },
   {
-    "id": 75,
+    "id": 74,
     "slug": "burger-king",
     "name": "Burger King",
     "category": "eateries",
@@ -1425,7 +1406,7 @@
     "opening_hours": null
   },
   {
-    "id": 76,
+    "id": 75,
     "slug": "coca-cola-europacific-aboitiz-calamba-distribution-center",
     "name": "Coca-Cola Europacific Aboitiz – Calamba Distribution Center",
     "category": "establishments",
@@ -1444,7 +1425,7 @@
     "opening_hours": null
   },
   {
-    "id": 77,
+    "id": 76,
     "slug": "dverde",
     "name": "D'Verde",
     "category": "establishments",
@@ -1463,7 +1444,7 @@
     "opening_hours": null
   },
   {
-    "id": 78,
+    "id": 77,
     "slug": "ez-wash",
     "name": "EZ Wash",
     "category": "establishments",
@@ -1482,7 +1463,7 @@
     "opening_hours": null
   },
   {
-    "id": 79,
+    "id": 78,
     "slug": "go-clinic",
     "name": "Go Clinic",
     "category": "establishments",
@@ -1501,7 +1482,7 @@
     "opening_hours": null
   },
   {
-    "id": 80,
+    "id": 79,
     "slug": "laguna-provincial-capitol",
     "name": "Laguna Provincial Capitol",
     "category": "establishments",
@@ -1520,7 +1501,7 @@
     "opening_hours": null
   },
   {
-    "id": 81,
+    "id": 80,
     "slug": "lola-nenas",
     "name": "Lola Nena's",
     "category": "eateries",
@@ -1539,7 +1520,7 @@
     "opening_hours": null
   },
   {
-    "id": 82,
+    "id": 81,
     "slug": "margimel-commercial-complex",
     "name": "Margimel Commercial Complex",
     "category": "establishments",
@@ -1558,7 +1539,7 @@
     "opening_hours": null
   },
   {
-    "id": 83,
+    "id": 82,
     "slug": "mcdonalds",
     "name": "McDonald's",
     "category": "eateries",
@@ -1577,7 +1558,7 @@
     "opening_hours": null
   },
   {
-    "id": 84,
+    "id": 83,
     "slug": "mr-diy",
     "name": "Mr. DIY",
     "category": "establishments",
@@ -1596,7 +1577,7 @@
     "opening_hours": null
   },
   {
-    "id": 85,
+    "id": 84,
     "slug": "pamana-medical-center",
     "name": "Pamana Medical Center",
     "category": "establishments",
@@ -1615,7 +1596,7 @@
     "opening_hours": null
   },
   {
-    "id": 86,
+    "id": 85,
     "slug": "safc-calamba",
     "name": "SAFC – Calamba",
     "category": "establishments",
@@ -1634,7 +1615,7 @@
     "opening_hours": null
   },
   {
-    "id": 87,
+    "id": 86,
     "slug": "saint-john-paul-colleges",
     "name": "Saint John & Paul Colleges",
     "category": "schools",
@@ -1653,7 +1634,7 @@
     "opening_hours": null
   },
   {
-    "id": 88,
+    "id": 87,
     "slug": "shakeys",
     "name": "Shakey's",
     "category": "eateries",
@@ -1672,7 +1653,7 @@
     "opening_hours": null
   },
   {
-    "id": 89,
+    "id": 88,
     "slug": "yellow-cab-pizza-co",
     "name": "Yellow Cab Pizza Co.",
     "category": "eateries",
@@ -1691,7 +1672,7 @@
     "opening_hours": null
   },
   {
-    "id": 90,
+    "id": 89,
     "slug": "but-first-coffee",
     "name": "But First, Coffee",
     "category": "coffee",
@@ -1710,7 +1691,7 @@
     "opening_hours": null
   },
   {
-    "id": 91,
+    "id": 90,
     "slug": "calamba-city-hall",
     "name": "Calamba City Hall",
     "category": "establishments",
@@ -1729,7 +1710,7 @@
     "opening_hours": null
   },
   {
-    "id": 92,
+    "id": 91,
     "slug": "hotel-marciano",
     "name": "Hotel Marciano",
     "category": "establishments",
@@ -1748,7 +1729,7 @@
     "opening_hours": null
   },
   {
-    "id": 93,
+    "id": 92,
     "slug": "jaydens-kitchen",
     "name": "Jayden's Kitchen",
     "category": "eateries",
@@ -1767,7 +1748,7 @@
     "opening_hours": null
   },
   {
-    "id": 94,
+    "id": 93,
     "slug": "lynville-land-development-corp",
     "name": "Lynville Land Development Corp.",
     "category": "establishments",
@@ -1786,7 +1767,7 @@
     "opening_hours": null
   },
   {
-    "id": 95,
+    "id": 94,
     "slug": "marcelita-building",
     "name": "Marcelita Building",
     "category": "establishments",
@@ -1805,7 +1786,7 @@
     "opening_hours": null
   },
   {
-    "id": 96,
+    "id": 95,
     "slug": "rizal-monument",
     "name": "Rizal Monument",
     "category": "establishments",
@@ -1824,7 +1805,7 @@
     "opening_hours": null
   },
   {
-    "id": 97,
+    "id": 96,
     "slug": "jose-rizal-coliseum",
     "name": "Jose Rizal Coliseum",
     "category": "establishments",
