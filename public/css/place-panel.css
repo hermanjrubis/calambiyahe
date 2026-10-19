@@ -18,13 +18,14 @@ html {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition: opacity 160ms ease, visibility 0s 160ms;
 }
 
 .place-panel-backdrop.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+    transition: opacity 160ms ease, visibility 0s;
 }
 
 /* 2. Main Card Container (16px border radius, flat surface, hairline border) */
@@ -53,7 +54,7 @@ html {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease;
+        transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease, visibility 0s 160ms;
     }
 
     .place-panel-container.active {
@@ -61,6 +62,7 @@ html {
         visibility: visible;
         pointer-events: auto;
         transform: translate(-50%, -50%) scale(1);
+        transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1), opacity 160ms ease, visibility 0s;
     }
 }
 
@@ -80,7 +82,7 @@ html {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, visibility 0.2s ease;
+        transition: transform 180ms cubic-bezier(0.2, 0, 0, 1), opacity 160ms ease, visibility 0s 180ms;
     }
 
     .place-panel-container.active {
@@ -88,6 +90,7 @@ html {
         opacity: 1;
         visibility: visible;
         pointer-events: auto;
+        transition: transform 200ms cubic-bezier(0.2, 0, 0, 1), opacity 160ms ease, visibility 0s;
     }
 }
 
@@ -135,12 +138,24 @@ html {
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     padding: 0;
     flex: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.panel-close-btn:hover {
-    background: #f8fafc;
+@media (hover: hover) and (pointer: fine) {
+    .panel-close-btn:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+}
+
+.panel-close-btn:active {
+    background: #F1F5F9;
     color: #0f172a;
     border-color: #cbd5e1;
+    transform: scale(0.97);
+    transition: none;
 }
 
 /* 3. Left Column: Image Hero (Flush to edges, seamless with card) */
@@ -326,6 +341,10 @@ html {
     -webkit-tap-highlight-color: transparent;
 }
 
+.carousel-nav {
+    touch-action: manipulation;
+}
+
 .carousel-prev {
     left: 12px;
 }
@@ -334,14 +353,22 @@ html {
     right: 12px;
 }
 
-.carousel-nav:hover,
 .carousel-nav:focus {
     background-color: #EAF2FC;
     color: #2272C3;
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .carousel-nav:hover {
+        background-color: #EAF2FC;
+        color: #2272C3;
+    }
+}
+
 .carousel-nav:active {
     background-color: #E2E8F0;
+    transform: scale(0.97);
+    transition: none;
 }
 
 .carousel-nav:focus-visible {
@@ -581,10 +608,20 @@ html {
     cursor: pointer;
     text-decoration: none;
     outline: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.inline-360-retry-btn:hover {
-    text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+    .inline-360-retry-btn:hover {
+        text-decoration: underline;
+    }
+}
+
+.inline-360-retry-btn:active {
+    background: #EAF2FC;
+    transform: scale(0.97);
+    transition: none;
 }
 
 .inline-360-retry-btn:focus-visible {
@@ -616,16 +653,25 @@ html {
     outline: none;
     transition: background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
 }
 
-.hero-fullscreen-btn:hover,
 .hero-fullscreen-btn:focus {
     background-color: #EAF2FC;
     color: #2272C3;
 }
 
+@media (hover: hover) and (pointer: fine) {
+    .hero-fullscreen-btn:hover {
+        background-color: #EAF2FC;
+        color: #2272C3;
+    }
+}
+
 .hero-fullscreen-btn:active {
     background-color: #E2E8F0;
+    transform: scale(0.97);
+    transition: none;
 }
 
 .hero-fullscreen-btn:focus-visible {
@@ -859,18 +905,36 @@ html {
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     padding: 0;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.panel-save-btn:hover {
-    background: #f8fafc;
+@media (hover: hover) and (pointer: fine) {
+    .panel-save-btn:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+}
+
+.panel-save-btn:active {
+    background: #F1F5F9;
     color: #0f172a;
     border-color: #cbd5e1;
+    transform: scale(0.97);
+    transition: none;
 }
 
 .panel-save-btn.saved {
     background: #eff6ff;
     border-color: #378ADD;
     color: #378ADD;
+}
+
+.panel-save-btn.saved:active {
+    background: #dbeafe;
+    transform: scale(0.97);
+    transition: none;
 }
 
 .panel-save-btn.saved svg {
@@ -953,11 +1017,20 @@ html {
     text-decoration: none;
     font-weight: 400;
     transition: color 0.15s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.panel-info-link:hover {
+@media (hover: hover) and (pointer: fine) {
+    .panel-info-link:hover {
+        color: #0f172a;
+        text-decoration: underline;
+    }
+}
+
+.panel-info-link:active {
     color: #0f172a;
-    text-decoration: underline;
+    transition: none;
 }
 
 /* Hours Accordion */
@@ -1228,6 +1301,8 @@ html {
     align-items: center;
     justify-content: center;
     gap: 6px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .btn-submit-review .spinner-sm {
@@ -1244,8 +1319,16 @@ html {
     to { transform: rotate(360deg); }
 }
 
-.btn-submit-review:hover {
+@media (hover: hover) and (pointer: fine) {
+    .btn-submit-review:hover {
+        background: #27272a;
+    }
+}
+
+.btn-submit-review:active {
     background: #27272a;
+    transform: scale(0.98);
+    transition: none;
 }
 
 .btn-submit-review:disabled {
@@ -1263,12 +1346,23 @@ html {
     font-size: 12px;
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-delete-review:hover {
+@media (hover: hover) and (pointer: fine) {
+    .btn-delete-review:hover {
+        color: #dc2626;
+        border-color: #fca5a5;
+        background: #fef2f2;
+    }
+}
+
+.btn-delete-review:active {
+    background: #fee2e2;
+    border-color: #f87171;
     color: #dc2626;
-    border-color: #fca5a5;
-    background: #fef2f2;
+    transition: none;
 }
 
 .rating-action-bar {
@@ -1288,11 +1382,22 @@ html {
     font-size: 12px;
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-edit-review:hover {
+@media (hover: hover) and (pointer: fine) {
+    .btn-edit-review:hover {
+        background: #e2e8f0;
+        border-color: #94a3b8;
+    }
+}
+
+.btn-edit-review:active {
     background: #e2e8f0;
     border-color: #94a3b8;
+    transform: scale(0.97);
+    transition: none;
 }
 
 .btn-cancel-edit {
@@ -1304,11 +1409,21 @@ html {
     font-weight: 500;
     font-size: 12px;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-cancel-edit:hover {
+@media (hover: hover) and (pointer: fine) {
+    .btn-cancel-edit:hover {
+        color: #334155;
+        background: #f8fafc;
+    }
+}
+
+.btn-cancel-edit:active {
+    background: #f1f5f9;
     color: #334155;
-    background: #f8fafc;
+    transition: none;
 }
 
 /* 7. Customer Reviews Section */
@@ -1352,11 +1467,20 @@ html {
     cursor: pointer;
     padding: 0;
     transition: color 0.15s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.reviews-see-more-btn:hover {
+@media (hover: hover) and (pointer: fine) {
+    .reviews-see-more-btn:hover {
+        color: #0f172a;
+        text-decoration: underline;
+    }
+}
+
+.reviews-see-more-btn:active {
     color: #0f172a;
-    text-decoration: underline;
+    transition: none;
 }
 
 .reviews-container {
@@ -1544,15 +1668,23 @@ html {
     text-align: center;
     transition: background 0.15s ease;
     box-shadow: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.panel-cta-btn:hover {
+@media (hover: hover) and (pointer: fine) {
+    .panel-cta-btn:hover {
+        background: #2272C3;
+        transform: none;
+        box-shadow: none;
+    }
+}
+
+.panel-cta-btn:active {
     background: #2272C3;
-    transform: none;
-    box-shadow: none;
+    transform: scale(0.98);
+    transition: none;
 }
-
-
 
 /* Modal for 360 Viewer */
 .calzada-360-modal-overlay {
@@ -1620,11 +1752,22 @@ html {
     padding: 4px 8px;
     border-radius: 6px;
     transition: all 0.15s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.calzada-360-close-btn:hover {
+@media (hover: hover) and (pointer: fine) {
+    .calzada-360-close-btn:hover {
+        color: #FFFFFF;
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.calzada-360-close-btn:active {
     color: #FFFFFF;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.97);
+    transition: none;
 }
 
 .calzada-360-preview-viewport {
@@ -1711,3 +1854,12 @@ html {
     padding: 2px 0 6px 0;
     line-height: 1.4;
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .place-panel-container,
+    .place-panel-backdrop {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+

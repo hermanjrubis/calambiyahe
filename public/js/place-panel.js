@@ -269,6 +269,16 @@ function initPlacePanelDOM() {
     const hoursToggle = document.getElementById('ppHoursToggle');
     const hoursWrapper = document.getElementById('ppHoursWrapper');
     const saveBtn = document.getElementById('ppSaveBtn');
+    const panel = document.getElementById('placePanel');
+
+    // Remove will-change on transitionend
+    if (panel) {
+        panel.addEventListener('transitionend', (e) => {
+            if (e.target === panel && e.propertyName === 'transform') {
+                panel.style.willChange = '';
+            }
+        });
+    }
 
     // Close Events
     if (backdrop) backdrop.addEventListener('click', closePlacePanel);
@@ -903,16 +913,35 @@ function setupCarousel(place) {
     inline360Place = place;
     inline360Initialized = false;
 
-    slidesContainer.innerHTML = '';
-    if (dotsContainer) dotsContainer.innerHTML = '';
-    currentCarouselIndex = 0;
-    window.currentCarouselIndex = 0;
-
     const placeName = place?.name || '';
     const rawPhoto = place?.photo !== undefined ? place.photo : (place?.image_path || place?.image || null);
     const photo = (typeof rawPhoto === 'string' && rawPhoto.trim() !== '' && !rawPhoto.includes('hero-places-bg'))
         ? rawPhoto.trim()
         : null;
+    const resolvedPhotoUrl = photo ? resolvePlaceImageUrl(photo) : null;
+
+    // Check if Slide 1 already exists with matching photo
+    const existingSlide1 = slidesContainer.querySelector('.carousel-slide-wrap');
+    const existingImg = existingSlide1?.querySelector('img.carousel-slide');
+    let canKeepSlide1 = false;
+    if (existingImg && resolvedPhotoUrl) {
+        const existingSrc = existingImg.src || existingImg.getAttribute('src');
+        if (existingSrc === resolvedPhotoUrl || (photo && existingSrc.endsWith(photo))) {
+            canKeepSlide1 = true;
+        }
+    }
+
+    if (canKeepSlide1) {
+        while (slidesContainer.children.length > 1) {
+            slidesContainer.removeChild(slidesContainer.lastChild);
+        }
+    } else {
+        slidesContainer.innerHTML = '';
+    }
+
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    currentCarouselIndex = 0;
+    window.currentCarouselIndex = 0;
 
     const pano = (place?.pano && typeof place.pano === 'string' && place.pano.trim() !== '')
         ? place.pano.trim()
@@ -923,43 +952,45 @@ function setupCarousel(place) {
     const hasPano = Boolean(pano || fallbackNodeId);
 
     // --- SLIDE 1: Establishment Photo ---
-    const slide1Wrap = document.createElement('div');
-    slide1Wrap.className = 'carousel-slide-wrap';
+    if (!canKeepSlide1) {
+        const slide1Wrap = document.createElement('div');
+        slide1Wrap.className = 'carousel-slide-wrap';
 
-    const chip1 = document.createElement('span');
-    chip1.className = 'hero-slide-chip';
-    chip1.id = 'ppHeroChipPhoto';
-    chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
-    slide1Wrap.appendChild(chip1);
+        const chip1 = document.createElement('span');
+        chip1.className = 'hero-slide-chip';
+        chip1.id = 'ppHeroChipPhoto';
+        chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
+        slide1Wrap.appendChild(chip1);
 
-    if (photo) {
-        if (heroSkeleton) heroSkeleton.style.display = 'block';
-        const imgEl = document.createElement('img');
-        imgEl.className = 'carousel-slide';
-        imgEl.alt = `${placeName} photo`;
-        imgEl.src = resolvePlaceImageUrl(photo);
+        if (photo) {
+            if (heroSkeleton) heroSkeleton.style.display = 'block';
+            const imgEl = document.createElement('img');
+            imgEl.className = 'carousel-slide';
+            imgEl.alt = `${placeName} photo`;
+            imgEl.src = resolvedPhotoUrl;
 
-        function revealPhoto() {
-            imgEl.classList.add('photo-fade-in');
-            if (heroSkeleton) heroSkeleton.style.display = 'none';
-        }
-
-        if (imgEl.complete && imgEl.naturalWidth > 0) {
-            revealPhoto();
-        } else {
-            imgEl.addEventListener('load', revealPhoto, { once: true });
-            imgEl.addEventListener('error', () => {
+            function revealPhoto() {
+                imgEl.classList.add('photo-fade-in');
                 if (heroSkeleton) heroSkeleton.style.display = 'none';
-                renderPhotoPlaceholder(slide1Wrap);
-            }, { once: true });
-        }
-        slide1Wrap.appendChild(imgEl);
-    } else {
-        if (heroSkeleton) heroSkeleton.style.display = 'none';
-        renderPhotoPlaceholder(slide1Wrap);
-    }
+            }
 
-    slidesContainer.appendChild(slide1Wrap);
+            if (imgEl.complete && imgEl.naturalWidth > 0) {
+                revealPhoto();
+            } else {
+                imgEl.addEventListener('load', revealPhoto, { once: true });
+                imgEl.addEventListener('error', () => {
+                    if (heroSkeleton) heroSkeleton.style.display = 'none';
+                    renderPhotoPlaceholder(slide1Wrap);
+                }, { once: true });
+            }
+            slide1Wrap.appendChild(imgEl);
+        } else {
+            if (heroSkeleton) heroSkeleton.style.display = 'none';
+            renderPhotoPlaceholder(slide1Wrap);
+        }
+
+        slidesContainer.appendChild(slide1Wrap);
+    }
 
     // --- SLIDE 2: 360° of the Establishment ---
     const slide2Wrap = document.createElement('div');
@@ -2241,7 +2272,7 @@ function getPlacePanel360Link(placeId, placeName) {
 /**
  * Open Place Detail Panel
  */
-window.openPlacePanel = async function(placeName, optLat, optLng) {
+window.openPlacePanel = function(placeName, optLat, optLng) {
     if (!placeName) return;
 
     // 1. Ensure DOM elements exist
@@ -2249,6 +2280,11 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
 
     const backdrop = document.getElementById('placePanelBackdrop');
     const panel = document.getElementById('placePanel');
+
+    // Add will-change: transform only while animating
+    if (panel) {
+        panel.style.willChange = 'transform';
+    }
 
     // 2. Open animations immediately for instant UI feedback
     if (backdrop) backdrop.classList.add('active');
@@ -2258,8 +2294,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     // Show skeletons immediately for photo, rating summary, and reviews
     const heroSkeleton = document.getElementById('ppHeroSkeleton');
     if (heroSkeleton) heroSkeleton.style.display = 'block';
-    const slidesContainer = document.getElementById('ppCarouselSlides');
-    if (slidesContainer) slidesContainer.innerHTML = '';
+
     const prevBtn = document.getElementById('ppCarouselPrev');
     const nextBtn = document.getElementById('ppCarouselNext');
     const dotsContainer = document.getElementById('ppCarouselDots');
@@ -2297,7 +2332,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     }
     if (seeMoreBtn) seeMoreBtn.style.display = 'none';
 
-    // 3. Find base data or construct fallback
+    // 3. Find base data or construct fallback (fast object lookup)
     const activeDataStore = (typeof window !== 'undefined' && window.placesData) ? window.placesData : placesData;
     const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const normalizedKey = Object.keys(activeDataStore).find(
@@ -2343,20 +2378,83 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
     if (optLng != null) data.lng = optLng;
 
     currentActivePlace = data;
+    const currentOpenedName = data.name;
 
-    // Upfront setup for 2-slide hero (Slide 1: photo, Slide 2: 360)
-    const upfrontLink = getPlacePanel360Link(data?.id, data?.name || placeName);
-    const isStiUpfront = /\bsti\b/i.test(data?.name || '') || /\bsti\b/i.test(placeName || '');
-    const upfrontFallbackNodeId = isStiUpfront ? (upfrontLink?.nodeId || '14.202352_121.158453') : null;
-    setupCarousel({
-        ...data,
-        fallbackNodeId: upfrontFallbackNodeId
-    });
-
-    // 4. Set Place Name in header immediately
+    // 4. Set Place Name immediately
     const nameEl = document.getElementById('ppName');
     if (nameEl) nameEl.textContent = data.name;
 
+    // 5. Reuse the card's already-loaded image for the hero (same URL -> cached)
+    let photoSrc = null;
+    if (window._lastFocusedPlaceCard) {
+        const cardImg = window._lastFocusedPlaceCard.querySelector('.ref-card-img');
+        if (cardImg && (cardImg.currentSrc || cardImg.src)) {
+            photoSrc = cardImg.currentSrc || cardImg.src;
+        }
+    }
+    if (!photoSrc) {
+        const rawPhoto = data?.photo !== undefined ? data.photo : (data?.image_path || data?.image || null);
+        if (typeof rawPhoto === 'string' && rawPhoto.trim() !== '' && !rawPhoto.includes('hero-places-bg')) {
+            photoSrc = resolvePlaceImageUrl(rawPhoto.trim());
+        }
+    }
+
+    const slidesContainer = document.getElementById('ppCarouselSlides');
+    if (slidesContainer) {
+        slidesContainer.innerHTML = '';
+        const slide1Wrap = document.createElement('div');
+        slide1Wrap.className = 'carousel-slide-wrap';
+        const chip1 = document.createElement('span');
+        chip1.className = 'hero-slide-chip';
+        chip1.id = 'ppHeroChipPhoto';
+        chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
+        slide1Wrap.appendChild(chip1);
+
+        if (photoSrc) {
+            const imgEl = document.createElement('img');
+            imgEl.className = 'carousel-slide';
+            imgEl.alt = `${data.name} photo`;
+            imgEl.src = photoSrc;
+
+            function revealPhotoSync() {
+                imgEl.classList.add('photo-fade-in');
+                if (heroSkeleton) heroSkeleton.style.display = 'none';
+            }
+
+            if (imgEl.complete && imgEl.naturalWidth > 0) {
+                revealPhotoSync();
+            } else {
+                if (heroSkeleton) heroSkeleton.style.display = 'block';
+                imgEl.addEventListener('load', revealPhotoSync, { once: true });
+                imgEl.addEventListener('error', () => {
+                    if (heroSkeleton) heroSkeleton.style.display = 'none';
+                    renderPhotoPlaceholder(slide1Wrap);
+                }, { once: true });
+            }
+            slide1Wrap.appendChild(imgEl);
+        } else {
+            if (heroSkeleton) heroSkeleton.style.display = 'none';
+            renderPhotoPlaceholder(slide1Wrap);
+        }
+        slidesContainer.appendChild(slide1Wrap);
+    }
+
+    // 6. Defer full details population to after the first frame
+    const activeOpenedPlace = data;
+    requestAnimationFrame(() => {
+        setTimeout(async () => {
+            if (!panel || !panel.classList.contains('active')) return;
+            if (currentActivePlace !== activeOpenedPlace) return;
+
+            await fillRest(activeOpenedPlace, placeName, optLat, optLng);
+        }, 0);
+    });
+};
+
+/**
+ * Deferred population for place panel content (runs after sheet starts moving)
+ */
+async function fillRest(data, placeName, optLat, optLng) {
     const planBtn = document.getElementById('ppPlanBtn');
     if (planBtn) {
         planBtn.setAttribute('data-dest', data.name);
@@ -2371,7 +2469,16 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     }
 
-    // 5. Populate Initial Address Row
+    // Upfront setup for 2-slide hero (Slide 1: photo, Slide 2: 360)
+    const upfrontLink = getPlacePanel360Link(data?.id, data?.name || placeName);
+    const isStiUpfront = /\bsti\b/i.test(data?.name || '') || /\bsti\b/i.test(placeName || '');
+    const upfrontFallbackNodeId = isStiUpfront ? (upfrontLink?.nodeId || '14.202352_121.158453') : null;
+    setupCarousel({
+        ...data,
+        fallbackNodeId: upfrontFallbackNodeId
+    });
+
+    // Populate Initial Address Row
     const rowAddress = document.getElementById('ppRowAddress');
     const addressEl = document.getElementById('ppAddress');
     const displayAddress = data.full_address || data.barangay || (data.municipality ? `${data.barangay ? data.barangay + ', ' : ''}${data.municipality}` : '');
@@ -2384,7 +2491,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     }
 
-    // 6. Populate Initial Opening Hours Row & Accordion
+    // Populate Initial Opening Hours Row & Accordion
     const rowHours = document.getElementById('ppRowHours');
     const hoursStatusEl = document.getElementById('ppHoursStatus');
     const hoursTableEl = document.getElementById('ppHoursTable');
@@ -2408,7 +2515,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     }
 
-    // 7. Populate Initial Website Link
+    // Populate Initial Website Link
     const rowWebsite = document.getElementById('ppRowWebsite');
     const websiteEl = document.getElementById('ppWebsite');
     if (rowWebsite && websiteEl) {
@@ -2423,7 +2530,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     }
 
-    // 8. Populate Initial Phone Link
+    // Populate Initial Phone Link
     const rowPhone = document.getElementById('ppRowPhone');
     const phoneEl = document.getElementById('ppPhone');
     if (rowPhone && phoneEl) {
@@ -2437,7 +2544,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         }
     }
 
-    // 9. Update Save Button State
+    // Update Save Button State
     const saveBtn = document.getElementById('ppSaveBtn');
     if (saveBtn) {
         const savedPlaces = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
@@ -2464,7 +2571,7 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         // Ignore URL state error in sandbox
     }
 
-    // 11. Resolve place ID and live data from API asynchronously
+    // Resolve place ID and live data from API asynchronously
     let placeId = data.id || null;
     try {
         const searchRes = await fetch(`/api/places?category=all`);
@@ -2478,35 +2585,35 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         const match = allPlaces.find(p => (p.name && p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) || p.id === placeName) ||
                       allPlaces.find(p => (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm);
-            if (match) {
-                placeId = match.id;
-                currentPlaceId = match.id;
-                data = { ...data, ...match };
-                currentActivePlace = data;
+        if (match) {
+            placeId = match.id;
+            currentPlaceId = match.id;
+            data = { ...data, ...match };
+            currentActivePlace = data;
 
-                if (planBtn && match.lat != null && (match.lng != null || match.lon != null)) {
-                    planBtn.setAttribute('data-lat', match.lat);
-                    planBtn.setAttribute('data-lng', match.lng != null ? match.lng : match.lon);
-                }
-
-                // Update fields with live database values if available
-                if (match.full_address && addressEl && rowAddress) {
-                    addressEl.textContent = match.full_address;
-                    rowAddress.style.display = 'flex';
-                }
-                if (match.website && websiteEl && rowWebsite) {
-                    const rawWeb = match.website.trim();
-                    const fullUrl = rawWeb.startsWith('http://') || rawWeb.startsWith('https://') ? rawWeb : `https://${rawWeb}`;
-                    websiteEl.textContent = rawWeb.replace(/^https?:\/\//i, '');
-                    websiteEl.href = fullUrl;
-                    rowWebsite.style.display = 'flex';
-                }
-                if (match.phone && phoneEl && rowPhone) {
-                    phoneEl.textContent = match.phone.trim();
-                    phoneEl.href = `tel:${match.phone.trim().replace(/[^0-9+]/g, '')}`;
-                    rowPhone.style.display = 'flex';
-                }
+            if (planBtn && match.lat != null && (match.lng != null || match.lon != null)) {
+                planBtn.setAttribute('data-lat', match.lat);
+                planBtn.setAttribute('data-lng', match.lng != null ? match.lng : match.lon);
             }
+
+            // Update fields with live database values if available
+            if (match.full_address && addressEl && rowAddress) {
+                addressEl.textContent = match.full_address;
+                rowAddress.style.display = 'flex';
+            }
+            if (match.website && websiteEl && rowWebsite) {
+                const rawWeb = match.website.trim();
+                const fullUrl = rawWeb.startsWith('http://') || rawWeb.startsWith('https://') ? rawWeb : `https://${rawWeb}`;
+                websiteEl.textContent = rawWeb.replace(/^https?:\/\//i, '');
+                websiteEl.href = fullUrl;
+                rowWebsite.style.display = 'flex';
+            }
+            if (match.phone && phoneEl && rowPhone) {
+                phoneEl.textContent = match.phone.trim();
+                phoneEl.href = `tel:${match.phone.trim().replace(/[^0-9+]/g, '')}`;
+                rowPhone.style.display = 'flex';
+            }
+        }
     } catch (e) {
         console.warn('Could not fetch place details from API:', e);
     }
@@ -2532,16 +2639,16 @@ window.openPlacePanel = async function(placeName, optLat, optLng) {
         await setupRatingAndReviews(null);
     }
 
-    // 13. Record recentlyViewed activity (silently skipped if unauthenticated/guest)
+    // Record recentlyViewed activity (silently skipped if unauthenticated/guest)
     try {
         if (window.CalzadaActivity && typeof window.CalzadaActivity.addRecentlyViewed === 'function') {
             window.CalzadaActivity.addRecentlyViewed(placeId || data.id || data.name, data.name || placeName);
         }
     } catch (_) {}
 
-    // 14. Localize popup strings
+    // Localize popup strings
     updatePlacePanelI18n();
-};
+}
 
 // Fallback global handler for opening 360 viewer if not already provided
 if (!window._open360Viewer) {

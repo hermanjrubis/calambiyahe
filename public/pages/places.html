@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.7.3">
+    <link rel="stylesheet" href="../css/style.css?v=2.7.4">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.6.3">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
-    <link rel="stylesheet" href="../css/place-panel.css?v=14">
+    <link rel="stylesheet" href="../css/place-panel.css?v=15">
     <style>
         html { scrollbar-gutter: stable; }
         body { opacity: 0; }
@@ -44,6 +44,7 @@
     </noscript>
     <script>
         (function() {
+            document.addEventListener('touchstart', function() {}, { passive: true });
             function show() {
                 if (document.body && !document.body.classList.contains('fouc-ready')) {
                     document.body.classList.add('fouc-ready');
@@ -69,7 +70,7 @@
     </script>
 </head>
 
-<body data-header-autohide="true">
+<body data-header-autohide="true" ontouchstart="">
 
     <!-- Mobile Search Overlay -->
     <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
@@ -963,6 +964,9 @@
                     cardEl.setAttribute('data-name', name);
                     cardEl.style.cursor = 'pointer';
                     cardEl.style.animation = `heroFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.05 * index}s both`;
+                    cardEl.addEventListener('animationend', () => {
+                        cardEl.style.animation = '';
+                    }, { once: true });
 
                     function handleCardOpen() {
                         window._lastFocusedPlaceCard = cardEl;
@@ -1797,7 +1801,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="../js/bookmark-confetti.js?v=2.6.3"></script>
-    <script src="../js/place-panel.js?v=2.9.4"></script>
+    <script src="../js/place-panel.js?v=2.9.5"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->
