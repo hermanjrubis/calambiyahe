@@ -3441,6 +3441,35 @@ document.addEventListener('DOMContentLoaded', () => {
         // Stop names from the last rendered itinerary, reused by the arrival ticket so both agree.
         let lastItineraryStops = null;
 
+        const getFinalWalkInfo = () => {
+            if (selectedMode === 'walking') {
+                return { finalWalkM: 0, finalWalkMin: 0, finalWalkCoordinates: null };
+            }
+            const transitCoords = transitRouteGeojson?.coordinates || [];
+            const lastTransitCoord = transitCoords.length > 0 ? transitCoords[transitCoords.length - 1] : null;
+            const destCoord = selectedCoords.destination;
+
+            if (window.finalWalkRouteGeojson && window.finalWalkRouteGeojson.coordinates?.length >= 2) {
+                const finalWalkM = window.finalWalkRouteGeojson.distance || 0;
+                const finalWalkMin = Math.ceil((finalWalkM / 1000 / WALK_SPEED_KPH) * 60) || 1;
+                return { finalWalkM, finalWalkMin, finalWalkCoordinates: window.finalWalkRouteGeojson.coordinates };
+            }
+            if (transitRouteGeojson?.finalWalk && transitRouteGeojson.finalWalk.distance > 0) {
+                const finalWalkM = transitRouteGeojson.finalWalk.distance;
+                const finalWalkMin = Math.ceil((finalWalkM / 1000 / WALK_SPEED_KPH) * 60) || 1;
+                return { finalWalkM, finalWalkMin, finalWalkCoordinates: transitRouteGeojson.finalWalk.coordinates || (lastTransitCoord && destCoord ? [lastTransitCoord, destCoord] : null) };
+            }
+            if (lastTransitCoord && destCoord) {
+                const haversineDistM = getHaversineDist(lastTransitCoord[0], lastTransitCoord[1], destCoord[0], destCoord[1]) * 1000;
+                if (haversineDistM > 30) {
+                    const finalWalkM = Math.round(haversineDistM * 1.3);
+                    const finalWalkMin = Math.max(1, Math.ceil((finalWalkM / 1000 / WALK_SPEED_KPH) * 60));
+                    return { finalWalkM, finalWalkMin, finalWalkCoordinates: [lastTransitCoord, destCoord] };
+                }
+            }
+            return { finalWalkM: 0, finalWalkMin: 0, finalWalkCoordinates: null };
+        };
+
         const renderItinerary = () => {
             const container = document.getElementById('itineraryLegs');
             if (!container) return;
@@ -3456,7 +3485,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // Base departure time and arrival time
             const hasSchedule = !!(window._calzadaLeaveCalculation && window._calzadaLeaveCalculation.leaveAt);
             const depTime = hasSchedule ? new Date(window._calzadaLeaveCalculation.leaveAt) : new Date();
-            const totalSecs = (currentWalkDur + currentTransitDur) * 60;
+            const finalWalkInfo = getFinalWalkInfo();
+            const totalDurationMin = isWalkOnly ? currentWalkDur : (currentWalkDur + currentTransitDur + finalWalkInfo.finalWalkMin);
+            const totalSecs = totalDurationMin * 60;
             if (!hasSchedule && !isTrackingArrival) cachedRemainingSeconds = totalSecs;
             const arrTime = hasSchedule
                 ? new Date(depTime.getTime() + totalSecs * 1000)
@@ -3599,8 +3630,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Check if route has a separate final walk leg
-            const hasFinalWalk = (window.finalWalkRouteGeojson && window.finalWalkRouteGeojson.coordinates?.length >= 2)
-                || (transitRouteGeojson?.finalWalk && transitRouteGeojson.finalWalk.distance > 0);
+            const hasFinalWalk = finalWalkInfo.finalWalkM > 0;
 
             // 1. Origin Stop
             container.appendChild(createStopRow({
@@ -3659,13 +3689,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (hasFinalWalk) {
                 // Route with final walk: Alighting stop -> Walk leg -> Destination
-                const finalWalkDist = window.finalWalkRouteGeojson?.distance || transitRouteGeojson?.finalWalk?.distance || 150;
-                const finalWalkDur = Math.ceil((finalWalkDist / 1000 / WALK_SPEED_KPH) * 60) || 2;
+                const finalWalkDist = finalWalkInfo.finalWalkM;
+                const finalWalkDur = finalWalkInfo.finalWalkMin;
                 const finalAlightTime = new Date(boardTime.getTime() + currentTransitDur * 60 * 1000);
                 const finalDestTime = new Date(finalAlightTime.getTime() + finalWalkDur * 60 * 1000);
 
                 const getOffSub = t('planner.get_off_here') || 'Get off here';
-                lastItineraryStops = { boardAt, alightAt, finalWalkM: finalWalkDist, finalWalkMin: finalWalkDur };
+                lastItineraryStops = {
+                    boardAt,
+                    alightAt,
+                    finalWalkM: finalWalkDist,
+                    finalWalkMin: finalWalkDur,
+                    finalWalkCoordinates: finalWalkInfo.finalWalkCoordinates
+                };
                 container.appendChild(createStopRow({
                     time: fmt24h(finalAlightTime),
                     ringClass: 'timeline-ring--intermediate',
@@ -3716,7 +3752,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     boardAt,
                     alightAt: resolvedAlightAt,
                     finalWalkM: 0,
-                    finalWalkMin: 0
+                    finalWalkMin: 0,
+                    finalWalkCoordinates: null
                 };
 
                 let getOffSub;
@@ -3765,11 +3802,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const sd = document.getElementById('sumDist');
             const arriveTextEl = document.getElementById('sumArriveText');
 
-            const totalMin = currentWalkDur + currentTransitDur;
-            const totalDistRaw = (currentWalkDist + currentTransitDist).toFixed(1);
-            const totalDist = String(totalDistRaw).replace(/\s*km/gi, '').trim();
-            const totalSecs = (currentWalkDur + currentTransitDur) * 60;
             const isWalkOnly = selectedMode === 'walking';
+            const finalWalkInfo = getFinalWalkInfo();
+            const totalMin = isWalkOnly ? currentWalkDur : (currentWalkDur + currentTransitDur + finalWalkInfo.finalWalkMin);
+            const extraWalkDistKm = isWalkOnly ? 0 : (finalWalkInfo.finalWalkM / 1000);
+            const totalDistRaw = (currentWalkDist + currentTransitDist + extraWalkDistKm).toFixed(1);
+            const totalDist = String(totalDistRaw).replace(/\s*km/gi, '').trim();
+            const totalSecs = totalMin * 60;
 
             // Leave-time calculation for planned schedule (rule-based)
             const hintBanner = document.getElementById('leaveTimeHintBanner');
@@ -4400,6 +4439,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 walkRouteGeojson,
                 transitRouteGeojson,
                 finalWalkRouteGeojson: window.finalWalkRouteGeojson,
+                finalWalkCoordinates: lastItineraryStops?.finalWalkCoordinates || (window.finalWalkRouteGeojson?.coordinates) || null,
                 activeRouteSteps: steps,
                 lastItineraryStops,
                 map

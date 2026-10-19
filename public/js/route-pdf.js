@@ -1,5 +1,5 @@
 /**
- * Calzada Route PDF Exporter (Offline Route Export)
+ * Calzada Route PDF Exporter (Offline Route Export) v1.0.6
  * 
  * Generates an A4 portrait PDF for a planned route on the planner.
  * Works entirely client-side on the device; nothing is uploaded.
@@ -550,6 +550,50 @@
         };
     }
 
+    function computePage1MapHeight(routeTitle, isTl) {
+        try {
+            const dummy = document.createElement('div');
+            dummy.style.cssText = 'width: 794px; padding: 34px 42px 28px; box-sizing: border-box; visibility: hidden; position: absolute; left: -9999px; top: 0; font-family: Outfit, Sora, sans-serif;';
+            dummy.innerHTML = `
+                <div id="_mHeader" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #378ADD; padding-bottom: 12px; margin-bottom: 14px;">
+                    <div>
+                        <div style="height: 30px; margin-bottom: 5px;"></div>
+                        <div style="font-size: 18px; font-weight: 700; font-family: 'Sora', sans-serif;">${escapeHtml(routeTitle || '')}</div>
+                    </div>
+                </div>
+                <div id="_mSummary" style="background: #F8FAFC; border: 1px solid #DCE5EE; border-radius: 9px; padding: 10px 14px; margin-bottom: 14px;">
+                    <div style="display: grid; grid-template-columns: 1.1fr 1.1fr 0.9fr 0.9fr; gap: 8px; margin-bottom: 8px;">
+                        <div><div style="font-size: 9px;">FROM</div><div style="font-size: 12px;">Origin Place Name</div></div>
+                        <div><div style="font-size: 9px;">TO</div><div style="font-size: 12px;">Destination Place Name</div></div>
+                        <div><div style="font-size: 9px;">MODE</div><div style="font-size: 12px;">Jeepney</div></div>
+                        <div><div style="font-size: 9px;">SCHEDULE</div><div style="font-size: 12px;">12:00 PM</div></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1.6fr; gap: 8px; padding-top: 8px; border-top: 1px dashed #DCE5EE;">
+                        <div><div style="font-size: 9px;">TOTAL TIME</div><div style="font-size: 12px;">30 min</div></div>
+                        <div><div style="font-size: 9px;">TOTAL DISTANCE</div><div style="font-size: 12px;">5.0 km</div></div>
+                        <div><div style="font-size: 9px;">FARE</div><div style="font-size: 12px;">₱14.00</div></div>
+                    </div>
+                </div>
+                <div id="_mAttr" style="font-size: 9px; margin-top: 4px;">© OpenStreetMap contributors</div>
+                <div id="_mFooter" style="border-top: 1px solid #E2E8F0; padding-top: 8px; font-size: 9.5px;">Footer text</div>
+            `;
+            document.body.appendChild(dummy);
+            const headerH = dummy.querySelector('#_mHeader')?.offsetHeight || 75;
+            const summaryH = dummy.querySelector('#_mSummary')?.offsetHeight || 105;
+            const attrH = dummy.querySelector('#_mAttr')?.offsetHeight || 16;
+            const footerH = dummy.querySelector('#_mFooter')?.offsetHeight || 24;
+            document.body.removeChild(dummy);
+
+            const availableH = 1123 - 34 - 28; // 1061px
+            const margins = 14 + 8; // summary margin-bottom + map box margin-bottom
+            const targetBlank = 24; // Keep blank space under map + attribution < 40px
+            const targetH = availableH - (headerH + summaryH + attrH + footerH + margins + targetBlank);
+            return Math.max(710, Math.min(805, Math.round(targetH)));
+        } catch (_) {
+            return 795;
+        }
+    }
+
     async function captureRouteMapSnapshot(map, routeData, isTl) {
         if (!map) return createOfflineRouteDiagram(routeData, isTl);
 
@@ -622,6 +666,29 @@
                 } catch (_) {}
             }
 
+            // Step 1: Measure real marker sizes (fallback 48px height, 32px width)
+            const originEl = document.querySelector('.calzada-origin-marker');
+            const destEl = document.querySelector('.calzada-dest-marker');
+            let markerHeight = 48;
+            let markerWidth = 32;
+            if (destEl) {
+                const r = destEl.getBoundingClientRect();
+                if (r && r.height > 0) {
+                    markerHeight = Math.max(markerHeight, r.height);
+                    markerWidth = Math.max(markerWidth, r.width);
+                }
+            }
+            if (originEl) {
+                const r = originEl.getBoundingClientRect();
+                if (r && r.height > 0) {
+                    markerHeight = Math.max(markerHeight, r.height);
+                    markerWidth = Math.max(markerWidth, r.width);
+                }
+            }
+
+            const padTop = markerHeight + 24;
+            const padSidesBottom = Math.max(Math.round(markerWidth / 2 + 24), 40);
+
             // Calculate visible map rectangle excluding sheet/panel and top controls
             const isDesktop = window.innerWidth > 768;
             const topBar = document.getElementById('mapTopBar');
@@ -648,11 +715,8 @@
             const navRect = (activeNavPanel && getComputedStyle(activeNavPanel).display !== 'none') ? activeNavPanel.getBoundingClientRect() : null;
 
             let leftInset = 0;
-            let bottomInset = 0;
             let visibleWidth = window.innerWidth;
             let visibleHeight = window.innerHeight;
-
-            const margin = isDesktop ? 35 : 25;
 
             if (isDesktop) {
                 const leftPanelRight = Math.max(dcRect && dcRect.right > 0 ? dcRect.right : 0, navRect && navRect.right > 0 ? navRect.right : 0);
@@ -661,21 +725,49 @@
                 visibleHeight = Math.max(200, window.innerHeight - topInset);
             } else {
                 const sheetTop = dcRect && dcRect.top > 0 ? dcRect.top : (navRect && navRect.top > 0 ? navRect.top : window.innerHeight);
-                bottomInset = Math.max(0, window.innerHeight - sheetTop);
                 visibleWidth = window.innerWidth;
                 visibleHeight = Math.max(120, sheetTop - topInset);
             }
 
-            const fitPadding = isDesktop ? {
-                left: leftInset + margin,
-                top: topInset + margin,
-                right: margin,
-                bottom: margin
-            } : {
-                left: margin,
-                right: margin,
-                top: topInset + margin,
-                bottom: bottomInset + margin
+            // Step 2: Decide target box H on Page 1 and crop rectangle
+            const routeTitle = isTl
+                ? `Ruta papuntang ${routeData.destName || ''}`
+                : `Route to ${routeData.destName || ''}`;
+            const targetH = computePage1MapHeight(routeTitle, isTl);
+            const targetAspect = 710 / targetH; // ~0.93 - 0.96
+
+            let cropX = 0;
+            let cropY = topInset;
+            let cropW = visibleWidth;
+            let cropH = visibleHeight;
+
+            if (isDesktop) {
+                // Desktop: take the LARGEST centered rectangle with aspect 710:targetH inside visible area
+                const visibleAspect = visibleWidth / visibleHeight;
+                if (visibleAspect >= targetAspect) {
+                    cropH = visibleHeight;
+                    cropW = Math.round(cropH * targetAspect);
+                    cropX = leftInset + Math.round((visibleWidth - cropW) / 2);
+                    cropY = topInset;
+                } else {
+                    cropW = visibleWidth;
+                    cropH = Math.round(cropW / targetAspect);
+                    cropX = leftInset;
+                    cropY = topInset + Math.round((visibleHeight - cropH) / 2);
+                }
+            } else {
+                // Mobile: use visible map area as is
+                cropX = 0;
+                cropY = topInset;
+                cropW = visibleWidth;
+                cropH = visibleHeight;
+            }
+
+            const fitPadding = {
+                top: Math.round(cropY + padTop),
+                bottom: Math.round((window.innerHeight - (cropY + cropH)) + padSidesBottom),
+                left: Math.round(cropX + padSidesBottom),
+                right: Math.round((window.innerWidth - (cropX + cropW)) + padSidesBottom)
             };
 
             let camera = null;
@@ -694,9 +786,9 @@
                 try {
                     camera = map.cameraForBounds(bounds, {
                         padding: {
-                            left: Math.min(fitPadding.left, 30),
-                            right: Math.min(fitPadding.right, 30),
-                            top: Math.min(fitPadding.top, 40),
+                            left: Math.min(fitPadding.left, 40),
+                            right: Math.min(fitPadding.right, 40),
+                            top: Math.min(fitPadding.top, 50),
                             bottom: Math.min(fitPadding.bottom, 40)
                         },
                         bearing: 0,
@@ -718,17 +810,55 @@
             // Wait for 'idle' and map.areTilesLoaded() (timeout 12s)
             await waitForMapTilesLoaded(map, 12000);
 
+            // Verification loop: verify with map.project() that marker boxes have >= 12px clearance
+            const checkPinsInsideCrop = () => {
+                const checkPts = [];
+                if (origLL) checkPts.push(origLL);
+                if (destLL) checkPts.push(destLL);
+                if (boardingLL) checkPts.push(boardingLL);
+                if (alightingLL) checkPts.push(alightingLL);
+
+                for (const ptLL of checkPts) {
+                    const pt = map.project(ptLL);
+                    const minX = pt.x - markerWidth / 2;
+                    const maxX = pt.x + markerWidth / 2;
+                    const minY = pt.y - markerHeight;
+                    const maxY = pt.y;
+
+                    if (minX < cropX + 12 ||
+                        maxX > cropX + cropW - 12 ||
+                        minY < cropY + 12 ||
+                        maxY > cropY + cropH - 12) {
+                        return false;
+                    }
+                }
+                return true;
+            };
+
+            let zoomTries = 0;
+            while (zoomTries < 4 && !checkPinsInsideCrop()) {
+                zoomTries++;
+                const curZoom = map.getZoom();
+                map.jumpTo({ zoom: curZoom - 0.25 });
+                await waitForMapTilesLoaded(map, 3000);
+            }
+
+            try {
+                window._calzadaLastMapCropVerification = {
+                    cropX, cropY, cropW, cropH,
+                    markerWidth, markerHeight,
+                    pinsInside: checkPinsInsideCrop(),
+                    zoomTries,
+                    finalZoom: map.getZoom()
+                };
+            } catch (_) {}
+
             // Fresh repaint right before cropping WebGL canvas
             map.triggerRepaint();
             await new Promise(r => map.once('render', r));
 
             const mapCanvas = map.getCanvas();
             const dpr = window.devicePixelRatio || 1;
-
-            const cropX = isDesktop ? leftInset : 0;
-            const cropY = topInset;
-            const cropW = visibleWidth;
-            const cropH = visibleHeight;
 
             const sx = Math.max(0, Math.round(cropX * dpr));
             const sy = Math.max(0, Math.round(cropY * dpr));
@@ -743,12 +873,32 @@
 
             // Draw DOM markers onto the cropped image at their exact positions using map.project()
             const toCanvasPt = (ll) => {
-                const pt = map.project(ll);
+                const validLL = toLL(ll);
+                const pt = map.project(validLL || ll);
                 return {
                     x: (pt.x - cropX) * dpr,
                     y: (pt.y - cropY) * dpr
                 };
             };
+
+            // Draw dotted final walk line on cropCanvas BEFORE markers if route has final walk
+            if (finalWalkCoords && finalWalkCoords.length >= 2 && routeData.selectedMode !== 'walking') {
+                ctx.save();
+                ctx.strokeStyle = '#64748B';
+                ctx.lineWidth = 5 * dpr;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.setLineDash([8 * dpr, 8 * dpr]);
+                ctx.beginPath();
+                const p0 = toCanvasPt(finalWalkCoords[0]);
+                ctx.moveTo(p0.x, p0.y);
+                for (let i = 1; i < finalWalkCoords.length; i++) {
+                    const pi = toCanvasPt(finalWalkCoords[i]);
+                    ctx.lineTo(pi.x, pi.y);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
 
             // 1. Origin marker (blue dot, white ring)
             if (origLL) {
@@ -1020,17 +1170,11 @@
         totalPages = 1
     }) {
         let boxWidth = 710;
-        let boxHeight = 740;
+        let boxHeight = 795;
         if (mapSnapshotWidth && mapSnapshotHeight) {
             const ratio = mapSnapshotWidth / mapSnapshotHeight;
-            const naturalHeight = Math.round(710 / ratio);
-            if (naturalHeight > 750) {
-                boxHeight = 750;
-                boxWidth = Math.round(750 * ratio);
-            } else {
-                boxHeight = naturalHeight;
-                boxWidth = 710;
-            }
+            boxWidth = 710;
+            boxHeight = Math.min(805, Math.round(710 / ratio));
         }
 
         const page = document.createElement('div');
@@ -1121,6 +1265,16 @@
                         </div>
                         ` : ''}
                     </div>
+                    ${timelineRowsHtml ? `
+                    <div style="margin-top: 10px; margin-bottom: 8px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+                            ${isTl ? 'TIMELINE NG BYAHE' : 'TRIP LEGS TIMELINE'}
+                        </div>
+                        <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; background: #FFFFFF;">
+                            ${timelineRowsHtml}
+                        </div>
+                    </div>
+                    ` : ''}
                     ` : `
                     <!-- Fallback: Timeline & Directions if map is unavailable -->
                     ${timelineRowsHtml ? `
@@ -1235,10 +1389,14 @@
         const isWalkOnly = routeData.selectedMode === 'walking';
         const modeLabel = isWalkOnly ? (isTl ? 'Lakad' : 'Walk') : 'Jeepney';
 
+        const stopsInfo = routeData.lastItineraryStops || {};
+        const finalWalkMin = (!isWalkOnly && stopsInfo.finalWalkMin) ? stopsInfo.finalWalkMin : 0;
+        const finalWalkM = (!isWalkOnly && stopsInfo.finalWalkM) ? stopsInfo.finalWalkM : 0;
+
         const depTime = routeData.journeyStartedAt
             ? new Date(routeData.journeyStartedAt)
             : (routeData.leaveAt ? new Date(routeData.leaveAt) : now);
-        const totalMin = (routeData.walkDur || 0) + (routeData.transitDur || 0);
+        const totalMin = (routeData.walkDur || 0) + (routeData.transitDur || 0) + finalWalkMin;
         const arrTime = routeData.arriveAt
             ? new Date(routeData.arriveAt)
             : new Date(depTime.getTime() + totalMin * 60 * 1000);
@@ -1247,7 +1405,7 @@
             : `Leave ${formatTime12(depTime)} · Arrive ${formatTime12(arrTime)}`;
 
         const totalDurationText = `${totalMin} min`;
-        const totalDistanceText = `${((routeData.walkDist || 0) + (routeData.transitDist || 0)).toFixed(1)} km`;
+        const totalDistanceText = `${((routeData.walkDist || 0) + (routeData.transitDist || 0) + (finalWalkM / 1000)).toFixed(1)} km`;
 
         let fareSummaryText = '';
         if (isWalkOnly) {
@@ -1314,40 +1472,53 @@
         const pageConfigs = [];
 
         if (mapSnapshotDataUrl) {
-            // Page 1: Dedicated to Header + Summary + Map
+            const p1MapHeight = (mapSnapshotWidth && mapSnapshotHeight)
+                ? Math.min(805, Math.round(710 * (mapSnapshotHeight / mapSnapshotWidth)))
+                : 795;
+
+            // Estimated heights
+            const estTimelineHeight = isWalkOnly ? 120 : 190;
+            const estNonMapP1Height = 250;
+            const p1RemainingSpace = 1033 - (estNonMapP1Height + p1MapHeight);
+
+            // Move timeline to Page 1 only if visible map area was short and timeline fits on Page 1
+            const timelineFitsOnPage1 = p1RemainingSpace >= estTimelineHeight + 15;
+            const p1TimelineHtml = timelineFitsOnPage1 ? timelineRowsHtml : '';
+            const p2TimelineHtml = timelineFitsOnPage1 ? '' : timelineRowsHtml;
+
+            // Page 1
             pageConfigs.push({
                 isContinuation: false,
                 mapSnapshotDataUrl: mapSnapshotDataUrl,
                 mapSnapshotWidth: mapSnapshotWidth,
                 mapSnapshotHeight: mapSnapshotHeight,
                 mapIsOffline: mapIsOffline,
-                timelineRowsHtml: '',
+                timelineRowsHtml: p1TimelineHtml,
                 directionsListHtml: '',
                 steps: []
             });
 
-            // Page 2+: Timeline + Steps
-            if (steps.length <= 11) {
+            // Page 2+: Directions (and Timeline if not on Page 1)
+            const p2StepLimit = p2TimelineHtml ? 10 : 15;
+            if (steps.length <= p2StepLimit) {
                 pageConfigs.push({
                     isContinuation: true,
                     mapSnapshotDataUrl: null,
-                    timelineRowsHtml: timelineRowsHtml,
-                    directionsListHtml: buildDirectionsList({ activeRouteSteps: steps, startIndex: 0 }),
+                    timelineRowsHtml: p2TimelineHtml,
+                    directionsListHtml: buildDirectionsList(routeData, 0),
                     steps: steps
                 });
             } else {
-                // Page 2: Timeline + first 10 steps
-                const p2Steps = steps.slice(0, 10);
+                const p2Steps = steps.slice(0, p2StepLimit);
                 pageConfigs.push({
                     isContinuation: true,
                     mapSnapshotDataUrl: null,
-                    timelineRowsHtml: timelineRowsHtml,
-                    directionsListHtml: buildDirectionsList({ activeRouteSteps: p2Steps, startIndex: 0 }),
+                    timelineRowsHtml: p2TimelineHtml,
+                    directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: p2Steps }, 0),
                     steps: p2Steps
                 });
-                // Subsequent pages: remaining steps
-                let remSteps = steps.slice(10);
-                let curIdx = 10;
+                let remSteps = steps.slice(p2StepLimit);
+                let curIdx = p2StepLimit;
                 while (remSteps.length > 0) {
                     const chunk = remSteps.slice(0, 15);
                     remSteps = remSteps.slice(15);
@@ -1355,7 +1526,7 @@
                         isContinuation: true,
                         mapSnapshotDataUrl: null,
                         timelineRowsHtml: '',
-                        directionsListHtml: buildDirectionsList({ activeRouteSteps: chunk, startIndex: curIdx }),
+                        directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: chunk }, curIdx),
                         steps: chunk
                     });
                     curIdx += chunk.length;
@@ -1428,6 +1599,18 @@
         offscreenContainer.style.cssText = 'position:fixed;left:-9999px;top:0;z-index:-1000;width:794px;';
         pageElements.forEach(el => offscreenContainer.appendChild(el));
         document.body.appendChild(offscreenContainer);
+
+        try {
+            const p1 = pageElements[0];
+            const p1MapBox = p1 ? p1.querySelector('#pdfMapSnapshotBox') : null;
+            if (p1MapBox) {
+                const mapWrap = p1MapBox.parentElement;
+                const footer = p1.lastElementChild;
+                if (mapWrap && footer) {
+                    window._calzadaLastPage1BlankSpace = Math.round(footer.getBoundingClientRect().top - mapWrap.getBoundingClientRect().bottom);
+                }
+            }
+        } catch (_) {}
 
         const pdfW = 210;
         const pdfH = 297;
@@ -1604,25 +1787,35 @@
             const fileName = buildPdfFileName(data.destName);
             const isDesktop = window.innerWidth > 768;
 
-            // iOS / Web Share API with file support
-            const file = new File([blob], fileName, { type: 'application/pdf' });
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            let shared = false;
+            // Web Share API on mobile only (with 3s timeout fallback so button never hangs)
+            if (!isDesktop && typeof navigator.share === 'function') {
                 try {
-                    await navigator.share({
-                        files: [file],
-                        title: `Calzada - ${fileName.replace('.pdf', '')}`
-                    });
-                    return;
+                    const file = new File([blob], fileName, { type: 'application/pdf' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await Promise.race([
+                            navigator.share({
+                                files: [file],
+                                title: `Calzada - ${fileName.replace('.pdf', '')}`
+                            }),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Share timed out')), 3000))
+                        ]);
+                        shared = true;
+                    }
                 } catch (e) {
-                    if (e && e.name === 'AbortError') return;
-                    if (!(e && e.name === 'NotAllowedError')) throw e;
+                    if (e && e.name === 'AbortError') {
+                        // User explicitly cancelled share sheet
+                        return;
+                    }
                 }
             }
 
-            // Fallback download
-            downloadBlob(blob, fileName);
+            if (!shared) {
+                // Download file
+                downloadBlob(blob, fileName);
+            }
 
-            if (isDesktop && typeof window.showToast === 'function') {
+            if (typeof window.showToast === 'function') {
                 const msg = (window.t ? window.t('planner.pdf_saved') : null) || 'PDF saved';
                 window.showToast(msg, 'success');
             }
