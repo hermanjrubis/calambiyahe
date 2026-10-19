@@ -5203,8 +5203,10 @@ body.legal-modal-open {
 }
 
 .header-search-icon {
-    font-size: 18px;
+    width: 18px;
+    height: 18px;
     color: #64748B;
+    display: block;
     flex-shrink: 0;
 }
 
@@ -5233,8 +5235,10 @@ body.legal-modal-open {
 }
 
 .header-search-mobile-icon {
-    font-size: 20px;
-    color: #0E2A47;
+    width: 22px;
+    height: 22px;
+    display: block;
+    flex-shrink: 0;
 }
 
 /* =============================================
@@ -5328,15 +5332,21 @@ body.legal-modal-open {
     transition: background-color 0.15s ease;
 }
 
-.search-panel-input-wrap:focus-within {
+.search-panel-input-wrap:has(.search-panel-input:focus-visible) {
     outline: 2px solid #378ADD;
-    outline-offset: 1px;
+    outline-offset: 2px;
+}
+
+.header-search-panel:not(.keyboard-opened) .search-panel-input-wrap,
+.header-search-panel:not(.keyboard-opened) .search-panel-input-wrap:has(.search-panel-input:focus-visible) {
+    outline: none !important;
 }
 
 .search-panel-icon {
     position: absolute;
     left: 16px;
-    font-size: 20px;
+    width: 20px;
+    height: 20px;
     color: #64748B;
     pointer-events: none;
     display: flex;
@@ -5772,7 +5782,8 @@ body.legal-modal-open {
 
     .search-panel-icon {
         left: 14px;
-        font-size: 18px;
+        width: 18px;
+        height: 18px;
     }
 
     .search-panel-input {

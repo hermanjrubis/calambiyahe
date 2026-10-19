@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.7.2">
+    <link rel="stylesheet" href="../css/style.css?v=2.7.3">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -179,7 +179,7 @@
             <!-- [Right Side]: Search Pill, Language, Activity Feed Bell, User Profile / Sign In -->
             <div class="nav-right">
                 <button type="button" class="header-search-pill-btn" id="headerSearchPillBtn" aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
-                    <i class="ti ti-search header-search-icon" aria-hidden="true"></i>
+                    <svg class="header-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
                     <span class="header-search-text" data-i18n="places.search_btn_text">Search places</span>
                 </button>
 
@@ -233,7 +233,7 @@
             <!-- Mobile-only icon cluster -->
             <div class="mobile-nav-icons" id="mobileNavIcons">
                 <button type="button" class="mobile-nav-icon-btn header-search-mobile-btn" id="headerSearchMobileBtn" aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
-                    <i class="ti ti-search header-search-mobile-icon" aria-hidden="true"></i>
+                    <svg class="header-search-mobile-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
                 </button>
                 <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
                     <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
@@ -402,7 +402,7 @@
                 <!-- Search Input Box -->
                 <div class="search-panel-input-wrap">
                     <label for="headerPanelSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
-                    <i class="ti ti-search search-panel-icon" aria-hidden="true"></i>
+                    <svg class="search-panel-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
                     <input
                         type="text"
                         id="headerPanelSearchInput"
@@ -420,7 +420,7 @@
                         spellcheck="false"
                     >
                     <button type="button" id="searchPanelClearBtn" class="search-panel-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
-                        <i class="ti ti-x" aria-hidden="true"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
                     </button>
                 </div>
 
@@ -670,38 +670,6 @@
         }
         window.resolvePlaceImageUrl = resolvePlaceImageUrl;
 
-        const FALLBACK_PLACES = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0) ? window.FALLBACK_PLACES : [
-            { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.1986374, lng: 121.1604888, image_path: '../assets/places/citymall-calamba/photo.webp', description: 'Commercial shopping center along National Highway' },
-            { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', barangay: 'Halang', municipality: 'Calamba', lat: 14.193, lng: 121.1625, image_path: '../assets/places/puregold-halang-calamba/photo.webp', description: 'Major supermarket and shopping store in Halang' },
-            { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.2025089, lng: 121.1583962, image_path: '../assets/places/sti-college/sti-1.webp', description: 'Higher education institution along Manila South Road' },
-            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', barangay: 'Real', municipality: 'Calamba', lat: 14.1987583, lng: 121.1519236, image_path: '../assets/places/saint-benilde-international-school/photo.webp', description: 'Private basic and secondary education institution' },
-            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', barangay: 'Bucal', municipality: 'Calamba', lat: 14.188, lng: 121.165, image_path: '../assets/places/letran-calamba/photo.webp', description: 'Catholic higher education institution in Bucal' },
-            { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', barangay: 'Halang', municipality: 'Calamba', lat: 14.191, lng: 121.162, image_path: '../assets/places/halang-elementary-school/photo.webp', description: 'Public elementary school in Brgy. Halang' },
-            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', barangay: 'Uno', municipality: 'Calamba', lat: 14.203278, lng: 121.157683, image_path: '../assets/places/sm-city-calamba-transport-terminal/photo.webp', description: 'Major central public transportation hub' },
-            { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2025, lng: 121.1575, image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp', description: 'Popular fast-food chain branch along National Highway' },
-            { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', barangay: 'Uno', municipality: 'Calamba', lat: 14.205386, lng: 121.156122, image_path: '../assets/places/uncle-johns/photo.webp', description: '24/7 convenience store with hot fried chicken and meals' },
-            { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', barangay: 'Uno', municipality: 'Calamba', lat: 14.202775, lng: 121.158008, image_path: '../assets/places/ding-hao/photo.webp', description: 'Chinese restaurant along National Highway' },
-            { id: 'teng-tengs', name: "Teng-Teng's", category: 'eateries', barangay: 'Uno', municipality: 'Calamba', lat: 14.204044, lng: 121.155939, image_path: '../assets/places/teng-tengs/photo.webp', description: 'Popular local dining eatery in Real' },
-            { id: 'mariz-food-town', name: 'Mariz Food Town', category: 'eateries', barangay: 'Uno', municipality: 'Calamba', lat: 14.203908, lng: 121.156072, image_path: '../assets/places/mariz-food-town/photo.webp', description: 'Casual food court and carinderia' },
-            { id: 'ton-tons-sisig', name: "Ton-Ton's Sisig", category: 'eateries', barangay: 'Uno', municipality: 'Calamba', lat: 14.203803, lng: 121.156225, image_path: '../assets/places/ton-tons-sisig/photo.webp', description: 'Specialty sizzling sisig dining spot' },
-            { id: 'mang-inasal-halang', name: 'Mang Inasal – Halang, Calamba', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.192, lng: 121.1625, image_path: '../assets/places/mang-inasal-halang-calamba/mang-inasal-halang-calamba-1.webp', description: 'Famous Filipino grilled chicken restaurant' },
-            { id: 'creekside-halang', name: 'Creekside Halang', category: 'eateries', barangay: 'Halang', municipality: 'Calamba', lat: 14.1905, lng: 121.1615, image_path: '../assets/places/creekside-halang/photo.webp', description: 'Local grill and dining spot along the creek' },
-            { id: 'dear-hotpot', name: 'Dear Hotpot – Unlimited Japanese Hotpot', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.203, lng: 121.157, image_path: '../assets/places/dear-hotpot-unlimited-japanese-hotpot/photo.webp', description: 'Unlimited Japanese hotpot and shabu-shabu' },
-            { id: 'd-fresco', name: "D' Fresco", category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2022, lng: 121.1555, image_path: '../assets/places/d-fresco/photo.webp', description: 'Refreshing beverages and casual food' },
-            { id: 'rsm-lutong-bahay', name: 'RSM Lutong Bahay – Real, Calamba', category: 'eateries', barangay: 'Real', municipality: 'Calamba', lat: 14.2008, lng: 121.1562, image_path: '../assets/places/rsm-lutong-bahay-real-calamba/rsm-lutong-bahay-real-calamba-1.webp', description: 'Traditional Filipino home-cooked dishes' },
-            { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', barangay: 'Real', municipality: 'Calamba', lat: 14.2015, lng: 121.156, image_path: '../assets/places/krav-cafe/photo.webp', description: 'Artisanal coffee and specialty cafe drinks' },
-            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.202178, lng: 121.158622, image_path: '../assets/places/card-sme-bank/photo.webp', description: 'Thrift bank and financial service institution' },
-            { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.195, lng: 121.155, image_path: '../assets/places/wilcon-depot-calamba/photo.webp', description: 'Home improvement and construction supplies depot' },
-            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.204469, lng: 121.155589, image_path: '../assets/places/barangay-uno-hall/photo.webp', description: 'Local government barangay hall for Barangay 1' },
-            { id: 'laguna-logistics', name: 'Laguna Logistics', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.196, lng: 121.151, image_path: '../assets/places/laguna-logistics/laguna-logistics-1.webp', description: 'Logistics and freight handling services' },
-            { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.202467, lng: 121.158378, image_path: '../assets/places/rj-auto-shop/photo.webp', description: 'Automotive repair and maintenance service' },
-            { id: 'news-star', name: 'News Star', category: 'establishments', barangay: 'Uno', municipality: 'Calamba', lat: 14.205297, lng: 121.156236, image_path: '../assets/places/news-star/photo.webp', description: 'Local commercial publication and printing office' },
-            { id: 'd-and-q', name: 'D & Q', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.201, lng: 121.158, image_path: '../assets/places/d-and-q/d-and-q-1.webp', description: 'Commercial establishment in Real' },
-            { id: 'morales-bercasio', name: 'Morales-Bercasio Commercial Center Parking', category: 'terminals', barangay: 'Uno', municipality: 'Calamba', lat: 14.203511, lng: 121.157392, image_path: '../assets/places/morales-bercasio/photo.webp', description: 'Professional services and business office' },
-            { id: 'barangay-real-hall', name: 'Barangay Real Hall', category: 'establishments', barangay: 'Real', municipality: 'Calamba', lat: 14.197837, lng: 121.149711, image_path: '../assets/places/barangay-real-hall/photo.webp', description: '' },
-            { id: 'barangay-halang-hall', name: 'Barangay Halang Hall (Multi-Purpose Building)', category: 'establishments', barangay: 'Halang', municipality: 'Calamba', lat: 14.196813, lng: 121.161062, image_path: '../assets/places/barangay-halang-hall/photo.webp', description: '' },
-        ];
-
         document.addEventListener('DOMContentLoaded', () => {
             const tabs = document.querySelectorAll('.category-tab');
             const noResults = document.getElementById('noResults');
@@ -736,10 +704,10 @@
             const panelNoResultsBrowseLink = document.getElementById('panelNoResultsBrowseLink');
             const panelClearRecentsBtn = document.getElementById('panelClearRecentsBtn');
 
-            // Master places dataset (contains ALL places from fallback or API)
-            let allMasterPlaces = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0)
+            // Master places dataset (from window.FALLBACK_PLACES or API)
+            let allMasterPlaces = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES))
                 ? window.FALLBACK_PLACES
-                : FALLBACK_PLACES;
+                : [];
             let allFetchedPlaces = [];
 
             // Panel State
@@ -789,6 +757,16 @@
                 }
                 if (norm === 'all') return 'All Places';
                 return category.charAt(0).toUpperCase() + category.slice(1);
+            }
+
+            function formatPlaceSubtitle(place) {
+                if (!place) return '';
+                const category = place.category || '';
+                const barangay = place.barangay || '';
+                const municipality = place.municipality || 'Calamba';
+                const catLabel = getCategoryLabel(category);
+                const locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
+                return catLabel ? (locStr ? `${catLabel} • ${locStr}` : catLabel) : locStr;
             }
 
             function getSearchRank(place, query) {
@@ -967,9 +945,7 @@
                     const imagePath = hasImagePath ? resolvePlaceImageUrl(rawImg.trim()) : '';
                     const description = place.description || '';
 
-                    const catLabel = getCategoryLabel(category);
-                    let locStr = `${barangay ? barangay + ', ' : ''}${municipality}`;
-                    let subtitle = catLabel ? (locStr ? `${catLabel} • ${locStr}` : catLabel) : locStr;
+                    const subtitle = formatPlaceSubtitle(place);
 
                     const placeLat = place.lat != null ? place.lat : null;
                     const placeLng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
@@ -1262,7 +1238,7 @@
                     removeBtn.setAttribute('role', 'button');
                     removeBtn.setAttribute('tabindex', '0');
                     removeBtn.setAttribute('aria-label', `Remove ${query}`);
-                    removeBtn.innerHTML = '<i class="ti ti-x" style="font-size:14px;" aria-hidden="true"></i>';
+                    removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>';
 
                     removeBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -1370,6 +1346,12 @@
 
                 lockBodyScroll();
 
+                if (options.openedByKeyboard) {
+                    if (searchPanel) searchPanel.classList.add('keyboard-opened');
+                } else {
+                    if (searchPanel) searchPanel.classList.remove('keyboard-opened');
+                }
+
                 if (searchOverlay) searchOverlay.classList.add('open');
                 if (searchPanel) searchPanel.classList.add('open');
 
@@ -1382,9 +1364,17 @@
                     headerPanelInput.setAttribute('aria-expanded', 'false');
                     headerPanelInput.removeAttribute('aria-activedescendant');
                     if (shouldAutoFocus) {
-                        headerPanelInput.focus();
+                        try {
+                            headerPanelInput.focus({ focusVisible: !!options.openedByKeyboard });
+                        } catch (_) {
+                            headerPanelInput.focus();
+                        }
                         setTimeout(() => {
-                            try { headerPanelInput.focus(); } catch (_) {}
+                            try {
+                                headerPanelInput.focus({ focusVisible: !!options.openedByKeyboard });
+                            } catch (_) {
+                                try { headerPanelInput.focus(); } catch (_) {}
+                            }
                         }, 50);
                     }
                 }
@@ -1405,7 +1395,10 @@
                 const restoreScroll = options.restoreScroll !== false;
 
                 if (searchOverlay) searchOverlay.classList.remove('open');
-                if (searchPanel) searchPanel.classList.remove('open');
+                if (searchPanel) {
+                    searchPanel.classList.remove('open');
+                    searchPanel.classList.remove('keyboard-opened');
+                }
 
                 unlockBodyScroll(restoreScroll);
 
@@ -1441,12 +1434,17 @@
                 applyCategoryAndQuery(catParam, qParam, false);
             });
 
+            function handleSearchTrigger(e, btn) {
+                const openedByKeyboard = (e && e.detail === 0);
+                openSearchPanel(btn, { openedByKeyboard });
+            }
+
             // Entry point triggers
             if (headerSearchPillBtn) {
-                headerSearchPillBtn.addEventListener('click', () => openSearchPanel(headerSearchPillBtn));
+                headerSearchPillBtn.addEventListener('click', (e) => handleSearchTrigger(e, headerSearchPillBtn));
             }
             if (headerSearchMobileBtn) {
-                headerSearchMobileBtn.addEventListener('click', () => openSearchPanel(headerSearchMobileBtn));
+                headerSearchMobileBtn.addEventListener('click', (e) => handleSearchTrigger(e, headerSearchMobileBtn));
             }
 
             // Cancel button & Overlay
@@ -1475,7 +1473,7 @@
                     if (!isEditable && !isModalOpen) {
                         e.preventDefault();
                         const btn = (window.innerWidth >= 1024) ? headerSearchPillBtn : headerSearchMobileBtn;
-                        openSearchPanel(btn);
+                        openSearchPanel(btn, { openedByKeyboard: true });
                     }
                 }
             });
@@ -1606,9 +1604,7 @@
                     const hasImg = rawImg && typeof rawImg === 'string' && rawImg.trim() !== '';
                     const imgSrc = hasImg ? resolvePlaceImageUrl(rawImg) : '';
 
-                    const catLabel = getCategoryLabel(place.category);
-                    const brgy = place.barangay ? `Brgy. ${place.barangay}` : (place.municipality || 'Calamba');
-                    const subText = catLabel && brgy ? `${catLabel} · ${brgy}` : (catLabel || brgy || '');
+                    const subText = formatPlaceSubtitle(place);
 
                     const thumbHtml = hasImg
                         ? `<img src="${escapeHtml(imgSrc)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'search-result-thumb-placeholder\\'><i class=\\'ti ti-map-pin\\' aria-hidden=\\'true\\'></i></div>';">`
