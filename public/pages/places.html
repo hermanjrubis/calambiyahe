@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.7.4">
+    <link rel="stylesheet" href="../css/style.css?v=2.7.5">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.6.3">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
-    <link rel="stylesheet" href="../css/place-panel.css?v=15">
+    <link rel="stylesheet" href="../css/place-panel.css?v=16">
     <style>
         html { scrollbar-gutter: stable; }
         body { opacity: 0; }
@@ -523,14 +523,14 @@
                         <div class="places-title-main-row">
                             <h2 class="places-title-heading" id="placesTitleHeading">
                                 <span class="places-title-text" id="placesTitleText">All Places</span>
-                                <span class="places-title-count desktop-only" id="placesTitleCountDesktop"> (98)</span>
+                                <span class="places-title-count desktop-only" id="placesTitleCountDesktop"></span>
                             </h2>
                             <button type="button" class="places-clear-query-btn" id="placesClearQueryBtn" style="display: none;" aria-label="Clear search query" data-i18n-aria-label="places.clear">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 <span class="clear-query-text" id="clearQueryText" data-i18n="places.clear">Clear</span>
                             </button>
                         </div>
-                        <div class="places-title-sub mobile-only" id="placesTitleSubMobile">98 places</div>
+                        <div class="places-title-sub mobile-only" id="placesTitleSubMobile"><span class="places-title-sub-sk" style="display:inline-block;width:60px;height:12px;background:#e2e8f0;border-radius:4px;vertical-align:middle;"></span></div>
                     </div>
                     <div class="places-title-right mobile-only">
                         <button type="button" class="places-mobile-filter-btn" id="placesMobileFilterBtn" aria-label="Filter" data-i18n-aria-label="places.filter">
@@ -632,6 +632,58 @@
     <script src="../js/places-shared.js?v=2.6.7"></script>
     <script src="../js/header-autohide.js?v=1.0.0"></script>
     <script>
+        // Temporary on-device tap logger behind ?debugtaps=1
+        (function initDebugTaps() {
+            try {
+                const isDebug = new URLSearchParams(window.location.search).get('debugtaps') === '1';
+                if (!isDebug) {
+                    window.__debugTapLog = function() {};
+                    return;
+                }
+                const container = document.createElement('div');
+                container.id = 'debugTapsBox';
+                container.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:999999;background:#FFFFFF;color:#0E2A47;font-family:Outfit,sans-serif;font-size:10px;border:1px solid #E2E8F0;border-radius:6px;padding:6px 8px;max-width:280px;pointer-events:none;line-height:1.3;box-shadow:0 4px 12px rgba(0,0,0,0.1);word-break:break-word;white-space:pre-line;';
+
+                function attach() {
+                    if (document.body && !document.getElementById('debugTapsBox')) {
+                        document.body.appendChild(container);
+                    }
+                }
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', attach);
+                } else {
+                    attach();
+                }
+
+                const lines = [];
+                window.__debugTapLog = function(msg) {
+                    const d = new Date();
+                    const time = d.toTimeString().substring(0, 8) + '.' + (d.getMilliseconds()).toString().padStart(3, '0');
+                    lines.push(`[${time}] ${msg}`);
+                    if (lines.length > 8) lines.shift();
+                    container.textContent = lines.join('\n');
+                };
+
+                function getTargetDesc(target) {
+                    if (!target) return 'null';
+                    let desc = target.id ? '#' + target.id : '';
+                    if (target.className && typeof target.className === 'string') {
+                        const cls = target.className.trim().split(/\s+/).slice(0, 2).join('.');
+                        if (cls) desc += (desc ? '.' : '') + cls;
+                    }
+                    return desc || target.tagName.toLowerCase();
+                }
+
+                ['touchstart', 'touchend', 'click'].forEach(evt => {
+                    window.addEventListener(evt, e => {
+                        window.__debugTapLog(`${evt} ${getTargetDesc(e.target)}`);
+                    }, { capture: true, passive: true });
+                });
+            } catch (_) {
+                window.__debugTapLog = function() {};
+            }
+        })();
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -968,18 +1020,24 @@
                         cardEl.style.animation = '';
                     }, { once: true });
 
-                    function handleCardOpen() {
+                    function handleCardOpen(e) {
+                        const isPointer = (e && (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen' || e.detail > 0));
+                        window._lastOpenedByKeyboard = !isPointer;
                         window._lastFocusedPlaceCard = cardEl;
                         if (typeof window.openPlacePanel === 'function') {
                             window.openPlacePanel(name, placeLat, placeLng);
                         }
                     }
 
-                    cardEl.onclick = handleCardOpen;
+                    cardEl.addEventListener('click', (e) => handleCardOpen(e));
                     cardEl.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
                             e.preventDefault();
-                            handleCardOpen();
+                            window._lastOpenedByKeyboard = true;
+                            window._lastFocusedPlaceCard = cardEl;
+                            if (typeof window.openPlacePanel === 'function') {
+                                window.openPlacePanel(name, placeLat, placeLng);
+                            }
                         }
                     });
 
@@ -1044,7 +1102,13 @@
                 if (noResults) noResults.style.display = 'none';
             }
 
+            let placesApiFetched = false;
+
             async function fetchPlacesFromAPI() {
+                if (placesApiFetched && allMasterPlaces && allMasterPlaces.length > 0) {
+                    return;
+                }
+
                 const activeTab = document.querySelector('.category-tab.active');
                 const category = activeTab ? activeTab.getAttribute('data-category') : 'all';
 
@@ -1061,6 +1125,8 @@
                             allMasterPlaces = data;
                         }
                     }
+                    placesApiFetched = true;
+                    window._cachedAllPlaces = allMasterPlaces;
                 } catch (error) {
                     console.warn('[Places] API fetch failed or database unavailable, using fallback places data:', error);
                 }
@@ -1093,6 +1159,17 @@
 
             function applyCategoryAndQuery(categoryName, query, updateHistory = false, historyAction = 'push') {
                 const norm = (categoryName || 'all').toLowerCase();
+                const cleanQuery = (query || '').trim().slice(0, 80);
+
+                const activeTab = document.querySelector('.category-tab.active');
+                const currentCat = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
+
+                const hasCards = placesGrid && placesGrid.children.length > 0 && !placesGrid.querySelector('.sk-place-card');
+                if (hasCards && norm === currentCat && cleanQuery === currentGridQuery) {
+                    syncPanelCategoryChips();
+                    return;
+                }
+
                 tabs.forEach(t => {
                     const cat = (t.getAttribute('data-category') || '').toLowerCase();
                     const match = cat === norm ||
@@ -1108,14 +1185,14 @@
 
                 syncPanelCategoryChips();
 
-                currentGridQuery = (query || '').trim().slice(0, 80);
+                currentGridQuery = cleanQuery;
 
                 if (updateHistory) {
                     syncUrlState(historyAction === 'replace');
                 }
 
-                const activeTab = document.querySelector('.category-tab.active');
-                const resolvedCat = activeTab ? (activeTab.getAttribute('data-category') || 'all') : 'all';
+                const newActiveTab = document.querySelector('.category-tab.active');
+                const resolvedCat = newActiveTab ? (newActiveTab.getAttribute('data-category') || 'all') : 'all';
                 const catNorm = resolvedCat.toLowerCase().trim();
                 allFetchedPlaces = (catNorm !== 'all')
                     ? allMasterPlaces.filter(p => (p.category || '').toLowerCase().includes(catNorm))
@@ -1160,8 +1237,8 @@
 
             // Mobile filter button click
             if (placesMobileFilterBtn) {
-                placesMobileFilterBtn.addEventListener('click', () => {
-                    openSearchPanel(placesMobileFilterBtn, { autoFocus: false });
+                placesMobileFilterBtn.addEventListener('click', (e) => {
+                    handleSearchTrigger(e, placesMobileFilterBtn, { autoFocus: false });
                 });
             }
 
@@ -1305,40 +1382,31 @@
             });
 
             function lockBodyScroll() {
-                savedScrollY = window.pageYOffset || document.documentElement.scrollTop;
                 if (window.innerWidth >= 1024) {
                     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-                    document.body.style.overflow = 'hidden';
                     if (scrollbarWidth > 0) {
                         document.body.style.paddingRight = `${scrollbarWidth}px`;
                     }
-                } else {
-                    document.body.style.position = 'fixed';
-                    document.body.style.top = `-${savedScrollY}px`;
-                    document.body.style.width = '100%';
-                    document.body.style.overflow = 'hidden';
                 }
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
             }
 
-            function unlockBodyScroll(restoreScroll = true) {
-                if (window.innerWidth >= 1024) {
-                    document.body.style.overflow = '';
-                    document.body.style.paddingRight = '';
-                } else {
-                    document.body.style.position = '';
-                    document.body.style.top = '';
-                    document.body.style.width = '';
-                    document.body.style.overflow = '';
-                    if (restoreScroll) {
-                        window.scrollTo(0, savedScrollY);
-                    }
-                }
+            function unlockBodyScroll() {
+                document.documentElement.style.overflow = '';
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
             }
+
+            let lastOpenedByKeyboard = false;
 
             function openSearchPanel(triggerEl, options = {}) {
                 if (isPanelOpen) return;
                 isPanelOpen = true;
                 lastOpenedBy = triggerEl || document.activeElement;
+                lastOpenedByKeyboard = !!options.openedByKeyboard;
+
+                if (window.__debugTapLog) window.__debugTapLog('panel open');
 
                 // Push history on mobile (< 1024px) for back gesture
                 if (window.innerWidth < 1024) {
@@ -1396,7 +1464,7 @@
                 if (!isPanelOpen) return;
                 isPanelOpen = false;
 
-                const restoreScroll = options.restoreScroll !== false;
+                if (window.__debugTapLog) window.__debugTapLog('panel close');
 
                 if (searchOverlay) searchOverlay.classList.remove('open');
                 if (searchPanel) {
@@ -1404,7 +1472,7 @@
                     searchPanel.classList.remove('keyboard-opened');
                 }
 
-                unlockBodyScroll(restoreScroll);
+                unlockBodyScroll();
 
                 if (hasHistoryPushed) {
                     hasHistoryPushed = false;
@@ -1419,28 +1487,41 @@
                     }
                 }
 
-                if (options.focusReturn !== false && lastOpenedBy && typeof lastOpenedBy.focus === 'function') {
+                if (options.focusReturn !== false && lastOpenedByKeyboard && lastOpenedBy && typeof lastOpenedBy.focus === 'function') {
                     setTimeout(() => {
                         try { lastOpenedBy.focus(); } catch (_) {}
                     }, 20);
+                } else {
+                    if (document.activeElement && document.activeElement !== document.body) {
+                        try { document.activeElement.blur(); } catch (_) {}
+                    }
                 }
             }
 
             // Mobile back gesture popstate handler
             window.addEventListener('popstate', () => {
+                if (window.__debugTapLog) window.__debugTapLog('popstate');
                 if (isPanelOpen) {
                     hasHistoryPushed = false; // already popped by browser
-                    closeSearchPanel({ restoreScroll: true });
+                    closeSearchPanel({ restoreScroll: false, historyAction: 'none' });
                 }
                 const params = new URLSearchParams(window.location.search);
-                const catParam = params.get('category') || 'all';
+                const catParam = (params.get('category') || 'all').toLowerCase();
                 const qParam = (params.get('q') || '').trim().slice(0, 80);
+
+                const activeTab = document.querySelector('.category-tab.active');
+                const currentCat = activeTab ? (activeTab.getAttribute('data-category') || 'all').toLowerCase() : 'all';
+
+                if (catParam === currentCat && qParam === currentGridQuery) {
+                    return;
+                }
                 applyCategoryAndQuery(catParam, qParam, false);
             });
 
-            function handleSearchTrigger(e, btn) {
-                const openedByKeyboard = (e && e.detail === 0);
-                openSearchPanel(btn, { openedByKeyboard });
+            function handleSearchTrigger(e, btn, extraOptions = {}) {
+                const isPointer = (e && (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen' || e.detail > 0));
+                const openedByKeyboard = !isPointer;
+                openSearchPanel(btn, { openedByKeyboard, ...extraOptions });
             }
 
             // Entry point triggers
@@ -1453,17 +1534,17 @@
 
             // Cancel button & Overlay
             if (searchPanelCancelBtn) {
-                searchPanelCancelBtn.addEventListener('click', () => closeSearchPanel({ restoreScroll: true }));
+                searchPanelCancelBtn.addEventListener('click', () => closeSearchPanel({ restoreScroll: false }));
             }
             if (searchOverlay) {
-                searchOverlay.addEventListener('click', () => closeSearchPanel({ restoreScroll: true }));
+                searchOverlay.addEventListener('click', () => closeSearchPanel({ restoreScroll: false }));
             }
 
             // Global keyboard shortcuts (Escape to close panel, '/' to open panel)
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && isPanelOpen) {
                     e.preventDefault();
-                    closeSearchPanel({ restoreScroll: true });
+                    closeSearchPanel({ restoreScroll: false });
                     return;
                 }
 
@@ -1801,7 +1882,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="../js/bookmark-confetti.js?v=2.6.3"></script>
-    <script src="../js/place-panel.js?v=2.9.5"></script>
+    <script src="../js/place-panel.js?v=2.9.6"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->

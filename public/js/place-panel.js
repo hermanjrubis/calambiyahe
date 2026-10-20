@@ -2287,8 +2287,10 @@ window.openPlacePanel = function(placeName, optLat, optLng) {
     }
 
     // 2. Open animations immediately for instant UI feedback
+    if (typeof window.__debugTapLog === 'function') window.__debugTapLog('popup open');
     if (backdrop) backdrop.classList.add('active');
     if (panel) panel.classList.add('active');
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
     // Show skeletons immediately for photo, rating summary, and reviews
@@ -2574,10 +2576,17 @@ async function fillRest(data, placeName, optLat, optLng) {
     // Resolve place ID and live data from API asynchronously
     let placeId = data.id || null;
     try {
-        const searchRes = await fetch(`/api/places?category=all`);
-        let allPlaces = [];
-        if (searchRes.ok) {
-            try { allPlaces = await searchRes.json(); } catch (_) {}
+        let allPlaces = (typeof window !== 'undefined' && Array.isArray(window._cachedAllPlaces) && window._cachedAllPlaces.length > 0)
+            ? window._cachedAllPlaces
+            : [];
+        if (allPlaces.length === 0) {
+            const searchRes = await fetch(`/api/places?category=all`);
+            if (searchRes.ok) {
+                try {
+                    allPlaces = await searchRes.json();
+                    if (typeof window !== 'undefined') window._cachedAllPlaces = allPlaces;
+                } catch (_) {}
+            }
         }
         if (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > allPlaces.length) {
             allPlaces = window.FALLBACK_PLACES;
@@ -2720,10 +2729,12 @@ if (!window._open360Viewer) {
 }
 
 function closePlacePanel(updateHistory = true) {
+    if (typeof window.__debugTapLog === 'function') window.__debugTapLog('popup close');
     const backdrop = document.getElementById('placePanelBackdrop');
     const panel = document.getElementById('placePanel');
     if (backdrop) backdrop.classList.remove('active');
     if (panel) panel.classList.remove('active');
+    document.documentElement.style.overflow = '';
     document.body.style.overflow = ''; 
 
     // Destroy inline 360 viewer
@@ -2760,11 +2771,15 @@ function closePlacePanel(updateHistory = true) {
         window.history.pushState({}, '', url);
     }
 
-    // Restore focus to the card that opened the panel (Accessibility req 9)
-    if (window._lastFocusedPlaceCard && typeof window._lastFocusedPlaceCard.focus === 'function') {
+    // Restore focus to the card that opened the panel (only if opened by keyboard)
+    if (window._lastOpenedByKeyboard && window._lastFocusedPlaceCard && typeof window._lastFocusedPlaceCard.focus === 'function') {
         try {
             window._lastFocusedPlaceCard.focus();
         } catch (_) {}
+    } else {
+        if (document.activeElement && document.activeElement !== document.body) {
+            try { document.activeElement.blur(); } catch (_) {}
+        }
     }
 }
 window.closePlacePanel = closePlacePanel;

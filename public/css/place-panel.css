@@ -82,6 +82,8 @@ html {
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
         transition: transform 180ms cubic-bezier(0.2, 0, 0, 1), opacity 160ms ease, visibility 0s 180ms;
     }
 
@@ -849,6 +851,8 @@ html {
     flex-direction: column;
     min-width: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     background: #ffffff;
     gap: 14px;
     box-sizing: border-box;
@@ -1817,7 +1821,6 @@ html {
 /* ─────────────────────────────────────────────────────────────
    ACCESSIBILITY FOCUS RINGS & CARD PLACEHOLDERS
    ───────────────────────────────────────────────────────────── */
-.ref-card:focus,
 .ref-card:focus-visible,
 .panel-save-btn:focus-visible,
 .panel-close-btn:focus-visible,
