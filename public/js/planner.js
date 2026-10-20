@@ -308,15 +308,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         };
 
+        const isV2 = typeof window.CalzadaMapV2 !== 'undefined' && typeof window.CalzadaMapV2.isV2Enabled === 'function' && window.CalzadaMapV2.isV2Enabled();
+
         const map = new maplibregl.Map({
             container: 'map',
-            style: 'https://tiles.openfreemap.org/styles/liberty',
+            style: isV2 ? '/map/calzada-v2.json' : 'https://tiles.openfreemap.org/styles/liberty',
             center: [121.1652, 14.2117], // Calamba coordinates [lng, lat]
             zoom: 13,
             dragRotate: true,
-            touchPitch: false,
-            pitchWithRotate: false,
-            maxPitch: 0,
+            touchPitch: isV2,
+            pitchWithRotate: isV2,
+            maxPitch: isV2 ? 60 : 0,
             preserveDrawingBuffer: true,
             canvasContextAttributes: {
                 preserveDrawingBuffer: true
@@ -372,7 +374,15 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', () => map.resize());
         setTimeout(() => map.resize(), 0);
         setTimeout(() => map.resize(), 200);
-        map.on('load', () => map.resize());
+        map.on('load', () => {
+            map.resize();
+            if (isV2 && typeof window.CalzadaMapV2 !== 'undefined' && typeof window.CalzadaMapV2.init === 'function') {
+                const placesData = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length)
+                    ? window.FALLBACK_PLACES
+                    : ((typeof CALAMBA_PLACES_FALLBACK !== 'undefined' && Array.isArray(CALAMBA_PLACES_FALLBACK)) ? CALAMBA_PLACES_FALLBACK : []);
+                window.CalzadaMapV2.init(map, placesData);
+            }
+        });
 
         // GeoJSON Route line layers setup
         const getRouteInsertionBeforeId = () => {
@@ -1297,6 +1307,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function renderPlacesOnMap(places) {
+            if (isV2) return;
             // Clear existing markers
             categoryMarkers.forEach(m => m.remove());
             categoryMarkers = [];
@@ -1394,6 +1405,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         async function renderCategoryPlaces(selectedCategory = 'none') {
+            if (isV2) {
+                if (typeof window.CalzadaMapV2 !== 'undefined' && typeof window.CalzadaMapV2.filterByCategory === 'function') {
+                    window.CalzadaMapV2.filterByCategory(selectedCategory);
+                }
+                return;
+            }
             categoryMarkers.forEach(m => m.remove());
             categoryMarkers = [];
 
@@ -4476,6 +4493,26 @@ document.addEventListener('DOMContentLoaded', () => {
         window._calzadaClearOriginField = clearOriginField;
         window._calzadaClearDestField = clearDestField;
         window._calzadaSelectLocation = selectLocation;
+        window._calzadaSetDestination = (name, coords) => {
+            if (!coords) return;
+            const lat = Number(coords[0]);
+            const lng = Number(coords[1]);
+            selectedCoords.destination = [lat, lng];
+            destPlaceName = name || 'Selected Destination';
+            if (destMarker) { destMarker.remove(); destMarker = null; }
+            createDestMarker(selectedCoords.destination);
+            updateODDisplay();
+            map.flyTo({ center: [lng, lat], zoom: 16 });
+            if (selectedCoords.origin && selectedCoords.destination) {
+                executeRouteQuery();
+            } else {
+                setTimeout(() => {
+                    const origField = document.getElementById('openOriginModal');
+                    if (origField) origField.focus();
+                    openLocationModal('origin');
+                }, 400);
+            }
+        };
         window._calzadaApplyCamera = applyCamera;
         window._calzadaSmoothHeading = smoothHeading;
         window._calzadaSetCompassHeading = (h) => { compassHeading = h; };
@@ -6909,35 +6946,46 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (destName || hasValidDestCoords) {
-                destPlaceName = destName || 'Selected Destination';
-                updateODDisplay();
-
                 if (hasValidDestCoords) {
-                    // Coordinates provided DIRECTLY and authoritatively from places dataset:
-                    // Use them directly to set destination marker and compute route.
-                    // SKIP any name-based search, geocoding, or place-matching logic entirely!
                     selectedCoords.destination = [destLat, destLng];
+                    destPlaceName = destName || 'Selected Destination';
+
+                    // Match place in shared data to align name and metadata exactly as if chosen from search
+                    const allKnown = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length)
+                        ? window.FALLBACK_PLACES
+                        : ((typeof CALAMBA_PLACES_FALLBACK !== 'undefined' && Array.isArray(CALAMBA_PLACES_FALLBACK)) ? CALAMBA_PLACES_FALLBACK : []);
+                    const matchedPlace = allKnown.find(p => {
+                        if (destName && (p.name === destName || p.title === destName || p.slug === destName)) return true;
+                        if (p.lat && p.lng && Math.abs(p.lat - destLat) < 0.0001 && Math.abs(p.lng - destLng) < 0.0001) return true;
+                        return false;
+                    });
+                    if (matchedPlace && matchedPlace.name) {
+                        destPlaceName = matchedPlace.name;
+                    }
+
+                    // Update UI fields & helper text now that selectedCoords.destination is set
+                    updateODDisplay();
+
                     if (destMarker) { destMarker.remove(); destMarker = null; }
-                    const dEl = document.createElement('div');
-                    dEl.innerHTML = `<svg width="28" height="36" viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M14 0C6.268 0 0 6.268 0 14c0 8.75 14 22 14 22S28 22.75 28 14C28 6.268 21.732 0 14 0z" fill="#ef4444"/>
-                    <circle cx="14" cy="14" r="6" fill="white"/>
-                </svg>`;
-                    destMarker = new maplibregl.Marker({
-                        element: dEl.firstElementChild || dEl,
-                        anchor: 'bottom'
-                    }).setLngLat([destLng, destLat]).addTo(map);
+                    createDestMarker(selectedCoords.destination);
 
                     map.flyTo({ center: [destLng, destLat], zoom: 16 });
                     setTimeout(() => map.resize(), 300);
 
-                    // If origin is already present, calculate route immediately; otherwise open origin picker
+                    // If origin is already present, calculate route immediately; otherwise focus and open origin picker
                     if (selectedCoords.origin && selectedCoords.destination) {
                         executeRouteQuery();
                     } else {
-                        setTimeout(() => openLocationModal('origin'), 400);
+                        setTimeout(() => {
+                            const origField = document.getElementById('openOriginModal');
+                            if (origField) origField.focus();
+                            openLocationModal('origin');
+                        }, 400);
                     }
                 } else {
+                    destPlaceName = destName || 'Selected Destination';
+                    updateODDisplay();
+
                     // Fallback: Name only, no coordinates (legacy / external links)
                     // Automatically resolve destination and then ask for origin
                     activeSelectingField = 'destination';
