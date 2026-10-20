@@ -436,6 +436,17 @@ function initPlacePanelDOM() {
         const rawLng = planBtn.getAttribute('data-lng') || (currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon));
 
         if (placeName) {
+            // Already on the planner: set the destination in place instead of reloading the page
+            const inPlannerLat = parseFloat(rawLat);
+            const inPlannerLng = parseFloat(rawLng);
+            if (typeof window._calzadaSetDestination === 'function' && !isNaN(inPlannerLat) && !isNaN(inPlannerLng)) {
+                closePlacePanel();
+                if (typeof window.CalzadaPlannerCategory === 'object' && window.CalzadaPlannerCategory && typeof window.CalzadaPlannerCategory.closePanels === 'function') {
+                    window.CalzadaPlannerCategory.closePanels();
+                }
+                window._calzadaSetDestination(placeName, [inPlannerLat, inPlannerLng]);
+                return;
+            }
             setTimeout(() => {
                 const numLat = parseFloat(rawLat);
                 const numLng = parseFloat(rawLng);
@@ -2318,8 +2329,9 @@ function getPlacePanel360Link(placeId, placeName) {
 /**
  * Open Place Detail Panel
  */
-window.openPlacePanel = function(placeName, optLat, optLng) {
+window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     if (!placeName) return;
+    const openOnSlide = openOptions && openOptions.slide === '360' ? 1 : 0;
 
     // 1. Ensure DOM elements exist
     initPlacePanelDOM();
@@ -2333,7 +2345,6 @@ window.openPlacePanel = function(placeName, optLat, optLng) {
     }
 
     // 2. Open animations immediately for instant UI feedback
-    if (typeof window.__debugTapLog === 'function') window.__debugTapLog('popup open');
     if (backdrop) backdrop.classList.add('active');
     if (panel) panel.classList.add('active');
     document.documentElement.style.overflow = 'hidden';
@@ -2495,6 +2506,10 @@ window.openPlacePanel = function(placeName, optLat, optLng) {
             if (currentActivePlace !== activeOpenedPlace) return;
 
             await fillRest(activeOpenedPlace, placeName, optLat, optLng);
+            // Optional: open directly on the 360 slide (used by the planner place card)
+            if (openOnSlide === 1 && panel && panel.classList.contains('active')) {
+                try { goToCarouselSlide(1); } catch (_) {}
+            }
         }, 0);
     });
 };
@@ -2786,7 +2801,6 @@ if (!window._open360Viewer) {
 }
 
 function closePlacePanel(updateHistory = true) {
-    if (typeof window.__debugTapLog === 'function') window.__debugTapLog('popup close');
     const backdrop = document.getElementById('placePanelBackdrop');
     const panel = document.getElementById('placePanel');
     if (backdrop) backdrop.classList.remove('active');

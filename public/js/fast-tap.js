@@ -73,16 +73,6 @@
         return null;
     }
 
-    function getTargetDesc(target) {
-        if (!target) return 'null';
-        let desc = target.id ? '#' + target.id : '';
-        if (target.className && typeof target.className === 'string') {
-            const cls = target.className.trim().split(/\s+/).slice(0, 2).join('.');
-            if (cls) desc += (desc ? '.' : '') + cls;
-        }
-        return desc || target.tagName.toLowerCase();
-    }
-
     // Active pointers Map: pointerId -> pointerData
     const activePointers = new Map();
     let globalPointerListenersAttached = false;
@@ -145,10 +135,6 @@
             suppressedUntil = suppressUntil;
             suppressedX = e.clientX;
             suppressedY = e.clientY;
-
-            if (typeof window.__debugTapLog === 'function') {
-                window.__debugTapLog('fast-tap ' + getTargetDesc(matchedTarget));
-            }
 
             try {
                 data.handler.call(matchedTarget, e);

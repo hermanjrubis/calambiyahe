@@ -1,0 +1,505 @@
+/* Calzada Planner — category results list + flat place card (planner-category.js) */
+
+.czc-card,
+.czc-sheet {
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #0E2A47;
+    box-sizing: border-box;
+}
+.czc-card *,
+.czc-sheet * { box-sizing: border-box; }
+.czc-card[hidden],
+.czc-sheet[hidden] { display: none !important; }
+
+.czc-card {
+    position: fixed;
+    z-index: 1200;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 18px;
+    box-shadow: none;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: czcIn 180ms ease-out;
+}
+@keyframes czcIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+.czc-results {
+    width: 330px;
+    max-height: calc(100vh - 120px);
+}
+.czc-place {
+    right: 76px;
+    width: 370px;
+    max-height: calc(100vh - 110px);
+}
+.czc-place-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+}
+.czc-results .czc-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Header */
+.czc-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid #F1F5F9;
+    flex-shrink: 0;
+}
+.czc-tile {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #EAF2FC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.czc-head-text { min-width: 0; flex: 1; }
+.czc-title {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    line-height: 1.25;
+}
+.czc-meta {
+    font-size: 14px;
+    color: #64748B;
+    margin-top: 2px;
+    line-height: 1.35;
+}
+.czc-x {
+    margin-left: auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-x:active { background: #E2E8F0; transform: scale(0.96); }
+
+/* List */
+.czc-list { padding: 8px 0 10px; }
+.czc-empty {
+    margin: 0;
+    padding: 18px;
+    font-size: 14.5px;
+    color: #64748B;
+}
+.czc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: calc(100% - 16px);
+    margin: 0 8px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-row:active { background: #F1F5F9; }
+.czc-row.is-selected { background: #EAF2FC; }
+.czc-row.is-selected .czc-b360 { background: #FFFFFF; }
+.czc-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #F1F5F9;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.czc-thumb img,
+.czc-near-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.czc-row-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    flex: 1;
+}
+.czc-row-name {
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.czc-row-sub,
+.czc-row-dist {
+    font-size: 13px;
+    color: #64748B;
+    margin-top: 2px;
+}
+.czc-row-badges { margin-top: 5px; display: flex; }
+.czc-b360 {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2272C3;
+    background: #EAF2FC;
+    border-radius: 999px;
+    padding: 2px 8px;
+}
+.czc-chev { display: flex; flex-shrink: 0; margin-left: auto; }
+
+/* Place card */
+.czc-photo {
+    display: block;
+    position: relative;
+    margin: 8px 8px 0;
+    width: calc(100% - 16px);
+    aspect-ratio: 4 / 3;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #F1F5F9;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.czc-tag {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    background: rgba(14, 42, 71, 0.72);
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 3px 10px;
+}
+.czc-phead {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px 4px;
+}
+.czc-ptitle {
+    font-family: 'Sora', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1.25;
+}
+.czc-info {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 7px 18px;
+    font-size: 14.5px;
+    color: #475569;
+    line-height: 1.4;
+}
+.czc-info svg { flex-shrink: 0; margin-top: 1px; }
+.czc-link { color: #2272C3; text-decoration: none; font-weight: 500; }
+.czc-360 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: calc(100% - 36px);
+    margin: 6px 18px 4px;
+    padding: 8px;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    background: #FFFFFF;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-360:active { background: #F8FAFC; }
+.czc-360 img {
+    width: 92px;
+    height: 46px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #F1F5F9;
+}
+.czc-360-text { display: flex; flex-direction: column; min-width: 0; }
+.czc-360-title { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; }
+.czc-360-sub { font-size: 12.5px; color: #64748B; margin-top: 2px; }
+.czc-sec {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    color: #94A3B8;
+    text-transform: uppercase;
+    padding: 14px 18px 6px;
+}
+.czc-near {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 18px;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-near:active { background: #F8FAFC; }
+.czc-near-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #F1F5F9;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.czc-near-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.czc-near-name {
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 13.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.czc-near-cat { font-size: 12.5px; color: #64748B; }
+.czc-near-dist { font-size: 12.5px; font-weight: 600; color: #64748B; flex-shrink: 0; }
+.czc-btns {
+    display: flex;
+    gap: 10px;
+    padding: 12px 16px 16px;
+}
+.czc-btn {
+    flex: 1;
+    height: 46px;
+    border-radius: 12px;
+    border: none;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-btn-primary { background: #378ADD; color: #FFFFFF; }
+.czc-btn-primary:active { background: #2272C3; transform: scale(0.98); }
+.czc-btn-secondary { background: #F1F5F9; color: #0E2A47; }
+.czc-btn-secondary:active { background: #E2E8F0; transform: scale(0.98); }
+
+@media (hover: hover) and (pointer: fine) {
+    .czc-row:hover:not(.is-selected) { background: #F8FAFC; }
+    .czc-near:hover, .czc-360:hover { background: #F8FAFC; }
+    .czc-x:hover { background: #E2E8F0; }
+    .czc-btn-primary:hover { background: #2272C3; }
+    .czc-btn-secondary:hover { background: #E2E8F0; }
+}
+.czc-card :focus-visible,
+.czc-sheet :focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+/* Count badge inside the active category chip */
+.czc-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    margin-left: 6px;
+    border-radius: 999px;
+    background: #378ADD;
+    color: #FFFFFF;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+/* Selected / hovered category pin: ring behind the pin head (pin itself unchanged) */
+.calzada-pin-wrapper .czc-ring {
+    position: absolute;
+    left: -10px;
+    top: -10px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2.5px solid #2272C3;
+    background: rgba(55, 138, 221, 0.12);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 120ms ease-out;
+    z-index: -1;
+}
+.czc-pin-selected .czc-ring { opacity: 1; }
+.czc-pin-hover .czc-ring { opacity: 0.5; }
+.czc-pin-hover .calzada-pin-wrapper { transform: scale(1.15); }
+.czc-pin-selected { z-index: 5; }
+
+/* ── Mobile bottom sheet ─────────────────────────────────────────── */
+.czc-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1200;
+    background: #FFFFFF;
+    border-top: 1px solid #E2E8F0;
+    border-radius: 24px 24px 0 0;
+    display: flex;
+    flex-direction: column;
+    max-height: 50vh;
+    max-height: 50dvh;
+    transition: max-height 220ms cubic-bezier(0.2, 0, 0, 1);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.czc-sheet.is-place {
+    max-height: 88vh;
+    max-height: 88dvh;
+}
+.czc-sheet.is-peek {
+    max-height: 72px;
+    overflow: hidden;
+}
+.czc-grab {
+    border: none;
+    background: transparent;
+    padding: 10px 0 4px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
+    flex-shrink: 0;
+}
+.czc-grab-bar {
+    width: 40px;
+    height: 5px;
+    border-radius: 3px;
+    background: #E2E8F0;
+    display: block;
+}
+.czc-sheet-body {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+}
+.czc-sheet .czc-list {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 14px;
+}
+.czc-sheet .czc-place-body { flex: 1; min-height: 0; }
+.czc-sheet-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 2px 16px 0;
+    flex-shrink: 0;
+}
+.czc-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    background: transparent;
+    font-family: 'Sora', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    color: #2272C3;
+    padding: 8px 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.czc-sheet .czc-sheet-top .czc-x { margin-left: 0; }
+.czc-sheet .czc-photo { margin: 6px 16px 0; width: calc(100% - 32px); }
+.czc-sheet .czc-phead { padding: 14px 16px 4px; }
+.czc-sheet .czc-info { padding: 6px 16px; }
+.czc-sheet .czc-360 { margin: 6px 16px 4px; width: calc(100% - 32px); }
+.czc-sheet .czc-sec { padding: 14px 16px 6px; }
+.czc-sheet .czc-near { padding: 6px 16px; }
+.czc-sheet .czc-btns { padding: 12px 16px max(26px, env(safe-area-inset-bottom, 0px)); }
+
+/* While the category sheet is open on mobile, the directions sheet steps aside */
+@media (max-width: 768px) {
+    body.czc-mobile-open #directionsCard {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    body.czc-mobile-open .maplibregl-ctrl-bottom-right,
+    body.czc-mobile-open .maplibregl-ctrl-bottom-left {
+        transform: translate3d(0, calc(-1 * var(--czc-sheet-h, 50vh) - 12px), 0) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+    .czc-results, .czc-place { display: none !important; }
+}
+@media (min-width: 769px) {
+    .czc-sheet { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .czc-card, .czc-sheet { animation: none; transition: none; }
+}

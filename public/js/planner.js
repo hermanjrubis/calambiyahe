@@ -1311,242 +1311,93 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         }
 
+        // Builds one category pin (existing pin design). Tapping it selects the place in the
+        // category results (planner-category.js); no MapLibre popup anymore.
+        function buildCategoryPlaceMarker(place) {
+            if (!place) return null;
+            const meta = CATEGORY_META[place.category] || { icon: 'location-outline', color: '#6366F1', label: place.category };
+            const lat = parseFloat(place.lat);
+            const lng = parseFloat(place.lng);
+            if (isNaN(lat) || isNaN(lng)) return null;
+
+            const iconEl = document.createElement('div');
+            iconEl.className = 'calzada-custom-marker';
+            iconEl.setAttribute('role', 'button');
+            iconEl.setAttribute('tabindex', '0');
+            iconEl.setAttribute('aria-label', place.name || 'Place');
+            if (place.slug) iconEl.dataset.slug = place.slug;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'calzada-pin-wrapper';
+            wrapper.style.setProperty('--pin-color', meta.color);
+            const ring = document.createElement('span');
+            ring.className = 'czc-ring';
+            ring.setAttribute('aria-hidden', 'true');
+            const body = document.createElement('div');
+            body.className = 'calzada-pin-body';
+            const ion = document.createElement('ion-icon');
+            ion.setAttribute('name', meta.icon);
+            body.appendChild(ion);
+            wrapper.appendChild(ring);
+            wrapper.appendChild(body);
+            iconEl.appendChild(wrapper);
+
+            const onPinTap = (e) => {
+                if (e && e.stopPropagation) e.stopPropagation();
+                if (window.CalzadaPlannerCategory && place.slug) window.CalzadaPlannerCategory.select(place.slug);
+            };
+            iconEl.addEventListener('click', onPinTap);
+            iconEl.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPinTap(e); }
+            });
+            if (typeof window.bindTap === 'function') window.bindTap(iconEl, onPinTap);
+
+            const marker = new maplibregl.Marker({ element: iconEl, anchor: 'bottom' })
+                .setLngLat([lng, lat])
+                .addTo(map);
+            return { marker, el: iconEl };
+        }
+        window._calzadaBuildPlaceMarker = buildCategoryPlaceMarker;
+
         function renderPlacesOnMap(places) {
-            // Clear existing markers
             categoryMarkers.forEach(m => m.remove());
             categoryMarkers = [];
-
-            // TEMPORARY RESTRICTION: Only render markers for Malls and Schools categories.
-            // Skip Eateries, Terminals, Coffee Shops, and Establishments entirely for now.
-            // NOTE: This is a temporary data restriction; to re-enable other categories, remove this filter.
-            const allowedCategories = ['malls', 'schools'];
-            const filteredPlaces = (places || []).filter(place => {
-                const cat = (place.category || '').trim().toLowerCase();
-                return allowedCategories.includes(cat);
+            const bySlug = {};
+            (places || []).forEach(place => {
+                const entry = buildCategoryPlaceMarker(place);
+                if (!entry) return;
+                categoryMarkers.push(entry.marker);
+                if (place.slug) bySlug[place.slug] = entry;
             });
+            return bySlug;
+        }
 
-            filteredPlaces.forEach(place => {
-                const meta = CATEGORY_META[place.category] || { icon: 'location-outline', color: '#6366F1', label: place.category };
-                const lat = parseFloat(place.lat);
-                const lng = parseFloat(place.lng);
-                if (isNaN(lat) || isNaN(lng)) return;
-
-                const addr = place.full_address || place.barangay || '';
-
-                const iconEl = document.createElement('div');
-                iconEl.className = 'calzada-custom-marker';
-                iconEl.innerHTML = `
-                <div class="calzada-pin-wrapper" style="--pin-color: ${meta.color};">
-                    <div class="calzada-pin-body">
-                        <ion-icon name="${meta.icon}"></ion-icon>
-                    </div>
-                </div>
-            `;
-
-                const imageHtml = place.image_path
-                    ? `<div class="popup-img-container"><img src="${resolvePlaceImageUrl(place.image_path)}" alt="${place.name}" class="popup-place-img" loading="lazy" decoding="async" onerror="this.parentElement.remove();"></div>`
-                    : '';
-
-                // 360 Photosphere Thumbnail & "View 360°" Action (omitted if no link exists)
-                const link360 = getPlace360Link(place);
-                let place360Html = '';
-                if (link360 && link360.nodeId) {
-                    const node = manifestNodesMap.get(link360.nodeId);
-                    const photoFilename = node ? node.file : `${link360.nodeId.replace('_', ', ')}.jpg`;
-                    const photoUrl = `../assets/360/${encodeURIComponent(photoFilename)}`;
-
-                    place360Html = `
-                    <div class="popup-360-container">
-                        <div class="popup-360-thumb-wrap" onclick="window._open360Viewer('${link360.nodeId}')" title="Click to view 360° photo">
-                            <img src="${photoUrl}" alt="${place.name} 360°" class="popup-360-thumb" loading="lazy">
-                            <span class="popup-360-badge">360°</span>
-                        </div>
-                        <div class="popup-360-action-wrap">
-                            <button type="button" class="popup-360-btn" onclick="window._open360Viewer('${link360.nodeId}')">
-                                <svg class="popup-360-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="9"/>
-                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                                </svg>
-                                <span>View 360°</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                }
-
-                const popupContent = `
-                <div class="calzada-marker-popup">
-                    ${imageHtml}
-                    <div class="popup-body-content">
-                        <div class="popup-cat-badge" style="color: ${meta.color};">${meta.label}</div>
-                        <div class="popup-place-name">${place.name}</div>
-                        <div class="popup-place-addr">${addr}</div>
-                        ${place360Html}
-                        <button type="button" class="popup-action-btn" onclick="window._setPlannerDestination('${place.name.replace(/'/g, "\\'")}', ${lat}, ${lng})">
-                            <ion-icon name="navigate-outline"></ion-icon> Set as Destination
-                        </button>
-                    </div>
-                </div>
-            `;
-
-                const popup = new maplibregl.Popup({
-                    offset: [0, -32],
-                    closeButton: true,
-                    className: 'calzada-maplibre-popup'
-                }).setHTML(popupContent);
-
-                const marker = new maplibregl.Marker({
-                    element: iconEl,
-                    anchor: 'bottom'
-                })
-                    .setLngLat([lng, lat])
-                    .setPopup(popup)
-                    .addTo(map);
-
-                categoryMarkers.push(marker);
+        // Places of a category from the shared data (places-shared.js mirrors places.json): no network.
+        function getCategoryPlaces(category) {
+            if (!category || category === 'none') return [];
+            const shared = Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length
+                ? window.FALLBACK_PLACES
+                : (typeof CALAMBA_PLACES_FALLBACK !== 'undefined' ? CALAMBA_PLACES_FALLBACK : []);
+            const cat = String(category).toLowerCase();
+            return shared.filter(p => {
+                const c = String(p.category || '').toLowerCase();
+                if (cat === 'all') return true;
+                if (cat === 'terminals') return c === 'terminals' || c.includes('terminal');
+                return c === cat;
             });
         }
 
-        async function renderCategoryPlaces(selectedCategory = 'none') {
+        function renderCategoryPlaces(selectedCategory = 'none') {
             categoryMarkers.forEach(m => m.remove());
             categoryMarkers = [];
-
-            // If 'none' or empty: render NO markers (keep map clean)
             if (!selectedCategory || selectedCategory === 'none') {
+                if (window.CalzadaPlannerCategory) window.CalzadaPlannerCategory.hide();
                 return;
             }
-
-            // Ensure 360 link mappings are loaded
-            await load360Links();
-
-            let queryCat = selectedCategory;
-            if (selectedCategory === 'terminals') {
-                queryCat = 'terminal';
-            }
-
-            let endpoint = '/api/places';
-            if (selectedCategory !== 'all') {
-                endpoint += `?category=${encodeURIComponent(queryCat)}`;
-            }
-
-            try {
-                const response = await fetch(endpoint);
-                if (!response.ok) throw new Error('API error');
-                let places = await response.json();
-                if (Array.isArray(places) && places.length > 0) {
-                    if (selectedCategory === 'terminals') {
-                        places = places.filter(p => (p.category || '').toLowerCase().includes('terminal') || (p.category || '').toLowerCase() === 'stop');
-                    }
-                    renderPlacesOnMap(places);
-                    return;
-                }
-            } catch (err) {
-                console.warn('Failed to fetch places from API, using fallback data:', err.message);
-            }
-
-            // Fallback: use hardcoded data
-            let fallback = CALAMBA_PLACES_FALLBACK;
-            if (selectedCategory !== 'all') {
-                fallback = CALAMBA_PLACES_FALLBACK.filter(p => {
-                    const c = (p.category || '').toLowerCase();
-                    if (selectedCategory === 'terminals') {
-                        return c.includes('terminal');
-                    }
-                    return c === selectedCategory.toLowerCase();
-                });
-            }
-            renderPlacesOnMap(fallback);
+            const places = getCategoryPlaces(selectedCategory);
+            const bySlug = renderPlacesOnMap(places);
+            if (window.CalzadaPlannerCategory) window.CalzadaPlannerCategory.show(selectedCategory, places, bySlug);
         }
-
-        // Expose global helper for popup button
-        window._setPlannerDestination = (name, lat, lng) => {
-            const destInput = document.getElementById('destInput');
-            if (destInput) {
-                destInput.value = name;
-            }
-            destPlaceName = name;
-            selectedCoords.destination = [lat, lng];
-            const openPopups = document.querySelectorAll('.maplibregl-popup');
-            openPopups.forEach(p => p.remove());
-            if (typeof calculateAndDisplayRoute === 'function') {
-                calculateAndDisplayRoute();
-            }
-        };
-
-        // Global helper for opening full-screen 360 viewer starting at linked nodeId
-        window._open360Viewer = function (nodeId) {
-            if (!nodeId) return;
-            console.log('[Calzada 360] Requesting 360° viewer at node:', nodeId);
-
-            // Dispatch custom event for upcoming full-screen viewer module
-            window.dispatchEvent(new CustomEvent('calzada:open-360', {
-                detail: { nodeId }
-            }));
-
-            // If a dedicated full-screen viewer launcher function is mounted
-            if (typeof window.launch360Viewer === 'function') {
-                return window.launch360Viewer(nodeId);
-            }
-
-            // Build/display responsive modal preview shell
-            let viewerModal = document.getElementById('calzada360ViewerModal');
-            if (!viewerModal) {
-                viewerModal = document.createElement('div');
-                viewerModal.id = 'calzada360ViewerModal';
-                viewerModal.className = 'calzada-360-modal-overlay';
-                viewerModal.innerHTML = `
-                <div class="calzada-360-modal-container">
-                    <div class="calzada-360-modal-header">
-                        <div class="calzada-360-modal-title">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="9"/>
-                                <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                                <path d="M11.5 3a17 17 0 0 1 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                            </svg>
-                            <span id="calzada360ModalNodeText">360° Photosphere Viewer</span>
-                        </div>
-                        <button type="button" class="calzada-360-close-btn" id="calzada360CloseBtn" aria-label="Close 360 Viewer">&times;</button>
-                    </div>
-                    <div class="calzada-360-preview-viewport" id="calzada360Viewport">
-                        <img id="calzada360ModalImg" alt="360 Photosphere" class="calzada-360-full-img" />
-                        <div class="calzada-360-status-pill" id="calzada360StatusPill">
-                            <span class="calzada-360-pulse-dot"></span>
-                            <span id="calzada360PillText">Node: ${nodeId}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-                document.body.appendChild(viewerModal);
-
-                const closeBtn = document.getElementById('calzada360CloseBtn');
-                if (closeBtn) {
-                    closeBtn.onclick = () => viewerModal.classList.remove('active');
-                }
-                viewerModal.onclick = (e) => {
-                    if (e.target === viewerModal) viewerModal.classList.remove('active');
-                };
-
-                window.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && viewerModal.classList.contains('active')) {
-                        viewerModal.classList.remove('active');
-                    }
-                });
-            }
-
-            const modalImg = document.getElementById('calzada360ModalImg');
-            const nodeText = document.getElementById('calzada360ModalNodeText');
-            const pillText = document.getElementById('calzada360PillText');
-            const photoFilename = `${nodeId.replace('_', ', ')}.jpg`;
-            const photoUrl = `../assets/360/${encodeURIComponent(photoFilename)}`;
-
-            if (modalImg) modalImg.src = photoUrl;
-            if (nodeText) nodeText.textContent = `360° Photosphere · ${nodeId}`;
-            if (pillText) pillText.textContent = `Node: ${nodeId}`;
-
-            viewerModal.classList.add('active');
-        };
-
 
         // Category Filter Segmented Control & Contextual Clear Logic
         const categoryBar = document.getElementById('mapCategoryBar');
@@ -1633,6 +1484,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
+                // Count badge on the active chip ("Malls 3")
+                segments.forEach(btn => {
+                    const badge = btn.querySelector('.czc-count');
+                    if (badge && btn !== activeChip) badge.remove();
+                });
+                if (activeChip) {
+                    let badge = activeChip.querySelector('.czc-count');
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'czc-count';
+                        activeChip.appendChild(badge);
+                    }
+                    badge.textContent = String(getCategoryPlaces(category).length);
+                }
+
                 if (activeChip) {
                     moveHighlightTo(activeChip);
                     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1674,6 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setCategoryActive('none');
                 });
             }
+            window._calzadaClearCategory = () => setCategoryActive('none');
         }
 
         // Initial load: do NOT render any category markers on the map
