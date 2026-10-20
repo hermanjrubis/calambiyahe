@@ -308,17 +308,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return null;
         };
 
-        const isV2 = typeof window.CalzadaMapV2 !== 'undefined' && typeof window.CalzadaMapV2.isV2Enabled === 'function' && window.CalzadaMapV2.isV2Enabled();
+        try { localStorage.removeItem('calzada_mapstyle'); } catch (_) {}
 
         const map = new maplibregl.Map({
             container: 'map',
-            style: isV2 ? '/map/calzada-v2.json' : 'https://tiles.openfreemap.org/styles/liberty',
+            style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [121.1652, 14.2117], // Calamba coordinates [lng, lat]
             zoom: 13,
             dragRotate: true,
-            touchPitch: isV2,
-            pitchWithRotate: isV2,
-            maxPitch: isV2 ? 60 : 0,
+            touchPitch: false,
+            pitchWithRotate: false,
+            maxPitch: 0,
             preserveDrawingBuffer: true,
             canvasContextAttributes: {
                 preserveDrawingBuffer: true
@@ -374,15 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', () => map.resize());
         setTimeout(() => map.resize(), 0);
         setTimeout(() => map.resize(), 200);
-        map.on('load', () => {
-            map.resize();
-            if (isV2 && typeof window.CalzadaMapV2 !== 'undefined' && typeof window.CalzadaMapV2.init === 'function') {
-                const placesData = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length)
-                    ? window.FALLBACK_PLACES
-                    : ((typeof CALAMBA_PLACES_FALLBACK !== 'undefined' && Array.isArray(CALAMBA_PLACES_FALLBACK)) ? CALAMBA_PLACES_FALLBACK : []);
-                window.CalzadaMapV2.init(map, placesData);
-            }
-        });
+        map.on('load', () => map.resize());
 
         // GeoJSON Route line layers setup
         const getRouteInsertionBeforeId = () => {
@@ -1307,7 +1299,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function renderPlacesOnMap(places) {
-            if (isV2) return;
             // Clear existing markers
             categoryMarkers.forEach(m => m.remove());
             categoryMarkers = [];
@@ -1405,12 +1396,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         async function renderCategoryPlaces(selectedCategory = 'none') {
-            if (isV2) {
-                if (typeof window.CalzadaMapV2 !== 'undefined' && typeof window.CalzadaMapV2.filterByCategory === 'function') {
-                    window.CalzadaMapV2.filterByCategory(selectedCategory);
-                }
-                return;
-            }
             categoryMarkers.forEach(m => m.remove());
             categoryMarkers = [];
 
