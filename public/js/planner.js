@@ -505,7 +505,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 pendingRouteData[sourceId] = coordsLngLat;
                 return;
             }
-            if (!coordsLngLat || coordsLngLat.length < 2) {
+            if (!coordsLngLat || coordsLngLat.length === 0) {
+                src.setData({ type: 'FeatureCollection', features: [] });
+            } else if (coordsLngLat.type === 'FeatureCollection' || coordsLngLat.type === 'Feature') {
+                src.setData(coordsLngLat);
+            } else if (Array.isArray(coordsLngLat) && Array.isArray(coordsLngLat[0]) && Array.isArray(coordsLngLat[0][0])) {
+                src.setData({
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'MultiLineString',
+                        coordinates: coordsLngLat
+                    }
+                });
+            } else if (coordsLngLat.length < 2) {
                 src.setData({ type: 'FeatureCollection', features: [] });
             } else {
                 src.setData({
@@ -2600,6 +2613,7 @@ document.addEventListener('DOMContentLoaded', () => {
             transitRouteGeojson = null;
             window.walkRouteGeojson = null;
             window.transitRouteGeojson = null;
+            window.finalWalkRouteGeojson = null;
             window.activeRouteSteps = [];
             window.currentStepIndex = 0;
 
@@ -2931,6 +2945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 transitRouteGeojson = { coordinates: [], distance: 0, duration: 0, steps: [] };
                 window.walkRouteGeojson = walkRouteGeojson;
                 window.transitRouteGeojson = transitRouteGeojson;
+                window.finalWalkRouteGeojson = null;
 
                 // OSRM measures from the road points it snapped to, so add the on-foot gaps
                 // from the origin to the route start and from the route end to the destination.
@@ -3061,6 +3076,141 @@ document.addEventListener('DOMContentLoaded', () => {
                 tRes = earlierBoarding.transit;
             }
 
+            // ALIGHTING POINT + FINAL WALK
+            // Jeepneys stay on their road. Find the LAST step of tRes for which isJeepneyRoadStep(step) is true.
+            // The alighting point = the last coordinate of that step's geometry (where the car route leaves the jeepney road).
+            const tSteps = tRes.steps || [];
+            let lastJeepIdx = -1;
+            for (let i = tSteps.length - 1; i >= 0; i--) {
+                if (isJeepneyRoadStep(tSteps[i])) {
+                    lastJeepIdx = i;
+                    break;
+                }
+            }
+
+            let alightPt = null;
+            if (lastJeepIdx >= 0) {
+                const geom = tSteps[lastJeepIdx].geometry?.coordinates;
+                if (geom && geom.length > 0) {
+                    const lastC = geom[geom.length - 1]; // [lng, lat]
+                    alightPt = [lastC[1], lastC[0]];
+                } else if (tSteps[lastJeepIdx].maneuver?.location) {
+                    const loc = tSteps[lastJeepIdx].maneuver.location;
+                    alightPt = [loc[1], loc[0]];
+                }
+            }
+
+            // Distance along tRes after the alighting point to destination
+            let remainingDistM = 0;
+            if (lastJeepIdx >= 0) {
+                for (let i = lastJeepIdx + 1; i < tSteps.length; i++) {
+                    remainingDistM += (tSteps[i].distance || 0);
+                }
+                if (lastJeepIdx === tSteps.length - 1 && alightPt) {
+                    remainingDistM = getHaversineDist(alightPt[0], alightPt[1], dPt[0], dPt[1]) * 1000;
+                }
+            }
+
+            // If remaining distance along tRes <= 60 m, or no jeepney-road step exists after boarding,
+            // keep today's behavior (no final walk).
+            if (lastJeepIdx < 0 || !alightPt || remainingDistM <= 60) {
+                tRes.finalWalk = null;
+                window.finalWalkRouteGeojson = null;
+            } else {
+                // Trim tRes to end at the alighting point: coordinates, steps (drop steps after it),
+                // distance and duration recomputed from the kept part.
+                let cutIdx = 0;
+                let minD = Infinity;
+                for (let i = 0; i < tRes.coordinates.length; i++) {
+                    const d = getHaversineDist(alightPt[0], alightPt[1], tRes.coordinates[i][0], tRes.coordinates[i][1]) * 1000;
+                    if (d < minD) {
+                        minD = d;
+                        cutIdx = i;
+                    }
+                }
+                const trimmedCoords = tRes.coordinates.slice(0, cutIdx + 1);
+                if (trimmedCoords.length === 0 || getHaversineDist(trimmedCoords[trimmedCoords.length - 1][0], trimmedCoords[trimmedCoords.length - 1][1], alightPt[0], alightPt[1]) * 1000 > 1) {
+                    trimmedCoords.push(alightPt);
+                } else {
+                    trimmedCoords[trimmedCoords.length - 1] = alightPt;
+                }
+
+                const keptSteps = tSteps.slice(0, lastJeepIdx + 1);
+                const alightRoadName = (keptSteps[lastJeepIdx]?.name || 'National Highway').trim() || 'National Highway';
+                keptSteps.push({
+                    name: alightRoadName,
+                    stopName: alightRoadName,
+                    distance: 0,
+                    duration: 0,
+                    maneuver: {
+                        type: 'arrive',
+                        modifier: '',
+                        location: [alightPt[1], alightPt[0]]
+                    },
+                    mode: 'driving'
+                });
+
+                let keptDist = 0;
+                let keptDur = 0;
+                let hasStepDur = true;
+                for (let i = 0; i <= lastJeepIdx; i++) {
+                    keptDist += (tSteps[i].distance || 0);
+                    if (typeof tSteps[i].duration === 'number' && tSteps[i].duration > 0) {
+                        keptDur += tSteps[i].duration;
+                    } else {
+                        hasStepDur = false;
+                    }
+                }
+                if (!hasStepDur || keptDur <= 0) {
+                    const origDist = tRes.distance || keptDist || 1;
+                    keptDur = (keptDist / origDist) * (tRes.duration || 60);
+                }
+
+                tRes.coordinates = trimmedCoords;
+                tRes.steps = keptSteps;
+                tRes.distance = Math.max(50, keptDist);
+                tRes.duration = Math.max(30, keptDur);
+
+                // Fetch foot route alighting point -> destination with fetchOSRMRouteCoords(..., 'foot')
+                let fwRes = null;
+                try {
+                    fwRes = await fetchOSRMRouteCoords(alightPt, dPt, 'foot');
+                } catch (e) {
+                    console.error('Final walk OSRM error:', e);
+                }
+
+                if (!fwRes || !fwRes.coordinates || fwRes.coordinates.length < 2) {
+                    const haversineM = getHaversineDist(alightPt[0], alightPt[1], dPt[0], dPt[1]) * 1000;
+                    const fwDistM = Math.max(10, Math.round(haversineM * 1.3));
+                    const fwDurSec = Math.max(30, (fwDistM / 1000 / WALK_SPEED_KPH) * 3600);
+                    fwRes = {
+                        coordinates: [alightPt, dPt],
+                        distance: fwDistM,
+                        duration: fwDurSec,
+                        approximate: true,
+                        steps: [
+                            {
+                                name: destPlaceName || 'Destination',
+                                distance: fwDistM,
+                                duration: fwDurSec,
+                                maneuver: { type: 'depart', modifier: '', location: [alightPt[1], alightPt[0]] },
+                                mode: 'foot'
+                            },
+                            {
+                                name: destPlaceName || 'Destination',
+                                distance: 0,
+                                duration: 0,
+                                maneuver: { type: 'arrive', modifier: '', location: [dPt[1], dPt[0]] },
+                                mode: 'foot'
+                            }
+                        ]
+                    };
+                }
+
+                tRes.finalWalk = fwRes;
+                window.finalWalkRouteGeojson = fwRes;
+            }
+
             walkRouteGeojson = wRes;
             transitRouteGeojson = tRes;
             window.walkRouteGeojson = walkRouteGeojson;
@@ -3084,12 +3234,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             currentFare = computeLTFRBFare(currentTransitDist);
 
-            drawRoutes(wRes.coordinates, tRes.coordinates);
+            drawRoutes(wRes.coordinates, tRes.coordinates, tRes.finalWalk?.coordinates);
 
             // Populate Guide turn-by-turn steps immediately for Jeepney multi-leg
             const walkStepsClean = (wRes.steps || []).map(s => ({ ...s, mode: 'foot' }));
             const transitStepsClean = (tRes.steps || []).map(s => ({ ...s, mode: 'driving' }));
-            window.activeRouteSteps = deduplicateSteps([...walkStepsClean, ...transitStepsClean]);
+            const finalWalkClean = (tRes.finalWalk?.steps || []).map(s => ({ ...s, mode: 'foot' }));
+            window.activeRouteSteps = deduplicateSteps([...walkStepsClean, ...transitStepsClean, ...finalWalkClean]);
             window.currentStepIndex = 0;
             updateGuideStepsUI();
 
@@ -3377,17 +3528,32 @@ document.addEventListener('DOMContentLoaded', () => {
         // The route layers are created on load, after a route that arrived early was drawn
         map.on('load', applyRouteLineColors);
 
-        const drawRoutes = (walkCoords, transitCoords) => {
+        const drawRoutes = (walkCoords, transitCoords, finalWalkCoords) => {
             if (midpointBubbleMarker) { midpointBubbleMarker.remove(); midpointBubbleMarker = null; }
             if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
 
             const isWalkOnly = selectedMode === 'walking';
+            if (!finalWalkCoords && !isWalkOnly && (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates)) {
+                finalWalkCoords = transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates;
+            }
 
             const safeWalkCoords = (walkCoords && walkCoords.length >= 2) ? walkCoords : (walkCoords && walkCoords.length === 1 ? [walkCoords[0], walkCoords[0]] : []);
             const walkLngLat = safeWalkCoords.map(c => [c[1], c[0]]);
             const transitLngLat = (transitCoords && transitCoords.length > 0) ? transitCoords.map(c => [c[1], c[0]]) : [];
+            const finalWalkLngLat = (finalWalkCoords && finalWalkCoords.length >= 2 && !isWalkOnly)
+                ? finalWalkCoords.map(c => [c[1], c[0]])
+                : [];
 
-            updateRouteSource('walk-route', walkLngLat);
+            let walkRouteData = walkLngLat;
+            if (finalWalkLngLat.length >= 2) {
+                if (walkLngLat.length >= 2) {
+                    walkRouteData = [walkLngLat, finalWalkLngLat];
+                } else {
+                    walkRouteData = finalWalkLngLat;
+                }
+            }
+
+            updateRouteSource('walk-route', walkRouteData);
             updateRouteSource('transit-route', isWalkOnly ? [] : transitLngLat);
             updateRouteSource('completed-route', []);
             applyRouteLineColors();
@@ -3404,7 +3570,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const midNode = transitCoords[Math.floor(transitCoords.length / 2)];
                 const bubbleEl = document.createElement('div');
                 bubbleEl.className = 'custom-mid-bubble';
-                bubbleEl.innerHTML = `<div class="route-bubble">${currentWalkDur + currentTransitDur} min</div>`;
+                const fwInfo = getFinalWalkInfo();
+                const totalBubbleMin = currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0);
+                bubbleEl.innerHTML = `<div class="route-bubble">${totalBubbleMin} min</div>`;
                 midpointBubbleMarker = new maplibregl.Marker({ element: bubbleEl, anchor: 'center' })
                     .setLngLat(toLngLat(midNode));
                 if (directionsCard.classList.contains('collapsed')) {
@@ -3432,7 +3600,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const pathEndPt = (transitCoords && transitCoords.length > 0) ? transitCoords[transitCoords.length - 1] : (safeWalkCoords && safeWalkCoords.length > 0 ? safeWalkCoords[safeWalkCoords.length - 1] : null);
+            const pathEndPt = (finalWalkCoords && finalWalkCoords.length > 0)
+                ? finalWalkCoords[finalWalkCoords.length - 1]
+                : ((transitCoords && transitCoords.length > 0) ? transitCoords[transitCoords.length - 1] : (safeWalkCoords && safeWalkCoords.length > 0 ? safeWalkCoords[safeWalkCoords.length - 1] : null));
             if (selectedCoords.destination && pathEndPt) {
                 const endDistM = getHaversineDist(pathEndPt[0], pathEndPt[1], selectedCoords.destination[0], selectedCoords.destination[1]) * 1000;
                 if (endDistM > 10) {
@@ -3456,6 +3626,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedCoords.origin) bounds.extend(toLngLat(selectedCoords.origin));
             if (selectedCoords.destination) bounds.extend(toLngLat(selectedCoords.destination));
             walkLngLat.forEach(pt => bounds.extend(pt));
+            if (finalWalkLngLat.length) finalWalkLngLat.forEach(pt => bounds.extend(pt));
             transitLngLat.forEach(pt => bounds.extend(pt));
             if (!bounds.isEmpty()) {
                 fitRoutePreviewBounds(300);
@@ -3606,7 +3777,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let boardAt = tSteps.length > 0 ? (tSteps[0]?.name || highwayName) : highwayName;
             const alightStep = tSteps.length > 1
                 ? tSteps.slice(0, -1).reverse().find(s => s.name && s.name !== '') : null;
-            let alightAt = alightStep?.name || destName;
+            let alightAt = (finalWalkInfo.finalWalkM > 0)
+                ? (alightStep?.name || tSteps[0]?.name || highwayName)
+                : (alightStep?.name || destName);
 
             // Route signboard (ONLY if route data has one; never invent one)
             const signboardName = transitRouteGeojson?.signboard
@@ -4085,10 +4258,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!isWalkOnly) {
                 const tSteps = transitRouteGeojson?.steps || [];
-                const boardAt = tSteps.length > 0 ? (tSteps[0]?.name || highwayName) : highwayName;
+                const boardAt = lastItineraryStops?.boardAt || (tSteps.length > 0 ? (tSteps[0]?.name || highwayName) : highwayName);
                 const alightStep = tSteps.length > 1
                     ? tSteps.slice(0, -1).reverse().find(s => s.name && s.name !== '') : null;
-                const alightAt = alightStep?.name || destPlaceName || 'Destination';
+                const alightAt = lastItineraryStops?.alightAt || alightStep?.name || destPlaceName || 'Destination';
 
                 html += `
                 <div class="nav-leg-item">
@@ -4103,6 +4276,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
                 legCount = 2;
+
+                if (lastItineraryStops?.finalWalkM > 0) {
+                    const fwM = lastItineraryStops.finalWalkM;
+                    const fwMin = lastItineraryStops.finalWalkMin;
+                    html += `
+                    <div class="nav-leg-item">
+                        <div class="nav-leg-icon-circle">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                            </svg>
+                        </div>
+                        <div class="nav-leg-info">
+                            <div class="nav-leg-title">Walk to ${escapeHtml(destPlaceName || 'Destination')}</div>
+                            <div class="nav-leg-meta">${fmtM(fwM)} · ${fwMin} min</div>
+                        </div>
+                        <div class="nav-leg-fare">Free</div>
+                    </div>
+                    `;
+                    legCount = 3;
+                }
             }
 
             listEl.innerHTML = html;
@@ -4244,7 +4437,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Populate route steps immediately (desktop Next Step + mobile Guide)
                 const walkStepsClean = (walkRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'foot' }));
                 const transitStepsClean = (transitRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'driving' }));
-                const combinedSteps = [...walkStepsClean, ...transitStepsClean];
+                const finalWalkClean = ((transitRouteGeojson?.finalWalk?.steps || window.finalWalkRouteGeojson?.steps) || []).map(s => ({ ...s, mode: 'foot' }));
+                const combinedSteps = [...walkStepsClean, ...transitStepsClean, ...finalWalkClean];
                 if (combinedSteps.length > 0) {
                     window.activeRouteSteps = deduplicateSteps(combinedSteps);
                 }
@@ -4254,7 +4448,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Ensure ETA, duration, and fare displays are populated IMMEDIATELY
-                cachedRemainingSeconds = (currentWalkDur + currentTransitDur) * 60;
+                const fwInfo = getFinalWalkInfo();
+                cachedRemainingSeconds = (currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0)) * 60;
                 syncNavDisplays();
             } catch (err) { console.error('[startActiveJourneyUI] syncNavDisplays failed:', err); }
 
@@ -4770,7 +4965,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!navigator.geolocation) return;
 
             activeLegIndex = 0;
-            trackedCoordinates = (walkRouteGeojson?.coordinates || []).concat(transitRouteGeojson?.coordinates || []);
+            const fwCoords = transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates || [];
+            trackedCoordinates = (walkRouteGeojson?.coordinates || []).concat(transitRouteGeojson?.coordinates || []).concat(fwCoords);
             completedCoords = [];
             lastMovementTimestamp = Date.now();
             lastValidPosition = null;
@@ -4783,14 +4979,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const walkStepsClean = (walkRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'foot' }));
             const transitStepsClean = (transitRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'driving' }));
-            const combinedSteps = [...walkStepsClean, ...transitStepsClean];
+            const finalWalkClean = ((transitRouteGeojson?.finalWalk?.steps || window.finalWalkRouteGeojson?.steps) || []).map(s => ({ ...s, mode: 'foot' }));
+            const combinedSteps = [...walkStepsClean, ...transitStepsClean, ...finalWalkClean];
             if (combinedSteps.length > 0) {
                 window.activeRouteSteps = deduplicateSteps(combinedSteps);
             }
             window.currentStepIndex = 0;
             updateGuideStepsUI();
 
-            cachedRemainingSeconds = (currentWalkDur + currentTransitDur) * 60;
+            const fwInfo = getFinalWalkInfo();
+            cachedRemainingSeconds = (currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0)) * 60;
             syncNavDisplays();
 
             // FIX ∗4: Always clear before starting, prevents duplicate intervals on session recovery
@@ -5322,7 +5520,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 startedAt,
                 arrivedAt,
                 durationMin: startedAt != null ? Math.max(1, Math.round((arrivedAt - startedAt) / 60000)) : null,
-                estimatedMin: Math.round(currentWalkDur + currentTransitDur),
+                estimatedMin: Math.round(currentWalkDur + currentTransitDur + (stops.finalWalkMin || 0)),
                 distanceKm: roundTo(legs.reduce((sum, l) => sum + l.distanceKm, 0), 1),
                 fare: legs.reduce((sum, l) => sum + l.fare, 0),
                 mode: walkOnly ? 'walk' : 'jeepney',

@@ -1,5 +1,5 @@
 /**
- * Calzada Route PDF Exporter (Offline Route Export) v1.0.6
+ * Calzada Route PDF Exporter (Offline Route Export) v1.0.7
  * 
  * Generates an A4 portrait PDF for a planned route on the planner.
  * Works entirely client-side on the device; nothing is uploaded.
@@ -1089,7 +1089,7 @@
         return rowsHtml;
     }
 
-    function buildDirectionsList(routeData, startIndex = 0) {
+    function buildDirectionsList(routeData, startIndex = 0, rowGap = 6) {
         const steps = routeData.activeRouteSteps || [];
         if (!steps || steps.length === 0) {
             return '<div style="font-size: 11px; color: #5B6B7C;">No step-by-step directions available.</div>';
@@ -1135,9 +1135,10 @@
 
             const distStr = step.distance ? fmtDist(step.distance) : '';
             const stepNum = (startIndex || 0) + idx + 1;
+            const mb = isLast ? 0 : Math.max(6, rowGap != null ? rowGap : 6);
 
             return `
-                <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 5px; font-size: 11px; line-height: 1.35;">
+                <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: ${mb}px; font-size: 11px; line-height: 1.35;">
                     <span style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; background: #F1F5F9; color: #0E2A47; font-size: 9.5px; font-weight: 700; flex-shrink: 0;">${stepNum}</span>
                     <span style="color: #0E2A47; flex-grow: 1;">${escapeHtml(text)}</span>
                     ${distStr ? `<span style="color: #64748B; font-size: 10px; font-weight: 500; flex-shrink: 0;">${escapeHtml(distStr)}</span>` : ''}
@@ -1467,9 +1468,169 @@
         } catch (_) {}
 
         // Measure / Paginate
-        // Requirement: Put map on its own page (page 1: header + summary + map; page 2+: legs timeline and step-by-step)
+        // Measure / Paginate
+        // Fill pages by measured height, not a fixed count.
         const steps = routeData.activeRouteSteps || [];
         const pageConfigs = [];
+
+        // Dynamic height measurement and packing helper
+        function paginateContinuationSteps(allSteps, hasTimelineOnP2) {
+            if (!allSteps || allSteps.length === 0) return [];
+
+            const measureBox = document.createElement('div');
+            measureBox.style.cssText = 'position:fixed;left:-9999px;top:0;width:710px;visibility:hidden;box-sizing:border-box;font-family:\'Outfit\',\'Sora\',-apple-system,sans-serif;line-height:1.35;';
+            document.body.appendChild(measureBox);
+
+            let headerHeight = 74;
+            let timelineHeight = 0;
+            let dirOverhead = 43;
+            const stepHeights = [];
+
+            try {
+                // Measure continuation header
+                measureBox.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #378ADD; padding-bottom: 12px; margin-bottom: 14px;">
+                        <div>
+                            <div class="pdf-logo-box" style="height: 30px; display: inline-block; margin-bottom: 5px;"></div>
+                            <div style="font-size: 18px; font-weight: 700; color: #0E2A47; font-family: 'Sora', sans-serif;">
+                                ${escapeHtml(routeTitle)} <span style="font-size: 14px; font-weight: 500; color: #5B6B7C;">(${isTl ? 'Itutuloy' : 'Continued'})</span>
+                            </div>
+                        </div>
+                        <div style="text-align: right; font-size: 10.5px; color: #5B6B7C; padding-top: 4px;">
+                            <div style="font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; font-size: 9.5px; margin-bottom: 2px;">
+                                ${isTl ? 'GABAY SA RUTA (OFFLINE)' : 'OFFLINE ROUTE GUIDE'}
+                            </div>
+                            <div>${escapeHtml(generatedDateText)}</div>
+                        </div>
+                    </div>
+                `;
+                if (measureBox.firstElementChild) {
+                    headerHeight = Math.ceil(measureBox.firstElementChild.getBoundingClientRect().height) + 14;
+                }
+
+                if (hasTimelineOnP2 && timelineRowsHtml) {
+                    measureBox.innerHTML = `
+                        <div style="margin-bottom: 14px;">
+                            <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+                                ${isTl ? 'TIMELINE NG BYAHE' : 'TRIP LEGS TIMELINE'}
+                            </div>
+                            <div style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; background: #FFFFFF;">
+                                ${timelineRowsHtml}
+                            </div>
+                        </div>
+                    `;
+                    if (measureBox.firstElementChild) {
+                        timelineHeight = Math.ceil(measureBox.firstElementChild.getBoundingClientRect().height) + 14;
+                    }
+                }
+
+                measureBox.innerHTML = `
+                    <div style="margin-bottom: 10px;">
+                        <div style="font-size: 11px; font-weight: 700; color: #0E2A47; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+                            ${isTl ? 'MGA HAKBANG SA DIREKSYON' : 'STEP-BY-STEP DIRECTIONS'}
+                        </div>
+                        <div id="measureStepsBox" style="border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 12px; background: #FFFFFF;"></div>
+                    </div>
+                `;
+                if (measureBox.firstElementChild) {
+                    dirOverhead = Math.ceil(measureBox.firstElementChild.getBoundingClientRect().height);
+                }
+
+                const sBox = measureBox.querySelector('#measureStepsBox');
+                for (let i = 0; i < allSteps.length; i++) {
+                    sBox.innerHTML = buildDirectionsList({ ...routeData, activeRouteSteps: [allSteps[i]] }, i, 0);
+                    const rowEl = sBox.firstElementChild;
+                    stepHeights.push(rowEl ? Math.ceil(rowEl.getBoundingClientRect().height) : 22);
+                }
+            } catch (_) {
+                for (let i = stepHeights.length; i < allSteps.length; i++) {
+                    stepHeights.push(22);
+                }
+            } finally {
+                measureBox.remove();
+            }
+
+            // Usable content area height: 1123 - 34 (top pad) - 28 (bottom pad) - 34 (footer area) = 1027px
+            const maxContentHeight = 1022;
+            const p2Avail = maxContentHeight - headerHeight - timelineHeight - dirOverhead;
+            const nextAvail = maxContentHeight - headerHeight - dirOverhead;
+
+            const DEFAULT_GAP = 8;
+            const MIN_GAP = 6;
+
+            const calcHeight = (startIdx, len, gap) => {
+                let h = 0;
+                for (let j = 0; j < len; j++) {
+                    h += stepHeights[startIdx + j];
+                }
+                h += Math.max(0, len - 1) * gap;
+                return h;
+            };
+
+            const chunks = [];
+            let curIdx = 0;
+            let pageNum = 0;
+
+            while (curIdx < allSteps.length) {
+                const availH = (pageNum === 0) ? p2Avail : nextAvail;
+                const rem = allSteps.length - curIdx;
+
+                // How many steps fit with DEFAULT_GAP
+                let count = 0;
+                for (let c = 1; c <= rem; c++) {
+                    if (calcHeight(curIdx, c, DEFAULT_GAP) <= availH) {
+                        count = c;
+                    } else {
+                        break;
+                    }
+                }
+                if (count === 0) count = 1;
+
+                let usedGap = DEFAULT_GAP;
+                const overflow = rem - count;
+
+                // Never leave a single orphan row or the last 1–2 rows alone on a new page
+                // if they fit by reducing the gap between rows to the minimum (6px).
+                if (overflow > 0 && overflow <= 2) {
+                    const testCount = count + overflow;
+                    if (calcHeight(curIdx, testCount, MIN_GAP) <= availH) {
+                        count = testCount;
+                        usedGap = MIN_GAP;
+                    }
+                }
+
+                // If some rows remain, test if reducing gap to MIN_GAP fits more rows or all remaining
+                if (count < rem && usedGap === DEFAULT_GAP) {
+                    for (let c = count + 1; c <= rem; c++) {
+                        if (calcHeight(curIdx, c, MIN_GAP) <= availH) {
+                            count = c;
+                            usedGap = MIN_GAP;
+                        } else {
+                            break;
+                        }
+                    }
+                    const newOverflow = rem - count;
+                    if (newOverflow > 0 && newOverflow <= 2) {
+                        const testCount = count + newOverflow;
+                        if (calcHeight(curIdx, testCount, MIN_GAP) <= availH) {
+                            count = testCount;
+                            usedGap = MIN_GAP;
+                        }
+                    }
+                }
+
+                chunks.push({
+                    steps: allSteps.slice(curIdx, curIdx + count),
+                    startIndex: curIdx,
+                    gap: usedGap
+                });
+
+                curIdx += count;
+                pageNum++;
+            }
+
+            return chunks;
+        }
 
         if (mapSnapshotDataUrl) {
             const p1MapHeight = (mapSnapshotWidth && mapSnapshotHeight)
@@ -1499,71 +1660,58 @@
             });
 
             // Page 2+: Directions (and Timeline if not on Page 1)
-            const p2StepLimit = p2TimelineHtml ? 10 : 15;
-            if (steps.length <= p2StepLimit) {
-                pageConfigs.push({
-                    isContinuation: true,
-                    mapSnapshotDataUrl: null,
-                    timelineRowsHtml: p2TimelineHtml,
-                    directionsListHtml: buildDirectionsList(routeData, 0),
-                    steps: steps
-                });
-            } else {
-                const p2Steps = steps.slice(0, p2StepLimit);
-                pageConfigs.push({
-                    isContinuation: true,
-                    mapSnapshotDataUrl: null,
-                    timelineRowsHtml: p2TimelineHtml,
-                    directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: p2Steps }, 0),
-                    steps: p2Steps
-                });
-                let remSteps = steps.slice(p2StepLimit);
-                let curIdx = p2StepLimit;
-                while (remSteps.length > 0) {
-                    const chunk = remSteps.slice(0, 15);
-                    remSteps = remSteps.slice(15);
+            const chunks = paginateContinuationSteps(steps, !!p2TimelineHtml);
+            if (chunks.length === 0) {
+                if (p2TimelineHtml) {
                     pageConfigs.push({
                         isContinuation: true,
                         mapSnapshotDataUrl: null,
-                        timelineRowsHtml: '',
-                        directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: chunk }, curIdx),
-                        steps: chunk
+                        timelineRowsHtml: p2TimelineHtml,
+                        directionsListHtml: '',
+                        steps: []
                     });
-                    curIdx += chunk.length;
+                }
+            } else {
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunk = chunks[i];
+                    pageConfigs.push({
+                        isContinuation: true,
+                        mapSnapshotDataUrl: null,
+                        timelineRowsHtml: (i === 0) ? p2TimelineHtml : '',
+                        directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: chunk.steps }, chunk.startIndex, chunk.gap),
+                        steps: chunk.steps
+                    });
                 }
             }
         } else {
             // No map snapshot available
-            if (steps.length <= 8) {
+            const chunks = paginateContinuationSteps(steps, false);
+            if (chunks.length === 0) {
                 pageConfigs.push({
                     isContinuation: false,
                     mapSnapshotDataUrl: null,
                     timelineRowsHtml: timelineRowsHtml,
-                    directionsListHtml: buildDirectionsList({ activeRouteSteps: steps, startIndex: 0 }),
-                    steps: steps
+                    directionsListHtml: '',
+                    steps: []
                 });
             } else {
-                const p1Steps = steps.slice(0, 6);
+                // First chunk on Page 1 with summary and timeline
                 pageConfigs.push({
                     isContinuation: false,
                     mapSnapshotDataUrl: null,
                     timelineRowsHtml: timelineRowsHtml,
-                    directionsListHtml: buildDirectionsList({ activeRouteSteps: p1Steps, startIndex: 0 }),
-                    steps: p1Steps
+                    directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: chunks[0].steps }, chunks[0].startIndex, chunks[0].gap),
+                    steps: chunks[0].steps
                 });
-                let remSteps = steps.slice(6);
-                let curIdx = 6;
-                while (remSteps.length > 0) {
-                    const chunk = remSteps.slice(0, 15);
-                    remSteps = remSteps.slice(15);
+                for (let i = 1; i < chunks.length; i++) {
+                    const chunk = chunks[i];
                     pageConfigs.push({
                         isContinuation: true,
                         mapSnapshotDataUrl: null,
                         timelineRowsHtml: '',
-                        directionsListHtml: buildDirectionsList({ activeRouteSteps: chunk, startIndex: curIdx }),
-                        steps: chunk
+                        directionsListHtml: buildDirectionsList({ ...routeData, activeRouteSteps: chunk.steps }, chunk.startIndex, chunk.gap),
+                        steps: chunk.steps
                     });
-                    curIdx += chunk.length;
                 }
             }
         }
