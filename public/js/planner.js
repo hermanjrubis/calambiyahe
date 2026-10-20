@@ -1139,7 +1139,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Coffee Shops
             { id: 'krav-cafe', name: 'Krav Cafe', category: 'coffee', full_address: 'Calamba City, Laguna', image_path: '../assets/places/krav-cafe/krav-cafe-1.webp' },
             // Establishments
-            { id: 'd-and-q', name: 'D & Q', category: 'establishments', full_address: 'Calamba City, Laguna', image_path: '../assets/places/d-and-q/d-and-q-1.webp' },
+            { id: 'd-and-q', name: 'D & A', category: 'establishments', full_address: 'Calamba City, Laguna', image_path: '../assets/places/d-and-q/d-and-q-1.webp' },
             { id: 'morales-bercasio', name: 'Morales Bercasio', category: 'establishments', full_address: 'Calamba City, Laguna', image_path: '../assets/places/morales-bercasio/morales-bercasio-1.webp' },
         ];
 
@@ -7051,6 +7051,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         "colegio de san juan de letran – calamba": "letran-calamba",
                         "letran calamba": "letran-calamba",
                         "creekside halang": "creekside-halang",
+                        "d & a": "d-and-q",
                         "d & q": "d-and-q",
                         "d and q": "d-and-q",
                         "d' fresco": "d-fresco",
