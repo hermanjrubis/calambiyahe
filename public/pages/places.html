@@ -631,6 +631,7 @@
     <script src="../js/i18n.js?v=2.8.7"></script>
     <script src="../js/places-shared.js?v=2.6.9"></script>
     <script src="../js/header-autohide.js?v=1.0.0"></script>
+    <script src="../js/fast-tap.js?v=1.0.0"></script>
     <script>
         // Temporary on-device tap logger behind ?debugtaps=1
         (function initDebugTaps() {
@@ -656,12 +657,20 @@
                 }
 
                 const lines = [];
+                let renderTimer = null;
+                function scheduleRender() {
+                    clearTimeout(renderTimer);
+                    renderTimer = setTimeout(() => {
+                        container.textContent = lines.join('\n');
+                    }, 800);
+                }
+
                 window.__debugTapLog = function(msg) {
                     const d = new Date();
                     const time = d.toTimeString().substring(0, 8) + '.' + (d.getMilliseconds()).toString().padStart(3, '0');
                     lines.push(`[${time}] ${msg}`);
                     if (lines.length > 8) lines.shift();
-                    container.textContent = lines.join('\n');
+                    scheduleRender();
                 };
 
                 function getTargetDesc(target) {
@@ -963,6 +972,21 @@
                 };
             }
 
+            function handleCardOpen(e, targetEl) {
+                const card = targetEl || (e && e.target && e.target.closest('.ref-card'));
+                if (!card) return;
+                const name = card.getAttribute('data-name');
+                if (!name) return;
+                const placeLat = card.getAttribute('data-lat');
+                const placeLng = card.getAttribute('data-lng');
+                const isPointer = (e && (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen' || e.detail > 0));
+                window._lastOpenedByKeyboard = !isPointer;
+                window._lastFocusedPlaceCard = card;
+                if (typeof window.openPlacePanel === 'function') {
+                    window.openPlacePanel(name, placeLat, placeLng);
+                }
+            }
+
             // Render places array into .places-grid
             function renderPlaces(places, searchTerm = '') {
                 if (!placesGrid) return;
@@ -1020,24 +1044,11 @@
                         cardEl.style.animation = '';
                     }, { once: true });
 
-                    function handleCardOpen(e) {
-                        const isPointer = (e && (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen' || e.detail > 0));
-                        window._lastOpenedByKeyboard = !isPointer;
-                        window._lastFocusedPlaceCard = cardEl;
-                        if (typeof window.openPlacePanel === 'function') {
-                            window.openPlacePanel(name, placeLat, placeLng);
-                        }
-                    }
-
-                    cardEl.addEventListener('click', (e) => handleCardOpen(e));
+                    cardEl.addEventListener('click', (e) => handleCardOpen(e, cardEl));
                     cardEl.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
                             e.preventDefault();
-                            window._lastOpenedByKeyboard = true;
-                            window._lastFocusedPlaceCard = cardEl;
-                            if (typeof window.openPlacePanel === 'function') {
-                                window.openPlacePanel(name, placeLat, placeLng);
-                            }
+                            handleCardOpen(e, cardEl);
                         }
                     });
 
@@ -1227,19 +1238,36 @@
                 });
             });
 
+            // Delegated fast-tap for place cards in grid
+            if (placesGrid && typeof window.bindTap === 'function') {
+                window.bindTap(placesGrid, '.ref-card', function(e) {
+                    handleCardOpen(e, this);
+                });
+            }
+
             // Clear query button clicks
             if (placesClearQueryBtn) {
                 placesClearQueryBtn.addEventListener('click', clearGridQuery);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(placesClearQueryBtn, clearGridQuery);
+                }
             }
             if (noResultsClearBtn) {
                 noResultsClearBtn.addEventListener('click', clearGridQuery);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(noResultsClearBtn, clearGridQuery);
+                }
             }
 
             // Mobile filter button click
+            function onMobileFilterBtn(e) {
+                handleSearchTrigger(e, placesMobileFilterBtn, { autoFocus: false });
+            }
             if (placesMobileFilterBtn) {
-                placesMobileFilterBtn.addEventListener('click', (e) => {
-                    handleSearchTrigger(e, placesMobileFilterBtn, { autoFocus: false });
-                });
+                placesMobileFilterBtn.addEventListener('click', onMobileFilterBtn);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(placesMobileFilterBtn, onMobileFilterBtn);
+                }
             }
 
             // =============================================
@@ -1309,6 +1337,7 @@
                     chip.className = 'panel-recent-chip';
                     chip.setAttribute('role', 'button');
                     chip.setAttribute('aria-label', query);
+                    chip.setAttribute('data-query', query);
 
                     const labelSpan = document.createElement('span');
                     labelSpan.textContent = query;
@@ -1319,28 +1348,30 @@
                     removeBtn.setAttribute('role', 'button');
                     removeBtn.setAttribute('tabindex', '0');
                     removeBtn.setAttribute('aria-label', `Remove ${query}`);
+                    removeBtn.setAttribute('data-query', query);
                     removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>';
 
-                    removeBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
+                    function onRemoveRecent(e) {
+                        if (e && e.stopPropagation) e.stopPropagation();
                         removeRecentSearch(query);
-                    });
-                    removeBtn.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            removeRecentSearch(query);
-                        }
-                    });
-
-                    chip.appendChild(removeBtn);
-
-                    chip.addEventListener('click', () => {
+                    }
+                    function onSelectRecent() {
                         if (headerPanelInput) {
                             headerPanelInput.value = query;
                             handlePanelInput(query);
                         }
+                    }
+
+                    removeBtn.addEventListener('click', onRemoveRecent);
+                    removeBtn.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onRemoveRecent(e);
+                        }
                     });
+
+                    chip.appendChild(removeBtn);
+                    chip.addEventListener('click', onSelectRecent);
 
                     panelRecentChips.appendChild(chip);
                 });
@@ -1349,6 +1380,25 @@
             const panelRecentChips = document.getElementById('panelRecentChips');
             if (panelClearRecentsBtn) {
                 panelClearRecentsBtn.addEventListener('click', clearAllRecentSearches);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(panelClearRecentsBtn, clearAllRecentSearches);
+                }
+            }
+
+            if (panelRecentChips && typeof window.bindTap === 'function') {
+                window.bindTap(panelRecentChips, '.recent-chip-remove', function(e) {
+                    if (e && e.stopPropagation) e.stopPropagation();
+                    const q = this.getAttribute('data-query');
+                    if (q) removeRecentSearch(q);
+                });
+                window.bindTap(panelRecentChips, '.panel-recent-chip', function(e) {
+                    if (e.target && e.target.closest('.recent-chip-remove')) return;
+                    const q = this.getAttribute('data-query');
+                    if (headerPanelInput && q) {
+                        headerPanelInput.value = q;
+                        handlePanelInput(q);
+                    }
+                });
             }
 
             function syncPanelCategoryChips() {
@@ -1373,13 +1423,20 @@
                 });
             }
 
+            function onPanelCategoryChip(chip) {
+                const cat = chip.getAttribute('data-category') || 'all';
+                closeSearchPanel({ restoreScroll: false, historyAction: 'none' });
+                selectCategory(cat, true);
+            }
+
             document.querySelectorAll('.panel-category-chip').forEach(chip => {
-                chip.addEventListener('click', () => {
-                    const cat = chip.getAttribute('data-category') || 'all';
-                    closeSearchPanel({ restoreScroll: false, historyAction: 'none' });
-                    selectCategory(cat, true);
-                });
+                chip.addEventListener('click', () => onPanelCategoryChip(chip));
             });
+            if (searchPanel && typeof window.bindTap === 'function') {
+                window.bindTap(searchPanel, '.panel-category-chip', function(e) {
+                    onPanelCategoryChip(this);
+                });
+            }
 
             function lockBodyScroll() {
                 if (window.innerWidth >= 1024) {
@@ -1525,19 +1582,40 @@
             }
 
             // Entry point triggers
+            function onHeaderSearchPill(e) {
+                handleSearchTrigger(e, headerSearchPillBtn);
+            }
+            function onHeaderSearchMobile(e) {
+                handleSearchTrigger(e, headerSearchMobileBtn);
+            }
             if (headerSearchPillBtn) {
-                headerSearchPillBtn.addEventListener('click', (e) => handleSearchTrigger(e, headerSearchPillBtn));
+                headerSearchPillBtn.addEventListener('click', onHeaderSearchPill);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(headerSearchPillBtn, onHeaderSearchPill);
+                }
             }
             if (headerSearchMobileBtn) {
-                headerSearchMobileBtn.addEventListener('click', (e) => handleSearchTrigger(e, headerSearchMobileBtn));
+                headerSearchMobileBtn.addEventListener('click', onHeaderSearchMobile);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(headerSearchMobileBtn, onHeaderSearchMobile);
+                }
             }
 
             // Cancel button & Overlay
+            function onCancelSearchPanel() {
+                closeSearchPanel({ restoreScroll: false });
+            }
             if (searchPanelCancelBtn) {
-                searchPanelCancelBtn.addEventListener('click', () => closeSearchPanel({ restoreScroll: false }));
+                searchPanelCancelBtn.addEventListener('click', onCancelSearchPanel);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(searchPanelCancelBtn, onCancelSearchPanel);
+                }
             }
             if (searchOverlay) {
-                searchOverlay.addEventListener('click', () => closeSearchPanel({ restoreScroll: false }));
+                searchOverlay.addEventListener('click', onCancelSearchPanel);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(searchOverlay, onCancelSearchPanel);
+                }
             }
 
             // Global keyboard shortcuts (Escape to close panel, '/' to open panel)
@@ -1586,25 +1664,26 @@
             }
 
             // Clear search panel input button
+            function onClearPanelInput() {
+                if (headerPanelInput) {
+                    headerPanelInput.value = '';
+                    handlePanelInput('');
+                    headerPanelInput.focus();
+                }
+            }
             if (searchPanelClearBtn) {
-                searchPanelClearBtn.addEventListener('click', () => {
-                    if (headerPanelInput) {
-                        headerPanelInput.value = '';
-                        handlePanelInput('');
-                        headerPanelInput.focus();
-                    }
-                });
+                searchPanelClearBtn.addEventListener('click', onClearPanelInput);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(searchPanelClearBtn, onClearPanelInput);
+                }
             }
 
             // "Browse by category" link in no results state
             if (panelNoResultsBrowseLink) {
-                panelNoResultsBrowseLink.addEventListener('click', () => {
-                    if (headerPanelInput) {
-                        headerPanelInput.value = '';
-                        handlePanelInput('');
-                        headerPanelInput.focus();
-                    }
-                });
+                panelNoResultsBrowseLink.addEventListener('click', onClearPanelInput);
+                if (typeof window.bindTap === 'function') {
+                    window.bindTap(panelNoResultsBrowseLink, onClearPanelInput);
+                }
             }
 
             function updateHighlightedRow() {
@@ -1705,7 +1784,7 @@
                         </div>
                     `;
 
-                    row.addEventListener('click', () => {
+                    function onSelectResultRow() {
                         saveRecentSearch(query);
                         closeSearchPanel({ restoreScroll: true, historyAction: 'replace', focusReturn: false });
                         registerPlaceInDictionary(place);
@@ -1714,7 +1793,9 @@
                             const lng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
                             window.openPlacePanel(place.name, lat, lng);
                         }
-                    });
+                    }
+                    row._onSelectRow = onSelectResultRow;
+                    row.addEventListener('click', onSelectResultRow);
 
                     searchPanelResultsList.appendChild(row);
                 });
@@ -1732,15 +1813,26 @@
                         : `See all ${matches.length} results`;
                     seeAllRow.textContent = seeAllText;
 
-                    seeAllRow.addEventListener('click', () => {
+                    function onSelectSeeAllRow() {
                         saveRecentSearch(query);
                         closeSearchPanel({ restoreScroll: false, historyAction: 'replace' });
                         setGridQuery(query);
                         scrollGridTopIntoView();
-                    });
+                    }
+                    seeAllRow._onSelectSeeAll = onSelectSeeAllRow;
+                    seeAllRow.addEventListener('click', onSelectSeeAllRow);
 
                     searchPanelResultsList.appendChild(seeAllRow);
                 }
+            }
+
+            if (searchPanelResultsList && typeof window.bindTap === 'function') {
+                window.bindTap(searchPanelResultsList, '.search-result-row', function(e) {
+                    if (typeof this._onSelectRow === 'function') this._onSelectRow(e);
+                });
+                window.bindTap(searchPanelResultsList, '.search-see-all-row', function(e) {
+                    if (typeof this._onSelectSeeAll === 'function') this._onSelectSeeAll(e);
+                });
             }
 
             if (headerPanelInput) {
@@ -1882,7 +1974,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="../js/bookmark-confetti.js?v=2.6.3"></script>
-    <script src="../js/place-panel.js?v=2.9.6"></script>
+    <script src="../js/place-panel.js?v=2.9.7"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- ===== SIDE DRAWER (GLASSMORPHISM) ===== -->

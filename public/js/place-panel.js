@@ -281,8 +281,20 @@ function initPlacePanelDOM() {
     }
 
     // Close Events
-    if (backdrop) backdrop.addEventListener('click', closePlacePanel);
-    if (closeBtn) closeBtn.addEventListener('click', closePlacePanel);
+    function handleBackdropClose() {
+        closePlacePanel();
+    }
+    function handleCloseBtn() {
+        closePlacePanel();
+    }
+    if (backdrop) {
+        backdrop.addEventListener('click', handleBackdropClose);
+        if (typeof window.bindTap === 'function') window.bindTap(backdrop, handleBackdropClose);
+    }
+    if (closeBtn) {
+        closeBtn.addEventListener('click', handleCloseBtn);
+        if (typeof window.bindTap === 'function') window.bindTap(closeBtn, handleCloseBtn);
+    }
 
     // Mobile Sheet Drag Handle Gesture
     const dragHandle = document.querySelector('.panel-drag-handle');
@@ -329,11 +341,13 @@ function initPlacePanelDOM() {
     }
 
     // Opening Hours Accordion Toggle
+    function handleHoursToggle(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (hoursWrapper) hoursWrapper.classList.toggle('expanded');
+    }
     if (hoursToggle && hoursWrapper) {
-        hoursToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            hoursWrapper.classList.toggle('expanded');
-        });
+        hoursToggle.addEventListener('click', handleHoursToggle);
+        if (typeof window.bindTap === 'function') window.bindTap(hoursToggle, handleHoursToggle);
     }
 
     // Celebratory Confetti Burst for Bookmark Save (Delegates to shared bookmark-confetti.js)
@@ -346,95 +360,99 @@ function initPlacePanelDOM() {
     }
 
     // Save Place Event
-    if (saveBtn) {
-        saveBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (!currentActivePlace) return;
+    async function handleSavePlace(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
+        if (!currentActivePlace) return;
 
-            const placeName = currentActivePlace.name;
-            const category = currentActivePlace.category || 'Establishment';
-            const isCurrentlySaved = saveBtn.classList.contains('saved');
+        const placeName = currentActivePlace.name;
+        const category = currentActivePlace.category || 'Establishment';
+        const isCurrentlySaved = saveBtn.classList.contains('saved');
 
-            // Toggle visual state
+        // Toggle visual state
+        if (isCurrentlySaved) {
+            saveBtn.classList.remove('saved');
+            saveBtn.setAttribute('aria-pressed', 'false');
+            saveBtn.setAttribute('aria-label', 'Save place');
+            saveBtn.setAttribute('title', 'Save place');
+        } else {
+            saveBtn.classList.add('saved');
+            saveBtn.setAttribute('aria-pressed', 'true');
+            saveBtn.setAttribute('aria-label', 'Remove from saved');
+            saveBtn.setAttribute('title', 'Remove from saved');
+            triggerBookmarkCelebration(saveBtn);
+        }
+
+        // Sync with Calzada User Stats / Firestore / localStorage
+        if (typeof window.toggleSavePlace === 'function') {
+            window.toggleSavePlace(placeName, category, currentPlaceId);
+        } else if (window.CalzadaActivity) {
             if (isCurrentlySaved) {
-                saveBtn.classList.remove('saved');
-                saveBtn.setAttribute('aria-pressed', 'false');
-                saveBtn.setAttribute('aria-label', 'Save place');
-                saveBtn.setAttribute('title', 'Save place');
+                window.CalzadaActivity.unsavePlace(currentPlaceId || placeName);
             } else {
-                saveBtn.classList.add('saved');
-                saveBtn.setAttribute('aria-pressed', 'true');
-                saveBtn.setAttribute('aria-label', 'Remove from saved');
-                saveBtn.setAttribute('title', 'Remove from saved');
-                triggerBookmarkCelebration(saveBtn);
+                window.CalzadaActivity.savePlace(currentPlaceId || placeName, placeName, { category });
             }
-
-            // Sync with Calzada User Stats / Firestore / localStorage
-            if (typeof window.toggleSavePlace === 'function') {
-                window.toggleSavePlace(placeName, category, currentPlaceId);
-            } else if (window.CalzadaActivity) {
-                if (isCurrentlySaved) {
-                    window.CalzadaActivity.unsavePlace(currentPlaceId || placeName);
-                } else {
-                    window.CalzadaActivity.savePlace(currentPlaceId || placeName, placeName, { category });
-                }
+        } else {
+            // Fallback direct localStorage toggle
+            let saved = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
+            const idx = saved.findIndex(s => (s.name || s.placeName || '').toLowerCase() === placeName.toLowerCase());
+            if (idx > -1) {
+                saved.splice(idx, 1);
             } else {
-                // Fallback direct localStorage toggle
-                let saved = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
-                const idx = saved.findIndex(s => (s.name || s.placeName || '').toLowerCase() === placeName.toLowerCase());
-                if (idx > -1) {
-                    saved.splice(idx, 1);
-                } else {
-                    const sLat = currentActivePlace && currentActivePlace.lat;
-                    const sLng = currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon);
-                    saved.unshift({ name: placeName, category, id: currentPlaceId, lat: sLat, lng: sLng });
-                }
-                localStorage.setItem('calzadaSavedPlaces', JSON.stringify(saved));
+                const sLat = currentActivePlace && currentActivePlace.lat;
+                const sLng = currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon);
+                saved.unshift({ name: placeName, category, id: currentPlaceId, lat: sLat, lng: sLng });
             }
+            localStorage.setItem('calzadaSavedPlaces', JSON.stringify(saved));
+        }
 
-            // Sync to backend endpoint (only if signed in)
-            if (currentPlaceId) {
-                try {
-                    const token = await fetchAuthToken();
-                    if (token) {
-                        await fetch(`/api/places/${currentPlaceId}/save`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            },
-                            body: JSON.stringify({ saved: !isCurrentlySaved })
-                        });
-                    }
-                } catch (err) {
-                    console.warn('Backend save API sync:', err);
+        // Sync to backend endpoint (only if signed in)
+        if (currentPlaceId) {
+            try {
+                const token = await fetchAuthToken();
+                if (token) {
+                    await fetch(`/api/places/${currentPlaceId}/save`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ saved: !isCurrentlySaved })
+                    });
                 }
+            } catch (err) {
+                console.warn('Backend save API sync:', err);
             }
-        });
+        }
+    }
+    if (saveBtn) {
+        saveBtn.addEventListener('click', handleSavePlace);
+        if (typeof window.bindTap === 'function') window.bindTap(saveBtn, handleSavePlace);
     }
 
     // Plan Route Event
-    if (planBtn) {
-        planBtn.addEventListener('click', () => {
-            const placeName = planBtn.getAttribute('data-dest') || (currentActivePlace && currentActivePlace.name);
-            const rawLat = planBtn.getAttribute('data-lat') || (currentActivePlace && currentActivePlace.lat);
-            const rawLng = planBtn.getAttribute('data-lng') || (currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon));
+    function handlePlanRoute() {
+        const placeName = planBtn.getAttribute('data-dest') || (currentActivePlace && currentActivePlace.name);
+        const rawLat = planBtn.getAttribute('data-lat') || (currentActivePlace && currentActivePlace.lat);
+        const rawLng = planBtn.getAttribute('data-lng') || (currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon));
 
-            if (placeName) {
-                setTimeout(() => {
-                    const numLat = parseFloat(rawLat);
-                    const numLng = parseFloat(rawLng);
-                    const hasCoords = !isNaN(numLat) && !isNaN(numLng) && numLat !== 0 && numLng !== 0;
-                    let targetUrl;
-                    if (hasCoords) {
-                        targetUrl = `/planner?destLat=${numLat}&destLng=${numLng}&destName=${encodeURIComponent(placeName)}&dlat=${numLat}&dlng=${numLng}&dest=${encodeURIComponent(placeName)}`;
-                    } else {
-                        targetUrl = `/planner?dest=${encodeURIComponent(placeName)}&destName=${encodeURIComponent(placeName)}`;
-                    }
-                    window.location.href = targetUrl;
-                }, 0);
-            }
-        });
+        if (placeName) {
+            setTimeout(() => {
+                const numLat = parseFloat(rawLat);
+                const numLng = parseFloat(rawLng);
+                const hasCoords = !isNaN(numLat) && !isNaN(numLng) && numLat !== 0 && numLng !== 0;
+                let targetUrl;
+                if (hasCoords) {
+                    targetUrl = `/planner?destLat=${numLat}&destLng=${numLng}&destName=${encodeURIComponent(placeName)}&dlat=${numLat}&dlng=${numLng}&dest=${encodeURIComponent(placeName)}`;
+                } else {
+                    targetUrl = `/planner?dest=${encodeURIComponent(placeName)}&destName=${encodeURIComponent(placeName)}`;
+                }
+                window.location.href = targetUrl;
+            }, 0);
+        }
+    }
+    if (planBtn) {
+        planBtn.addEventListener('click', handlePlanRoute);
+        if (typeof window.bindTap === 'function') window.bindTap(planBtn, handlePlanRoute);
     }
 }
 
@@ -801,15 +819,17 @@ async function initInline360Viewer(place) {
     inline360PanoUrl = panoUrl;
 
     if (retryBtn) {
-        retryBtn.onclick = (e) => {
-            e.stopPropagation();
+        function onRetryAction(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
             initInline360Viewer(place);
-        };
+        }
+        retryBtn.onclick = onRetryAction;
+        if (typeof window.bindTap === 'function') window.bindTap(retryBtn, onRetryAction);
     }
 
     if (fsBtn) {
-        fsBtn.onclick = (e) => {
-            e.stopPropagation();
+        function onFsAction(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
             if (fallbackNodeId) {
                 if (typeof window.launch360Viewer === 'function') {
                     window.launch360Viewer(fallbackNodeId);
@@ -833,7 +853,9 @@ async function initInline360Viewer(place) {
                     hfov: curHfov
                 });
             }
-        };
+        }
+        fsBtn.onclick = onFsAction;
+        if (typeof window.bindTap === 'function') window.bindTap(fsBtn, onFsAction);
     }
 
     inline360LoadTimeout = setTimeout(() => {
@@ -1119,14 +1141,16 @@ function setupCarousel(place) {
         dotsContainer.style.display = 'flex';
         const dots = dotsContainer.querySelectorAll('.carousel-dot');
         dots.forEach((dot, idx) => {
-            dot.onclick = (e) => {
-                e.stopPropagation();
+            function onDotAction(e) {
+                if (e && e.stopPropagation) e.stopPropagation();
                 goToCarouselSlide(idx);
-            };
+            }
+            dot.onclick = onDotAction;
+            if (typeof window.bindTap === 'function') window.bindTap(dot, onDotAction);
             dot.onkeydown = (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    goToCarouselSlide(idx);
+                    onDotAction(e);
                 }
             };
         });
@@ -1143,14 +1167,21 @@ function setupCarousel(place) {
         prevBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.prev') : 'Previous');
         nextBtn.setAttribute('aria-label', typeof window.t === 'function' ? window.t('places.popup.next') : 'Next');
 
-        prevBtn.onclick = (e) => {
-            e.stopPropagation();
+        function onPrevClick(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
             goToCarouselSlide(0);
-        };
-        nextBtn.onclick = (e) => {
-            e.stopPropagation();
+        }
+        function onNextClick(e) {
+            if (e && e.stopPropagation) e.stopPropagation();
             goToCarouselSlide(1);
-        };
+        }
+
+        prevBtn.onclick = onPrevClick;
+        nextBtn.onclick = onNextClick;
+        if (typeof window.bindTap === 'function') {
+            window.bindTap(prevBtn, onPrevClick);
+            window.bindTap(nextBtn, onNextClick);
+        }
     }
 
     // --- TOUCH SWIPE ---
@@ -1733,7 +1764,7 @@ async function setupRatingAndReviews(placeId) {
             updateStarsDisplay(activeUserRating);
         };
 
-        btn.onclick = () => {
+        function onStarAction() {
             activeUserRating = starVal;
             updateStarsDisplay(activeUserRating);
 
@@ -1755,12 +1786,17 @@ async function setupRatingAndReviews(placeId) {
                 }
                 if (cancelBtn) cancelBtn.style.display = userHasExistingReview ? 'inline-block' : 'none';
             }
-        };
+        }
+
+        btn.onclick = onStarAction;
+        if (typeof window.bindTap === 'function') {
+            window.bindTap(btn, onStarAction);
+        }
     });
 
     // "Update rating" Action Bar Edit Button Handler
     if (editBtn) {
-        editBtn.onclick = () => {
+        function onEditReview() {
             if (feedbackArea) feedbackArea.style.display = 'block';
             if (authNotice) authNotice.style.display = 'none';
             if (actionBar) actionBar.style.display = 'none';
@@ -1770,22 +1806,26 @@ async function setupRatingAndReviews(placeId) {
                 submitBtn.style.display = 'inline-block';
             }
             if (cancelBtn) cancelBtn.style.display = 'inline-block';
-        };
+        }
+        editBtn.onclick = onEditReview;
+        if (typeof window.bindTap === 'function') window.bindTap(editBtn, onEditReview);
     }
 
     // Cancel Edit Button Handler
     if (cancelBtn) {
-        cancelBtn.onclick = () => {
+        function onCancelEdit() {
             if (commentBox) commentBox.style.display = 'none';
             if (userHasExistingReview && actionBar) {
                 actionBar.style.display = 'flex';
             }
-        };
+        }
+        cancelBtn.onclick = onCancelEdit;
+        if (typeof window.bindTap === 'function') window.bindTap(cancelBtn, onCancelEdit);
     }
 
     // Review Submission Handler with Loading Spinner & Collapsing
     if (submitBtn) {
-        submitBtn.onclick = async () => {
+        async function onSubmitReview() {
             const targetPlaceId = activeId || currentPlaceId;
             if (!targetPlaceId) {
                 console.warn('[PLACE PANEL submitBtn.onclick] Missing targetPlaceId!');
@@ -1883,7 +1923,9 @@ async function setupRatingAndReviews(placeId) {
                 submitBtn.textContent = userHasExistingReview ? 'Update rating' : 'Submit rating';
                 submitBtn.disabled = false;
             }
-        };
+        }
+        submitBtn.onclick = onSubmitReview;
+        if (typeof window.bindTap === 'function') window.bindTap(submitBtn, onSubmitReview);
     }
 
     // Review Deletion Handler
@@ -1903,7 +1945,7 @@ async function setupRatingAndReviews(placeId) {
             }
         }
 
-        deleteBtn.onclick = async () => {
+        async function onDeleteBtnClick() {
             const targetPlaceId = activeId || currentPlaceId;
             if (!targetPlaceId) {
                 resetDeleteButton();
@@ -1964,16 +2006,20 @@ async function setupRatingAndReviews(placeId) {
             } finally {
                 resetDeleteButton();
             }
-        };
+        }
+        deleteBtn.onclick = onDeleteBtnClick;
+        if (typeof window.bindTap === 'function') window.bindTap(deleteBtn, onDeleteBtnClick);
     }
 
     // See More Reviews Click
     if (seeMoreBtn) {
-        seeMoreBtn.onclick = async () => {
+        async function onSeeMoreReviews() {
             const targetPlaceId = activeId || currentPlaceId;
             reviewsOffset += REVIEWS_PAGE_LIMIT;
             await fetchAndRenderReviews(targetPlaceId, false);
-        };
+        }
+        seeMoreBtn.onclick = onSeeMoreReviews;
+        if (typeof window.bindTap === 'function') window.bindTap(seeMoreBtn, onSeeMoreReviews);
     }
 
     // Initial Live Fetch for Reviews & Summary
@@ -2703,10 +2749,21 @@ if (!window._open360Viewer) {
             document.body.appendChild(viewerModal);
 
             const closeBtn = document.getElementById('calzada360CloseBtn');
-            if (closeBtn) closeBtn.onclick = () => viewerModal.classList.remove('active');
+            function onClose360Modal() {
+                viewerModal.classList.remove('active');
+            }
+            if (closeBtn) {
+                closeBtn.onclick = onClose360Modal;
+                if (typeof window.bindTap === 'function') window.bindTap(closeBtn, onClose360Modal);
+            }
             viewerModal.onclick = (e) => {
-                if (e.target === viewerModal) viewerModal.classList.remove('active');
+                if (e.target === viewerModal) onClose360Modal();
             };
+            if (typeof window.bindTap === 'function') {
+                window.bindTap(viewerModal, (e) => {
+                    if (e.target === viewerModal) onClose360Modal();
+                });
+            }
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && viewerModal.classList.contains('active')) {
                     viewerModal.classList.remove('active');
