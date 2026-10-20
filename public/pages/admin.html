@@ -1833,7 +1833,7 @@
                                 interactive: false,
                                 attributionControl: false
                             });
-                            new maplibregl.Marker({ color: '#378ADD' })
+                            new maplibregl.Marker({ color: '#378ADD', anchor: 'bottom' })
                                 .setLngLat([bus.location.lng, bus.location.lat])
                                 .addTo(adminMap);
                         } catch (err) {

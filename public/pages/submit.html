@@ -1273,7 +1273,7 @@
             selectedLocation = { lat: Number(lat.toFixed(7)), lng: Number(lng.toFixed(7)) };
 
             if (!pickerMarker) {
-                pickerMarker = new maplibregl.Marker({ color: '#378ADD', draggable: true })
+                pickerMarker = new maplibregl.Marker({ color: '#378ADD', draggable: true, anchor: 'bottom' })
                     .setLngLat([lng, lat])
                     .addTo(pickerMap);
 

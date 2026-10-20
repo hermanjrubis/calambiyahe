@@ -87,8 +87,8 @@
         "category": "malls",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1986374,
-        "lng": 121.1604888,
+        "lat": 14.198682,
+        "lng": 121.160298,
         "image_path": "../assets/places/citymall-calamba/photo.webp",
         "photo": "../assets/places/citymall-calamba/photo.webp",
         "pano": "../assets/places/citymall-calamba/360.jpg",
@@ -97,7 +97,8 @@
         "full_address": "National Highway, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "puregold-halang",
@@ -144,8 +145,8 @@
         "category": "schools",
         "barangay": "Real",
         "municipality": "Calamba",
-        "lat": 14.1987583,
-        "lng": 121.1519236,
+        "lat": 14.198798,
+        "lng": 121.152354,
         "image_path": "../assets/places/saint-benilde-international-school/photo.webp",
         "photo": "../assets/places/saint-benilde-international-school/photo.webp",
         "pano": "../assets/places/saint-benilde-international-school/360.jpg",
@@ -154,7 +155,8 @@
         "full_address": "Real, Calamba, 4027 Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "letran-calamba",
@@ -163,8 +165,8 @@
         "category": "schools",
         "barangay": "Bucal",
         "municipality": "Calamba",
-        "lat": 14.188,
-        "lng": 121.165,
+        "lat": 14.188802,
+        "lng": 121.16581,
         "image_path": "../assets/places/letran-calamba/photo.webp",
         "photo": "../assets/places/letran-calamba/photo.webp",
         "pano": "../assets/places/letran-calamba/360.jpg",
@@ -173,7 +175,8 @@
         "full_address": "Ipil-ipil St., Bucal, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "halang-elementary",
@@ -201,8 +204,8 @@
         "category": "terminals",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.203278,
-        "lng": 121.157683,
+        "lat": 14.202953,
+        "lng": 121.15715,
         "image_path": "../assets/places/sm-city-calamba-transport-terminal/photo.webp",
         "photo": "../assets/places/sm-city-calamba-transport-terminal/photo.webp",
         "pano": "../assets/places/sm-city-calamba-transport-terminal/360.jpg",
@@ -211,7 +214,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "jollibee-real",
@@ -239,8 +243,8 @@
         "category": "eateries",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.205386,
-        "lng": 121.156122,
+        "lat": 14.205617,
+        "lng": 121.156225,
         "image_path": "../assets/places/uncle-johns/photo.webp",
         "photo": "../assets/places/uncle-johns/photo.webp",
         "pano": "../assets/places/_shared/saint-rose-transit-360.jpg",
@@ -249,7 +253,8 @@
         "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "ding-hao",
@@ -258,8 +263,8 @@
         "category": "eateries",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.202775,
-        "lng": 121.158008,
+        "lat": 14.202702,
+        "lng": 121.157546,
         "image_path": "../assets/places/ding-hao/photo.webp",
         "photo": "../assets/places/ding-hao/photo.webp",
         "pano": "../assets/places/ding-hao/360.jpg",
@@ -268,7 +273,8 @@
         "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "teng-tengs",
@@ -315,8 +321,8 @@
         "category": "eateries",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.203803,
-        "lng": 121.156225,
+        "lat": 14.203697,
+        "lng": 121.156159,
         "image_path": "../assets/places/ton-tons-sisig/photo.webp",
         "photo": "../assets/places/ton-tons-sisig/photo.webp",
         "pano": "../assets/places/ton-tons-sisig/360.jpg",
@@ -325,7 +331,8 @@
         "full_address": "Cadena de Amor Street, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "mang-inasal-halang",
@@ -524,8 +531,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.205297,
-        "lng": 121.156236,
+        "lat": 14.205478,
+        "lng": 121.156467,
         "image_path": "../assets/places/news-star/photo.webp",
         "photo": "../assets/places/news-star/photo.webp",
         "pano": "../assets/places/news-star/360.jpg",
@@ -534,7 +541,8 @@
         "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "d-and-q",
@@ -581,8 +589,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.205675,
-        "lng": 121.155867,
+        "lat": 14.205553,
+        "lng": 121.155775,
         "image_path": "../assets/places/7-eleven/photo.webp",
         "photo": "../assets/places/7-eleven/photo.webp",
         "pano": "../assets/places/_shared/7-eleven-360.jpg",
@@ -591,7 +599,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "abjr-paint-center",
@@ -714,8 +723,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.205494,
-        "lng": 121.155989,
+        "lat": 14.205383,
+        "lng": 121.155781,
         "image_path": "../assets/places/calamba-executive-center/photo.webp",
         "photo": "../assets/places/calamba-executive-center/photo.webp",
         "pano": "../assets/places/calamba-executive-center/360.jpg",
@@ -724,7 +733,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "card-indogrosir",
@@ -752,8 +762,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.2044,
-        "lng": 121.156781,
+        "lat": 14.204277,
+        "lng": 121.1567,
         "image_path": "../assets/places/chinabank/photo.webp",
         "photo": "../assets/places/chinabank/photo.webp",
         "pano": "../assets/places/chinabank/360.jpg",
@@ -762,7 +772,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "clarisse-kitchen",
@@ -790,8 +801,8 @@
         "category": "schools",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.204636,
-        "lng": 121.158189,
+        "lat": 14.204835,
+        "lng": 121.158421,
         "image_path": "../assets/places/crossing-elementary-school/photo.webp",
         "photo": "../assets/places/crossing-elementary-school/photo.webp",
         "pano": "../assets/places/crossing-elementary-school/360.jpg",
@@ -800,7 +811,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "daikin-authorized-dealer",
@@ -885,8 +897,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.205675,
-        "lng": 121.155867,
+        "lat": 14.20554,
+        "lng": 121.155738,
         "image_path": "../assets/places/green-glass-hotel/photo.webp",
         "photo": "../assets/places/green-glass-hotel/photo.webp",
         "pano": "../assets/places/_shared/7-eleven-360.jpg",
@@ -895,7 +907,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "herrera-pharmacy",
@@ -1056,8 +1069,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.2045,
-        "lng": 121.156675,
+        "lat": 14.20444,
+        "lng": 121.156538,
         "image_path": "../assets/places/lbc/photo.webp",
         "photo": "../assets/places/lbc/photo.webp",
         "pano": "../assets/places/lbc/360.jpg",
@@ -1066,7 +1079,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "laguna-diagnostic-center-multi-specialty-clinic",
@@ -1132,8 +1146,8 @@
         "category": "schools",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.205047,
-        "lng": 121.156358,
+        "lat": 14.205298,
+        "lng": 121.156674,
         "image_path": "../assets/places/philippine-womens-university-calamba/photo.webp",
         "photo": "../assets/places/philippine-womens-university-calamba/photo.webp",
         "pano": "../assets/places/philippine-womens-university-calamba/360.jpg",
@@ -1142,7 +1156,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "pitcrew",
@@ -1208,8 +1223,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.203769,
-        "lng": 121.157236,
+        "lat": 14.203753,
+        "lng": 121.1571,
         "image_path": "../assets/places/rcbc/photo.webp",
         "photo": "../assets/places/rcbc/photo.webp",
         "pano": "../assets/places/rcbc/360.jpg",
@@ -1218,7 +1233,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "rural-bank-of-bay-inc",
@@ -1227,8 +1243,8 @@
         "category": "establishments",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.204072,
-        "lng": 121.157031,
+        "lat": 14.203973,
+        "lng": 121.156886,
         "image_path": "../assets/places/rural-bank-of-bay-inc/photo.webp",
         "photo": "../assets/places/rural-bank-of-bay-inc/photo.webp",
         "pano": "../assets/places/rural-bank-of-bay-inc/360.jpg",
@@ -1237,7 +1253,8 @@
         "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "saint-rose-transit",
@@ -1455,8 +1472,8 @@
         "category": "eateries",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1939342,
-        "lng": 121.1648287,
+        "lat": 14.193902,
+        "lng": 121.164881,
         "image_path": "../assets/places/burger-king/photo.webp",
         "photo": "../assets/places/burger-king/photo.webp",
         "pano": "../assets/places/burger-king/360.jpg",
@@ -1465,7 +1482,8 @@
         "full_address": "National Highway, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "coca-cola-europacific-aboitiz-calamba-distribution-center",
@@ -1607,8 +1625,8 @@
         "category": "eateries",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1936926,
-        "lng": 121.1657832,
+        "lat": 14.193693,
+        "lng": 121.165783,
         "image_path": "../assets/places/mcdonalds/photo.webp",
         "photo": "../assets/places/mcdonalds/photo.webp",
         "pano": null,
@@ -1617,7 +1635,8 @@
         "full_address": "National Highway, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "mr-diy",
@@ -1645,8 +1664,8 @@
         "category": "establishments",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1983517,
-        "lng": 121.161705,
+        "lat": 14.198349,
+        "lng": 121.161732,
         "image_path": "../assets/places/pamana-medical-center/photo.webp",
         "photo": "../assets/places/pamana-medical-center/photo.webp",
         "pano": "../assets/places/pamana-medical-center/360.jpg",
@@ -1655,7 +1674,8 @@
         "full_address": "Chipeco Avenue Extension, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "safc-calamba",
@@ -1683,8 +1703,8 @@
         "category": "schools",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1985268,
-        "lng": 121.1622199,
+        "lat": 14.198401,
+        "lng": 121.162248,
         "image_path": "../assets/places/saint-john-paul-colleges/photo.webp",
         "photo": "../assets/places/saint-john-paul-colleges/photo.webp",
         "pano": "../assets/places/saint-john-paul-colleges/360.jpg",
@@ -1693,7 +1713,8 @@
         "full_address": "Chipeco Avenue Extension, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "shakeys",
@@ -1702,8 +1723,8 @@
         "category": "eateries",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1951965,
-        "lng": 121.1635989,
+        "lat": 14.195196,
+        "lng": 121.163599,
         "image_path": "../assets/places/shakeys/photo.webp",
         "photo": "../assets/places/shakeys/photo.webp",
         "pano": "../assets/places/shakeys/360.jpg",
@@ -1712,7 +1733,8 @@
         "full_address": "Chipeco Avenue Extension, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "yellow-cab-pizza-co",
@@ -1721,7 +1743,7 @@
         "category": "eateries",
         "barangay": "Halang",
         "municipality": "Calamba",
-        "lat": 14.1966724,
+        "lat": 14.196667,
         "lng": 121.162437,
         "image_path": "../assets/places/yellow-cab-pizza-co/photo.webp",
         "photo": "../assets/places/yellow-cab-pizza-co/photo.webp",
@@ -1731,7 +1753,8 @@
         "full_address": "Chipeco Avenue Extension, Brgy. Halang, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "but-first-coffee",
@@ -1778,8 +1801,8 @@
         "category": "establishments",
         "barangay": "Real",
         "municipality": "Calamba",
-        "lat": 14.1960653,
-        "lng": 121.1436264,
+        "lat": 14.196065,
+        "lng": 121.143626,
         "image_path": "../assets/places/hotel-marciano/photo.webp",
         "photo": "../assets/places/hotel-marciano/photo.webp",
         "pano": "../assets/places/_shared/but-first-coffee-360.jpg",
@@ -1788,7 +1811,8 @@
         "full_address": "National Highway, Brgy. Real, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "jaydens-kitchen",
@@ -1816,7 +1840,7 @@
         "category": "establishments",
         "barangay": "Real",
         "municipality": "Calamba",
-        "lat": 14.1970417,
+        "lat": 14.197042,
         "lng": 121.146377,
         "image_path": "../assets/places/lynville-land-development-corp/photo.webp",
         "photo": "../assets/places/lynville-land-development-corp/photo.webp",
@@ -1826,7 +1850,8 @@
         "full_address": "National Highway, Brgy. Real, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "marcelita-building",
@@ -1835,8 +1860,8 @@
         "category": "establishments",
         "barangay": "Real",
         "municipality": "Calamba",
-        "lat": 14.1971957,
-        "lng": 121.1458303,
+        "lat": 14.197196,
+        "lng": 121.14583,
         "image_path": "../assets/places/marcelita-building/photo.webp",
         "photo": "../assets/places/marcelita-building/photo.webp",
         "pano": "../assets/places/marcelita-building/360.jpg",
@@ -1845,7 +1870,8 @@
         "full_address": "National Highway, Brgy. Real, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "rizal-monument",
@@ -1873,8 +1899,8 @@
         "category": "establishments",
         "barangay": "Real",
         "municipality": "Calamba",
-        "lat": 14.1967403,
-        "lng": 121.1592033,
+        "lat": 14.196741,
+        "lng": 121.159203,
         "image_path": "../assets/places/jose-rizal-coliseum/photo.webp",
         "photo": "../assets/places/jose-rizal-coliseum/photo.webp",
         "pano": null,
@@ -1883,7 +1909,8 @@
         "full_address": "Chipeco Avenue Extension, Brgy. Real, Calamba City, Laguna",
         "phone": null,
         "website": null,
-        "opening_hours": null
+        "opening_hours": null,
+        "coord_source": "osm"
     },
     {
         "id": "barangay-real-hall",
