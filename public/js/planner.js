@@ -7715,11 +7715,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const allKnown = (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length)
                         ? window.FALLBACK_PLACES
                         : ((typeof CALAMBA_PLACES_FALLBACK !== 'undefined' && Array.isArray(CALAMBA_PLACES_FALLBACK)) ? CALAMBA_PLACES_FALLBACK : []);
-                    const matchedPlace = allKnown.find(p => {
-                        if (destName && (p.name === destName || p.title === destName || p.slug === destName)) return true;
-                        if (p.lat && p.lng && Math.abs(p.lat - destLat) < 0.0001 && Math.abs(p.lng - destLng) < 0.0001) return true;
-                        return false;
-                    });
+                    // Match by name first. Several places share one building (same coordinates),
+                    // so a coordinate match only counts when no name was given and exactly one place is there.
+                    const byName = destName
+                        ? allKnown.find(p => p.name === destName || p.title === destName || p.slug === destName)
+                        : null;
+                    const atCoords = byName ? [] : allKnown.filter(p =>
+                        p.lat && p.lng && Math.abs(p.lat - destLat) < 0.0001 && Math.abs(p.lng - destLng) < 0.0001);
+                    const matchedPlace = byName || (!destName && atCoords.length === 1 ? atCoords[0] : null);
                     if (matchedPlace && matchedPlace.name) {
                         destPlaceName = matchedPlace.name;
                     }
