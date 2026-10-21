@@ -120,6 +120,7 @@ function initPlacePanelDOM() {
                             </div>
                             <div class="panel-hours-dropdown" id="ppHoursDropdown">
                                 <table class="panel-hours-table" id="ppHoursTable"></table>
+                                <p class="panel-hours-note" id="ppHoursNote">Hours can change, especially on holidays.</p>
                             </div>
                         </div>
                     </div>
@@ -147,6 +148,18 @@ function initPlacePanelDOM() {
                         </div>
                         <div class="panel-info-text">
                             <a href="#" class="panel-info-link" id="ppPhone">--</a>
+                        </div>
+                    </div>
+
+                    <!-- Facebook / Instagram page Row -->
+                    <div class="panel-info-row" id="ppRowSocial">
+                        <div class="panel-info-icon" title="Page">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M7 10v4h3v7h4v-7h3l1 -4h-4v-2a1 1 0 0 1 1 -1h3v-4h-3a5 5 0 0 0 -5 5v2h-3"></path>
+                            </svg>
+                        </div>
+                        <div class="panel-info-text">
+                            <a href="#" target="_blank" rel="noopener noreferrer" class="panel-info-link" id="ppSocial">--</a>
                         </div>
                     </div>
                 </div>
@@ -1501,6 +1514,33 @@ function formatOpeningHoursStatus(openingHours) {
     let isOpen = false;
     let statusText = typeof window.t === 'function' ? window.t('places.popup.closed') : 'Closed';
 
+    const is24h = (v) => typeof v === 'string' && /24\s*hours/i.test(v);
+    if (is24h(todaySchedule)) {
+        return {
+            isOpen: true,
+            statusText: typeof window.t === 'function' ? window.t('places.popup.open_24h') : 'Open 24 hours',
+            hoursMap: hoursObj,
+            todayKey
+        };
+    }
+    // A place that closed after midnight may still be open from yesterday's hours
+    const prevSchedule = hoursObj[days[(currentDayIdx + 6) % 7]];
+    if (prevSchedule && !is24h(prevSchedule) && prevSchedule.toLowerCase() !== 'closed') {
+        const pp = prevSchedule.split('-').map(s => s.trim());
+        const ps = pp.length === 2 ? parseTimeToMins(pp[0]) : null;
+        const pe = pp.length === 2 ? parseTimeToMins(pp[1]) : null;
+        if (ps !== null && pe !== null && pe < ps && currentMins < pe) {
+            return {
+                isOpen: true,
+                statusText: typeof window.t === 'function'
+                    ? window.t('places.popup.open_closes', { time: pp[1] })
+                    : `Open · Closes ${pp[1]}`,
+                hoursMap: hoursObj,
+                todayKey
+            };
+        }
+    }
+
     if (todaySchedule && todaySchedule.toLowerCase() !== 'closed') {
         const parts = todaySchedule.split('-').map(s => s.trim());
         if (parts.length === 2) {
@@ -1508,7 +1548,9 @@ function formatOpeningHoursStatus(openingHours) {
             const endMins = parseTimeToMins(parts[1]);
 
             if (startMins !== null && endMins !== null) {
-                if (currentMins >= startMins && currentMins < endMins) {
+                // Closing at or after midnight (e.g. 9:00 AM - 2:30 AM): open from the start until midnight
+                const closesNextDay = endMins <= startMins;
+                if (currentMins >= startMins && (closesNextDay || currentMins < endMins)) {
                     isOpen = true;
                     statusText = typeof window.t === 'function'
                         ? window.t('places.popup.open_closes', { time: parts[1] })
@@ -1559,6 +1601,20 @@ function formatOpeningHoursStatus(openingHours) {
     };
 }
 
+function fillPanelSocial(url) {
+    const row = document.getElementById('ppRowSocial');
+    const link = document.getElementById('ppSocial');
+    if (!row || !link) return;
+    let href = '';
+    try { const u = new URL(String(url || '').trim()); if (u.protocol === 'https:') href = u.href; } catch (_) {}
+    if (!href) { row.style.display = 'none'; return; }
+    const isIg = /instagram\.com/i.test(href);
+    const tr = (k, f) => (typeof window.t === 'function' && window.t(k) !== k ? window.t(k) : f);
+    link.textContent = isIg ? tr('places.popup.instagram', 'Instagram page') : tr('places.popup.facebook', 'Facebook page');
+    link.href = href;
+    row.style.display = 'flex';
+}
+
 function renderOpeningHoursTable(hoursData, hoursTableEl) {
     if (!hoursData || !hoursData.hoursMap || !hoursTableEl) return;
     const dayNames = {
@@ -1577,7 +1633,10 @@ function renderOpeningHoursTable(hoursData, hoursTableEl) {
         let timeStr = hoursData.hoursMap[dKey] || 'Closed';
         if (timeStr.toLowerCase() === 'closed') {
             timeStr = typeof window.t === 'function' ? window.t('places.popup.closed') : 'Closed';
+        } else if (/24\s*hours/i.test(timeStr)) {
+            timeStr = typeof window.t === 'function' ? window.t('places.popup.open_24h') : 'Open 24 hours';
         }
+        timeStr = escapeHtml(timeStr);
         return `
             <tr class="${isToday ? 'today-row' : ''}">
                 <td class="day-col">${dayNames[dKey]}${isToday ? todayTag : ''}</td>
@@ -2607,6 +2666,9 @@ async function fillRest(data, placeName, optLat, optLng) {
         }
     }
 
+    // Populate the place's Facebook or Instagram page
+    fillPanelSocial(data.social);
+
     // Update Save Button State
     const saveBtn = document.getElementById('ppSaveBtn');
     if (saveBtn) {
@@ -2682,6 +2744,19 @@ async function fillRest(data, placeName, optLat, optLng) {
                 phoneEl.textContent = match.phone.trim();
                 phoneEl.href = `tel:${match.phone.trim().replace(/[^0-9+]/g, '')}`;
                 rowPhone.style.display = 'flex';
+            }
+            if (match.social) fillPanelSocial(match.social);
+            if (match.opening_hours) {
+                const liveHours = formatOpeningHoursStatus(match.opening_hours);
+                const liveRow = document.getElementById('ppRowHours');
+                const liveStatus = document.getElementById('ppHoursStatus');
+                const liveTable = document.getElementById('ppHoursTable');
+                if (liveHours && liveRow && liveStatus && liveTable) {
+                    liveStatus.textContent = liveHours.statusText;
+                    liveStatus.className = `panel-hours-status ${liveHours.isOpen ? 'open' : 'closed'}`;
+                    if (liveHours.hoursMap) renderOpeningHoursTable(liveHours, liveTable);
+                    liveRow.style.display = 'flex';
+                }
             }
         }
     } catch (e) {
@@ -2944,6 +3019,11 @@ function updatePlacePanelI18n() {
     if (seeMoreBtn) {
         seeMoreBtn.textContent = typeof window.t === 'function' ? window.t('places.popup.see_more') : 'See more';
     }
+    const hoursNoteEl = document.getElementById('ppHoursNote');
+    if (hoursNoteEl && typeof window.t === 'function' && window.t('places.popup.hours_note') !== 'places.popup.hours_note') {
+        hoursNoteEl.textContent = window.t('places.popup.hours_note');
+    }
+    if (currentActivePlace && currentActivePlace.social) fillPanelSocial(currentActivePlace.social);
     if (currentActivePlace && currentActivePlace.opening_hours) {
         const hoursData = formatOpeningHoursStatus(currentActivePlace.opening_hours);
         const hoursStatusEl = document.getElementById('ppHoursStatus');

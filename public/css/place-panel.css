@@ -1107,6 +1107,13 @@ html {
     padding: 4px 2px;
 }
 
+.panel-hours-note {
+    margin: 8px 2px 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #475569;
+}
+
 .panel-hours-table td.day-col {
     font-weight: 500;
     color: #475569;

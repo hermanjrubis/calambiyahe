@@ -49,7 +49,7 @@
             photo: 'Photo', photo360: 'Photo · 360',
             view360: '360° view', view360Sub: 'Look around before you go',
             nearby: 'Nearby', plan: 'Plan route', view: 'View place',
-            close: 'Close', backTo: (c, n) => `${c} (${n})`, open360: 'Open 360° view'
+            close: 'Close', backTo: (c, n) => `${c} (${n})`, open360: 'Open 360° view', today: 'Today', open24: 'Open 24 hours', closed: 'Closed', fb: 'Facebook page', ig: 'Instagram page'
         },
         tl: {
             cat: { malls: 'Mga Mall', eateries: 'Mga Kainan', schools: 'Mga Paaralan', terminals: 'Mga Terminal', coffee: 'Mga Coffee Shop', government: 'Gobyerno at Landmark', health: 'Kalusugan', banks: 'Mga Bangko', hotels: 'Hotel at Matutuluyan', establishments: 'Tindahan at Serbisyo' },
@@ -59,7 +59,7 @@
             photo: 'Larawan', photo360: 'Larawan · 360',
             view360: '360° view', view360Sub: 'Tingnan ang paligid bago pumunta',
             nearby: 'Malapit dito', plan: 'Planuhin ang ruta', view: 'Tingnan ang lugar',
-            close: 'Isara', backTo: (c, n) => `${c} (${n})`, open360: 'Buksan ang 360° view'
+            close: 'Isara', backTo: (c, n) => `${c} (${n})`, open360: 'Buksan ang 360° view', today: 'Ngayon', open24: 'Bukas 24 oras', closed: 'Sarado', fb: 'Facebook page', ig: 'Instagram page'
         }
     };
 
@@ -425,6 +425,15 @@
 
         if (place.full_address) frag.appendChild(infoRow('pin', place.full_address));
         if (place.opening_hours && typeof place.opening_hours === 'string') frag.appendChild(infoRow('clock', place.opening_hours));
+        else if (place.opening_hours && typeof place.opening_hours === 'object') {
+            // Today's hours only; the full week is in the place popup
+            const day = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][new Date().getDay()];
+            const v = place.opening_hours[day];
+            if (typeof v === 'string' && v.trim()) {
+                const shown = /24\s*hours/i.test(v) ? t.open24 : (/^closed$/i.test(v.trim()) ? t.closed : v.trim());
+                frag.appendChild(infoRow('clock', `${t.today}: ${shown}`));
+            }
+        }
         if (place.phone) {
             const a = el('a', 'czc-link', String(place.phone));
             const first = String(place.phone).split('/')[0].replace(/[^\d+]/g, '');
@@ -434,6 +443,13 @@
         if (place.website && /^https?:\/\//i.test(place.website)) {
             const a = el('a', 'czc-link', shortDomain(place.website));
             a.href = place.website;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            frag.appendChild(infoRow('web', a));
+        }
+        if (place.social && /^https:\/\//i.test(place.social)) {
+            const a = el('a', 'czc-link', /instagram\.com/i.test(place.social) ? t.ig : t.fb);
+            a.href = place.social;
             a.target = '_blank';
             a.rel = 'noopener noreferrer';
             frag.appendChild(infoRow('web', a));
