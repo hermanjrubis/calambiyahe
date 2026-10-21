@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.8.3">
+    <link rel="stylesheet" href="../css/style.css?v=2.8.4">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -152,15 +152,35 @@
                             </span>
                             <span data-i18n="nav.explore.coffee">Coffee Shops</span>
                         </a>
+                        <a href="/places?category=government" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z"></path><path d="M5 21v-7"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.government">Government & Landmarks</span>
+                        </a>
+                        <a href="/places?category=health" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"></path><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M10 14h4M12 12v4"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.health">Health</span>
+                        </a>
+                        <a href="/places?category=banks" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7 -3l7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.banks">Banks</span>
+                        </a>
+                        <a href="/places?category=hotels" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M22 17v-3h-20M2 8v9M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5z"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.hotels">Hotels & Stays</span>
+                        </a>
                         <a href="/places?category=establishments" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                                    <path d="M9 22v-4h6v4"></path>
-                                    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"></path>
-                                </svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304z"></path><path d="M9 11v-5a3 3 0 0 1 6 0v5"></path></svg>
                             </span>
-                            <span data-i18n="nav.explore.establishments">Establishments</span>
+                            <span data-i18n="nav.explore.establishments">Shops & Services</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
                         <a href="/places" class="nav-dropdown-item view-all">
@@ -457,8 +477,20 @@
                             <button type="button" class="panel-category-chip" data-category="coffee" aria-pressed="false">
                                 <span data-i18n="places.cat_coffee">Coffee Shops</span>
                             </button>
+                            <button type="button" class="panel-category-chip" data-category="government" aria-pressed="false">
+                                <span data-i18n="places.cat_gov">Government & Landmarks</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="health" aria-pressed="false">
+                                <span data-i18n="places.cat_health">Health</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="banks" aria-pressed="false">
+                                <span data-i18n="places.cat_banks">Banks</span>
+                            </button>
+                            <button type="button" class="panel-category-chip" data-category="hotels" aria-pressed="false">
+                                <span data-i18n="places.cat_hotels">Hotels & Stays</span>
+                            </button>
                             <button type="button" class="panel-category-chip" data-category="establishments" aria-pressed="false">
-                                <span data-i18n="places.cat_est">Establishments</span>
+                                <span data-i18n="places.cat_est">Shops & Services</span>
                             </button>
                         </div>
                     </div>
@@ -487,7 +519,7 @@
 
     <main class="places-page">
         <div class="places-layout">
-            <!-- Persistent Left Sidebar Category Navigation (7 Categories) -->
+            <!-- Persistent Left Sidebar Category Navigation (All + 10 categories) -->
             <aside class="places-sidebar" aria-label="Categories">
                 <h2 class="sidebar-title" data-i18n="places.categories_title">Categories</h2>
                 <nav class="sidebar-category-list" id="categoryTabs" aria-label="Place Categories">
@@ -509,8 +541,20 @@
                     <button type="button" class="category-tab" data-category="coffee" aria-pressed="false">
                         <span data-i18n="places.cat_coffee">Coffee Shops</span>
                     </button>
+                    <button type="button" class="category-tab" data-category="government" aria-pressed="false">
+                        <span data-i18n="places.cat_gov">Government & Landmarks</span>
+                    </button>
+                    <button type="button" class="category-tab" data-category="health" aria-pressed="false">
+                        <span data-i18n="places.cat_health">Health</span>
+                    </button>
+                    <button type="button" class="category-tab" data-category="banks" aria-pressed="false">
+                        <span data-i18n="places.cat_banks">Banks</span>
+                    </button>
+                    <button type="button" class="category-tab" data-category="hotels" aria-pressed="false">
+                        <span data-i18n="places.cat_hotels">Hotels & Stays</span>
+                    </button>
                     <button type="button" class="category-tab" data-category="establishments" aria-pressed="false">
-                        <span data-i18n="places.cat_est">Establishments</span>
+                        <span data-i18n="places.cat_est">Shops & Services</span>
                     </button>
                 </nav>
             </aside>
@@ -540,6 +584,9 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Review #16: what the directory covers -->
+                <p class="places-coverage-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg><span data-i18n="places.coverage">Calzada covers Brgy. Uno, Real, Halang, Lecheria and Bucal for now. More barangays will be added.</span></p>
 
                 <!-- No Results State -->
                 <div class="no-results" id="noResults">
@@ -628,8 +675,8 @@
 
     <script src="../js/legal-modal.js?v=2.6.5"></script>
     <script src="../js/script.js?v=2.6.7"></script>
-    <script src="../js/i18n.js?v=2.8.10"></script>
-    <script src="../js/places-shared.js?v=2.6.10"></script>
+    <script src="../js/i18n.js?v=2.8.11"></script>
+    <script src="../js/places-shared.js?v=2.7.0"></script>
     <script src="../js/header-autohide.js?v=1.0.0"></script>
     <script src="../js/fast-tap.js?v=1.0.1"></script>
     <script>
@@ -728,7 +775,11 @@
                 schools: ['schools', 'school', 'paaralan', 'mga paaralan', 'college', 'university'],
                 terminals: ['terminals', 'terminal', 'mga terminal', 'sakayan', 'station'],
                 coffee: ['coffee', 'coffee shops', 'kapehan', 'mga kapehan', 'cafe'],
-                establishments: ['establishments', 'establishment', 'establisyimento', 'mga establisyimento']
+                government: ['government', 'gobyerno', 'landmark', 'landmarks', 'city hall', 'barangay hall', 'munisipyo'],
+                health: ['health', 'kalusugan', 'hospital', 'ospital', 'clinic', 'klinika', 'pharmacy', 'botika'],
+                banks: ['banks', 'bank', 'bangko', 'mga bangko'],
+                hotels: ['hotels', 'hotel', 'stays', 'matutuluyan', 'apartelle', 'inn'],
+                establishments: ['shops', 'services', 'shops & services', 'tindahan', 'serbisyo', 'establishments', 'establishment', 'establisyimento', 'mga establisyimento']
             };
 
             function normalizeStr(str) {
@@ -751,6 +802,10 @@
                 else if (norm === 'schools' || norm === 'school') key = 'places.cat_schools';
                 else if (norm === 'terminals' || norm === 'terminal') key = 'places.cat_terminals';
                 else if (norm === 'coffee' || norm.includes('coffee')) key = 'places.cat_coffee';
+                else if (norm === 'government') key = 'places.cat_gov';
+                else if (norm === 'health') key = 'places.cat_health';
+                else if (norm === 'banks') key = 'places.cat_banks';
+                else if (norm === 'hotels') key = 'places.cat_hotels';
                 else if (norm === 'establishments' || norm === 'establishment' || norm.includes('est')) key = 'places.cat_est';
 
                 if (key && typeof window.t === 'function') {
@@ -1130,6 +1185,7 @@
                         (norm.includes('school') && cat === 'schools') ||
                         (norm.includes('term') && cat === 'terminals') ||
                         (norm.includes('est') && cat === 'establishments');
+                    // government, health, banks and hotels match on their exact name (cat === norm above)
                     t.classList.toggle('active', match);
                     t.setAttribute('aria-pressed', match ? 'true' : 'false');
                 });
@@ -1357,6 +1413,10 @@
                                     (cat === 'schools') ? 'places.cat_schools' :
                                     (cat === 'terminals') ? 'places.cat_terminals' :
                                     (cat === 'coffee') ? 'places.cat_coffee' :
+                                    (cat === 'government') ? 'places.cat_gov' :
+                                    (cat === 'health') ? 'places.cat_health' :
+                                    (cat === 'banks') ? 'places.cat_banks' :
+                                    (cat === 'hotels') ? 'places.cat_hotels' :
                                     (cat === 'establishments') ? 'places.cat_est' : '';
                         if (key) span.textContent = window.t(key);
                     }

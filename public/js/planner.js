@@ -1112,7 +1112,11 @@ document.addEventListener('DOMContentLoaded', () => {
             Terminal: { icon: 'bus-outline', color: '#0284C7', label: 'Terminal' },
             Stop: { icon: 'pin-outline', color: '#64748B', label: 'Transit Stop' },
             coffee: { icon: 'cafe-outline', color: '#854D0E', label: 'Coffee Shop' },
-            establishments: { icon: 'business-outline', color: '#4F46E5', label: 'Establishment' },
+            government: { icon: 'flag-outline', color: '#475569', label: 'Government & Landmark' },
+            health: { icon: 'medkit-outline', color: '#DC2626', label: 'Health' },
+            banks: { icon: 'cash-outline', color: '#0F766E', label: 'Bank' },
+            hotels: { icon: 'bed-outline', color: '#7C3AED', label: 'Hotel' },
+            establishments: { icon: 'bag-handle-outline', color: '#4F46E5', label: 'Shop & Service' },
             all: { icon: 'location-outline', color: '#378ADD', label: 'Place' },
         };
 
@@ -1141,8 +1145,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'south-supermarket', name: 'South Supermarket', category: 'malls', full_address: 'Manila S Rd, Calamba, 4027 Laguna' },
             // Schools
             { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '../assets/places/sti-college/sti-1.webp' },
-            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', full_address: 'Real, Calamba, 4027 Laguna', image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.webp' },
-            { id: 'real-elementary', name: 'Real Elementary School', category: 'schools', defaultLat: 14.1987874, defaultLng: 121.1492457, full_address: '336 Real Rd, Real, Calamba, 4027 Laguna' },
+            { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', full_address: 'Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.webp' },
+            { id: 'real-elementary', name: 'Real Elementary School', category: 'schools', defaultLat: 14.1987874, defaultLng: 121.1492457, full_address: '336 Real Rd, Brgy. Real, Calamba City, Laguna' },
             { id: 'pwu-cdcec', name: 'PWU CDCEC Calamba', category: 'schools', defaultLat: 14.2052421, defaultLng: 121.1562636, full_address: '6544+3HW, Bridge, Calamba, 4027 Laguna' },
             // Terminals
             { id: 'calamba-crossing-term', name: 'Calamba Crossing / Central Terminal', category: 'terminals', defaultLat: 14.19821, defaultLng: 121.16315, full_address: 'Calamba Crossing, Brgy. Real, Calamba City' },
@@ -1160,17 +1164,17 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'sample-coffee', name: 'Sample Coffee House', category: 'coffee', defaultLat: 14.1843, defaultLng: 121.1625, full_address: 'National Highway, Brgy. Bucal, Calamba City' },
             { id: 'starbucks-crossing', name: 'Starbucks Calamba Crossing', category: 'coffee', defaultLat: 14.2040, defaultLng: 121.1546, full_address: 'Crossing, Brgy. Real, Calamba City' },
             // Establishments
-            { id: 'calamba-city-hall', name: 'Calamba City Hall', category: 'establishments', full_address: 'Bacnotan Rd, Brgy. Real, Calamba City' },
-            { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'establishments', defaultLat: 14.2140, defaultLng: 121.1670, full_address: 'J.P. Rizal St, Brgy. 5 Poblacion, Calamba City' },
-            { id: 'calamba-plaza', name: 'Calamba Town Plaza', category: 'establishments', defaultLat: 14.2135, defaultLng: 121.1662, full_address: 'Rizal St, Poblacion, Calamba City' },
-            { id: 'calamba-medical', name: 'Calamba Medical Center', category: 'establishments', defaultLat: 14.2065, defaultLng: 121.1575, full_address: 'National Highway, Crossing, Calamba City' },
-            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'establishments', full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/card-sme-bank/card-sme-bank-1.webp' },
+            { id: 'calamba-city-hall', name: 'Calamba City Hall', category: 'government', full_address: 'Bacnotan Rd, Brgy. Real, Calamba City' },
+            { id: 'rizal-shrine', name: 'Bahay ni Rizal (Rizal Shrine)', category: 'government', defaultLat: 14.2140, defaultLng: 121.1670, full_address: 'J.P. Rizal St, Brgy. 5 Poblacion, Calamba City' },
+            { id: 'calamba-plaza', name: 'Calamba Town Plaza', category: 'government', defaultLat: 14.2135, defaultLng: 121.1662, full_address: 'Rizal St, Poblacion, Calamba City' },
+            { id: 'calamba-medical', name: 'Calamba Medical Center', category: 'health', defaultLat: 14.2065, defaultLng: 121.1575, full_address: 'National Highway, Crossing, Calamba City' },
+            { id: 'card-sme-bank', name: 'CARD SME Bank – Calamba Branch', category: 'banks', full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/card-sme-bank/card-sme-bank-1.webp' },
             { id: 'wilcon-depot', name: 'Wilcon Depot Calamba', category: 'establishments', full_address: 'National Highway, Calamba City, Laguna', image_path: '../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp' },
-            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'establishments', full_address: 'Barangay 1 (Uno), Calamba City, Laguna', image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.webp' },
+            { id: 'barangay-uno-hall', name: 'Barangay Uno Hall, Calamba City', category: 'government', full_address: 'Barangay 1 (Uno), Calamba City, Laguna', image_path: '../assets/places/barangay-uno-hall/barangay-uno-hall-1.webp' },
             { id: 'rj-auto-shop', name: 'RJ Auto Shop', category: 'establishments', full_address: 'Calamba City, Laguna', image_path: '../assets/places/rj-auto-shop/rj-auto-shop-1.webp' },
             { id: 'news-star', name: 'News Star', category: 'establishments', full_address: 'Calamba City, Laguna', image_path: '../assets/places/news-star/news-star-1.webp' },
             // Schools
-            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', full_address: 'Ipil-ipil St., Bucal, Calamba City, Laguna', image_path: '../assets/places/letran-calamba/letran-calamba-1.webp' },
+            { id: 'letran-calamba', name: 'Colegio de San Juan de Letran – Calamba', category: 'schools', full_address: 'Ipil-ipil St., Brgy. Bucal, Calamba City, Laguna', image_path: '../assets/places/letran-calamba/letran-calamba-1.webp' },
             { id: 'halang-elementary', name: 'Halang Elementary School', category: 'schools', full_address: 'Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/halang-elementary-school/halang-elementary-school-1.webp' },
             // Eateries
             { id: 'jollibee-real', name: 'Jollibee – Real, Calamba City', category: 'eateries', full_address: 'National Highway, Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp' },
@@ -6019,7 +6023,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // =============================================
         const PLACE_CATEGORY_LABELS = {
             malls: 'Mall', eateries: 'Eatery', coffee: 'Coffee', schools: 'School',
-            terminals: 'Terminal', establishments: 'Establishment'
+            terminals: 'Terminal', government: 'Government & Landmark', health: 'Health', banks: 'Bank',
+            hotels: 'Hotel', establishments: 'Shop & Service'
         };
         const clip = (s, max) => (s == null ? null : String(s).trim().slice(0, max));
         const roundTo = (n, decimals) => {

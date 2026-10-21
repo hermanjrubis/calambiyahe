@@ -30,6 +30,14 @@
     const RECENT_KEY = 'calzada_recent_places';
     const RECENT_MAX = 8;
     const DUPLICATE_RADIUS_M = 150;
+    const SAME_ADDRESS_RADIUS_M = 400;
+    // Review #02: where outside results may be. A destination must be in Calamba (the planner routes to
+    // places in Calamba). A starting point may also be along the jeep routes into Calamba (Sta. Rosa,
+    // Cabuyao, Los Baños, Tanauan side). Both boxes are approximate.
+    const CALAMBA_BOX = { s: 14.10, w: 121.02, n: 14.27, e: 121.23 };
+    const SERVICE_BOX = { s: 14.10, w: 120.95, n: 14.32, e: 121.26 };
+    const inBox = (o, b) => o.lat >= b.s && o.lat <= b.n && o.lng >= b.w && o.lng <= b.e;
+    const OTHER_TOWNS = /\b(santa rosa|sta\.? rosa|cabuyao|los ba(n|ñ)os|bay|binan|biñan|san pedro|tanauan|santo tomas|sto\.? tomas|tiaong|lipa|silang|tagaytay|alaminos|san pablo)\b/i;
     const MOBILE_MAX_W = 768;
 
     const CATEGORIES = [
@@ -38,10 +46,14 @@
         { id: 'schools', icon: 'ti-school', key: 'nav.explore.schools', fallback: 'Schools' },
         { id: 'terminals', icon: 'ti-bus', key: 'nav.explore.terminals', fallback: 'Terminals' },
         { id: 'coffee', icon: 'ti-coffee', key: 'nav.explore.coffee', fallback: 'Coffee Shops' },
-        { id: 'establishments', icon: 'ti-building', key: 'nav.explore.establishments', fallback: 'Establishments' }
+        { id: 'government', icon: 'ti-flag', key: 'nav.explore.government', fallback: 'Government & Landmarks' },
+        { id: 'health', icon: 'ti-first-aid-kit', key: 'nav.explore.health', fallback: 'Health' },
+        { id: 'banks', icon: 'ti-building-bank', key: 'nav.explore.banks', fallback: 'Banks' },
+        { id: 'hotels', icon: 'ti-bed', key: 'nav.explore.hotels', fallback: 'Hotels & Stays' },
+        { id: 'establishments', icon: 'ti-shopping-bag', key: 'nav.explore.establishments', fallback: 'Shops & Services' }
     ];
-    const KIND_ICONS = { mall: 'ti-building-store', food: 'ti-tools-kitchen-2', school: 'ti-school', terminal: 'ti-bus', coffee: 'ti-coffee', building: 'ti-building', pin: 'ti-map-pin' };
-    const CATEGORY_KIND = { malls: 'mall', eateries: 'food', schools: 'school', terminals: 'terminal', coffee: 'coffee', establishments: 'building' };
+    const KIND_ICONS = { mall: 'ti-building-store', food: 'ti-tools-kitchen-2', school: 'ti-school', terminal: 'ti-bus', coffee: 'ti-coffee', building: 'ti-building', gov: 'ti-flag', health: 'ti-first-aid-kit', bank: 'ti-building-bank', hotel: 'ti-bed', shop: 'ti-shopping-bag', pin: 'ti-map-pin' };
+    const CATEGORY_KIND = { malls: 'mall', eateries: 'food', schools: 'school', terminals: 'terminal', coffee: 'coffee', government: 'gov', health: 'health', banks: 'bank', hotels: 'hotel', establishments: 'shop' };
 
     // ── Helpers ─────────────────────────────────────────────────────────────
     const tr = (key, fallback, vars) => {
@@ -410,7 +422,7 @@
             const data = await res.json();
             return (data.results || []).map(r => ({
                 type: 'geoapify', name: r.name, nameHtml: highlight(r.name, query), location: geocodeLocation(r, r.name),
-                lat: Number(r.lat), lng: Number(r.lng), kind: KIND_ICONS[r.kind] ? r.kind : 'pin'
+                lat: Number(r.lat), lng: Number(r.lng), kind: KIND_ICONS[r.kind] ? r.kind : 'pin', city: r.city || ''
             })).filter(o => o.name && Number.isFinite(o.lat) && Number.isFinite(o.lng));
         } finally {
             clearTimeout(timer);
@@ -442,6 +454,26 @@
         const shared = wb.filter(w => wa.has(w)).length;
         return shared / Math.max(1, Math.min(wa.size, wb.length)) >= 0.6;
     });
+
+    // Review #02: a destination must be in Calamba; a starting point may be anywhere along the jeep routes
+    const inServiceArea = (o) => {
+        const forOrigin = !!(opts && opts.field === 'origin');
+        if (Number.isFinite(o.lat) && Number.isFinite(o.lng)) {
+            if (!inBox(o, forOrigin ? SERVICE_BOX : CALAMBA_BOX)) return false;
+            if (!forOrigin && o.city && !/calamba/i.test(o.city)) return false;
+            return true;
+        }
+        // Esri suggestions have no coordinates yet: judge a destination by the town in its address
+        if (!forOrigin && OTHER_TOWNS.test(o.address || o.location || '') && !/calamba/i.test(o.address || o.location || '')) return false;
+        return true;
+    };
+    // Two results with the same address (street, area and town) close together are the same place
+    const sameAddress = (a, b) => {
+        const la = norm(a.location), lb = norm(b.location);
+        if (!la || la !== lb) return false;
+        if (!Number.isFinite(a.lat) || !Number.isFinite(b.lat)) return true;
+        return distM(a, b) <= SAME_ADDRESS_RADIUS_M;
+    };
 
     const runSearch = async (query) => {
         if (controller) controller.abort();
@@ -475,7 +507,10 @@
         // Not a Calzada place already, and not the same place twice (same name within 150 m)
         external = external.filter(o => !isDuplicate(o, allLocal))
             .filter((o, i, arr) => !arr.slice(0, i).some(p => norm(p.name) === norm(o.name) && (!Number.isFinite(o.lat) || distM(o, p) <= DUPLICATE_RADIUS_M)))
-            .map(withDistance).slice(0, 8);
+            .filter(inServiceArea)
+            .filter((o, i, arr) => !arr.slice(0, i).some(p => sameAddress(o, p)));
+        // Calzada's own places come first; outside results only fill in when there are few of them
+        external = external.map(withDistance).slice(0, local.length >= 5 ? 3 : 8);
         console.info(`Place search "${query}": Calzada ${local.length}, ${source} ${external.length}`);
         renderResults(query, local, external, source === 'Geoapify' ? 'geoapify' : 'esri');
     };

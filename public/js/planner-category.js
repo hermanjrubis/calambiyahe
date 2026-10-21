@@ -24,7 +24,11 @@
         schools: 'M22 9l-10 -4l-10 4l10 4l10 -4v6M6 10.6v5.4a6 3 0 0 0 12 0v-5.4',
         terminals: 'M6 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M14 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M4 17v-11a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v11h-2m-4 0h-4M4 11h16M8 5v6M16 5v6',
         coffee: 'M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5zM16.746 16.726a3 3 0 1 0 .252 -5.555',
-        establishments: 'M3 21l18 0M9 8l1 0M9 12l1 0M9 16l1 0M14 8l1 0M14 12l1 0M14 16l1 0M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16',
+        government: 'M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9zM5 21v-7',
+        health: 'M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2M6 8h12a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2zM10 14h4M12 12v4',
+        banks: 'M3 21h18M3 10h18M5 6l7 -3l7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3',
+        hotels: 'M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M22 17v-3h-20M2 8v9M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5z',
+        establishments: 'M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304zM9 11v-5a3 3 0 0 1 6 0v5',
         pin: 'M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z',
         route: 'M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4zM11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5',
         x: 'M18 6l-12 12M6 6l12 12',
@@ -38,7 +42,7 @@
 
     const TEXT = {
         en: {
-            cat: { malls: 'Malls', eateries: 'Eateries', schools: 'Schools', terminals: 'Terminals', coffee: 'Coffee Shops', establishments: 'Establishments' },
+            cat: { malls: 'Malls', eateries: 'Eateries', schools: 'Schools', terminals: 'Terminals', coffee: 'Coffee Shops', government: 'Government & Landmarks', health: 'Health', banks: 'Banks', hotels: 'Hotels & Stays', establishments: 'Shops & Services' },
             places: (n) => `${n} ${n === 1 ? 'place' : 'places'}`,
             empty: 'No places in this category yet.',
             results: (c) => `${c} results`,
@@ -48,7 +52,7 @@
             close: 'Close', backTo: (c, n) => `${c} (${n})`, open360: 'Open 360° view'
         },
         tl: {
-            cat: { malls: 'Mga Mall', eateries: 'Mga Kainan', schools: 'Mga Paaralan', terminals: 'Mga Terminal', coffee: 'Mga Coffee Shop', establishments: 'Mga Establisyimento' },
+            cat: { malls: 'Mga Mall', eateries: 'Mga Kainan', schools: 'Mga Paaralan', terminals: 'Mga Terminal', coffee: 'Mga Coffee Shop', government: 'Gobyerno at Landmark', health: 'Kalusugan', banks: 'Mga Bangko', hotels: 'Hotel at Matutuluyan', establishments: 'Tindahan at Serbisyo' },
             places: (n) => `${n} lugar`,
             empty: 'Wala pang lugar sa kategoryang ito.',
             results: (c) => `Mga resulta: ${c}`,

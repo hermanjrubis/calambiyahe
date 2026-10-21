@@ -6,14 +6,14 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Planner – Calzada</title>
-    <meta name="description" content="Plan commuting routes, estimate fares, and find transit connections for Jeepneys, Buses, and Tricycles in Calamba.">
+    <meta name="description" content="Plan jeepney and walking routes in Calamba, with fares and travel times for each part of the trip.">
     <link rel="canonical" href="https://calzadaph.com/planner">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
     <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
-    <meta property="og:description" content="Find routes, fares, and connections for Jeepneys, Buses, P2P, UV Express, and Tricycles.">
+    <meta property="og:description" content="Jeepney and walking routes in Calamba, with fares and travel times.">
     <!-- Google Fonts Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -146,7 +146,11 @@
                         <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false">Schools</button>
                         <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false">Terminals</button>
                         <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false">Coffee Shops</button>
-                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false">Establishments</button>
+                        <button class="map-segment-btn" data-category="government" type="button" role="tab" aria-selected="false">Government & Landmarks</button>
+                        <button class="map-segment-btn" data-category="health" type="button" role="tab" aria-selected="false">Health</button>
+                        <button class="map-segment-btn" data-category="banks" type="button" role="tab" aria-selected="false">Banks</button>
+                        <button class="map-segment-btn" data-category="hotels" type="button" role="tab" aria-selected="false">Hotels & Stays</button>
+                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false">Shops & Services</button>
                     </div>
                 </div>
                 <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button" aria-label="Clear active category filter">
@@ -933,20 +937,20 @@
     <script src="../js/streetview-viewer.js?v=2.6.3"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="../js/transitions.js?v=2.6.4"></script>
-    <script src="../js/places-shared.js?v=2.6.10"></script>
+    <script src="../js/places-shared.js?v=2.7.0"></script>
     <script src="../js/fare-calc.js?v=1.0.1"></script>
     <script src="../js/trip-ticket.js?v=1.1.5"></script>
-    <script src="../js/place-search.js?v=1.0.1"></script>
+    <script src="../js/place-search.js?v=1.1.0"></script>
     <script src="../js/route-pdf.js?v=1.0.7"></script>
     <script src="../js/fast-tap.js?v=1.0.1"></script>
     <script>window.CALZADA_PLACE_PANEL_VERSION = '2.9.8'; window.CALZADA_PLACE_PANEL_CSS_VERSION = '18';</script>
-    <script src="../js/planner-category.js?v=1.0.0"></script>
+    <script src="../js/planner-category.js?v=1.1.0"></script>
     <script src="../js/transit-engine.js?v=1.3.2"></script>
     <script src="../js/planner-transit.js?v=1.1.0"></script>
-    <script src="../js/planner.js?v=2.9.16"></script>
+    <script src="../js/planner.js?v=2.9.17"></script>
     <script src="../js/legal-modal.js?v=2.6.5"></script>
     <script src="../js/script.js?v=2.6.7"></script>
-    <script src="../js/i18n.js?v=2.8.10"></script>
+    <script src="../js/i18n.js?v=2.8.11"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>

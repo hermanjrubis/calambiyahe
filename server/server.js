@@ -127,7 +127,7 @@ const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = requi
 // ---------------------------------------------------------------------------------------------------------------------
 const UI_LABELS_EN = {
     about: 'About Us',                     // top bar link
-    explore: 'Explore',                    // top bar menu
+    explore: 'Places',                     // top bar menu
     faqs: 'FAQs',                          // top bar link
     feedback: 'Feedback',                  // top bar link
     planner: 'Planner',                    // top bar link
@@ -139,7 +139,7 @@ const UI_LABELS_EN = {
     from: 'Where from?',                   // Planner field
     to: 'Where to?',                       // Planner field
     start: 'START JOURNEY',                // Planner button
-    viewAll: 'View All Places →',     // last item of the Explore menu
+    viewAll: 'View All Places →',     // last item of the Places menu
     feedbackSignIn: 'Sign in to Continue', // button on the Feedback page for visitors who are not signed in
     bugReport: 'Bug Report',               // Feedback form category
     suggestion: 'Suggestion',              // Feedback form category
@@ -154,7 +154,7 @@ const UI_LABELS_EN = {
 // On the Tagalog site only these labels change; every other label above is static English there too.
 const UI_LABELS = {
     en: UI_LABELS_EN,
-    tl: { ...UI_LABELS_EN, about: 'Tungkol sa Amin', explore: 'Tuklasin', signIn: 'Mag-sign in', homeFares: 'Tantiya sa pamasahe' }
+    tl: { ...UI_LABELS_EN, about: 'Tungkol sa Amin', explore: 'Mga Lugar', signIn: 'Mag-sign in', homeFares: 'Tantiya sa pamasahe' }
 };
 
 const HELP_LINE = {
@@ -197,13 +197,13 @@ Tip: tantiya lang ang mga ipinapakitang pamasahe.`
     {
         id: 'explore',
         name: 'EXPLORE PLACES',
-        triggers: 'saan may, hanap, explore, discover, malls, eateries, coffee shop, schools, terminals, establishments',
+        triggers: 'saan may, hanap, explore, discover, malls, eateries, coffee shop, schools, terminals, establishments, government, city hall, hospital, clinic, pharmacy, bank, hotel, shops, services',
         en: `Here's how to explore places:
-1. Open the Explore page: in the top bar, click {explore}, then choose a category (Malls, Eateries, Schools, Terminals, Coffee Shops, or Establishments) or {viewAll}.
-2. Browse the categories to see the different places and establishments.`,
+1. Open the Places page: in the top bar, click {explore}, then choose a category (Malls, Eateries, Schools, Terminals, Coffee Shops, Government & Landmarks, Health, Banks, Hotels & Stays, or Shops & Services) or {viewAll}.
+2. Browse the categories to see the different places.`,
         tl: `Ganito mag-explore ng mga lugar:
-1. Buksan ang Explore page: sa itaas na bar, i-click ang {explore}, tapos pumili ng kategorya (Malls, Eateries, Schools, Terminals, Coffee Shops, o Establishments) o ang {viewAll}.
-2. I-browse ang mga kategorya para makita ang iba't ibang lugar at establishment.`
+1. Buksan ang Places page: sa itaas na bar, i-click ang {explore}, tapos pumili ng kategorya (Malls, Eateries, Schools, Terminals, Coffee Shops, Gobyerno at Landmark, Kalusugan, Mga Bangko, Hotel at Matutuluyan, o Tindahan at Serbisyo) o ang {viewAll}.
+2. I-browse ang mga kategorya para makita ang iba't ibang lugar.`
     },
     {
         id: 'feedback',

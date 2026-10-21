@@ -14114,3 +14114,16 @@ button.feature-link-btn {
 .routie-chat-preview[role="button"] { cursor: pointer; }
 .routie-chat-preview[role="button"] * { pointer-events: none; }
 .routie-chat-preview[role="button"]:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 4px; }
+
+/* Review fixes (#16): coverage stated up front */
+.hero-coverage {
+    display: inline-flex; align-items: center; gap: 6px; margin: -0.5rem 0 1.5rem; padding: 6px 12px; border-radius: 16px;
+    background: #EAF2FC; color: #1F4E80; font-family: 'Outfit', sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1.35;
+    animation: heroFadeIn 0.8s var(--ease) 0.45s both;
+}
+.hero-coverage svg { flex-shrink: 0; color: #1F69B8; }
+.places-coverage-note {
+    display: flex; align-items: flex-start; gap: 8px; margin: 0 0 16px; padding: 10px 14px; border-radius: 12px;
+    background: #EAF2FC; color: #1F4E80; font-family: 'Outfit', sans-serif; font-size: 0.875rem; line-height: 1.45;
+}
+.places-coverage-note svg { flex-shrink: 0; margin-top: 1px; color: #1F69B8; }

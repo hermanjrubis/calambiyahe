@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
 
     <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
-    <link rel="stylesheet" href="../css/style.css?v=2.8.3">
+    <link rel="stylesheet" href="../css/style.css?v=2.8.4">
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
 
@@ -1091,15 +1091,35 @@
                             </span>
                             <span data-i18n="nav.explore.coffee">Coffee Shops</span>
                         </a>
+                        <a href="/places?category=government" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z"></path><path d="M5 21v-7"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.government">Government & Landmarks</span>
+                        </a>
+                        <a href="/places?category=health" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"></path><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M10 14h4M12 12v4"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.health">Health</span>
+                        </a>
+                        <a href="/places?category=banks" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7 -3l7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.banks">Banks</span>
+                        </a>
+                        <a href="/places?category=hotels" class="nav-dropdown-item">
+                            <span class="nav-drop-icon icon-building">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M22 17v-3h-20M2 8v9M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5z"></path></svg>
+                            </span>
+                            <span data-i18n="nav.explore.hotels">Hotels & Stays</span>
+                        </a>
                         <a href="/places?category=establishments" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-                                    <path d="M9 22v-4h6v4"></path>
-                                    <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01"></path>
-                                </svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304z"></path><path d="M9 11v-5a3 3 0 0 1 6 0v5"></path></svg>
                             </span>
-                            <span data-i18n="nav.explore.establishments">Establishments</span>
+                            <span data-i18n="nav.explore.establishments">Shops & Services</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
                         <a href="/places" class="nav-dropdown-item view-all">
@@ -2307,7 +2327,7 @@
         // Initialize on load
         initPage();
     </script>
-    <script src="../js/i18n.js?v=2.8.10"></script>
+    <script src="../js/i18n.js?v=2.8.11"></script>
 </body>
 
 </html>
