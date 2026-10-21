@@ -2948,12 +2948,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const xferWalk = j2 && rest[0] && rest[0].type === 'walk' ? rest[0] : null;
             let fwRes = null;
             if (xferWalk && xferWalk.via && xferWalk.distM > 0) {
-                // A walk the route data describes (e.g. through SM City Calamba): a straight line
-                // between the two stops, not a street detour around the building
+                // A walk the route data describes (e.g. along SM City Calamba): its own walking line
+                // when it has one, else a straight line between the two stops
                 const d = xferWalk.distM;
                 const nextName = transitStopName(j2.board) || 'Terminal';
+                let line = Array.isArray(xferWalk.path) && xferWalk.path.length >= 2 ? xferWalk.path.map(p => [p[0], p[1]]) : [alightPt, afterTarget];
+                if (getHaversineDist(alightPt[0], alightPt[1], line[0][0], line[0][1]) * 1000 > 3) line.unshift(alightPt);
+                const lastPt = line[line.length - 1];
+                if (getHaversineDist(lastPt[0], lastPt[1], afterTarget[0], afterTarget[1]) * 1000 > 3) line.push(afterTarget);
                 fwRes = {
-                    coordinates: [alightPt, afterTarget],
+                    coordinates: line,
                     distance: d,
                     duration: (d / 1000 / WALK_SPEED_KPH) * 3600,
                     viaText: transitLang() === 'tl' ? (xferWalk.via_tl || xferWalk.via) : xferWalk.via,
