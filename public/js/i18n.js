@@ -38,7 +38,7 @@ window.translations = {
         'home.features.save.title':     'Save &amp; Track Your Favorites',
         'home.features.save.desc':      'Save places you want to visit, look back on your trips and visits, and earn badges as you explore Calamba.',
         'home.features.discover.title': 'Discover Places to Visit',
-        'home.features.discover.desc':  'Browse malls, eateries, schools, terminals, coffee shops and more in Calamba. See each place\'s address and opening hours, then plan your route there.',
+        'home.features.discover.desc':  'Browse malls, eateries, schools, terminals, coffee shops and more in Calamba. See each place\'s address and where it is on the map, then plan your route there.',
         'home.gallery.title':           'Discover Calamba',
         'home.gallery.subtitle':        'A few places worth checking out in Calamba.',
         'news.heading':         'Latest News & Traffic',
@@ -285,7 +285,7 @@ window.translations = {
         'nav.aria.alerts':            'Your recent activity',
 
         // === feedback.html ===
-        'feedback.title':              'Calzada - Feedback',
+        'feedback.title':              'Feedback – Calzada',
         'feedback.meta_desc':          'Send feedback, report routing issues, and suggest improvements to help make commuting better in Calamba City.',
         'feedback.og_title':           "Calzada - We'd Love Your Feedback",
         'feedback.og_desc':            'Report a bug, suggest a feature, or just tell us what you think.',
@@ -740,7 +740,7 @@ window.translations = {
         'home.features.save.title':     'I-save at Balikan ang mga Paborito Mo',
         'home.features.save.desc':      'I-save ang mga lugar na gusto mong puntahan, balikan ang mga biyahe at pagbisita mo, at makakuha ng badges habang nililibot mo ang Calamba.',
         'home.features.discover.title': 'Tumuklas ng mga Lugar na Mapupuntahan',
-        'home.features.discover.desc':  'Tingnan ang mga mall, kainan, paaralan, terminal, coffee shop at iba pa sa Calamba. Makikita ang address at oras ng bawat lugar, tapos planuhin ang ruta mo papunta roon.',
+        'home.features.discover.desc':  'Tingnan ang mga mall, kainan, paaralan, terminal, coffee shop at iba pa sa Calamba. Makikita ang address at lokasyon ng bawat lugar sa mapa, tapos planuhin ang ruta mo papunta roon.',
         'home.gallery.title':           'Tuklasin ang Calamba',
         'home.gallery.subtitle':        'Ilang lugar sa Calamba na sulit puntahan.',
         'news.heading':         'Pinakabagong Balita at Trapiko',
@@ -990,7 +990,7 @@ window.translations = {
         'nav.aria.alerts':            'Ang iyong pinakabagong activity',
 
         // === feedback.html ===
-        'feedback.title':              'Calzada - Feedback',
+        'feedback.title':              'Feedback – Calzada',
         'feedback.meta_desc':          'Magpadala ng feedback, mag-report ng isyu sa ruta, at magmungkahi ng pagbabago para mapaganda ang pag-commute sa Calamba City.',
         'feedback.og_title':           'Calzada - Gusto Naming Marinig ang Feedback Mo',
         'feedback.og_desc':            'Mag-report ng bug, magmungkahi ng feature, o sabihin lang ang nasa isip mo.',

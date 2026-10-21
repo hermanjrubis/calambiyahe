@@ -1861,6 +1861,13 @@ app.post('/api/reminders/dispatch', async (req, res) => {
 });
 
 
+// Unknown URLs (keep this after every other route): a branded 404 page; API paths get JSON.
+app.use((req, res) => {
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'Not found' });
+    }
+    res.status(404).sendFile(path.join(staticPublicPath, 'pages', '404.html'));
+});
 
 const PORT = process.env.PORT || 5000;
 

@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-    <script>document.documentElement.classList.add('js-reveal');</script>
+    <!-- Sections show at once (review #13): the scroll-reveal hiding (.js-reveal) is no longer switched on -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Calzada - Your Commuting Guide in Calamba</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Calzada – Your Commuting Guide in Calamba</title>
     <link rel="canonical" href="https://calzadaph.com/">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
-    <link rel="stylesheet" href="../css/style.css?v=2.6.7">
+    <link rel="stylesheet" href="../css/style.css?v=2.8.0">
     <!-- Search dropdown styles -->
     <style>
         .search-results-dropdown {
@@ -662,7 +662,7 @@
                         <p class="feature-desc" data-i18n="home.features.routie.desc">
                             Ask Routie, Calzada's AI assistant. Type or speak in Tagalog or English. Routie can suggest places to visit in Calamba, explain jeepney fares, and answer questions about the route you planned.
                         </p>
-                        <a href="javascript:void(0)" class="feature-link-btn" id="routieFeatureBtn" role="button" aria-label="Ask Routie">See more →</a>
+                        <button type="button" class="feature-link-btn" id="routieFeatureBtn" aria-label="Ask Routie">See more →</button>
                     </div>
                     <div class="feature-visual-block routie-visual">
                         <div class="routie-mascot-card">
@@ -854,7 +854,7 @@
                         <span class="feature-tag">DISCOVERY</span>
                         <h3 class="feature-title" data-i18n="home.features.discover.title">Discover Places to Visit</h3>
                         <p class="feature-desc" data-i18n="home.features.discover.desc">
-                            Browse malls, eateries, schools, terminals, coffee shops and more in Calamba. See each place's address and opening hours, then plan your route there.
+                            Browse malls, eateries, schools, terminals, coffee shops and more in Calamba. See each place's address and where it is on the map, then plan your route there.
                         </p>
                         <a href="/places" class="feature-link-btn">See more →</a>
                     </div>
@@ -1314,17 +1314,6 @@
                     <img src="../assets/logo-white.png" alt="Calzada Logo" class="footer-logo-img" width="42" height="42" loading="lazy" decoding="async">
                 </a>
                 <p data-i18n="footer.tagline">Ang iyong maaasahang gabay sa commute sa Calamba.</p>
-                <div class="social-links">
-                    <a href="https://facebook.com"><ion-icon name="logo-facebook"></ion-icon></a>
-                    <a href="https://x.com" aria-label="X (Twitter)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.25 2.25h6.69l4.71 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                        </svg>
-                    </a>
-                    <a href="https://www.instagram.com/dedanielss/"><ion-icon name="logo-instagram"></ion-icon></a>
-                </div>
             </div>
             <div class="footer-column nav-column">
                 <h3 data-i18n="footer.nav.heading">Navigation</h3>
@@ -1339,7 +1328,6 @@
             <div class="footer-column contact-column">
                 <h3 data-i18n="footer.contact.heading">Contact Us</h3>
                 <p><ion-icon name="mail-outline"></ion-icon> <a href="mailto:thecalzada@gmail.com">thecalzada@gmail.com</a></p>
-                <p><ion-icon name="call-outline"></ion-icon> (049) 555 1234</p>
                 <p><ion-icon name="location-outline"></ion-icon> Calamba City, Laguna</p>
             </div>
         </div>
@@ -1353,9 +1341,9 @@
         </div>
     </footer>
 
-    <script src="../js/legal-modal.js?v=2.6.4"></script>
+    <script src="../js/legal-modal.js?v=2.6.5"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.7.4"></script>
+    <script src="../js/i18n.js?v=2.8.8"></script>
     <script src="../js/places-shared.js?v=2.6.10"></script>
 
     <!-- =============================================
@@ -1769,7 +1757,7 @@
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
-    <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
+    <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.8"></script>
 
     <!-- Stacking Cards (stacking-card.tsx) & 3D Container Scroll (container-scroll-animation.tsx) Scripts -->
@@ -2356,7 +2344,7 @@
                 <a href="/planner" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
                 <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
                 <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
-                <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
+                <button type="button" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></button>
             </div>
 
             <div class="drawer-separator"></div>

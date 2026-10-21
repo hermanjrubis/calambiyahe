@@ -182,7 +182,7 @@
             <div class="legal-modal-dialog">
                 <div class="legal-modal-header">
                     <div class="legal-modal-header-text">
-                        <h2 id="legalModalTitle" class="legal-modal-title"></h2>
+                        <h2 id="legalModalTitle" class="legal-modal-title">Terms of Service</h2>
                     </div>
                     <button type="button" class="legal-modal-close" id="legalModalCloseBtn" aria-label="Close modal">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

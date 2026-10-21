@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Page not found – Calzada</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="/assets/logo-header-blue.webp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Sora:wght@600;700&display=swap">
+    <style>
+        :root { --brand: #2272C3; --ink: #0E2A47; --muted: #475569; --line: #E2E8F0; --soft: #EAF2FC; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background: #F8FAFC; color: var(--ink); font-family: 'Outfit', system-ui, sans-serif; padding: 24px 16px;
+        }
+        .card { width: 100%; max-width: 440px; background: #FFFFFF; border: 1px solid var(--line); border-radius: 20px; padding: 32px 28px; text-align: center; }
+        .logo { height: 36px; width: auto; margin-bottom: 24px; }
+        .code { display: inline-block; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; color: var(--brand); background: var(--soft); border-radius: 999px; padding: 4px 12px; margin-bottom: 14px; }
+        h1 { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 24px; line-height: 1.3; margin-bottom: 10px; }
+        p { font-size: 16px; line-height: 1.55; color: var(--muted); }
+        .tl { margin-top: 6px; font-size: 15px; }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 24px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 12px; font-weight: 600; font-size: 15px; text-decoration: none; }
+        .btn-primary { background: var(--brand); color: #FFFFFF; }
+        .btn-secondary { background: #FFFFFF; color: var(--ink); border: 1px solid var(--line); }
+        .btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+    </style>
+</head>
+<body>
+    <main class="card">
+        <a href="/"><img class="logo" src="/assets/logo-header-blue.webp" alt="Calzada" width="103" height="36"></a>
+        <div class="code">404</div>
+        <h1>This page doesn't exist</h1>
+        <p>The link may be old or mistyped.</p>
+        <p class="tl">Wala rito ang hinahanap mo. Baka luma o mali ang link.</p>
+        <div class="actions">
+            <a class="btn btn-primary" href="/places">Browse Places</a>
+            <a class="btn btn-secondary" href="/planner">Open Planner</a>
+            <a class="btn btn-secondary" href="/">Home</a>
+        </div>
+    </main>
+</body>
+</html>

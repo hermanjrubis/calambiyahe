@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Calzada - Route Planner</title>
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Planner – Calzada</title>
     <meta name="description" content="Plan commuting routes, estimate fares, and find transit connections for Jeepneys, Buses, and Tricycles in Calamba.">
     <link rel="canonical" href="https://calzadaph.com/planner">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
@@ -26,14 +26,14 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.7.9">
-    <link rel="stylesheet" href="../css/planner-category.css?v=1.0.0">
+    <link rel="stylesheet" href="../css/planner.css?v=2.8.0">
+    <link rel="stylesheet" href="../css/planner-category.css?v=1.0.1">
     <link rel="stylesheet" href="../css/planner-transit.css?v=1.2.0">
-    <link rel="stylesheet" href="../css/place-search.css?v=1.0.0">
+    <link rel="stylesheet" href="../css/place-search.css?v=1.0.1">
     <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
-    <link rel="stylesheet" href="../css/account-modals-planner.css?v=1.1.0">
+    <link rel="stylesheet" href="../css/account-modals-planner.css?v=2.8.0">
     <!-- Ticket styles up front: the arrival ticket must look right even if the network drops on the way -->
-    <link rel="stylesheet" href="../css/trips.css?v=1.1.1" data-calzada-trips-css>
+    <link rel="stylesheet" href="../css/trips.css?v=2.8.0" data-calzada-trips-css>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(regs) {
@@ -43,7 +43,7 @@
     </script>
     <!-- Pannellum 360 & Calzada Street View Viewer -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
-    <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.6.3">
+    <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.8.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
@@ -427,7 +427,7 @@
                             <div class="summary-sub" id="summarySub">
                                 <span class="summary-arrive-text" id="sumArriveText">Arrive <span id="sumETA">--:--</span></span>
                                 <span class="sum-dot-sm">·</span>
-                                <span class="summary-dist-text"><span id="sumDist">--</span> km</span>
+                                <span class="summary-dist-text"><span id="sumDist">--</span></span>
                             </div>
                         </div>
                         <div class="summary-right">
@@ -639,7 +639,7 @@
                 <a href="/planner" class="drawer-nav-item active"><span data-i18n="footer.nav.planner">Planner</span></a>
                 <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
                 <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
-                <a href="#" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></a>
+                <button type="button" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></button>
             </div>
 
             <div class="drawer-separator"></div>
@@ -935,21 +935,21 @@
     <script src="../js/transitions.js?v=2.6.4"></script>
     <script src="../js/places-shared.js?v=2.6.10"></script>
     <script src="../js/fare-calc.js?v=1.0.1"></script>
-    <script src="../js/trip-ticket.js?v=1.1.4"></script>
+    <script src="../js/trip-ticket.js?v=1.1.5"></script>
     <script src="../js/place-search.js?v=1.0.1"></script>
     <script src="../js/route-pdf.js?v=1.0.7"></script>
     <script src="../js/fast-tap.js?v=1.0.1"></script>
-    <script>window.CALZADA_PLACE_PANEL_VERSION = '2.9.8'; window.CALZADA_PLACE_PANEL_CSS_VERSION = '16';</script>
+    <script>window.CALZADA_PLACE_PANEL_VERSION = '2.9.8'; window.CALZADA_PLACE_PANEL_CSS_VERSION = '17';</script>
     <script src="../js/planner-category.js?v=1.0.0"></script>
     <script src="../js/transit-engine.js?v=1.3.1"></script>
     <script src="../js/planner-transit.js?v=1.1.0"></script>
-    <script src="../js/planner.js?v=2.9.14"></script>
-    <script src="../js/legal-modal.js?v=2.6.4"></script>
+    <script src="../js/planner.js?v=2.9.15"></script>
+    <script src="../js/legal-modal.js?v=2.6.5"></script>
     <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.8.3"></script>
+    <script src="../js/i18n.js?v=2.8.8"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
-    <script type="module" src="../js/firebase-init.js?v=2.6.4"></script>
+    <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.9"></script>
 </body>
 

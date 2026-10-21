@@ -81,7 +81,7 @@
 }
 .czc-meta {
     font-size: 14px;
-    color: #64748B;
+    color: #5A6A7F;
     margin-top: 2px;
     line-height: 1.35;
 }
@@ -108,7 +108,7 @@
     margin: 0;
     padding: 18px;
     font-size: 14.5px;
-    color: #64748B;
+    color: #5A6A7F;
 }
 .czc-row {
     display: flex;
@@ -167,7 +167,7 @@
 .czc-row-sub,
 .czc-row-dist {
     font-size: 13px;
-    color: #64748B;
+    color: #5A6A7F;
     margin-top: 2px;
 }
 .czc-row-badges { margin-top: 5px; display: flex; }
@@ -268,7 +268,7 @@
 }
 .czc-360-text { display: flex; flex-direction: column; min-width: 0; }
 .czc-360-title { font-family: 'Sora', sans-serif; font-weight: 600; font-size: 14px; }
-.czc-360-sub { font-size: 12.5px; color: #64748B; margin-top: 2px; }
+.czc-360-sub { font-size: 12.5px; color: #5A6A7F; margin-top: 2px; }
 .czc-sec {
     font-size: 12.5px;
     font-weight: 600;
@@ -313,8 +313,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.czc-near-cat { font-size: 12.5px; color: #64748B; }
-.czc-near-dist { font-size: 12.5px; font-weight: 600; color: #64748B; flex-shrink: 0; }
+.czc-near-cat { font-size: 12.5px; color: #5A6A7F; }
+.czc-near-dist { font-size: 12.5px; font-weight: 600; color: #5A6A7F; flex-shrink: 0; }
 .czc-btns {
     display: flex;
     gap: 10px;
@@ -336,7 +336,7 @@
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
 }
-.czc-btn-primary { background: #378ADD; color: #FFFFFF; }
+.czc-btn-primary { background: #2272C3; color: #FFFFFF; }
 .czc-btn-primary:active { background: #2272C3; transform: scale(0.98); }
 .czc-btn-secondary { background: #F1F5F9; color: #0E2A47; }
 .czc-btn-secondary:active { background: #E2E8F0; transform: scale(0.98); }
@@ -364,7 +364,7 @@
     padding: 0 6px;
     margin-left: 6px;
     border-radius: 999px;
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF;
     font-family: 'Outfit', sans-serif;
     font-size: 11.5px;

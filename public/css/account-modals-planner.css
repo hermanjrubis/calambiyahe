@@ -89,7 +89,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: #378ADD;
+    color: #1F69B8;
     box-shadow: inset 0 0 0 1px rgba(55, 138, 221, 0.15);
 }
 
@@ -112,7 +112,7 @@
     border-radius: 50%;
     font-size: 1.4rem;
     line-height: 1;
-    color: #64748B;
+    color: #5A6A7F;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -137,7 +137,7 @@
     margin: 0 0 22px 0;
     font-family: 'Outfit', sans-serif;
     font-size: 0.88rem;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.5;
 }
 
@@ -226,7 +226,7 @@
     font-family: 'Outfit', sans-serif;
     font-size: 0.82rem;
     font-weight: 400;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.35;
     margin: 0;
     background: transparent !important;
@@ -256,7 +256,7 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: #378ADD;
+    color: #1F69B8;
     background: transparent !important;
     border: none !important;
     transition: all 150ms ease;
@@ -282,7 +282,7 @@
 }
 
 .planner-body #calzadaModalsRoot .achievement-status.unlocked {
-    color: #378ADD;
+    color: #1F69B8;
     font-weight: 700;
 }
 
@@ -309,7 +309,7 @@
     top: 20px;
     bottom: 24px;
     width: 2px;
-    background: #378ADD;
+    background: #2272C3;
     border-radius: 999px;
 }
 
@@ -352,7 +352,7 @@
 
 .planner-body #calzadaModalsRoot .saved-stop-row:hover .saved-stop-node {
     transform: scale(1.3);
-    background: #378ADD;
+    background: #2272C3;
     border-color: #FFFFFF;
     box-shadow: 0 0 0 5px rgba(55, 138, 221, 0.32);
 }
@@ -378,7 +378,7 @@
 
 /* Primary Action: Solid Brand Blue Pill ("Route") */
 .planner-body #calzadaModalsRoot .saved-route-pill-btn {
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF !important;
     text-decoration: none;
     font-family: 'Outfit', sans-serif;
@@ -464,7 +464,7 @@
     align-items: center;
     justify-content: center;
     margin: 0 auto 16px;
-    color: #378ADD;
+    color: #1F69B8;
     box-shadow: 0 4px 12px rgba(55, 138, 221, 0.15);
 }
 
@@ -479,7 +479,7 @@
 .planner-body #calzadaModalsRoot .saved-empty-desc {
     font-family: 'Outfit', sans-serif;
     font-size: 0.88rem;
-    color: #64748B;
+    color: #5A6A7F;
     max-width: 340px;
     margin: 0 auto 20px;
     line-height: 1.5;
@@ -489,7 +489,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF !important;
     font-family: 'Outfit', sans-serif;
     font-weight: 600;
@@ -629,7 +629,7 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF;
     font-weight: 700;
     font-size: 1.35rem;
@@ -655,7 +655,7 @@
     height: 22px;
     border-radius: 50%;
     background: #FFFFFF;
-    color: #64748B;
+    color: #5A6A7F;
     border: 1px solid #CBD5E1;
     display: flex;
     align-items: center;
@@ -665,7 +665,7 @@
 }
 
 .planner-body #calzadaModalsRoot .settings-camera-badge:hover {
-    color: #378ADD;
+    color: #1F69B8;
     border-color: #378ADD;
 }
 
@@ -681,7 +681,7 @@
     display: inline-block;
     font-family: 'Sora', sans-serif;
     font-size: 0.75rem;
-    color: #378ADD;
+    color: #1F69B8;
     cursor: pointer;
     text-align: center;
     line-height: 1.2;
@@ -707,7 +707,7 @@
     margin: 0;
     font-family: 'Sora', sans-serif;
     font-size: 0.75rem;
-    color: #64748B;
+    color: #5A6A7F;
     cursor: pointer;
     text-decoration: none;
     line-height: 1.2;
@@ -716,7 +716,7 @@
 }
 
 .planner-body #calzadaModalsRoot .settings-remove-photo-btn:hover:not(:disabled) {
-    color: #378ADD;
+    color: #1F69B8;
     text-decoration: underline;
 }
 
@@ -735,7 +735,7 @@
     margin-top: 4px;
     font-family: 'Sora', sans-serif;
     font-size: 0.72rem;
-    color: #64748B;
+    color: #5A6A7F;
 }
 
 .planner-body #calzadaModalsRoot .settings-confirm-btn {
@@ -746,7 +746,7 @@
     font-family: inherit;
     font-size: 0.72rem;
     font-weight: 600;
-    color: #378ADD;
+    color: #1F69B8;
     cursor: pointer;
     text-decoration: underline;
 }
@@ -774,7 +774,7 @@
 .planner-body #calzadaModalsRoot .settings-email-text {
     margin: 3px 0 0;
     font-size: 0.82rem;
-    color: #64748B;
+    color: #5A6A7F;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -832,7 +832,7 @@
     font-family: inherit;
     font-size: 0.88rem;
     font-weight: 500;
-    color: #378ADD;
+    color: #1F69B8;
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
@@ -844,7 +844,7 @@
 }
 
 .planner-body #calzadaModalsRoot .settings-text-link:disabled {
-    color: #64748B;
+    color: #5A6A7F;
     cursor: not-allowed;
     text-decoration: none;
     opacity: 0.7;
@@ -869,7 +869,7 @@
     gap: 8px;
     padding: 9px 20px;
     border-radius: 8px;
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF;
     border: none;
     font-family: inherit;
@@ -893,7 +893,7 @@
     opacity: 0.45;
     cursor: not-allowed;
     transform: none;
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF;
     pointer-events: none;
 }

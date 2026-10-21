@@ -71,7 +71,7 @@ body.fares-page .fares-page-container {
 
 .fares-heading-note {
     font-size: 15px;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.5;
     margin-top: 10px;
     margin-bottom: 0;
@@ -120,7 +120,7 @@ body.fares-page .fares-page-container {
 
 .fares-effective-note {
     font-size: 16px;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.5;
     margin: 0;
     text-align: left;
@@ -176,7 +176,7 @@ body.fares-page .fares-page-container {
 
 .fare-calc-hint {
     font-size: 14px;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.4;
     margin: 0;
     transition: color 0.2s ease;
@@ -202,7 +202,7 @@ body.fares-page .fares-page-container {
 .fare-calc-result-label {
     font-size: 14px;
     font-weight: 500;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.4;
     text-align: left;
 }
@@ -244,7 +244,7 @@ body.fares-page .fares-page-container {
 
 .fare-computed-note {
     font-size: 15px;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.6;
     margin-top: 28px;
     margin-bottom: 0;
@@ -289,7 +289,7 @@ body.fares-page .fares-page-container {
 .fare-table thead th {
     font-family: 'Sora', sans-serif;
     font-weight: 600;
-    color: #64748B;
+    color: #5A6A7F;
     font-size: 14px;
     padding-bottom: 12px;
 }
@@ -401,7 +401,7 @@ body.fares-page .fares-page-container {
 
 .fare-source-clarification {
     font-size: 16px;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.5;
     margin: 0;
     text-align: left;

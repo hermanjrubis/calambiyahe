@@ -83,7 +83,7 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 20px;
-    color: #64748B;
+    color: #5A6A7F;
     pointer-events: none;
 }
 
@@ -185,7 +185,7 @@
 }
 
 .cps-chip.is-active {
-    background: #378ADD;
+    background: #2272C3;
     color: #FFFFFF;
 }
 
@@ -341,7 +341,7 @@
 
 .cps-row-loc {
     font-size: 13px;
-    color: #64748B;
+    color: #5A6A7F;
     line-height: 1.3;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -351,7 +351,7 @@
 .cps-row-dist {
     flex-shrink: 0;
     font-size: 12.5px;
-    color: #64748B;
+    color: #5A6A7F;
     font-variant-numeric: tabular-nums;
 }
 
@@ -380,7 +380,7 @@
 
 .cps-note {
     font-size: 13px;
-    color: #64748B;
+    color: #5A6A7F;
 }
 
 /* Loading rows while "More places" is on its way */
@@ -464,7 +464,7 @@
 }
 
 .cps-footer a {
-    color: #64748B;
+    color: #5A6A7F;
     text-decoration: underline;
     text-underline-offset: 2px;
 }

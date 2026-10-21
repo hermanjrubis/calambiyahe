@@ -16,7 +16,7 @@
 
     if (window.CalzadaTicket) return;
 
-    const CSS_HREF = '/css/trips.css?v=1.1.1';
+    const CSS_HREF = '/css/trips.css?v=2.8.0';
     const HTML_TO_IMAGE_SRC = '/vendor/html-to-image/html-to-image-1.11.11.js';
     const JEEPNEY_ICON = '/assets/icons/jeepney-icon.png';
 

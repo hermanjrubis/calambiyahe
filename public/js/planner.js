@@ -1604,6 +1604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let priorTrip = null;
         let transferPreferred = null;
         let transferRecomputing = false;
+        let routeLoading = false;    // a route is being computed (the panel shows a skeleton)
         let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
         let journeyId = null;        // one id per journey, so its trip is saved to the account once
         // 20 characters from the Firestore auto-ID alphabet
@@ -1645,6 +1646,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         // Peso amount as shown everywhere in the planner: "₱16", or "₱16.25" when there are centavos
+        // One distance format for every label (summary, legs, hints, nav): under 1 km to the
+        // nearest 10 m (582 -> 580 m), from 1 km with one decimal (1540 -> 1.5 km)
+        function formatDistanceM(m) {
+            const v = Math.max(0, Number(m) || 0);
+            return v < 1000 ? `${Math.round(v / 10) * 10} m` : `${(v / 1000).toFixed(1)} km`;
+        }
+
         function formatPeso(amount) {
             return window.CalzadaFare ? window.CalzadaFare.formatPeso(amount) : `₱${amount}`;
         }
@@ -1716,10 +1724,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     totalRemM = (currentWalkDist + currentTransitDist) * 1000;
                 }
-                const distStr = totalRemM < 1000
-                    ? `${Math.round(totalRemM / 50) * 50 || Math.round(totalRemM)} m`
-                    : `${(totalRemM / 1000).toFixed(1)} km`;
-                pillRemDist.textContent = distStr;
+                pillRemDist.textContent = formatDistanceM(totalRemM);
             }
 
             // Left line 2: "Arrive 20:24 · Walking · Free" or "Arrive 19:06 · Jeepney · ₱16"
@@ -2398,6 +2403,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (startBtn) startBtn.disabled = false;
                 if (savePdfBtn) savePdfBtn.style.display = 'inline-flex';
                 if (startHelper) startHelper.style.display = 'none';
+            } else if (routeLoading && hasBothFields) {
+                // Route being computed: keep the skeleton and the "Finding routes…" line
+                if (startBtn) startBtn.disabled = true;
+                if (startHelper) {
+                    startHelper.style.display = '';
+                    startHelper.textContent = routeLoadingText();
+                }
             } else {
                 if (directionsCard) directionsCard.classList.remove('has-route');
                 if (transportModesBlock) {
@@ -3184,7 +3196,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const executeRouteQuery = async () => {
+        const executeRouteQueryCore = async () => {
             if (!selectedCoords.origin || !selectedCoords.destination) {
                 renderPlannerState();
                 return;
@@ -3263,9 +3275,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Subtle walkable distance indicator
                 const walkHintEl = document.getElementById('walkableTripHint');
                 if (walkHintEl) {
-                    const totalWalkM = Math.round(wRes.distance || straightDistM);
+                    // Same walk distance as the leg and the summary
+                    const totalWalkM = Math.round(currentWalkDist * 1000 || straightDistM);
                     if (totalWalkM < 800) {
-                        walkHintEl.innerHTML = `<ion-icon name="walk-outline"></ion-icon><span>This distance is walkable (~${totalWalkM < 1000 ? totalWalkM + 'm' : (totalWalkM / 1000).toFixed(1) + 'km'})</span>`;
+                        walkHintEl.innerHTML = `<ion-icon name="walk-outline"></ion-icon><span>This distance is walkable (${formatDistanceM(totalWalkM)})</span>`;
                         walkHintEl.style.display = 'inline-flex';
                     } else {
                         walkHintEl.style.display = 'none';
@@ -3510,6 +3523,62 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTransitPlan();
             await finalizeJeepneyRoute(wRes, tRes, straightDistM);
         };
+
+        // Route loading: as soon as both places are set the panel says "Finding routes…" with a
+        // skeleton result, and says so plainly if no route could be made.
+        function routeLoadingText() { return transitLang() === 'tl' ? 'Hinahanap ang mga ruta…' : 'Finding routes…'; }
+        const setRouteLoading = (on) => {
+            routeLoading = on;
+            const blk = document.getElementById('routeSummaryBlock');
+            const legs = document.getElementById('itineraryLegs');
+            const helper = document.getElementById('startJourneyHelper');
+            const startBtn = document.getElementById('startJourneyBtn');
+            if (startBtn) startBtn.classList.toggle('is-loading', on);
+            if (!on) return;
+            if (startBtn) startBtn.disabled = true;
+            if (helper) {
+                helper.style.display = '';
+                helper.textContent = routeLoadingText();
+                helper.setAttribute('role', 'status');
+            }
+            if (blk) {
+                blk.style.removeProperty('display');
+                blk.classList.remove('hidden');
+                const banner = blk.querySelector('.route-summary-banner');
+                if (banner) banner.style.removeProperty('display');
+            }
+            const st = document.getElementById('sumTime');
+            const sf = document.getElementById('sumFare');
+            if (st) st.innerHTML = '<span class="skeleton sk-route-val" role="status" aria-label="Calculating route"></span>';
+            if (sf) sf.innerHTML = '<span class="skeleton sk-route-val sk-route-fare"></span>';
+            if (legs && !legs.querySelector('.sk-leg-row')) {
+                legs.innerHTML = [0, 1, 2].map(() => '<div class="sk-leg-row" aria-hidden="true"><span class="skeleton sk-leg-dot"></span><span class="skeleton sk-leg-line"></span></div>').join('');
+            }
+        };
+        const executeRouteQuery = async () => {
+            if (!selectedCoords.origin || !selectedCoords.destination) return executeRouteQueryCore();
+            let failed = false;
+            setRouteLoading(true);
+            try {
+                await executeRouteQueryCore();
+            } catch (e) {
+                console.error('Route failed:', e);
+                failed = true;
+            } finally {
+                setRouteLoading(false);
+            }
+            const hasRoute = !!((walkRouteGeojson && walkRouteGeojson.coordinates?.length >= 2) || (transitRouteGeojson && transitRouteGeojson.coordinates?.length >= 2));
+            if (failed || !hasRoute) {
+                renderPlannerState();
+                const helper = document.getElementById('startJourneyHelper');
+                if (helper) {
+                    helper.style.display = '';
+                    helper.textContent = transitLang() === 'tl'
+                        ? 'Walang nahanap na ruta. Subukan ulit o pumili ng ibang lugar.'
+                        : 'No route found. Try again or pick another place.';
+                }
+            }
+        };
         window.executeRouteQuery = executeRouteQuery;
 
         // Shared end of a jeepney route (heuristic or curated): stats, fare, map, steps, panel.
@@ -3556,7 +3625,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (walkHintEl) {
                 const totalTripM = Math.round((currentWalkDist + currentTransitDist) * 1000 || straightDistM);
                 if (totalTripM < 800) {
-                    walkHintEl.innerHTML = `<ion-icon name="information-circle-outline"></ion-icon><span>Short trip (~${totalTripM < 1000 ? totalTripM + 'm' : (totalTripM / 1000).toFixed(1) + 'km'}) · Walk is walkable</span>`;
+                    walkHintEl.innerHTML = `<ion-icon name="information-circle-outline"></ion-icon><span>Short trip (${formatDistanceM(totalTripM)}) · Walk is walkable</span>`;
                     walkHintEl.style.display = 'inline-flex';
                 } else {
                     walkHintEl.style.display = 'none';
@@ -3990,7 +4059,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const t = (k, p) => (window.t ? window.t(k, p) : null);
 
             // Helper: format meters
-            const fmtM = (m) => m < 1000 ? `${Math.round(m / 50) * 50} m` : `${(m / 1000).toFixed(1)} km`;
+            const fmtM = formatDistanceM;
 
             // Base departure time and arrival time
             const hasSchedule = !!(window._calzadaLeaveCalculation && window._calzadaLeaveCalculation.leaveAt);
@@ -4566,7 +4635,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (st) st.textContent = `${totalMin} min`;
             if (sf) sf.textContent = fareLabel;
             if (se) se.textContent = eta;
-            if (sd) sd.textContent = totalDist;
+            if (sd) sd.textContent = formatDistanceM((currentWalkDist + currentTransitDist + extraWalkDistKm) * 1000);
 
             const etaHtml = `<span id="sumETA">${eta}</span>`;
             const arriveStr = window.t
@@ -4640,7 +4709,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return 'arrow-forward-outline';
         };
 
-        const formatDist = (m) => m >= 1000 ? (m / 1000).toFixed(1) + ' ' + t('planner.unit_km') : Math.round(m) + ' ' + t('planner.unit_m');
+        const formatDist = (m) => m >= 1000 ? (m / 1000).toFixed(1) + ' ' + t('planner.unit_km') : (Math.round(m / 10) * 10) + ' ' + t('planner.unit_m');
 
         // ── ACTIVE NAVIGATION ITINERARY LEGS RENDERER (Full Route Section) ──
         function renderActiveNavLegs() {
@@ -4654,7 +4723,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? (walkSteps[walkSteps.length - 1]?.name || 'National Highway')
                 : 'National Highway';
             const walkTargetName = isWalkOnly ? (destPlaceName || 'Destination') : highwayName;
-            const fmtM = (m) => m < 1000 ? `${Math.round(m / 50) * 50} m` : `${(m / 1000).toFixed(1)} km`;
+            const fmtM = formatDistanceM;
 
             let html = `
             <div class="nav-leg-item">

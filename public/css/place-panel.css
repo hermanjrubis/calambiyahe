@@ -134,7 +134,7 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #64748b;
+    color: #5A6A7F;
     cursor: pointer;
     z-index: 30;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -280,7 +280,7 @@ html {
 }
 
 .hero-placeholder-icon {
-    color: #378ADD;
+    color: #1F69B8;
     display: block;
     flex-shrink: 0;
 }
@@ -542,7 +542,7 @@ html {
 .inline-360-skeleton-icon {
     width: 24px;
     height: 24px;
-    color: #378ADD;
+    color: #1F69B8;
     display: block;
     flex-shrink: 0;
     z-index: 2;
@@ -585,7 +585,7 @@ html {
 .inline-360-error-icon {
     width: 24px;
     height: 24px;
-    color: #64748B;
+    color: #5A6A7F;
     display: block;
     flex-shrink: 0;
 }
@@ -753,7 +753,7 @@ html {
     min-width: 28px;
     min-height: 28px;
     border-radius: 999px;
-    background-color: #378ADD;
+    background-color: #2272C3;
     background-image: none;
     box-shadow: none;
     display: flex;
@@ -902,7 +902,7 @@ html {
     border-radius: 8px;
     border: 1px solid #e2e8f0;
     background: #ffffff;
-    color: #64748b;
+    color: #5A6A7F;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -932,7 +932,7 @@ html {
 .panel-save-btn.saved {
     background: #eff6ff;
     border-color: #378ADD;
-    color: #378ADD;
+    color: #1F69B8;
 }
 
 .panel-save-btn.saved:active {
@@ -995,7 +995,7 @@ html {
     width: 16px;
     height: 16px;
     min-width: 16px;
-    color: #64748b;
+    color: #5A6A7F;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1058,7 +1058,7 @@ html {
 }
 
 .panel-hours-status.open {
-    color: #16a34a;
+    color: #15803D;
     font-weight: 500;
 }
 
@@ -1175,7 +1175,7 @@ html {
 
 .rating-count {
     font-size: 13px;
-    color: #64748b;
+    color: #5A6A7F;
     font-weight: 400;
 }
 
@@ -1228,7 +1228,7 @@ html {
 
 .rating-inline-auth {
     font-size: 13px;
-    color: #64748b;
+    color: #5A6A7F;
     font-weight: 400;
     margin: 2px 0;
 }
@@ -1246,12 +1246,12 @@ html {
 
 .rating-prompt {
     font-size: 13px;
-    color: #64748b;
+    color: #5A6A7F;
     margin: 0;
 }
 
 .rating-prompt.success {
-    color: #16a34a;
+    color: #15803D;
     font-weight: 500;
 }
 
@@ -1343,7 +1343,7 @@ html {
 .btn-delete-review {
     padding: 5px 10px;
     background: transparent;
-    color: #64748b;
+    color: #5A6A7F;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     font-weight: 500;
@@ -1407,7 +1407,7 @@ html {
 .btn-cancel-edit {
     padding: 5px 10px;
     background: transparent;
-    color: #64748b;
+    color: #5A6A7F;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     font-weight: 500;
@@ -1465,7 +1465,7 @@ html {
 .reviews-see-more-btn {
     background: none;
     border: none;
-    color: #64748b;
+    color: #5A6A7F;
     font-weight: 500;
     font-size: 13px;
     cursor: pointer;
@@ -1545,7 +1545,7 @@ html {
 
 .reviews-empty-state {
     padding: 4px 0;
-    color: #64748b;
+    color: #5A6A7F;
     font-size: 13px;
     font-style: normal;
     font-weight: 400;
@@ -1657,7 +1657,7 @@ html {
 
 .panel-cta-btn {
     width: 100%;
-    background: #378ADD;
+    background: #2272C3;
     color: #ffffff;
     font-weight: 600;
     font-family: 'Sora', sans-serif;
@@ -1842,18 +1842,18 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #378ADD;
+    color: #1F69B8;
 }
 
 .card-img-placeholder svg {
-    color: #378ADD;
+    color: #1F69B8;
 }
 
 /* Ratings Empty State Single Line */
 .reviews-empty-single-line {
     font-family: 'Outfit', sans-serif;
     font-size: 13.5px;
-    color: #64748b;
+    color: #5A6A7F;
     padding: 2px 0 6px 0;
     line-height: 1.4;
 }
