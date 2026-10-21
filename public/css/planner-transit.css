@@ -1,4 +1,4 @@
-/* Calzada planner: route options + transfer prompt (v1.1.0). Flat: no gradients, no shadows. */
+/* Calzada planner: route options, transfer prompt, stop labels (v1.2.0). Flat: no gradients, no shadows. */
 
 .czt-options { margin: 4px 0 16px; }
 .czt-options[hidden] { display: none !important; }
@@ -89,3 +89,17 @@
 .czt-xfer.is-compact .czt-xfer-mini { display: inline-flex; align-items: center; }
 .czt-xfer.is-compact .czt-xfer-ic { width: 34px; height: 34px; border-radius: 10px; }
 .czt-xfer-go:focus-visible, .czt-xfer-later:focus-visible, .czt-xfer-mini:focus-visible { outline: 2px solid #0E2A47; outline-offset: 2px; }
+
+/* Labelled stops on the map */
+.czt-stop { display: flex; flex-direction: column-reverse; align-items: center; gap: 5px; pointer-events: none; }
+.czt-stop-dot { width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box; flex-shrink: 0; background: #FFFFFF; border: 3.5px solid #378ADD; }
+.czt-stop--board .czt-stop-dot { background: #378ADD; border: 3px solid #FFFFFF; outline: 1.5px solid #378ADD; }
+.czt-stop--next .czt-stop-dot { border-color: #8DB8E8; }
+.czt-stop--change .czt-stop-dot { background: #0E2A47; border: 3px solid #FFFFFF; outline: 1.5px solid #0E2A47; }
+.czt-stop-chip {
+    max-width: 190px; width: max-content; text-align: center; white-space: normal; overflow-wrap: anywhere;
+    background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 3px 8px;
+    font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; color: #475569; line-height: 1.3;
+}
+.czt-stop-chip b { font-weight: 700; color: #0E2A47; }
+@media (max-width: 768px) { .czt-stop-chip { max-width: 170px; font-size: 11.5px; } }

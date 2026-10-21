@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, beforeId);
             }
 
-            // The next jeep of a trip with a transfer (lighter, dashed: it is re-computed at the stop)
+            // The next jeep of a trip with a transfer: solid, lighter blue (walks are the dashed lines)
             if (!map.getSource('next-transit-route')) {
                 map.addSource('next-transit-route', {
                     type: 'geojson',
@@ -433,10 +433,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     source: 'next-transit-route',
                     layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
-                        'line-color': '#2272C3',
-                        'line-width': 5,
-                        'line-dasharray': [1.6, 1.2],
-                        'line-opacity': 0.6
+                        'line-color': '#8DB8E8',
+                        'line-width': 6,
+                        'line-opacity': 0.95
                     }
                 }, beforeId);
             }
@@ -2813,6 +2812,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.CalzadaTransitUI.hideTransfer();
             }
             try { updateRouteSource('next-transit-route', []); } catch (_) { /* map not ready */ }
+            clearTransitMarkers();
         }
 
         // Name of a known place near a point (stop and alighting labels), or null
@@ -2921,8 +2921,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const boardName = transitStopName(j1.board) || transitPlaceNear(boardPt, 150) || roadName || 'National Highway';
 
             const afterTarget = j2 ? j2.coords[0] : dPt;
+            const xferWalk = j2 && rest[0] && rest[0].type === 'walk' ? rest[0] : null;
             let fwRes = null;
-            if (getHaversineDist(alightPt[0], alightPt[1], afterTarget[0], afterTarget[1]) * 1000 > 25) {
+            if (xferWalk && xferWalk.via && xferWalk.distM > 0) {
+                // A walk the route data describes (e.g. through SM City Calamba): a straight line
+                // between the two stops, not a street detour around the building
+                const d = xferWalk.distM;
+                const nextName = transitStopName(j2.board) || 'Terminal';
+                fwRes = {
+                    coordinates: [alightPt, afterTarget],
+                    distance: d,
+                    duration: (d / 1000 / WALK_SPEED_KPH) * 3600,
+                    viaText: transitLang() === 'tl' ? (xferWalk.via_tl || xferWalk.via) : xferWalk.via,
+                    steps: [
+                        { name: nextName, distance: d, duration: (d / 1000 / WALK_SPEED_KPH) * 3600, maneuver: { type: 'depart', modifier: '', location: [alightPt[1], alightPt[0]] }, mode: 'foot' },
+                        { name: nextName, distance: 0, duration: 0, maneuver: { type: 'arrive', modifier: '', location: [afterTarget[1], afterTarget[0]] }, mode: 'foot' }
+                    ]
+                };
+            } else if (getHaversineDist(alightPt[0], alightPt[1], afterTarget[0], afterTarget[1]) * 1000 > 25) {
                 fwRes = await footOrLine(alightPt, afterTarget);
                 if (token !== transitApplyToken) return;
             }
@@ -2987,12 +3003,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
             await finalizeJeepneyRoute(wRes, tRes, straightDistM);
             if (token !== transitApplyToken) return;
+            drawTransitMarkers();
 
             // The selected card shows the same total as the summary (real walks instead of estimates)
             const fw = getFinalWalkInfo();
             const total = currentWalkDur + currentTransitDur + (fw.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
             const walkM = currentWalkDist * 1000 + (fw.finalWalkM || 0) + (pendingTransfer ? pendingTransfer.finalWalkM : 0);
             if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionActual(transitSelected, total, walkM);
+        }
+
+        // ── Labelled stops on the map: where to get on, off, and on the next jeep ──
+        let transitStopMarkers = [];
+        function clearTransitMarkers() {
+            transitStopMarkers.forEach(m => { try { m.remove(); } catch (_) { /* gone */ } });
+            transitStopMarkers = [];
+        }
+        function drawTransitMarkers() {
+            clearTransitMarkers();
+            const tr = transitRouteGeojson;
+            if (!tr || !tr.curated || selectedMode === 'walking' || !Array.isArray(tr.coordinates) || tr.coordinates.length < 2) return;
+            const tl = transitLang() === 'tl';
+            const L = tl
+                ? { board: 'Sakay', off: 'Baba', change: 'Baba at lipat', next: 'Susunod na sakay' }
+                : { board: 'Board', off: 'Get off', change: 'Get off & change', next: 'Next jeep' };
+            const add = (pt, kind, verb, name) => {
+                if (!pt) return;
+                const el = document.createElement('div');
+                el.className = `czt-stop czt-stop--${kind}`;
+                const dot = document.createElement('span');
+                dot.className = 'czt-stop-dot';
+                const chip = document.createElement('span');
+                chip.className = 'czt-stop-chip';
+                const b = document.createElement('b');
+                b.textContent = verb;
+                chip.appendChild(b);
+                chip.appendChild(document.createTextNode(name ? ` · ${name}` : ''));
+                el.appendChild(dot);
+                el.appendChild(chip);
+                // Label above the dot; the dot's centre sits on the stop
+                const m = new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, 8] })
+                    .setLngLat([pt[1], pt[0]])
+                    .addTo(map);
+                transitStopMarkers.push(m);
+            };
+            // The plain boarding dot of drawRoutes is replaced by the labelled one
+            if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
+            const c = tr.coordinates;
+            const boardPt = c[0], alightPt = c[c.length - 1];
+            add(boardPt, 'board', L.board, tr.boardName);
+            const x = pendingTransfer;
+            if (x) {
+                const together = getHaversineDist(alightPt[0], alightPt[1], x.boardPt[0], x.boardPt[1]) * 1000 <= 40;
+                if (together) {
+                    add(x.boardPt, 'change', L.change, x.boardName);
+                } else {
+                    add(alightPt, 'off', L.off, tr.alightName);
+                    add(x.boardPt, 'next', L.next, x.boardName);
+                }
+            } else {
+                add(alightPt, 'off', L.off, tr.alightName);
+            }
         }
 
         // ── Transfer stop: prompt and re-compute during a journey ──
@@ -4132,6 +4202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const xWalkM = finalWalkInfo.finalWalkM;
                 const xWalkMin = finalWalkInfo.finalWalkMin;
                 const sameStop = !(xWalkM > 0);
+                const sameName = (x.boardName || '').trim().toLowerCase() === (alightAt || '').trim().toLowerCase();
                 lastItineraryStops = {
                     boardAt,
                     alightAt,
@@ -4143,11 +4214,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     time: fmt24h(alightTime),
                     ringClass: 'timeline-ring--intermediate',
                     name: alightAt,
-                    subText: sameStop ? (isTl ? 'Bumaba at sumakay ng susunod na jeep dito' : 'Get off and change jeeps here') : (t('planner.get_off_here') || 'Get off here')
+                    subText: (sameStop && sameName) ? (isTl ? 'Bumaba at sumakay ng susunod na jeep dito' : 'Get off and change jeeps here') : (t('planner.get_off_here') || 'Get off here')
                 }));
                 let changeTime = alightTime;
+                if (sameStop && !sameName) {
+                    container.appendChild(createStopRow({
+                        time: fmt24h(alightTime),
+                        ringClass: 'timeline-ring--intermediate',
+                        name: x.boardName,
+                        subText: isTl ? 'Sumakay ng susunod na jeep dito' : 'Take the next jeep here'
+                    }));
+                }
                 if (!sameStop) {
-                    const via = isTl ? (x.via_tl || x.via) : x.via;
+                    const via = (isTl ? (x.via_tl || x.via) : x.via) || window.finalWalkRouteGeojson?.viaText || null;
                     container.appendChild(createLegRow({
                         type: 'walk',
                         contentHtml: walkRowHtml(walkLabel(xWalkM, xWalkMin)) + (via ? `<div class="timeline-via">${escapeHtml(via)}</div>` : '')
@@ -7727,6 +7806,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ensureOriginMarker();
                 ensureDestMarker();
                 drawRoutes(walkRouteGeojson.coordinates, transitRouteGeojson.coordinates, transitRouteGeojson.finalWalk?.coordinates);
+                drawTransitMarkers();
                 updateSummaryRow();
                 updatePillFareUI();
                 renderItinerary();

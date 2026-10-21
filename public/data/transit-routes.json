@@ -16,6 +16,12 @@
       "lng": 121.154669,
       "note": "Driveway on SM City Calamba's west side (SM City Calamba Bypass Road), by SM Cinema and Starbucks. Jeeps drop passengers here for SM; the Calamba-Tagaytay jeep terminal is here too (Google plus code 6533+8V4)."
     },
+    "calamba-tagaytay-terminal": {
+      "name": "Calamba–Tagaytay Terminal",
+      "lat": 14.2032625,
+      "lng": 121.1547031,
+      "note": "Jeep terminal by SM Cinema on SM City Calamba's west side, next to the drop-off (Google: 'Calamba-Tagaytay UV Terminal', plus code 6533+8V4). Jeeps to Tagaytay (and Tanauan) via Real load here."
+    },
     "sm-transport-terminal": {
       "name": "SM Transport Terminal",
       "lat": 14.2026875,
@@ -26,6 +32,18 @@
   "transfers": [
     {
       "a": "sm-calamba-west",
+      "b": "calamba-tagaytay-terminal",
+      "walkM": 0
+    },
+    {
+      "a": "sm-calamba-west",
+      "b": "sm-transport-terminal",
+      "walkM": 300,
+      "via": "Through SM City Calamba",
+      "via_tl": "Dumaan sa loob ng SM City Calamba"
+    },
+    {
+      "a": "calamba-tagaytay-terminal",
       "b": "sm-transport-terminal",
       "walkM": 300,
       "via": "Through SM City Calamba",
@@ -154,12 +172,12 @@
       "id": "calamba-tagaytay",
       "mode": "jeepney",
       "name": "Calamba – Tagaytay",
-      "from": "SM Calamba (Cinema side)",
+      "from": "Calamba–Tagaytay Terminal (SM Calamba)",
       "to": "Tagaytay",
-      "polyline": "yauuA_`nbVbCwAeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NlEvOwBTmc@jUqAnAUnAJ`ArAtDfAz@dFkCNc@~BgAfMgCfAnB~@]bDnFvSnMn@JvCEv@VtAzAfB|CpApArAp@xAlCxA\\jFhHjBZ`B`CpBn@|C`Cx@nCpAnArNxGn@j@dDN^`@rCtHxAtFtDjI`AxCxDdIS~@mCe@iB`ASh@~BbHt@lGjEvOxAhAnAdGjDbLvBpE~DxL|CjElDzDpGlMbLnWlAnAlChJhDdGfCdIlA~AdB`FzA~GzBbCnEtQ`GzR`AtH\\hKbDfi@hExNtCzGFdAWvGdArED`Ac@lCDpDlArCtA~GhAlCqArD?h@~AbG{@pBqBlBsAlBA`JeAdB_IbI_C~Ao@tATrAdBpBl@xGd@zAfF`FtBfGzD|NTbEvA`Dx@lI[|G{AzCr@tBjBdC?f@a@`AwBZ?Xp@p@G\\a@NiAAONRxBE~@_BZgB~AE\\xDhArAQpDiBlBe@|B?~Bn@x@hAh@zDxD~BtA~C`EfAvElBt@fABdCLTvBYfDjBJn@q@|@J^hCBlCb@x@f@l@x@jAvC?h@w@\\k@bBqA^qB@kB\\M`@v@\\TxArBOf@LH`@K`ATT`AQfAFbBOxAu@b@Fl@fEe@dAwAl@Nf@hJUbBJ`B_@bFxB^`BWxBvDxBjB|FjA\\l@z@?z@uAjJ?hARv@lCpBnBrEdDzAt@p@vLjQxCvCjDvGbC`KnA|CnKtMzEnD~BhCrUjh@fAjTkD`VQjHaFnIcAnEy@fX{BrLTdGYzFHhBrA`E|HfJrAp@|RpF|C`BhE~D~W|[D\\^DJa@d@K",
+      "polyline": "kauuA{_nbVgEvBtIpH~NtJzRn^dK~NlEvOwBTmc@jUqAnAUnAJ`ArAtDfAz@dFkCNc@~BgAfMgCfAnB~@]bDnFvSnMn@JvCEv@VtAzAfB|CpApArAp@xAlCxA\\jFhHjBZ`B`CpBn@|C`Cx@nCpAnArNxGn@j@dDN^`@rCtHxAtFtDjI`AxCxDdIS~@mCe@iB`ASh@~BbHt@lGjEvOxAhAnAdGjDbLvBpE~DxL|CjElDzDpGlMbLnWlAnAlChJhDdGfCdIlA~AdB`FzA~GzBbCnEtQ`GzR`AtH\\hKbDfi@hExNtCzGFdAWvGdArED`Ac@lCDpDlArCtA~GhAlCqArD?h@~AbG{@pBqBlBsAlBA`JeAdB_IbI_C~Ao@tATrAdBpBl@xGd@zAfF`FtBfGzD|NTbEvA`Dx@lI[|G{AzCr@tBjBdC?f@a@`AwBZ?Xp@p@G\\a@NiAAONRxBE~@_BZgB~AE\\xDhArAQpDiBlBe@|B?~Bn@x@hAh@zDxD~BtA~C`EfAvElBt@fABdCLTvBYfDjBJn@q@|@J^hCBlCb@x@f@l@x@jAvC?h@w@\\k@bBqA^qB@kB\\M`@v@\\TxArBOf@LH`@K`ATT`AQfAFbBOxAu@b@Fl@fEe@dAwAl@Nf@hJUbBJ`B_@bFxB^`BWxBvDxBjB|FjA\\l@z@?z@uAjJ?hARv@lCpBnBrEdDzAt@p@vLjQxCvCjDvGbC`KnA|CnKtMzEnD~BhCrUjh@fAjTkD`VQjHaFnIcAnEy@fX{BrLTdGYzFHhBrA`E|HfJrAp@|RpF|C`BhE~D~W|[D\\^DJa@d@K",
       "stops": [
         {
-          "id": "sm-calamba-west",
+          "id": "calamba-tagaytay-terminal",
           "forward": "board",
           "reverse": "alight"
         }
@@ -170,7 +188,7 @@
       "reverse": {
         "headsign": "SM Calamba"
       },
-      "notes": "Loads at the Calamba-Tagaytay terminal by SM Cinema and passes Real. Past Real the path follows Calamba-Tagaytay Road as OpenStreetMap routes it (rough near the SLEX interchange).",
+      "notes": "Loads at the Calamba–Tagaytay Terminal by SM Cinema, leaves SM through the west driveway onto the highway (Real Road) and passes Real. Past Real the path follows Calamba-Tagaytay Road as OpenStreetMap routes it (rough near the SLEX interchange).",
       "verified": {
         "flow": true,
         "signboard": false,
@@ -181,12 +199,12 @@
       "id": "calamba-tanauan",
       "mode": "jeepney",
       "name": "Calamba – Tanauan",
-      "from": "SM Calamba (Cinema side)",
+      "from": "Calamba–Tagaytay Terminal (SM Calamba)",
       "to": "Tanauan",
-      "polyline": "yauuA_`nbVbCwAeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NxQlVbPfLbEzAtCf@fGLf{CeIzERbFh@zhAzOrFb@hGHvQ_A|KHbWeCzG}@hd@oI~@rG\\p@pA`A|AHhHk@hC?fCVdHbC",
+      "polyline": "kauuA{_nbVgEvBtIpH~NtJzRn^dK~NxQlVbPfLbEzAtCf@fGLf{CeIzERbFh@zhAzOrFb@hGHvQ_A|KHbWeCzG}@hd@oI~@rG\\p@pA`A|AHhHk@hC?fCVdHbC",
       "stops": [
         {
-          "id": "sm-calamba-west",
+          "id": "calamba-tagaytay-terminal",
           "forward": "board",
           "reverse": "alight"
         }
@@ -197,7 +215,7 @@
       "reverse": {
         "headsign": "SM Calamba"
       },
-      "notes": "Passes Real on the way to Tanauan. Boarding point at SM assumed to be the same west-side terminal (to confirm). The path ends on Maharlika Highway past Turbina; the Batangas part comes later.",
+      "notes": "Passes Real on the way to Tanauan. Loading point assumed to be the Calamba–Tagaytay Terminal by SM Cinema (to confirm). Leaves SM through the west driveway. The path ends on Maharlika Highway past Turbina; the Batangas part comes later.",
       "verified": {
         "flow": true,
         "signboard": false,
