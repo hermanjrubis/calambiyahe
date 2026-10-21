@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-21",
-  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 6 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 5, lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads.",
+  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 6 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 5, lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads. closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba.",
   "stops": {
     "crossing-grand-terminal": {
       "name": "Crossing Grand Terminal",
@@ -174,7 +174,7 @@
       "name": "Calamba – Tagaytay",
       "from": "Calamba–Tagaytay Terminal (SM Calamba)",
       "to": "Tagaytay",
-      "polyline": "kauuA{_nbVgEvBtIpH~NtJzRn^dK~NlEvOwBTmc@jUqAnAUnAJ`ArAtDfAz@dFkCNc@~BgAfMgCfAnB~@]bDnFvSnMn@JvCEv@VtAzAfB|CpApArAp@xAlCxA\\jFhHjBZ`B`CpBn@|C`Cx@nCpAnArNxGn@j@dDN^`@rCtHxAtFtDjI`AxCxDdIS~@mCe@iB`ASh@~BbHt@lGjEvOxAhAnAdGjDbLvBpE~DxL|CjElDzDpGlMbLnWlAnAlChJhDdGfCdIlA~AdB`FzA~GzBbCnEtQ`GzR`AtH\\hKbDfi@hExNtCzGFdAWvGdArED`Ac@lCDpDlArCtA~GhAlCqArD?h@~AbG{@pBqBlBsAlBA`JeAdB_IbI_C~Ao@tATrAdBpBl@xGd@zAfF`FtBfGzD|NTbEvA`Dx@lI[|G{AzCr@tBjBdC?f@a@`AwBZ?Xp@p@G\\a@NiAAONRxBE~@_BZgB~AE\\xDhArAQpDiBlBe@|B?~Bn@x@hAh@zDxD~BtA~C`EfAvElBt@fABdCLTvBYfDjBJn@q@|@J^hCBlCb@x@f@l@x@jAvC?h@w@\\k@bBqA^qB@kB\\M`@v@\\TxArBOf@LH`@K`ATT`AQfAFbBOxAu@b@Fl@fEe@dAwAl@Nf@hJUbBJ`B_@bFxB^`BWxBvDxBjB|FjA\\l@z@?z@uAjJ?hARv@lCpBnBrEdDzAt@p@vLjQxCvCjDvGbC`KnA|CnKtMzEnD~BhCrUjh@fAjTkD`VQjHaFnIcAnEy@fX{BrLTdGYzFHhBrA`E|HfJrAp@|RpF|C`BhE~D~W|[D\\^DJa@d@K",
+      "polyline": "kauuA{_nbVtB{AeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NlEvOwBTmc@jUqAnAUnAJ`ArAtDfAz@dFkCNc@~BgAfMgCfAnB~@]bDnFvSnMn@JvCEv@VtAzAfB|CpApArAp@xAlCxA\\jFhHjBZ`B`CpBn@|C`Cx@nCpAnArNxGn@j@dDN^`@rCtHxAtFtDjI`AxCxDdIS~@mCe@iB`ASh@~BbHt@lGjEvOxAhAnAdGjDbLvBpE~DxL|CjElDzDpGlMbLnWlAnAlChJhDdGfCdIlA~AdB`FzA~GzBbCnEtQ`GzR`AtH\\hKbDfi@hExNtCzGFdAWvGdArED`Ac@lCDpDlArCtA~GhAlCqArD?h@~AbG{@pBqBlBsAlBA`JeAdB_IbI_C~Ao@tATrAdBpBl@xGd@zAfF`FtBfGzD|NTbEvA`Dx@lI[|G{AzCr@tBjBdC?f@a@`AwBZ?Xp@p@G\\a@NiAAONRxBE~@_BZgB~AE\\xDhArAQpDiBlBe@|B?~Bn@x@hAh@zDxD~BtA~C`EfAvElBt@fABdCLTvBYfDjBJn@q@|@J^hCBlCb@x@f@l@x@jAvC?h@w@\\k@bBqA^qB@kB\\M`@v@\\TxArBOf@LH`@K`ATT`AQfAFbBOxAu@b@Fl@fEe@dAwAl@Nf@hJUbBJ`B_@bFxB^`BWxBvDxBjB|FjA\\l@z@?z@uAjJ?hARv@lCpBnBrEdDzAt@p@vLjQxCvCjDvGbC`KnA|CnKtMzEnD~BhCrUjh@fAjTkD`VQjHaFnIcAnEy@fX{BrLTdGYzFHhBrA`E|HfJrAp@|RpF|C`BhE~D~W|[D\\^DJa@d@K",
       "stops": [
         {
           "id": "calamba-tagaytay-terminal",
@@ -188,12 +188,18 @@
       "reverse": {
         "headsign": "SM Calamba"
       },
-      "notes": "Loads at the Calamba–Tagaytay Terminal by SM Cinema, leaves SM through the west driveway onto the highway (Real Road) and passes Real. Past Real the path follows Calamba-Tagaytay Road as OpenStreetMap routes it (rough near the SLEX interchange).",
+      "notes": "Loads at the Calamba–Tagaytay Terminal by SM Cinema, goes around SM City Calamba on the bypass road (south, east side, out to the National Highway at Crossing), then down Real Road / National Highway 1 past Real (Drei, Oct 21). Past Real the path follows Calamba-Tagaytay Road as OpenStreetMap routes it (rough near the SLEX interchange).",
       "verified": {
         "flow": true,
         "signboard": false,
         "path": "estimate"
-      }
+      },
+      "closedM": [
+        [
+          0,
+          640
+        ]
+      ]
     },
     {
       "id": "calamba-tanauan",
@@ -201,7 +207,7 @@
       "name": "Calamba – Tanauan",
       "from": "Calamba–Tagaytay Terminal (SM Calamba)",
       "to": "Tanauan",
-      "polyline": "kauuA{_nbVgEvBtIpH~NtJzRn^dK~NxQlVbPfLbEzAtCf@fGLf{CeIzERbFh@zhAzOrFb@hGHvQ_A|KHbWeCzG}@hd@oI~@rG\\p@pA`A|AHhHk@hC?fCVdHbC",
+      "polyline": "kauuA{_nbVtB{AeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NxQlVbPfLbEzAtCf@fGLf{CeIzERbFh@zhAzOrFb@hGHvQ_A|KHbWeCzG}@hd@oI~@rG\\p@pA`A|AHhHk@hC?fCVdHbC",
       "stops": [
         {
           "id": "calamba-tagaytay-terminal",
@@ -215,13 +221,19 @@
       "reverse": {
         "headsign": "SM Calamba"
       },
-      "notes": "Passes Real on the way to Tanauan. Loading point assumed to be the Calamba–Tagaytay Terminal by SM Cinema (to confirm). Leaves SM through the west driveway. The path ends on Maharlika Highway past Turbina; the Batangas part comes later.",
+      "notes": "Passes Real on the way to Tanauan. Loading point assumed to be the Calamba–Tagaytay Terminal by SM Cinema (to confirm); same way out of SM as the Tagaytay jeep (around SM, out at Crossing). The path ends on Maharlika Highway past Turbina; the Batangas part comes later.",
       "verified": {
         "flow": true,
         "signboard": false,
         "path": "estimate",
         "boarding": "assumed"
-      }
+      },
+      "closedM": [
+        [
+          0,
+          640
+        ]
+      ]
     }
   ]
 }

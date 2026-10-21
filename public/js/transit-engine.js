@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.1.0)
+ * Calzada transit engine (v1.2.0)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -78,7 +78,7 @@
         const lat0 = pts[0][0];
         const cum = [0];
         for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + haversineM(pts[i - 1], pts[i]));
-        const r = { ...route, pts, cum, len: cum[cum.length - 1], lat0, stopPos: [] };
+        const r = { ...route, pts, cum, len: cum[cum.length - 1], lat0, stopPos: [], closedM: Array.isArray(route.closedM) ? route.closedM : [] };
         // Directions served: 1 = from -> to, -1 = back (a direction set to false is not served)
         r.dirs = [1, -1].filter((d) => (d === 1 ? route.forward : route.reverse) !== false);
         (route.stops || []).forEach((entry) => {
@@ -95,11 +95,19 @@
         return r;
     }
 
-    // Nearest point of the path to p: { pos (metres from the start), pt [lat,lng], off (metres) }
-    function project(r, p) {
+    // Parts of the path where the jeep takes no passengers except at listed stops (e.g. its loop
+    // around SM before it reaches the highway): [[fromM, toM], ...] in metres from the start
+    function isClosed(r, pos) {
+        return (r.closedM || []).some(([a, b]) => pos >= a && pos <= b);
+    }
+
+    // Nearest point of the path to p: { pos (metres from the start), pt [lat,lng], off (metres) }.
+    // openOnly skips the closed parts.
+    function project(r, p, openOnly) {
         const P = xy(p, r.lat0);
         let best = { pos: 0, pt: r.pts[0], off: Infinity };
         for (let i = 1; i < r.pts.length; i++) {
+            if (openOnly && r.cum && isClosed(r, (r.cum[i - 1] + r.cum[i]) / 2)) continue;
             const A = xy(r.pts[i - 1], r.lat0), B = xy(r.pts[i], r.lat0);
             const dx = B[0] - A[0], dy = B[1] - A[1];
             const L = dx * dx + dy * dy;
@@ -213,13 +221,19 @@
 
     // Board point near the origin on r in direction dir: { pos, pt, walkM, stop? }
     function boardNear(r, p, dir) {
-        const pr = project(r, p);
+        const pr = project(r, p, true);
         let res = { pos: pr.pos, pt: pr.pt, walkM: pr.off * WALK_FACTOR, stop: null };
         const s = nearStop(r, pr.pos, dir, 'board');
         if (s) {
             const w = haversineM(p, s.stopPt) * WALK_FACTOR;
             if (w <= res.walkM + 150) res = { pos: s.pos, pt: s.stopPt, walkM: w, stop: s };
         }
+        // A stop the jeep loads at can be the better walk even when it is farther along the path
+        r.stopPos.forEach((st) => {
+            if (!stopAllows(st, dir, 'board')) return;
+            const w = haversineM(p, st.stopPt) * WALK_FACTOR;
+            if (w < res.walkM) res = { pos: st.pos, pt: st.stopPt, walkM: w, stop: st };
+        });
         return res;
     }
 
@@ -260,13 +274,18 @@
 
             // Destination side of route r, dir: alight point after fromPos
             const alightFor = (r, dir, fromPos) => {
-                const pr = project(r, dest);
+                const pr = project(r, dest, true);
                 let pos = pr.pos, pt = pr.pt, walkM = pr.off * WALK_FACTOR, stop = null;
                 const s = nearStop(r, pr.pos, dir, 'alight');
                 if (s) {
                     const w = haversineM(s.stopPt, dest) * WALK_FACTOR;
                     if (w <= walkM + 150) { pos = s.pos; pt = s.stopPt; walkM = w; stop = s; }
                 }
+                r.stopPos.forEach((st) => {
+                    if (!stopAllows(st, dir, 'alight')) return;
+                    const w = haversineM(st.stopPt, dest) * WALK_FACTOR;
+                    if (w < walkM) { pos = st.pos; pt = st.stopPt; walkM = w; stop = st; }
+                });
                 const ride = dir === 1 ? pos - fromPos : fromPos - pos;
                 if (walkM > MAX_ACCESS_WALK_M || ride < MIN_RIDE_M) return null;
                 return { pos, pt, walkM, stop };
@@ -398,7 +417,7 @@
     }
 
     return {
-        VERSION: '1.1.0',
+        VERSION: '1.2.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
