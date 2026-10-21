@@ -349,27 +349,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         map.addControl(navControl, 'bottom-right');
 
-        // Attribution: a small round "i" at the bottom-left. The map style credits OpenStreetMap; walking
-        // routes come from the FOSSGIS routing server, whose usage policy also asks for a link that lets
-        // people report and fix map errors. Per the OSM attribution guidelines the credits show expanded
-        // when the map opens and collapse after the first time the user moves the map.
+        // Attribution: a small round "i" at the bottom-left; tapping it opens the credits. The map style
+        // credits OpenStreetMap; walking routes come from the FOSSGIS routing server, whose usage policy
+        // also asks for a link that lets people report and fix map errors. The OSMF attribution guidelines
+        // let the credits collapse after five seconds or on map interaction, so they show briefly when the
+        // map opens, then fold into the "i" and only come back when the user taps it.
         const attributionControl = new maplibregl.AttributionControl({
             compact: true,
             customAttribution: '<a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
         });
         map.addControl(attributionControl, 'bottom-left');
         const attribEl = () => document.querySelector('.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib');
+        let attribTimer = null;
+        const collapseAttribution = () => {
+            clearTimeout(attribTimer);
+            const el = attribEl();
+            if (el && el.classList.contains('maplibregl-compact-show')) {
+                el.classList.remove('maplibregl-compact-show');
+                el.removeAttribute('open');
+            }
+        };
         map.once('load', () => {
             const el = attribEl();
-            if (el) { el.classList.add('maplibregl-compact-show'); el.setAttribute('open', ''); }
+            if (!el) return;
+            el.classList.add('maplibregl-compact-show');
+            el.setAttribute('open', '');
+            attribTimer = setTimeout(collapseAttribution, 5000);
+            // Once the user works the "i" themselves, the timer no longer closes it for them
+            const btn = el.querySelector('.maplibregl-ctrl-attrib-button');
+            if (btn) btn.addEventListener('click', () => clearTimeout(attribTimer));
         });
-        const collapseAttribution = (e) => {
-            if (!e || !e.originalEvent) return; // only a real user interaction (drag, zoom, rotate)
-            const el = attribEl();
-            if (el) { el.classList.remove('maplibregl-compact-show'); el.removeAttribute('open'); }
-            map.off('movestart', collapseAttribution);
-        };
-        map.on('movestart', collapseAttribution);
+        // Any real map interaction (pan, zoom, rotate, tap) folds the credits away, including after the user opened them
+        map.on('movestart', (e) => { if (e && e.originalEvent) collapseAttribution(); });
+        map.on('click', collapseAttribution);
 
         window.addEventListener('resize', () => map.resize());
         setTimeout(() => map.resize(), 0);
@@ -6374,6 +6386,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!r.height || r.left > vw / 2 || r.right < vw / 2) return;
                     if (r.top < top && r.top > 80) top = r.top;
                 });
+
+                // The map credits ("i" / open pill) at the bottom-left: stack above them when they sit under the toasts
+                const attrib = document.querySelector('.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib');
+                if (attrib && getComputedStyle(attrib.parentElement).visibility !== 'hidden') {
+                    const ra = attrib.getBoundingClientRect();
+                    const rr = region.getBoundingClientRect();
+                    if (ra.height && ra.right > rr.left && ra.left < rr.right && ra.top > 80 && ra.top < top) top = ra.top;
+                }
 
                 // In navigation mode on mobile (<=768px):
                 // Ensure toast sits above the bottom sheet and does not cover the round map control (#reCenterBtn)
