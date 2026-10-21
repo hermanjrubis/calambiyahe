@@ -1,9 +1,9 @@
 /**
- * Calzada planner: route options + transfer prompt (v1.0.0)
+ * Calzada planner: route options + transfer prompt (v1.1.0)
  *
  * UI only. planner.js plans with window.CalzadaTransit and calls:
  *   CalzadaTransitUI.renderOptions(options, selectedIndex, onSelect)
- *   CalzadaTransitUI.setOptionTime(index, totalMin)   (after real walks are known)
+ *   CalzadaTransitUI.setOptionActual(index, totalMin, walkM)   (after real walks are known)
  *   CalzadaTransitUI.hideOptions()
  *   CalzadaTransitUI.showTransfer({ hubName, nextName, boardName, near }, onArrived, onLater)
  *   CalzadaTransitUI.hideTransfer()
@@ -23,7 +23,6 @@
             transfers: (n) => `${n} transfer${n === 1 ? '' : 's'}`,
             walk: (m) => `${m} walk`,
             walkMin: (n) => `${n} min walk`,
-            changeHere: 'Change here',
             min: (n) => `${n} min`,
             discounted: (p) => `${p} discounted`,
             getOffAt: 'Get off at',
@@ -47,7 +46,6 @@
             transfers: (n) => `${n} lipat`,
             walk: (m) => `${m} lakad`,
             walkMin: (n) => `${n} min lakad`,
-            changeHere: 'Lipat dito',
             min: (n) => `${n} min`,
             discounted: (p) => `${p} may discount`,
             getOffAt: 'Baba sa',
@@ -132,6 +130,16 @@
         return p;
     }
 
+    const WALK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>';
+    function walkNote(text) {
+        const w = el('span', 'czt-walk');
+        const ic = el('span', 'czt-walk-ic');
+        ic.innerHTML = WALK_SVG;
+        w.appendChild(ic);
+        w.appendChild(el('span', null, text));
+        return w;
+    }
+
     function buildCard(opt, i, selected, showTags) {
         const t = L();
         const card = el('button', 'czt-opt' + (selected ? ' is-selected' : ''));
@@ -162,25 +170,26 @@
             if (leg.type === 'jeep') {
                 if (strip.childNodes.length) strip.appendChild(el('span', 'czt-chev', '›'));
                 strip.appendChild(pill('jeep', headsignText(leg)));
-            } else if (leg.transfer && idx > 0 && idx < opt.legs.length - 1) {
+            } else if (leg.transfer && leg.distM > 0 && idx > 0 && idx < opt.legs.length - 1) {
+                // The walk between the two jeeps (information, not a button)
                 strip.appendChild(el('span', 'czt-chev', '›'));
-                strip.appendChild(pill('walk', leg.distM > 0 ? t.walkMin(leg.min) : t.changeHere));
+                strip.appendChild(walkNote(t.walkMin(leg.min)));
             }
         });
         card.appendChild(strip);
 
         const first = jeeps[0];
         const alightName = stopLabel(first && first.alight);
-        const metaParts = [
-            opt.transfers ? t.transfers(opt.transfers) : t.noTransfer,
-            t.walk(fmtM(opt.walkM))
-        ];
         const meta = el('div', 'czt-meta');
+        meta.appendChild(document.createTextNode((opt.transfers ? t.transfers(opt.transfers) : t.noTransfer) + ' · '));
+        const walkSpan = el('span', null, t.walk(fmtM(opt.walkM)));
+        walkSpan.dataset.role = 'walk';
+        meta.appendChild(walkSpan);
         if (alightName) {
-            meta.appendChild(document.createTextNode(metaParts.join(' · ') + ' · ' + (opt.transfers ? t.changeAt : t.getOffAt) + ' '));
+            meta.appendChild(document.createTextNode(' · ' + (opt.transfers ? t.changeAt : t.getOffAt) + ' '));
             meta.appendChild(el('b', null, alightName));
         } else {
-            meta.appendChild(document.createTextNode(metaParts.concat(t.nearDest).join(' · ')));
+            meta.appendChild(document.createTextNode(' · ' + t.nearDest));
         }
         card.appendChild(meta);
         return card;
@@ -231,11 +240,19 @@
         }
     }
 
-    function setOptionTime(index, totalMin) {
+    // The picked option with its real walks (the list starts from estimates)
+    function setOptionActual(index, totalMin, walkM) {
         const box = ensureContainer();
         if (!box) return;
-        const card = box.querySelector(`.czt-opt[data-index="${index}"] [data-role="time"]`);
-        if (card && Number.isFinite(totalMin)) card.textContent = fmtDur(totalMin);
+        const opt = current.options[index];
+        if (opt) {
+            if (Number.isFinite(totalMin)) opt.totalMin = totalMin;
+            if (Number.isFinite(walkM)) opt.walkM = walkM;
+        }
+        const time = box.querySelector(`.czt-opt[data-index="${index}"] [data-role="time"]`);
+        if (time && Number.isFinite(totalMin)) time.textContent = fmtDur(totalMin);
+        const walk = box.querySelector(`.czt-opt[data-index="${index}"] [data-role="walk"]`);
+        if (walk && Number.isFinite(walkM)) walk.textContent = L().walk(fmtM(walkM));
     }
 
     function hideOptions() {
@@ -353,5 +370,5 @@
         if (card && !card.hidden) lastState = null;
     });
 
-    window.CalzadaTransitUI = { renderOptions, setOptionTime, hideOptions, showTransfer, hideTransfer, fmtDur, headsignText, stopLabel };
+    window.CalzadaTransitUI = { renderOptions, setOptionActual, hideOptions, showTransfer, hideTransfer, fmtDur, headsignText, stopLabel };
 })();

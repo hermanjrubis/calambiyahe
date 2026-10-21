@@ -2991,7 +2991,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // The selected card shows the same total as the summary (real walks instead of estimates)
             const fw = getFinalWalkInfo();
             const total = currentWalkDur + currentTransitDur + (fw.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
-            if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionTime(transitSelected, total);
+            const walkM = currentWalkDist * 1000 + (fw.finalWalkM || 0) + (pendingTransfer ? pendingTransfer.finalWalkM : 0);
+            if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionActual(transitSelected, total, walkM);
         }
 
         // ── Transfer stop: prompt and re-compute during a journey ──

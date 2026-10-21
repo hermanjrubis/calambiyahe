@@ -1,13 +1,13 @@
 {
   "version": 1,
   "updated": "2026-10-21",
-  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 6 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 5, lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide).",
+  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 6 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 5, lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads.",
   "stops": {
     "crossing-grand-terminal": {
       "name": "Crossing Grand Terminal",
       "lat": 14.2061875,
       "lng": 121.1545625,
-      "note": "West side of National Highway 1, north of the Crossing triangle (Google plus code 6543+FR). First drop-off of jeeps coming into Calamba."
+      "note": "West side of National Highway 1, north of the Crossing triangle (Google plus code 6543+FR). Jeeps coming into Calamba pass here and let passengers off, then go on to SM Calamba. Not a transfer point."
     },
     "sm-calamba-west": {
       "name": "SM Calamba (Cinema side)",
@@ -41,8 +41,16 @@
       "to": "SM Calamba",
       "polyline": "ahgvAsmdbVzPkEvz@{V|FsAdEgBpAgA|IsKdeAyjAdAeAhCiAfGu@rSyApZ}AhVqBxVwAdZyEpVqG~l@iQvOiFzP{M`JaGxDeBtEcAlHSt]rDrAE|@u@xCmMtVir@`AwBbByBdPeN`CiAtOwAbJg@z@?vBd@|AhAxD{B",
       "stops": [
-        "crossing-grand-terminal",
-        "sm-calamba-west"
+        {
+          "id": "crossing-grand-terminal",
+          "forward": "alight",
+          "reverse": null
+        },
+        {
+          "id": "sm-calamba-west",
+          "forward": "alight",
+          "reverse": "board"
+        }
       ],
       "forward": {
         "headsign": "SM Calamba",
@@ -51,7 +59,7 @@
       "reverse": {
         "headsign": "Sta. Rosa"
       },
-      "notes": "Comes south on National Highway 1 through Cabuyao. Stops at Crossing Grand Terminal, then turns into SM's west driveway and drops passengers by SM Cinema. Board or get off anywhere along the highway.",
+      "notes": "Comes south on National Highway 1 through Cabuyao. Passes Crossing Grand Terminal (passengers can get off there), then turns into SM's west driveway and drops passengers by SM Cinema / Starbucks. Going back north it loads at SM's west side. Board or get off anywhere along the highway.",
       "verified": {
         "flow": true,
         "signboard": "forward",
@@ -66,21 +74,53 @@
       "to": "SM Calamba",
       "polyline": "uwluAgg_cVxDoCsCwHqP~I{CwHsQlGs@`A{HeEm@ImMrEcQL_XjEcApHcApOc@tCmChK_G~MWvAGhM\\nYr@~Cn@b@n@`@~HbB`DpBjA|BpDjShAdArKlGfHnU{@`RHjAlAxA`InC`@n@l@bCF|@SzCdAtHEvAwDtKmBlNqE~GaC~N@tFvAnT?hDw@lBmP|VsWjo@i]bn@gAx@mDxAgEnCwKlIen@fh@iw@vi@qDlDAR`@b@rGUvBd@|AhAxD{B",
       "stops": [
-        "crossing-grand-terminal",
-        "sm-calamba-west"
+        {
+          "id": "crossing-grand-terminal",
+          "forward": "alight",
+          "reverse": null
+        },
+        {
+          "id": "sm-calamba-west",
+          "forward": "alight",
+          "reverse": null
+        }
       ],
       "forward": {
         "headsign": "SM Calamba",
         "signboard": "SM Calamba / Crossing Terminal"
       },
-      "reverse": {
-        "headsign": "UPLB"
-      },
-      "notes": "Comes on the National Highway through Halang, goes to Crossing Grand Terminal first, then loops back to SM Calamba (Cinema side). Going to Los Baños it passes Halang, so it also serves Halang.",
+      "reverse": false,
+      "notes": "Inbound only: comes on the National Highway through Halang, passes Crossing Grand Terminal first, then loops back to SM Calamba (Cinema side). The trip back to Los Baños is the calamba-uplb route.",
       "verified": {
         "flow": true,
         "signboard": "forward",
         "path": "estimate"
+      }
+    },
+    {
+      "id": "calamba-uplb",
+      "mode": "jeepney",
+      "name": "Calamba – Los Baños (UPLB)",
+      "from": "SM Transport Terminal",
+      "to": "Los Baños (UPLB)",
+      "polyline": "g}tuAmmnbVeB}Dje@o\\dn@gh@vKmIpFkDrCgA`Ay@xEgJdVqb@rWko@lP}Vv@mB?iDwAoTAuF`C_OpE_HlBmNvDuKDwAeAuHR{CG}@m@cCa@o@aIoCmAyAIkAz@aRgHoUsKmGiAeAqDkSkA}BaDqB_IcBo@a@o@c@s@_D]oYFiMVwA~F_NlCiKb@uCbAqObAqH~WkEbQMlMsEl@HzHdEr@aAdXsJrIyEd@RRb@bGnOMZmDzB",
+      "stops": [
+        {
+          "id": "sm-transport-terminal",
+          "forward": "board",
+          "reverse": null
+        }
+      ],
+      "forward": {
+        "headsign": "UPLB"
+      },
+      "reverse": false,
+      "notes": "Outbound to Los Baños on the National Highway through Halang (Drei: riding it to Halang is fine). Loading point at SM assumed to be SM Transport Terminal, like the Halang jeeps (to confirm).",
+      "verified": {
+        "flow": true,
+        "signboard": false,
+        "path": "estimate",
+        "boarding": "assumed"
       }
     },
     {
@@ -91,7 +131,11 @@
       "to": "Halang",
       "polyline": "g}tuAmmnbVeB}Dx^cW|PeN",
       "stops": [
-        "sm-transport-terminal"
+        {
+          "id": "sm-transport-terminal",
+          "forward": "board",
+          "reverse": "alight"
+        }
       ],
       "forward": {
         "headsign": "Halang"
@@ -114,7 +158,11 @@
       "to": "Tagaytay",
       "polyline": "yauuA_`nbVbCwAeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NlEvOwBTmc@jUqAnAUnAJ`ArAtDfAz@dFkCNc@~BgAfMgCfAnB~@]bDnFvSnMn@JvCEv@VtAzAfB|CpApArAp@xAlCxA\\jFhHjBZ`B`CpBn@|C`Cx@nCpAnArNxGn@j@dDN^`@rCtHxAtFtDjI`AxCxDdIS~@mCe@iB`ASh@~BbHt@lGjEvOxAhAnAdGjDbLvBpE~DxL|CjElDzDpGlMbLnWlAnAlChJhDdGfCdIlA~AdB`FzA~GzBbCnEtQ`GzR`AtH\\hKbDfi@hExNtCzGFdAWvGdArED`Ac@lCDpDlArCtA~GhAlCqArD?h@~AbG{@pBqBlBsAlBA`JeAdB_IbI_C~Ao@tATrAdBpBl@xGd@zAfF`FtBfGzD|NTbEvA`Dx@lI[|G{AzCr@tBjBdC?f@a@`AwBZ?Xp@p@G\\a@NiAAONRxBE~@_BZgB~AE\\xDhArAQpDiBlBe@|B?~Bn@x@hAh@zDxD~BtA~C`EfAvElBt@fABdCLTvBYfDjBJn@q@|@J^hCBlCb@x@f@l@x@jAvC?h@w@\\k@bBqA^qB@kB\\M`@v@\\TxArBOf@LH`@K`ATT`AQfAFbBOxAu@b@Fl@fEe@dAwAl@Nf@hJUbBJ`B_@bFxB^`BWxBvDxBjB|FjA\\l@z@?z@uAjJ?hARv@lCpBnBrEdDzAt@p@vLjQxCvCjDvGbC`KnA|CnKtMzEnD~BhCrUjh@fAjTkD`VQjHaFnIcAnEy@fX{BrLTdGYzFHhBrA`E|HfJrAp@|RpF|C`BhE~D~W|[D\\^DJa@d@K",
       "stops": [
-        "sm-calamba-west"
+        {
+          "id": "sm-calamba-west",
+          "forward": "board",
+          "reverse": "alight"
+        }
       ],
       "forward": {
         "headsign": "Tagaytay"
@@ -137,7 +185,11 @@
       "to": "Tanauan",
       "polyline": "yauuA_`nbVbCwAeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NxQlVbPfLbEzAtCf@fGLf{CeIzERbFh@zhAzOrFb@hGHvQ_A|KHbWeCzG}@hd@oI~@rG\\p@pA`A|AHhHk@hC?fCVdHbC",
       "stops": [
-        "sm-calamba-west"
+        {
+          "id": "sm-calamba-west",
+          "forward": "board",
+          "reverse": "alight"
+        }
       ],
       "forward": {
         "headsign": "Tanauan"

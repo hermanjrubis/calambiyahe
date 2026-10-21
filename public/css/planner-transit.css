@@ -1,4 +1,4 @@
-/* Calzada planner: route options + transfer prompt (v1.0.0). Flat: no gradients, no shadows. */
+/* Calzada planner: route options + transfer prompt (v1.1.0). Flat: no gradients, no shadows. */
 
 .czt-options { margin: 4px 0 16px; }
 .czt-options[hidden] { display: none !important; }
@@ -46,7 +46,8 @@
     width: 15px; height: 15px; object-fit: contain; flex-shrink: 0;
     filter: brightness(0) saturate(100%) invert(28%) sepia(60%) saturate(1500%) hue-rotate(195deg);
 }
-.czt-pill--walk { background: #F1F5F9; color: #475569; }
+.czt-walk { display: inline-flex; align-items: center; gap: 4px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: #475569; }
+.czt-walk-ic { display: inline-flex; color: #64748B; }
 .czt-chev { color: #94A3B8; font-size: 13px; }
 
 .czt-meta { font-family: 'Outfit', sans-serif; font-size: 13.5px; color: #64748B; margin-top: 9px; line-height: 1.45; }

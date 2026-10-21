@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.0.0)
+ * Calzada transit engine (v1.1.0)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -79,11 +79,18 @@
         const cum = [0];
         for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + haversineM(pts[i - 1], pts[i]));
         const r = { ...route, pts, cum, len: cum[cum.length - 1], lat0, stopPos: [] };
-        (route.stops || []).forEach((id) => {
-            const s = stops[id];
+        // Directions served: 1 = from -> to, -1 = back (a direction set to false is not served)
+        r.dirs = [1, -1].filter((d) => (d === 1 ? route.forward : route.reverse) !== false);
+        (route.stops || []).forEach((entry) => {
+            // A plain id: passengers get on and off there both ways
+            const e = typeof entry === 'string' ? { id: entry, forward: 'both', reverse: 'both' } : entry;
+            const s = stops[e.id];
             if (!s) return;
             const pr = project(r, [s.lat, s.lng]);
-            r.stopPos.push({ id, name: s.name, name_tl: s.name_tl, pos: pr.pos, pt: pr.pt, offM: pr.off, stopPt: [s.lat, s.lng] });
+            r.stopPos.push({
+                id: e.id, name: s.name, name_tl: s.name_tl, pos: pr.pos, pt: pr.pt, offM: pr.off, stopPt: [s.lat, s.lng],
+                roles: { 1: e.forward || null, '-1': e.reverse || null }
+            });
         });
         return r;
     }
@@ -153,11 +160,17 @@
         return { regular: r4(14 + Math.max(0, counted - 4) * 2), discounted: r4(11.2 + Math.max(0, counted - 4) * 1.6) };
     }
 
-    // A route stop within STOP_SNAP_M along the path of pos (in either direction), or null
-    function nearStop(r, pos, wantIds) {
+    // Whether a stop lets passengers 'board' or 'alight' in a direction
+    function stopAllows(s, dir, need) {
+        const role = s.roles[dir];
+        return role === 'both' || role === need;
+    }
+
+    // A route stop within STOP_SNAP_M along the path of pos that allows `need` in `dir`, or null
+    function nearStop(r, pos, dir, need) {
         let best = null;
         r.stopPos.forEach((s) => {
-            if (wantIds && !wantIds.includes(s.id)) return;
+            if (!stopAllows(s, dir, need)) return;
             const d = Math.abs(s.pos - pos);
             if (d <= STOP_SNAP_M && (!best || d < best.d)) best = { ...s, d };
         });
@@ -165,7 +178,7 @@
     }
 
     function dirInfo(r, dir) {
-        const d = dir === 1 ? (r.forward || {}) : (r.reverse || {});
+        const d = (dir === 1 ? r.forward : r.reverse) || {};
         return { headsign: d.headsign || (dir === 1 ? r.to : r.from), signboard: d.signboard || null };
     }
 
@@ -198,11 +211,11 @@
         return { type: 'walk', from, to, distM: d, min: d > 0 ? walkMin(d) : 0, ...(extra || {}) };
     }
 
-    // Board point near the origin on r: { pos, pt, walkM, stop? }
-    function boardNear(r, p) {
+    // Board point near the origin on r in direction dir: { pos, pt, walkM, stop? }
+    function boardNear(r, p, dir) {
         const pr = project(r, p);
         let res = { pos: pr.pos, pt: pr.pt, walkM: pr.off * WALK_FACTOR, stop: null };
-        const s = nearStop(r, pr.pos);
+        const s = nearStop(r, pr.pos, dir, 'board');
         if (s) {
             const w = haversineM(p, s.stopPt) * WALK_FACTOR;
             if (w <= res.walkM + 150) res = { pos: s.pos, pt: s.stopPt, walkM: w, stop: s };
@@ -249,7 +262,7 @@
             const alightFor = (r, dir, fromPos) => {
                 const pr = project(r, dest);
                 let pos = pr.pos, pt = pr.pt, walkM = pr.off * WALK_FACTOR, stop = null;
-                const s = nearStop(r, pr.pos);
+                const s = nearStop(r, pr.pos, dir, 'alight');
                 if (s) {
                     const w = haversineM(s.stopPt, dest) * WALK_FACTOR;
                     if (w <= walkM + 150) { pos = s.pos; pt = s.stopPt; walkM = w; stop = s; }
@@ -260,9 +273,9 @@
             };
 
             routes.forEach((A) => {
-                const b = boardNear(A, origin);
-                if (b.walkM > MAX_ACCESS_WALK_M) return;
-                [1, -1].forEach((dirA) => {
+                A.dirs.forEach((dirA) => {
+                    const b = boardNear(A, origin, dirA);
+                    if (b.walkM > MAX_ACCESS_WALK_M) return;
                     // Direct
                     const a = alightFor(A, dirA, b.pos);
                     if (a) {
@@ -272,8 +285,9 @@
                             walkLeg(a.pt, dest, a.walkM)
                         ]));
                     }
-                    // One transfer at a stop of A after boarding
+                    // One transfer: get off A at a stop where it lets passengers off, take B where it loads
                     A.stopPos.forEach((sA) => {
+                        if (!stopAllows(sA, dirA, 'alight')) return;
                         const rideA = dirA === 1 ? sA.pos - b.pos : b.pos - sA.pos;
                         if (rideA < MIN_RIDE_M) return;
                         linkedStops(sA.id).forEach((link) => {
@@ -281,7 +295,8 @@
                                 if (B.id === A.id) return;
                                 const sB = B.stopPos.find((s) => s.id === link.id);
                                 if (!sB) return;
-                                [1, -1].forEach((dirB) => {
+                                B.dirs.forEach((dirB) => {
+                                    if (!stopAllows(sB, dirB, 'board')) return;
                                     const a2 = alightFor(B, dirB, sB.pos);
                                     if (!a2) return;
                                     const tw = link.walkM ? Math.max(link.walkM, haversineM(sA.stopPt, sB.stopPt) * WALK_FACTOR) : 0;
@@ -383,7 +398,7 @@
     }
 
     return {
-        VERSION: '1.0.0',
+        VERSION: '1.1.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
