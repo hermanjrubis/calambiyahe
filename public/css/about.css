@@ -1402,3 +1402,8 @@ html:not(.js-enabled) .about-business-panel-inner {
         width: 100%;
     }
 }
+
+/* Review fixes (#22): short business summary; the steps are on /submit */
+.about-business-summary { display: flex; flex-direction: column; gap: 16px; align-self: center; }
+.about-business-summary-links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.about-business-summary .about-business-faq-link { margin: 0; }
