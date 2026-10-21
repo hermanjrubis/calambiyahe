@@ -1605,6 +1605,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let transferPreferred = null;
         let transferRecomputing = false;
         let routeLoading = false;    // a route is being computed (the panel shows a skeleton)
+        let lastPeekTripKey = null;  // phones: the trip the sheet last opened at half height for
         let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
         let journeyId = null;        // one id per journey, so its trip is saved to the account once
         // 20 characters from the Firestore auto-ID alphabet
@@ -1863,8 +1864,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const sheetH = directionsCard ? directionsCard.offsetHeight : 592;
             const collapseAt = Math.max(0, sheetH - SHEET_PEEK_HEIGHT);
-            // Peek at ~55% of collapseAt places sheetTop around ~360px (leaving ~230px visible map above sheet)
-            const peekAt = Math.round(collapseAt * 0.55);
+            // Peek: the sheet's top at about half the screen, so the route on the map stays visible
+            // above it (review #04). offsetTop is the sheet's top without the drag transform.
+            const naturalTop = directionsCard ? directionsCard.offsetTop : 0;
+            const peekAt = Math.min(collapseAt, Math.max(0, Math.round(window.innerHeight * 0.5 - naturalTop)));
             return {
                 expanded: 0,
                 peek: peekAt,
@@ -1879,10 +1882,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return pos.expanded;
         };
 
+        // Review #04: with the sheet at peek (half the screen), the Start Journey footer would sit below
+        // the screen. Lift it by the sheet's offset so it stays at the bottom of the screen; when the
+        // sheet is collapsed it goes back down with the sheet.
+        const dsFooterEl = directionsCard ? directionsCard.querySelector('.ds-footer') : null;
+        const syncFooterToSheet = (y, animate) => {
+            if (!dsFooterEl) return;
+            const isMobile = window.innerWidth <= 768;
+            const pos = isMobile ? getSheetPositions() : null;
+            const lift = isMobile ? Math.max(0, Math.min(y, pos.peek)) : 0;
+            dsFooterEl.style.transition = animate ? 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
+            dsFooterEl.style.transform = lift ? `translateY(${-lift}px)` : '';
+        };
+
         const setSheetState = (state, animate = true) => {
             if (!directionsCard) return;
             const isMobile = window.innerWidth <= 768;
-            if (!isMobile) return;
+            if (!isMobile) { syncFooterToSheet(0, false); return; }
 
             const pos = getSheetPositions();
             const targetY = pos[state] ?? 0;
@@ -1890,6 +1906,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             directionsCard.style.transition = animate ? 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
             directionsCard.style.transform = `translateY(${targetY}px)`;
+            syncFooterToSheet(state === 'collapsed' ? 0 : targetY, animate);
 
             directionsCard.classList.remove('expanded', 'peek', 'collapsed');
             directionsCard.classList.add(state);
@@ -1919,6 +1936,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const setSheetTranslate = (y) => {
             directionsCard.style.transition = 'none';
             directionsCard.style.transform = `translateY(${y}px)`;
+            syncFooterToSheet(y, false);
         };
 
         const updateCategoryBarVisibility = () => {
@@ -3568,6 +3586,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 setRouteLoading(false);
             }
             const hasRoute = !!((walkRouteGeojson && walkRouteGeojson.coordinates?.length >= 2) || (transitRouteGeojson && transitRouteGeojson.coordinates?.length >= 2));
+            // Phones: a new route opens the sheet at half height so the route on the map is seen
+            // (review #04). Only for a new trip, not for the live origin's quiet replans.
+            if (hasRoute && !failed && !isTrackingArrival && window.innerWidth <= 768) {
+                const o = selectedCoords.origin, d = selectedCoords.destination;
+                const tripKey = `${o[0].toFixed(3)},${o[1].toFixed(3)}|${d[0].toFixed(3)},${d[1].toFixed(3)}|${selectedMode}`;
+                if (tripKey !== lastPeekTripKey && !directionsCard.classList.contains('collapsed')) {
+                    lastPeekTripKey = tripKey;
+                    requestAnimationFrame(() => setSheetState('peek', true));
+                }
+            }
             if (failed || !hasRoute) {
                 renderPlannerState();
                 const helper = document.getElementById('startJourneyHelper');

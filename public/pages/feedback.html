@@ -24,13 +24,19 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.8.0">
+    <link rel="stylesheet" href="../css/style.css?v=2.8.1">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
-    </style>
+            /* Review #23: signed-in identity line */
+        .fb-identity-line { margin: 0 0 16px; padding: 10px 14px; border-radius: 12px; background: #F1F5F9; color: #334155; font-size: 0.9375rem; line-height: 1.45; overflow-wrap: anywhere; }
+        .fb-identity-line strong { color: #0E2A47; font-weight: 600; }
+        .fb-identity-email { color: #5A6A7F; }
+        .fb-identity-email:not(:empty)::before { content: "· "; }
+        .fb-identity[hidden], .fb-identity .form-group[hidden], .fb-identity-line[hidden] { display: none !important; }
+</style>
     <noscript>
         <style>body { opacity: 1 !important; }</style>
     </noscript>
@@ -267,7 +273,7 @@
                 <!-- Explore Dropdown -->
                 <div class="nav-dropdown" id="exploreDropdown">
                     <button class="nav-link nav-dropdown-btn" id="exploreDropdownBtn" type="button" aria-expanded="false">
-                        <span data-i18n="footer.nav.explore">Explore</span>
+                        <span data-i18n="footer.nav.explore">Places</span>
                         <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
                     </button>
                     <div class="nav-dropdown-menu" id="exploreDropdownMenu">
@@ -648,6 +654,13 @@
 
                     <!-- RIGHT COLUMN: Name, Email, Message, Submit -->
                     <div class="feedback-col-right">
+                        <!-- Review #23: signed-in users don't retype their name and email -->
+                        <p class="fb-identity-line" id="fbIdentityLine" hidden>
+                            <span data-i18n="feedback.sending_as">Sending as</span>
+                            <strong id="fbIdentityName"></strong>
+                            <span class="fb-identity-email" id="fbIdentityEmail"></span>
+                        </p>
+                        <div class="fb-identity" id="fbIdentityFields">
                         <div class="form-group">
                             <label for="feedbackName" data-i18n="feedback.field.name">Name</label>
                             <input type="text" id="feedbackName" placeholder="e.g. Maria Santos" data-i18n-placeholder="feedback.placeholder.name">
@@ -659,6 +672,7 @@
                                 <ion-icon name="mail-outline"></ion-icon>
                                 <input type="email" id="feedbackEmail" required readonly class="is-readonly" placeholder="name@example.com" data-i18n-placeholder="feedback.placeholder.email">
                             </div>
+                        </div>
                         </div>
 
                         <div class="form-group">
@@ -782,7 +796,7 @@
     </div>
 
     <!-- i18n & Client-side Script -->
-    <script src="../js/i18n.js?v=2.8.8"></script>
+    <script src="../js/i18n.js?v=2.8.9"></script>
     <script type="module">
         import { auth, onAuthStateChanged } from "../js/firebase-init.js";
 
@@ -1201,6 +1215,7 @@
                         emailInput.readOnly = true;
                         emailInput.classList.add('is-readonly');
                     }
+                    renderIdentity(user);
                 }
             });
 
@@ -1216,10 +1231,28 @@
                         emailInput.readOnly = true;
                         emailInput.classList.add('is-readonly');
                     }
+                    renderIdentity(user);
                 }
             };
             if (window.__MOCK_USER__) {
                 window.__setMockUser(window.__MOCK_USER__);
+            }
+
+            // Review #23: with an account, show "Sending as <name> · <email>" and hide the two fields.
+            // A user with no display name keeps the Name field so they can add one.
+            function renderIdentity(user) {
+                const line = document.getElementById('fbIdentityLine');
+                const fields = document.getElementById('fbIdentityFields');
+                if (!line || !fields) return;
+                const email = (user && user.email) || '';
+                const name = (user && user.displayName) || '';
+                if (!email) { line.hidden = true; fields.hidden = false; return; }
+                document.getElementById('fbIdentityName').textContent = name || email;
+                document.getElementById('fbIdentityEmail').textContent = name ? email : '';
+                line.hidden = false;
+                fields.hidden = !!name;
+                const emailGroup = emailInput ? emailInput.closest('.form-group') : null;
+                if (emailGroup) emailGroup.hidden = true;
             }
 
             let activeErrorKey = null;
@@ -1466,6 +1499,7 @@
                             emailInput.readOnly = true;
                             emailInput.classList.add('is-readonly');
                         }
+                        renderIdentity(currentUser);
                     }
 
                     // Desktop (>= 768px): keep exactly the same outer box height
@@ -1543,6 +1577,7 @@
                         emailInput.readOnly = true;
                         emailInput.classList.add('is-readonly');
                     }
+                    renderIdentity(currentUser);
                     setAuthState(true);
                 } else {
                     setAuthState(false);
@@ -1565,7 +1600,7 @@
         }
     </script>
     <script src="../js/legal-modal.js?v=2.6.5"></script>
-    <script src="../js/script.js?v=2.6.6"></script>
+    <script src="../js/script.js?v=2.6.7"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.8"></script>
 
@@ -1584,7 +1619,7 @@
             <div class="drawer-nav-group">
                 <a href="/" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
                 <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
-                <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Places</span></a>
                 <a href="/planner" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
                 <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
                 <a href="/feedback" class="drawer-nav-item active"><span data-i18n="footer.nav.feedback">Feedback</span></a>

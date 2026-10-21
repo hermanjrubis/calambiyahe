@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.3.1)
+ * Calzada transit engine (v1.3.2)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -337,7 +337,11 @@
                 });
             });
 
-            return rank(found);
+            // A jeep option that still walks most of the way is not a real option (walking or the
+            // planner's own highway route is better): total walk at most 60% of the straight distance
+            const straight = haversineM(origin, dest);
+            const maxWalk = Math.max(400, straight * 0.6);
+            return rank(found.filter((o) => o.walkM <= maxWalk));
         }
 
         return { plan, routes, stops };
@@ -421,7 +425,7 @@
     }
 
     return {
-        VERSION: '1.3.1',
+        VERSION: '1.3.2',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),

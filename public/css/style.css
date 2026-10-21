@@ -4884,6 +4884,7 @@ body.legal-modal-open {
     font-family: 'Sora', sans-serif;
     font-size: 24px;
     font-weight: 600;
+    letter-spacing: -0.02em;
     color: #0E2A47;
     margin: 0;
     line-height: 1.2;
@@ -9019,7 +9020,7 @@ input#searchInput,
 }
 
 .stats-section-label {
-    font-size: 0.72rem;
+    font-size: 0.8125rem;
     font-weight: 700;
     color: #5A6A7F;
     text-transform: uppercase;
@@ -9071,7 +9072,7 @@ input#searchInput,
 }
 
 .stat-name {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: #5A6A7F;
 }
@@ -11931,7 +11932,7 @@ input#searchInput,
 
 .save-panel-preview .panel-place-subtitle {
     font-family: 'Inter', sans-serif;
-    font-size: 0.73rem;
+    font-size: 0.8rem;
     font-weight: 500;
     color: #5A6A7F;
     letter-spacing: 0.01em;
@@ -14050,3 +14051,56 @@ button.feature-link-btn {
         scroll-behavior: auto !important;
     }
 }
+
+/* Review fixes (Oct 21, 2026, #14): no label under 12-13 px (rem, so browser text size applies) */
+.alerts-clear-btn,
+.card-subtitle,
+.panel-place-subtitle,
+.panel-info-text,
+.panel-open-tag,
+.gallery-item-category,
+.profile-email { font-size: 0.8125rem; }
+/* Homepage preview mockups: still a preview, but readable */
+.browse-search-chip,
+.browse-pill,
+.discover-preview-dropdown .nav-dropdown-item { font-size: 0.78rem !important; }
+
+/* Review fixes (#10): on phones the floating Routie button is the round icon only (56 px),
+   and pages without a footer get room at the end so the button never hides the last content
+   (pages with a footer already lift the button above it, in script.js). */
+@media (max-width: 600px) {
+    .chat-widget-container { right: 12px !important; bottom: 16px !important; }
+    .chat-toggle-pill {
+        width: 56px; height: 56px; padding: 0 !important; border-radius: 50%;
+        background: #FFFFFF; border: 1px solid #DCE6F2; box-shadow: 0 4px 14px rgba(14, 42, 71, 0.14);
+    }
+    .chat-pill-text-wrap { display: none !important; }
+    .chat-pill-avatar { width: 46px !important; height: 46px !important; margin: 0 !important; }
+    .chat-toggle-pill:focus-visible { outline: 3px solid #1F69B8; outline-offset: 3px; }
+    body:not(:has(.site-footer)) > main { margin-bottom: 80px; }
+}
+
+/* Review fixes (#12): header labels stay on one line; on 1024-1199 px laptops the header
+   search shrinks to its icon (it still opens the same search panel). */
+.nav-link, .btn-nav-signin { white-space: nowrap; }
+@media (min-width: 1024px) and (max-width: 1199.98px) {
+    .header-search-pill-btn { width: 40px; padding: 0; justify-content: center; margin-right: 4px; }
+    .header-search-pill-btn .header-search-text { display: none; }
+}
+
+/* Review fixes (#08): one planner section on the homepage, with a real screenshot of the Planner */
+.feature-visual-block.planner-shot-block { flex: 1 1 58%; height: auto !important; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.planner-shot { display: block; border-radius: 16px; overflow: hidden; border: 1px solid #DCE6F2; background: #F2EFE9; }
+.planner-shot img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 674; object-fit: cover; }
+.planner-shot:focus-visible { outline: 3px solid #1F69B8; outline-offset: 3px; }
+.planner-shot-caption { margin: 0; font-family: 'Outfit', sans-serif; font-size: 0.875rem; color: #5A6A7F; text-align: center; }
+.feature-link-btn.planner-open-btn {
+    background: #1F69B8; color: #FFFFFF; min-height: 44px; padding: 0 20px; border-radius: 12px; margin-top: 16px;
+}
+.feature-link-btn.planner-open-btn:hover { background: #18579A; color: #FFFFFF; transform: none; }
+.feature-link-btn.planner-open-btn:focus-visible { outline: 3px solid #0E2A47; outline-offset: 2px; }
+
+/* Review fixes (#09): the Routie preview is a real way into the chat */
+.routie-chat-preview[role="button"] { cursor: pointer; }
+.routie-chat-preview[role="button"] * { pointer-events: none; }
+.routie-chat-preview[role="button"]:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 4px; }

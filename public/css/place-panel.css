@@ -308,7 +308,7 @@ html {
     box-shadow: none;
     color: #FFFFFF;
     font-family: 'Sora', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.02em;
     padding: 4px 10px;
@@ -1866,3 +1866,9 @@ html {
     }
 }
 
+
+/* Review fixes (#14): no label under 12-13 px */
+.panel-place-subtitle,
+.panel-info-text,
+.panel-open-tag { font-size: 0.8125rem; }
+.review-badge-self { font-size: 0.75rem; }

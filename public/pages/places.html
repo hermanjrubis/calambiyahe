@@ -24,7 +24,7 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=2.8.0">
+    <link rel="stylesheet" href="../css/style.css?v=2.8.1">
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <!-- MapLibre & Pannellum 360 Street View Styles -->
@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="../css/streetview-viewer.css?v=2.8.0">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
-    <link rel="stylesheet" href="../css/place-panel.css?v=17">
+    <link rel="stylesheet" href="../css/place-panel.css?v=18">
     <style>
         html { scrollbar-gutter: stable; }
         body { opacity: 0; }
@@ -112,7 +112,7 @@
                 <!-- Explore Dropdown (Active on places.html) -->
                 <div class="nav-dropdown" id="exploreDropdown">
                     <button class="nav-link nav-dropdown-btn active" id="exploreDropdownBtn" type="button" aria-expanded="false">
-                        <span data-i18n="footer.nav.explore">Explore</span>
+                        <span data-i18n="footer.nav.explore">Places</span>
                         <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
                     </button>
                     <div class="nav-dropdown-menu" id="exploreDropdownMenu">
@@ -489,7 +489,7 @@
         <div class="places-layout">
             <!-- Persistent Left Sidebar Category Navigation (7 Categories) -->
             <aside class="places-sidebar" aria-label="Categories">
-                <h1 class="sidebar-title" data-i18n="places.categories_title">Categories</h1>
+                <h2 class="sidebar-title" data-i18n="places.categories_title">Categories</h2>
                 <nav class="sidebar-category-list" id="categoryTabs" aria-label="Place Categories">
                     <button type="button" class="category-tab active" data-category="all" aria-pressed="true">
                         <span data-i18n="places.cat_all">All Places</span>
@@ -521,10 +521,10 @@
                 <div class="places-title-row" id="placesTitleRow">
                     <div class="places-title-left">
                         <div class="places-title-main-row">
-                            <h2 class="places-title-heading" id="placesTitleHeading">
+                            <h1 class="places-title-heading" id="placesTitleHeading">
                                 <span class="places-title-text" id="placesTitleText">All Places</span>
                                 <span class="places-title-count desktop-only" id="placesTitleCountDesktop"></span>
-                            </h2>
+                            </h1>
                             <button type="button" class="places-clear-query-btn" id="placesClearQueryBtn" style="display: none;" aria-label="Clear search query" data-i18n-aria-label="places.clear">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                                 <span class="clear-query-text" id="clearQueryText" data-i18n="places.clear">Clear</span>
@@ -627,8 +627,8 @@
     </div>
 
     <script src="../js/legal-modal.js?v=2.6.5"></script>
-    <script src="../js/script.js?v=2.6.6"></script>
-    <script src="../js/i18n.js?v=2.8.8"></script>
+    <script src="../js/script.js?v=2.6.7"></script>
+    <script src="../js/i18n.js?v=2.8.9"></script>
     <script src="../js/places-shared.js?v=2.6.10"></script>
     <script src="../js/header-autohide.js?v=1.0.0"></script>
     <script src="../js/fast-tap.js?v=1.0.1"></script>
@@ -1929,7 +1929,7 @@
             <div class="drawer-nav-group">
                 <a href="/" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
                 <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
-                <a href="/places" class="drawer-nav-item active"><span data-i18n="footer.nav.explore">Explore</span></a>
+                <a href="/places" class="drawer-nav-item active"><span data-i18n="footer.nav.explore">Places</span></a>
                 <a href="/planner" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
                 <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
                 <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>

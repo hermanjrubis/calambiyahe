@@ -1,4 +1,4 @@
-/* Calzada planner: route options, transfer prompt, stop labels (v1.2.0). Flat: no gradients, no shadows. */
+/* Calzada planner: route options, transfer prompt, stop labels (v1.2.1). Flat: no gradients, no shadows. */
 
 .czt-options { margin: 4px 0 16px; }
 .czt-options[hidden] { display: none !important; }
@@ -13,7 +13,7 @@
     -webkit-tap-highlight-color: transparent;
 }
 .czt-chip.is-on { background: #0E2A47; border-color: #0E2A47; color: #FFFFFF; }
-.czt-chip:focus-visible, .czt-opt:focus-visible { outline: 2px solid #378ADD; outline-offset: 2px; }
+.czt-chip:focus-visible, .czt-opt:focus-visible { outline: 2px solid #2272C3; outline-offset: 2px; }
 
 .czt-list { display: flex; flex-direction: column; gap: 10px; }
 .czt-opt {
@@ -22,11 +22,11 @@
     -webkit-tap-highlight-color: transparent; transition: border-color .15s ease;
 }
 .czt-opt:hover { border-color: #B9D3F0; }
-.czt-opt.is-selected { border: 1.5px solid #378ADD; background: #FAFCFF; padding: 13.5px; }
+.czt-opt.is-selected { border: 1.5px solid #2272C3; background: #FAFCFF; padding: 13.5px; }
 
 .czt-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .czt-tag { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; border-radius: 6px; padding: 3px 8px; line-height: 1.2; }
-.czt-tag--rec { background: #378ADD; color: #FFFFFF; }
+.czt-tag--rec { background: #2272C3; color: #FFFFFF; }
 .czt-tag--cheap { background: #E8F6EE; color: #15803D; }
 .czt-tag--fast { background: #FFF4E5; color: #B45309; }
 
@@ -34,7 +34,7 @@
 .czt-time { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 20px; letter-spacing: -0.3px; line-height: 1.2; }
 .czt-fare { text-align: right; flex-shrink: 0; }
 .czt-fare-reg { display: block; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; color: #2272C3; line-height: 1.2; }
-.czt-fare-disc { display: block; font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 12px; color: #64748B; margin-top: 2px; }
+.czt-fare-disc { display: block; font-family: 'Outfit', sans-serif; font-weight: 500; font-size: 12px; color: #5A6A7F; margin-top: 2px; }
 
 .czt-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
 .czt-pill {
@@ -47,21 +47,21 @@
     filter: brightness(0) saturate(100%) invert(28%) sepia(60%) saturate(1500%) hue-rotate(195deg);
 }
 .czt-walk { display: inline-flex; align-items: center; gap: 4px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: #475569; }
-.czt-walk-ic { display: inline-flex; color: #64748B; }
+.czt-walk-ic { display: inline-flex; color: #5A6A7F; }
 .czt-chev { color: #94A3B8; font-size: 13px; }
 
-.czt-meta { font-family: 'Outfit', sans-serif; font-size: 13.5px; color: #64748B; margin-top: 9px; line-height: 1.45; }
+.czt-meta { font-family: 'Outfit', sans-serif; font-size: 13.5px; color: #5A6A7F; margin-top: 9px; line-height: 1.45; }
 .czt-meta b { color: #0E2A47; font-weight: 600; }
-.czt-note { font-family: 'Outfit', sans-serif; font-size: 12.5px; color: #94A3B8; margin: 10px 2px 0; line-height: 1.4; }
+.czt-note { font-family: 'Outfit', sans-serif; font-size: 13px; color: #5A6A7F; margin: 10px 2px 0; line-height: 1.4; }
 
 /* Itinerary additions */
 .timeline-headsign { font-family: 'Outfit', sans-serif; font-size: 13px; color: #475569; margin-top: 4px; }
-.timeline-via { font-family: 'Outfit', sans-serif; font-size: 12.5px; color: #64748B; margin-top: 2px; }
+.timeline-via { font-family: 'Outfit', sans-serif; font-size: 12.5px; color: #5A6A7F; margin-top: 2px; }
 
 /* Transfer prompt */
 .czt-xfer {
     position: fixed; z-index: 1300; width: min(360px, calc(100vw - 24px)); left: 12px;
-    background: #FFFFFF; border: 1.5px solid #378ADD; border-radius: 16px; padding: 12px 14px 10px;
+    background: #FFFFFF; border: 1.5px solid #2272C3; border-radius: 16px; padding: 12px 14px 10px;
     font-family: 'Outfit', sans-serif; color: #0E2A47;
 }
 .czt-xfer[hidden] { display: none !important; }
@@ -70,17 +70,17 @@
 .czt-xfer-ic { width: 40px; height: 40px; border-radius: 12px; background: #EAF2FC; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .czt-xfer-txt { flex: 1; min-width: 0; }
 .czt-xfer-title { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; line-height: 1.3; }
-.czt-xfer-sub { font-size: 13px; color: #64748B; margin-top: 2px; line-height: 1.35; }
+.czt-xfer-sub { font-size: 13px; color: #5A6A7F; margin-top: 2px; line-height: 1.35; }
 .czt-xfer-go {
-    display: flex; width: 100%; height: 44px; margin-top: 12px; border: 0; border-radius: 12px; background: #378ADD; color: #FFFFFF;
+    display: flex; width: 100%; height: 44px; margin-top: 12px; border: 0; border-radius: 12px; background: #2272C3; color: #FFFFFF;
     font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; align-items: center; justify-content: center; cursor: pointer;
 }
 .czt-xfer-later {
-    display: block; width: 100%; height: 34px; margin-top: 4px; border: 0; background: transparent; color: #64748B;
+    display: block; width: 100%; height: 34px; margin-top: 4px; border: 0; background: transparent; color: #5A6A7F;
     font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 13.5px; cursor: pointer;
 }
 .czt-xfer-mini {
-    display: none; flex-shrink: 0; height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: #378ADD; color: #FFFFFF;
+    display: none; flex-shrink: 0; height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: #2272C3; color: #FFFFFF;
     font-family: 'Sora', sans-serif; font-weight: 600; font-size: 12.5px; cursor: pointer;
 }
 .czt-xfer.is-compact { padding: 10px 12px; }
@@ -102,4 +102,4 @@
     font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; color: #475569; line-height: 1.3;
 }
 .czt-stop-chip b { font-weight: 700; color: #0E2A47; }
-@media (max-width: 768px) { .czt-stop-chip { max-width: 170px; font-size: 11.5px; } }
+@media (max-width: 768px) { .czt-stop-chip { max-width: 170px; font-size: 12px; } }

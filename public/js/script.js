@@ -552,7 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
             target.closest('#drawerRoutieLink') || 
             target.closest('#routieBannerBtn') || 
             target.closest('#faqRoutieCtaBtn') || 
-            target.closest('#routieFeatureBtn')
+            target.closest('#routieFeatureBtn') ||
+            target.closest('#routieChatPreview')
         )) {
             return;
         }
@@ -703,6 +704,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (faqRoutieCtaBtn) faqRoutieCtaBtn.addEventListener('click', openChat);
     const routieFeatureBtn = document.getElementById('routieFeatureBtn');
     if (routieFeatureBtn) routieFeatureBtn.addEventListener('click', openChat);
+    // Review #09: the homepage chat preview opens the real Routie chat (click, Enter or Space)
+    const routieChatPreview = document.getElementById('routieChatPreview');
+    if (routieChatPreview) {
+        routieChatPreview.addEventListener('click', openChat);
+        routieChatPreview.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') openChat(e);
+        });
+    }
 
     if (closeChatBtn) {
         closeChatBtn.addEventListener('click', () => {

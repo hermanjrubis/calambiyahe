@@ -698,7 +698,7 @@ body {
 }
 
 .stats-section-label {
-    font-size: 0.72rem !important;
+    font-size: 0.8125rem !important;
     font-weight: 700 !important;
     color: #5A6A7F !important;
     text-transform: uppercase !important;
@@ -765,7 +765,7 @@ body {
 }
 
 .stat-name {
-    font-size: 0.65rem !important;
+    font-size: 0.75rem !important;
     font-weight: 600 !important;
     color: #5A6A7F !important;
 }
@@ -6774,3 +6774,10 @@ button.drawer-nav-item {
         scroll-behavior: auto !important;
     }
 }
+
+/* Review fixes (#14): no label under 12 px */
+.alerts-clear-btn { font-size: 0.8125rem; }
+.nav-panel-stat-lbl,
+.nav-panel-next-tag,
+.reminder-channel-badge { font-size: 0.75rem; }
+.maplibregl-ctrl-attrib, .maplibregl-ctrl-attrib a { font-size: 11px; }
