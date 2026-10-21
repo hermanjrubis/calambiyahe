@@ -421,6 +421,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, beforeId);
             }
 
+            // The next jeep of a trip with a transfer (lighter, dashed: it is re-computed at the stop)
+            if (!map.getSource('next-transit-route')) {
+                map.addSource('next-transit-route', {
+                    type: 'geojson',
+                    data: { type: 'FeatureCollection', features: [] }
+                });
+                map.addLayer({
+                    id: 'next-transit-route-layer',
+                    type: 'line',
+                    source: 'next-transit-route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+                    paint: {
+                        'line-color': '#2272C3',
+                        'line-width': 5,
+                        'line-dasharray': [1.6, 1.2],
+                        'line-opacity': 0.6
+                    }
+                }, beforeId);
+            }
+
             if (!map.getSource('transit-route')) {
                 map.addSource('transit-route', {
                     type: 'geojson',
@@ -1550,6 +1570,17 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentWalkDist = 0, currentWalkDur = 0, currentTransitDist = 0, currentTransitDur = 0;
         let currentFare = 0;
         let walkRouteGeojson = null, transitRouteGeojson = null;
+        // Curated jeepney routes (js/transit-engine.js): the options shown, the one picked, and for a
+        // trip with a transfer the part after the first jeep (pendingTransfer). The planner routes one
+        // jeep at a time; at the transfer stop the trip is re-computed from there (priorTrip keeps the
+        // legs already done, so the saved trip has them all).
+        let transitOptions = [];
+        let transitSelected = 0;
+        let transitODKey = null;
+        let pendingTransfer = null;
+        let priorTrip = null;
+        let transferPreferred = null;
+        let transferRecomputing = false;
         let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
         let journeyId = null;        // one id per journey, so its trip is saved to the account once
         // 20 characters from the Firestore auto-ID alphabet
@@ -1600,7 +1631,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Helper: update fare display across desktop and mobile navigation cards
         function updatePillFareUI(remFare = null) {
-            const fare = remFare !== null ? remFare : currentFare;
+            const fare = (remFare !== null ? remFare : currentFare) + (pendingTransfer ? pendingTransfer.jeep.fare : 0);
             const fareText = selectedMode === 'walking' ? 'Free' : formatPeso(fare);
             const lblText = selectedMode === 'walking' ? 'MODE' : 'PHP';
 
@@ -1676,7 +1707,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : (t('planner.nav_jeepney') || 'Jeepney');
             const fareLabel = isWalkOnly
                 ? (t('planner.free') || 'Free')
-                : formatPeso(currentFare);
+                : formatPeso(currentFare + (pendingTransfer ? pendingTransfer.jeep.fare : 0));
 
             const pillSubLine = document.getElementById('pillSubLine');
             if (pillSubLine) {
@@ -2490,6 +2521,9 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteConnectors([]);
 
             window._calzadaRouteContext = null;
+            clearTransitPlan();
+            priorTrip = null;
+            transitODKey = null;
             try {
                 sessionStorage.removeItem(STORAGE_KEY);
                 sessionStorage.removeItem('calzada_journey');
@@ -2760,6 +2794,297 @@ document.addEventListener('DOMContentLoaded', () => {
         // Straight-line metres between a point and a route end (0 if either is missing).
         const gapToRouteM = (a, b) => (a && b) ? getHaversineDist(a[0], a[1], b[0], b[1]) * 1000 : 0;
 
+        // =============================================
+        // CURATED JEEPNEY ROUTES (js/transit-engine.js + js/planner-transit.js)
+        // =============================================
+        // Function declarations (hoisted): executeRouteQuery can run before this part of the file.
+        let transitApplyToken = 0;
+
+        function transitLang() {
+            try { return (window.getCurrentLang && window.getCurrentLang()) === 'tl' ? 'tl' : 'en'; } catch (_) { return 'en'; }
+        }
+
+        function clearTransitPlan() {
+            transitOptions = [];
+            pendingTransfer = null;
+            transitApplyToken++;
+            if (window.CalzadaTransitUI) {
+                window.CalzadaTransitUI.hideOptions();
+                window.CalzadaTransitUI.hideTransfer();
+            }
+            try { updateRouteSource('next-transit-route', []); } catch (_) { /* map not ready */ }
+        }
+
+        // Name of a known place near a point (stop and alighting labels), or null
+        function transitPlaceNear(pt, maxM) {
+            if (!pt) return null;
+            const lists = [window.FALLBACK_PLACES || [], typeof CALAMBA_PLACES_FALLBACK !== 'undefined' ? CALAMBA_PLACES_FALLBACK : []];
+            let best = null;
+            lists.forEach((list) => list.forEach((p) => {
+                const lat = Number(p.lat), lng = Number(p.lng);
+                if (!p.name || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                const d = getHaversineDist(pt[0], pt[1], lat, lng) * 1000;
+                if (d <= maxM && (!best || d < best.d)) best = { name: p.name, d };
+            }));
+            return best ? best.name : null;
+        }
+
+        function transitStopName(ref) {
+            if (!ref || !ref.stopId) return null;
+            return (transitLang() === 'tl' && ref.name_tl) ? ref.name_tl : (ref.name || null);
+        }
+
+        function transitHeadsign(leg) {
+            return window.CalzadaTransitUI ? window.CalzadaTransitUI.headsignText(leg) : leg.headsign;
+        }
+
+        function renderTransitOptionsUI() {
+            if (!window.CalzadaTransitUI) return;
+            window.CalzadaTransitUI.renderOptions(transitOptions, transitSelected, (i) => {
+                if (isTrackingArrival || !transitOptions[i]) return;
+                transitSelected = i;
+                renderTransitOptionsUI();
+                const o = selectedCoords.origin, d = selectedCoords.destination;
+                const straight = (o && d) ? getHaversineDist(o[0], o[1], d[0], d[1]) * 1000 : 0;
+                applyTransitOption(transitOptions[i], straight).catch((e) => console.error('Option failed:', e));
+            });
+        }
+
+        // true when curated routes handled the trip (options shown, first jeep routed)
+        async function planWithTransitRoutes(oPt, dPt, straightDistM) {
+            const T = window.CalzadaTransit;
+            if (!T) return false;
+            try {
+                await Promise.race([T.load(), new Promise(r => setTimeout(r, 2500))]);
+                if (window.CalzadaFare) await Promise.race([window.CalzadaFare.load(), new Promise(r => setTimeout(r, 2000))]);
+                if (!T.isReady()) { clearTransitPlan(); return false; }
+                const opts = T.plan(oPt, dPt);
+                if (!opts.length) { clearTransitPlan(); return false; }
+
+                // Same trip again (e.g. a live origin moved a little): keep the option the user picked
+                const key = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
+                let sel = 0;
+                if (transferPreferred) {
+                    const i = opts.findIndex(o => {
+                        const j = o.legs.find(l => l.type === 'jeep');
+                        return j && (j.routeId === transferPreferred || (j.alsoRoutes || []).includes(transferPreferred));
+                    });
+                    if (i >= 0) sel = i;
+                } else if (key === transitODKey) {
+                    const prevKey = transitOptions[transitSelected] && transitOptions[transitSelected].key;
+                    const i = opts.findIndex(o => o.key === prevKey);
+                    if (i >= 0) sel = i;
+                }
+                transferPreferred = null;
+                transitOptions = opts;
+                transitODKey = key;
+                transitSelected = sel;
+                renderTransitOptionsUI();
+                await applyTransitOption(opts[sel], straightDistM);
+                return true;
+            } catch (e) {
+                console.error('Curated routes failed; using the highway route:', e);
+                clearTransitPlan();
+                return false;
+            }
+        }
+
+        // Route the first jeep of an option with the planner's usual walk / jeep / walk legs.
+        // A second jeep becomes pendingTransfer: shown in the itinerary and on the map, and
+        // re-computed from its stop when the user gets there.
+        async function applyTransitOption(opt, straightDistM) {
+            const token = ++transitApplyToken;
+            const oPt = selectedCoords.origin, dPt = selectedCoords.destination;
+            if (!opt || !oPt || !dPt) return;
+            const legs = opt.legs;
+            const ji = legs.findIndex(l => l.type === 'jeep');
+            const j1 = legs[ji];
+            const rest = legs.slice(ji + 1);
+            const j2 = rest.find(l => l.type === 'jeep') || null;
+            const boardPt = j1.coords[0];
+            const alightPt = j1.coords[j1.coords.length - 1];
+
+            const footOrLine = async (a, b) => {
+                let r = null;
+                try { r = await fetchOSRMRouteCoords(a, b, 'foot'); } catch (e) { console.error('Walk OSRM error:', e); }
+                if (!r || !r.coordinates || r.coordinates.length < 2) {
+                    const d = Math.max(1, getHaversineDist(a[0], a[1], b[0], b[1]) * 1000 * 1.25);
+                    r = { coordinates: [a, b], distance: d, duration: (d / 1000 / WALK_SPEED_KPH) * 3600, approximate: true, steps: [] };
+                }
+                return r;
+            };
+
+            const wRes = await footOrLine(oPt, boardPt);
+            if (token !== transitApplyToken) return;
+            const walkNames = (wRes.steps || []).map(s => (s.name || '').trim()).filter(Boolean);
+            const roadName = walkNames.length ? walkNames[walkNames.length - 1] : null;
+            const boardName = transitStopName(j1.board) || transitPlaceNear(boardPt, 150) || roadName || 'National Highway';
+
+            const afterTarget = j2 ? j2.coords[0] : dPt;
+            let fwRes = null;
+            if (getHaversineDist(alightPt[0], alightPt[1], afterTarget[0], afterTarget[1]) * 1000 > 25) {
+                fwRes = await footOrLine(alightPt, afterTarget);
+                if (token !== transitApplyToken) return;
+            }
+            const fwFirst = fwRes ? (fwRes.steps || []).map(s => (s.name || '').trim()).find(Boolean) : null;
+            let alightName = transitStopName(j1.alight) || transitPlaceNear(alightPt, 200) || fwFirst || roadName || 'National Highway';
+            if (alightName === boardName) alightName = `${alightName} · ${(j1.distM / 1000).toFixed(1)} km`;
+
+            const durSec = (j1.distM / 1000 / JEEPNEY_SPEED_KPH) * 3600;
+            const tRes = {
+                coordinates: j1.coords.map(c => [c[0], c[1]]),
+                distance: j1.distM,
+                duration: durSec,
+                steps: [
+                    { name: boardName, stopName: boardName, distance: j1.distM, duration: durSec, maneuver: { type: 'depart', modifier: '', location: [boardPt[1], boardPt[0]] }, mode: 'driving' },
+                    { name: alightName, stopName: alightName, distance: 0, duration: 0, maneuver: { type: 'arrive', modifier: '', location: [alightPt[1], alightPt[0]] }, mode: 'driving' }
+                ],
+                curated: true,
+                routeId: j1.routeId,
+                headsign: transitHeadsign(j1),
+                signboard: j1.signboard || null,
+                boardName,
+                alightName,
+                finalWalk: fwRes
+            };
+            window.finalWalkRouteGeojson = fwRes;
+
+            if (j2) {
+                const last = legs[legs.length - 1];
+                const xWalk = rest[0] && rest[0].type === 'walk' ? rest[0] : null;
+                const j2End = j2.coords[j2.coords.length - 1];
+                const finalWalkM = last.type === 'walk' ? last.distM : 0;
+                const finalWalkMin = finalWalkM > 0 ? last.min : 0;
+                const waitMin = (window.CalzadaTransit && window.CalzadaTransit.constants.TRANSFER_EXTRA_MIN) || 2;
+                pendingTransfer = {
+                    hubName: alightName,
+                    boardName: transitStopName(j2.board) || alightName,
+                    hubPt: alightPt,
+                    boardPt: j2.coords[0],
+                    via: xWalk ? (xWalk.via || null) : null,
+                    via_tl: xWalk ? (xWalk.via_tl || null) : null,
+                    jeep: {
+                        routeId: j2.routeId,
+                        headsign: transitHeadsign(j2),
+                        signboard: j2.signboard || null,
+                        distM: j2.distM,
+                        min: j2.min,
+                        fare: j2.fare,
+                        fareDisc: j2.fareDisc,
+                        coords: j2.coords,
+                        alightName: transitStopName(j2.alight) || transitPlaceNear(j2End, 200) || null,
+                        alightPt: j2End
+                    },
+                    finalWalkM,
+                    finalWalkMin,
+                    waitMin,
+                    extraMin: waitMin + j2.min + finalWalkMin
+                };
+            } else {
+                pendingTransfer = null;
+            }
+            updateRouteSource('next-transit-route', j2 ? j2.coords.map(c => [c[1], c[0]]) : []);
+
+            await finalizeJeepneyRoute(wRes, tRes, straightDistM);
+            if (token !== transitApplyToken) return;
+
+            // The selected card shows the same total as the summary (real walks instead of estimates)
+            const fw = getFinalWalkInfo();
+            const total = currentWalkDur + currentTransitDur + (fw.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
+            if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionTime(transitSelected, total);
+        }
+
+        // ── Transfer stop: prompt and re-compute during a journey ──
+        let transferAutoDone = false;
+
+        function transferPromptState() {
+            if (!pendingTransfer) return null;
+            return {
+                hubName: pendingTransfer.hubName,
+                boardName: pendingTransfer.boardName !== pendingTransfer.hubName ? pendingTransfer.boardName : null,
+                nextName: pendingTransfer.jeep.headsign
+            };
+        }
+
+        function updateTransferPrompt(lat, lng) {
+            if (!pendingTransfer || !isTrackingArrival || !window.CalzadaTransitUI) {
+                if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
+                return;
+            }
+            const st = transferPromptState();
+            let near = false;
+            if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                const dHub = getHaversineDist(lat, lng, pendingTransfer.hubPt[0], pendingTransfer.hubPt[1]) * 1000;
+                const dBoard = getHaversineDist(lat, lng, pendingTransfer.boardPt[0], pendingTransfer.boardPt[1]) * 1000;
+                near = dHub <= 150 || dBoard <= 150;
+                // At the next jeep's stop: re-compute without asking
+                if (dBoard <= 40 && !transferAutoDone && !transferRecomputing) {
+                    transferAutoDone = true;
+                    recomputeFromTransfer([lat, lng]);
+                    return;
+                }
+            }
+            st.near = near;
+            window.CalzadaTransitUI.showTransfer(st, () => {
+                const here = currentLocation && Number.isFinite(currentLocation.lat) ? [currentLocation.lat, currentLocation.lng] : null;
+                recomputeFromTransfer(here);
+            });
+        }
+
+        // The user is at the transfer stop: keep the legs done so far, then plan from here
+        async function recomputeFromTransfer(herePt) {
+            if (!pendingTransfer || transferRecomputing) return;
+            transferRecomputing = true;
+            const xfer = pendingTransfer;
+            try {
+                const stops = lastItineraryStops || {};
+                const doneLegs = [];
+                if (currentWalkDist * 1000 >= 10) doneLegs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: Math.round(currentWalkDist * 100) / 100, fare: 0, boardStop: null, alightStop: null });
+                doneLegs.push({
+                    type: 'jeepney',
+                    durationMin: Math.round(currentTransitDur),
+                    distanceKm: Math.round(currentTransitDist * 100) / 100,
+                    fare: Math.round(currentFare * 100) / 100,
+                    boardStop: String(stops.boardAt || transitRouteGeojson?.boardName || 'National Highway').slice(0, 120),
+                    alightStop: String(stops.alightAt || xfer.hubName || '').slice(0, 120) || null
+                });
+                if ((stops.finalWalkM || 0) >= 10) doneLegs.push({ type: 'walk', durationMin: Math.round(stops.finalWalkMin || 0), distanceKm: Math.round(stops.finalWalkM / 10) / 100, fare: 0, boardStop: null, alightStop: null });
+                priorTrip = {
+                    originName: (priorTrip && priorTrip.originName) || originPlaceName,
+                    legs: [...((priorTrip && priorTrip.legs) || []), ...doneLegs],
+                    estimatedMin: ((priorTrip && priorTrip.estimatedMin) || 0) + currentWalkDur + currentTransitDur + (stops.finalWalkMin || 0)
+                };
+
+                // From where the user is, when that is at the stop; else from the stop itself
+                const useHere = herePt && getHaversineDist(herePt[0], herePt[1], xfer.boardPt[0], xfer.boardPt[1]) * 1000 <= 300;
+                selectedCoords.origin = useHere ? herePt : xfer.boardPt.slice();
+                originPlaceName = xfer.boardName;
+                transferPreferred = xfer.jeep.routeId;
+                pendingTransfer = null;
+                // A short last part must stay a jeep ride, not switch to walking
+                userExplicitMode = true;
+                selectedMode = 'jeepney';
+                if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
+                updateRouteSource('completed-route', []);
+                ensureOriginMarker();
+                updateODDisplay();
+
+                await executeRouteQuery();
+
+                activeLegIndex = 0;
+                lastMatchedSegmentIndex = 0;
+                transferAutoDone = false;
+                startActiveJourneyUI();
+                saveJourneyState();
+                const msg = transitLang() === 'tl' ? `Na-recompute mula sa ${xfer.boardName}` : `Route updated from ${xfer.boardName}`;
+                showToast(msg, 'success');
+            } catch (e) {
+                console.error('Re-compute at the transfer stop failed:', e);
+            } finally {
+                transferRecomputing = false;
+            }
+        }
+
         const executeRouteQuery = async () => {
             if (!selectedCoords.origin || !selectedCoords.destination) {
                 renderPlannerState();
@@ -2796,6 +3121,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ── WALKING MODE: pure foot route from origin to destination ───────────
             if (selectedMode === 'walking') {
+                clearTransitPlan();
                 if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
 
                 let wRes = null;
@@ -2851,6 +3177,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderPlannerState();
                 return;
             }
+
+            // ── JEEPNEY MODE: curated routes first (options, transfers), else the highway heuristic ──
+            if (await planWithTransitRoutes(oPt, dPt, straightDistM)) return;
 
             // ── JEEPNEY MODE: walk to boarding point + transit on highway ───────────
             let fullCarRes = null;
@@ -3078,6 +3407,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.finalWalkRouteGeojson = fwRes;
             }
 
+            // The heuristic route is one jeep: no options list, no transfer
+            clearTransitPlan();
+            await finalizeJeepneyRoute(wRes, tRes, straightDistM);
+        };
+        window.executeRouteQuery = executeRouteQuery;
+
+        // Shared end of a jeepney route (heuristic or curated): stats, fare, map, steps, panel.
+        const finalizeJeepneyRoute = async (wRes, tRes, straightDistM) => {
             walkRouteGeojson = wRes;
             transitRouteGeojson = tRes;
             window.walkRouteGeojson = walkRouteGeojson;
@@ -3086,7 +3423,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // When the origin is on (or snaps to) the highway, the boarding point is the origin's
             // own snap point and OSRM returns a 0 m walk. The walk from the origin to that point
             // is real, so count it.
-            currentWalkDist = (wRes.distance + gapToRouteM(oPt, (wRes.coordinates || [])[0])) / 1000;
+            currentWalkDist = (wRes.distance + gapToRouteM(selectedCoords.origin, (wRes.coordinates || [])[0])) / 1000;
             currentWalkDur = computeWalkDurationMin(currentWalkDist);
             currentTransitDist = tRes.distance / 1000;
 
@@ -3131,7 +3468,6 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPlannerState();
             fitRoutePreviewBounds();
         };
-        window.executeRouteQuery = executeRouteQuery;
 
         // =============================================
         // SESSION PERSISTENCE HELPER
@@ -3174,7 +3510,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         walkDist: currentWalkDist, walkDur: currentWalkDur,
                         transitDist: currentTransitDist, transitDur: currentTransitDur,
                         fare: currentFare
-                    }
+                    },
+                    // Trip with a transfer: the next jeep, and the legs done before a re-compute
+                    transfer: pendingTransfer || null,
+                    prior: priorTrip || null
                 });
                 sessionStorage.setItem(STORAGE_KEY, `${state.slice(0, -1)},"route":${routeJsonForSave()}}`);
             } catch (e) { /* sessionStorage unavailable or full */ }
@@ -3438,7 +3777,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const bubbleEl = document.createElement('div');
                 bubbleEl.className = 'custom-mid-bubble';
                 const fwInfo = getFinalWalkInfo();
-                const totalBubbleMin = currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0);
+                const totalBubbleMin = currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
                 bubbleEl.innerHTML = `<div class="route-bubble">${totalBubbleMin} min</div>`;
                 midpointBubbleMarker = new maplibregl.Marker({ element: bubbleEl, anchor: 'center' })
                     .setLngLat(toLngLat(midNode));
@@ -3470,7 +3809,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const pathEndPt = (finalWalkCoords && finalWalkCoords.length > 0)
                 ? finalWalkCoords[finalWalkCoords.length - 1]
                 : ((transitCoords && transitCoords.length > 0) ? transitCoords[transitCoords.length - 1] : (safeWalkCoords && safeWalkCoords.length > 0 ? safeWalkCoords[safeWalkCoords.length - 1] : null));
-            if (selectedCoords.destination && pathEndPt) {
+            // With a transfer the drawn part ends at the next jeep's stop, not near the destination
+            if (selectedCoords.destination && pathEndPt && !pendingTransfer) {
                 const endDistM = getHaversineDist(pathEndPt[0], pathEndPt[1], selectedCoords.destination[0], selectedCoords.destination[1]) * 1000;
                 if (endDistM > 10) {
                     connectorFeatures.push({
@@ -3514,6 +3854,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const transitCoords = transitRouteGeojson?.coordinates || [];
             const lastTransitCoord = transitCoords.length > 0 ? transitCoords[transitCoords.length - 1] : null;
             const destCoord = selectedCoords.destination;
+            // Curated routes know their last walk: none when there is no finalWalk (e.g. the next jeep
+            // of a transfer leaves from the same stop)
+            if (transitRouteGeojson?.curated && !(transitRouteGeojson.finalWalk && transitRouteGeojson.finalWalk.coordinates?.length >= 2)) {
+                return { finalWalkM: 0, finalWalkMin: 0, finalWalkCoordinates: null };
+            }
 
             if (window.finalWalkRouteGeojson && window.finalWalkRouteGeojson.coordinates?.length >= 2) {
                 const finalWalkM = window.finalWalkRouteGeojson.distance || 0;
@@ -3552,7 +3897,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasSchedule = !!(window._calzadaLeaveCalculation && window._calzadaLeaveCalculation.leaveAt);
             const depTime = hasSchedule ? new Date(window._calzadaLeaveCalculation.leaveAt) : new Date();
             const finalWalkInfo = getFinalWalkInfo();
-            const totalDurationMin = isWalkOnly ? currentWalkDur : (currentWalkDur + currentTransitDur + finalWalkInfo.finalWalkMin);
+            const xferExtraMin = (!isWalkOnly && pendingTransfer) ? pendingTransfer.extraMin : 0;
+            const totalDurationMin = isWalkOnly ? currentWalkDur : (currentWalkDur + currentTransitDur + finalWalkInfo.finalWalkMin + xferExtraMin);
             const totalSecs = totalDurationMin * 60;
             if (!hasSchedule && !isTrackingArrival) cachedRemainingSeconds = totalSecs;
             const arrTime = hasSchedule
@@ -3647,6 +3993,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let alightAt = (finalWalkInfo.finalWalkM > 0)
                 ? (alightStep?.name || tSteps[0]?.name || highwayName)
                 : (alightStep?.name || destName);
+            // Curated routes name their stops
+            if (transitRouteGeojson?.curated) {
+                boardAt = transitRouteGeojson.boardName || boardAt;
+                alightAt = transitRouteGeojson.alightName || alightAt;
+            }
 
             // Route signboard (ONLY if route data has one; never invent one)
             const signboardName = transitRouteGeojson?.signboard
@@ -3734,11 +4085,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }));
 
             // 4. Jeepney Leg Row
-            const signboardHtml = signboardName ? `
-                <div class="timeline-signboard">${escapeHtml((t('planner.signboard') || 'Signboard') + ': ' + signboardName)}</div>
-            ` : '';
-
-            const jeepHtml = `
+            // Signboard only when the route data has one; a curated route without one shows where it goes
+            const isTl = transitLang() === 'tl';
+            const jeepContentHtml = (min, km, fare, signboard, headsign, noteText) => {
+                const signLine = signboard
+                    ? `<div class="timeline-signboard">${escapeHtml((t('planner.signboard') || 'Signboard') + ': ' + signboard)}</div>`
+                    : '';
+                const headLine = (headsign && !signboard)
+                    ? `<div class="timeline-headsign">${escapeHtml((isTl ? 'Jeep papuntang ' : 'Jeep to ') + headsign)}</div>`
+                    : '';
+                const noteLine = noteText ? `<div class="timeline-via">${escapeHtml(noteText)}</div>` : '';
+                return `
                 <div class="timeline-jeep-content">
                     <div class="timeline-jeep-header">
                         <div class="timeline-jeep-left">
@@ -3746,14 +4103,97 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <img src="../assets/icons/jeepney-icon.png" alt="Jeepney">
                                 <span>Jeepney</span>
                             </span>
-                            <span class="timeline-jeep-meta">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km</span>
+                            <span class="timeline-jeep-meta">${min} min · ${km.toFixed(1)} km</span>
                         </div>
-                        <span class="timeline-jeep-fare">${formatPeso(currentFare)}</span>
+                        <span class="timeline-jeep-fare">${formatPeso(fare)}</span>
                     </div>
-                    ${signboardHtml}
+                    ${signLine}${headLine}${noteLine}
                 </div>
             `;
+            };
+            const curatedHeadsign = transitRouteGeojson?.curated ? transitRouteGeojson.headsign : null;
+            const jeepHtml = jeepContentHtml(currentTransitDur, currentTransitDist, currentFare, signboardName, curatedHeadsign, null);
             container.appendChild(createLegRow({ type: 'jeepney', contentHtml: jeepHtml }));
+
+            // Trip with a transfer: get off, (walk), next jeep, (walk), destination
+            if (pendingTransfer) {
+                const x = pendingTransfer;
+                const walkRowHtml = (label) => `
+                    <div class="timeline-walk-content">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#475569">
+                            <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                        </svg>
+                        <span>${escapeHtml(label)}</span>
+                    </div>
+                `;
+                const walkLabel = (m, min) => t('planner.walk_leg', { dist: fmtM(m), time: `${min} min` }) || `Walk ${fmtM(m)} · ${min} min`;
+                const alightTime = new Date(boardTime.getTime() + currentTransitDur * 60 * 1000);
+                const xWalkM = finalWalkInfo.finalWalkM;
+                const xWalkMin = finalWalkInfo.finalWalkMin;
+                const sameStop = !(xWalkM > 0);
+                lastItineraryStops = {
+                    boardAt,
+                    alightAt,
+                    finalWalkM: sameStop ? 0 : xWalkM,
+                    finalWalkMin: sameStop ? 0 : xWalkMin,
+                    finalWalkCoordinates: sameStop ? null : finalWalkInfo.finalWalkCoordinates
+                };
+                container.appendChild(createStopRow({
+                    time: fmt24h(alightTime),
+                    ringClass: 'timeline-ring--intermediate',
+                    name: alightAt,
+                    subText: sameStop ? (isTl ? 'Bumaba at sumakay ng susunod na jeep dito' : 'Get off and change jeeps here') : (t('planner.get_off_here') || 'Get off here')
+                }));
+                let changeTime = alightTime;
+                if (!sameStop) {
+                    const via = isTl ? (x.via_tl || x.via) : x.via;
+                    container.appendChild(createLegRow({
+                        type: 'walk',
+                        contentHtml: walkRowHtml(walkLabel(xWalkM, xWalkMin)) + (via ? `<div class="timeline-via">${escapeHtml(via)}</div>` : '')
+                    }));
+                    changeTime = new Date(alightTime.getTime() + xWalkMin * 60 * 1000);
+                    container.appendChild(createStopRow({
+                        time: fmt24h(changeTime),
+                        ringClass: 'timeline-ring--intermediate',
+                        name: x.boardName,
+                        subText: isTl ? 'Sumakay ng susunod na jeep dito' : 'Take the next jeep here'
+                    }));
+                }
+                const recomputeNote = isTl ? `Ire-recompute ang ruta pagdating mo rito` : `The route is re-computed when you get here`;
+                container.appendChild(createLegRow({
+                    type: 'jeepney',
+                    contentHtml: jeepContentHtml(x.jeep.min, x.jeep.distM / 1000, x.jeep.fare, x.jeep.signboard, x.jeep.headsign, recomputeNote)
+                }));
+                const alight2 = new Date(changeTime.getTime() + (x.waitMin + x.jeep.min) * 60 * 1000);
+                if (x.finalWalkM > 0) {
+                    container.appendChild(createStopRow({
+                        time: fmt24h(alight2),
+                        ringClass: 'timeline-ring--intermediate',
+                        name: x.jeep.alightName || (isTl ? 'Babaan' : 'Stop'),
+                        subText: t('planner.get_off_here') || 'Get off here'
+                    }));
+                    container.appendChild(createLegRow({ type: 'walk', contentHtml: walkRowHtml(walkLabel(x.finalWalkM, x.finalWalkMin)) }));
+                }
+                container.appendChild(createStopRow({
+                    time: fmt24h(arrTime),
+                    ringClass: 'timeline-ring--dest',
+                    name: destName,
+                    subText: x.finalWalkM > 0 ? null : (t('planner.get_off_here') || 'Get off here')
+                }));
+
+                if (window.activeRouteSteps && window.activeRouteSteps.length > 0) {
+                    for (let i = 0; i < window.activeRouteSteps.length; i++) {
+                        const curr = window.activeRouteSteps[i];
+                        const next = (i + 1 < window.activeRouteSteps.length) ? window.activeRouteSteps[i + 1] : null;
+                        if (curr.mode === 'foot' && next && (next.mode === 'driving' || next.mode === 'jeepney')) {
+                            curr.stopName = boardAt;
+                            curr.boardAt = boardAt;
+                        }
+                    }
+                }
+                renderActiveNavLegs();
+                return;
+            }
 
             if (hasFinalWalk) {
                 // Route with final walk: Alighting stop -> Walk leg -> Destination
@@ -3872,9 +4312,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isWalkOnly = selectedMode === 'walking';
             const finalWalkInfo = getFinalWalkInfo();
-            const totalMin = isWalkOnly ? currentWalkDur : (currentWalkDur + currentTransitDur + finalWalkInfo.finalWalkMin);
-            const extraWalkDistKm = isWalkOnly ? 0 : (finalWalkInfo.finalWalkM / 1000);
+            const xfer = isWalkOnly ? null : pendingTransfer;
+            const totalMin = isWalkOnly ? currentWalkDur : (currentWalkDur + currentTransitDur + finalWalkInfo.finalWalkMin + (xfer ? xfer.extraMin : 0));
+            const extraWalkDistKm = isWalkOnly ? 0 : (finalWalkInfo.finalWalkM / 1000) + (xfer ? (xfer.jeep.distM + xfer.finalWalkM) / 1000 : 0);
             const totalDistRaw = (currentWalkDist + currentTransitDist + extraWalkDistKm).toFixed(1);
+            const tripFare = currentFare + (xfer ? xfer.jeep.fare : 0);
             const totalDist = String(totalDistRaw).replace(/\s*km/gi, '').trim();
             const totalSecs = totalMin * 60;
 
@@ -3966,8 +4408,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!isWalkOnly) {
                             if (window.CalzadaFare) {
                                 const f = window.CalzadaFare.fares(currentTransitDist);
-                                regFare = Number(f.regular) || 0;
-                                discFare = Number(f.discounted) || 0;
+                                regFare = (Number(f.regular) || 0) + (xfer ? xfer.jeep.fare : 0);
+                                discFare = (Number(f.discounted) || 0) + (xfer ? xfer.jeep.fareDisc : 0);
                             } else {
                                 regFare = Number(currentFare) || 14;
                                 discFare = Math.round(regFare * 0.8 * 4) / 4;
@@ -3981,7 +4423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             totalMin,
                             bufferMin,
                             targetTime: sched.targetTime,
-                            fare: currentFare,
+                            fare: tripFare,
                             fareRegular: regFare,
                             fareDiscounted: discFare,
                             destName: destPlaceName,
@@ -4011,7 +4453,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const eta = fmt24h(etaDate);
 
             const freeLabel = window.t ? (window.t('planner.fare_free') || window.t('planner.free') || 'Free') : 'Free';
-            const fareLabel = isWalkOnly ? freeLabel : formatPeso(currentFare);
+            const fareLabel = isWalkOnly ? freeLabel : formatPeso(tripFare);
 
             if (st) st.textContent = `${totalMin} min`;
             if (sf) sf.textContent = fareLabel;
@@ -4030,7 +4472,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (peek) {
                 peek.textContent = selectedMode === 'walking'
                     ? `${totalMin} min • Walk`
-                    : `${totalMin} min • ${formatPeso(currentFare)}`;
+                    : `${totalMin} min • ${formatPeso(tripFare)}`;
             }
             if (blk) {
                 blk.style.removeProperty('display');
@@ -4049,7 +4491,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 origin: originPlaceName,
                 destination: destPlaceName,
                 totalTime: totalMin,
-                totalFare: currentFare,
+                totalFare: tripFare,
                 totalDistance: totalDist,
                 eta: eta
             };
@@ -4155,13 +4597,48 @@ document.addEventListener('DOMContentLoaded', () => {
                             </svg>
                         </div>
                         <div class="nav-leg-info">
-                            <div class="nav-leg-title">Walk to ${escapeHtml(destPlaceName || 'Destination')}</div>
+                            <div class="nav-leg-title">Walk to ${escapeHtml(pendingTransfer ? pendingTransfer.boardName : (destPlaceName || 'Destination'))}</div>
                             <div class="nav-leg-meta">${fmtM(fwM)} · ${fwMin} min</div>
                         </div>
                         <div class="nav-leg-fare">Free</div>
                     </div>
                     `;
                     legCount = 3;
+                }
+
+                // Trip with a transfer: the next jeep and the last walk (re-computed at the stop)
+                if (pendingTransfer) {
+                    const x = pendingTransfer;
+                    html += `
+                    <div class="nav-leg-item">
+                        <div class="nav-leg-icon-circle">
+                            <img src="../assets/icons/jeepney-icon.png" alt="Jeep" width="14" height="14">
+                        </div>
+                        <div class="nav-leg-info">
+                            <div class="nav-leg-title">Jeepney towards ${escapeHtml(x.jeep.headsign || x.jeep.alightName || destPlaceName || 'Destination')}</div>
+                            <div class="nav-leg-meta">${x.jeep.min} min · ${(x.jeep.distM / 1000).toFixed(1)} km (Board: ${escapeHtml(x.boardName)})</div>
+                        </div>
+                        <div class="nav-leg-fare">${formatPeso(x.jeep.fare)}</div>
+                    </div>
+                    `;
+                    legCount += 1;
+                    if (x.finalWalkM > 0) {
+                        html += `
+                        <div class="nav-leg-item">
+                            <div class="nav-leg-icon-circle">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                                </svg>
+                            </div>
+                            <div class="nav-leg-info">
+                                <div class="nav-leg-title">Walk to ${escapeHtml(destPlaceName || 'Destination')}</div>
+                                <div class="nav-leg-meta">${fmtM(x.finalWalkM)} · ${x.finalWalkMin} min</div>
+                            </div>
+                            <div class="nav-leg-fare">Free</div>
+                        </div>
+                        `;
+                        legCount += 1;
+                    }
                 }
             }
 
@@ -4316,7 +4793,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Ensure ETA, duration, and fare displays are populated IMMEDIATELY
                 const fwInfo = getFinalWalkInfo();
-                cachedRemainingSeconds = (currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0)) * 60;
+                cachedRemainingSeconds = (currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0)) * 60;
                 syncNavDisplays();
             } catch (err) { console.error('[startActiveJourneyUI] syncNavDisplays failed:', err); }
 
@@ -4370,6 +4847,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const exp = document.getElementById('navExpandedContent');
                 if (exp) exp.style.display = 'none';
             }
+
+            // Trip with a transfer: the "I'm here" button is there from the start
+            try {
+                updateTransferPrompt(currentLocation ? currentLocation.lat : NaN, currentLocation ? currentLocation.lng : NaN);
+            } catch (err) { console.error('[startActiveJourneyUI] transfer prompt failed:', err); }
         }
 
         function cancelActiveJourney() {
@@ -4380,6 +4862,9 @@ document.addEventListener('DOMContentLoaded', () => {
             isTrackingArrival = false;
             journeyStartedAt = null;
             journeyId = null;
+            priorTrip = null;
+            transferAutoDone = false;
+            if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
             setMapAutoFollow(false);
             if (reCenterBtn) {
                 reCenterBtn.classList.remove('is-visible');
@@ -4855,7 +5340,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateGuideStepsUI();
 
             const fwInfo = getFinalWalkInfo();
-            cachedRemainingSeconds = (currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0)) * 60;
+            cachedRemainingSeconds = (currentWalkDur + currentTransitDur + (fwInfo.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0)) * 60;
             syncNavDisplays();
 
             // FIX ∗4: Always clear before starting, prevents duplicate intervals on session recovery
@@ -5187,6 +5672,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            // Trip with a transfer: prompt near the stop; at the next jeep's stop the route is re-computed
+            if (pendingTransfer) {
+                updateTransferPrompt(latitude, longitude);
+                if (transferRecomputing) return;
+            }
+
             let minD = Infinity, closestIdx = 0;
 
             for (let i = 0; i < currentPath.length; i++) {
@@ -5265,6 +5756,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            if (pendingTransfer) remainingTimeSecs += pendingTransfer.extraMin * 60;
+
             const timeSinceLastMove = Date.now() - lastMovementTimestamp;
             let effectiveTime = remainingTimeSecs;
             if (timeSinceLastMove > 480000) {
@@ -5274,7 +5767,13 @@ document.addEventListener('DOMContentLoaded', () => {
             cachedRemainingSeconds = effectiveTime;
             updateDynamicBottomPill(timeSinceLastMove);
 
-            if (minD > 50) {
+            // Walking from the first jeep's stop to the next one is not a deviation
+            const nearTransferStop = !!pendingTransfer && Math.min(
+                getHaversineDist(latitude, longitude, pendingTransfer.hubPt[0], pendingTransfer.hubPt[1]),
+                getHaversineDist(latitude, longitude, pendingTransfer.boardPt[0], pendingTransfer.boardPt[1])
+            ) * 1000 <= 400;
+
+            if (minD > 50 && !nearTransferStop) {
                 if (!deviationTimer) {
                     deviationTimer = setTimeout(async () => {
                         deviationTimer = null;
@@ -5349,7 +5848,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return known.includes(l) || l.startsWith('pinned location (');
         };
         const originLabelForTrip = () => {
-            const label = (originPlaceName || '').trim();
+            const label = ((priorTrip && priorTrip.originName) || originPlaceName || '').trim();
             if (!label || label === 'My Location') return 'My Location';
             if (COORDINATE_LIKE.test(label) || isPinnedLabel(label)) return 'Pinned location';
             return clip(label, 120);
@@ -5363,7 +5862,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const startedAt = Number.isFinite(journeyStartedAt) && journeyStartedAt <= arrivedAt ? journeyStartedAt : null;
             const walkOnly = selectedMode === 'walking';
             const stops = (!walkOnly && lastItineraryStops) || {};
-            const legs = [];
+            // Legs done before a re-compute at a transfer stop come first
+            const legs = (!walkOnly && priorTrip && Array.isArray(priorTrip.legs)) ? priorTrip.legs.map(l => ({ ...l })) : [];
             // A walk under 10 m means the origin is on the route itself: no leg to show.
             if (currentWalkDist * 1000 >= 10) {
                 legs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: roundTo(currentWalkDist, 2), fare: 0, boardStop: null, alightStop: null });
@@ -5387,7 +5887,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 startedAt,
                 arrivedAt,
                 durationMin: startedAt != null ? Math.max(1, Math.round((arrivedAt - startedAt) / 60000)) : null,
-                estimatedMin: Math.round(currentWalkDur + currentTransitDur + (stops.finalWalkMin || 0)),
+                estimatedMin: Math.round(currentWalkDur + currentTransitDur + (stops.finalWalkMin || 0) + ((!walkOnly && priorTrip && priorTrip.estimatedMin) || 0)),
                 distanceKm: roundTo(legs.reduce((sum, l) => sum + l.distanceKm, 0), 1),
                 fare: legs.reduce((sum, l) => sum + l.fare, 0),
                 mode: walkOnly ? 'walk' : 'jeepney',
@@ -5397,6 +5897,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const triggerArrival = () => {
             stopLiveTracking();
+            if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
             sessionStorage.removeItem('calzada_journey');
             if (userMarker) { userMarker.remove(); userMarker = null; }
             if (gpsCircle) { gpsCircle = null; }
@@ -7218,9 +7719,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentTransitDist = stats.transitDist;
                 currentTransitDur = stats.transitDur;
                 currentFare = stats.fare;
+                pendingTransfer = (state.transfer && state.transfer.jeep && Array.isArray(state.transfer.jeep.coords)) ? state.transfer : null;
+                priorTrip = (state.prior && Array.isArray(state.prior.legs)) ? state.prior : null;
+                window.finalWalkRouteGeojson = transitRouteGeojson.finalWalk || null;
+                updateRouteSource('next-transit-route', pendingTransfer ? pendingTransfer.jeep.coords.map(c => [c[1], c[0]]) : []);
                 ensureOriginMarker();
                 ensureDestMarker();
-                drawRoutes(walkRouteGeojson.coordinates, transitRouteGeojson.coordinates);
+                drawRoutes(walkRouteGeojson.coordinates, transitRouteGeojson.coordinates, transitRouteGeojson.finalWalk?.coordinates);
                 updateSummaryRow();
                 updatePillFareUI();
                 renderItinerary();
