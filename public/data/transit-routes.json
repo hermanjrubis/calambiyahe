@@ -24,9 +24,9 @@
     },
     "sm-transport-terminal": {
       "name": "SM Transport Terminal",
-      "lat": 14.2026875,
-      "lng": 121.1568125,
-      "note": "East side of SM City Calamba, Inner Road (Google plus code 6534+3P). Jeeps to Halang load here."
+      "lat": 14.202953,
+      "lng": 121.15715,
+      "note": "SM City Calamba Transport Terminal, east side of SM City Calamba (same coordinates as the place in places.json, OSM). Jeeps to Halang and Los Baños (UPLB) load here."
     }
   },
   "transfers": [
@@ -38,7 +38,7 @@
     {
       "a": "sm-calamba-west",
       "b": "sm-transport-terminal",
-      "walkM": 345,
+      "walkM": 350,
       "via": "Along SM City Calamba, by the parking",
       "via_tl": "Sa gilid ng SM City Calamba, tabi ng parking",
       "path": [
@@ -91,23 +91,15 @@
           121.156884
         ],
         [
-          14.202798,
-          121.156848
-        ],
-        [
-          14.202734,
-          121.156845
-        ],
-        [
-          14.202697,
-          121.156853
+          14.203007,
+          121.157123
         ]
       ]
     },
     {
       "a": "calamba-tagaytay-terminal",
       "b": "sm-transport-terminal",
-      "walkM": 345,
+      "walkM": 350,
       "via": "Along SM City Calamba, by the parking",
       "via_tl": "Sa gilid ng SM City Calamba, tabi ng parking",
       "path": [
@@ -160,16 +152,8 @@
           121.156884
         ],
         [
-          14.202798,
-          121.156848
-        ],
-        [
-          14.202734,
-          121.156845
-        ],
-        [
-          14.202697,
-          121.156853
+          14.203007,
+          121.157123
         ]
       ]
     }
@@ -245,7 +229,7 @@
       "name": "Calamba – Los Baños (UPLB)",
       "from": "SM Transport Terminal",
       "to": "Los Baños (UPLB)",
-      "polyline": "qmzaZaoyafFaUwd@}H{TpwB}{AffAes@f}Bi_Br`Ast@b`Go|E|p@kl@v_Aot@ncBa{Ar~BogBjjAot@dm@uUlMiJjE}EtbAkoBz`EgfHbe@k{@bwBehFli@oyAvc@}gA|m@kvArTs`@bQ_XrzAc|B|i@mv@jIsOhFmPt@eSu@e`@aFcaAcCkSoK_uAuBoi@qAmr@r@iXjb@enCpD{OlAoDzKuPjh@qq@pGqOdDkQlXcyBdCoLpRkp@jMo^zN_[nF}Px@{FHoRiSqqAw@{Mr@qVtCsWiAuRqMch@qI}MqIqEqTyHor@yQmPuHiI}FwHyK}BkFqA}IMyKtQc~DkE{Uki@uaBk[weAqNq_@cT}Ps{@yf@uk@oYuM}IgG_J_FeOmU_~AeYw{AiEqKuPiYmMaM{JsG}ViLwh@yMay@oOeNmI{M_JgJy\\oDuS_HygGbAymCfAcJvDmOzcAa_CrI{TnNef@`\\csAtF}ZtB}QpEu_AnGcaA~Dab@lTo~AxuCwg@bbByUloA_AjvAJhLuAfYiHnwAol@hUmIpFk@rG^xDpAxaBx|@nIyOlD{Bdv@eVzp@qWtl@sQbVcJxUcLx\\yKpX{Kv\\oRjZkSdp@k[hDhCjEx@pEnJ`_@r}@~@lFdOd]l]t_Am@vDmAbBc]tUoW|N",
+      "polyline": "qc{aZ{`zafFA}R}H{TpwB}{AffAes@f}Bi_Br`Ast@b`Go|E|p@kl@v_Aot@ncBa{Ar~BogBjjAot@dm@uUlMiJjE}EtbAkoBz`EgfHbe@k{@bwBehFli@oyAvc@}gA|m@kvArTs`@bQ_XrzAc|B|i@mv@jIsOhFmPt@eSu@e`@aFcaAcCkSoK_uAuBoi@qAmr@r@iXjb@enCpD{OlAoDzKuPjh@qq@pGqOdDkQlXcyBdCoLpRkp@jMo^zN_[nF}Px@{FHoRiSqqAw@{Mr@qVtCsWiAuRqMch@qI}MqIqEqTyHor@yQmPuHiI}FwHyK}BkFqA}IMyKtQc~DkE{Uki@uaBk[weAqNq_@cT}Ps{@yf@uk@oYuM}IgG_J_FeOmU_~AeYw{AiEqKuPiYmMaM{JsG}ViLwh@yMay@oOeNmI{M_JgJy\\oDuS_HygGbAymCfAcJvDmOzcAa_CrI{TnNef@`\\csAtF}ZtB}QpEu_AnGcaA~Dab@lTo~AxuCwg@bbByUloA_AjvAJhLuAfYiHnwAol@hUmIpFk@rG^xDpAxaBx|@nIyOlD{Bdv@eVzp@qWtl@sQbVcJxUcLx\\yKpX{Kv\\oRjZkSdp@k[hDhCjEx@pEnJ`_@r}@~@lFdOd]l]t_Am@vDmAbBc]tUoW|N",
       "stops": [
         {
           "id": "sm-transport-terminal",
@@ -271,7 +255,7 @@
       "name": "SM Calamba – Halang",
       "from": "SM Transport Terminal",
       "to": "Halang",
-      "polyline": "qmzaZaoyafFaUwd@}H{TpwB}{AffAes@f}Bi_BzcAiw@tmBq~A",
+      "polyline": "qc{aZ{`zafFA}R}H{TpwB}{AffAes@f}Bi_BzcAiw@tmBq~A",
       "stops": [
         {
           "id": "sm-transport-terminal",
