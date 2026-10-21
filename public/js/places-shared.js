@@ -1048,7 +1048,7 @@
             "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
             "phone": null,
             "website": null,
-            "opening_hours": null
+            "opening_hours": {"mon": "8:30 AM - 6:00 PM", "tue": "8:30 AM - 6:00 PM", "wed": "8:30 AM - 6:00 PM", "thu": "8:30 AM - 6:00 PM", "fri": "8:30 AM - 6:00 PM", "sat": "8:30 AM - 6:00 PM", "sun": "12:00 PM - 6:00 PM"}
         },
         {
             "id": "kuda-electric-bicycle",
