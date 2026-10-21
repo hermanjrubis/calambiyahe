@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.2.0)
+ * Calzada transit engine (v1.3.1)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -44,8 +44,9 @@
         return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
     }
 
-    // Google encoded polyline (precision 5) -> [[lat, lng], ...]
-    function decodePolyline(str) {
+    // Google encoded polyline -> [[lat, lng], ...] (precision 5 = 1e5, 6 = 1e6)
+    function decodePolyline(str, precision) {
+        const factor = Math.pow(10, precision || 5);
         const pts = [];
         let i = 0, lat = 0, lng = 0;
         while (i < str.length) {
@@ -61,7 +62,7 @@
             }
             lat += vals[0];
             lng += vals[1];
-            pts.push([lat / 1e5, lng / 1e5]);
+            pts.push([lat / factor, lng / factor]);
         }
         return pts;
     }
@@ -72,8 +73,8 @@
     }
 
     // Prepared route: points, cumulative metres, stop positions along the path
-    function prepareRoute(route, stops) {
-        const pts = decodePolyline(route.polyline || '');
+    function prepareRoute(route, stops, precision) {
+        const pts = decodePolyline(route.polyline || '', precision);
         if (pts.length < 2) return null;
         const lat0 = pts[0][0];
         const cum = [0];
@@ -255,15 +256,18 @@
     // ── Planner ─────────────────────────────────────────────────────────────────
     function createPlanner(data) {
         const stops = data.stops || {};
-        const routes = (data.routes || []).map((r) => prepareRoute(r, stops)).filter(Boolean);
+        const routes = (data.routes || []).map((r) => prepareRoute(r, stops, data.polylinePrecision || 5)).filter(Boolean);
         const transfers = data.transfers || [];
 
         // Stops reachable on foot from a stop: itself (0 m) and the transfer links
         function linkedStops(stopId) {
-            const out = [{ id: stopId, walkM: 0, via: null, via_tl: null }];
+            const out = [{ id: stopId, walkM: 0, via: null, via_tl: null, path: null }];
+            // path: the walking line from a to b; reversed when walking from b to a
+            const pathOf = (t, fromA) => (Array.isArray(t.path) && t.path.length >= 2
+                ? (fromA ? t.path.map((p) => p.slice()) : t.path.map((p) => p.slice()).reverse()) : null);
             transfers.forEach((t) => {
-                if (t.a === stopId) out.push({ id: t.b, walkM: t.walkM, via: t.via || null, via_tl: t.via_tl || null });
-                else if (t.b === stopId) out.push({ id: t.a, walkM: t.walkM, via: t.via || null, via_tl: t.via_tl || null });
+                if (t.a === stopId) out.push({ id: t.b, walkM: t.walkM, via: t.via || null, via_tl: t.via_tl || null, path: pathOf(t, true) });
+                else if (t.b === stopId) out.push({ id: t.a, walkM: t.walkM, via: t.via || null, via_tl: t.via_tl || null, path: pathOf(t, false) });
             });
             return out.filter((x) => x.walkM <= MAX_TRANSFER_WALK_M);
         }
@@ -322,7 +326,7 @@
                                     found.push(summarize([
                                         walkLeg(origin, b.pt, b.walkM),
                                         jeepLeg(A, dirA, b.pos, sA.pos, stopRef(b.stop, b.pt), stopRef(sA)),
-                                        walkLeg(sA.stopPt, sB.stopPt, tw, { transfer: true, via: link.via, via_tl: link.via_tl }),
+                                        walkLeg(sA.stopPt, sB.stopPt, tw, { transfer: true, via: link.via, via_tl: link.via_tl, path: link.path }),
                                         jeepLeg(B, dirB, sB.pos, a2.pos, stopRef(sB), stopRef(a2.stop, a2.pt)),
                                         walkLeg(a2.pt, dest, a2.walkM)
                                     ]));
@@ -417,7 +421,7 @@
     }
 
     return {
-        VERSION: '1.2.0',
+        VERSION: '1.3.1',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),

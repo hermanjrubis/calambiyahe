@@ -1,7 +1,7 @@
 {
   "version": 1,
   "updated": "2026-10-21",
-  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 6 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 5, lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads. closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba.",
+  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 1.5 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 6 (polylinePrecision), lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads. closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba. A transfer's path is the walking line from stop a to stop b (OpenStreetMap foot route), drawn on the map instead of a straight line.",
   "stops": {
     "crossing-grand-terminal": {
       "name": "Crossing Grand Terminal",
@@ -38,16 +38,140 @@
     {
       "a": "sm-calamba-west",
       "b": "sm-transport-terminal",
-      "walkM": 300,
-      "via": "Through SM City Calamba",
-      "via_tl": "Dumaan sa loob ng SM City Calamba"
+      "walkM": 345,
+      "via": "Along SM City Calamba, by the parking",
+      "via_tl": "Sa gilid ng SM City Calamba, tabi ng parking",
+      "path": [
+        [
+          14.20329,
+          121.154746
+        ],
+        [
+          14.202667,
+          121.155162
+        ],
+        [
+          14.202814,
+          121.155429
+        ],
+        [
+          14.203019,
+          121.155833
+        ],
+        [
+          14.203005,
+          121.155841
+        ],
+        [
+          14.203015,
+          121.155861
+        ],
+        [
+          14.203172,
+          121.156184
+        ],
+        [
+          14.203197,
+          121.156238
+        ],
+        [
+          14.202737,
+          121.156475
+        ],
+        [
+          14.202773,
+          121.156563
+        ],
+        [
+          14.202873,
+          121.156761
+        ],
+        [
+          14.202894,
+          121.156884
+        ],
+        [
+          14.202798,
+          121.156848
+        ],
+        [
+          14.202734,
+          121.156845
+        ],
+        [
+          14.202697,
+          121.156853
+        ]
+      ]
     },
     {
       "a": "calamba-tagaytay-terminal",
       "b": "sm-transport-terminal",
-      "walkM": 300,
-      "via": "Through SM City Calamba",
-      "via_tl": "Dumaan sa loob ng SM City Calamba"
+      "walkM": 345,
+      "via": "Along SM City Calamba, by the parking",
+      "via_tl": "Sa gilid ng SM City Calamba, tabi ng parking",
+      "path": [
+        [
+          14.20329,
+          121.154746
+        ],
+        [
+          14.202667,
+          121.155162
+        ],
+        [
+          14.202814,
+          121.155429
+        ],
+        [
+          14.203019,
+          121.155833
+        ],
+        [
+          14.203005,
+          121.155841
+        ],
+        [
+          14.203015,
+          121.155861
+        ],
+        [
+          14.203172,
+          121.156184
+        ],
+        [
+          14.203197,
+          121.156238
+        ],
+        [
+          14.202737,
+          121.156475
+        ],
+        [
+          14.202773,
+          121.156563
+        ],
+        [
+          14.202873,
+          121.156761
+        ],
+        [
+          14.202894,
+          121.156884
+        ],
+        [
+          14.202798,
+          121.156848
+        ],
+        [
+          14.202734,
+          121.156845
+        ],
+        [
+          14.202697,
+          121.156853
+        ]
+      ]
     }
   ],
   "routes": [
@@ -57,7 +181,7 @@
       "name": "Sta. Rosa – Calamba",
       "from": "Sta. Rosa (Balibago)",
       "to": "SM Calamba",
-      "polyline": "ahgvAsmdbVzPkEvz@{V|FsAdEgBpAgA|IsKdeAyjAdAeAhCiAfGu@rSyApZ}AhVqBxVwAdZyEpVqG~l@iQvOiFzP{M`JaGxDeBtEcAlHSt]rDrAE|@u@xCmMtVir@`AwBbByBdPeN`CiAtOwAbJg@z@?vBd@|AhAxD{B",
+      "polyline": "yyqgZcqu~eFzqDy~@xtQsmFlHm@|dAeX|e@eQpU{LnXmUpCcH|S}TlsAo~Af~DmnEniCmrCprJ_rKzTiUtEoAdRyJnPkGhNwDbt@oF|LaCv_CaOvlAyJprGs\\~gFgb@hmFyZdsDkh@x`@yGxx@sPvbAmVtfDo}@jrGwoBrwDmeAfdByh@jaAc^pT{Ljk@wi@pt@el@dz@en@nmBeoAhc@iUhU_Iza@uKz^mGrb@qDfSi@je@Zpu@|Gl{F~m@tJh@bMwAzHoDrHuJjD{KtOcx@dBwCzFqZhNgi@|kFs_OpKeXbGqK`JmNtRmUzh@ge@|`C}pBtJaHxNaHrLaDx]{EvfCuS`nBoKxQFrd@pJf\\fVjy@se@",
       "stops": [
         {
           "id": "crossing-grand-terminal",
@@ -90,7 +214,7 @@
       "name": "Los Baños (UPLB) – Calamba",
       "from": "Los Baños (UPLB)",
       "to": "SM Calamba",
-      "polyline": "uwluAgg_cVxDoCsCwHqP~I{CwHsQlGs@`A{HeEm@ImMrEcQL_XjEcApHcApOc@tCmChK_G~MWvAGhM\\nYr@~Cn@b@n@`@~HbB`DpBjA|BpDjShAdArKlGfHnU{@`RHjAlAxA`InC`@n@l@bCF|@SzCdAtHEvAwDtKmBlNqE~GaC~N@tFvAnT?hDw@lBmP|VsWjo@i]bn@gAx@mDxAgEnCwKlIen@fh@iw@vi@qDlDAR`@b@rGUvBd@|AhAxD{B",
+      "polyline": "{uh_ZmqagfFnW}Nb]uUtBqEUsDq\\k|@eOe]kS|JstBhlAsd@xSyAmHam@kwAmb@fQul@rQ{p@pWev@dVmDzBoIxOyaBy|@yDqAsG_@qFj@iUlIowAnl@gYhHiLtAkvAKmoA~@cbBxUyuCvg@mTn~A_E`b@oGbaAqEt_AuB|QuF|Za\\bsAoNdf@sIzT{cA`_CwDlOgAbJcAxmC~GxgGnDtSfJx\\zM~IdNlI`y@nOvh@xM|VhLzJrGlM`MtPhYhEpKdYv{AlU~}A~EdOfG~ItM|Itk@nYr{@xf@bT|PpNp_@j[veAji@taBjEzUuQb~DLxKpA|I|BjFvHxKhI|FlPtHnr@xQpTxHpIpEpI|MpMbh@hAtRuCrWs@pVv@zMhSpqAInRy@zFoF|P{N~ZkMn^qRjp@eCnLmXbyBeDjQqGpOkh@pq@{KtPmAnDqDzOkb@dnCs@hXpAlr@tBni@nK~tAbCjS`FbaAt@jSu@~_@iFlPkIrO}i@lv@szAb|BcQ~WsTr`@}m@jvAwc@|gAmi@nyAcwBdhFce@j{@wpDbmGapAtdC{DhF{KnJ_IlE_h@nRcLnGg}@~k@s~BngBocB`{Aw_Ant@}p@jl@c`Gn|Es`Art@ifB~mAe}AndA}iDhbCq_Cb}AsNdLcg@hh@O|Db@tCnAjB|EpB`bAiFxQFrd@pJf\\fVjy@se@",
       "stops": [
         {
           "id": "crossing-grand-terminal",
@@ -121,7 +245,7 @@
       "name": "Calamba – Los Baños (UPLB)",
       "from": "SM Transport Terminal",
       "to": "Los Baños (UPLB)",
-      "polyline": "g}tuAmmnbVeB}Dje@o\\dn@gh@vKmIpFkDrCgA`Ay@xEgJdVqb@rWko@lP}Vv@mB?iDwAoTAuF`C_OpE_HlBmNvDuKDwAeAuHR{CG}@m@cCa@o@aIoCmAyAIkAz@aRgHoUsKmGiAeAqDkSkA}BaDqB_IcBo@a@o@c@s@_D]oYFiMVwA~F_NlCiKb@uCbAqObAqH~WkEbQMlMsEl@HzHdEr@aAdXsJrIyEd@RRb@bGnOMZmDzB",
+      "polyline": "qmzaZaoyafFaUwd@}H{TpwB}{AffAes@f}Bi_Br`Ast@b`Go|E|p@kl@v_Aot@ncBa{Ar~BogBjjAot@dm@uUlMiJjE}EtbAkoBz`EgfHbe@k{@bwBehFli@oyAvc@}gA|m@kvArTs`@bQ_XrzAc|B|i@mv@jIsOhFmPt@eSu@e`@aFcaAcCkSoK_uAuBoi@qAmr@r@iXjb@enCpD{OlAoDzKuPjh@qq@pGqOdDkQlXcyBdCoLpRkp@jMo^zN_[nF}Px@{FHoRiSqqAw@{Mr@qVtCsWiAuRqMch@qI}MqIqEqTyHor@yQmPuHiI}FwHyK}BkFqA}IMyKtQc~DkE{Uki@uaBk[weAqNq_@cT}Ps{@yf@uk@oYuM}IgG_J_FeOmU_~AeYw{AiEqKuPiYmMaM{JsG}ViLwh@yMay@oOeNmI{M_JgJy\\oDuS_HygGbAymCfAcJvDmOzcAa_CrI{TnNef@`\\csAtF}ZtB}QpEu_AnGcaA~Dab@lTo~AxuCwg@bbByUloA_AjvAJhLuAfYiHnwAol@hUmIpFk@rG^xDpAxaBx|@nIyOlD{Bdv@eVzp@qWtl@sQbVcJxUcLx\\yKpX{Kv\\oRjZkSdp@k[hDhCjEx@pEnJ`_@r}@~@lFdOd]l]t_Am@vDmAbBc]tUoW|N",
       "stops": [
         {
           "id": "sm-transport-terminal",
@@ -147,7 +271,7 @@
       "name": "SM Calamba – Halang",
       "from": "SM Transport Terminal",
       "to": "Halang",
-      "polyline": "g}tuAmmnbVeB}Dx^cW|PeN",
+      "polyline": "qmzaZaoyafFaUwd@}H{TpwB}{AffAes@f}Bi_BzcAiw@tmBq~A",
       "stops": [
         {
           "id": "sm-transport-terminal",
@@ -174,7 +298,7 @@
       "name": "Calamba – Tagaytay",
       "from": "Calamba–Tagaytay Terminal (SM Calamba)",
       "to": "Tagaytay",
-      "polyline": "kauuA{_nbVtB{AeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NlEvOwBTmc@jUqAnAUnAJ`ArAtDfAz@dFkCNc@~BgAfMgCfAnB~@]bDnFvSnMn@JvCEv@VtAzAfB|CpApArAp@xAlCxA\\jFhHjBZ`B`CpBn@|C`Cx@nCpAnArNxGn@j@dDN^`@rCtHxAtFtDjI`AxCxDdIS~@mCe@iB`ASh@~BbHt@lGjEvOxAhAnAdGjDbLvBpE~DxL|CjElDzDpGlMbLnWlAnAlChJhDdGfCdIlA~AdB`FzA~GzBbCnEtQ`GzR`AtH\\hKbDfi@hExNtCzGFdAWvGdArED`Ac@lCDpDlArCtA~GhAlCqArD?h@~AbG{@pBqBlBsAlBA`JeAdB_IbI_C~Ao@tATrAdBpBl@xGd@zAfF`FtBfGzD|NTbEvA`Dx@lI[|G{AzCr@tBjBdC?f@a@`AwBZ?Xp@p@G\\a@NiAAONRxBE~@_BZgB~AE\\xDhArAQpDiBlBe@|B?~Bn@x@hAh@zDxD~BtA~C`EfAvElBt@fABdCLTvBYfDjBJn@q@|@J^hCBlCb@x@f@l@x@jAvC?h@w@\\k@bBqA^qB@kB\\M`@v@\\TxArBOf@LH`@K`ATT`AQfAFbBOxAu@b@Fl@fEe@dAwAl@Nf@hJUbBJ`B_@bFxB^`BWxBvDxBjB|FjA\\l@z@?z@uAjJ?hARv@lCpBnBrEdDzAt@p@vLjQxCvCjDvGbC`KnA|CnKtMzEnD~BhCrUjh@fAjTkD`VQjHaFnIcAnEy@fX{BrLTdGYzFHhBrA`E|HfJrAp@|RpF|C`BhE~D~W|[D\\^DJa@d@K",
+      "polyline": "{v{aZ}guafFdd@u[}^s~@}{A|y@e@n@HzChGlLaUrOaGkGeDdDk@~DbXlG|MhJvfAz{@vp@zm@~\\zU~lBdkAlGdEfJvJl]vl@l_ChpEdg@pz@~dBffCz^fg@naAfnA~~@`vAfYb_@oBnHew@gj@gOeHuSmB_R\\gYdEoiBz~@caGp~CeXfXmCnGgAzFB`PhB`KhYfx@bGlIdGbA~DbE|fAck@x@sF|AoB`g@kUbuA}Zzs@{NtB\\fUhb@fAFrPqHrr@djA|l@z_@nr@v`@bmB~lA|FbBzE\\ze@qAxGPnJpBrDvBbZv[bFzIjE~MtQnVtXzXhYnNxSza@dFhHxF`DjPxAdB|@rhAp{A`a@xGd]tg@zh@lQvf@l`@vD|EfHj[vEhLhNbPhIjGf]jSx|BpbAlNnLbFrAbL|@l^VzEzCvXby@jVfk@zRnw@pGxSpCdHpNrUjNjd@nTha@fSho@l_@|y@rXli@d@fDiA|HsCzCoBA{c@wKaCZgVzKiIzF}B`DcA|FxFnUf_@ddA~BtMpHdy@lBbJh^rjAj_@zzAlRjLpC`CxB|D|TncA`BjLfPnd@nZbcA`HxXld@d`Ave@`sAvOzl@tCrGxU~]lYp_@`c@jc@tQlUni@jjA|PhX|Wrj@`xAdjDjU`a@bSxf@hE~E|HlErFjJfGjPz\\rpAjE`MlOvZrO`UdSj_@hUpp@zRjs@nRlQlDrJt^leAnHba@zQnv@pCpG|FbH~StNjD~F|O|s@vg@fmBhF`W|Uzy@h[baAh\\hhAjG`_@lKf`AnHxyBbr@peLlFnXvv@|cCz_@xz@vL|[vAlTgFlvAzTvaAj@rSyI`k@v@pv@nCrKrRp`@hZjyAzCjK|O`Zh@~CyApIyNbZcF`QKbLbI|c@vEzKvHdMbBpFH~HcBnHkNxXsb@ra@iLrN{K~QiB|MTze@tBfp@_AjF_Uv^ox@nu@oi@|m@yf@t\\iJnNsBjJz@nP|C`HdYzZpDvF`B`JnJzkA|AtIzG|PtJ~Nfj@ra@bHvGnGdJrF~MrK`_@nOjb@hHhWrEzWvKld@`]bhAhCfOd@da@v@nIhZ|q@vAbKDfTf@zFzLv}@VdMqCjXiAr`@mAfO{F|OsRlXq@rE~Jv[tCdGr[r`@pCdGd@zFUjCwDhMkDxEiDvAiFn@yOXoFtBOzFtNrNKzDcAfB}D`CiCd@iNu@iGb@yC|Cu@zCf@pJ|EpTGvNy@dCkHrDwKFwFzA{_@|\\s@zHr@~AhF~BdZfHnEjBlNdBpPeA`HiBdv@}_@jTcH`LwArUiA`Pv@fUlEfP|GbIhHjG~LnAnGbDna@tDhNnF|F`d@lTpL~IfGtIbLr^nDrFjHxCdr@pP|QnJbXbGbJjDfKhHvHxG~C`F`AnE~@hKa@l\\jCjFxEf@dDe@bPiHvG`@`[`MpWpRlBlEHpGmBzFcJ|Gi@xAA`DpBvCvHfA~NZxPw@fQrFxLLxJzAvJnErEzDjMfQfI`PhLj]h@bDc@lGkDpE}JpAkHnYwClCsJjAmG~DgD~@sb@PwKtEuNYoDjBqCrI|PpHdCzFGxNtArCzDr@bFYhV_EhE^jEhBzA`DJjDeCtSvBrDbBb@jCCpOqDlU~Al^}CfIcCjPaLpF?|BhAbD`IjBh]~CtMb@vFcCpIcG`J{UrHyCdDc@hC\\`BtDtCdo@OfXs@pf@yClQrB|KN~S}CzCy@hCuB~CbAhI`HvHpDzO~FdMlCjHnCvDzCbB~BjClItAfOUrDyFjTSnCl@hE~DdF|KlHh`@`PrDtCdBvCzTfq@jGnWrEpCbPtC~JlJpAdFVpG_@dImYvpB?jVtAbJlB`E|GdHb\\hSfEdExFfJ`Qhj@fHjJdIxGrJ|Ez\\lLtOvNxQ~Tfm@|_A|gAj_BzFvHx_@`]`F`Gzt@pvAbh@rwBpMd_@jIdPb|BjqC`f@x\\t\\hXxUzTfPnTbcAzuBrn@nzAfcBppDjInXnCdOzPxdE[nN_t@~uEaAvgAqBdTkIjT_{@nrAwIvVqI~g@sApV{NzcF_B|Ly\\b}AwDn[AxJrDdo@d@rTW|S}E~x@R`RfAfM~Onj@hH`P|h@hs@vi@nn@lMtKhKpG|L|ErfE|jAjc@tS`LlHv\\xVn`@bc@bxEl_GlQjSdMrKWxCjA~CfCtAhEe@hBwBJ}ExJgB",
       "stops": [
         {
           "id": "calamba-tagaytay-terminal",
@@ -197,7 +321,7 @@
       "closedM": [
         [
           0,
-          640
+          625
         ]
       ]
     },
@@ -207,7 +331,7 @@
       "name": "Calamba – Tanauan",
       "from": "Calamba–Tagaytay Terminal (SM Calamba)",
       "to": "Tanauan",
-      "polyline": "kauuA{_nbVtB{AeBkEiHzDV~@eAt@Y[Sb@nAZn@b@bKvI~NtJzRn^dK~NxQlVbPfLbEzAtCf@fGLf{CeIzERbFh@zhAzOrFb@hGHvQ_A|KHbWeCzG}@hd@oI~@rG\\p@pA`A|AHhHk@hC?fCVdHbC",
+      "polyline": "{v{aZ}guafFdd@u[}^s~@}{A|y@e@n@HzChGlLaUrOaGkGeDdDk@~DbXlG|MhJvfAz{@vp@zm@~\\zU~lBdkAlGdEfJvJl]vl@l_ChpEdg@pz@txBl_DtmAh}A~~@`vAfYb_@fRjS`\\vX|_@dYzlAbz@b^vT``@lPf[nJ|m@dKtd@rCtk@MfcUeo@tdWmq@~oAwApm@xA~T~Ap`@jDvd@`GnaVjgDp`@`Ebj@hDxc@l@zGfAnd@Qp_DcQnYy@ha@ZzPiAflAvCdpF_i@lt@qIjb@qGlkHgwAxr@iLzSuB|Kz~@hFfUjHpNnLhLfKrFtMlAhMPh|A_Mzi@Npi@`FhQ|E`i@vSv^vL",
       "stops": [
         {
           "id": "calamba-tagaytay-terminal",
@@ -231,9 +355,10 @@
       "closedM": [
         [
           0,
-          640
+          625
         ]
       ]
     }
-  ]
+  ],
+  "polylinePrecision": 6
 }

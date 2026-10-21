@@ -427,6 +427,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
+                // White edge under the line so it reads on top of roads and buildings
+                map.addLayer({
+                    id: 'next-transit-route-casing',
+                    type: 'line',
+                    source: 'next-transit-route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+                    paint: {
+                        'line-color': '#FFFFFF',
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 11, 5, 14, 7, 17, 10, 19, 14],
+                        'line-opacity': 0.95
+                    }
+                }, beforeId);
                 map.addLayer({
                     id: 'next-transit-route-layer',
                     type: 'line',
@@ -434,8 +446,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
                         'line-color': '#8DB8E8',
-                        'line-width': 6,
-                        'line-opacity': 0.95
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 11, 3, 14, 4.5, 17, 7, 19, 10],
+                        'line-opacity': 1
                     }
                 }, beforeId);
             }
@@ -445,6 +457,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
+                // White edge under the jeepney line; both get thicker as the map zooms in
+                map.addLayer({
+                    id: 'transit-route-casing',
+                    type: 'line',
+                    source: 'transit-route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+                    paint: {
+                        'line-color': '#FFFFFF',
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 11, 6, 14, 8.5, 17, 12, 19, 16],
+                        'line-opacity': 0.95
+                    }
+                }, beforeId);
                 map.addLayer({
                     id: 'transit-route-layer',
                     type: 'line',
@@ -452,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
                         'line-color': '#1a8fff',
-                        'line-width': 7,
+                        'line-width': ['interpolate', ['linear'], ['zoom'], 11, 4, 14, 6, 17, 9, 19, 12],
                         'line-opacity': 1
                     }
                 }, beforeId);
