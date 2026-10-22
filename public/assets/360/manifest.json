@@ -20,7 +20,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -17.3
   },
   {
    "id": "14.198315_121.151853",
@@ -42,7 +43,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -27.8
   },
   {
    "id": "14.197636_121.152192",
@@ -64,14 +66,15 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -24.3
   },
   {
    "id": "14.197044_121.152651",
    "lat": 14.197044,
    "lng": 121.152651,
    "file": "14.197044, 121.152651.jpg",
-   "northOffset": 167.5,
+   "northOffset": 157.3,
    "source": "IMG_20260824_093104_00_010",
    "connections": [
     {
@@ -86,7 +89,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -35.0
   },
   {
    "id": "14.196672_121.153253",
@@ -108,7 +112,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -17.7
   },
   {
    "id": "14.196375_121.153750",
@@ -130,7 +135,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -19.5
   },
   {
    "id": "14.195842_121.154631",
@@ -152,7 +158,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -32.4
   },
   {
    "id": "14.195532_121.155487",
@@ -169,7 +176,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": -16.9
   },
   {
    "id": "14.195874_121.159790",
@@ -180,7 +188,8 @@
    "source": "IMG_20260824_093728_00_028",
    "connections": [],
    "street": "Calamba City Hall",
-   "area": "Real"
+   "area": "Real",
+   "heading": 0
   },
   {
    "id": "14.196660_121.162009",
@@ -197,7 +206,8 @@
     }
    ],
    "street": "Chipeco Avenue Extension",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": 173.7
   },
   {
    "id": "14.196067_121.161459",
@@ -219,7 +229,8 @@
     }
    ],
    "street": "Chipeco Avenue Extension",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -36.8
   },
   {
    "id": "14.196721_121.162393",
@@ -241,7 +252,8 @@
     }
    ],
    "street": "Chipeco Avenue Extension",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -162.9
   },
   {
    "id": "14.197252_121.162312",
@@ -263,14 +275,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -167.9
   },
   {
    "id": "14.197476_121.161868",
    "lat": 14.197476,
    "lng": 121.161868,
    "file": "14.197476, 121.161868.jpg",
-   "northOffset": 85.8,
+   "northOffset": 124.5,
    "source": "IMG_20260824_095153_00_057",
    "connections": [
     {
@@ -285,7 +298,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -148.0
   },
   {
    "id": "14.198212_121.161540",
@@ -307,14 +321,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -149.4
   },
   {
    "id": "14.198656_121.160304",
    "lat": 14.198656,
    "lng": 121.160304,
    "file": "14.198656, 121.160304.jpg",
-   "northOffset": 56.1,
+   "northOffset": 90.2,
    "source": "IMG_20260824_095215_00_059",
    "connections": [
     {
@@ -324,14 +339,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -160.0
   },
   {
    "id": "14.200101_121.160099",
    "lat": 14.200101,
    "lng": 121.160099,
    "file": "14.200101, 121.160099.jpg",
-   "northOffset": 95.5,
+   "northOffset": 126.4,
    "source": "IMG_20260824_095233_00_060",
    "connections": [
     {
@@ -341,14 +357,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -162.0
   },
   {
    "id": "14.200512_121.159798",
    "lat": 14.200512,
    "lng": 121.159798,
    "file": "14.200512, 121.159798.jpg",
-   "northOffset": 76.1,
+   "northOffset": 109.5,
    "source": "IMG_20260824_095246_00_061",
    "connections": [
     {
@@ -363,7 +380,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -145.0
   },
   {
    "id": "14.201113_121.159358",
@@ -385,7 +403,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -111.4
   },
   {
    "id": "14.201426_121.159121",
@@ -407,14 +426,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -118.0
   },
   {
    "id": "14.202143_121.158574",
    "lat": 14.202143,
    "lng": 121.158574,
    "file": "14.202143, 121.158574.jpg",
-   "northOffset": 47.9,
+   "northOffset": 63.1,
    "source": "IMG_20260824_095338_00_064",
    "connections": [
     {
@@ -429,14 +449,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -100.0
   },
   {
    "id": "14.202461_121.158329",
    "lat": 14.202461,
    "lng": 121.158329,
    "file": "14.202461, 121.158329.jpg",
-   "northOffset": 58.9,
+   "northOffset": 70.8,
    "source": "IMG_20260824_095349_00_065",
    "connections": [
     {
@@ -451,7 +472,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -108.0
   },
   {
    "id": "14.202931_121.157964",
@@ -478,7 +500,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -89.7
   },
   {
    "id": "14.203407_121.157610",
@@ -500,7 +523,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -101.4
   },
   {
    "id": "14.203574_121.157477",
@@ -522,14 +546,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -115.9
   },
   {
    "id": "14.203810_121.156965",
    "lat": 14.20381,
    "lng": 121.156965,
    "file": "14.203810, 121.156965.jpg",
-   "northOffset": 52.3,
+   "northOffset": 79.7,
    "source": "IMG_20260824_095451_00_069",
    "connections": [
     {
@@ -554,7 +579,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -95.0
   },
   {
    "id": "14.204518_121.156766",
@@ -576,7 +602,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -107.4
   },
   {
    "id": "14.204878_121.156375",
@@ -603,7 +630,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -99.3
   },
   {
    "id": "14.204735_121.156132",
@@ -625,7 +653,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -85.9
   },
   {
    "id": "14.204468_121.155706",
@@ -647,7 +676,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -128.8
   },
   {
    "id": "14.204320_121.155750",
@@ -669,7 +699,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -101.4
   },
   {
    "id": "14.204045_121.155947",
@@ -691,7 +722,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -75.8
   },
   {
    "id": "14.203973_121.155998",
@@ -713,7 +745,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 95.2
   },
   {
    "id": "14.203716_121.156183",
@@ -735,14 +768,15 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -145.9
   },
   {
    "id": "14.203581_121.156440",
    "lat": 14.203581,
    "lng": 121.15644,
    "file": "14.203581, 121.156440.jpg",
-   "northOffset": 197.7,
+   "northOffset": 184.9,
    "source": "IMG_20260824_095751_00_078",
    "connections": [
     {
@@ -757,7 +791,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -118.0
   },
   {
    "id": "14.203690_121.156702",
@@ -784,7 +819,8 @@
     }
    ],
    "street": "Cadena de Amor Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -52.8
   },
   {
    "id": "14.203850_121.157053",
@@ -811,7 +847,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -106.6
   },
   {
    "id": "14.204380_121.156868",
@@ -833,14 +870,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -169.3
   },
   {
    "id": "14.205036_121.156386",
    "lat": 14.205036,
    "lng": 121.156386,
    "file": "14.205036, 121.156386.jpg",
-   "northOffset": 116.1,
+   "northOffset": 186.4,
    "source": "IMG_20260824_095923_00_082",
    "connections": [
     {
@@ -860,7 +898,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -163.0
   },
   {
    "id": "14.205347_121.156524",
@@ -882,7 +921,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -151.4
   },
   {
    "id": "14.205811_121.156122",
@@ -904,7 +944,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -140.5
   },
   {
    "id": "14.205471_121.155205",
@@ -931,7 +972,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -61.3
   },
   {
    "id": "14.205763_121.155483",
@@ -953,7 +995,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 162.0
   },
   {
    "id": "14.205104_121.154599",
@@ -975,7 +1018,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": -166.9
   },
   {
    "id": "14.205473_121.155094",
@@ -1002,7 +1046,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 99.6
   },
   {
    "id": "14.205763_121.155484",
@@ -1024,7 +1069,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -35.7
   },
   {
    "id": "14.206151_121.154146",
@@ -1046,7 +1092,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 34.4
   },
   {
    "id": "14.205927_121.153475",
@@ -1068,7 +1115,8 @@
     }
    ],
    "street": "Calamba Central Terminal",
-   "area": "Real"
+   "area": "Real",
+   "heading": 106.9
   },
   {
    "id": "14.205600_121.152500",
@@ -1085,7 +1133,8 @@
     }
    ],
    "street": "Calamba Central Terminal",
-   "area": "Real"
+   "area": "Real",
+   "heading": 140.1
   },
   {
    "id": "14.204033_121.153908",
@@ -1107,7 +1156,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 116.0
   },
   {
    "id": "14.203397_121.153365",
@@ -1134,7 +1184,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 123.1
   },
   {
    "id": "14.202906_121.152910",
@@ -1156,7 +1207,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 123.0
   },
   {
    "id": "14.202497_121.152530",
@@ -1178,7 +1230,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 120.5
   },
   {
    "id": "14.202054_121.152193",
@@ -1195,7 +1248,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 146.2
   },
   {
    "id": "14.200497_121.151121",
@@ -1212,7 +1266,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 137.5
   },
   {
    "id": "14.199956_121.150645",
@@ -1234,7 +1289,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 161.2
   },
   {
    "id": "14.199672_121.150226",
@@ -1256,7 +1312,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 136.5
   },
   {
    "id": "14.199403_121.149797",
@@ -1278,7 +1335,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 136.1
   },
   {
    "id": "14.199110_121.149316",
@@ -1300,7 +1358,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 158.5
   },
   {
    "id": "14.198846_121.148884",
@@ -1322,7 +1381,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 141.0
   },
   {
    "id": "14.198431_121.148199",
@@ -1344,7 +1404,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 126.9
   },
   {
    "id": "14.198011_121.147517",
@@ -1366,14 +1427,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 158.4
   },
   {
    "id": "14.197976_121.147050",
    "lat": 14.197976,
    "lng": 121.14705,
    "file": "14.197976, 121.147050.jpg",
-   "northOffset": 114.5,
+   "northOffset": 85.2,
    "source": "IMG_20260824_101934_00_123",
    "connections": [
     {
@@ -1388,7 +1450,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 130.0
   },
   {
    "id": "14.197511_121.146714",
@@ -1410,7 +1473,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 121.1
   },
   {
    "id": "14.197110_121.146106",
@@ -1432,7 +1496,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 115.7
   },
   {
    "id": "14.196694_121.145509",
@@ -1454,7 +1519,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 126.3
   },
   {
    "id": "14.196256_121.144929",
@@ -1476,7 +1542,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 120.4
   },
   {
    "id": "14.195814_121.144352",
@@ -1498,7 +1565,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 138.7
   },
   {
    "id": "14.195597_121.143694",
@@ -1515,7 +1583,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 144.8
   },
   {
    "id": "14.198798_121.152354",
@@ -1532,7 +1601,8 @@
     }
    ],
    "street": "Requesto Avenue",
-   "area": "Real"
+   "area": "Real",
+   "heading": 0
   },
   {
    "id": "14.203570_121.153518",
@@ -1554,7 +1624,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": 131.5
   },
   {
    "id": "14.204198_121.154047",
@@ -1581,7 +1652,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Real"
+   "area": "Real",
+   "heading": -147.7
   },
   {
    "id": "14.203379_121.154687",
@@ -1603,7 +1675,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Real"
+   "area": "Real",
+   "heading": -169.7
   },
   {
    "id": "14.202968_121.154961",
@@ -1625,7 +1698,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Real"
+   "area": "Real",
+   "heading": -148.7
   },
   {
    "id": "14.202520_121.155262",
@@ -1647,7 +1721,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Real"
+   "area": "Real",
+   "heading": -146.0
   },
   {
    "id": "14.201975_121.155767",
@@ -1669,7 +1744,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Real"
+   "area": "Real",
+   "heading": 174.1
   },
   {
    "id": "14.202202_121.156162",
@@ -1691,7 +1767,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Real"
+   "area": "Real",
+   "heading": -156.7
   },
   {
    "id": "14.202518_121.156716",
@@ -1713,7 +1790,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -142.5
   },
   {
    "id": "14.202952_121.157465",
@@ -1735,7 +1813,8 @@
     }
    ],
    "street": "SM City Calamba Bypass Road",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -88.7
   },
   {
    "id": "14.202703_121.157857",
@@ -1757,7 +1836,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 168.3
   },
   {
    "id": "14.203830_121.157010",
@@ -1779,7 +1859,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -92.0
   },
   {
    "id": "14.203945_121.157239",
@@ -1806,14 +1887,15 @@
     }
    ],
    "street": "Sampaguita Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 148.7
   },
   {
    "id": "14.204171_121.157535",
    "lat": 14.204171,
    "lng": 121.157535,
    "file": "14.204171, 121.157535.jpg",
-   "northOffset": 202.7,
+   "northOffset": 265.5,
    "source": "IMG_20260825_165746_00_198",
    "connections": [
     {
@@ -1828,14 +1910,15 @@
     }
    ],
    "street": "Sampaguita Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 150.0
   },
   {
    "id": "14.204314_121.157748",
    "lat": 14.204314,
    "lng": 121.157748,
    "file": "14.204314, 121.157748.jpg",
-   "northOffset": 206.7,
+   "northOffset": 260.0,
    "source": "IMG_20260825_165757_00_199",
    "connections": [
     {
@@ -1850,14 +1933,15 @@
     }
    ],
    "street": "Sampaguita Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 160.0
   },
   {
    "id": "14.204601_121.158258",
    "lat": 14.204601,
    "lng": 121.158258,
    "file": "14.204601, 121.158258.jpg",
-   "northOffset": 209.0,
+   "northOffset": 265.0,
    "source": "IMG_20260825_165810_00_200",
    "connections": [
     {
@@ -1867,14 +1951,15 @@
     }
    ],
    "street": "Sampaguita Street",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": 155.0
   },
   {
    "id": "14.202491_121.158306",
    "lat": 14.202491,
    "lng": 121.158306,
    "file": "14.202491, 121.158306.jpg",
-   "northOffset": 237.8,
+   "northOffset": 315.1,
    "source": "IMG_20260827_120229_00_220",
    "connections": [
     {
@@ -1884,14 +1969,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Barangay 1"
+   "area": "Barangay 1",
+   "heading": -172.0
   },
   {
    "id": "14.201969_121.158707",
    "lat": 14.201969,
    "lng": 121.158707,
    "file": "14.201969, 121.158707.jpg",
-   "northOffset": 237.9,
+   "northOffset": 293.4,
    "source": "IMG_20260827_120242_00_221",
    "connections": [
     {
@@ -1906,14 +1992,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -150.0
   },
   {
    "id": "14.201566_121.159014",
    "lat": 14.201566,
    "lng": 121.159014,
    "file": "14.201566, 121.159014.jpg",
-   "northOffset": 216.6,
+   "northOffset": 308.6,
    "source": "IMG_20260827_120252_00_222",
    "connections": [
     {
@@ -1928,14 +2015,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -165.0
   },
   {
    "id": "14.201040_121.159411",
    "lat": 14.20104,
    "lng": 121.159411,
    "file": "14.201040, 121.159411.jpg",
-   "northOffset": 210.5,
+   "northOffset": 309.4,
    "source": "IMG_20260827_120305_00_223",
    "connections": [
     {
@@ -1950,14 +2038,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -165.0
   },
   {
    "id": "14.200591_121.159740",
    "lat": 14.200591,
    "lng": 121.15974,
    "file": "14.200591, 121.159740.jpg",
-   "northOffset": 208.2,
+   "northOffset": 309.4,
    "source": "IMG_20260827_120316_00_224",
    "connections": [
     {
@@ -1972,14 +2061,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -165.0
   },
   {
    "id": "14.200101_121.160100",
    "lat": 14.200101,
    "lng": 121.160099,
    "file": "14.200101, 121.160100.jpg",
-   "northOffset": 220.7,
+   "northOffset": 304.4,
    "source": "IMG_20260827_120328_00_225",
    "connections": [
     {
@@ -1989,14 +2079,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Lecheria"
+   "area": "Lecheria",
+   "heading": -160.0
   },
   {
    "id": "14.196343_121.164841",
    "lat": 14.196343,
    "lng": 121.164841,
    "file": "14.196343, 121.164841.jpg",
-   "northOffset": 246.6,
+   "northOffset": 338.4,
    "source": "IMG_20260827_122733_00_228",
    "connections": [
     {
@@ -2006,14 +2097,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -165.0
   },
   {
    "id": "14.195442_121.164947",
    "lat": 14.195442,
    "lng": 121.164947,
    "file": "14.195442, 121.164947.jpg",
-   "northOffset": 233.2,
+   "northOffset": 338.4,
    "source": "IMG_20260827_122746_00_229",
    "connections": [
     {
@@ -2028,14 +2120,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -165.0
   },
   {
    "id": "14.194679_121.165037",
    "lat": 14.194679,
    "lng": 121.165037,
    "file": "14.194679, 121.165037.jpg",
-   "northOffset": 244.8,
+   "northOffset": 359.0,
    "source": "IMG_20260827_122757_00_230",
    "connections": [
     {
@@ -2050,14 +2143,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -160.0
   },
   {
    "id": "14.193874_121.164753",
    "lat": 14.193874,
    "lng": 121.164753,
    "file": "14.193874, 121.164753.jpg",
-   "northOffset": 260.4,
+   "northOffset": 264.2,
    "source": "IMG_20260827_122806_00_231",
    "connections": [
     {
@@ -2072,14 +2166,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -175.0
   },
   {
    "id": "14.193880_121.165212",
    "lat": 14.19388,
    "lng": 121.165212,
    "file": "14.193880, 121.165212.jpg",
-   "northOffset": 248.9,
+   "northOffset": 273.1,
    "source": "IMG_20260827_122817_00_232",
    "connections": [
     {
@@ -2094,14 +2189,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -160.0
   },
   {
    "id": "14.193618_121.165842",
    "lat": 14.193618,
    "lng": 121.165842,
    "file": "14.193618, 121.165842.jpg",
-   "northOffset": 256.3,
+   "northOffset": 35.1,
    "source": "IMG_20260827_122827_00_233",
    "connections": [
     {
@@ -2116,14 +2212,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -165.0
   },
   {
    "id": "14.193468_121.165658",
    "lat": 14.193468,
    "lng": 121.165658,
    "file": "14.193468, 121.165658.jpg",
-   "northOffset": 264.0,
+   "northOffset": 334.7,
    "source": "IMG_20260827_122839_00_234",
    "connections": [
     {
@@ -2138,14 +2235,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -170.0
   },
   {
    "id": "14.193311_121.165702",
    "lat": 14.193311,
    "lng": 121.165702,
    "file": "14.193311, 121.165702.jpg",
-   "northOffset": 278.4,
+   "northOffset": 329.7,
    "source": "IMG_20260827_122850_00_235",
    "connections": [
     {
@@ -2155,14 +2253,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Halang"
+   "area": "Halang",
+   "heading": -165.0
   },
   {
    "id": "14.191872_121.166608",
    "lat": 14.191872,
    "lng": 121.166608,
    "file": "14.191872, 121.166608.jpg",
-   "northOffset": 226.2,
+   "northOffset": 93.5,
    "source": "IMG_20260827_123029_00_236",
    "connections": [
     {
@@ -2172,14 +2271,15 @@
     }
    ],
    "street": "National Highway",
-   "area": "Bucal"
+   "area": "Bucal",
+   "heading": -5.0
   },
   {
    "id": "14.191881_121.166961",
    "lat": 14.191881,
    "lng": 121.166961,
    "file": "14.191881, 121.166961.jpg",
-   "northOffset": 189.0,
+   "northOffset": 118.5,
    "source": "IMG_20260827_123042_00_237",
    "connections": [
     {
@@ -2189,7 +2289,8 @@
     }
    ],
    "street": "National Highway",
-   "area": "Bucal"
+   "area": "Bucal",
+   "heading": -30.0
   }
  ]
 }

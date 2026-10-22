@@ -554,8 +554,9 @@
         });
     }
 
-    // Face the road the camera was pointing along when the photo was taken
+    // Face down the road, in the direction the car was travelling
     function defaultYawFor(node) {
+        if (typeof node.heading === 'number') return normYaw(node.heading);
         let best = 0;
         let bestDiff = Infinity;
         for (const conn of navConnections(node)) {
