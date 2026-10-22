@@ -1,54 +1,36 @@
 /**
  * ==========================================================================
- * CALZADA 360° STREET VIEW VIEWER COMPONENT
- * Immersive Street-View-style photosphere viewer with directional chevrons,
- * MapLibre mini-map tracking, and smooth scene transitions.
+ * CALZADA 360° STREET VIEW VIEWER
+ * Full-screen photosphere viewer. The road you can move along is drawn on the
+ * asphalt itself (a soft guide stripe, a chevron and the street name), the
+ * current street sits in a small card top-left, and there is no mini map.
  * ==========================================================================
  */
 
 (function() {
     'use strict';
 
-    // State Variables
+    // Camera height above the road for the car-mounted captures (meters).
+    // Used to project road guides onto the ground plane.
+    const CAMERA_HEIGHT_M = 2.0;
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // State
     let manifestData = null;
     let placeLinksData = null;
     let pannellumViewer = null;
-    let minimapInstance = null;
-    let minimapCurrentMarker = null;
-    let minimapNodeMarkers = [];
     let currentNodeId = null;
-    // Tracks where we just came from, so a mis-detected/mis-calibrated forward click
-    // doesn't silently snap the viewer back the way it came (the "bumabalik" bug).
+    // Where we just came from, so a mis-calibrated forward click doesn't
+    // silently snap the viewer back the way it came.
     let previousNodeId = null;
-    let isMinimapExpanded = true;
-    let rafHeadingId = null;
     let scenesConfig = {};
-    let isInitialized = false;
     let isTransitioning = false;
     let isNavLocked = false;
     let navLockTimer = null;
     let hintDismissTimer = null;
+    let rafDrawId = null;
 
-    /**
-     * Remove any orphaned Pannellum fade snapshot images from the DOM
-     * to eliminate ghosting / double exposure.
-     */
-    function cleanupPannellumFadeImages() {
-        if (!containerEl) return;
-        const fadeImgs = containerEl.querySelectorAll('.pnlm-fade-img');
-        fadeImgs.forEach(img => {
-            img.style.opacity = '0';
-            img.style.display = 'none';
-            if (img.parentNode) {
-                img.parentNode.removeChild(img);
-            }
-        });
-    }
-
-    // Cursor Ground Indicator State
-    let groundArrowEl = null;
-    let groundArrowIconEl = null;
-    let groundArrowTooltipEl = null;
+    // Pointer state
     let activeHoverConnection = null;
     let isMouseDown = false;
     let isDragging = false;
@@ -58,44 +40,44 @@
     let lastCursorEvent = null;
     let touchStartX = 0;
     let touchStartY = 0;
+    // Screen positions of the chevrons drawn last frame, for tap/click hit-testing
+    let drawnChevrons = [];
 
-    // DOM Elements Cache
+    // DOM
     let overlayEl = null;
     let containerEl = null;
+    let roadCanvasEl = null;
     let fadeCurtainEl = null;
-    let placePillEl = null;
-    let placeNameEl = null;
+    let infoTitleEl = null;
+    let infoSubEl = null;
     let hudHintEl = null;
     let closeBtnEl = null;
-    let minimapCardEl = null;
-    let minimapToggleEl = null;
+    let compassBtnEl = null;
+    let compassNeedleEl = null;
 
-    /**
-     * Fetch manifest.json and place-links.json
-     */
+    function cleanupPannellumFadeImages() {
+        if (!containerEl) return;
+        containerEl.querySelectorAll('.pnlm-fade-img').forEach(img => {
+            img.style.opacity = '0';
+            img.style.display = 'none';
+            if (img.parentNode) img.parentNode.removeChild(img);
+        });
+    }
+
     async function loadData() {
         if (manifestData && placeLinksData) return;
-
         try {
             const [mRes, pRes] = await Promise.all([
                 fetch('../assets/360/manifest.json'),
                 fetch('../assets/360/place-links.json')
             ]);
-
-            if (mRes.ok) {
-                manifestData = await mRes.json();
-            }
-            if (pRes.ok) {
-                placeLinksData = await pRes.json();
-            }
+            if (mRes.ok) manifestData = await mRes.json();
+            if (pRes.ok) placeLinksData = await pRes.json();
         } catch (err) {
             console.error('[StreetView] Failed to load 360 manifest or place-links:', err);
         }
     }
 
-    /**
-     * Build the DOM overlay shell
-     */
     function initDOM() {
         if (document.getElementById('calzadaStreetviewOverlay')) {
             cacheDOMElements();
@@ -103,65 +85,32 @@
         }
 
         const overlayHTML = `
-            <div id="calzadaStreetviewOverlay" class="calzada-streetview-overlay" style="display:none;" aria-modal="true" role="dialog">
-                <!-- Main Panorama Container with Dolly-Forward Zoom capability -->
+            <div id="calzadaStreetviewOverlay" class="calzada-streetview-overlay" style="display:none;" aria-modal="true" role="dialog" aria-label="360 street view">
                 <div id="calzadaPannellumContainer" class="calzada-pannellum-container"></div>
-
-                <!-- Cursor-Tracking Ground Arrow Indicator (Google Street View style) -->
-                <div id="calzadaGroundArrow" class="calzada-ground-arrow-cursor">
-                    <svg class="calzada-ground-arrow-icon" id="calzadaGroundArrowIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="18 14 12 8 6 14"></polyline>
-                    </svg>
-                    <div class="calzada-ground-arrow-tooltip" id="calzadaGroundArrowTooltip"></div>
-                </div>
-
-                <!-- Scene Crossfade Curtain -->
+                <canvas id="calzadaRoadCanvas" class="sv-road-canvas" aria-hidden="true"></canvas>
                 <div id="streetviewFadeCurtain" class="streetview-fade-curtain"></div>
 
-                <!-- Top Header Bar (Clean Google Street View style) -->
-                <div class="streetview-top-bar">
-                    <!-- Floating Place Pill: only displayed when linked to an actual establishment -->
-                    <div class="streetview-place-pill" id="streetviewPlacePill" style="display:none;">
-                        <svg class="streetview-place-pin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
+                <div class="sv-info-card" id="svInfoCard">
+                    <div class="sv-info-title" id="svInfoTitle"></div>
+                    <div class="sv-info-sub" id="svInfoSub"></div>
+                </div>
+
+                <div class="sv-actions">
+                    <button type="button" class="sv-icon-btn" id="streetviewCloseBtn" aria-label="Exit 360 view" title="Exit (Esc)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
-                        <span class="streetview-place-name" id="streetviewPlaceName"></span>
-                    </div>
-
-                    <div class="streetview-top-actions">
-                        <button type="button" class="streetview-close-btn" id="streetviewCloseBtn" aria-label="Exit 360 View" title="Exit 360 View (Esc)">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Bottom-Left Mini-Map (Google Street View convention) -->
-                <div class="streetview-minimap-card" id="streetviewMinimapCard">
-                    <div class="streetview-minimap-header" id="streetviewMinimapHeader">
-                        <span class="streetview-minimap-label">Mini Map</span>
-                        <button type="button" class="streetview-minimap-toggle" id="streetviewMinimapToggle" aria-label="Toggle Mini Map">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </button>
-                    </div>
-                    <div id="streetviewMinimap" class="streetview-minimap-body"></div>
-                </div>
-
-                <!-- Bottom HUD Hint Pill (Auto-fading after 4-5s or first interaction) -->
-                <div class="streetview-controls-hud" id="streetviewControlsHud">
-                    <div class="streetview-hud-pill">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="m10 15 5-3-5-3v6Z"/>
+                    </button>
+                    <button type="button" class="sv-icon-btn sv-compass" id="svCompassBtn" aria-label="Face north" title="Face north">
+                        <svg id="svCompassNeedle" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3 L15.2 12 L8.8 12 Z" fill="#378ADD"></path>
+                            <path d="M12 21 L8.8 12 L15.2 12 Z" fill="#CBD5E1"></path>
                         </svg>
-                        <span>Drag to look around · Click road arrows to move</span>
-                    </div>
+                    </button>
                 </div>
+
+                <div class="sv-hint" id="streetviewControlsHud">Drag to look around · Tap the arrows on the road to move</div>
             </div>
         `;
 
@@ -173,66 +122,281 @@
     function cacheDOMElements() {
         overlayEl = document.getElementById('calzadaStreetviewOverlay');
         containerEl = document.getElementById('calzadaPannellumContainer');
-        groundArrowEl = document.getElementById('calzadaGroundArrow');
-        groundArrowIconEl = document.getElementById('calzadaGroundArrowIcon');
-        groundArrowTooltipEl = document.getElementById('calzadaGroundArrowTooltip');
+        roadCanvasEl = document.getElementById('calzadaRoadCanvas');
         fadeCurtainEl = document.getElementById('streetviewFadeCurtain');
-        placePillEl = document.getElementById('streetviewPlacePill');
-        placeNameEl = document.getElementById('streetviewPlaceName');
+        infoTitleEl = document.getElementById('svInfoTitle');
+        infoSubEl = document.getElementById('svInfoSub');
         hudHintEl = document.getElementById('streetviewControlsHud');
         closeBtnEl = document.getElementById('streetviewCloseBtn');
-        minimapCardEl = document.getElementById('streetviewMinimapCard');
-        minimapToggleEl = document.getElementById('streetviewMinimapToggle');
+        compassBtnEl = document.getElementById('svCompassBtn');
+        compassNeedleEl = document.getElementById('svCompassNeedle');
     }
 
     function bindEvents() {
         if (closeBtnEl) {
-            closeBtnEl.onclick = (e) => {
-                e.preventDefault();
-                closeViewer();
-            };
+            closeBtnEl.onclick = (e) => { e.preventDefault(); closeViewer(); };
         }
-
-        const minimapHeader = document.getElementById('streetviewMinimapHeader');
-        if (minimapHeader) {
-            minimapHeader.onclick = () => {
-                isMinimapExpanded = !isMinimapExpanded;
-                if (minimapCardEl) {
-                    minimapCardEl.classList.toggle('minimized', !isMinimapExpanded);
-                }
-                if (minimapInstance && isMinimapExpanded) {
-                    setTimeout(() => minimapInstance.resize(), 300);
-                }
+        if (compassBtnEl) {
+            compassBtnEl.onclick = (e) => {
+                e.preventDefault();
+                const node = getCurrentNode();
+                if (!pannellumViewer || !node) return;
+                try { pannellumViewer.setYaw(normYaw(-(node.northOffset || 0)), 600); } catch (_) {}
             };
         }
 
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && overlayEl && overlayEl.classList.contains('active')) {
+            if (!overlayEl || !overlayEl.classList.contains('active')) return;
+            if (e.key === 'Escape') {
                 closeViewer();
+            } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                // Move along the road the camera is facing
+                const conn = connectionFacingCamera();
+                if (conn) {
+                    e.preventDefault();
+                    transitionToNode(conn.targetId, conn.bearing);
+                }
             }
         });
 
-        // Attach mouse & touch tracking to the panorama container
         if (containerEl) {
             containerEl.addEventListener('mousemove', onContainerMouseMove);
             containerEl.addEventListener('mouseleave', onContainerMouseLeave);
             containerEl.addEventListener('mousedown', onContainerMouseDown);
             containerEl.addEventListener('mouseup', onContainerMouseUp);
             containerEl.addEventListener('click', onContainerClick, true);
-
-            // Touch device tap-to-navigate fallback
             containerEl.addEventListener('touchstart', onContainerTouchStart, { passive: true });
             containerEl.addEventListener('touchend', onContainerTouchEnd);
         }
     }
 
+    // ── Small helpers ──────────────────────────────────────────────────────────
+
+    function normYaw(y) {
+        let v = y % 360;
+        if (v > 180) v -= 360;
+        if (v < -180) v += 360;
+        return v;
+    }
+
+    function getCurrentNode() {
+        return manifestData?.nodes?.find(n => n.id === currentNodeId) || null;
+    }
+
+    function nodeById(id) {
+        return manifestData?.nodes?.find(n => n.id === id) || null;
+    }
+
+    function photoYawOf(node, bearing) {
+        return normYaw(bearing - (node.northOffset || 0));
+    }
+
     /**
-     * Calculate spherical pitch & yaw from screen cursor position
+     * Connections to offer as arrows. Two links pointing almost the same way
+     * (e.g. two shots taken a few meters apart) would draw overlapping arrows,
+     * so keep only the nearest one in each direction.
      */
+    const navCache = new Map();
+    function navConnections(node) {
+        if (!node) return [];
+        if (navCache.has(node.id)) return navCache.get(node.id);
+        const kept = [];
+        const sorted = [...(node.connections || [])].sort((a, b) => (a.distance || 0) - (b.distance || 0));
+        for (const conn of sorted) {
+            if (!nodeById(conn.targetId)) continue;
+            const y = photoYawOf(node, conn.bearing);
+            if (kept.every(k => Math.abs(normYaw(photoYawOf(node, k.bearing) - y)) >= 30)) kept.push(conn);
+        }
+        navCache.set(node.id, kept);
+        return kept;
+    }
+
+    function capturedLabel(node) {
+        const m = /_(\d{4})(\d{2})\d{2}_/.exec(node?.source || '');
+        if (!m) return '';
+        const month = MONTHS[parseInt(m[2], 10) - 1];
+        return month ? `${month} ${m[1]}` : '';
+    }
+
+    function connectionFacingCamera() {
+        const node = getCurrentNode();
+        if (!node || !pannellumViewer) return null;
+        const camYaw = pannellumViewer.getYaw();
+        let best = null;
+        let bestDiff = 50; // must be within 50° of where you're looking
+        for (const conn of navConnections(node)) {
+            const d = Math.abs(normYaw(photoYawOf(node, conn.bearing) - camYaw));
+            if (d < bestDiff) { bestDiff = d; best = conn; }
+        }
+        return best;
+    }
+
+    // ── Projection: ground point → screen ──────────────────────────────────────
+
+    function getCamera() {
+        if (!pannellumViewer || !containerEl) return null;
+        const rect = containerEl.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        let yaw = 0, pitch = 0, hfov = 100;
+        try {
+            yaw = pannellumViewer.getYaw();
+            pitch = pannellumViewer.getPitch();
+            hfov = pannellumViewer.getHfov();
+        } catch (_) { return null; }
+        const W = rect.width, H = rect.height;
+        return { yaw, pitch, W, H, f: (W / 2) / Math.tan(hfov * Math.PI / 360) };
+    }
+
+    // Project a photo-space direction (yaw/pitch in degrees) onto the screen.
+    function projectDir(cam, yawDeg, pitchDeg) {
+        const r = Math.PI / 180;
+        const y = yawDeg * r, p = pitchDeg * r, cy = cam.yaw * r, cp = cam.pitch * r;
+        const x0 = Math.cos(p) * Math.sin(y);
+        const y0 = Math.sin(p);
+        const z0 = Math.cos(p) * Math.cos(y);
+        const x1 = x0 * Math.cos(cy) - z0 * Math.sin(cy);
+        const z1 = x0 * Math.sin(cy) + z0 * Math.cos(cy);
+        const y2 = y0 * Math.cos(cp) - z1 * Math.sin(cp);
+        const z2 = y0 * Math.sin(cp) + z1 * Math.cos(cp);
+        if (z2 <= 0.08) return null;
+        return { x: cam.W / 2 + cam.f * x1 / z2, y: cam.H / 2 - cam.f * y2 / z2, z: z2 };
+    }
+
+    // A point on the road: `fwd` meters ahead along the photo yaw, `lat` meters to the right.
+    function projectGround(cam, baseYaw, fwd, lat) {
+        if (fwd <= 0.2) return null;
+        const yaw = baseYaw + Math.atan2(lat, fwd) * 180 / Math.PI;
+        const pitch = -Math.atan2(CAMERA_HEIGHT_M, Math.hypot(fwd, lat)) * 180 / Math.PI;
+        return projectDir(cam, yaw, pitch);
+    }
+
+    // ── Road guides (canvas) ───────────────────────────────────────────────────
+
+    // Chevron outline in road meters: [forward, lateral]
+    const CHEVRON = [[0.62, 0], [-0.34, 0.98], [-0.6, 0.74], [0.1, 0.06], [0.1, -0.06], [-0.6, -0.74], [-0.34, -0.98]];
+
+    function drawRoadGuides() {
+        rafDrawId = null;
+        if (!overlayEl || !overlayEl.classList.contains('active')) return;
+        rafDrawId = requestAnimationFrame(drawRoadGuides);
+
+        const canvas = roadCanvasEl;
+        const cam = getCamera();
+        const node = getCurrentNode();
+        if (!canvas || !cam || !node) return;
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const cw = Math.round(cam.W * dpr), ch = Math.round(cam.H * dpr);
+        if (canvas.width !== cw || canvas.height !== ch) {
+            canvas.width = cw;
+            canvas.height = ch;
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, cam.W, cam.H);
+
+        // Compass needle follows where the camera faces
+        if (compassNeedleEl) {
+            const heading = (cam.yaw + (node.northOffset || 0) + 360) % 360;
+            compassNeedleEl.style.transform = `rotate(${-heading}deg)`;
+        }
+
+        if (isTransitioning) { drawnChevrons = []; return; }
+
+        const chevrons = [];
+        for (const conn of navConnections(node)) {
+            const baseYaw = photoYawOf(node, conn.bearing);
+            const hovered = activeHoverConnection && activeHoverConnection.targetId === conn.targetId;
+            const reach = Math.max(6, Math.min(conn.distance || 20, 24));
+
+            // 1. Soft guide stripe along the road
+            const left = [], right = [];
+            for (let i = 0; i <= 14; i++) {
+                const d = 3.6 + (reach - 3.6) * (i / 14);
+                const a = projectGround(cam, baseYaw, d, -0.45);
+                const b = projectGround(cam, baseYaw, d, 0.45);
+                if (a && b) { left.push(a); right.push(b); }
+            }
+            if (left.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(left[0].x, left[0].y);
+                for (const p of left) ctx.lineTo(p.x, p.y);
+                for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
+                ctx.closePath();
+                ctx.fillStyle = hovered ? 'rgba(55, 138, 221, 0.42)' : 'rgba(255, 255, 255, 0.18)';
+                ctx.fill();
+            }
+
+            // 2. Chevron painted on the asphalt
+            const cDist = 5.2;
+            const pts = CHEVRON.map(([f, l]) => projectGround(cam, baseYaw, cDist + f * 1.15, l * 1.15));
+            if (pts.every(Boolean)) {
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                ctx.closePath();
+                ctx.fillStyle = hovered ? '#378ADD' : 'rgba(255, 255, 255, 0.94)';
+                ctx.strokeStyle = hovered ? '#FFFFFF' : 'rgba(15, 23, 42, 0.35)';
+                ctx.lineWidth = hovered ? 2 : 1.2;
+                ctx.lineJoin = 'round';
+                ctx.fill();
+                ctx.stroke();
+                const c = projectGround(cam, baseYaw, cDist, 0);
+                if (c) {
+                    const span = Math.hypot(pts[1].x - pts[6].x, pts[1].y - pts[6].y);
+                    chevrons.push({ conn, x: c.x, y: c.y, r: Math.max(26, span * 0.7) });
+                }
+            }
+
+            // 3. Street name written along the road
+            const target = nodeById(conn.targetId);
+            const label = (target && target.street) || node.street || '';
+            if (label) {
+                const p1 = projectGround(cam, baseYaw, 8.5, 0);
+                const p2 = projectGround(cam, baseYaw, 13, 0);
+                if (p1 && p2) {
+                    let ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    if (ang > Math.PI / 2) ang -= Math.PI;
+                    if (ang < -Math.PI / 2) ang += Math.PI;
+                    // A road running straight ahead would give vertical text; lay it flat instead
+                    if (Math.abs(ang) > Math.PI * 0.3) ang = 0;
+                    const size = Math.max(11, Math.min(19, cam.f * 0.75 / Math.hypot(10.5, CAMERA_HEIGHT_M)));
+                    ctx.save();
+                    ctx.translate((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+                    ctx.rotate(ang);
+                    ctx.font = `600 ${size.toFixed(1)}px Sora, Outfit, sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.lineWidth = 3.5;
+                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.62)';
+                    ctx.lineJoin = 'round';
+                    ctx.strokeText(label, 0, 0);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillText(label, 0, 0);
+                    ctx.restore();
+                }
+            }
+        }
+        drawnChevrons = chevrons;
+    }
+
+    function startDrawing() {
+        if (!rafDrawId) rafDrawId = requestAnimationFrame(drawRoadGuides);
+    }
+
+    function stopDrawing() {
+        if (rafDrawId) cancelAnimationFrame(rafDrawId);
+        rafDrawId = null;
+        if (roadCanvasEl) {
+            const ctx = roadCanvasEl.getContext('2d');
+            ctx.clearRect(0, 0, roadCanvasEl.width, roadCanvasEl.height);
+        }
+    }
+
+    // ── Pointer → road connection ──────────────────────────────────────────────
+
     function calculateCursorSphericalCoords(e) {
         if (!containerEl || !pannellumViewer) return null;
-
-        // Try Pannellum's native mouseEventToCoords first if available
         if (typeof pannellumViewer.mouseEventToCoords === 'function') {
             try {
                 const coords = pannellumViewer.mouseEventToCoords(e);
@@ -241,199 +405,83 @@
                 }
             } catch (_) {}
         }
-
-        // Analytical rectilinear projection calculation
+        const cam = getCamera();
+        if (!cam) return null;
         const rect = containerEl.getBoundingClientRect();
-        const W = rect.width;
-        const H = rect.height;
-        if (!W || !H) return null;
-
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-
-        const camYaw = typeof pannellumViewer.getYaw === 'function' ? pannellumViewer.getYaw() : 0;
-        const camPitch = typeof pannellumViewer.getPitch === 'function' ? pannellumViewer.getPitch() : 0;
-        const hfov = typeof pannellumViewer.getHfov === 'function' ? pannellumViewer.getHfov() : 100;
-
-        const focal = (W / 2) / Math.tan((hfov * Math.PI) / 360);
-        const dx = x - (W / 2);
-        const dy = (H / 2) - y;
-
-        const deltaYawDeg = Math.atan2(dx, focal) * (180 / Math.PI);
-        let yaw = (camYaw + deltaYawDeg) % 360;
-        if (yaw > 180) yaw -= 360;
-        if (yaw < -180) yaw += 360;
-
-        const deltaPitchDeg = Math.atan2(dy, Math.hypot(dx, focal)) * (180 / Math.PI);
-        const pitch = Math.max(-90, Math.min(90, camPitch + deltaPitchDeg));
-
+        const dx = (e.clientX - rect.left) - cam.W / 2;
+        const dy = cam.H / 2 - (e.clientY - rect.top);
+        const yaw = normYaw(cam.yaw + Math.atan2(dx, cam.f) * 180 / Math.PI);
+        const pitch = Math.max(-90, Math.min(90, cam.pitch + Math.atan2(dy, Math.hypot(dx, cam.f)) * 180 / Math.PI));
         return { pitch, yaw };
     }
 
     /**
-     * Detect if screen position falls within any connection's navigable ground cone
-     * The cone widens toward the bottom of the screen to simulate a road receding into the distance
+     * Which road (connection) is under the pointer: a drawn chevron first, else
+     * the ground area below the horizon in that road's direction.
      */
     function detectNavigableConnectionAtScreen(clientX, clientY) {
         if (!containerEl || !manifestData || !currentNodeId || isTransitioning || isNavLocked) return null;
-        const currentNode = manifestData.nodes?.find(n => n.id === currentNodeId);
-        if (!currentNode || !currentNode.connections || currentNode.connections.length === 0) return null;
+        const node = getCurrentNode();
+        if (!node || !node.connections || node.connections.length === 0) return null;
 
         const rect = containerEl.getBoundingClientRect();
         const x = clientX - rect.left;
         const y = clientY - rect.top;
-        const W = rect.width;
-        const H = rect.height;
+        if (x < 0 || x > rect.width || y < 0 || y > rect.height) return null;
 
-        if (x < 0 || x > W || y < 0 || y > H) return null;
-
-        // Ground region: only valid in the lower portion of the screen (horizon to bottom)
-        const normY = y / H;
-        const topZone = 0.44; // near horizon
-        const bottomZone = 0.96; // near viewer's feet
-
-        if (normY < topZone || normY > bottomZone) {
-            return null;
+        for (const c of drawnChevrons) {
+            if (Math.hypot(x - c.x, y - c.y) <= c.r) return { connection: c.conn };
         }
-
-        // Depth parameter t: 0 at horizon (far away), 1 at bottom of screen (closest)
-        const t = Math.max(0, Math.min(1, (normY - topZone) / (bottomZone - topZone)));
-
-        // Cone angular tolerance: widens toward the bottom of the screen (11° at top -> 31° at bottom)
-        const deltaTolerance = 11 + 20 * t;
 
         const spherical = calculateCursorSphericalCoords({ clientX, clientY });
-        if (!spherical) return null;
+        if (!spherical || spherical.pitch > -4) return null; // only the road, below the horizon
 
-        let bestConn = null;
-        let minRatio = Infinity;
-        let bestDiffYaw = 0;
-
-        // Backtrack penalty: if the northOffset calibration for this node is off,
-        // the connection pointing back to previousNodeId can wrongly appear as the
-        // "best" forward match. We don't hide it outright (you should still be able
-        // to turn around on purpose), but we require a clearly tighter alignment
-        // before it's allowed to win over a legitimate forward connection.
+        // Wider tolerance the closer to your feet
+        const tolerance = 12 + Math.min(20, (-spherical.pitch - 4) * 0.6);
         const BACKTRACK_RATIO_PENALTY = 1.6;
-
-        for (const conn of currentNode.connections) {
-            // Apply northOffset calibration: photo yaw where connection appears
-            let connPhotoYaw = (conn.bearing - (currentNode.northOffset || 0)) % 360;
-            if (connPhotoYaw > 180) connPhotoYaw -= 360;
-            if (connPhotoYaw < -180) connPhotoYaw += 360;
-
-            let diffYaw = (spherical.yaw - connPhotoYaw) % 360;
-            if (diffYaw > 180) diffYaw -= 360;
-            if (diffYaw < -180) diffYaw += 360;
-
-            const absDiff = Math.abs(diffYaw);
-            if (absDiff <= deltaTolerance) {
-                let ratio = absDiff / deltaTolerance;
-                if (previousNodeId && conn.targetId === previousNodeId) {
-                    ratio *= BACKTRACK_RATIO_PENALTY;
-                }
-                if (ratio < minRatio) {
-                    minRatio = ratio;
-                    bestConn = conn;
-                    bestDiffYaw = diffYaw;
-                }
-            }
+        let best = null;
+        let bestRatio = Infinity;
+        for (const conn of navConnections(node)) {
+            const diff = Math.abs(normYaw(spherical.yaw - photoYawOf(node, conn.bearing)));
+            if (diff > tolerance) continue;
+            let ratio = diff / tolerance;
+            if (previousNodeId && conn.targetId === previousNodeId) ratio *= BACKTRACK_RATIO_PENALTY;
+            if (ratio < bestRatio) { bestRatio = ratio; best = conn; }
         }
-
-        if (!bestConn) return null;
-
-        // Perspective scale factor: 0.6x near horizon up to 1.4x near bottom of screen
-        const scale = 0.6 + 0.8 * t;
-
-        return {
-            connection: bestConn,
-            x,
-            y,
-            scale,
-            diffYaw: bestDiffYaw,
-            t
-        };
+        return best ? { connection: best } : null;
     }
 
-    /**
-     * Update position, scale, and active state of the ground cursor arrow
-     */
-    function updateGroundArrowAtCursor(e) {
-        if (!groundArrowEl || isDragging || isTransitioning || isNavLocked) {
-            hideGroundArrow();
-            return;
-        }
-
+    function updateHoverAtCursor(e) {
+        if (isDragging || isTransitioning || isNavLocked) { clearHover(); return; }
         const match = detectNavigableConnectionAtScreen(e.clientX, e.clientY);
-        if (!match) {
-            hideGroundArrow();
-            return;
-        }
-
+        if (!match) { clearHover(); return; }
         activeHoverConnection = match.connection;
-
-        // Update floating tooltip content
-        if (groundArrowTooltipEl) {
-            const targetPlace = (placeLinksData?.links || []).find(l => l.nodeId === match.connection.targetId);
-            const tooltipText = targetPlace
-                ? `${targetPlace.placeName} · ${Math.round(match.connection.distance)}m`
-                : `${Math.round(match.connection.distance)}m`;
-            groundArrowTooltipEl.textContent = tooltipText;
-        }
-
-        // Slight chevron rotation matching travel direction
-        if (groundArrowIconEl) {
-            const rotateDeg = Math.max(-28, Math.min(28, -match.diffYaw * 0.75));
-            groundArrowIconEl.style.transform = `rotate(${rotateDeg}deg)`;
-        }
-
-        // Position at exact cursor coordinate with depth perspective scaling
-        groundArrowEl.style.transform = `translate3d(${match.x}px, ${match.y}px, 0) translate(-50%, -50%) scale(${match.scale.toFixed(3)})`;
-        groundArrowEl.classList.add('active');
-
-        if (containerEl) {
-            containerEl.classList.add('zone-hovered');
-        }
+        if (containerEl) containerEl.classList.add('zone-hovered');
     }
 
-    function hideGroundArrow() {
+    function clearHover() {
         activeHoverConnection = null;
-        if (groundArrowEl) {
-            groundArrowEl.classList.remove('active');
-        }
-        if (containerEl) {
-            containerEl.classList.remove('zone-hovered');
-        }
+        if (containerEl) containerEl.classList.remove('zone-hovered');
     }
 
     function onContainerMouseMove(e) {
-        if (isTransitioning || isNavLocked) {
-            hideGroundArrow();
+        if (isTransitioning || isNavLocked) { clearHover(); return; }
+        if (isMouseDown && Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 6) {
+            isDragging = true;
+            clearHover();
             return;
         }
-
-        if (isMouseDown) {
-            const dist = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
-            if (dist > 6) {
-                isDragging = true;
-                hideGroundArrow();
-                return;
-            }
-        }
-
         lastCursorEvent = e;
         if (!rafCursorId) {
             rafCursorId = requestAnimationFrame(() => {
                 rafCursorId = null;
-                if (lastCursorEvent && !isTransitioning && !isNavLocked) {
-                    updateGroundArrowAtCursor(lastCursorEvent);
-                }
+                if (lastCursorEvent && !isTransitioning && !isNavLocked) updateHoverAtCursor(lastCursorEvent);
             });
         }
     }
 
     function onContainerMouseLeave() {
-        hideGroundArrow();
+        clearHover();
         isMouseDown = false;
         isDragging = false;
     }
@@ -446,7 +494,7 @@
         dragStartY = e.clientY;
     }
 
-    function onContainerMouseUp(e) {
+    function onContainerMouseUp() {
         isMouseDown = false;
     }
 
@@ -455,13 +503,12 @@
             isDragging = false;
             return;
         }
-
         if (activeHoverConnection) {
             const conn = activeHoverConnection;
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
-            hideGroundArrow();
+            clearHover();
             transitionToNode(conn.targetId, conn.bearing, e);
         }
     }
@@ -479,8 +526,7 @@
         if (e.changedTouches && e.changedTouches[0]) {
             const tX = e.changedTouches[0].clientX;
             const tY = e.changedTouches[0].clientY;
-            const dist = Math.hypot(tX - touchStartX, tY - touchStartY);
-            if (dist < 10) {
+            if (Math.hypot(tX - touchStartX, tY - touchStartY) < 10) {
                 const match = detectNavigableConnectionAtScreen(tX, tY);
                 if (match && match.connection) {
                     e.preventDefault();
@@ -492,137 +538,72 @@
         }
     }
 
-    /**
-     * Hint Pill Auto-Dismissal
-     * Fades out automatically after ~4.5 seconds OR on first user interaction (drag or click)
-     */
-    function scheduleHintPillDismiss() {
-        if (hudHintEl) {
-            hudHintEl.classList.remove('fade-out');
-        }
+    // ── Hint ───────────────────────────────────────────────────────────────────
 
-        if (hintDismissTimer) {
-            clearTimeout(hintDismissTimer);
-            hintDismissTimer = null;
-        }
-
-        // Auto-dismiss after 4.5 seconds
-        hintDismissTimer = setTimeout(() => {
-            dismissHintPill();
-        }, 4500);
-
-        // Also dismiss on first user interaction (drag, wheel, or arrow click)
+    function scheduleHintDismiss() {
+        if (hudHintEl) hudHintEl.classList.remove('fade-out');
+        if (hintDismissTimer) clearTimeout(hintDismissTimer);
+        hintDismissTimer = setTimeout(dismissHint, 4500);
         const onFirstInteraction = () => {
-            dismissHintPill();
+            dismissHint();
             window.removeEventListener('pointerdown', onFirstInteraction, true);
             window.removeEventListener('wheel', onFirstInteraction, { passive: true });
         };
-
         window.addEventListener('pointerdown', onFirstInteraction, true);
         window.addEventListener('wheel', onFirstInteraction, { passive: true });
     }
 
-    function dismissHintPill() {
+    function dismissHint() {
         if (hintDismissTimer) {
             clearTimeout(hintDismissTimer);
             hintDismissTimer = null;
         }
-        if (hudHintEl) {
-            hudHintEl.classList.add('fade-out');
-        }
+        if (hudHintEl) hudHintEl.classList.add('fade-out');
     }
 
-    /**
-     * Build scene configurations for all nodes in manifest
-     * Directional arrows are rendered as flat ground-level chevrons
-     */
+    // ── Scenes ─────────────────────────────────────────────────────────────────
+
     function buildScenesConfig() {
         if (!manifestData || !manifestData.nodes) return;
-
         scenesConfig = {};
         manifestData.nodes.forEach(node => {
-            const matchedPlace = (placeLinksData?.links || []).find(l => l.nodeId === node.id);
-            const title = matchedPlace ? matchedPlace.placeName : '';
-
-            // Map each connection to a flat road chevron hotspot
-            const hotSpots = (node.connections || []).map(conn => {
-                // Convert 0-360° bearing to Pannellum's -180° to +180° yaw accounting for northOffset
-                let yaw = (conn.bearing - (node.northOffset || 0)) % 360;
-                if (yaw > 180) yaw -= 360;
-                if (yaw < -180) yaw += 360;
-
-                // Fixed negative pitch places the chevron flat on the asphalt road surface
-                const pitch = -21;
-
-                return {
-                    pitch: pitch,
-                    yaw: yaw,
-                    cssClass: 'calzada-streetview-hotspot',
-                    createTooltipFunc: (hotSpotDiv) => {
-                        const targetPlace = (placeLinksData?.links || []).find(l => l.nodeId === conn.targetId);
-                        const tooltipText = targetPlace
-                            ? `${targetPlace.placeName} · ${Math.round(conn.distance)}m`
-                            : `${Math.round(conn.distance)}m`;
-
-                        hotSpotDiv.innerHTML = `
-                            <div class="calzada-nav-chevron-wrap">
-                                <div class="calzada-flat-chevron" title="Move forward">
-                                    <svg class="calzada-chevron-svg" viewBox="0 0 58 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path class="calzada-chevron-path" d="M29 3L54 27L48 33L29 15L10 33L4 27L29 3Z" />
-                                    </svg>
-                                </div>
-                                <div class="calzada-chevron-tooltip">${tooltipText}</div>
-                            </div>
-                        `;
-
-                        hotSpotDiv.onclick = (e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            e.stopImmediatePropagation();
-                            if (isTransitioning || isNavLocked) return;
-                            transitionToNode(conn.targetId, conn.bearing, e);
-                        };
-                    }
-                };
-            });
-
             scenesConfig[node.id] = {
                 type: 'equirectangular',
                 panorama: `../assets/360/${encodeURIComponent(node.file)}`,
-                title: title,
                 autoLoad: true,
-                showControls: true,
+                showControls: false,
                 showFullscreenCtrl: false,
                 hfov: 100,
                 minHfov: 45,
                 maxHfov: 120,
-                pitch: -5,
+                pitch: -10,
                 yaw: 0,
-                hotSpots: hotSpots
+                // Road arrows are drawn on the canvas overlay instead of hotspots
+                hotSpots: []
             };
         });
     }
 
-    /**
-     * Transition smoothly to target node with dolly-forward zoom effect
-     * Sequenced as a single controlled animation with 100% opaque curtain
-     * and a navigation lock to completely eliminate ghosting and back-navigation.
-     * @param {string} targetId
-     * @param {number} [forwardBearing]
-     * @param {MouseEvent|{clientX:number, clientY:number}} [clickEvent]
-     */
-    async function transitionToNode(targetId, forwardBearing, clickEvent) {
-        if (!targetId || targetId === currentNodeId || isTransitioning || isNavLocked) {
-            return;
+    // Face the road the camera was pointing along when the photo was taken
+    function defaultYawFor(node) {
+        let best = 0;
+        let bestDiff = Infinity;
+        for (const conn of navConnections(node)) {
+            const y = photoYawOf(node, conn.bearing);
+            if (Math.abs(y) < bestDiff) { bestDiff = Math.abs(y); best = y; }
         }
+        return best;
+    }
 
-        const targetNode = manifestData?.nodes?.find(n => n.id === targetId);
+    async function transitionToNode(targetId, forwardBearing, clickEvent) {
+        if (!targetId || targetId === currentNodeId || isTransitioning || isNavLocked) return;
+
+        const targetNode = nodeById(targetId);
         if (!targetNode) {
             console.warn('[StreetView] Target node not found:', targetId);
             return;
         }
 
-        // 1. Engage navigation locks immediately
         isTransitioning = true;
         isNavLocked = true;
         if (navLockTimer) {
@@ -630,97 +611,59 @@
             navLockTimer = null;
         }
 
-        // Immediately dismiss HUD, clear hover state and cancel pending cursor RAF
-        dismissHintPill();
-        hideGroundArrow();
+        dismissHint();
+        clearHover();
         if (rafCursorId) {
             cancelAnimationFrame(rafCursorId);
             rafCursorId = null;
         }
         lastCursorEvent = null;
-
-        // Clean up any lingering fade snapshot images before starting
         cleanupPannellumFadeImages();
 
-        // 2. Dolly-forward zoom effect: scale toward clicked chevron direction (~180ms)
+        // Short dolly toward where you clicked
         if (containerEl) {
             if (clickEvent && typeof clickEvent.clientX === 'number') {
                 const rect = containerEl.getBoundingClientRect();
-                const originX = Math.max(0, Math.min(rect.width, clickEvent.clientX - rect.left));
-                const originY = Math.max(0, Math.min(rect.height, clickEvent.clientY - rect.top));
-                containerEl.style.transformOrigin = `${originX}px ${originY}px`;
+                const ox = Math.max(0, Math.min(rect.width, clickEvent.clientX - rect.left));
+                const oy = Math.max(0, Math.min(rect.height, clickEvent.clientY - rect.top));
+                containerEl.style.transformOrigin = `${ox}px ${oy}px`;
             } else {
                 containerEl.style.transformOrigin = '50% 65%';
             }
             containerEl.classList.add('dolly-forward');
         }
 
-        // 3. Start curtain fade to full 1.0 opacity (~100ms into zoom)
         await new Promise(r => setTimeout(r, 100));
-        if (fadeCurtainEl) {
-            fadeCurtainEl.classList.add('fading');
-        }
-
-        // Wait for dolly zoom and curtain to achieve full opacity (~100ms)
+        if (fadeCurtainEl) fadeCurtainEl.classList.add('fading');
         await new Promise(r => setTimeout(r, 100));
 
-        // 4. Update state synchronously before loading new scene
         previousNodeId = currentNodeId;
         currentNodeId = targetId;
 
-        // Reset dolly zoom scale cleanly while curtain is 100% opaque
         if (containerEl) {
             containerEl.classList.remove('dolly-forward');
             containerEl.style.transformOrigin = 'center center';
         }
 
-        // 5. Orient initial camera view toward travel direction
+        // Keep facing the direction of travel
         let targetYaw = 0;
-        if (typeof forwardBearing === 'number') {
-            targetYaw = (forwardBearing - (targetNode.northOffset || 0)) % 360;
-            if (targetYaw > 180) targetYaw -= 360;
-            if (targetYaw < -180) targetYaw += 360;
-        }
+        if (typeof forwardBearing === 'number') targetYaw = photoYawOf(targetNode, forwardBearing);
+        let targetPitch = -10;
+        try { targetPitch = Math.min(-4, pannellumViewer.getPitch()); } catch (_) {}
 
-        // 6. Update place pill and mini-map position synchronously
-        updateHeaderMeta(targetNode);
-        updateMinimapPosition(targetNode);
+        updateInfoCard(targetNode);
 
-        // 7. Load new scene in Pannellum
         if (pannellumViewer) {
-            let sceneLoaded = false;
-            const onSceneReady = () => {
-                if (sceneLoaded) return;
-                sceneLoaded = true;
-                cleanupPannellumFadeImages();
-            };
-
-            try {
-                pannellumViewer.on('load', onSceneReady);
-            } catch (_) {}
-
-            pannellumViewer.loadScene(targetId, -5, targetYaw);
-
-            // Wait a brief tick for the WebGL texture initialization
+            pannellumViewer.loadScene(targetId, targetPitch, targetYaw);
             await new Promise(r => setTimeout(r, 150));
-            try {
-                pannellumViewer.off('load', onSceneReady);
-            } catch (_) {}
             cleanupPannellumFadeImages();
         }
 
-        // 8. Fade out curtain smoothly revealing the ready scene
-        if (fadeCurtainEl) {
-            fadeCurtainEl.classList.remove('fading');
-        }
-
-        // Wait for curtain transition to complete (~220ms)
+        if (fadeCurtainEl) fadeCurtainEl.classList.remove('fading');
         await new Promise(r => setTimeout(r, 220));
         cleanupPannellumFadeImages();
         isTransitioning = false;
 
-        // 9. Keep navigation lock active for an additional 400ms safety window
-        // to prevent rapid double-clicks or accidental immediate reverse triggers
         navLockTimer = setTimeout(() => {
             isNavLocked = false;
             navLockTimer = null;
@@ -728,150 +671,24 @@
     }
 
     /**
-     * Update header place pill
-     * Displays actual establishment name if linked; otherwise completely hides the pill
-     * so no inaccurate hardcoded street title is ever shown.
+     * Top-left card: linked establishment name if there is one, otherwise the street.
+     * Second line: barangay and month captured.
      */
-    function updateHeaderMeta(node) {
-        if (!node || !placePillEl || !placeNameEl) return;
+    function updateInfoCard(node) {
+        if (!node || !infoTitleEl || !infoSubEl) return;
         const matchedPlace = (placeLinksData?.links || []).find(l => l.nodeId === node.id);
-
-        if (matchedPlace && matchedPlace.placeName) {
-            placeNameEl.textContent = matchedPlace.placeName;
-            placePillEl.style.display = 'inline-flex';
-        } else {
-            // Remove the title entirely rather than showing an inaccurate hardcoded label
-            placePillEl.style.display = 'none';
-        }
+        const title = (matchedPlace && matchedPlace.placeName) || node.street || 'Street view';
+        const parts = [];
+        if (matchedPlace && node.street) parts.push(node.street);
+        parts.push(node.area ? `${node.area}, Calamba` : 'Calamba');
+        const when = capturedLabel(node);
+        if (when) parts.push(when);
+        infoTitleEl.textContent = title;
+        infoSubEl.textContent = parts.join(' · ');
     }
 
-    /**
-     * Initialize MapLibre Mini-Map in bottom-left corner
-     */
-    function initMinimap(initialNode) {
-        const minimapContainer = document.getElementById('streetviewMinimap');
-        if (!minimapContainer || typeof maplibregl === 'undefined') return;
+    // ── Launch / close ─────────────────────────────────────────────────────────
 
-        if (!minimapInstance) {
-            minimapInstance = new maplibregl.Map({
-                container: 'streetviewMinimap',
-                style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-                center: [initialNode.lng, initialNode.lat],
-                zoom: 16.8,
-                attributionControl: false,
-                dragRotate: false
-            });
-
-            minimapInstance.on('load', () => {
-                // Plot all 19 nodes on the mini-map
-                (manifestData.nodes || []).forEach(n => {
-                    const dotEl = document.createElement('div');
-                    dotEl.className = 'streetview-minimap-node-dot';
-                    dotEl.setAttribute('title', `Jump to node: ${n.id}`);
-
-                    dotEl.onclick = (e) => {
-                        e.stopPropagation();
-                        if (isTransitioning || isNavLocked) return;
-                        transitionToNode(n.id);
-                    };
-
-                    const marker = new maplibregl.Marker({
-                        element: dotEl,
-                        anchor: 'center'
-                    })
-                        .setLngLat([n.lng, n.lat])
-                        .addTo(minimapInstance);
-
-                    minimapNodeMarkers.push({ id: n.id, marker, el: dotEl });
-                });
-
-                // Create current position glowing beacon with direction cone
-                const beaconEl = document.createElement('div');
-                beaconEl.className = 'streetview-current-beacon';
-                beaconEl.innerHTML = `
-                    <div class="streetview-beacon-cone" id="streetviewBeaconCone"></div>
-                    <div class="streetview-beacon-ring"></div>
-                    <div class="streetview-beacon-dot"></div>
-                `;
-
-                minimapCurrentMarker = new maplibregl.Marker({
-                    element: beaconEl,
-                    anchor: 'center'
-                })
-                    .setLngLat([initialNode.lng, initialNode.lat])
-                    .addTo(minimapInstance);
-
-                updateMinimapPosition(initialNode);
-            });
-        } else {
-            minimapInstance.resize();
-            updateMinimapPosition(initialNode);
-        }
-
-        startHeadingTracking();
-    }
-
-    /**
-     * Update mini-map center and active beacon marker
-     */
-    function updateMinimapPosition(node) {
-        if (!minimapInstance || !node) return;
-
-        if (minimapCurrentMarker) {
-            minimapCurrentMarker.setLngLat([node.lng, node.lat]);
-        }
-
-        minimapInstance.easeTo({
-            center: [node.lng, node.lat],
-            zoom: 16.8,
-            duration: 400
-        });
-
-        minimapNodeMarkers.forEach(({ id, el }) => {
-            if (id === node.id) {
-                el.classList.add('active-current-node');
-            } else {
-                el.classList.remove('active-current-node');
-            }
-        });
-    }
-
-    /**
-     * Continuously sync the camera yaw with the mini-map direction cone
-     */
-    function startHeadingTracking() {
-        if (rafHeadingId) cancelAnimationFrame(rafHeadingId);
-
-        function track() {
-            if (pannellumViewer && overlayEl && overlayEl.classList.contains('active')) {
-                try {
-                    const yaw = pannellumViewer.getYaw();
-                    const coneEl = document.getElementById('streetviewBeaconCone');
-                    if (coneEl) {
-                        const currentNode = manifestData?.nodes?.find(n => n.id === currentNodeId);
-                        const northOffset = currentNode?.northOffset || 0;
-                        const compassHeading = (yaw + northOffset + 360) % 360;
-                        coneEl.style.transform = `rotate(${compassHeading}deg)`;
-                    }
-                } catch (_) {}
-                rafHeadingId = requestAnimationFrame(track);
-            }
-        }
-
-        rafHeadingId = requestAnimationFrame(track);
-    }
-
-    function stopHeadingTracking() {
-        if (rafHeadingId) {
-            cancelAnimationFrame(rafHeadingId);
-            rafHeadingId = null;
-        }
-    }
-
-    /**
-     * Parses a manifest node id of the form "{lat}_{lng}" back into numeric coords.
-     * Returns null if it doesn't look like a coordinate-based id.
-     */
     function parseNodeIdToCoords(nodeId) {
         if (typeof nodeId !== 'string') return null;
         const parts = nodeId.split('_');
@@ -898,18 +715,11 @@
         let bestDist = Infinity;
         for (const n of manifestData.nodes) {
             const d = haversineMeters(lat, lng, n.lat, n.lng);
-            if (d < bestDist) {
-                bestDist = d;
-                best = n;
-            }
+            if (d < bestDist) { bestDist = d; best = n; }
         }
         return best;
     }
 
-    /**
-     * Main Entry Point: Launch Full-Screen 360 Viewer
-     * @param {string} startNodeId
-     */
     async function launch360Viewer(startNodeId) {
         initDOM();
         await loadData();
@@ -919,22 +729,12 @@
             return;
         }
 
-        // Validate starting node.
-        // BUG FIX ("bumabalik sa STI building"): this used to silently fall back to
-        // manifestData.nodes[0] whenever the exact id string didn't match (e.g. a
-        // trailing/rounding difference between place-links.json's nodeId and the
-        // id actually stored in manifest.json). Because node[0] happens to be
-        // STI College - Calamba, ANY lookup miss anywhere in the app quietly
-        // teleported the viewer back to STI with no error — which is exactly the
-        // symptom being reported. Instead, if the exact id isn't found we now
-        // parse the "{lat}_{lng}" id and snap to the closest real node by actual
-        // GPS distance, so we land near where the user actually clicked/asked for.
-        let node = manifestData.nodes.find(n => n.id === startNodeId);
+        // Exact id first; otherwise snap to the closest node by coordinates
+        // (never silently fall back to an unrelated first node).
+        let node = nodeById(startNodeId);
         if (!node) {
             const parsed = parseNodeIdToCoords(startNodeId);
-            if (parsed) {
-                node = findNearestManifestNode(parsed.lat, parsed.lng);
-            }
+            if (parsed) node = findNearestManifestNode(parsed.lat, parsed.lng);
             if (node) {
                 console.warn(`[StreetView] Node id "${startNodeId}" not found verbatim; using nearest node by coordinates instead: ${node.id}`);
             } else {
@@ -944,48 +744,41 @@
         }
 
         currentNodeId = node.id;
+        previousNodeId = null;
         buildScenesConfig();
 
-        // Lock background body scroll
         document.body.style.overflow = 'hidden';
-
-        // Reveal overlay
         overlayEl.style.display = 'block';
-        requestAnimationFrame(() => {
-            overlayEl.classList.add('active');
-        });
+        requestAnimationFrame(() => overlayEl.classList.add('active'));
 
-        updateHeaderMeta(node);
-        scheduleHintPillDismiss();
+        updateInfoCard(node);
+        scheduleHintDismiss();
 
-        // Initialize Pannellum if not already running
+        const startYaw = defaultYawFor(node);
         if (!pannellumViewer) {
             containerEl.innerHTML = '';
+            scenesConfig[node.id].yaw = startYaw;
             pannellumViewer = pannellum.viewer('calzadaPannellumContainer', {
                 default: {
                     firstScene: node.id,
                     sceneFadeDuration: 0,
-                    autoLoad: true
+                    autoLoad: true,
+                    showControls: false
                 },
                 scenes: scenesConfig
             });
         } else {
-            // Already initialized, load target scene directly
-            pannellumViewer.loadScene(node.id, -5, 0);
+            pannellumViewer.loadScene(node.id, -10, startYaw);
         }
 
-        // Initialize / sync mini-map
-        initMinimap(node);
+        startDrawing();
     }
 
-    /**
-     * Close Viewer & Return cleanly to map
-     */
     function closeViewer() {
         if (!overlayEl) return;
 
-        dismissHintPill();
-        hideGroundArrow();
+        dismissHint();
+        clearHover();
         if (rafCursorId) {
             cancelAnimationFrame(rafCursorId);
             rafCursorId = null;
@@ -997,10 +790,9 @@
         isTransitioning = false;
         isNavLocked = false;
         cleanupPannellumFadeImages();
+        stopDrawing();
 
         overlayEl.classList.remove('active');
-        stopHeadingTracking();
-
         setTimeout(() => {
             overlayEl.style.display = 'none';
             document.body.style.overflow = '';
@@ -1009,19 +801,14 @@
         console.log('[StreetView] Exited 360 viewer. Returned to map.');
     }
 
-    // Expose globally on window for seamless access across components
     window.launch360Viewer = launch360Viewer;
     window.close360Viewer = closeViewer;
     window._open360Viewer = launch360Viewer;
 
-    // Listen for custom launch events
     window.addEventListener('calzada:open-360', (e) => {
-        if (e.detail && e.detail.nodeId) {
-            launch360Viewer(e.detail.nodeId);
-        }
+        if (e.detail && e.detail.nodeId) launch360Viewer(e.detail.nodeId);
     });
 
-    // Auto-init on script load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             initDOM();
@@ -1031,5 +818,4 @@
         initDOM();
         loadData();
     }
-
 })();
