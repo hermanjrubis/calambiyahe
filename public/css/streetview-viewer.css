@@ -1,8 +1,7 @@
 /* ==========================================================================
    CALZADA 360° STREET VIEW VIEWER
-   Flat and quiet: one white info card top-left, two white icon buttons
-   top-right, and the road arrows + street name drawn on the road itself.
-   No mini map, no gradients, no glass, no shadows.
+   Minimal: street name as plain text top-left, two round icon buttons
+   top-right, thin arrows lying on the road. No mini map, no cards.
    ========================================================================== */
 
 .calzada-streetview-overlay {
@@ -94,36 +93,39 @@
     opacity: 0 !important;
 }
 
-/* Info card (top-left) */
+/* Street name (top-left): text only, no card */
 .sv-info-card {
     position: absolute;
-    top: calc(16px + env(safe-area-inset-top, 0px));
-    left: calc(16px + env(safe-area-inset-left, 0px));
+    top: calc(18px + env(safe-area-inset-top, 0px));
+    left: calc(20px + env(safe-area-inset-left, 0px));
     z-index: 30;
-    max-width: min(360px, calc(100vw - 120px));
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 10px 14px 11px;
+    max-width: min(420px, calc(100vw - 110px));
     pointer-events: none;
+}
+
+.sv-info-text {
+    min-width: 0;
 }
 
 .sv-info-title {
     font-family: 'Sora', sans-serif;
-    font-size: 15px;
+    font-size: 20px;
     font-weight: 700;
-    line-height: 1.3;
-    color: #0F172A;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 12px rgba(0, 0, 0, 0.35);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .sv-info-sub {
-    margin-top: 2px;
-    font-size: 12.5px;
+    margin-top: 3px;
+    font-size: 13px;
     line-height: 1.35;
-    color: #64748B;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -137,27 +139,26 @@
     z-index: 30;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 }
 
 .sv-icon-btn {
     width: 40px;
     height: 40px;
-    border-radius: 12px;
-    border: 1px solid #E2E8F0;
-    background: #FFFFFF;
-    color: #0F172A;
+    border-radius: 50%;
+    border: none;
+    background: rgba(15, 23, 42, 0.45);
+    color: #FFFFFF;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     padding: 0;
-    transition: border-color 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease;
 }
 
 .sv-icon-btn:hover {
-    border-color: #378ADD;
-    color: #378ADD;
+    background: rgba(15, 23, 42, 0.7);
 }
 
 .sv-icon-btn:focus-visible {
@@ -177,12 +178,11 @@
     transform: translateX(-50%);
     z-index: 30;
     max-width: calc(100vw - 32px);
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
+    background: rgba(15, 23, 42, 0.55);
     border-radius: 12px;
     padding: 8px 14px;
     font-size: 13px;
-    color: #334155;
+    color: #FFFFFF;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -198,7 +198,7 @@
 
 @media (max-width: 640px) {
     .sv-info-title {
-        font-size: 14px;
+        font-size: 17px;
     }
     .sv-info-sub {
         font-size: 12px;

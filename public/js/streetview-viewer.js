@@ -1,9 +1,8 @@
 /**
  * ==========================================================================
  * CALZADA 360° STREET VIEW VIEWER
- * Full-screen photosphere viewer. The road you can move along is drawn on the
- * asphalt itself (a soft guide stripe, a chevron and the street name), the
- * current street sits in a small card top-left, and there is no mini map.
+ * Full-screen photosphere viewer. Thin arrows lie on the road where you can
+ * move, the current street is shown top-left, and there is no mini map.
  * ==========================================================================
  */
 
@@ -91,8 +90,10 @@
                 <div id="streetviewFadeCurtain" class="streetview-fade-curtain"></div>
 
                 <div class="sv-info-card" id="svInfoCard">
-                    <div class="sv-info-title" id="svInfoTitle"></div>
-                    <div class="sv-info-sub" id="svInfoSub"></div>
+                    <div class="sv-info-text">
+                        <div class="sv-info-title" id="svInfoTitle"></div>
+                        <div class="sv-info-sub" id="svInfoSub"></div>
+                    </div>
                 </div>
 
                 <div class="sv-actions">
@@ -306,78 +307,45 @@
         const chevrons = [];
         for (const conn of navConnections(node)) {
             const baseYaw = photoYawOf(node, conn.bearing);
-            const hovered = activeHoverConnection && activeHoverConnection.targetId === conn.targetId;
-            const reach = Math.max(6, Math.min(conn.distance || 20, 24));
-
-            // 1. Soft guide stripe along the road
-            const left = [], right = [];
-            for (let i = 0; i <= 14; i++) {
-                const d = 3.6 + (reach - 3.6) * (i / 14);
-                const a = projectGround(cam, baseYaw, d, -0.45);
-                const b = projectGround(cam, baseYaw, d, 0.45);
-                if (a && b) { left.push(a); right.push(b); }
-            }
-            if (left.length > 1) {
-                ctx.beginPath();
-                ctx.moveTo(left[0].x, left[0].y);
-                for (const p of left) ctx.lineTo(p.x, p.y);
-                for (let i = right.length - 1; i >= 0; i--) ctx.lineTo(right[i].x, right[i].y);
-                ctx.closePath();
-                ctx.fillStyle = hovered ? 'rgba(55, 138, 221, 0.42)' : 'rgba(255, 255, 255, 0.18)';
-                ctx.fill();
-            }
-
-            // 2. Chevron painted on the asphalt
-            const cDist = 5.2;
-            const pts = CHEVRON.map(([f, l]) => projectGround(cam, baseYaw, cDist + f * 1.15, l * 1.15));
-            if (pts.every(Boolean)) {
-                ctx.beginPath();
-                ctx.moveTo(pts[0].x, pts[0].y);
-                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-                ctx.closePath();
-                ctx.fillStyle = hovered ? '#378ADD' : 'rgba(255, 255, 255, 0.94)';
-                ctx.strokeStyle = hovered ? '#FFFFFF' : 'rgba(15, 23, 42, 0.35)';
-                ctx.lineWidth = hovered ? 2 : 1.2;
-                ctx.lineJoin = 'round';
-                ctx.fill();
-                ctx.stroke();
-                const c = projectGround(cam, baseYaw, cDist, 0);
-                if (c) {
-                    const span = Math.hypot(pts[1].x - pts[6].x, pts[1].y - pts[6].y);
-                    chevrons.push({ conn, x: c.x, y: c.y, r: Math.max(26, span * 0.7) });
-                }
-            }
-
-            // 3. Street name written along the road
-            const target = nodeById(conn.targetId);
-            const label = (target && target.street) || node.street || '';
-            if (label) {
-                const p1 = projectGround(cam, baseYaw, 8.5, 0);
-                const p2 = projectGround(cam, baseYaw, 13, 0);
-                if (p1 && p2) {
-                    let ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-                    if (ang > Math.PI / 2) ang -= Math.PI;
-                    if (ang < -Math.PI / 2) ang += Math.PI;
-                    // A road running straight ahead would give vertical text; lay it flat instead
-                    if (Math.abs(ang) > Math.PI * 0.3) ang = 0;
-                    const size = Math.max(11, Math.min(19, cam.f * 0.75 / Math.hypot(10.5, CAMERA_HEIGHT_M)));
-                    ctx.save();
-                    ctx.translate((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
-                    ctx.rotate(ang);
-                    ctx.font = `600 ${size.toFixed(1)}px Sora, Outfit, sans-serif`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.lineWidth = 3.5;
-                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.62)';
-                    ctx.lineJoin = 'round';
-                    ctx.strokeText(label, 0, 0);
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillText(label, 0, 0);
-                    ctx.restore();
-                }
-            }
+            const hovered = !!(activeHoverConnection && activeHoverConnection.targetId === conn.targetId);
+            drawArrow(ctx, cam, conn, baseYaw, hovered, chevrons);
         }
         drawnChevrons = chevrons;
+    }
+
+    function chevronPath(ctx, cam, baseYaw, dist, scale) {
+        const pts = CHEVRON.map(([f, l]) => projectGround(cam, baseYaw, dist + f * scale, l * scale));
+        if (!pts.every(Boolean)) return null;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.closePath();
+        return pts;
+    }
+
+    // Thin outlined arrow lying on the road; fills brand blue on hover.
+    function drawArrow(ctx, cam, conn, baseYaw, hovered, chevrons) {
+        // Phones show more ground per pixel, so bring the arrow closer and make it larger
+        const narrow = cam.W < 600;
+        const dist = narrow ? 3.4 : 4.2;
+        ctx.save();
+        const pts = chevronPath(ctx, cam, baseYaw, dist, narrow ? 1.2 : 0.95);
+        if (pts) {
+            ctx.lineJoin = 'round';
+            if (hovered) {
+                ctx.fillStyle = 'rgba(55, 138, 221, 0.35)';
+                ctx.fill();
+            }
+            ctx.lineWidth = hovered ? 3.5 : 2.5;
+            ctx.strokeStyle = hovered ? '#378ADD' : 'rgba(255, 255, 255, 0.95)';
+            ctx.stroke();
+        }
+        ctx.restore();
+        if (!pts) return;
+        const c = projectGround(cam, baseYaw, dist, 0);
+        if (!c) return;
+        const span = Math.hypot(pts[1].x - pts[6].x, pts[1].y - pts[6].y);
+        chevrons.push({ conn, x: c.x, y: c.y, r: Math.max(28, span * 0.75) });
     }
 
     function startDrawing() {
@@ -566,6 +534,8 @@
     function buildScenesConfig() {
         if (!manifestData || !manifestData.nodes) return;
         scenesConfig = {};
+        // Portrait phones: a narrower horizontal field of view avoids a stretched, fish-eye look
+        const hfov = window.innerWidth < 600 ? 80 : 100;
         manifestData.nodes.forEach(node => {
             scenesConfig[node.id] = {
                 type: 'equirectangular',
@@ -573,7 +543,7 @@
                 autoLoad: true,
                 showControls: false,
                 showFullscreenCtrl: false,
-                hfov: 100,
+                hfov: hfov,
                 minHfov: 45,
                 maxHfov: 120,
                 pitch: -10,
