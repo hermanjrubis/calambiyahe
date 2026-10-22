@@ -51,7 +51,9 @@
     transition: transform 180ms cubic-bezier(0.2, 0, 0.25, 1) !important;
 }
 
-/* Hide Pannellum's own chrome; this viewer provides its own */
+/* Hide Pannellum's own chrome (incl. the "Loading..." box); this viewer provides its own */
+.calzada-streetview-overlay .pnlm-load-box,
+.calzada-streetview-overlay .pnlm-load-button,
 .calzada-streetview-overlay .pnlm-controls-container,
 .calzada-streetview-overlay .pnlm-panorama-info,
 .calzada-streetview-overlay .pnlm-about-msg,

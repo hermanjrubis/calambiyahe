@@ -565,6 +565,43 @@
         return best;
     }
 
+    /**
+     * Resolve once Pannellum has finished drawing the scene (or failed, or timed out),
+     * so the dark curtain can cover loading instead of Pannellum's "Loading..." box.
+     */
+    function waitForSceneLoad(timeoutMs) {
+        return new Promise(resolve => {
+            let done = false;
+            const finish = () => {
+                if (done) return;
+                done = true;
+                try {
+                    pannellumViewer.off('load', finish);
+                    pannellumViewer.off('error', finish);
+                } catch (_) {}
+                resolve();
+            };
+            try {
+                pannellumViewer.on('load', finish);
+                pannellumViewer.on('error', finish);
+            } catch (_) {}
+            setTimeout(finish, timeoutMs || 10000);
+        });
+    }
+
+    // Warm the browser cache with the photos you can walk to next, so moving feels instant
+    const prefetched = new Set();
+    function prefetchNeighbors(node) {
+        for (const conn of navConnections(node)) {
+            const t = nodeById(conn.targetId);
+            if (!t || prefetched.has(t.file)) continue;
+            prefetched.add(t.file);
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = `../assets/360/${encodeURIComponent(t.file)}`;
+        }
+    }
+
     async function transitionToNode(targetId, forwardBearing, clickEvent) {
         if (!targetId || targetId === currentNodeId || isTransitioning || isNavLocked) return;
 
@@ -624,10 +661,12 @@
         updateInfoCard(targetNode);
 
         if (pannellumViewer) {
+            const loaded = waitForSceneLoad(8000);
             pannellumViewer.loadScene(targetId, targetPitch, targetYaw);
-            await new Promise(r => setTimeout(r, 150));
+            await loaded;
             cleanupPannellumFadeImages();
         }
+        prefetchNeighbors(targetNode);
 
         if (fadeCurtainEl) fadeCurtainEl.classList.remove('fading');
         await new Promise(r => setTimeout(r, 220));
@@ -724,7 +763,12 @@
         updateInfoCard(node);
         scheduleHintDismiss();
 
+        // Keep the curtain up until the photo is ready; no loading box
+        if (fadeCurtainEl) fadeCurtainEl.classList.add('fading');
+        isTransitioning = true;
+
         const startYaw = defaultYawFor(node);
+        let loaded;
         if (!pannellumViewer) {
             containerEl.innerHTML = '';
             scenesConfig[node.id].yaw = startYaw;
@@ -737,11 +781,18 @@
                 },
                 scenes: scenesConfig
             });
+            loaded = waitForSceneLoad(10000);
         } else {
+            loaded = waitForSceneLoad(10000);
             pannellumViewer.loadScene(node.id, -10, startYaw);
         }
 
         startDrawing();
+        await loaded;
+        cleanupPannellumFadeImages();
+        isTransitioning = false;
+        if (fadeCurtainEl) fadeCurtainEl.classList.remove('fading');
+        prefetchNeighbors(node);
     }
 
     function closeViewer() {

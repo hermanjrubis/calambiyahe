@@ -1292,33 +1292,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function build360OnlyPopupHtml(node, distance, placeInfo) {
+            const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
             const photoUrl = `../assets/360/${encodeURIComponent(node.file)}`;
-            const title = placeInfo && placeInfo.placeName ? placeInfo.placeName : 'Street-level 360° view';
-            const subtitle = placeInfo && placeInfo.placeName
-                ? `${Math.round(distance)}m away`
-                : `Nearest 360° photo · ${Math.round(distance)}m away`;
+            const placeName = placeInfo && placeInfo.placeName ? placeInfo.placeName : '';
+            const title = placeName || node.street || 'Street view';
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const m = /_(\d{4})(\d{2})\d{2}_/.exec(node.source || '');
+            const captured = m && months[parseInt(m[2], 10) - 1] ? `${months[parseInt(m[2], 10) - 1]} ${m[1]}` : '';
+            const subParts = [];
+            if (placeName && node.street) subParts.push(node.street);
+            subParts.push(node.area ? `${node.area}, Calamba` : 'Calamba');
+            if (captured) subParts.push(captured);
+            const open = `window._open360Viewer('${esc(node.id)}')`;
 
             return `
-            <div class="calzada-marker-popup calzada-360-only-popup">
-                <div class="popup-360-container" style="margin-top:0;">
-                    <div class="popup-360-thumb-wrap" onclick="window._open360Viewer('${node.id}')" title="Click to view 360° photo">
-                        <img src="${photoUrl}" alt="360° view" class="popup-360-thumb" loading="lazy">
-                        <span class="popup-360-badge">360°</span>
-                    </div>
-                    <div class="popup-body-content" style="padding-top:8px;">
-                        <div class="popup-place-name">${title}</div>
-                        <div class="popup-place-addr">${subtitle}</div>
-                        <div class="popup-360-action-wrap">
-                            <button type="button" class="popup-360-btn" onclick="window._open360Viewer('${node.id}')">
-                                <svg class="popup-360-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="12" cy="12" r="9"/>
-                                    <path d="M3.6 9h16.8M3.6 15h16.8"/>
-                                    <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
-                                </svg>
-                                <span>View 360°</span>
-                            </button>
-                        </div>
-                    </div>
+            <div class="sv-pop calzada-360-only-popup">
+                <button type="button" class="sv-pop-photo" onclick="${open}" aria-label="Open street view">
+                    <img src="${photoUrl}" alt="" loading="lazy">
+                </button>
+                <div class="sv-pop-body">
+                    <div class="sv-pop-title">${esc(title)}</div>
+                    <div class="sv-pop-sub">${esc(subParts.join(' · '))}</div>
+                    <button type="button" class="sv-pop-btn" onclick="${open}">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/>
+                            <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                            <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                        </svg>
+                        <span>Open street view</span>
+                    </button>
                 </div>
             </div>
         `;
@@ -1349,9 +1351,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 new maplibregl.Popup({
-                    offset: [0, 0],
+                    offset: [0, -4],
                     closeButton: true,
-                    className: 'calzada-maplibre-popup'
+                    maxWidth: '280px',
+                    className: 'calzada-maplibre-popup calzada-sv-popup'
                 })
                     .setLngLat([match.node.lng, match.node.lat])
                     .setHTML(build360OnlyPopupHtml(match.node, match.distance, placeInfo))
