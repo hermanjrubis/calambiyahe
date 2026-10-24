@@ -7334,7 +7334,10 @@ body.pick-destination .mp-icon-to { display: inline; }
 }
 
 /* Route being computed: a moving bar along the bottom of the O-D box */
-.od-input-block { position: relative; overflow: hidden; }
+/* overflow:hidden keeps the bar inside the rounded box; flex-shrink:0 so a long route list in
+   the sidebar can never squeeze the From/To box (it would get cut off at the top) */
+.od-input-block { position: relative; overflow: hidden; flex-shrink: 0; }
+.ds-body > * { flex-shrink: 0; }
 .od-input-block::after {
     content: "";
     position: absolute;
