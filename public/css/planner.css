@@ -7475,7 +7475,9 @@ body.pick-destination .mp-icon-to { display: inline; }
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
 }
-.cat-nav-btn:hover:not(:disabled) { background: rgba(55, 138, 221, 0.08); }
+@media (hover: hover) and (pointer: fine) {
+    .cat-nav-btn:hover:not(:disabled) { background: rgba(55, 138, 221, 0.08); }
+}
 .cat-nav-btn:disabled { color: #CBD5E1; cursor: default; }
 .cat-nav-btn[hidden] { display: none !important; }
 .cat-nav-btn:focus-visible { outline: 2px solid #378ADD; outline-offset: 2px; }
@@ -7485,10 +7487,11 @@ body.pick-destination .mp-icon-to { display: inline; }
     .cat-nav-btn { display: none !important; }
 }
 
-/* Phones: about 3–4 chips in the pill, ‹ › arrows outside it */
+/* Phones: the pill starts at the left edge; one › arrow outside it on the right. At the end of
+   the strip the arrow turns around (.is-back) and goes back to the first category. */
 @media (max-width: 767px) {
     .map-category-bar-wrapper {
-        gap: 6px;
+        gap: 8px;
         pointer-events: none;
     }
     .map-category-bar-wrapper .cat-nav-btn { pointer-events: auto; }
@@ -7496,32 +7499,67 @@ body.pick-destination .mp-icon-to { display: inline; }
         flex: 1 1 auto;
         min-width: 0;
         width: auto !important;
+        margin-inline: 0 !important;
+        padding: 4px !important;
+        gap: 0;
+    }
+    .category-scroll-wrapper {
+        flex: 1 1 auto;
+        width: 100%;
+        padding: 0;
+    }
+    #mapCategoryBar {
+        display: flex;
+        width: 100%;
         gap: 2px;
+        scroll-snap-type: x proximity;
+        scroll-padding-inline: 4px;
+        overscroll-behavior-x: contain;
     }
     .map-segment-btn,
     #mapCategoryBar .map-segment-btn {
-        padding: 0 10px;
-        min-height: 36px;
-        font-size: 12.5px;
+        flex: 0 0 auto;
+        padding: 0 11px;
+        min-height: 38px;
+        font-size: 13px;
+        scroll-snap-align: start;
     }
     .cat-nav-btn {
-        width: 36px;
-        height: 36px;
+        width: 46px;
+        height: 46px;
+        border: 1px solid rgba(226, 232, 240, 0.85);
         background: #FFFFFF;
+        box-shadow: 0 4px 16px rgba(16, 24, 40, 0.08);
+        color: #378ADD;
+        -webkit-tap-highlight-color: transparent;
     }
-    .cat-nav-btn:disabled { opacity: 0.55; }
-    /* arrows say there is more; no faded edges */
-    .category-scroll-wrapper.has-more-start:not(.has-more-end),
-    .category-scroll-wrapper.has-more-end:not(.has-more-start),
+    .cat-nav-btn svg {
+        transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    .cat-nav-btn.is-back svg {
+        transform: rotate(180deg);
+    }
+    .cat-nav-btn:active {
+        transform: scale(0.94);
+    }
+    /* Soft edge where more chips continue (cut chips fade instead of being chopped) */
+    .category-scroll-wrapper.has-more-end:not(.has-more-start) {
+        -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+        mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 28px), transparent 100%);
+    }
+    .category-scroll-wrapper.has-more-start:not(.has-more-end) {
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 100%);
+    }
     .category-scroll-wrapper.has-more-start.has-more-end {
-        -webkit-mask-image: none;
-        mask-image: none;
+        -webkit-mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 28px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0, #000 20px, #000 calc(100% - 28px), transparent 100%);
     }
 }
 
 /* Sheet at half height: the scroll area stops where the lifted Start Journey footer begins */
 @media (max-width: 768px) {
-    #directionsCard .ds-scroll-container {
+    #directionsCard.has-route .ds-scroll-container {
         margin-bottom: var(--sheet-lift, 0px);
     }
 }

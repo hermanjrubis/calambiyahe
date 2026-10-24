@@ -1623,34 +1623,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateCatNav();
             };
 
-            // ‹ › arrows: move the strip one category back/forward
-            const catPrevBtn = document.getElementById('catPrevBtn');
+            // › arrow (phones): pages the strip forward; at the end it turns around and goes back
+            // to the first category. The pill itself starts at the left edge, no ‹ arrow.
             const catNextBtn = document.getElementById('catNextBtn');
+            const catNavLabel = (back) => {
+                const key = back ? 'planner.cat_back' : 'planner.cat_more';
+                const v = typeof t === 'function' ? t(key) : '';
+                return v && v !== key ? v : (back ? 'Back to first categories' : 'More categories');
+            };
             function updateCatNav() {
-                if (!catPrevBtn || !catNextBtn) return;
+                if (!catNextBtn) return;
                 const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
                 const overflow = maxScroll > 2;
-                catPrevBtn.hidden = !overflow;
                 catNextBtn.hidden = !overflow;
-                catPrevBtn.disabled = categoryBar.scrollLeft <= 3;
-                catNextBtn.disabled = categoryBar.scrollLeft >= maxScroll - 3;
-            }
-            const stepCategories = (dir) => {
-                const chips = [...categoryBar.querySelectorAll('.map-segment-btn')];
-                const left = categoryBar.scrollLeft;
-                const right = left + categoryBar.clientWidth;
-                let target = null;
-                if (dir > 0) {
-                    // first chip that is cut off on the right: bring it fully in view
-                    target = chips.find(c => c.offsetLeft + c.offsetWidth > right + 2);
-                    if (target) categoryBar.scrollTo({ left: target.offsetLeft + target.offsetWidth - categoryBar.clientWidth + 4, behavior: 'smooth' });
-                } else {
-                    target = [...chips].reverse().find(c => c.offsetLeft < left - 2);
-                    if (target) categoryBar.scrollTo({ left: Math.max(0, target.offsetLeft - 4), behavior: 'smooth' });
+                const atEnd = overflow && categoryBar.scrollLeft >= maxScroll - 3;
+                if (catNextBtn.classList.contains('is-back') !== atEnd) {
+                    catNextBtn.classList.toggle('is-back', atEnd);
+                    const label = catNavLabel(atEnd);
+                    catNextBtn.setAttribute('aria-label', label);
+                    catNextBtn.setAttribute('title', label);
                 }
+            }
+            const stepCategories = () => {
+                const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
+                if (categoryBar.scrollLeft >= maxScroll - 3) {
+                    categoryBar.scrollTo({ left: 0, behavior: 'smooth' });
+                    return;
+                }
+                const chips = [...categoryBar.querySelectorAll('.map-segment-btn')];
+                const right = categoryBar.scrollLeft + categoryBar.clientWidth;
+                // Page forward: the first chip that is cut off on the right becomes the first chip
+                const target = chips.find(c => c.offsetLeft + c.offsetWidth > right + 2);
+                const left = target ? target.offsetLeft - 4 : maxScroll;
+                categoryBar.scrollTo({ left: Math.min(maxScroll, Math.max(0, left)), behavior: 'smooth' });
             };
-            if (catPrevBtn) catPrevBtn.addEventListener('click', () => stepCategories(-1));
-            if (catNextBtn) catNextBtn.addEventListener('click', () => stepCategories(1));
+            if (catNextBtn) catNextBtn.addEventListener('click', stepCategories);
+            window.addEventListener('calzada_lang_changed', () => {
+                if (!catNextBtn) return;
+                const label = catNavLabel(catNextBtn.classList.contains('is-back'));
+                catNextBtn.setAttribute('aria-label', label);
+                catNextBtn.setAttribute('title', label);
+            });
 
             // Standard scroll event listener
             categoryBar.addEventListener('scroll', updateCategoryScrollFade, { passive: true });
@@ -2027,7 +2040,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let sheetLastTime = 0;
         let sheetBaseTranslateY = 0; // The translateY at drag start (0 = expanded, positive = collapsed peek)
 
-        const SHEET_PEEK_HEIGHT = 80; // px exposed when collapsed
+        const SHEET_PEEK_HEIGHT = 84; // px of the sheet that stays on screen when collapsed
+
+        // Bottom of what the user can actually see (iOS Safari's toolbar can cover the layout bottom)
+        const visibleScreenBottom = () => {
+            const vv = window.visualViewport;
+            const h = vv ? vv.height + vv.offsetTop : window.innerHeight;
+            return Math.min(window.innerHeight, Math.round(h));
+        };
 
         const getSheetPositions = () => {
             const isMobile = window.innerWidth <= 768;
@@ -2035,11 +2055,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 return { expanded: 0, peek: 0, collapsed: 0 };
             }
             const sheetH = directionsCard ? directionsCard.offsetHeight : 592;
-            const collapseAt = Math.max(0, sheetH - SHEET_PEEK_HEIGHT);
-            // Peek: the sheet's top at about half the screen, so the route on the map stays visible
-            // above it (review #04). offsetTop is the sheet's top without the drag transform.
+            // offsetTop is the sheet's top without the drag transform.
             const naturalTop = directionsCard ? directionsCard.offsetTop : 0;
-            const peekAt = Math.min(collapseAt, Math.max(0, Math.round(window.innerHeight * 0.5 - naturalTop)));
+            // Collapsed: the handle and the "Directions" title always stay on screen. Measured from
+            // both the sheet's own bottom and the visible screen bottom, so the sheet can never be
+            // dragged out of sight.
+            const collapseAt = Math.max(0, Math.min(
+                sheetH - SHEET_PEEK_HEIGHT,
+                visibleScreenBottom() - SHEET_PEEK_HEIGHT - 12 - naturalTop
+            ));
+            // Peek: the sheet's top at about half the screen, so the route on the map stays visible
+            // above it (review #04). Only for the full-height route sheet; a short sheet (no route
+            // yet) has just open and collapsed.
+            let peekAt = Math.min(collapseAt, Math.max(0, Math.round(window.innerHeight * 0.5 - naturalTop)));
+            if (!directionsCard || !directionsCard.classList.contains('has-route') || peekAt < 48) peekAt = 0;
             return {
                 expanded: 0,
                 peek: peekAt,
@@ -2062,7 +2091,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!dsFooterEl) return;
             const isMobile = window.innerWidth <= 768;
             const pos = isMobile ? getSheetPositions() : null;
-            const lift = isMobile ? Math.max(0, Math.min(y, pos.peek)) : 0;
+            // Only the fixed-height route sheet lifts its footer; on a content-sized sheet the
+            // extra room would make the sheet itself grow.
+            const fixedH = directionsCard.classList.contains('has-route');
+            const lift = isMobile && fixedH ? Math.max(0, Math.min(y, pos.peek)) : 0;
             dsFooterEl.style.transition = animate ? 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
             dsFooterEl.style.transform = lift ? `translateY(${-lift}px)` : '';
             // The scrolling content ends where the lifted footer starts, so nothing scrolls
@@ -2076,6 +2108,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!isMobile) { syncFooterToSheet(0, false); return; }
 
             const pos = getSheetPositions();
+            if (state === 'peek' && pos.peek <= 0) state = 'expanded';
             const targetY = pos[state] ?? 0;
             const prevState = ['expanded', 'peek', 'collapsed'].find(s => directionsCard.classList.contains(s)) || 'expanded';
 
@@ -2104,7 +2137,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Refit route preview (one easeTo, 300 ms) when the sheet changes between expanded,
             // peek and collapsed. A snap back to the same state leaves the user's panning alone.
-            if (state !== prevState) fitRoutePreviewBounds(300);
+            if (state !== prevState) {
+                fitRoutePreviewBounds(300);
+                // No route: keep the blue dot in the middle of the map area left uncovered
+                if (typeof window._calzadaKeepUserCentred === 'function') window._calzadaKeepUserCentred();
+            }
         };
         window._calzadaSetSheetState = setSheetState;
 
@@ -2187,6 +2224,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let sheetCandidateDrag = false;
         let sheetStartX = 0;
+
+        // When the sheet's height changes (route found or cleared, fields reset) or the screen
+        // resizes, put it back on its current stop so a stale offset can't push it off screen.
+        const resnapSheet = () => {
+            if (!directionsCard || sheetDragging || window.innerWidth > 768) return;
+            if (directionsCard.classList.contains('journey-active-hidden')) return;
+            const state = ['peek', 'collapsed'].find(s => directionsCard.classList.contains(s)) || 'expanded';
+            const want = getSheetPositions()[state === 'peek' && getSheetPositions().peek <= 0 ? 'expanded' : state] ?? 0;
+            const cur = parseFloat(directionsCard.style.transform?.match(/translateY\(([^)]+)px\)/)?.[1] ?? '0');
+            if (Math.abs(cur - want) > 1) setSheetState(state, true);
+        };
+        if (window.ResizeObserver && directionsCard) {
+            let resnapFrame = null;
+            new ResizeObserver(() => {
+                if (resnapFrame) cancelAnimationFrame(resnapFrame);
+                resnapFrame = requestAnimationFrame(() => { resnapFrame = null; resnapSheet(); });
+            }).observe(directionsCard);
+        }
+        window.addEventListener('resize', () => requestAnimationFrame(resnapSheet));
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', () => requestAnimationFrame(resnapSheet));
 
         directionsCard.addEventListener('touchstart', (e) => {
             const isMobile = window.innerWidth <= 768;
@@ -2312,10 +2369,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clamp with rubber-band resistance at extremes
                 let clamped;
                 if (raw < 0) {
-                    clamped = raw * 0.2; // rubber-band when pulling above top
+                    clamped = Math.max(-40, raw * 0.2); // rubber-band when pulling above top
                 } else if (raw > collapseAt) {
                     const over = raw - collapseAt;
-                    clamped = collapseAt + over * 0.2; // rubber-band past peek
+                    clamped = collapseAt + Math.min(32, over * 0.2); // rubber-band past collapsed, never off screen
                 } else {
                     clamped = raw;
                 }
@@ -6949,10 +7006,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 animFrame = requestAnimationFrame(step);
             };
 
-            const centerOn = (f) => {
-                const opts = { center: [f.lng, f.lat], zoom: Math.max(map.getZoom(), LOCATE_ZOOM) };
-                if (reducedMotion()) map.jumpTo(opts);
-                else map.easeTo({ ...opts, duration: 700, essential: true });
+            // Middle of the part of the map the user can see: below the top bar and above the
+            // Directions sheet on phones, right of the sidebar on desktop. Uses the sheet's target
+            // transform, so it is right even while the sheet is still sliding.
+            const visibleMapCenter = () => {
+                const cont = map.getContainer();
+                const cr = cont.getBoundingClientRect();
+                let top = cr.top, bottom = cr.bottom, left = cr.left, right = cr.right;
+                const mobile = window.innerWidth <= 768;
+                const card = document.getElementById('directionsCard');
+                const sheetShown = card && card.getClientRects().length > 0 && card.offsetHeight > 0
+                    && !card.classList.contains('journey-active-hidden')
+                    && !document.body.classList.contains('is-map-picking');
+                if (mobile) {
+                    const bar = document.getElementById('mapTopBar');
+                    const br = bar ? bar.getBoundingClientRect() : null;
+                    if (br && br.height) top = Math.max(top, br.bottom + 8);
+                    if (sheetShown) {
+                        const m = (card.style.transform || '').match(/translateY\(([-\d.]+)px\)/);
+                        const sheetTop = card.offsetTop + (m ? parseFloat(m[1]) : 0);
+                        bottom = Math.min(bottom, sheetTop - 8);
+                    }
+                } else if (sheetShown) {
+                    const r = card.getBoundingClientRect();
+                    if (r.left <= cr.left + 1 && r.right < cr.right - 200) left = Math.max(left, r.right);
+                }
+                if (bottom - top < 80) { top = cr.top; bottom = cr.bottom; }
+                const x = (left + right) / 2, y = (top + bottom) / 2;
+                return {
+                    x: x - cr.left,
+                    y: y - cr.top,
+                    offset: [Math.round(x - (cr.left + cr.right) / 2), Math.round(y - (cr.top + cr.bottom) / 2)]
+                };
+            };
+
+            const centerOn = (f, { keepZoom = false, duration = 700 } = {}) => {
+                const zoom = keepZoom ? map.getZoom() : Math.max(map.getZoom(), LOCATE_ZOOM);
+                map.easeTo({
+                    center: [f.lng, f.lat],
+                    zoom,
+                    offset: visibleMapCenter().offset,
+                    duration: reducedMotion() ? 0 : duration,
+                    essential: true
+                });
             };
 
             const setLoading = (on) => {
@@ -7100,7 +7196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (navActive()) {
                     state = 'heading';
                 } else if (fix) {
-                    const c = map.project(map.getCenter());
+                    const c = visibleMapCenter();
                     const u = map.project([fix.lng, fix.lat]);
                     if (Math.hypot(c.x - u.x, c.y - u.y) <= 24) state = 'centred';
                 }
@@ -7108,6 +7204,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 locateState = state;
                 locateBtn.dataset.state = state;
                 locateBtn.setAttribute('aria-pressed', state === 'idle' ? 'false' : 'true');
+            };
+            // The sheet opened, closed or changed height: if the map was on the user, move the dot
+            // to the middle of the new visible area (in step with the sheet's slide).
+            window._calzadaKeepUserCentred = () => {
+                if (!fix || navActive() || routeOnMap()) return;
+                if (selectedCoords.origin && selectedCoords.destination) return;
+                if (locateState !== 'centred') return;
+                centerOn(fix, { keepZoom: true, duration: 420 });
             };
             let locateStateFrame = null;
             const scheduleLocateState = () => {

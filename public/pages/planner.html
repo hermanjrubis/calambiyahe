@@ -26,7 +26,7 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.9.2">
+    <link rel="stylesheet" href="../css/planner.css?v=2.9.3">
     <link rel="stylesheet" href="../css/planner-category.css?v=1.0.2">
     <link rel="stylesheet" href="../css/planner-transit.css?v=1.2.1">
     <link rel="stylesheet" href="../css/place-search.css?v=1.0.1">
@@ -150,9 +150,6 @@
     <div class="map-top-bar" id="mapTopBar">
         <!-- Category Filter Segmented Control Bar (Left Group) -->
         <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
-            <button class="cat-nav-btn cat-nav-prev" id="catPrevBtn" type="button" aria-label="Previous categories" disabled>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
-            </button>
             <div class="map-category-container">
                 <div class="category-scroll-wrapper" id="categoryScrollWrapper">
                     <div class="map-segmented-control category-scroll" id="mapCategoryBar" role="tablist" aria-label="Place Categories">
@@ -207,8 +204,8 @@
                     <span>Clear</span>
                 </button>
             </div>
-            <button class="cat-nav-btn cat-nav-next" id="catNextBtn" type="button" aria-label="More categories">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            <button class="cat-nav-btn cat-nav-next" id="catNextBtn" type="button" aria-label="More categories" hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
             </button>
         </div>
 
@@ -996,10 +993,10 @@
     <script src="../js/planner-category.js?v=1.1.2"></script>
     <script src="../js/transit-engine.js?v=1.3.2"></script>
     <script src="../js/planner-transit.js?v=1.1.0"></script>
-    <script src="../js/planner.js?v=2.10.4"></script>
+    <script src="../js/planner.js?v=2.10.5"></script>
     <script src="../js/legal-modal.js?v=2.6.5"></script>
     <script src="../js/script.js?v=2.6.7"></script>
-    <script src="../js/i18n.js?v=2.8.14"></script>
+    <script src="../js/i18n.js?v=2.8.15"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>
