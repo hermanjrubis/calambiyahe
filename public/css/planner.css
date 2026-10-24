@@ -7403,11 +7403,12 @@ body.pick-destination .mp-icon-to { display: inline; }
 .sk-leg-node {
     position: relative;
     z-index: 1;
-    width: 22px;
-    height: 22px;
+    width: 14px;
+    height: 14px;
+    justify-self: center;
     border-radius: 50%;
     background: #FFFFFF;
-    border: 2px solid #BFD5EE;
+    border: 3px solid #BFD5EE;
     color: #6E9BCB;
     display: flex;
     align-items: center;
@@ -7479,22 +7480,48 @@ body.pick-destination .mp-icon-to { display: inline; }
 .cat-nav-btn[hidden] { display: none !important; }
 .cat-nav-btn:focus-visible { outline: 2px solid #378ADD; outline-offset: 2px; }
 
-/* Arrows replace the faded edges */
-.category-scroll-wrapper.has-more-start:not(.has-more-end),
-.category-scroll-wrapper.has-more-end:not(.has-more-start),
-.category-scroll-wrapper.has-more-start.has-more-end {
-    -webkit-mask-image: none;
-    mask-image: none;
+/* Desktop: no arrows (scroll/drag as before, faded edges kept) */
+@media (min-width: 768px) {
+    .cat-nav-btn { display: none !important; }
 }
 
-/* Phones: fewer chips in view (scroll with the arrows or a swipe) */
+/* Phones: about 3–4 chips in the pill, ‹ › arrows outside it */
 @media (max-width: 767px) {
-    .map-category-container { gap: 2px; }
+    .map-category-bar-wrapper {
+        gap: 6px;
+        pointer-events: none;
+    }
+    .map-category-bar-wrapper .cat-nav-btn { pointer-events: auto; }
+    .map-category-container {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: auto !important;
+        gap: 2px;
+    }
     .map-segment-btn,
     #mapCategoryBar .map-segment-btn {
         padding: 0 10px;
         min-height: 36px;
         font-size: 12.5px;
     }
-    .cat-nav-btn { width: 30px; height: 30px; }
+    .cat-nav-btn {
+        width: 36px;
+        height: 36px;
+        background: #FFFFFF;
+    }
+    .cat-nav-btn:disabled { opacity: 0.55; }
+    /* arrows say there is more; no faded edges */
+    .category-scroll-wrapper.has-more-start:not(.has-more-end),
+    .category-scroll-wrapper.has-more-end:not(.has-more-start),
+    .category-scroll-wrapper.has-more-start.has-more-end {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
+
+/* Sheet at half height: the scroll area stops where the lifted Start Journey footer begins */
+@media (max-width: 768px) {
+    #directionsCard .ds-scroll-container {
+        margin-bottom: var(--sheet-lift, 0px);
+    }
 }

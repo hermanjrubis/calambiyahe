@@ -2065,6 +2065,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const lift = isMobile ? Math.max(0, Math.min(y, pos.peek)) : 0;
             dsFooterEl.style.transition = animate ? 'transform 0.42s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
             dsFooterEl.style.transform = lift ? `translateY(${-lift}px)` : '';
+            // The scrolling content ends where the lifted footer starts, so nothing scrolls
+            // out below the Start Journey button and the last item can be reached.
+            directionsCard.style.setProperty('--sheet-lift', `${Math.round(lift)}px`);
         };
 
         const setSheetState = (state, animate = true) => {
@@ -3822,7 +3825,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const ICON_WALK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="1.6"/><path d="M7 21l3-4M16 21l-2-4-3-3 1-6M6 12l2-3 4-1 3 3 3 1"/></svg>';
                 const ICON_JEEP = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="10" rx="2"/><path d="M3 11h18M7 16v2M17 16v2M7 6V4h10v2"/></svg>';
                 const ICON_FLAG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>';
-                const row = (icon, w1, w2, last) => `<div class="sk-leg-row${last ? ' is-last' : ''}" aria-hidden="true"><span class="sk-leg-time skeleton"></span><span class="sk-leg-node">${icon}</span><span class="sk-leg-text"><span class="skeleton sk-leg-line" style="width:${w1}%"></span><span class="skeleton sk-leg-line sk-leg-line--sub" style="width:${w2}%"></span></span></div>`;
+                const row = (icon, w1, w2, last) => `<div class="sk-leg-row${last ? ' is-last' : ''}" aria-hidden="true"><span class="sk-leg-time skeleton"></span><span class="sk-leg-node"></span><span class="sk-leg-text"><span class="skeleton sk-leg-line" style="width:${w1}%"></span><span class="skeleton sk-leg-line sk-leg-line--sub" style="width:${w2}%"></span></span></div>`;
                 legs.innerHTML = '<div class="sk-legs">' + row(ICON_WALK, 62, 38) + row(ICON_JEEP, 80, 52) + row(ICON_WALK, 55, 30) + row(ICON_FLAG, 48, 0, true) + '</div>';
             }
         };
@@ -6482,6 +6485,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let reverseGeocodeTimer = null;
         let reverseGeocodeAbort = null;
         let pickerField = 'destination';
+        // The pin counts as "on" a Calzada place only this close; otherwise the street is used
+        const PIN_ON_PLACE_M = 35;
+        const reverseCache = new Map();
+        const placeLabel = (p) => {
+            const area = p.barangay ? p.barangay : (p.municipality || 'Calamba');
+            return `${p.name}, ${area}`;
+        };
         let pickerSettleTimer = null;
 
         // The spot under the pin tip (screen centre). Not map.getCenter(): the map can carry
@@ -6504,7 +6514,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const coordsEl = document.getElementById('mapPickerCoordsLabel');
             const bubbleEl = document.getElementById('mapPinBubbleText');
             if (primaryEl) primaryEl.textContent = primaryText;
-            if (bubbleEl) bubbleEl.textContent = String(primaryText).replace(/^Near /, '').split(',')[0];
+            if (bubbleEl) bubbleEl.textContent = String(primaryText).split(',')[0];
             if (coordsEl && coordsText) coordsEl.textContent = coordsText;
             setPickerResolving(false);
         };
@@ -6518,14 +6528,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const coordsEl = document.getElementById('mapPickerCoordsLabel');
             if (coordsEl) coordsEl.textContent = coordsStr;
 
-            // 2. In-memory nearest known place (instant)
-            const nearest = findNearestKnownPlace(center.lat, center.lng, 450);
+            // 2. Pin right on a Calzada place (within ~35 m): use its name (instant)
+            const nearest = findNearestKnownPlace(center.lat, center.lng, PIN_ON_PLACE_M);
             if (nearest) {
                 if (reverseGeocodeTimer) clearTimeout(reverseGeocodeTimer);
                 if (reverseGeocodeAbort) reverseGeocodeAbort.abort();
-                const p = nearest.place;
-                const area = p.barangay ? p.barangay : (p.municipality || 'Calamba');
-                updatePickerDisplay(`Near ${p.name}, ${area}`, coordsStr);
+                updatePickerDisplay(placeLabel(nearest.place), coordsStr);
+                return;
+            }
+            const cacheKey = `${center.lat.toFixed(4)},${center.lng.toFixed(4)}`;
+            if (reverseCache.has(cacheKey)) {
+                if (reverseGeocodeTimer) clearTimeout(reverseGeocodeTimer);
+                if (reverseGeocodeAbort) reverseGeocodeAbort.abort();
+                updatePickerDisplay(reverseCache.get(cacheKey), coordsStr);
                 return;
             }
 
@@ -6536,19 +6551,18 @@ document.addEventListener('DOMContentLoaded', () => {
             reverseGeocodeTimer = setTimeout(async () => {
                 if (!isMapPicking) return;
                 const currentCenter = getPinLngLat();
-                const checkNear = findNearestKnownPlace(currentCenter.lat, currentCenter.lng, 450);
+                const checkNear = findNearestKnownPlace(currentCenter.lat, currentCenter.lng, PIN_ON_PLACE_M);
                 if (checkNear) {
-                    const p = checkNear.place;
-                    const area = p.barangay ? p.barangay : (p.municipality || 'Calamba');
-                    updatePickerDisplay(`Near ${p.name}, ${area}`, `${currentCenter.lat.toFixed(4)}, ${currentCenter.lng.toFixed(4)}`);
+                    updatePickerDisplay(placeLabel(checkNear.place), `${currentCenter.lat.toFixed(4)}, ${currentCenter.lng.toFixed(4)}`);
                     return;
                 }
+                const key = `${currentCenter.lat.toFixed(4)},${currentCenter.lng.toFixed(4)}`;
 
                 try {
                     if (reverseGeocodeAbort) reverseGeocodeAbort.abort();
                     reverseGeocodeAbort = new AbortController();
 
-                    const url = `https://nominatim.openstreetmap.org/reverse?lat=${currentCenter.lat}&lon=${currentCenter.lng}&format=json&addressdetails=1`;
+                    const url = `https://nominatim.openstreetmap.org/reverse?lat=${currentCenter.lat}&lon=${currentCenter.lng}&format=json&addressdetails=1&zoom=18`;
                     const res = await fetch(url, {
                         signal: reverseGeocodeAbort.signal,
                         headers: { 'Accept-Language': 'en', 'User-Agent': 'Calambiyahe-App/1.0' }
@@ -6556,7 +6570,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     const data = await res.json();
                     const readableAddr = formatReverseAddress(data.address);
-                    const finalLabel = readableAddr || data.name || t('planner.pinned_location');
+                    // A named building/shop/landmark right at the pin comes first ("Name, Street")
+                    const a = data.address || {};
+                    const poi = data.name && data.name !== (a.road || '') && /^(amenity|shop|building|tourism|office|leisure|healthcare|place_of_worship|craft)$/.test(data.class || data.category || '')
+                        ? data.name : '';
+                    const street = a.road || a.pedestrian || a.footway || '';
+                    const finalLabel = poi
+                        ? (street ? `${poi}, ${street}` : `${poi}, ${(a.quarter || a.suburb || a.village || 'Calamba')}`)
+                        : (readableAddr || data.name || t('planner.pinned_location'));
+                    reverseCache.set(key, finalLabel);
 
                     if (isMapPicking) {
                         updatePickerDisplay(finalLabel, `${currentCenter.lat.toFixed(4)}, ${currentCenter.lng.toFixed(4)}`);
