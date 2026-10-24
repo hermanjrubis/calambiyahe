@@ -2634,6 +2634,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 if (itineraryLegs) itineraryLegs.innerHTML = '';
+                if (!hasBothFields && window.CalzadaTransitUI) window.CalzadaTransitUI.hideOptions();
                 if (walkHintEl) walkHintEl.style.display = 'none';
                 if (savePdfBtn) savePdfBtn.style.display = 'none';
                 const peekSummary = document.getElementById('peekSummary');
@@ -2691,6 +2692,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('completed-route', []);
             updateRouteConnectors([]);
             window._calzadaRouteContext = null;
+            // The route options list ("Route" + option cards) belongs to the old trip
+            clearTransitPlan();
+            transitODKey = null;
+            priorTrip = null;
             try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
 
             ensureDestMarker();
@@ -2719,6 +2724,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('completed-route', []);
             updateRouteConnectors([]);
             window._calzadaRouteContext = null;
+            // The route options list ("Route" + option cards) belongs to the old trip
+            clearTransitPlan();
+            transitODKey = null;
+            priorTrip = null;
             try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
 
             ensureOriginMarker();
