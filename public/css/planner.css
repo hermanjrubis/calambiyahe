@@ -6989,3 +6989,512 @@ button.drawer-nav-item {
     outline: 2px solid #378ADD;
     outline-offset: 2px;
 }
+
+/* =============================================
+   MAP PIN PICKER (Oct 24 redesign)
+   While picking, everything except the pin, a one-line hint and the
+   card is hidden. The pin colour follows the field being set:
+   blue = Where from (starting point), red = Where to (destination).
+   ============================================= */
+body.is-map-picking {
+    --mp-color: #EF4444;
+    --mp-tint: rgba(239, 68, 68, 0.14);
+}
+body.is-map-picking.pick-origin {
+    --mp-color: #378ADD;
+    --mp-tint: rgba(55, 138, 221, 0.16);
+}
+
+/* Hide every other control while picking */
+body.is-map-picking .planner-gui-container,
+body.is-map-picking #directionsCard,
+body.is-map-picking .map-top-bar,
+body.is-map-picking #reCenterBtn,
+body.is-map-picking .maplibregl-control-container,
+body.is-map-picking .czc-card,
+body.is-map-picking .czc-sheet,
+body.is-map-picking .calzada-custom-marker,
+body.is-map-picking .cps-root,
+body.is-map-picking #bottomStatusPill {
+    display: none !important;
+}
+
+/* ── Pin ─────────────────────────────────────────────── */
+.mp-pin {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    width: 0;
+    height: 0;
+    z-index: 1300;
+    pointer-events: none;
+}
+.mp-pin-body {
+    position: absolute;
+    left: -24px;
+    bottom: 0;
+    width: 48px;
+    height: 60px;
+    transform-origin: 50% 100%;
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.mp-pin-svg { display: block; overflow: visible; }
+.mp-pin-shape { fill: var(--mp-color); stroke: #FFFFFF; stroke-width: 2.5; }
+.mp-icon-fill { fill: var(--mp-color); }
+.mp-icon-stroke { stroke: var(--mp-color); }
+.mp-icon-from, .mp-icon-to { display: none; }
+body.pick-origin .mp-icon-from { display: inline; }
+body.pick-destination .mp-icon-to { display: inline; }
+
+/* Ground mark: where the pin will land */
+.mp-ground {
+    position: absolute;
+    left: -9px;
+    top: -4px;
+    width: 18px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(15, 23, 42, 0.28);
+    transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.mp-ground::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--mp-color);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Lifted while the map moves: pin rises, ground mark widens and shows the exact spot */
+.mp-pin.is-lifted .mp-pin-body { transform: translateY(-16px) scale(1.04); }
+.mp-pin.is-lifted .mp-ground { transform: scale(1.5); opacity: 0.6; }
+.mp-pin.is-lifted .mp-ground::after { opacity: 1; }
+.mp-pin.is-lifted .mp-bubble { opacity: 0; transform: translate(-50%, 6px); }
+
+/* Drop with a small bounce, then one ripple */
+.mp-pin.is-dropped .mp-pin-body { animation: mp-drop 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.mp-ripple {
+    position: absolute;
+    left: -24px;
+    top: -12px;
+    width: 48px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--mp-color);
+    opacity: 0;
+}
+.mp-pin.is-dropped .mp-ripple { animation: mp-ripple 0.7s ease-out 0.12s; }
+
+@keyframes mp-drop {
+    0% { transform: translateY(-16px) scale(1.04); }
+    60% { transform: translateY(2px) scaleY(0.94); }
+    100% { transform: translateY(0) scale(1); }
+}
+@keyframes mp-ripple {
+    0% { opacity: 0.9; transform: scale(0.3); }
+    100% { opacity: 0; transform: scale(1.9); }
+}
+
+/* Name bubble above the pin */
+.mp-bubble {
+    position: absolute;
+    left: 0;
+    bottom: 70px;
+    transform: translate(-50%, 0);
+    max-width: min(240px, calc(100vw - 48px));
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0F172A;
+    white-space: nowrap;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.mp-bubble::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    background: #FFFFFF;
+    border-right: 1px solid #E2E8F0;
+    border-bottom: 1px solid #E2E8F0;
+    transform: translateX(-50%) rotate(45deg);
+}
+.mp-bubble-text { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.mp-bubble-text:empty { display: none; }
+.mp-dots { display: none; gap: 4px; padding: 3px 0; }
+.mp-dots i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mp-color);
+    animation: mp-dot 1s ease-in-out infinite;
+}
+.mp-dots i:nth-child(2) { animation-delay: 0.15s; }
+.mp-dots i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes mp-dot {
+    0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+    40% { opacity: 1; transform: translateY(-3px); }
+}
+.mp-pin.is-resolving .mp-bubble-text { display: none; }
+.mp-pin.is-resolving .mp-dots { display: inline-flex; }
+
+/* ── Hint (top) ──────────────────────────────────────── */
+.mp-hint {
+    position: fixed;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100vw - 32px);
+    padding: 10px 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: #0F172A;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.mp-hint svg { color: var(--mp-color); flex-shrink: 0; }
+.mp-hint.is-gone { opacity: 0; transform: translate(-50%, -8px); }
+
+/* ── Card (bottom) ───────────────────────────────────── */
+.mp-card {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 1300;
+    width: min(420px, calc(100vw - 24px));
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 10px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-top: 4px solid var(--mp-color);
+    border-radius: 16px;
+    font-family: 'Outfit', sans-serif;
+    animation: mp-card-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes mp-card-in {
+    from { opacity: 0; transform: translate(-50%, 16px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+.mp-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.mp-role {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mp-color);
+}
+.mp-role-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--mp-color);
+    box-shadow: 0 0 0 4px var(--mp-tint);
+}
+.mp-coords {
+    font-size: 12px;
+    color: #64748B;
+    font-variant-numeric: tabular-nums;
+}
+.mp-title-wrap {
+    position: relative;
+    min-height: 26px;
+    margin: 8px 0 14px;
+}
+.mp-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #0F172A;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.mp-title-sk {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 70%;
+    height: 20px;
+}
+.mp-card.is-resolving .mp-title { visibility: hidden; }
+.mp-card.is-resolving .mp-title-sk { display: block; }
+.mp-confirm {
+    height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: var(--mp-color);
+    color: #FFFFFF;
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.1s ease;
+}
+.mp-confirm:hover { filter: brightness(0.94); }
+.mp-confirm:active { transform: scale(0.99); }
+.mp-cancel {
+    margin-top: 4px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: #64748B;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.mp-cancel:hover { color: #0F172A; }
+.mp-confirm:focus-visible,
+.mp-cancel:focus-visible {
+    outline: 2px solid var(--mp-color);
+    outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+    .mp-pin-body, .mp-ground, .mp-bubble, .mp-hint { transition: none; }
+    .mp-pin.is-dropped .mp-pin-body, .mp-pin.is-dropped .mp-ripple, .mp-dots i, .mp-card { animation: none; }
+}
+
+/* =============================================
+   LOADING STATES (Oct 24)
+   Fields, the O-D box and the itinerary show clear motion while
+   something is being looked up, so the planner never looks stuck.
+   ============================================= */
+
+/* A field being filled (GPS fix, place lookup): text shimmer + three dots */
+.od-field.is-loading {
+    position: relative;
+    color: #64748B !important;
+    padding-right: 34px;
+    background-image: linear-gradient(90deg, #64748B 0%, #64748B 35%, #B8C7DA 50%, #64748B 65%, #64748B 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: od-text-shimmer 1.3s linear infinite;
+}
+.od-field.is-loading::after {
+    content: "";
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    width: 22px;
+    height: 6px;
+    margin-top: -3px;
+    background:
+        radial-gradient(circle, #378ADD 2.6px, transparent 3px) 0 50% / 8px 6px no-repeat,
+        radial-gradient(circle, #378ADD 2.6px, transparent 3px) 8px 50% / 8px 6px no-repeat,
+        radial-gradient(circle, #378ADD 2.6px, transparent 3px) 16px 50% / 8px 6px no-repeat;
+    -webkit-text-fill-color: initial;
+    animation: od-dots 1s steps(1) infinite;
+}
+@keyframes od-text-shimmer {
+    from { background-position: 110% 0; }
+    to { background-position: -110% 0; }
+}
+@keyframes od-dots {
+    0% { opacity: 1; clip-path: inset(0 66% 0 0); }
+    33% { clip-path: inset(0 33% 0 0); }
+    66% { clip-path: inset(0 0 0 0); }
+    100% { clip-path: inset(0 66% 0 0); }
+}
+
+/* Route being computed: a moving bar along the bottom of the O-D box */
+.od-input-block { position: relative; overflow: hidden; }
+.od-input-block::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, #378ADD 40%, #378ADD 60%, transparent 100%) 0 0 / 40% 100% no-repeat;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.od-input-block.is-routing::after {
+    opacity: 1;
+    animation: od-route-bar 1.1s ease-in-out infinite;
+}
+@keyframes od-route-bar {
+    from { background-position: -60% 0; }
+    to { background-position: 160% 0; }
+}
+
+/* Footer helper while routing: "Finding routes" with live dots */
+.directions-card.is-route-loading .start-journey-helper {
+    color: #2272C3;
+    font-weight: 600;
+}
+.directions-card.is-route-loading .start-journey-helper::after,
+.directions-card.is-route-loading .peek-summary-text::after {
+    content: "";
+    display: inline-block;
+    width: 1.2em;
+    text-align: left;
+    animation: od-ellipsis 1.2s steps(4, end) infinite;
+    vertical-align: bottom;
+    overflow: hidden;
+    white-space: nowrap;
+}
+@keyframes od-ellipsis {
+    0% { content: ""; }
+    25% { content: "."; }
+    50% { content: ".."; }
+    75% { content: "..."; }
+}
+.directions-card.is-route-loading .peek-summary-text {
+    color: #2272C3;
+}
+
+/* Planner skeletons: a little more contrast than the site default so they read as "loading" */
+.directions-card .skeleton,
+.mp-card .skeleton {
+    --sk-base: #E1E9F4;
+    --sk-highlight: #F7FAFE;
+    --sk-speed: 1.1s;
+}
+
+/* Itinerary skeleton shaped like a real trip: walk → jeepney → walk → arrive */
+.sk-legs { position: relative; padding: 4px 0; }
+.sk-leg-row {
+    display: grid;
+    grid-template-columns: 44px 22px 1fr;
+    column-gap: 10px;
+    align-items: center;
+    padding: 10px 0;
+    position: relative;
+}
+.sk-leg-time { height: 12px; width: 36px; justify-self: end; border-radius: 6px; }
+.sk-leg-node {
+    position: relative;
+    z-index: 1;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2px solid #BFD5EE;
+    color: #6E9BCB;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: sk-node-pulse 1.4s ease-in-out infinite;
+}
+.sk-leg-row:nth-child(2) .sk-leg-node { animation-delay: 0.2s; }
+.sk-leg-row:nth-child(3) .sk-leg-node { animation-delay: 0.4s; }
+.sk-leg-row:nth-child(4) .sk-leg-node { animation-delay: 0.6s; }
+.sk-leg-row:not(.is-last)::before {
+    content: "";
+    position: absolute;
+    left: 64px;
+    top: 50%;
+    height: 100%;
+    border-left: 2px dashed #BFD5EE;
+}
+.sk-leg-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.sk-leg-line { height: 12px; border-radius: 6px; max-width: none; flex: none; }
+.sk-leg-line--sub { height: 10px; }
+.sk-leg-line[style*="width:0%"] { display: none; }
+@keyframes sk-node-pulse {
+    0%, 100% { border-color: #BFD5EE; color: #6E9BCB; }
+    50% { border-color: #378ADD; color: #378ADD; }
+}
+
+/* =============================================
+   CATEGORY BAR (Oct 24): icon + short label chips, ‹ › arrows
+   ============================================= */
+.map-category-container {
+    padding: 4px !important;
+    gap: 2px;
+}
+.map-segment-btn,
+#mapCategoryBar .map-segment-btn {
+    gap: 6px;
+    padding: 0 12px;
+    min-height: 38px;
+    font-size: 13px;
+}
+.map-segment-btn .cat-ico {
+    flex-shrink: 0;
+    color: #94A3B8;
+    transition: color 0.15s ease;
+}
+.map-segment-btn:hover .cat-ico,
+.map-segment-btn.active .cat-ico {
+    color: var(--brand-blue, #378ADD);
+}
+.map-segment-btn .czc-count { margin-left: 2px; }
+
+.cat-nav-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #378ADD;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.cat-nav-btn:hover:not(:disabled) { background: rgba(55, 138, 221, 0.08); }
+.cat-nav-btn:disabled { color: #CBD5E1; cursor: default; }
+.cat-nav-btn[hidden] { display: none !important; }
+.cat-nav-btn:focus-visible { outline: 2px solid #378ADD; outline-offset: 2px; }
+
+/* Arrows replace the faded edges */
+.category-scroll-wrapper.has-more-start:not(.has-more-end),
+.category-scroll-wrapper.has-more-end:not(.has-more-start),
+.category-scroll-wrapper.has-more-start.has-more-end {
+    -webkit-mask-image: none;
+    mask-image: none;
+}
+
+/* Phones: fewer chips in view (scroll with the arrows or a swipe) */
+@media (max-width: 767px) {
+    .map-category-container { gap: 2px; }
+    .map-segment-btn,
+    #mapCategoryBar .map-segment-btn {
+        padding: 0 10px;
+        min-height: 36px;
+        font-size: 12.5px;
+    }
+    .cat-nav-btn { width: 30px; height: 30px; }
+}

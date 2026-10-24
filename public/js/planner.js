@@ -1406,6 +1406,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const onPinTap = (e) => {
                 if (e && e.stopPropagation) e.stopPropagation();
+                // A pin standing in for nearby pins (shows a count): zoom in to separate them first
+                if (pinDeclutter.zoomIntoGroup(iconEl)) return;
                 if (window.CalzadaPlannerCategory && place.slug) window.CalzadaPlannerCategory.select(place.slug);
             };
             iconEl.addEventListener('click', onPinTap);
@@ -1417,9 +1419,129 @@ document.addEventListener('DOMContentLoaded', () => {
             const marker = new maplibregl.Marker({ element: iconEl, anchor: 'bottom' })
                 .setLngLat([lng, lat])
                 .addTo(map);
+            pinDeclutter.add(marker, iconEl, place.slug || place.name || '');
             return { marker, el: iconEl };
         }
         window._calzadaBuildPlaceMarker = buildCategoryPlaceMarker;
+
+        /**
+         * Category pins overlap where places sit close together (very visible on phones,
+         * where the map is zoomed out). Pins closer than a pin's width on screen are grouped:
+         * one pin stays visible with a count and tapping it zooms in. When zoomed in far and
+         * pins still share a spot (same building), they fan out in a small circle instead.
+         * Recomputed on every map move/zoom; the selected pin always stays visible.
+         */
+        const pinDeclutter = (() => {
+            const items = new Set();
+            const GROUP_W = 28, GROUP_H = 32;   // pin is 32x38 px
+            const FAN_ZOOM = 17.5;    // from here on, fan out instead of grouping
+            let raf = 0;
+
+            function add(marker, el, key) {
+                const it = { marker, el, key };
+                el._declutterItem = it;
+                items.add(it);
+                schedule();
+            }
+            function live() {
+                const out = [];
+                items.forEach(it => {
+                    if (!it.el.isConnected) { items.delete(it); return; }
+                    out.push(it);
+                });
+                return out;
+            }
+            function schedule() {
+                if (raf) return;
+                raf = requestAnimationFrame(() => { raf = 0; run(); });
+            }
+            function setCount(el, n) {
+                let b = el.querySelector('.czc-pin-count');
+                if (n > 1) {
+                    if (!b) {
+                        b = document.createElement('span');
+                        b.className = 'czc-pin-count';
+                        b.setAttribute('aria-hidden', 'true');
+                        el.appendChild(b);
+                    }
+                    b.textContent = n > 99 ? '99+' : String(n);
+                } else if (b) {
+                    b.remove();
+                }
+            }
+            function run() {
+                if (!map) return;
+                const list = live();
+                if (!list.length) return;
+                const zoom = map.getZoom();
+                const rank = (it) => it.el.classList.contains('czc-pin-selected') ? 0 : 1;
+                list.sort((a, b) => rank(a) - rank(b) || String(a.key).localeCompare(String(b.key)));
+
+                const groups = [];
+                for (const it of list) {
+                    const p = map.project(it.marker.getLngLat());
+                    it.pt = p;
+                    let g = null;
+                    for (const cand of groups) {
+                        // pins are 32x38: group when their boxes would visibly overlap
+                        if (Math.abs(cand.pt.x - p.x) < GROUP_W && Math.abs(cand.pt.y - p.y) < GROUP_H) { g = cand; break; }
+                    }
+                    if (g) g.members.push(it);
+                    else groups.push({ pt: p, members: [it] });
+                }
+
+                const fan = zoom >= FAN_ZOOM;
+                for (const g of groups) {
+                    const n = g.members.length;
+                    g.members.forEach((it, i) => {
+                        it.group = g;
+                        const leader = i === 0;
+                        if (n === 1) {
+                            it.marker.setOffset([0, 0]);
+                            it.el.classList.remove('czc-pin-grouped', 'czc-pin-hidden');
+                            setCount(it.el, 1);
+                        } else if (fan) {
+                            // Fan out around the shared spot, offset from where each pin actually is
+                            const ang = (-Math.PI / 2) + (2 * Math.PI * i) / n;
+                            const r = 26 + Math.max(0, n - 3) * 5;
+                            const tx = g.pt.x + Math.cos(ang) * r, ty = g.pt.y + Math.sin(ang) * r;
+                            it.marker.setOffset([Math.round(tx - it.pt.x), Math.round(ty - it.pt.y)]);
+                            it.el.classList.remove('czc-pin-grouped', 'czc-pin-hidden');
+                            setCount(it.el, 1);
+                        } else {
+                            it.marker.setOffset([0, 0]);
+                            it.el.classList.toggle('czc-pin-hidden', !leader);
+                            it.el.classList.toggle('czc-pin-grouped', leader);
+                            setCount(it.el, leader ? n : 1);
+                        }
+                    });
+                }
+            }
+            // Returns true when the tap was used to zoom into a group
+            function zoomIntoGroup(el) {
+                const it = el && el._declutterItem;
+                if (!it || !it.group || it.group.members.length < 2 || !el.classList.contains('czc-pin-grouped')) return false;
+                const b = new maplibregl.LngLatBounds();
+                it.group.members.forEach(m => b.extend(m.marker.getLngLat()));
+                const sheetH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--czc-sheet-h')) || 0;
+                const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                try {
+                    map.fitBounds(b, {
+                        padding: { top: 150, bottom: Math.max(60, sheetH + 40), left: 60, right: 80 },
+                        maxZoom: Math.max(FAN_ZOOM + 0.5, Math.min(19, map.getZoom() + 2)),
+                        duration: reduced ? 0 : 450
+                    });
+                } catch (_) {}
+                return true;
+            }
+            return { add, schedule, zoomIntoGroup };
+        })();
+        window._calzadaPinDeclutter = pinDeclutter;
+        if (map) {
+            map.on('move', pinDeclutter.schedule);
+            map.on('zoom', pinDeclutter.schedule);
+            map.on('resize', pinDeclutter.schedule);
+        }
 
         function renderPlacesOnMap(places) {
             categoryMarkers.forEach(m => m.remove());
@@ -1490,6 +1612,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
                 if (maxScroll <= 2) {
                     categoryScrollWrapper.classList.remove('has-more-start', 'has-more-end');
+                    updateCatNav();
                     return;
                 }
                 const scrollLeft = categoryBar.scrollLeft;
@@ -1497,7 +1620,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const hasEnd = scrollLeft < maxScroll - 3;
                 categoryScrollWrapper.classList.toggle('has-more-start', hasStart);
                 categoryScrollWrapper.classList.toggle('has-more-end', hasEnd);
+                updateCatNav();
             };
+
+            // ‹ › arrows: move the strip one category back/forward
+            const catPrevBtn = document.getElementById('catPrevBtn');
+            const catNextBtn = document.getElementById('catNextBtn');
+            function updateCatNav() {
+                if (!catPrevBtn || !catNextBtn) return;
+                const maxScroll = categoryBar.scrollWidth - categoryBar.clientWidth;
+                const overflow = maxScroll > 2;
+                catPrevBtn.hidden = !overflow;
+                catNextBtn.hidden = !overflow;
+                catPrevBtn.disabled = categoryBar.scrollLeft <= 3;
+                catNextBtn.disabled = categoryBar.scrollLeft >= maxScroll - 3;
+            }
+            const stepCategories = (dir) => {
+                const chips = [...categoryBar.querySelectorAll('.map-segment-btn')];
+                const left = categoryBar.scrollLeft;
+                const right = left + categoryBar.clientWidth;
+                let target = null;
+                if (dir > 0) {
+                    // first chip that is cut off on the right: bring it fully in view
+                    target = chips.find(c => c.offsetLeft + c.offsetWidth > right + 2);
+                    if (target) categoryBar.scrollTo({ left: target.offsetLeft + target.offsetWidth - categoryBar.clientWidth + 4, behavior: 'smooth' });
+                } else {
+                    target = [...chips].reverse().find(c => c.offsetLeft < left - 2);
+                    if (target) categoryBar.scrollTo({ left: Math.max(0, target.offsetLeft - 4), behavior: 'smooth' });
+                }
+            };
+            if (catPrevBtn) catPrevBtn.addEventListener('click', () => stepCategories(-1));
+            if (catNextBtn) catNextBtn.addEventListener('click', () => stepCategories(1));
 
             // Standard scroll event listener
             categoryBar.addEventListener('scroll', updateCategoryScrollFade, { passive: true });
@@ -2338,7 +2491,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 anchor: document.getElementById(type === 'origin' ? 'openOriginModal' : 'openDestModal'),
                 places: () => (pickerKnownPlaces.length ? pickerKnownPlaces : CALAMBA_PLACES_FALLBACK),
                 userFix: () => (typeof window._calzadaGetUserFix === 'function' ? window._calzadaGetUserFix() : null),
-                onSelect: (name, coords) => selectLocation(name, coords),
+                onSelect: (name, coords) => { pendingField[type] = null; selectLocation(name, coords); },
+                onPending: (name) => setFieldPending(type, name),
+                onPendingFail: () => setFieldPending(type, null),
                 onMyLocation: () => requestMyLocationOrigin(),
                 onPin: () => triggerMapPicker()
             });
@@ -2357,6 +2512,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // B3: Centralized single function that every path calls to control planner state & visibility
+        // A field whose place was picked but whose coordinates are still being looked up
+        // (search result geocode) shows the name with a loading shimmer.
+        const pendingField = { origin: null, destination: null };
+        const setFieldPending = (field, name) => {
+            pendingField[field] = name || null;
+            renderPlannerState();
+        };
+        window._calzadaSetFieldPending = setFieldPending;
+
         const renderPlannerState = () => {
             const hasOrigin = Boolean(selectedCoords.origin && originPlaceName);
             const hasDest = Boolean(selectedCoords.destination && destPlaceName);
@@ -2405,6 +2569,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (clearDestBtn) {
                 clearDestBtn.style.display = hasDest ? 'inline-flex' : 'none';
             }
+            if (origEl && pendingField.origin) { origEl.textContent = pendingField.origin; origEl.classList.remove('unfilled'); }
+            if (destEl && pendingField.destination) { destEl.textContent = pendingField.destination; destEl.classList.remove('unfilled'); }
+            if (origEl) origEl.classList.toggle('is-loading', isLocatingOrigin || !!pendingField.origin);
+            if (destEl) destEl.classList.toggle('is-loading', !!pendingField.destination);
+            const odBlock = document.querySelector('.od-input-block');
+            if (odBlock) odBlock.classList.toggle('is-routing', !!(routeLoading && hasBothFields));
 
             // 2. Directions sheet header X button (B1)
             const closeDirectionsBtn = document.getElementById('closeDirectionsBtn');
@@ -2697,6 +2867,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (origEl) {
                 origEl.textContent = waitingText;
                 origEl.classList.remove('unfilled');
+                origEl.classList.add('is-loading');
             }
             originPlaceName = waitingText;
 
@@ -3563,9 +3734,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Route loading: as soon as both places are set the panel says "Finding routes…" with a
         // skeleton result, and says so plainly if no route could be made.
-        function routeLoadingText() { return transitLang() === 'tl' ? 'Hinahanap ang mga ruta…' : 'Finding routes…'; }
+        // While a route is computed, an animated dashed line joins the two places on the map,
+        // so the map itself shows that something is happening.
+        let routeSearchAnim = 0;
+        const ROUTE_SEARCH_SRC = 'calzada-route-search';
+        function showRouteSearchLine(on) {
+            if (!map || !map.getStyle) return;
+            const clear = () => {
+                if (routeSearchAnim) { cancelAnimationFrame(routeSearchAnim); routeSearchAnim = 0; }
+                try { if (map.getLayer(ROUTE_SEARCH_SRC)) map.removeLayer(ROUTE_SEARCH_SRC); } catch (_) {}
+                try { if (map.getSource(ROUTE_SEARCH_SRC)) map.removeSource(ROUTE_SEARCH_SRC); } catch (_) {}
+            };
+            if (!on || !selectedCoords.origin || !selectedCoords.destination) { clear(); return; }
+            const o = selectedCoords.origin, d = selectedCoords.destination;
+            // gentle arc so it does not read as a real route
+            const pts = [];
+            const mx = (o[1] + d[1]) / 2, my = (o[0] + d[0]) / 2;
+            const dx = d[1] - o[1], dy = d[0] - o[0];
+            const cx = mx - dy * 0.18, cy = my + dx * 0.18;
+            for (let i = 0; i <= 32; i++) {
+                const u = i / 32;
+                const lng = (1 - u) * (1 - u) * o[1] + 2 * (1 - u) * u * cx + u * u * d[1];
+                const lat = (1 - u) * (1 - u) * o[0] + 2 * (1 - u) * u * cy + u * u * d[0];
+                pts.push([lng, lat]);
+            }
+            const data = { type: 'Feature', geometry: { type: 'LineString', coordinates: pts } };
+            try {
+                if (map.getSource(ROUTE_SEARCH_SRC)) map.getSource(ROUTE_SEARCH_SRC).setData(data);
+                else {
+                    map.addSource(ROUTE_SEARCH_SRC, { type: 'geojson', data });
+                    map.addLayer({
+                        id: ROUTE_SEARCH_SRC, type: 'line', source: ROUTE_SEARCH_SRC,
+                        layout: { 'line-cap': 'round', 'line-join': 'round' },
+                        paint: { 'line-color': '#378ADD', 'line-width': 4, 'line-opacity': 0.85, 'line-dasharray': [0, 2, 2] }
+                    });
+                }
+            } catch (_) { return; }
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            // March the dashes along the line
+            const seq = [[0, 2, 2], [0.5, 2, 1.5], [1, 2, 1], [1.5, 2, 0.5], [2, 2, 0], [0, 0.5, 2, 1.5], [0, 1, 2, 1], [0, 1.5, 2, 0.5]];
+            let step = 0, last = 0;
+            const tick = (ts) => {
+                if (!routeLoading) { clear(); return; }
+                if (ts - last > 70) {
+                    last = ts;
+                    step = (step + 1) % seq.length;
+                    try { map.setPaintProperty(ROUTE_SEARCH_SRC, 'line-dasharray', seq[step]); } catch (_) {}
+                }
+                routeSearchAnim = requestAnimationFrame(tick);
+            };
+            if (routeSearchAnim) cancelAnimationFrame(routeSearchAnim);
+            routeSearchAnim = requestAnimationFrame(tick);
+        }
+
+        function routeLoadingText() { return transitLang() === 'tl' ? 'Hinahanap ang mga ruta' : 'Finding routes'; }
         const setRouteLoading = (on) => {
             routeLoading = on;
+            const odBlock = document.querySelector('.od-input-block');
+            if (odBlock) odBlock.classList.toggle('is-routing', !!on);
+            if (directionsCard) directionsCard.classList.toggle('is-route-loading', !!on);
+            showRouteSearchLine(!!on);
+            const peek = document.getElementById('peekSummary');
+            if (on && peek) peek.textContent = routeLoadingText();
             const blk = document.getElementById('routeSummaryBlock');
             const legs = document.getElementById('itineraryLegs');
             const helper = document.getElementById('startJourneyHelper');
@@ -3589,7 +3819,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (st) st.innerHTML = '<span class="skeleton sk-route-val" role="status" aria-label="Calculating route"></span>';
             if (sf) sf.innerHTML = '<span class="skeleton sk-route-val sk-route-fare"></span>';
             if (legs && !legs.querySelector('.sk-leg-row')) {
-                legs.innerHTML = [0, 1, 2].map(() => '<div class="sk-leg-row" aria-hidden="true"><span class="skeleton sk-leg-dot"></span><span class="skeleton sk-leg-line"></span></div>').join('');
+                const ICON_WALK = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="1.6"/><path d="M7 21l3-4M16 21l-2-4-3-3 1-6M6 12l2-3 4-1 3 3 3 1"/></svg>';
+                const ICON_JEEP = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="10" rx="2"/><path d="M3 11h18M7 16v2M17 16v2M7 6V4h10v2"/></svg>';
+                const ICON_FLAG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>';
+                const row = (icon, w1, w2, last) => `<div class="sk-leg-row${last ? ' is-last' : ''}" aria-hidden="true"><span class="sk-leg-time skeleton"></span><span class="sk-leg-node">${icon}</span><span class="sk-leg-text"><span class="skeleton sk-leg-line" style="width:${w1}%"></span><span class="skeleton sk-leg-line sk-leg-line--sub" style="width:${w2}%"></span></span></div>`;
+                legs.innerHTML = '<div class="sk-legs">' + row(ICON_WALK, 62, 38) + row(ICON_JEEP, 80, 52) + row(ICON_WALK, 55, 30) + row(ICON_FLAG, 48, 0, true) + '</div>';
             }
         };
         const executeRouteQuery = async () => {
@@ -6247,44 +6481,61 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentPickerLabel = 'Move map to select location...';
         let reverseGeocodeTimer = null;
         let reverseGeocodeAbort = null;
+        let pickerField = 'destination';
+        let pickerSettleTimer = null;
+
+        // The spot under the pin tip (screen centre). Not map.getCenter(): the map can carry
+        // camera padding from fitBounds/easeTo, which moves its "centre" away from the pin.
+        const getPinLngLat = () => {
+            const rect = map.getContainer().getBoundingClientRect();
+            const x = window.innerWidth / 2 - rect.left;
+            const y = window.innerHeight / 2 - rect.top;
+            return map.unproject([x, y]);
+        };
+
+        const setPickerResolving = (on) => {
+            mapPickerUI.classList.toggle('is-resolving', !!on);
+            if (mapCenterPin) mapCenterPin.classList.toggle('is-resolving', !!on);
+        };
 
         const updatePickerDisplay = (primaryText, coordsText) => {
             currentPickerLabel = primaryText;
-            const primaryEl = document.getElementById('mapPickerPrimaryLabel') || document.getElementById('mapPickerAddress');
+            const primaryEl = document.getElementById('mapPickerPrimaryLabel');
             const coordsEl = document.getElementById('mapPickerCoordsLabel');
+            const bubbleEl = document.getElementById('mapPinBubbleText');
             if (primaryEl) primaryEl.textContent = primaryText;
+            if (bubbleEl) bubbleEl.textContent = String(primaryText).replace(/^Near /, '').split(',')[0];
             if (coordsEl && coordsText) coordsEl.textContent = coordsText;
+            setPickerResolving(false);
         };
 
         const mapMovedHandler = () => {
             if (!isMapPicking) return;
-            const center = map.getCenter();
+            const center = getPinLngLat();
             const coordsStr = `${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}`;
 
-            // 1. Instantly update coordinates display with zero delay
+            // 1. Coordinates follow the pin with no delay
             const coordsEl = document.getElementById('mapPickerCoordsLabel');
             if (coordsEl) coordsEl.textContent = coordsStr;
 
-            // 2. Synchronously check in-memory nearest known place (<0.1ms)
+            // 2. In-memory nearest known place (instant)
             const nearest = findNearestKnownPlace(center.lat, center.lng, 450);
             if (nearest) {
                 if (reverseGeocodeTimer) clearTimeout(reverseGeocodeTimer);
                 if (reverseGeocodeAbort) reverseGeocodeAbort.abort();
-
                 const p = nearest.place;
                 const area = p.barangay ? p.barangay : (p.municipality || 'Calamba');
-                const label = `Near ${p.name}, ${area}`;
-                updatePickerDisplay(label, coordsStr);
+                updatePickerDisplay(`Near ${p.name}, ${area}`, coordsStr);
                 return;
             }
 
-            // 3. If no mapped place is within 450m, debounce the external reverse geocode
+            // 3. No mapped place within 450 m: look the address up (debounced), showing that it is loading
+            setPickerResolving(true);
             if (reverseGeocodeTimer) clearTimeout(reverseGeocodeTimer);
 
             reverseGeocodeTimer = setTimeout(async () => {
                 if (!isMapPicking) return;
-                const currentCenter = map.getCenter();
-                // Re-verify nearest in case user moved near another place right as timer fired
+                const currentCenter = getPinLngLat();
                 const checkNear = findNearestKnownPlace(currentCenter.lat, currentCenter.lng, 450);
                 if (checkNear) {
                     const p = checkNear.place;
@@ -6318,38 +6569,90 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 350);
         };
 
+        // The pin lifts while the map is moving and drops (with a ripple) when it stops
+        const pickerMoveStart = () => {
+            if (!isMapPicking || !mapCenterPin) return;
+            if (pickerSettleTimer) { clearTimeout(pickerSettleTimer); pickerSettleTimer = null; }
+            mapCenterPin.classList.remove('is-dropped');
+            mapCenterPin.classList.add('is-lifted');
+        };
+        const pickerMoveEnd = () => {
+            if (!isMapPicking || !mapCenterPin) return;
+            mapCenterPin.classList.remove('is-lifted');
+            void mapCenterPin.offsetWidth; // restart the drop animation
+            mapCenterPin.classList.add('is-dropped');
+            pickerSettleTimer = setTimeout(() => mapCenterPin.classList.remove('is-dropped'), 700);
+        };
+
+        const pickerText = (key, fallback) => {
+            const v = t(key);
+            return (v && v !== key) ? v : fallback;
+        };
+
         const triggerMapPicker = () => {
             isMapPicking = true;
+            pickerField = activeSelectingField === 'origin' ? 'origin' : 'destination';
             loadPickerPlaces();
-            mapCenterPin.style.display = 'flex';
-            mapPickerUI.style.display = 'flex';
-            directionsCard.style.display = 'none';
 
-            // Initial resolution for current map center
+            const isFrom = pickerField === 'origin';
+            document.body.classList.add('is-map-picking');
+            document.body.classList.toggle('pick-origin', isFrom);
+            document.body.classList.toggle('pick-destination', !isFrom);
+            const roleEl = document.getElementById('mapPickerRole');
+            if (roleEl) roleEl.textContent = isFrom ? pickerText('planner.pick_from_role', 'Starting point') : pickerText('planner.pick_to_role', 'Destination');
+            const hintEl = document.getElementById('mapPickerHintText');
+            if (hintEl) hintEl.textContent = isFrom ? pickerText('planner.pick_from_hint', 'Move the map to set where you start') : pickerText('planner.pick_to_hint', 'Move the map to set where you are going');
+            const confirmEl = document.getElementById('mapPickerConfirmBtn');
+            if (confirmEl) confirmEl.textContent = isFrom ? pickerText('planner.pick_from_confirm', 'Set as starting point') : pickerText('planner.pick_to_confirm', 'Set as destination');
+            const cancelEl = document.getElementById('mapPickerCancelBtn');
+            if (cancelEl) cancelEl.textContent = pickerText('planner.pick_cancel', 'Cancel');
+
+            mapCenterPin.style.display = '';
+            mapPickerUI.style.display = '';
+            const hint = document.getElementById('mapPickerHint');
+            if (hint) { hint.style.display = ''; hint.classList.remove('is-gone'); }
+
+            // Pin enters with a drop
+            mapCenterPin.classList.remove('is-lifted');
+            pickerMoveEnd();
+
             mapMovedHandler();
-
             map.on('move', mapMovedHandler);
+            map.on('movestart', pickerMoveStart);
+            map.on('moveend', pickerMoveEnd);
+            map.once('movestart', () => { if (hint) hint.classList.add('is-gone'); });
         };
 
         document.getElementById('mapPickerConfirmBtn').addEventListener('click', () => {
-            const c = map.getCenter();
+            const c = getPinLngLat();
             const selectedLabel = (currentPickerLabel && currentPickerLabel !== 'Move map to select location...')
                 ? currentPickerLabel
                 : t('planner.pinned_location'); // coordinates stay in the picker, never in the label
-            selectLocation(selectedLabel, [c.lat, c.lng]);
+            activeSelectingField = pickerField;
             cancelMapPicking();
+            selectLocation(selectedLabel, [c.lat, c.lng]);
         });
 
         document.getElementById('mapPickerCancelBtn').addEventListener('click', cancelMapPicking);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isMapPicking) cancelMapPicking();
+        });
 
         function cancelMapPicking() {
             isMapPicking = false;
             if (reverseGeocodeTimer) clearTimeout(reverseGeocodeTimer);
             if (reverseGeocodeAbort) reverseGeocodeAbort.abort();
+            if (pickerSettleTimer) { clearTimeout(pickerSettleTimer); pickerSettleTimer = null; }
+            setPickerResolving(false);
             mapCenterPin.style.display = 'none';
+            mapCenterPin.classList.remove('is-lifted', 'is-dropped');
             mapPickerUI.style.display = 'none';
-            directionsCard.style.display = 'flex';
+            const hint = document.getElementById('mapPickerHint');
+            if (hint) hint.style.display = 'none';
+            document.body.classList.remove('is-map-picking', 'pick-origin', 'pick-destination');
             map.off('move', mapMovedHandler);
+            map.off('movestart', pickerMoveStart);
+            map.off('moveend', pickerMoveEnd);
         }
 
         // =============================================

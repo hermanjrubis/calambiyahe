@@ -26,8 +26,8 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.8.3">
-    <link rel="stylesheet" href="../css/planner-category.css?v=1.0.1">
+    <link rel="stylesheet" href="../css/planner.css?v=2.9.0">
+    <link rel="stylesheet" href="../css/planner-category.css?v=1.0.2">
     <link rel="stylesheet" href="../css/planner-transit.css?v=1.2.1">
     <link rel="stylesheet" href="../css/place-search.css?v=1.0.1">
     <!-- Account modals (My Visits, My Trips, Saved Places, My Badges): the planner does not load style.css -->
@@ -86,29 +86,42 @@
     <!-- ===== MAP FULLSCREEN ===== -->
     <div id="map" class="planner-map"></div>
 
-    <!-- Map Center Pin (Location Picker) -->
-    <div id="mapCenterPin" class="map-center-pin" style="display:none;">
-        <ion-icon name="location"></ion-icon>
-        <div class="pin-shadow"></div>
+    <!-- Map pin picker: pin fixed at screen centre while the map moves underneath -->
+    <div id="mapCenterPin" class="mp-pin" style="display:none;" aria-hidden="true">
+        <div class="mp-bubble" id="mapPinBubble">
+            <span class="mp-bubble-text" id="mapPinBubbleText"></span>
+            <span class="mp-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        </div>
+        <div class="mp-pin-body">
+            <svg class="mp-pin-svg" viewBox="0 0 48 60" width="48" height="60">
+                <path class="mp-pin-shape" d="M24 2C12.4 2 3 11.2 3 22.6 3 37.4 20.2 54 22.6 56.3a2 2 0 0 0 2.8 0C27.8 54 45 37.4 45 22.6 45 11.2 35.6 2 24 2Z"/>
+                <circle cx="24" cy="22.5" r="11" fill="#FFFFFF"/>
+                <g class="mp-icon-from"><circle cx="24" cy="22.5" r="5" class="mp-icon-fill"/></g>
+                <g class="mp-icon-to" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path class="mp-icon-stroke" d="M20 29V16.5M20 16.5h8.5l-1.8 3.2 1.8 3.2H20"/>
+                </g>
+            </svg>
+        </div>
+        <span class="mp-ground" aria-hidden="true"></span>
+        <span class="mp-ripple" aria-hidden="true"></span>
     </div>
 
-    <!-- Map Picker Bottom UI -->
-    <div id="mapPickerUI" class="map-picker-ui" style="display:none;">
-        <div class="picker-drag-handle" aria-hidden="true"></div>
-        <div class="picker-location-row">
-            <div class="picker-pin-badge" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3"></circle>
-                </svg>
-            </div>
-            <div class="picker-text-wrap">
-                <div class="picker-primary-label" id="mapPickerPrimaryLabel">Move map to select location...</div>
-                <div class="picker-coords-label" id="mapPickerCoordsLabel">--</div>
-            </div>
+    <!-- Map pin picker: hint (top) and card (bottom) -->
+    <div id="mapPickerHint" class="mp-hint" style="display:none;" role="status">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-2a1.5 1.5 0 0 1 3 0V12M14 10.5a1.5 1.5 0 0 1 3 0V12M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2 .208a6 6 0 0 1-5.012-2.7L7 19c-.312-.479-1.407-2.388-3.286-5.728a1.5 1.5 0 0 1 .536-2.022 1.867 1.867 0 0 1 2.28.28L8 13"/></svg>
+        <span id="mapPickerHintText">Move the map to place the pin</span>
+    </div>
+    <div id="mapPickerUI" class="mp-card" style="display:none;" role="dialog" aria-labelledby="mapPickerPrimaryLabel">
+        <div class="mp-card-top">
+            <span class="mp-role"><span class="mp-role-dot" aria-hidden="true"></span><span id="mapPickerRole">Destination</span></span>
+            <span class="mp-coords" id="mapPickerCoordsLabel">--</span>
         </div>
-        <button class="picker-confirm-btn" id="mapPickerConfirmBtn" type="button">Choose This Location</button>
-        <button class="picker-cancel-btn" id="mapPickerCancelBtn" type="button">Cancel</button>
+        <div class="mp-title-wrap">
+            <div class="mp-title" id="mapPickerPrimaryLabel" aria-live="polite">Move map to select location...</div>
+            <span class="mp-title-sk skeleton" aria-hidden="true"></span>
+        </div>
+        <button class="mp-confirm" id="mapPickerConfirmBtn" type="button">Set as destination</button>
+        <button class="mp-cancel" id="mapPickerCancelBtn" type="button" >Cancel</button>
     </div>
 
     <!-- Floating Recenter Button (Real-time user location) -->
@@ -138,21 +151,57 @@
         <!-- Category Filter Segmented Control Bar (Left Group) -->
         <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
             <div class="map-category-container">
+                <button class="cat-nav-btn cat-nav-prev" id="catPrevBtn" type="button" aria-label="Previous categories" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+                </button>
                 <div class="category-scroll-wrapper" id="categoryScrollWrapper">
                     <div class="map-segmented-control category-scroll" id="mapCategoryBar" role="tablist" aria-label="Place Categories">
                         <div class="chip-highlight" id="chipHighlight" aria-hidden="true"></div>
-                        <button class="map-segment-btn" data-category="malls" type="button" role="tab" aria-selected="false">Malls</button>
-                        <button class="map-segment-btn" data-category="eateries" type="button" role="tab" aria-selected="false">Eateries</button>
-                        <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false">Schools</button>
-                        <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false">Terminals</button>
-                        <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false">Coffee Shops</button>
-                        <button class="map-segment-btn" data-category="government" type="button" role="tab" aria-selected="false">Government & Landmarks</button>
-                        <button class="map-segment-btn" data-category="health" type="button" role="tab" aria-selected="false">Health</button>
-                        <button class="map-segment-btn" data-category="banks" type="button" role="tab" aria-selected="false">Banks</button>
-                        <button class="map-segment-btn" data-category="hotels" type="button" role="tab" aria-selected="false">Hotels & Stays</button>
-                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false">Shops & Services</button>
+                        <button class="map-segment-btn" data-category="malls" type="button" role="tab" aria-selected="false" title="Malls" aria-label="Malls">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.3 8h11.4a1 1 0 0 1 1 .9l1 11a1 1 0 0 1-1 1.1H5.3a1 1 0 0 1-1-1.1l1-11a1 1 0 0 1 1-.9z"/><path d="M9 11V6a3 3 0 0 1 6 0v5"/></svg>
+                            <span class="cat-label">Malls</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="eateries" type="button" role="tab" aria-selected="false" title="Eateries" aria-label="Eateries">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3v6a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2V3M6.5 3v18"/><path d="M19 15V3a5 5 0 0 0-3 5v6a1 1 0 0 0 1 1h2zm0 0v6"/></svg>
+                            <span class="cat-label">Eateries</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false" title="Schools" aria-label="Schools">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 9 12 5 2 9l10 4 10-4v6"/><path d="M6 10.6V16a6 3 0 0 0 12 0v-5.4"/></svg>
+                            <span class="cat-label">Schools</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false" title="Terminals" aria-label="Terminals">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="15" rx="2"/><path d="M4 11h16M8 18v2M16 18v2"/><circle cx="8" cy="14.5" r=".6"/><circle cx="16" cy="14.5" r=".6"/></svg>
+                            <span class="cat-label">Terminals</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false" title="Coffee Shops" aria-label="Coffee Shops">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17M8 2.5v3M12 2.5v3"/></svg>
+                            <span class="cat-label">Coffee</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="government" type="button" role="tab" aria-selected="false" title="Government &amp; Landmarks" aria-label="Government &amp; Landmarks">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M4 10h16M5 10v8M9.5 10v8M14.5 10v8M19 10v8M12 3l8 5H4z"/></svg>
+                            <span class="cat-label">Landmarks</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="health" type="button" role="tab" aria-selected="false" title="Health" aria-label="Health">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>
+                            <span class="cat-label">Health</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="banks" type="button" role="tab" aria-selected="false" title="Banks" aria-label="Banks">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6.5 9.5v5M17.5 9.5v5"/></svg>
+                            <span class="cat-label">Banks</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="hotels" type="button" role="tab" aria-selected="false" title="Hotels &amp; Stays" aria-label="Hotels &amp; Stays">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19V6M3 15h18v4M21 15v-3a3 3 0 0 0-3-3h-7v6"/><circle cx="7" cy="11" r="2"/></svg>
+                            <span class="cat-label">Hotels</span>
+                        </button>
+                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false" title="Shops &amp; Services" aria-label="Shops &amp; Services">
+                            <svg class="cat-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M4 21V10.5M20 21V10.5"/><path d="M3 7l2-4h14l2 4c0 1.7-1.3 3-3 3s-3-1.3-3-3c0 1.7-1.3 3-3 3s-3-1.3-3-3c0 1.7-1.3 3-3 3S3 8.7 3 7z"/><path d="M10 21v-5h4v5"/></svg>
+                            <span class="cat-label">Shops</span>
+                        </button>
                     </div>
                 </div>
+                <button class="cat-nav-btn cat-nav-next" id="catNextBtn" type="button" aria-label="More categories">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
                 <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button" aria-label="Clear active category filter">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -940,17 +989,17 @@
     <script src="../js/places-shared.js?v=2.7.3"></script>
     <script src="../js/fare-calc.js?v=1.0.1"></script>
     <script src="../js/trip-ticket.js?v=1.1.5"></script>
-    <script src="../js/place-search.js?v=1.1.0"></script>
+    <script src="../js/place-search.js?v=1.1.1"></script>
     <script src="../js/route-pdf.js?v=1.0.7"></script>
     <script src="../js/fast-tap.js?v=1.0.1"></script>
     <script>window.CALZADA_PLACE_PANEL_VERSION = '2.9.9'; window.CALZADA_PLACE_PANEL_CSS_VERSION = '19';</script>
-    <script src="../js/planner-category.js?v=1.1.1"></script>
+    <script src="../js/planner-category.js?v=1.1.2"></script>
     <script src="../js/transit-engine.js?v=1.3.2"></script>
     <script src="../js/planner-transit.js?v=1.1.0"></script>
-    <script src="../js/planner.js?v=2.9.20"></script>
+    <script src="../js/planner.js?v=2.10.0"></script>
     <script src="../js/legal-modal.js?v=2.6.5"></script>
     <script src="../js/script.js?v=2.6.7"></script>
-    <script src="../js/i18n.js?v=2.8.13"></script>
+    <script src="../js/i18n.js?v=2.8.14"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>

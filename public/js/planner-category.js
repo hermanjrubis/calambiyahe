@@ -266,6 +266,8 @@
         Object.entries(state.markers).forEach(([s, entry]) => {
             if (entry && entry.el) entry.el.classList.toggle('czc-pin-selected', s === slug);
         });
+        // keep the selected pin visible when pins are grouped
+        if (window._calzadaPinDeclutter) window._calzadaPinDeclutter.schedule();
     }
     function hoverPin(slug, on) {
         const entry = state.markers[slug];

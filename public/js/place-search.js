@@ -547,7 +547,9 @@
         if (o.action === 'mylocation') { close({ restoreFocus: false }); o2.onMyLocation && o2.onMyLocation(); return; }
         let lat = o.lat, lng = o.lng;
         if (o.type === 'esri') {
-            // Same lookup as before: the suggestion's coordinates come from findAddressCandidates
+            // The suggestion's coordinates come from findAddressCandidates. Close the search right
+            // away and let the field show the name as loading, instead of a screen that looks stuck.
+            if (o2.onPending) { close(); o2.onPending(o.name); }
             try {
                 const res = await fetch(`https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=${encodeURIComponent(o.address)}&location=121.1641,14.2045&distance=50000&countryCode=PHL&outFields=PlaceName,Place_addr&maxLocations=1&f=json`);
                 const data = await res.json();
@@ -557,7 +559,7 @@
             } catch (_) { lat = 14.2045; lng = 121.1641; }
         }
         addRecent({ name: o.name, location: o.location, lat, lng });
-        close();
+        if (root && !root.hidden) close();
         o2.onSelect && o2.onSelect(o.name, [lat, lng]);
     };
 
