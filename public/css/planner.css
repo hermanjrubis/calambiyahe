@@ -5931,8 +5931,8 @@ html.lang-swapping-out [data-lang-fade] {
 @media (max-width: 768px) {
     /* A1, A4. Sheet height and bounds */
     .bottom-sheet {
-        max-height: calc(100vh - 72px - env(safe-area-inset-top, 0px)) !important;
-        max-height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
+        max-height: calc(100vh - var(--planner-top-room, 124px) - max(12px, env(safe-area-inset-bottom, 12px))) !important;
+        max-height: calc(100dvh - var(--planner-top-room, 124px) - max(12px, env(safe-area-inset-bottom, 12px))) !important;
         margin: 0 12px max(12px, env(safe-area-inset-bottom, 12px)) 12px !important;
         overflow: hidden !important;
         display: flex !important;
@@ -5940,8 +5940,8 @@ html.lang-swapping-out [data-lang-fade] {
     }
 
     .bottom-sheet.has-route {
-        height: calc(100vh - 72px - env(safe-area-inset-top, 0px)) !important;
-        height: calc(100dvh - 72px - env(safe-area-inset-top, 0px)) !important;
+        height: calc(100vh - var(--planner-top-room, 124px) - max(12px, env(safe-area-inset-bottom, 12px))) !important;
+        height: calc(100dvh - var(--planner-top-room, 124px) - max(12px, env(safe-area-inset-bottom, 12px))) !important;
     }
 
     .ds-scroll-container {

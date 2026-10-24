@@ -2130,7 +2130,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const isExpanded = !isCollapsed && !isHidden && !directionsCard.classList.contains('peek');
             const isTallerThanHalf = directionsCard.offsetHeight > (window.innerHeight / 2);
 
-            if (hasRoute && isExpanded && isTallerThanHalf) {
+            // The sheet now always stops below the top bar (--planner-top-room), so the
+            // category bar can stay visible without covering the sheet.
+            if (false && hasRoute && isExpanded && isTallerThanHalf) {
                 catWrapper.style.opacity = '0';
                 catWrapper.style.pointerEvents = 'none';
             } else {
@@ -2140,6 +2142,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         window.addEventListener('resize', updateCategoryBarVisibility);
+
+        // Phones: the tallest the Directions sheet may be is the screen minus the top bar
+        // (buttons + category pills), so the sheet never slides under the category bar.
+        const syncPlannerTopRoom = () => {
+            const bar = document.getElementById('mapTopBar');
+            if (!bar) return;
+            const b = bar.getBoundingClientRect().bottom;
+            if (b > 0) document.documentElement.style.setProperty('--planner-top-room', `${Math.round(b + 8)}px`);
+        };
+        syncPlannerTopRoom();
+        window.addEventListener('resize', syncPlannerTopRoom);
+        if (window.ResizeObserver && document.getElementById('mapTopBar')) {
+            new ResizeObserver(syncPlannerTopRoom).observe(document.getElementById('mapTopBar'));
+        }
 
         const snapSheet = (velocity) => {
             const pos = getSheetPositions();
@@ -6753,6 +6769,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const bannerBottom = Math.max(rGuide && rGuide.height > 0 ? rGuide.bottom : 0, rThen && rThen.height > 0 ? rThen.bottom : 0);
                 if (bannerBottom > 0) {
                     minTop = Math.max(minTop, bannerBottom + 12);
+                }
+                // Never over the top bar (buttons + category pills)
+                const topBar = document.getElementById('mapTopBar');
+                if (topBar && getComputedStyle(topBar).display !== 'none') {
+                    const rb = topBar.getBoundingClientRect().bottom;
+                    if (rb > 0) minTop = Math.max(minTop, rb + 8);
                 }
 
                 const clear = Math.min(vh - Math.min(top, vh) + 12, vh - region.offsetHeight - minTop);
