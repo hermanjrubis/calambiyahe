@@ -2957,21 +2957,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? p.coords.accuracy
                 : Infinity;
 
-            // Watch until a fix is accurate to 30 m; after 8 s take the best one seen.
+            // 1. The map already knows where you are (location dot, last 20 s, good to 80 m): use it now.
+            const recent = typeof window._calzadaGetRecentFix === 'function' ? window._calzadaGetRecentFix(20000) : null;
+            if (recent && recent.acc <= 80) {
+                finalizeFix({ coords: { latitude: recent.lat, longitude: recent.lng, accuracy: recent.acc } });
+                return;
+            }
+
+            // 2. Otherwise ask for GPS. Take the first reading good to 50 m; after 5 s take the best one
+            //    seen. A quick network/cached reading runs alongside so there is something to fall back on.
+            //    A rough first fix is refined later by the location watch (see onPosition).
+            const consider = (pos) => {
+                if (resolved || !pos) return;
+                if (!bestFix || accuracyOf(pos) < accuracyOf(bestFix)) bestFix = pos;
+                if (accuracyOf(pos) <= 50) finalizeFix(pos);
+            };
             myLocWatchId = navigator.geolocation.watchPosition(
-                (pos) => {
-                    if (resolved) return;
-                    if (!bestFix || accuracyOf(pos) < accuracyOf(bestFix)) bestFix = pos;
-                    if (accuracyOf(pos) <= 30) finalizeFix(pos);
-                },
+                consider,
                 (err) => {
                     if (resolved) return;
-                    // Permission denied will not recover; timeouts wait for the 8 s cap.
+                    // Permission denied will not recover; timeouts wait for the 5 s cap.
                     if (err && err.code === 1) finalizeFix(null);
                 },
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 8000 }
+                { enableHighAccuracy: true, maximumAge: 5000, timeout: 5000 }
             );
-            myLocWatchTimer = setTimeout(() => finalizeFix(bestFix), 8000);
+            try {
+                navigator.geolocation.getCurrentPosition(consider, () => {}, { enableHighAccuracy: false, maximumAge: 60000, timeout: 4000 });
+            } catch (_) { /* ignore */ }
+            myLocWatchTimer = setTimeout(() => finalizeFix(bestFix), 5000);
         }
 
         document.getElementById('swapLocationsBtn').addEventListener('click', () => {
@@ -6711,7 +6724,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // (paused on hover/focus), plus a close button. Returns a handle with
         // dismiss() for messages whose lifetime is tied to something else.
         const showToast = (() => {
-            const TOAST_MS = 5000;
+            const TOAST_MS = 4000;
             const MAX_TOASTS = 3;
             const LEAVE_MS = 180;
             const ICONS = {
@@ -6827,10 +6840,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const item = { el, message, remaining: (kind === 'loading' ? 25000 : TOAST_MS), timer: null, startedAt: 0 };
                 closeBtn.addEventListener('click', () => remove(item));
                 el.addEventListener('keydown', (e) => { if (e.key === 'Escape') remove(item); });
-                el.addEventListener('mouseenter', () => pauseTimer(item));
-                el.addEventListener('mouseleave', () => { if (!el.contains(document.activeElement)) startTimer(item); });
-                el.addEventListener('focusin', () => pauseTimer(item));
-                el.addEventListener('focusout', (e) => { if (!el.contains(e.relatedTarget) && !el.matches(':hover')) startTimer(item); });
+                // Pause only for a real mouse hover or keyboard focus. On phones a tap fires
+                // mouseenter/focus with no matching leave, which kept toasts up forever.
+                const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+                if (canHover) {
+                    el.addEventListener('mouseenter', () => pauseTimer(item));
+                    el.addEventListener('mouseleave', () => { if (!el.contains(document.activeElement)) startTimer(item); });
+                }
+                el.addEventListener('focusin', (e) => {
+                    let kb = false;
+                    try { kb = e.target.matches(':focus-visible'); } catch (_) { kb = false; }
+                    if (kb) { item.kbFocus = true; pauseTimer(item); }
+                });
+                el.addEventListener('focusout', (e) => {
+                    if (!item.kbFocus || el.contains(e.relatedTarget)) return;
+                    item.kbFocus = false;
+                    if (!(canHover && el.matches(':hover'))) startTimer(item);
+                });
 
                 active.push(item);
                 region.appendChild(el);
@@ -6860,6 +6886,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             let dotMarker = null;
+            let lastFixInfo = null;      // { lat, lng, acc, ts } of the latest reading
             let watchHandle = null;
             let fix = null;              // { lng, lat } currently rendered
             let hasCentered = false;     // auto-center only on the first fix
@@ -6947,6 +6974,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const onPosition = (pos, { recenter = false } = {}) => {
                 const next = { lng: pos.coords.longitude, lat: pos.coords.latitude };
+                lastFixInfo = { lat: next.lat, lng: next.lng, acc: pos.coords.accuracy, ts: Date.now() };
                 moveTo(next);
                 setActive(true);
                 const inPreview = () => !!(selectedCoords.origin && selectedCoords.destination);
@@ -6957,13 +6985,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 hasCentered = true;
 
+                // "My Location" origin from a rough first fix, no destination yet: just move the origin
+                {
+                    const of = window.__calzadaMyLocOriginFix;
+                    if (!isTrackingArrival && !navActive() && isMyLocationOrigin() && selectedCoords.origin && !selectedCoords.destination
+                        && of && of.accuracy > 50 && pos.coords.accuracy < of.accuracy * 0.6) {
+                        window.__calzadaMyLocOriginFix = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
+                        selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
+                        currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+                        renderPlannerState();
+                    }
+                }
+
                 // Requirement B: If origin is "My Location", check if live position moved > 30m before START JOURNEY
                 if (!isTrackingArrival && !navActive() && isMyLocationOrigin() && selectedCoords.origin && selectedCoords.destination) {
                     const distFromOrigin = getHaversineDist(
                         pos.coords.latitude, pos.coords.longitude,
                         selectedCoords.origin[0], selectedCoords.origin[1]
                     ) * 1000;
-                    if (distFromOrigin > 30) {
+                    // Also refine a "My Location" origin that was taken from a rough first fix
+                    const originFix = window.__calzadaMyLocOriginFix;
+                    const roughOrigin = originFix && originFix.accuracy > 50 && pos.coords.accuracy < originFix.accuracy * 0.6;
+                    if (distFromOrigin > 30 || (roughOrigin && distFromOrigin > 10)) {
+                        if (roughOrigin) window.__calzadaMyLocOriginFix = { lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy };
                         triggerPreviewReplan(pos.coords.latitude, pos.coords.longitude);
                     }
                 }
@@ -6971,6 +7015,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Where the user is, if known (the place search shows distances with it); never stored
             window._calzadaGetUserFix = () => (fix ? { lat: fix.lat, lng: fix.lng } : null);
+            // The last GPS reading with its accuracy, if it is recent enough ("My Location" uses it at once)
+            window._calzadaGetRecentFix = (maxAgeMs) => (lastFixInfo && Date.now() - lastFixInfo.ts <= maxAgeMs ? { ...lastFixInfo } : null);
 
             window._calzadaSetUserFix = (lng, lat) => {
                 const next = { lng, lat };
