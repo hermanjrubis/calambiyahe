@@ -9,19 +9,14 @@
    "source": "IMG_20261024_132714_00_395",
    "connections": [
     {
-     "targetId": "14.202268_121.155440",
-     "bearing": 323.5,
-     "distance": 48.5
-    },
-    {
      "targetId": "14.202240_121.156214",
-     "bearing": 58.3,
+     "bearing": 59.7,
      "distance": 55.9
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -23.3
+   "heading": -21.9
   },
   {
    "id": "14.202240_121.156214",
@@ -33,18 +28,18 @@
    "connections": [
     {
      "targetId": "14.202453_121.156541",
-     "bearing": 56.3,
+     "bearing": 59.1,
      "distance": 42.4
     },
     {
      "targetId": "14.201974_121.155773",
-     "bearing": 238.3,
+     "bearing": 239.1,
      "distance": 55.9
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -35.6
+   "heading": -32.8
   },
   {
    "id": "14.202453_121.156541",
@@ -56,18 +51,18 @@
    "connections": [
     {
      "targetId": "14.202718_121.156444",
-     "bearing": 340.3,
+     "bearing": 332.0,
      "distance": 31.1
     },
     {
      "targetId": "14.202240_121.156214",
-     "bearing": 236.3,
+     "bearing": 239.1,
      "distance": 42.4
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -74.3
+   "heading": -82.6
   },
   {
    "id": "14.202718_121.156444",
@@ -79,23 +74,18 @@
    "connections": [
     {
      "targetId": "14.202453_121.156541",
-     "bearing": 160.3,
+     "bearing": 152.0,
      "distance": 31.1
     },
     {
-     "targetId": "14.202373_121.156527",
-     "bearing": 239.0,
-     "distance": 39.2
-    },
-    {
      "targetId": "14.203070_121.156283",
-     "bearing": 335.9,
+     "bearing": 332.0,
      "distance": 42.6
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -49.7
+   "heading": -53.6
   },
   {
    "id": "14.203070_121.156283",
@@ -107,18 +97,18 @@
    "connections": [
     {
      "targetId": "14.203379_121.156102",
-     "bearing": 330.2,
+     "bearing": 329.1,
      "distance": 39.4
     },
     {
      "targetId": "14.202718_121.156444",
-     "bearing": 155.9,
+     "bearing": 149.8,
      "distance": 42.6
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -50.6
+   "heading": -51.8
   },
   {
    "id": "14.203379_121.156102",
@@ -129,24 +119,19 @@
    "source": "IMG_20261024_132823_00_400",
    "connections": [
     {
-     "targetId": "14.203521_121.156303",
-     "bearing": 84.6,
-     "distance": 26.8
-    },
-    {
      "targetId": "14.203600_121.155936",
-     "bearing": 323.8,
+     "bearing": 329.1,
      "distance": 30.3
     },
     {
      "targetId": "14.203070_121.156283",
-     "bearing": 150.2,
+     "bearing": 149.8,
      "distance": 39.4
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -60.4
+   "heading": -55.1
   },
   {
    "id": "14.203600_121.155936",
@@ -158,18 +143,18 @@
    "connections": [
     {
      "targetId": "14.203851_121.155845",
-     "bearing": 340.5,
+     "bearing": 328.5,
      "distance": 29.4
     },
     {
      "targetId": "14.203379_121.156102",
-     "bearing": 143.8,
+     "bearing": 148.5,
      "distance": 30.3
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 39.4
+   "heading": 27.3
   },
   {
    "id": "14.203851_121.155845",
@@ -181,18 +166,18 @@
    "connections": [
     {
      "targetId": "14.203600_121.155936",
-     "bearing": 160.5,
+     "bearing": 148.5,
      "distance": 29.4
     },
     {
      "targetId": "14.204279_121.155603",
-     "bearing": 331.1,
+     "bearing": 328.5,
      "distance": 54.1
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 16.2
+   "heading": 13.5
   },
   {
    "id": "14.204279_121.155603",
@@ -204,18 +189,18 @@
    "connections": [
     {
      "targetId": "14.203851_121.155845",
-     "bearing": 151.1,
+     "bearing": 147.8,
      "distance": 54.1
     },
     {
      "targetId": "14.204670_121.155257",
-     "bearing": 319.2,
+     "bearing": 327.8,
      "distance": 57.1
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -10.3
+   "heading": -1.6
   },
   {
    "id": "14.204670_121.155257",
@@ -227,18 +212,18 @@
    "connections": [
     {
      "targetId": "14.204498_121.154871",
-     "bearing": 245.5,
+     "bearing": 266.7,
      "distance": 45.8
     },
     {
      "targetId": "14.204279_121.155603",
-     "bearing": 139.2,
+     "bearing": 147.8,
      "distance": 57.1
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -31.7
+   "heading": -10.4
   },
   {
    "id": "14.204498_121.154871",
@@ -250,18 +235,18 @@
    "connections": [
     {
      "targetId": "14.204293_121.154530",
-     "bearing": 238.4,
+     "bearing": 235.8,
      "distance": 43.2
     },
     {
      "targetId": "14.204670_121.155257",
-     "bearing": 65.5,
+     "bearing": 55.8,
      "distance": 45.8
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Real",
-   "heading": 10.3
+   "heading": 7.8
   },
   {
    "id": "14.204293_121.154530",
@@ -273,18 +258,18 @@
    "connections": [
     {
      "targetId": "14.204121_121.154276",
-     "bearing": 235.2,
+     "bearing": 235.8,
      "distance": 33.4
     },
     {
      "targetId": "14.204498_121.154871",
-     "bearing": 58.4,
+     "bearing": 55.8,
      "distance": 43.2
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Real",
-   "heading": 18.9
+   "heading": 19.5
   },
   {
    "id": "14.204121_121.154276",
@@ -296,23 +281,18 @@
    "connections": [
     {
      "targetId": "14.204293_121.154530",
-     "bearing": 55.2,
+     "bearing": 58.9,
      "distance": 33.4
     },
     {
      "targetId": "14.203755_121.154501",
-     "bearing": 149.0,
+     "bearing": 238.9,
      "distance": 47.2
-    },
-    {
-     "targetId": "14.203729_121.153589",
-     "bearing": 221.2,
-     "distance": 85.9
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -3.3
+   "heading": 86.5
   },
   {
    "id": "14.203755_121.154501",
@@ -324,18 +304,18 @@
    "connections": [
     {
      "targetId": "14.203481_121.154659",
-     "bearing": 150.6,
+     "bearing": 146.9,
      "distance": 34.8
     },
     {
      "targetId": "14.204121_121.154276",
-     "bearing": 329.0,
+     "bearing": 326.9,
      "distance": 47.2
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": 3.4
+   "heading": -0.4
   },
   {
    "id": "14.203481_121.154659",
@@ -347,18 +327,18 @@
    "connections": [
     {
      "targetId": "14.203334_121.154749",
-     "bearing": 150.0,
+     "bearing": 146.9,
      "distance": 18.9
     },
     {
      "targetId": "14.203755_121.154501",
-     "bearing": 330.6,
+     "bearing": 326.9,
      "distance": 34.8
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": 38.8
+   "heading": 35.6
   },
   {
    "id": "14.203334_121.154749",
@@ -370,18 +350,18 @@
    "connections": [
     {
      "targetId": "14.203481_121.154659",
-     "bearing": 330.1,
+     "bearing": 326.9,
      "distance": 18.9
     },
     {
      "targetId": "14.202885_121.155011",
-     "bearing": 150.3,
+     "bearing": 146.9,
      "distance": 57.1
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -93.9
+   "heading": -97.4
   },
   {
    "id": "14.202885_121.155011",
@@ -393,18 +373,18 @@
    "connections": [
     {
      "targetId": "14.203334_121.154749",
-     "bearing": 330.3,
+     "bearing": 326.9,
      "distance": 57.1
     },
     {
      "targetId": "14.202268_121.155440",
-     "bearing": 145.8,
+     "bearing": 146.9,
      "distance": 82.4
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -43.0
+   "heading": -41.9
   },
   {
    "id": "14.202268_121.155440",
@@ -415,24 +395,19 @@
    "source": "IMG_20261024_133208_00_412",
    "connections": [
     {
-     "targetId": "14.201974_121.155773",
-     "bearing": 58.3,
-     "distance": 48.5
-    },
-    {
      "targetId": "14.201914_121.155748",
-     "bearing": 139.7,
+     "bearing": 146.5,
      "distance": 51.4
     },
     {
      "targetId": "14.202885_121.155011",
-     "bearing": 325.8,
+     "bearing": 326.5,
      "distance": 82.4
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -48.6
+   "heading": -41.8
   },
   {
    "id": "14.201914_121.155748",
@@ -444,18 +419,18 @@
    "connections": [
     {
      "targetId": "14.202268_121.155440",
-     "bearing": 319.7,
+     "bearing": 326.5,
      "distance": 51.4
     },
     {
      "targetId": "14.202373_121.156527",
-     "bearing": 58.9,
+     "bearing": 59.1,
      "distance": 98.2
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -51.1
+   "heading": -50.9
   },
   {
    "id": "14.202373_121.156527",
@@ -466,24 +441,19 @@
    "source": "IMG_20261024_133235_00_414",
    "connections": [
     {
-     "targetId": "14.202718_121.156444",
-     "bearing": 337.8,
-     "distance": 39.2
-    },
-    {
      "targetId": "14.202640_121.156988",
-     "bearing": 59.3,
+     "bearing": 59.1,
      "distance": 57.9
     },
     {
      "targetId": "14.201914_121.155748",
-     "bearing": 238.9,
+     "bearing": 281.4,
      "distance": 98.2
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": -20.4
+   "heading": -20.7
   },
   {
    "id": "14.202640_121.156988",
@@ -495,18 +465,18 @@
    "connections": [
     {
      "targetId": "14.202858_121.157328",
-     "bearing": 56.7,
+     "bearing": 59.0,
      "distance": 43.9
     },
     {
      "targetId": "14.202373_121.156527",
-     "bearing": 239.3,
+     "bearing": 239.0,
      "distance": 57.9
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Barangay 1",
-   "heading": -30.3
+   "heading": -28.0
   },
   {
    "id": "14.202858_121.157328",
@@ -518,18 +488,18 @@
    "connections": [
     {
      "targetId": "14.202640_121.156988",
-     "bearing": 236.7,
+     "bearing": 239.0,
      "distance": 43.9
     },
     {
      "targetId": "14.203101_121.157724",
-     "bearing": 57.8,
+     "bearing": 59.0,
      "distance": 50.5
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Barangay 1",
-   "heading": -24.8
+   "heading": -23.6
   },
   {
    "id": "14.203101_121.157724",
@@ -541,23 +511,23 @@
    "connections": [
     {
      "targetId": "14.203303_121.157764",
-     "bearing": 324.0,
+     "bearing": 325.6,
      "distance": 22.7
     },
     {
      "targetId": "14.202946_121.157952",
-     "bearing": 124.9,
+     "bearing": 142.1,
      "distance": 30.0
     },
     {
      "targetId": "14.202858_121.157328",
-     "bearing": 237.8,
+     "bearing": 245.1,
      "distance": 50.5
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Barangay 1",
-   "heading": 37.5
+   "heading": 54.8
   },
   {
    "id": "14.202946_121.157952",
@@ -569,18 +539,18 @@
    "connections": [
     {
      "targetId": "14.203101_121.157724",
-     "bearing": 304.9,
+     "bearing": 245.1,
      "distance": 30.0
     },
     {
      "targetId": "14.202561_121.158257",
-     "bearing": 142.3,
+     "bearing": 142.1,
      "distance": 53.8
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -32.3
+   "heading": -32.5
   },
   {
    "id": "14.202561_121.158257",
@@ -592,18 +562,18 @@
    "connections": [
     {
      "targetId": "14.202258_121.158469",
-     "bearing": 145.7,
+     "bearing": 143.0,
      "distance": 40.6
     },
     {
      "targetId": "14.202946_121.157952",
-     "bearing": 322.3,
+     "bearing": 323.0,
      "distance": 53.8
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -36.4
+   "heading": -39.1
   },
   {
    "id": "14.202258_121.158469",
@@ -615,18 +585,18 @@
    "connections": [
     {
      "targetId": "14.202047_121.158428",
-     "bearing": 228.5,
+     "bearing": 243.6,
      "distance": 23.7
     },
     {
      "targetId": "14.202561_121.158257",
-     "bearing": 325.7,
+     "bearing": 323.0,
      "distance": 40.6
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -19.0
+   "heading": -3.9
   },
   {
    "id": "14.202047_121.158428",
@@ -638,23 +608,18 @@
    "connections": [
     {
      "targetId": "14.202258_121.158469",
-     "bearing": 342.0,
+     "bearing": 323.0,
      "distance": 23.7
     },
     {
-     "targetId": "14.201897_121.158835",
-     "bearing": 143.5,
-     "distance": 46.9
-    },
-    {
      "targetId": "14.201838_121.157983",
-     "bearing": 244.3,
+     "bearing": 243.6,
      "distance": 53.3
     }
    ],
    "street": "LTO Road",
    "area": "Lecheria",
-   "heading": -50.3
+   "heading": -51.1
   },
   {
    "id": "14.201838_121.157983",
@@ -666,18 +631,18 @@
    "connections": [
     {
      "targetId": "14.201648_121.157621",
-     "bearing": 241.7,
+     "bearing": 239.5,
      "distance": 44.4
     },
     {
      "targetId": "14.202047_121.158428",
-     "bearing": 64.3,
+     "bearing": 59.5,
      "distance": 53.3
     }
    ],
    "street": "LTO Road",
    "area": "Lecheria",
-   "heading": 12.0
+   "heading": 9.8
   },
   {
    "id": "14.201648_121.157621",
@@ -689,18 +654,18 @@
    "connections": [
     {
      "targetId": "14.201838_121.157983",
-     "bearing": 61.7,
+     "bearing": 62.1,
      "distance": 44.4
     },
     {
      "targetId": "14.201439_121.157224",
-     "bearing": 241.7,
+     "bearing": 242.1,
      "distance": 48.7
     }
    ],
    "street": "LTO Road",
    "area": "Lecheria",
-   "heading": -17.0
+   "heading": -16.5
   },
   {
    "id": "14.201439_121.157224",
@@ -712,18 +677,18 @@
    "connections": [
     {
      "targetId": "14.201216_121.156858",
-     "bearing": 238.0,
+     "bearing": 239.4,
      "distance": 46.6
     },
     {
      "targetId": "14.201648_121.157621",
-     "bearing": 61.7,
+     "bearing": 59.4,
      "distance": 48.7
     }
    ],
    "street": "LTO Road",
    "area": "Lecheria",
-   "heading": -31.8
+   "heading": -30.5
   },
   {
    "id": "14.201216_121.156858",
@@ -735,18 +700,18 @@
    "connections": [
     {
      "targetId": "14.201439_121.157224",
-     "bearing": 58.0,
+     "bearing": 59.3,
      "distance": 46.6
     },
     {
      "targetId": "14.200992_121.156466",
-     "bearing": 239.7,
+     "bearing": 239.3,
      "distance": 49.0
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -8.9
+   "heading": -9.2
   },
   {
    "id": "14.200992_121.156466",
@@ -758,18 +723,18 @@
    "connections": [
     {
      "targetId": "14.201216_121.156858",
-     "bearing": 59.7,
+     "bearing": 59.4,
      "distance": 49.0
     },
     {
      "targetId": "14.200704_121.156030",
-     "bearing": 235.9,
+     "bearing": 239.4,
      "distance": 56.8
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -40.2
+   "heading": -36.8
   },
   {
    "id": "14.200704_121.156030",
@@ -781,18 +746,18 @@
    "connections": [
     {
      "targetId": "14.200992_121.156466",
-     "bearing": 55.9,
+     "bearing": 55.1,
      "distance": 56.8
     },
     {
      "targetId": "14.200355_121.155384",
-     "bearing": 241.0,
+     "bearing": 235.1,
      "distance": 79.7
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -12.7
+   "heading": -18.6
   },
   {
    "id": "14.200355_121.155384",
@@ -804,18 +769,18 @@
    "connections": [
     {
      "targetId": "14.200069_121.154889",
-     "bearing": 239.4,
+     "bearing": 240.9,
      "distance": 62.1
     },
     {
      "targetId": "14.200704_121.156030",
-     "bearing": 61.0,
+     "bearing": 60.9,
      "distance": 79.7
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -28.8
+   "heading": -27.2
   },
   {
    "id": "14.200069_121.154889",
@@ -827,18 +792,18 @@
    "connections": [
     {
      "targetId": "14.199863_121.154357",
-     "bearing": 248.4,
+     "bearing": 239.3,
      "distance": 61.8
     },
     {
      "targetId": "14.200355_121.155384",
-     "bearing": 59.4,
+     "bearing": 59.3,
      "distance": 62.1
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -6.4
+   "heading": -15.5
   },
   {
    "id": "14.199863_121.154357",
@@ -850,18 +815,18 @@
    "connections": [
     {
      "targetId": "14.200069_121.154889",
-     "bearing": 68.4,
+     "bearing": 72.0,
      "distance": 61.8
     },
     {
      "targetId": "14.199620_121.153834",
-     "bearing": 244.5,
+     "bearing": 252.0,
      "distance": 62.5
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -18.1
+   "heading": -10.6
   },
   {
    "id": "14.199620_121.153834",
@@ -873,18 +838,18 @@
    "connections": [
     {
      "targetId": "14.199610_121.153708",
-     "bearing": 265.0,
+     "bearing": 241.4,
      "distance": 13.6
     },
     {
      "targetId": "14.199863_121.154357",
-     "bearing": 64.5,
+     "bearing": 61.4,
      "distance": 62.5
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": 12.6
+   "heading": -10.9
   },
   {
    "id": "14.199610_121.153708",
@@ -896,18 +861,18 @@
    "connections": [
     {
      "targetId": "14.199609_121.153706",
-     "bearing": 243.3,
+     "bearing": 239.0,
      "distance": 1
     },
     {
      "targetId": "14.199620_121.153834",
-     "bearing": 68.2,
+     "bearing": 59.0,
      "distance": 13.6
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -13.5
+   "heading": -22.8
   },
   {
    "id": "14.199609_121.153706",
@@ -919,18 +884,18 @@
    "connections": [
     {
      "targetId": "14.199610_121.153708",
-     "bearing": 85.0,
+     "bearing": 59.0,
      "distance": 1
     },
     {
      "targetId": "14.199504_121.153492",
-     "bearing": 243.3,
+     "bearing": 239.0,
      "distance": 25.8
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -42.1
+   "heading": -46.4
   },
   {
    "id": "14.199504_121.153492",
@@ -942,18 +907,18 @@
    "connections": [
     {
      "targetId": "14.199609_121.153706",
-     "bearing": 63.3,
+     "bearing": 66.4,
      "distance": 25.8
     },
     {
      "targetId": "14.199331_121.153140",
-     "bearing": 243.3,
+     "bearing": 246.4,
      "distance": 42.5
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -43.5
+   "heading": -40.5
   },
   {
    "id": "14.199331_121.153140",
@@ -965,18 +930,18 @@
    "connections": [
     {
      "targetId": "14.199504_121.153492",
-     "bearing": 63.3,
+     "bearing": 61.1,
      "distance": 42.5
     },
     {
      "targetId": "14.199246_121.152738",
-     "bearing": 257.8,
+     "bearing": 240.3,
      "distance": 44.4
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -30.4
+   "heading": -47.8
   },
   {
    "id": "14.199246_121.152738",
@@ -988,18 +953,18 @@
    "connections": [
     {
      "targetId": "14.199331_121.153140",
-     "bearing": 77.8,
+     "bearing": 60.3,
      "distance": 44.4
     },
     {
      "targetId": "14.198995_121.152305",
-     "bearing": 239.3,
+     "bearing": 240.6,
      "distance": 54.3
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -40.2
+   "heading": -39.0
   },
   {
    "id": "14.198995_121.152305",
@@ -1011,18 +976,18 @@
    "connections": [
     {
      "targetId": "14.198802_121.151979",
-     "bearing": 238.8,
+     "bearing": 240.6,
      "distance": 41.1
     },
     {
      "targetId": "14.199246_121.152738",
-     "bearing": 59.3,
+     "bearing": 60.3,
      "distance": 54.3
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -24.7
+   "heading": -22.8
   },
   {
    "id": "14.198802_121.151979",
@@ -1034,18 +999,18 @@
    "connections": [
     {
      "targetId": "14.198765_121.151939",
-     "bearing": 183.3,
+     "bearing": 240.6,
      "distance": 5.9
     },
     {
      "targetId": "14.198995_121.152305",
-     "bearing": 58.8,
+     "bearing": 60.6,
      "distance": 41.1
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -94.9
+   "heading": -37.7
   },
   {
    "id": "14.198765_121.151939",
@@ -1057,18 +1022,18 @@
    "connections": [
     {
      "targetId": "14.198802_121.151979",
-     "bearing": 57.2,
+     "bearing": 60.6,
      "distance": 5.9
     },
     {
      "targetId": "14.198464_121.151959",
-     "bearing": 176.3,
+     "bearing": 240.6,
      "distance": 33.4
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -2.8
+   "heading": 61.5
   },
   {
    "id": "14.198464_121.151959",
@@ -1080,18 +1045,18 @@
    "connections": [
     {
      "targetId": "14.198339_121.151758",
-     "bearing": 237.5,
+     "bearing": 250.2,
      "distance": 25.7
     },
     {
      "targetId": "14.198765_121.151939",
-     "bearing": 356.3,
+     "bearing": 30.3,
      "distance": 33.4
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -16.5
+   "heading": -3.8
   },
   {
    "id": "14.198339_121.151758",
@@ -1103,18 +1068,23 @@
    "connections": [
     {
      "targetId": "14.198464_121.151959",
-     "bearing": 57.5,
+     "bearing": 30.3,
      "distance": 25.7
     },
     {
+     "targetId": "14.198230_121.151425",
+     "bearing": 250.2,
+     "distance": 37.9
+    },
+    {
      "targetId": "14.197875_121.151993",
-     "bearing": 153.7,
+     "bearing": 70.2,
      "distance": 57.2
     }
    ],
    "street": "Kamagong Street",
    "area": "Real",
-   "heading": -45.9
+   "heading": -129.5
   },
   {
    "id": "14.197875_121.151993",
@@ -1126,23 +1096,18 @@
    "connections": [
     {
      "targetId": "14.198339_121.151758",
-     "bearing": 333.7,
+     "bearing": 331.5,
      "distance": 57.2
     },
     {
-     "targetId": "14.197336_121.152243",
-     "bearing": 239.9,
-     "distance": 65.4
-    },
-    {
      "targetId": "14.197275_121.152304",
-     "bearing": 153.2,
+     "bearing": 151.5,
      "distance": 74.4
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -15.8
+   "heading": -17.5
   },
   {
    "id": "14.197275_121.152304",
@@ -1154,23 +1119,23 @@
    "connections": [
     {
      "targetId": "14.197336_121.152243",
-     "bearing": 239.9,
+     "bearing": 241.3,
      "distance": 9.4
     },
     {
      "targetId": "14.196979_121.152656",
-     "bearing": 130.7,
+     "bearing": 148.2,
      "distance": 50.1
     },
     {
      "targetId": "14.197875_121.151993",
-     "bearing": 333.2,
+     "bearing": 328.2,
      "distance": 74.4
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -36.0
+   "heading": -18.5
   },
   {
    "id": "14.196979_121.152656",
@@ -1182,18 +1147,18 @@
    "connections": [
     {
      "targetId": "14.197275_121.152304",
-     "bearing": 310.7,
+     "bearing": 302.5,
      "distance": 50.1
     },
     {
      "targetId": "14.196667_121.153177",
-     "bearing": 121.5,
+     "bearing": 122.5,
      "distance": 66.0
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -59.0
+   "heading": -58.1
   },
   {
    "id": "14.196667_121.153177",
@@ -1205,18 +1170,18 @@
    "connections": [
     {
      "targetId": "14.196979_121.152656",
-     "bearing": 301.5,
+     "bearing": 302.5,
      "distance": 66.0
     },
     {
      "targetId": "14.196344_121.153723",
-     "bearing": 121.2,
+     "bearing": 122.5,
      "distance": 68.9
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -13.8
+   "heading": -12.5
   },
   {
    "id": "14.196344_121.153723",
@@ -1228,18 +1193,18 @@
    "connections": [
     {
      "targetId": "14.196667_121.153177",
-     "bearing": 301.2,
+     "bearing": 301.5,
      "distance": 68.9
     },
     {
      "targetId": "14.195989_121.154285",
-     "bearing": 122.9,
+     "bearing": 121.5,
      "distance": 72.2
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -3.4
+   "heading": -4.9
   },
   {
    "id": "14.195989_121.154285",
@@ -1250,24 +1215,19 @@
    "source": "IMG_20261024_134149_00_447",
    "connections": [
     {
-     "targetId": "14.195667_121.154860",
-     "bearing": 64.0,
-     "distance": 71.5
-    },
-    {
      "targetId": "14.196344_121.153723",
-     "bearing": 302.9,
+     "bearing": 301.9,
      "distance": 72.2
     },
     {
      "targetId": "14.195653_121.154874",
-     "bearing": 120.3,
+     "bearing": 121.9,
      "distance": 73.6
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -6.0
+   "heading": -4.4
   },
   {
    "id": "14.195653_121.154874",
@@ -1279,28 +1239,23 @@
    "connections": [
     {
      "targetId": "14.195667_121.154860",
-     "bearing": 244.0,
+     "bearing": 242.5,
      "distance": 2.2
     },
     {
      "targetId": "14.195373_121.155355",
-     "bearing": 120.8,
+     "bearing": 119.5,
      "distance": 60.4
     },
     {
      "targetId": "14.195989_121.154285",
-     "bearing": 300.3,
+     "bearing": 299.5,
      "distance": 73.6
-    },
-    {
-     "targetId": "14.195965_121.155486",
-     "bearing": 63.8,
-     "distance": 74.5
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": 2.1
+   "heading": 0.9
   },
   {
    "id": "14.195373_121.155355",
@@ -1312,18 +1267,18 @@
    "connections": [
     {
      "targetId": "14.195653_121.154874",
-     "bearing": 300.8,
+     "bearing": 302.5,
      "distance": 60.4
     },
     {
      "targetId": "14.195027_121.155936",
-     "bearing": 121.4,
+     "bearing": 122.5,
      "distance": 73.5
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -12.8
+   "heading": -11.8
   },
   {
    "id": "14.195027_121.155936",
@@ -1335,18 +1290,18 @@
    "connections": [
     {
      "targetId": "14.195373_121.155355",
-     "bearing": 301.4,
+     "bearing": 302.3,
      "distance": 73.5
     },
     {
      "targetId": "14.194640_121.156575",
-     "bearing": 121.8,
+     "bearing": 122.3,
      "distance": 81.2
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": 48.6
+   "heading": 49.1
   },
   {
    "id": "14.194640_121.156575",
@@ -1358,18 +1313,18 @@
    "connections": [
     {
      "targetId": "14.195027_121.155936",
-     "bearing": 301.8,
+     "bearing": 302.3,
      "distance": 81.2
     },
     {
      "targetId": "14.194055_121.157548",
-     "bearing": 121.6,
+     "bearing": 122.3,
      "distance": 123.3
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -9.8
+   "heading": -9.1
   },
   {
    "id": "14.194055_121.157548",
@@ -1381,7 +1336,7 @@
    "connections": [
     {
      "targetId": "14.193863_121.158017",
-     "bearing": 112.8,
+     "bearing": 121.6,
      "distance": 54.9
     },
     {
@@ -1392,7 +1347,7 @@
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -29.4
+   "heading": -20.6
   },
   {
    "id": "14.193863_121.158017",
@@ -1404,18 +1359,18 @@
    "connections": [
     {
      "targetId": "14.194055_121.157548",
-     "bearing": 292.8,
+     "bearing": 301.6,
      "distance": 54.9
     },
     {
      "targetId": "14.194090_121.158540",
-     "bearing": 66.0,
+     "bearing": 84.2,
      "distance": 61.8
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Real",
-   "heading": -28.8
+   "heading": -10.7
   },
   {
    "id": "14.194090_121.158540",
@@ -1427,18 +1382,18 @@
    "connections": [
     {
      "targetId": "14.193863_121.158017",
-     "bearing": 246.0,
+     "bearing": 246.6,
      "distance": 61.8
     },
     {
      "targetId": "14.194476_121.159279",
-     "bearing": 61.8,
+     "bearing": 66.6,
      "distance": 90.5
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Real",
-   "heading": -14.1
+   "heading": -9.4
   },
   {
    "id": "14.194476_121.159279",
@@ -1450,18 +1405,18 @@
    "connections": [
     {
      "targetId": "14.194774_121.159727",
-     "bearing": 55.7,
+     "bearing": 55.3,
      "distance": 58.5
     },
     {
      "targetId": "14.194090_121.158540",
-     "bearing": 241.8,
+     "bearing": 235.3,
      "distance": 90.5
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Real",
-   "heading": -6.4
+   "heading": -6.9
   },
   {
    "id": "14.194774_121.159727",
@@ -1473,18 +1428,18 @@
    "connections": [
     {
      "targetId": "14.194476_121.159279",
-     "bearing": 235.7,
+     "bearing": 235.3,
      "distance": 58.5
     },
     {
      "targetId": "14.195111_121.160224",
-     "bearing": 55.2,
+     "bearing": 55.3,
      "distance": 65.3
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Real",
-   "heading": -8.0
+   "heading": -7.9
   },
   {
    "id": "14.195111_121.160224",
@@ -1496,12 +1451,12 @@
    "connections": [
     {
      "targetId": "14.195408_121.160657",
-     "bearing": 54.9,
+     "bearing": 54.8,
      "distance": 57.1
     },
     {
      "targetId": "14.194774_121.159727",
-     "bearing": 235.2,
+     "bearing": 234.8,
      "distance": 65.3
     }
    ],
@@ -1519,18 +1474,18 @@
    "connections": [
     {
      "targetId": "14.195566_121.160919",
-     "bearing": 58.3,
+     "bearing": 56.7,
      "distance": 33.2
     },
     {
      "targetId": "14.195111_121.160224",
-     "bearing": 234.9,
+     "bearing": 236.7,
      "distance": 57.1
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Real",
-   "heading": -2.2
+   "heading": -3.8
   },
   {
    "id": "14.195566_121.160919",
@@ -1542,23 +1497,18 @@
    "connections": [
     {
      "targetId": "14.195408_121.160657",
-     "bearing": 238.3,
+     "bearing": 240.8,
      "distance": 33.2
     },
     {
-     "targetId": "14.195902_121.161088",
-     "bearing": 329.7,
-     "distance": 41.4
-    },
-    {
      "targetId": "14.195894_121.161381",
-     "bearing": 54.0,
+     "bearing": 60.8,
      "distance": 61.7
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Halang",
-   "heading": -6.4
+   "heading": 0.5
   },
   {
    "id": "14.195894_121.161381",
@@ -1569,24 +1519,19 @@
    "source": "IMG_20261024_134516_00_460",
    "connections": [
     {
-     "targetId": "14.195902_121.161088",
-     "bearing": 329.7,
-     "distance": 31.6
-    },
-    {
      "targetId": "14.196221_121.161798",
-     "bearing": 51.2,
+     "bearing": 53.0,
      "distance": 57.7
     },
     {
      "targetId": "14.195566_121.160919",
-     "bearing": 234.0,
+     "bearing": 233.0,
      "distance": 61.7
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Halang",
-   "heading": -7.3
+   "heading": -5.5
   },
   {
    "id": "14.196221_121.161798",
@@ -1597,24 +1542,19 @@
    "source": "IMG_20261024_134530_00_461",
    "connections": [
     {
-     "targetId": "14.196493_121.161447",
-     "bearing": 324.5,
-     "distance": 48.4
-    },
-    {
      "targetId": "14.195894_121.161381",
-     "bearing": 231.2,
+     "bearing": 231.0,
      "distance": 57.7
     },
     {
      "targetId": "14.196584_121.162267",
-     "bearing": 51.6,
+     "bearing": 51.0,
      "distance": 64.6
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Halang",
-   "heading": -4.6
+   "heading": -5.2
   },
   {
    "id": "14.196584_121.162267",
@@ -1626,23 +1566,18 @@
    "connections": [
     {
      "targetId": "14.196697_121.162699",
-     "bearing": 75.0,
+     "bearing": 52.4,
      "distance": 48.3
     },
     {
-     "targetId": "14.196913_121.162656",
-     "bearing": 320.4,
-     "distance": 55.6
-    },
-    {
      "targetId": "14.196221_121.161798",
-     "bearing": 231.6,
+     "bearing": 232.4,
      "distance": 64.6
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Halang",
-   "heading": 15.8
+   "heading": -6.8
   },
   {
    "id": "14.196697_121.162699",
@@ -1654,23 +1589,23 @@
    "connections": [
     {
      "targetId": "14.196913_121.162656",
-     "bearing": 320.4,
+     "bearing": 319.4,
      "distance": 24.3
     },
     {
      "targetId": "14.196584_121.162267",
-     "bearing": 255.0,
+     "bearing": 232.4,
      "distance": 48.3
     },
     {
      "targetId": "14.196231_121.163082",
-     "bearing": 141.3,
+     "bearing": 139.4,
      "distance": 66.1
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -4.5
+   "heading": -6.4
   },
   {
    "id": "14.196231_121.163082",
@@ -1682,18 +1617,18 @@
    "connections": [
     {
      "targetId": "14.196697_121.162699",
-     "bearing": 321.3,
+     "bearing": 319.9,
      "distance": 66.1
     },
     {
      "targetId": "14.195646_121.163581",
-     "bearing": 140.2,
+     "bearing": 139.9,
      "distance": 84.2
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -11.6
+   "heading": -11.9
   },
   {
    "id": "14.195646_121.163581",
@@ -1705,18 +1640,18 @@
    "connections": [
     {
      "targetId": "14.195127_121.164041",
-     "bearing": 139.1,
+     "bearing": 139.9,
      "distance": 75.9
     },
     {
      "targetId": "14.196231_121.163082",
-     "bearing": 320.2,
+     "bearing": 319.9,
      "distance": 84.2
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": 1.1
+   "heading": 1.9
   },
   {
    "id": "14.195127_121.164041",
@@ -1728,18 +1663,18 @@
    "connections": [
     {
      "targetId": "14.194664_121.164449",
-     "bearing": 139.3,
+     "bearing": 140.2,
      "distance": 67.5
     },
     {
      "targetId": "14.195646_121.163581",
-     "bearing": 319.1,
+     "bearing": 320.2,
      "distance": 75.9
     }
    ],
-   "street": "Saint Dominic Street",
+   "street": "National Highway",
    "area": "Halang",
-   "heading": -11.0
+   "heading": -10.2
   },
   {
    "id": "14.194664_121.164449",
@@ -1756,13 +1691,13 @@
     },
     {
      "targetId": "14.194154_121.164883",
-     "bearing": 140.3,
+     "bearing": 139.3,
      "distance": 73.3
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -7.9
+   "heading": -8.8
   },
   {
    "id": "14.194154_121.164883",
@@ -1774,18 +1709,18 @@
    "connections": [
     {
      "targetId": "14.193702_121.165266",
-     "bearing": 140.4,
+     "bearing": 139.2,
      "distance": 64.9
     },
     {
      "targetId": "14.194664_121.164449",
-     "bearing": 320.3,
+     "bearing": 319.2,
      "distance": 73.3
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -3.7
+   "heading": -5.0
   },
   {
    "id": "14.193702_121.165266",
@@ -1797,18 +1732,18 @@
    "connections": [
     {
      "targetId": "14.194154_121.164883",
-     "bearing": 320.4,
+     "bearing": 319.8,
      "distance": 64.9
     },
     {
      "targetId": "14.193157_121.165727",
-     "bearing": 140.5,
+     "bearing": 139.8,
      "distance": 78.1
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -5.1
+   "heading": -5.8
   },
   {
    "id": "14.193157_121.165727",
@@ -1820,18 +1755,18 @@
    "connections": [
     {
      "targetId": "14.193702_121.165266",
-     "bearing": 320.5,
+     "bearing": 320.6,
      "distance": 78.1
     },
     {
      "targetId": "14.192606_121.166200",
-     "bearing": 140.0,
+     "bearing": 140.6,
      "distance": 79.5
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -11.0
+   "heading": -10.5
   },
   {
    "id": "14.192606_121.166200",
@@ -1843,18 +1778,18 @@
    "connections": [
     {
      "targetId": "14.192162_121.166588",
-     "bearing": 139.5,
+     "bearing": 139.1,
      "distance": 64.5
     },
     {
      "targetId": "14.193157_121.165727",
-     "bearing": 320.0,
+     "bearing": 319.1,
      "distance": 79.5
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": -9.7
+   "heading": -10.1
   },
   {
    "id": "14.192162_121.166588",
@@ -1866,18 +1801,18 @@
    "connections": [
     {
      "targetId": "14.191908_121.166596",
-     "bearing": 178.2,
+     "bearing": 226.2,
      "distance": 28.1
     },
     {
      "targetId": "14.192606_121.166200",
-     "bearing": 319.5,
+     "bearing": 319.8,
      "distance": 64.5
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": 27.1
+   "heading": 75.1
   },
   {
    "id": "14.191908_121.166596",
@@ -1889,28 +1824,18 @@
    "connections": [
     {
      "targetId": "14.191832_121.166507",
-     "bearing": 227.1,
+     "bearing": 226.2,
      "distance": 12.8
     },
     {
      "targetId": "14.192162_121.166588",
-     "bearing": 358.2,
+     "bearing": 46.2,
      "distance": 28.1
-    },
-    {
-     "targetId": "14.191934_121.166907",
-     "bearing": 142.2,
-     "distance": 33.7
-    },
-    {
-     "targetId": "14.192438_121.166508",
-     "bearing": 321.2,
-     "distance": 59.4
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -14.0
+   "heading": -14.9
   },
   {
    "id": "14.191832_121.166507",
@@ -1922,18 +1847,18 @@
    "connections": [
     {
      "targetId": "14.191908_121.166596",
-     "bearing": 13.5,
+     "bearing": 47.4,
      "distance": 12.8
     },
     {
      "targetId": "14.191735_121.166405",
-     "bearing": 228.5,
+     "bearing": 227.4,
      "distance": 15.4
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -21.9
+   "heading": -23.0
   },
   {
    "id": "14.191735_121.166405",
@@ -1945,18 +1870,18 @@
    "connections": [
     {
      "targetId": "14.191832_121.166507",
-     "bearing": 47.1,
+     "bearing": 47.4,
      "distance": 15.4
     },
     {
      "targetId": "14.191437_121.166050",
-     "bearing": 229.3,
+     "bearing": 227.4,
      "distance": 50.5
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -23.8
+   "heading": -25.7
   },
   {
    "id": "14.191437_121.166050",
@@ -1968,18 +1893,18 @@
    "connections": [
     {
      "targetId": "14.191735_121.166405",
-     "bearing": 49.3,
+     "bearing": 52.3,
      "distance": 50.5
     },
     {
      "targetId": "14.191139_121.165682",
-     "bearing": 230.3,
+     "bearing": 232.3,
      "distance": 51.6
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -13.6
+   "heading": -11.6
   },
   {
    "id": "14.191139_121.165682",
@@ -2014,7 +1939,7 @@
    "connections": [
     {
      "targetId": "14.190576_121.165013",
-     "bearing": 228.2,
+     "bearing": 230.3,
      "distance": 47.1
     },
     {
@@ -2025,7 +1950,7 @@
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -10.6
+   "heading": -8.4
   },
   {
    "id": "14.190576_121.165013",
@@ -2037,18 +1962,18 @@
    "connections": [
     {
      "targetId": "14.190319_121.164721",
-     "bearing": 228.0,
+     "bearing": 224.5,
      "distance": 42.4
     },
     {
      "targetId": "14.190860_121.165338",
-     "bearing": 48.2,
+     "bearing": 44.5,
      "distance": 47.1
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -4.5
+   "heading": -7.9
   },
   {
    "id": "14.190319_121.164721",
@@ -2060,18 +1985,18 @@
    "connections": [
     {
      "targetId": "14.190576_121.165013",
-     "bearing": 48.0,
+     "bearing": 53.6,
      "distance": 42.4
     },
     {
      "targetId": "14.190003_121.164309",
-     "bearing": 231.8,
+     "bearing": 233.6,
      "distance": 56.6
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -3.6
+   "heading": -1.9
   },
   {
    "id": "14.190003_121.164309",
@@ -2083,18 +2008,18 @@
    "connections": [
     {
      "targetId": "14.189690_121.163915",
-     "bearing": 230.9,
+     "bearing": 231.2,
      "distance": 54.8
     },
     {
      "targetId": "14.190319_121.164721",
-     "bearing": 51.8,
+     "bearing": 51.2,
      "distance": 56.6
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -3.7
+   "heading": -3.4
   },
   {
    "id": "14.189690_121.163915",
@@ -2106,18 +2031,18 @@
    "connections": [
     {
      "targetId": "14.189566_121.163747",
-     "bearing": 228.6,
+     "bearing": 231.2,
      "distance": 22.7
     },
     {
      "targetId": "14.190003_121.164309",
-     "bearing": 50.9,
+     "bearing": 51.2,
      "distance": 54.8
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -6.0
+   "heading": -3.4
   },
   {
    "id": "14.189566_121.163747",
@@ -2129,18 +2054,18 @@
    "connections": [
     {
      "targetId": "14.189690_121.163915",
-     "bearing": 51.5,
+     "bearing": 51.2,
      "distance": 22.7
     },
     {
      "targetId": "14.189234_121.163385",
-     "bearing": 226.8,
+     "bearing": 231.2,
      "distance": 53.6
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -10.5
+   "heading": -6.1
   },
   {
    "id": "14.189234_121.163385",
@@ -2152,18 +2077,18 @@
    "connections": [
     {
      "targetId": "14.188990_121.163079",
-     "bearing": 230.8,
+     "bearing": 229.9,
      "distance": 42.6
     },
     {
      "targetId": "14.189566_121.163747",
-     "bearing": 46.8,
+     "bearing": 49.9,
      "distance": 53.6
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": 1.6
+   "heading": 0.7
   },
   {
    "id": "14.188990_121.163079",
@@ -2175,18 +2100,18 @@
    "connections": [
     {
      "targetId": "14.189234_121.163385",
-     "bearing": 50.8,
+     "bearing": 49.9,
      "distance": 42.6
     },
     {
      "targetId": "14.188675_121.162693",
-     "bearing": 230.1,
+     "bearing": 229.9,
      "distance": 54.3
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -6.1
+   "heading": -6.3
   },
   {
    "id": "14.188675_121.162693",
@@ -2198,13 +2123,13 @@
    "connections": [
     {
      "targetId": "14.188990_121.163079",
-     "bearing": 50.1,
+     "bearing": 47.0,
      "distance": 54.3
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -8.6
+   "heading": -11.7
   },
   {
    "id": "14.190986_121.167677",
@@ -2216,13 +2141,13 @@
    "connections": [
     {
      "targetId": "14.191467_121.167281",
-     "bearing": 321.2,
+     "bearing": 319.2,
      "distance": 68.2
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": -9.7
+   "heading": -11.7
   },
   {
    "id": "14.191467_121.167281",
@@ -2234,18 +2159,18 @@
    "connections": [
     {
      "targetId": "14.191934_121.166907",
-     "bearing": 322.0,
+     "bearing": 321.6,
      "distance": 65.5
     },
     {
      "targetId": "14.190986_121.167677",
-     "bearing": 141.2,
+     "bearing": 141.6,
      "distance": 68.2
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": -4.8
+   "heading": -5.2
   },
   {
    "id": "14.191934_121.166907",
@@ -2256,24 +2181,19 @@
    "source": "IMG_20261024_135611_00_489",
    "connections": [
     {
-     "targetId": "14.191908_121.166596",
-     "bearing": 193.5,
-     "distance": 33.7
-    },
-    {
      "targetId": "14.191467_121.167281",
-     "bearing": 142.0,
+     "bearing": 140.6,
      "distance": 65.5
     },
     {
      "targetId": "14.192438_121.166508",
-     "bearing": 322.3,
+     "bearing": 320.6,
      "distance": 70.4
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": -17.9
+   "heading": -19.6
   },
   {
    "id": "14.192438_121.166508",
@@ -2285,23 +2205,18 @@
    "connections": [
     {
      "targetId": "14.192624_121.166339",
-     "bearing": 318.4,
+     "bearing": 313.3,
      "distance": 27.5
     },
     {
-     "targetId": "14.191908_121.166596",
-     "bearing": 193.5,
-     "distance": 59.4
-    },
-    {
      "targetId": "14.191934_121.166907",
-     "bearing": 142.3,
+     "bearing": 133.3,
      "distance": 70.4
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": -21.9
+   "heading": -27.1
   },
   {
    "id": "14.192624_121.166339",
@@ -2313,13 +2228,13 @@
    "connections": [
     {
      "targetId": "14.192438_121.166508",
-     "bearing": 138.4,
+     "bearing": 139.1,
      "distance": 27.5
     }
    ],
    "street": "National Highway",
    "area": "Bucal",
-   "heading": -31.3
+   "heading": -30.6
   },
   {
    "id": "14.196913_121.162656",
@@ -2331,23 +2246,18 @@
    "connections": [
     {
      "targetId": "14.196697_121.162699",
-     "bearing": 113.9,
+     "bearing": 139.4,
      "distance": 24.3
     },
     {
-     "targetId": "14.196584_121.162267",
-     "bearing": 241.6,
-     "distance": 55.6
-    },
-    {
      "targetId": "14.197540_121.162125",
-     "bearing": 320.4,
+     "bearing": 319.4,
      "distance": 89.9
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -17.0
+   "heading": -18.0
   },
   {
    "id": "14.197540_121.162125",
@@ -2364,13 +2274,13 @@
     },
     {
      "targetId": "14.196913_121.162656",
-     "bearing": 140.4,
+     "bearing": 141.3,
      "distance": 89.9
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -20.5
+   "heading": -20.4
   },
   {
    "id": "14.197979_121.161764",
@@ -2382,18 +2292,18 @@
    "connections": [
     {
      "targetId": "14.197540_121.162125",
-     "bearing": 141.3,
+     "bearing": 141.7,
      "distance": 62.2
     },
     {
      "targetId": "14.198599_121.161334",
-     "bearing": 325.9,
+     "bearing": 321.7,
      "distance": 82.8
     }
    ],
    "street": "National Highway",
    "area": "Halang",
-   "heading": -21.0
+   "heading": -25.2
   },
   {
    "id": "14.198599_121.161334",
@@ -2405,18 +2315,18 @@
    "connections": [
     {
      "targetId": "14.197979_121.161764",
-     "bearing": 145.9,
+     "bearing": 142.8,
      "distance": 82.8
     },
     {
      "targetId": "14.199283_121.160805",
-     "bearing": 323.0,
+     "bearing": 322.8,
      "distance": 94.8
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -24.6
+   "heading": -24.7
   },
   {
    "id": "14.199283_121.160805",
@@ -2428,7 +2338,7 @@
    "connections": [
     {
      "targetId": "14.199940_121.160308",
-     "bearing": 323.6,
+     "bearing": 323.0,
      "distance": 90.3
     },
     {
@@ -2439,7 +2349,7 @@
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -25.0
+   "heading": -25.5
   },
   {
    "id": "14.199940_121.160308",
@@ -2451,18 +2361,18 @@
    "connections": [
     {
      "targetId": "14.200527_121.159868",
-     "bearing": 323.8,
+     "bearing": 323.7,
      "distance": 80.4
     },
     {
      "targetId": "14.199283_121.160805",
-     "bearing": 143.6,
+     "bearing": 143.7,
      "distance": 90.3
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -18.1
+   "heading": -18.3
   },
   {
    "id": "14.200527_121.159868",
@@ -2474,18 +2384,18 @@
    "connections": [
     {
      "targetId": "14.200839_121.159628",
-     "bearing": 323.1,
+     "bearing": 324.4,
      "distance": 43.1
     },
     {
      "targetId": "14.199940_121.160308",
-     "bearing": 143.8,
+     "bearing": 144.4,
      "distance": 80.4
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -6.0
+   "heading": -4.6
   },
   {
    "id": "14.200839_121.159628",
@@ -2497,18 +2407,18 @@
    "connections": [
     {
      "targetId": "14.201117_121.159409",
-     "bearing": 322.4,
+     "bearing": 324.4,
      "distance": 38.8
     },
     {
      "targetId": "14.200527_121.159868",
-     "bearing": 143.1,
+     "bearing": 144.4,
      "distance": 43.1
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -12.1
+   "heading": -10.1
   },
   {
    "id": "14.201117_121.159409",
@@ -2520,18 +2430,18 @@
    "connections": [
     {
      "targetId": "14.200839_121.159628",
-     "bearing": 142.4,
+     "bearing": 144.4,
      "distance": 38.8
     },
     {
      "targetId": "14.201410_121.159201",
-     "bearing": 325.3,
+     "bearing": 324.4,
      "distance": 39.4
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -10.3
+   "heading": -11.1
   },
   {
    "id": "14.201410_121.159201",
@@ -2543,18 +2453,18 @@
    "connections": [
     {
      "targetId": "14.201117_121.159409",
-     "bearing": 145.3,
+     "bearing": 143.2,
      "distance": 39.4
     },
     {
      "targetId": "14.201897_121.158835",
-     "bearing": 323.7,
+     "bearing": 323.2,
      "distance": 66.8
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -11.4
+   "heading": -11.9
   },
   {
    "id": "14.201897_121.158835",
@@ -2565,13 +2475,8 @@
    "source": "IMG_20261024_140507_00_502",
    "connections": [
     {
-     "targetId": "14.202047_121.158428",
-     "bearing": 228.5,
-     "distance": 46.9
-    },
-    {
      "targetId": "14.201410_121.159201",
-     "bearing": 143.7,
+     "bearing": 143.4,
      "distance": 66.8
     },
     {
@@ -2582,7 +2487,7 @@
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -7.8
+   "heading": -7.7
   },
   {
    "id": "14.203303_121.157764",
@@ -2594,17 +2499,17 @@
    "connections": [
     {
      "targetId": "14.203101_121.157724",
-     "bearing": 261.8,
+     "bearing": 245.1,
      "distance": 22.7
     },
     {
      "targetId": "14.203806_121.157412",
-     "bearing": 325.7,
+     "bearing": 325.6,
      "distance": 67.4
     },
     {
      "targetId": "14.201897_121.158835",
-     "bearing": 143.4,
+     "bearing": 145.6,
      "distance": 193.7
     }
    ],
@@ -2622,28 +2527,23 @@
    "connections": [
     {
      "targetId": "14.203976_121.157306",
-     "bearing": 53.9,
+     "bearing": 52.0,
      "distance": 22.0
     },
     {
-     "targetId": "14.203885_121.157170",
-     "bearing": 245.1,
-     "distance": 27.5
-    },
-    {
      "targetId": "14.204158_121.157143",
-     "bearing": 323.3,
+     "bearing": 322.4,
      "distance": 48.6
     },
     {
      "targetId": "14.203303_121.157764",
-     "bearing": 145.7,
+     "bearing": 142.4,
      "distance": 67.4
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -9.8
+   "heading": -10.7
   },
   {
    "id": "14.204158_121.157143",
@@ -2655,28 +2555,23 @@
    "connections": [
     {
      "targetId": "14.203976_121.157306",
-     "bearing": 53.9,
+     "bearing": 52.0,
      "distance": 26.7
     },
     {
-     "targetId": "14.203885_121.157170",
-     "bearing": 245.1,
-     "distance": 30.3
-    },
-    {
      "targetId": "14.203806_121.157412",
-     "bearing": 143.3,
+     "bearing": 144.5,
      "distance": 48.6
     },
     {
      "targetId": "14.204725_121.156722",
-     "bearing": 324.1,
+     "bearing": 324.5,
      "distance": 77.4
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -15.4
+   "heading": -15.0
   },
   {
    "id": "14.204725_121.156722",
@@ -2688,18 +2583,18 @@
    "connections": [
     {
      "targetId": "14.205243_121.156300",
-     "bearing": 321.5,
+     "bearing": 324.4,
      "distance": 73.2
     },
     {
      "targetId": "14.204158_121.157143",
-     "bearing": 144.1,
+     "bearing": 144.4,
      "distance": 77.4
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -15.7
+   "heading": -12.8
   },
   {
    "id": "14.205243_121.156300",
@@ -2711,23 +2606,18 @@
    "connections": [
     {
      "targetId": "14.205441_121.156152",
-     "bearing": 323.9,
+     "bearing": 324.4,
      "distance": 27.1
     },
     {
-     "targetId": "14.204944_121.156474",
-     "bearing": 62.7,
-     "distance": 38.0
-    },
-    {
      "targetId": "14.204725_121.156722",
-     "bearing": 141.5,
+     "bearing": 144.4,
      "distance": 73.2
     }
    ],
-   "street": "Rosal Street",
+   "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -13.4
+   "heading": -12.9
   },
   {
    "id": "14.205441_121.156152",
@@ -2739,18 +2629,18 @@
    "connections": [
     {
      "targetId": "14.205243_121.156300",
-     "bearing": 143.9,
+     "bearing": 144.6,
      "distance": 27.1
     },
     {
      "targetId": "14.205906_121.155800",
-     "bearing": 323.5,
+     "bearing": 324.6,
      "distance": 63.9
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -8.7
+   "heading": -7.7
   },
   {
    "id": "14.205906_121.155800",
@@ -2761,24 +2651,19 @@
    "source": "IMG_20261024_140731_00_509",
    "connections": [
     {
-     "targetId": "14.205813_121.155492",
-     "bearing": 219.3,
-     "distance": 34.8
-    },
-    {
      "targetId": "14.205441_121.156152",
-     "bearing": 143.5,
+     "bearing": 145.0,
      "distance": 63.9
     },
     {
      "targetId": "14.206326_121.155391",
-     "bearing": 316.5,
+     "bearing": 325.0,
      "distance": 64.1
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -9.5
+   "heading": -1.0
   },
   {
    "id": "14.206326_121.155391",
@@ -2790,18 +2675,18 @@
    "connections": [
     {
      "targetId": "14.205906_121.155800",
-     "bearing": 136.5,
+     "bearing": 134.8,
      "distance": 64.1
     },
     {
      "targetId": "14.206816_121.154789",
-     "bearing": 309.8,
+     "bearing": 314.8,
      "distance": 84.6
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -3.1
+   "heading": 2.0
   },
   {
    "id": "14.206816_121.154789",
@@ -2813,18 +2698,18 @@
    "connections": [
     {
      "targetId": "14.206468_121.154605",
-     "bearing": 207.3,
+     "bearing": 256.6,
      "distance": 43.3
     },
     {
      "targetId": "14.206326_121.155391",
-     "bearing": 129.8,
+     "bearing": 134.8,
      "distance": 84.6
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -87.0
+   "heading": -37.7
   },
   {
    "id": "14.206468_121.154605",
@@ -2836,18 +2721,18 @@
    "connections": [
     {
      "targetId": "14.206816_121.154789",
-     "bearing": 27.3,
+     "bearing": 353.3,
      "distance": 43.3
     },
     {
      "targetId": "14.205679_121.154679",
-     "bearing": 174.8,
+     "bearing": 173.3,
      "distance": 87.6
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -12.0
+   "heading": -13.4
   },
   {
    "id": "14.205679_121.154679",
@@ -2858,24 +2743,19 @@
    "source": "IMG_20261024_140837_00_513",
    "connections": [
     {
-     "targetId": "14.205275_121.154720",
-     "bearing": 85.7,
-     "distance": 44.9
-    },
-    {
      "targetId": "14.206468_121.154605",
-     "bearing": 354.8,
+     "bearing": 355.3,
      "distance": 87.6
     },
     {
      "targetId": "14.204851_121.154531",
-     "bearing": 189.9,
+     "bearing": 175.3,
      "distance": 92.9
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -0.1
+   "heading": -14.6
   },
   {
    "id": "14.204851_121.154531",
@@ -2886,24 +2766,19 @@
    "source": "IMG_20261024_140851_00_514",
    "connections": [
     {
-     "targetId": "14.205275_121.154720",
-     "bearing": 85.7,
-     "distance": 51.1
-    },
-    {
      "targetId": "14.204386_121.154190",
-     "bearing": 215.6,
+     "bearing": 198.1,
      "distance": 63.2
     },
     {
      "targetId": "14.205679_121.154679",
-     "bearing": 9.9,
+     "bearing": 18.1,
      "distance": 92.9
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -4.2
+   "heading": -21.7
   },
   {
    "id": "14.204386_121.154190",
@@ -2915,18 +2790,18 @@
    "connections": [
     {
      "targetId": "14.204851_121.154531",
-     "bearing": 35.6,
+     "bearing": 39.1,
      "distance": 63.2
     },
     {
      "targetId": "14.203729_121.153589",
-     "bearing": 221.8,
+     "bearing": 219.1,
      "distance": 97.4
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -14.3
+   "heading": -17.0
   },
   {
    "id": "14.203729_121.153589",
@@ -2937,24 +2812,19 @@
    "source": "IMG_20261024_140921_00_516",
    "connections": [
     {
-     "targetId": "14.204121_121.154276",
-     "bearing": 3.0,
-     "distance": 85.9
-    },
-    {
      "targetId": "14.203106_121.153041",
-     "bearing": 220.6,
+     "bearing": 219.4,
      "distance": 90.8
     },
     {
      "targetId": "14.204386_121.154190",
-     "bearing": 41.8,
+     "bearing": 39.4,
      "distance": 97.4
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -13.7
+   "heading": -14.9
   },
   {
    "id": "14.203106_121.153041",
@@ -2966,18 +2836,18 @@
    "connections": [
     {
      "targetId": "14.202503_121.152515",
-     "bearing": 220.4,
+     "bearing": 222.4,
      "distance": 87.6
     },
     {
      "targetId": "14.203729_121.153589",
-     "bearing": 40.6,
+     "bearing": 42.4,
      "distance": 90.8
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -2.1
+   "heading": -0.1
   },
   {
    "id": "14.202503_121.152515",
@@ -2989,18 +2859,18 @@
    "connections": [
     {
      "targetId": "14.203106_121.153041",
-     "bearing": 40.4,
+     "bearing": 36.7,
      "distance": 87.6
     },
     {
      "targetId": "14.201795_121.151985",
-     "bearing": 216.2,
+     "bearing": 216.7,
      "distance": 97.0
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -9.6
+   "heading": -9.1
   },
   {
    "id": "14.201795_121.151985",
@@ -3012,18 +2882,18 @@
    "connections": [
     {
      "targetId": "14.201384_121.151721",
-     "bearing": 212.1,
+     "bearing": 214.1,
      "distance": 53.6
     },
     {
      "targetId": "14.202503_121.152515",
-     "bearing": 36.2,
+     "bearing": 34.1,
      "distance": 97.0
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -10.5
+   "heading": -8.5
   },
   {
    "id": "14.201384_121.151721",
@@ -3035,18 +2905,18 @@
    "connections": [
     {
      "targetId": "14.201086_121.151513",
-     "bearing": 214.3,
+     "bearing": 214.1,
      "distance": 39.9
     },
     {
      "targetId": "14.201795_121.151985",
-     "bearing": 32.1,
+     "bearing": 34.1,
      "distance": 53.6
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 5.8
+   "heading": 5.6
   },
   {
    "id": "14.201086_121.151513",
@@ -3058,18 +2928,18 @@
    "connections": [
     {
      "targetId": "14.200792_121.151311",
-     "bearing": 213.8,
+     "bearing": 212.6,
      "distance": 39.1
     },
     {
      "targetId": "14.201384_121.151721",
-     "bearing": 34.3,
+     "bearing": 32.6,
      "distance": 39.9
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -2.6
+   "heading": -3.8
   },
   {
    "id": "14.200792_121.151311",
@@ -3081,18 +2951,18 @@
    "connections": [
     {
      "targetId": "14.200687_121.151243",
-     "bearing": 209.3,
+     "bearing": 212.6,
      "distance": 13.7
     },
     {
      "targetId": "14.201086_121.151513",
-     "bearing": 33.8,
+     "bearing": 32.6,
      "distance": 39.1
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -7.8
+   "heading": -4.5
   },
   {
    "id": "14.200687_121.151243",
@@ -3104,18 +2974,18 @@
    "connections": [
     {
      "targetId": "14.200792_121.151311",
-     "bearing": 33.4,
+     "bearing": 35.6,
      "distance": 13.7
     },
     {
      "targetId": "14.200390_121.151080",
-     "bearing": 208.2,
+     "bearing": 215.6,
      "distance": 37.3
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -9.9
+   "heading": -2.5
   },
   {
    "id": "14.200390_121.151080",
@@ -3127,18 +2997,18 @@
    "connections": [
     {
      "targetId": "14.200687_121.151243",
-     "bearing": 28.2,
+     "bearing": 35.5,
      "distance": 37.3
     },
     {
      "targetId": "14.199845_121.150463",
-     "bearing": 227.9,
+     "bearing": 215.5,
      "distance": 89.8
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 3.0
+   "heading": -9.3
   },
   {
    "id": "14.199845_121.150463",
@@ -3150,18 +3020,18 @@
    "connections": [
     {
      "targetId": "14.200390_121.151080",
-     "bearing": 47.9,
+     "bearing": 53.6,
      "distance": 89.8
     },
     {
      "targetId": "14.199331_121.149663",
-     "bearing": 236.6,
+     "bearing": 233.6,
      "distance": 103.4
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -3.8
+   "heading": -6.8
   },
   {
    "id": "14.199331_121.149663",
@@ -3173,18 +3043,18 @@
    "connections": [
     {
      "targetId": "14.198926_121.148992",
-     "bearing": 238.3,
+     "bearing": 238.0,
      "distance": 85.1
     },
     {
      "targetId": "14.199845_121.150463",
-     "bearing": 56.6,
+     "bearing": 58.0,
      "distance": 103.4
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 0.8
+   "heading": 0.5
   },
   {
    "id": "14.198926_121.148992",
@@ -3196,12 +3066,12 @@
    "connections": [
     {
      "targetId": "14.199331_121.149663",
-     "bearing": 58.3,
+     "bearing": 58.0,
      "distance": 85.1
     },
     {
      "targetId": "14.198481_121.148265",
-     "bearing": 237.9,
+     "bearing": 238.0,
      "distance": 92.6
     }
    ],
@@ -3219,18 +3089,18 @@
    "connections": [
     {
      "targetId": "14.198926_121.148992",
-     "bearing": 57.9,
+     "bearing": 59.1,
      "distance": 92.6
     },
     {
      "targetId": "14.198021_121.147499",
-     "bearing": 238.4,
+     "bearing": 239.1,
      "distance": 97.1
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 4.4
+   "heading": 5.1
   },
   {
    "id": "14.198021_121.147499",
@@ -3242,18 +3112,18 @@
    "connections": [
     {
      "targetId": "14.197674_121.146947",
-     "bearing": 237.2,
+     "bearing": 239.2,
      "distance": 70.9
     },
     {
      "targetId": "14.198481_121.148265",
-     "bearing": 58.4,
+     "bearing": 59.2,
      "distance": 97.1
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -6.4
+   "heading": -4.4
   },
   {
    "id": "14.197674_121.146947",
@@ -3265,18 +3135,18 @@
    "connections": [
     {
      "targetId": "14.198021_121.147499",
-     "bearing": 57.2,
+     "bearing": 57.7,
      "distance": 70.9
     },
     {
      "targetId": "14.197254_121.146304",
-     "bearing": 236.2,
+     "bearing": 237.7,
      "distance": 83.5
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 0.1
+   "heading": 1.6
   },
   {
    "id": "14.197254_121.146304",
@@ -3288,18 +3158,18 @@
    "connections": [
     {
      "targetId": "14.197674_121.146947",
-     "bearing": 56.2,
+     "bearing": 55.7,
      "distance": 83.5
     },
     {
      "targetId": "14.196239_121.144895",
-     "bearing": 233.6,
+     "bearing": 235.7,
      "distance": 189.0
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -13.8
+   "heading": -11.7
   },
   {
    "id": "14.196239_121.144895",
@@ -3311,18 +3181,18 @@
    "connections": [
     {
      "targetId": "14.195657_121.144132",
-     "bearing": 232.0,
+     "bearing": 230.6,
      "distance": 104.5
     },
     {
      "targetId": "14.197254_121.146304",
-     "bearing": 53.6,
+     "bearing": 50.6,
      "distance": 189.0
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 2.0
+   "heading": 0.6
   },
   {
    "id": "14.195657_121.144132",
@@ -3334,18 +3204,18 @@
    "connections": [
     {
      "targetId": "14.195108_121.143384",
-     "bearing": 233.1,
+     "bearing": 232.2,
      "distance": 101.0
     },
     {
      "targetId": "14.196239_121.144895",
-     "bearing": 52.0,
+     "bearing": 52.2,
      "distance": 104.5
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -1.0
+   "heading": -1.9
   },
   {
    "id": "14.195108_121.143384",
@@ -3357,18 +3227,18 @@
    "connections": [
     {
      "targetId": "14.194869_121.143286",
-     "bearing": 201.8,
+     "bearing": 231.2,
      "distance": 28.5
     },
     {
      "targetId": "14.195657_121.144132",
-     "bearing": 53.1,
+     "bearing": 51.2,
      "distance": 101.0
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -36.2
+   "heading": -6.8
   },
   {
    "id": "14.194869_121.143286",
@@ -3380,13 +3250,13 @@
    "connections": [
     {
      "targetId": "14.195108_121.143384",
-     "bearing": 21.8,
+     "bearing": 51.2,
      "distance": 28.5
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 51.1
+   "heading": 80.5
   },
   {
    "id": "14.196429_121.145282",
@@ -3398,13 +3268,13 @@
    "connections": [
     {
      "targetId": "14.196556_121.145716",
-     "bearing": 73.3,
+     "bearing": 73.0,
      "distance": 48.9
     }
    ],
    "street": "Rambutan Street",
    "area": "Real",
-   "heading": -5.0
+   "heading": -5.3
   },
   {
    "id": "14.196556_121.145716",
@@ -3416,18 +3286,18 @@
    "connections": [
     {
      "targetId": "14.196628_121.146158",
-     "bearing": 80.5,
+     "bearing": 78.0,
      "distance": 48.4
     },
     {
      "targetId": "14.196429_121.145282",
-     "bearing": 253.3,
+     "bearing": 258.0,
      "distance": 48.9
     }
    ],
    "street": "Rambutan Street",
    "area": "Real",
-   "heading": 6.7
+   "heading": 4.2
   },
   {
    "id": "14.196628_121.146158",
@@ -3439,18 +3309,18 @@
    "connections": [
     {
      "targetId": "14.196651_121.146585",
-     "bearing": 86.8,
+     "bearing": 86.7,
      "distance": 46.2
     },
     {
      "targetId": "14.196556_121.145716",
-     "bearing": 260.5,
+     "bearing": 266.7,
      "distance": 48.4
     }
    ],
    "street": "Rambutan Street",
    "area": "Real",
-   "heading": 2.0
+   "heading": 1.8
   },
   {
    "id": "14.196651_121.146585",
@@ -3462,18 +3332,18 @@
    "connections": [
     {
      "targetId": "14.196628_121.146158",
-     "bearing": 266.8,
+     "bearing": 266.7,
      "distance": 46.2
     },
     {
      "targetId": "14.196848_121.147070",
-     "bearing": 67.4,
+     "bearing": 79.1,
      "distance": 56.7
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": -18.1
+   "heading": -6.4
   },
   {
    "id": "14.196848_121.147070",
@@ -3485,18 +3355,18 @@
    "connections": [
     {
      "targetId": "14.197003_121.147438",
-     "bearing": 66.7,
+     "bearing": 61.5,
      "distance": 43.3
     },
     {
      "targetId": "14.196651_121.146585",
-     "bearing": 247.4,
+     "bearing": 241.5,
      "distance": 56.7
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 7.5
+   "heading": 2.4
   },
   {
    "id": "14.197003_121.147438",
@@ -3508,18 +3378,18 @@
    "connections": [
     {
      "targetId": "14.196848_121.147070",
-     "bearing": 246.7,
+     "bearing": 247.4,
      "distance": 43.3
     },
     {
      "targetId": "14.197145_121.147825",
-     "bearing": 69.4,
+     "bearing": 67.4,
      "distance": 44.6
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 2.7
+   "heading": 0.7
   },
   {
    "id": "14.197145_121.147825",
@@ -3531,18 +3401,18 @@
    "connections": [
     {
      "targetId": "14.197003_121.147438",
-     "bearing": 249.4,
+     "bearing": 251.3,
      "distance": 44.6
     },
     {
      "targetId": "14.197384_121.148449",
-     "bearing": 68.6,
+     "bearing": 71.3,
      "distance": 72.3
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 0.0
+   "heading": 2.7
   },
   {
    "id": "14.197384_121.148449",
@@ -3554,18 +3424,18 @@
    "connections": [
     {
      "targetId": "14.197698_121.148826",
-     "bearing": 49.5,
+     "bearing": 59.4,
      "distance": 53.5
     },
     {
      "targetId": "14.197145_121.147825",
-     "bearing": 248.6,
+     "bearing": 239.4,
      "distance": 72.3
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": -4.7
+   "heading": 5.2
   },
   {
    "id": "14.197698_121.148826",
@@ -3577,18 +3447,18 @@
    "connections": [
     {
      "targetId": "14.197992_121.149087",
-     "bearing": 40.9,
+     "bearing": 42.4,
      "distance": 43.0
     },
     {
      "targetId": "14.197384_121.148449",
-     "bearing": 229.5,
+     "bearing": 222.4,
      "distance": 53.5
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": -0.9
+   "heading": 0.6
   },
   {
    "id": "14.197992_121.149087",
@@ -3600,18 +3470,18 @@
    "connections": [
     {
      "targetId": "14.197698_121.148826",
-     "bearing": 220.9,
+     "bearing": 222.7,
      "distance": 43.0
     },
     {
      "targetId": "14.198296_121.149390",
-     "bearing": 44.2,
+     "bearing": 42.7,
      "distance": 46.9
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": -4.6
+   "heading": -6.1
   },
   {
    "id": "14.198296_121.149390",
@@ -3623,18 +3493,18 @@
    "connections": [
     {
      "targetId": "14.197992_121.149087",
-     "bearing": 224.2,
+     "bearing": 222.8,
      "distance": 46.9
     },
     {
      "targetId": "14.198765_121.149842",
-     "bearing": 43.2,
+     "bearing": 42.8,
      "distance": 71.2
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": -7.2
+   "heading": -7.6
   },
   {
    "id": "14.198765_121.149842",
@@ -3646,18 +3516,18 @@
    "connections": [
     {
      "targetId": "14.198899_121.150180",
-     "bearing": 67.9,
+     "bearing": 46.9,
      "distance": 39.4
     },
     {
      "targetId": "14.198296_121.149390",
-     "bearing": 223.2,
+     "bearing": 226.9,
      "distance": 71.2
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 12.5
+   "heading": -8.5
   },
   {
    "id": "14.198899_121.150180",
@@ -3669,18 +3539,18 @@
    "connections": [
     {
      "targetId": "14.199010_121.150507",
-     "bearing": 70.8,
+     "bearing": 76.1,
      "distance": 37.4
     },
     {
      "targetId": "14.198765_121.149842",
-     "bearing": 247.9,
+     "bearing": 256.1,
      "distance": 39.4
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 5.8
+   "heading": 11.1
   },
   {
    "id": "14.199010_121.150507",
@@ -3692,18 +3562,18 @@
    "connections": [
     {
      "targetId": "14.198899_121.150180",
-     "bearing": 250.8,
+     "bearing": 222.0,
      "distance": 37.4
     },
     {
      "targetId": "14.199331_121.150774",
-     "bearing": 39.1,
+     "bearing": 42.0,
      "distance": 45.7
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 155.9
+   "heading": 158.8
   },
   {
    "id": "14.199331_121.150774",
@@ -3715,18 +3585,18 @@
    "connections": [
     {
      "targetId": "14.199626_121.150930",
-     "bearing": 27.3,
+     "bearing": 31.7,
      "distance": 36.7
     },
     {
      "targetId": "14.199010_121.150507",
-     "bearing": 219.1,
+     "bearing": 211.7,
      "distance": 45.7
     }
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": -1.5
+   "heading": 2.8
   },
   {
    "id": "14.199626_121.150930",
@@ -3738,18 +3608,18 @@
    "connections": [
     {
      "targetId": "14.199331_121.150774",
-     "bearing": 207.3,
+     "bearing": 211.7,
      "distance": 36.7
     },
     {
      "targetId": "14.199195_121.151448",
-     "bearing": 130.4,
+     "bearing": 123.8,
      "distance": 73.5
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": 29.7
+   "heading": 23.1
   },
   {
    "id": "14.199195_121.151448",
@@ -3761,18 +3631,18 @@
    "connections": [
     {
      "targetId": "14.198954_121.151660",
-     "bearing": 139.4,
+     "bearing": 137.0,
      "distance": 35.1
     },
     {
      "targetId": "14.199626_121.150930",
-     "bearing": 310.4,
+     "bearing": 317.0,
      "distance": 73.5
     }
    ],
    "street": "Requesto Avenue",
    "area": "Real",
-   "heading": -12.3
+   "heading": -14.7
   },
   {
    "id": "14.198954_121.151660",
@@ -3784,18 +3654,18 @@
    "connections": [
     {
      "targetId": "14.199195_121.151448",
-     "bearing": 319.4,
+     "bearing": 317.0,
      "distance": 35.1
     },
     {
      "targetId": "14.198692_121.151247",
-     "bearing": 237.0,
+     "bearing": 237.4,
      "distance": 53.2
     }
    ],
    "street": "Narra Street",
    "area": "Real",
-   "heading": 78.0
+   "heading": 78.4
   },
   {
    "id": "14.198692_121.151247",
@@ -3806,29 +3676,19 @@
    "source": "IMG_20261024_144057_00_556",
    "connections": [
     {
-     "targetId": "14.198658_121.151193",
-     "bearing": 278.5,
-     "distance": 6.9
-    },
-    {
      "targetId": "14.198954_121.151660",
-     "bearing": 57.0,
+     "bearing": 57.4,
      "distance": 53.2
     },
     {
-     "targetId": "14.198230_121.151425",
-     "bearing": 150.7,
-     "distance": 54.6
-    },
-    {
      "targetId": "14.198301_121.150936",
-     "bearing": 217.8,
+     "bearing": 237.4,
      "distance": 54.7
     }
    ],
    "street": "Narra Street",
    "area": "Real",
-   "heading": 167.2
+   "heading": -173.2
   },
   {
    "id": "14.198301_121.150936",
@@ -3840,18 +3700,18 @@
    "connections": [
     {
      "targetId": "14.198658_121.151193",
-     "bearing": 35.1,
+     "bearing": 36.4,
      "distance": 48.2
     },
     {
      "targetId": "14.198692_121.151247",
-     "bearing": 37.8,
+     "bearing": 36.4,
      "distance": 54.7
     }
    ],
    "street": "Narra Street",
    "area": "Real",
-   "heading": -17.4
+   "heading": -16.1
   },
   {
    "id": "14.198658_121.151193",
@@ -3862,24 +3722,19 @@
    "source": "IMG_20261024_144315_00_558",
    "connections": [
     {
-     "targetId": "14.198692_121.151247",
-     "bearing": 47.3,
-     "distance": 6.9
-    },
-    {
      "targetId": "14.198301_121.150936",
-     "bearing": 215.1,
+     "bearing": 216.4,
      "distance": 48.2
     },
     {
      "targetId": "14.198230_121.151425",
-     "bearing": 152.1,
+     "bearing": 150.5,
      "distance": 53.5
     }
    ],
    "street": "Yakal Street",
    "area": "Real",
-   "heading": 157.7
+   "heading": 156.0
   },
   {
    "id": "14.198230_121.151425",
@@ -3891,23 +3746,23 @@
    "connections": [
     {
      "targetId": "14.197946_121.151602",
-     "bearing": 148.7,
+     "bearing": 150.5,
      "distance": 36.8
     },
     {
-     "targetId": "14.198658_121.151193",
-     "bearing": 332.1,
-     "distance": 53.5
+     "targetId": "14.198339_121.151758",
+     "bearing": 70.2,
+     "distance": 37.9
     },
     {
-     "targetId": "14.198692_121.151247",
-     "bearing": 47.3,
-     "distance": 54.6
+     "targetId": "14.198658_121.151193",
+     "bearing": 330.5,
+     "distance": 53.5
     }
    ],
    "street": "Lauan Street",
    "area": "Real",
-   "heading": 166.6
+   "heading": 168.3
   },
   {
    "id": "14.197946_121.151602",
@@ -3919,18 +3774,18 @@
    "connections": [
     {
      "targetId": "14.198230_121.151425",
-     "bearing": 328.7,
+     "bearing": 328.4,
      "distance": 36.8
     },
     {
      "targetId": "14.197572_121.151854",
-     "bearing": 146.7,
+     "bearing": 148.4,
      "distance": 49.5
     }
    ],
    "street": "Lauan Street",
    "area": "Real",
-   "heading": 173.7
+   "heading": 175.4
   },
   {
    "id": "14.197572_121.151854",
@@ -3942,18 +3797,18 @@
    "connections": [
     {
      "targetId": "14.197547_121.151834",
-     "bearing": 241.4,
+     "bearing": 243.0,
      "distance": 3.5
     },
     {
      "targetId": "14.197946_121.151602",
-     "bearing": 326.7,
+     "bearing": 328.4,
      "distance": 49.5
     }
    ],
    "street": "Lauan Street",
    "area": "Real",
-   "heading": 171.3
+   "heading": 173.0
   },
   {
    "id": "14.197547_121.151834",
@@ -3965,18 +3820,18 @@
    "connections": [
     {
      "targetId": "14.197572_121.151854",
-     "bearing": 330.4,
+     "bearing": 328.4,
      "distance": 3.5
     },
     {
      "targetId": "14.197187_121.151131",
-     "bearing": 242.3,
+     "bearing": 243.0,
      "distance": 85.7
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": 9.3
+   "heading": 10.0
   },
   {
    "id": "14.197187_121.151131",
@@ -3988,18 +3843,18 @@
    "connections": [
     {
      "targetId": "14.196878_121.150628",
-     "bearing": 237.8,
+     "bearing": 235.1,
      "distance": 64.1
     },
     {
      "targetId": "14.197547_121.151834",
-     "bearing": 62.3,
+     "bearing": 55.1,
      "distance": 85.7
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": 33.0
+   "heading": 30.3
   },
   {
    "id": "14.196878_121.150628",
@@ -4011,18 +3866,18 @@
    "connections": [
     {
      "targetId": "14.196689_121.150290",
-     "bearing": 240.2,
+     "bearing": 240.9,
      "distance": 42.0
     },
     {
      "targetId": "14.197187_121.151131",
-     "bearing": 57.8,
+     "bearing": 60.9,
      "distance": 64.1
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": -1.6
+   "heading": -0.9
   },
   {
    "id": "14.196689_121.150290",
@@ -4034,18 +3889,18 @@
    "connections": [
     {
      "targetId": "14.196878_121.150628",
-     "bearing": 60.2,
+     "bearing": 59.8,
      "distance": 42.0
     },
     {
      "targetId": "14.196340_121.149739",
-     "bearing": 237.0,
+     "bearing": 239.8,
      "distance": 70.9
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": -3.2
+   "heading": -0.4
   },
   {
    "id": "14.196340_121.149739",
@@ -4057,18 +3912,18 @@
    "connections": [
     {
      "targetId": "14.196090_121.149271",
-     "bearing": 241.3,
+     "bearing": 239.7,
      "distance": 57.6
     },
     {
      "targetId": "14.196689_121.150290",
-     "bearing": 57.0,
+     "bearing": 59.7,
      "distance": 70.9
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": 6.8
+   "heading": 5.2
   },
   {
    "id": "14.196090_121.149271",
@@ -4080,18 +3935,18 @@
    "connections": [
     {
      "targetId": "14.195907_121.148932",
-     "bearing": 241.1,
+     "bearing": 240.3,
      "distance": 41.8
     },
     {
      "targetId": "14.196340_121.149739",
-     "bearing": 61.3,
+     "bearing": 60.3,
      "distance": 57.6
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": 6.4
+   "heading": 5.7
   },
   {
    "id": "14.195907_121.148932",
@@ -4103,18 +3958,18 @@
    "connections": [
     {
      "targetId": "14.196090_121.149271",
-     "bearing": 61.1,
+     "bearing": 66.1,
      "distance": 41.8
     },
     {
      "targetId": "14.195629_121.148306",
-     "bearing": 245.5,
+     "bearing": 246.1,
      "distance": 74.2
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": 6.1
+   "heading": 6.7
   },
   {
    "id": "14.195629_121.148306",
@@ -4126,18 +3981,18 @@
    "connections": [
     {
      "targetId": "14.195331_121.148330",
-     "bearing": 175.5,
+     "bearing": 243.8,
      "distance": 33.1
     },
     {
      "targetId": "14.195907_121.148932",
-     "bearing": 65.5,
+     "bearing": 63.8,
      "distance": 74.2
     }
    ],
    "street": "Mulawin Street",
    "area": "Real",
-   "heading": -33.2
+   "heading": 35.1
   },
   {
    "id": "14.195331_121.148330",
@@ -4149,18 +4004,18 @@
    "connections": [
     {
      "targetId": "14.195629_121.148306",
-     "bearing": 355.5,
+     "bearing": 325.9,
      "distance": 33.1
     },
     {
      "targetId": "14.195538_121.148843",
-     "bearing": 67.5,
+     "bearing": 62.0,
      "distance": 59.9
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": -43.3
+   "heading": -48.8
   },
   {
    "id": "14.195538_121.148843",
@@ -4172,7 +4027,7 @@
    "connections": [
     {
      "targetId": "14.195331_121.148330",
-     "bearing": 247.5,
+     "bearing": 242.0,
      "distance": 59.9
     },
     {
@@ -4200,13 +4055,13 @@
     },
     {
      "targetId": "14.196089_121.149914",
-     "bearing": 62.5,
+     "bearing": 62.0,
      "distance": 66.5
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": 4.0
+   "heading": 3.5
   },
   {
    "id": "14.196089_121.149914",
@@ -4218,18 +4073,18 @@
    "connections": [
     {
      "targetId": "14.195811_121.149368",
-     "bearing": 242.5,
+     "bearing": 242.0,
      "distance": 66.5
     },
     {
      "targetId": "14.196369_121.150472",
-     "bearing": 62.8,
+     "bearing": 62.0,
      "distance": 67.7
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": -3.7
+   "heading": -4.5
   },
   {
    "id": "14.196369_121.150472",
@@ -4241,18 +4096,18 @@
    "connections": [
     {
      "targetId": "14.196600_121.150855",
-     "bearing": 58.3,
+     "bearing": 62.0,
      "distance": 48.6
     },
     {
      "targetId": "14.196089_121.149914",
-     "bearing": 242.8,
+     "bearing": 242.0,
      "distance": 67.7
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": -0.0
+   "heading": 3.7
   },
   {
    "id": "14.196600_121.150855",
@@ -4264,18 +4119,18 @@
    "connections": [
     {
      "targetId": "14.196369_121.150472",
-     "bearing": 238.3,
+     "bearing": 243.4,
      "distance": 48.6
     },
     {
      "targetId": "14.196852_121.151334",
-     "bearing": 61.7,
+     "bearing": 63.4,
      "distance": 58.7
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": 1.2
+   "heading": 3.0
   },
   {
    "id": "14.196852_121.151334",
@@ -4287,18 +4142,18 @@
    "connections": [
     {
      "targetId": "14.196600_121.150855",
-     "bearing": 241.7,
+     "bearing": 243.4,
      "distance": 58.7
     },
     {
      "targetId": "14.197154_121.151921",
-     "bearing": 62.2,
+     "bearing": 63.4,
      "distance": 71.6
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": -3.0
+   "heading": -1.8
   },
   {
    "id": "14.197154_121.151921",
@@ -4310,18 +4165,18 @@
    "connections": [
     {
      "targetId": "14.197336_121.152243",
-     "bearing": 59.9,
+     "bearing": 61.3,
      "distance": 40.2
     },
     {
      "targetId": "14.196852_121.151334",
-     "bearing": 242.2,
+     "bearing": 241.3,
      "distance": 71.6
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": -10.3
+   "heading": -8.9
   },
   {
    "id": "14.197336_121.152243",
@@ -4333,23 +4188,18 @@
    "connections": [
     {
      "targetId": "14.197275_121.152304",
-     "bearing": 144.2,
+     "bearing": 148.2,
      "distance": 9.4
     },
     {
      "targetId": "14.197154_121.151921",
-     "bearing": 239.9,
+     "bearing": 241.3,
      "distance": 40.2
-    },
-    {
-     "targetId": "14.197875_121.151993",
-     "bearing": 333.4,
-     "distance": 65.4
     }
    ],
    "street": "Marangal Street",
    "area": "Real",
-   "heading": -9.7
+   "heading": -8.2
   },
   {
    "id": "14.195667_121.154860",
@@ -4361,23 +4211,18 @@
    "connections": [
     {
      "targetId": "14.195653_121.154874",
-     "bearing": 120.5,
+     "bearing": 119.5,
      "distance": 2.2
     },
     {
-     "targetId": "14.195989_121.154285",
-     "bearing": 301.6,
-     "distance": 71.5
-    },
-    {
      "targetId": "14.195965_121.155486",
-     "bearing": 64.0,
+     "bearing": 62.5,
      "distance": 75.2
     }
    ],
-   "street": "Requesto Avenue",
+   "street": "Cuervo II Road",
    "area": "Real",
-   "heading": -24.0
+   "heading": -25.6
   },
   {
    "id": "14.195965_121.155486",
@@ -4388,24 +4233,19 @@
    "source": "IMG_20261024_144923_00_580",
    "connections": [
     {
-     "targetId": "14.195653_121.154874",
-     "bearing": 300.5,
-     "distance": 74.5
-    },
-    {
      "targetId": "14.195667_121.154860",
-     "bearing": 244.0,
+     "bearing": 243.4,
      "distance": 75.2
     },
     {
      "targetId": "14.196294_121.156167",
-     "bearing": 63.7,
+     "bearing": 63.4,
      "distance": 82.0
     }
    ],
    "street": "Cuervo II Road",
    "area": "Real",
-   "heading": -9.9
+   "heading": -10.2
   },
   {
    "id": "14.196294_121.156167",
@@ -4417,18 +4257,18 @@
    "connections": [
     {
      "targetId": "14.196526_121.156625",
-     "bearing": 62.6,
+     "bearing": 63.4,
      "distance": 55.7
     },
     {
      "targetId": "14.195965_121.155486",
-     "bearing": 243.7,
+     "bearing": 243.4,
      "distance": 82.0
     }
    ],
    "street": "Cuervo II Road",
    "area": "Real",
-   "heading": -3.1
+   "heading": -2.3
   },
   {
    "id": "14.196526_121.156625",
@@ -4445,13 +4285,13 @@
     },
     {
      "targetId": "14.196931_121.157366",
-     "bearing": 60.8,
+     "bearing": 62.6,
      "distance": 91.7
     }
    ],
    "street": "Cuervo II Road",
    "area": "Real",
-   "heading": 25.1
+   "heading": 26.9
   },
   {
    "id": "14.196931_121.157366",
@@ -4463,18 +4303,18 @@
    "connections": [
     {
      "targetId": "14.196526_121.156625",
-     "bearing": 240.8,
+     "bearing": 243.1,
      "distance": 91.7
     },
     {
      "targetId": "14.197352_121.158235",
-     "bearing": 63.6,
+     "bearing": 63.1,
      "distance": 104.7
     }
    ],
    "street": "Cuervo II Road",
    "area": "Real",
-   "heading": -4.3
+   "heading": -4.8
   },
   {
    "id": "14.197352_121.158235",
@@ -4486,18 +4326,18 @@
    "connections": [
     {
      "targetId": "14.196931_121.157366",
-     "bearing": 243.6,
+     "bearing": 244.1,
      "distance": 104.7
     },
     {
      "targetId": "14.197826_121.159140",
-     "bearing": 61.8,
+     "bearing": 64.1,
      "distance": 110.8
     }
    ],
    "street": "Cuervo II Road",
    "area": "Real",
-   "heading": -10.7
+   "heading": -8.4
   },
   {
    "id": "14.197826_121.159140",
@@ -4514,7 +4354,7 @@
     },
     {
      "targetId": "14.197352_121.158235",
-     "bearing": 241.8,
+     "bearing": 236.5,
      "distance": 110.8
     }
    ],
@@ -4532,18 +4372,18 @@
    "connections": [
     {
      "targetId": "14.197826_121.159140",
-     "bearing": 236.5,
+     "bearing": 247.3,
      "distance": 58.6
     },
     {
      "targetId": "14.198265_121.160146",
-     "bearing": 74.9,
+     "bearing": 67.3,
      "distance": 61.8
     }
    ],
    "street": "Cuervo II Road",
    "area": "Lecheria",
-   "heading": 8.1
+   "heading": 0.5
   },
   {
    "id": "14.198265_121.160146",
@@ -4555,18 +4395,18 @@
    "connections": [
     {
      "targetId": "14.198350_121.160665",
-     "bearing": 80.5,
+     "bearing": 77.8,
      "distance": 56.8
     },
     {
      "targetId": "14.198119_121.159593",
-     "bearing": 254.9,
+     "bearing": 257.8,
      "distance": 61.8
     }
    ],
    "street": "Cuervo II Road",
    "area": "Lecheria",
-   "heading": -4.1
+   "heading": -6.8
   },
   {
    "id": "14.198350_121.160665",
@@ -4578,18 +4418,18 @@
    "connections": [
     {
      "targetId": "14.198059_121.160820",
-     "bearing": 152.5,
+     "bearing": 147.7,
      "distance": 36.3
     },
     {
      "targetId": "14.198265_121.160146",
-     "bearing": 260.5,
+     "bearing": 257.8,
      "distance": 56.8
     }
    ],
    "street": "Sampaguita Street",
    "area": "Halang",
-   "heading": -2.5
+   "heading": -7.3
   },
   {
    "id": "14.198059_121.160820",
@@ -4601,18 +4441,18 @@
    "connections": [
     {
      "targetId": "14.198350_121.160665",
-     "bearing": 332.5,
+     "bearing": 321.7,
      "distance": 36.3
     },
     {
      "targetId": "14.197687_121.161123",
-     "bearing": 141.5,
+     "bearing": 141.7,
      "distance": 52.5
     }
    ],
    "street": "Sampaguita Street",
    "area": "Halang",
-   "heading": 39.8
+   "heading": 39.9
   },
   {
    "id": "14.197687_121.161123",
@@ -4624,18 +4464,18 @@
    "connections": [
     {
      "targetId": "14.197330_121.161433",
-     "bearing": 139.7,
+     "bearing": 141.7,
      "distance": 51.7
     },
     {
      "targetId": "14.198059_121.160820",
-     "bearing": 321.5,
+     "bearing": 321.7,
      "distance": 52.5
     }
    ],
    "street": "Sampaguita Street",
    "area": "Halang",
-   "heading": -7.8
+   "heading": -5.9
   },
   {
    "id": "14.197330_121.161433",
@@ -4647,18 +4487,18 @@
    "connections": [
     {
      "targetId": "14.197687_121.161123",
-     "bearing": 319.7,
+     "bearing": 321.7,
      "distance": 51.7
     },
     {
      "targetId": "14.196668_121.161952",
-     "bearing": 142.6,
+     "bearing": 141.7,
      "distance": 92.2
     }
    ],
    "street": "Sampaguita Street",
    "area": "Halang",
-   "heading": 2.0
+   "heading": 1.0
   },
   {
    "id": "14.196668_121.161952",
@@ -4670,18 +4510,18 @@
    "connections": [
     {
      "targetId": "14.196250_121.161664",
-     "bearing": 213.9,
+     "bearing": 230.2,
      "distance": 55.7
     },
     {
      "targetId": "14.197330_121.161433",
-     "bearing": 322.6,
+     "bearing": 319.6,
      "distance": 92.2
     }
    ],
    "street": "Sampaguita Street",
    "area": "Halang",
-   "heading": 28.8
+   "heading": 45.1
   },
   {
    "id": "14.196250_121.161664",
@@ -4693,18 +4533,18 @@
    "connections": [
     {
      "targetId": "14.196493_121.161447",
-     "bearing": 318.9,
+     "bearing": 327.0,
      "distance": 35.6
     },
     {
      "targetId": "14.196668_121.161952",
-     "bearing": 33.9,
+     "bearing": 50.2,
      "distance": 55.7
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Halang",
-   "heading": 57.7
+   "heading": 65.8
   },
   {
    "id": "14.196493_121.161447",
@@ -4716,23 +4556,18 @@
    "connections": [
     {
      "targetId": "14.196250_121.161664",
-     "bearing": 138.9,
+     "bearing": 147.0,
      "distance": 35.6
     },
     {
      "targetId": "14.196860_121.161218",
-     "bearing": 328.7,
+     "bearing": 327.0,
      "distance": 47.5
-    },
-    {
-     "targetId": "14.196221_121.161798",
-     "bearing": 51.4,
-     "distance": 48.4
     }
    ],
    "street": "Rosal Street",
    "area": "Halang",
-   "heading": 27.3
+   "heading": 25.6
   },
   {
    "id": "14.196860_121.161218",
@@ -4744,18 +4579,18 @@
    "connections": [
     {
      "targetId": "14.196493_121.161447",
-     "bearing": 148.7,
+     "bearing": 147.0,
      "distance": 47.5
     },
     {
      "targetId": "14.197719_121.160501",
-     "bearing": 320.8,
+     "bearing": 327.0,
      "distance": 122.5
     }
    ],
    "street": "Rosal Street",
    "area": "Halang",
-   "heading": -7.5
+   "heading": -1.3
   },
   {
    "id": "14.197719_121.160501",
@@ -4767,18 +4602,18 @@
    "connections": [
     {
      "targetId": "14.197424_121.160314",
-     "bearing": 211.7,
+     "bearing": 181.2,
      "distance": 38.4
     },
     {
      "targetId": "14.196860_121.161218",
-     "bearing": 140.8,
+     "bearing": 118.7,
      "distance": 122.5
     }
    ],
    "street": "Rosal Street",
    "area": "Halang",
-   "heading": -61.0
+   "heading": -91.5
   },
   {
    "id": "14.197424_121.160314",
@@ -4790,18 +4625,18 @@
    "connections": [
     {
      "targetId": "14.197719_121.160501",
-     "bearing": 31.7,
+     "bearing": 1.2,
      "distance": 38.4
     },
     {
      "targetId": "14.196936_121.160515",
-     "bearing": 158.1,
+     "bearing": 181.2,
      "distance": 58.2
     }
    ],
    "street": "Camia Street",
    "area": "Halang",
-   "heading": -51.8
+   "heading": -28.7
   },
   {
    "id": "14.196936_121.160515",
@@ -4813,18 +4648,18 @@
    "connections": [
     {
      "targetId": "14.197424_121.160314",
-     "bearing": 338.1,
+     "bearing": 331.9,
      "distance": 58.2
     },
     {
      "targetId": "14.196335_121.160829",
-     "bearing": 153.0,
+     "bearing": 151.9,
      "distance": 74.6
     }
    ],
    "street": "Camia Street",
    "area": "Halang",
-   "heading": -173.3
+   "heading": -174.4
   },
   {
    "id": "14.196335_121.160829",
@@ -4836,18 +4671,18 @@
    "connections": [
     {
      "targetId": "14.195902_121.161088",
-     "bearing": 149.7,
+     "bearing": 151.9,
      "distance": 55.4
     },
     {
      "targetId": "14.196936_121.160515",
-     "bearing": 333.0,
+     "bearing": 331.9,
      "distance": 74.6
     }
    ],
    "street": "Camia Street",
    "area": "Halang",
-   "heading": -177.6
+   "heading": -175.4
   },
   {
    "id": "14.195902_121.161088",
@@ -4858,24 +4693,14 @@
    "source": "IMG_20261024_145522_00_602",
    "connections": [
     {
-     "targetId": "14.195894_121.161381",
-     "bearing": 52.6,
-     "distance": 31.6
-    },
-    {
-     "targetId": "14.195566_121.160919",
-     "bearing": 235.5,
-     "distance": 41.4
-    },
-    {
      "targetId": "14.196335_121.160829",
-     "bearing": 329.7,
+     "bearing": 331.9,
      "distance": 55.4
     }
    ],
    "street": "Camia Street",
    "area": "Halang",
-   "heading": -174.2
+   "heading": -172.0
   },
   {
    "id": "14.204915_121.156534",
@@ -4887,13 +4712,13 @@
    "connections": [
     {
      "targetId": "14.204944_121.156474",
-     "bearing": 242.7,
+     "bearing": 239.0,
      "distance": 7.2
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -158.2
+   "heading": -161.9
   },
   {
    "id": "14.204944_121.156474",
@@ -4905,23 +4730,18 @@
    "connections": [
     {
      "targetId": "14.204915_121.156534",
-     "bearing": 116.3,
+     "bearing": 144.4,
      "distance": 7.2
     },
     {
-     "targetId": "14.205243_121.156300",
-     "bearing": 322.2,
-     "distance": 38.0
-    },
-    {
      "targetId": "14.204539_121.155787",
-     "bearing": 238.9,
+     "bearing": 239.0,
      "distance": 86.6
     }
    ],
-   "street": "National Highway",
+   "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -169.4
+   "heading": -169.3
   },
   {
    "id": "14.204539_121.155787",
@@ -4933,18 +4753,18 @@
    "connections": [
     {
      "targetId": "14.204467_121.155674",
-     "bearing": 164.8,
+     "bearing": 236.7,
      "distance": 14.6
     },
     {
      "targetId": "14.204944_121.156474",
-     "bearing": 58.9,
+     "bearing": 56.7,
      "distance": 86.6
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 94.4
+   "heading": 166.3
   },
   {
    "id": "14.204467_121.155674",
@@ -4956,18 +4776,18 @@
    "connections": [
     {
      "targetId": "14.204539_121.155787",
-     "bearing": 58.6,
+     "bearing": 56.7,
      "distance": 14.6
     },
     {
      "targetId": "14.204047_121.155924",
-     "bearing": 149.8,
+     "bearing": 236.7,
      "distance": 53.7
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 92.4
+   "heading": 179.2
   },
   {
    "id": "14.204047_121.155924",
@@ -4979,18 +4799,18 @@
    "connections": [
     {
      "targetId": "14.203787_121.156111",
-     "bearing": 144.9,
+     "bearing": 145.0,
      "distance": 35.1
     },
     {
      "targetId": "14.204467_121.155674",
-     "bearing": 329.8,
+     "bearing": 325.0,
      "distance": 53.7
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -167.6
+   "heading": -167.5
   },
   {
    "id": "14.203787_121.156111",
@@ -5002,18 +4822,18 @@
    "connections": [
     {
      "targetId": "14.204047_121.155924",
-     "bearing": 324.9,
+     "bearing": 325.0,
      "distance": 35.1
     },
     {
      "targetId": "14.203521_121.156303",
-     "bearing": 144.8,
+     "bearing": 145.0,
      "distance": 36.0
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -167.2
+   "heading": -167.1
   },
   {
    "id": "14.203521_121.156303",
@@ -5024,24 +4844,19 @@
    "source": "IMG_20261024_150505_00_610",
    "connections": [
     {
-     "targetId": "14.203379_121.156102",
-     "bearing": 147.4,
-     "distance": 26.8
-    },
-    {
      "targetId": "14.203787_121.156111",
-     "bearing": 324.8,
+     "bearing": 246.9,
      "distance": 36.0
     },
     {
      "targetId": "14.203885_121.157170",
-     "bearing": 66.7,
+     "bearing": 66.9,
      "distance": 101.9
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 138.4
+   "heading": 138.6
   },
   {
    "id": "14.203885_121.157170",
@@ -5053,28 +4868,18 @@
    "connections": [
     {
      "targetId": "14.203976_121.157306",
-     "bearing": 53.9,
+     "bearing": 52.0,
      "distance": 17.8
     },
     {
-     "targetId": "14.203806_121.157412",
-     "bearing": 144.7,
-     "distance": 27.5
-    },
-    {
-     "targetId": "14.204158_121.157143",
-     "bearing": 323.8,
-     "distance": 30.3
-    },
-    {
      "targetId": "14.203521_121.156303",
-     "bearing": 246.7,
+     "bearing": 244.8,
      "distance": 101.9
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 179.0
+   "heading": 177.1
   },
   {
    "id": "14.203976_121.157306",
@@ -5086,28 +4891,28 @@
    "connections": [
     {
      "targetId": "14.203885_121.157170",
-     "bearing": 245.1,
+     "bearing": 244.8,
      "distance": 17.8
     },
     {
      "targetId": "14.204090_121.157458",
-     "bearing": 57.0,
+     "bearing": 52.0,
      "distance": 20.7
     },
     {
      "targetId": "14.203806_121.157412",
-     "bearing": 144.7,
+     "bearing": 142.4,
      "distance": 22.0
     },
     {
      "targetId": "14.204158_121.157143",
-     "bearing": 323.8,
+     "bearing": 324.5,
      "distance": 26.7
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": -168.3
+   "heading": -173.3
   },
   {
    "id": "14.204090_121.157458",
@@ -5119,18 +4924,18 @@
    "connections": [
     {
      "targetId": "14.203976_121.157306",
-     "bearing": 233.9,
+     "bearing": 232.0,
      "distance": 20.7
     },
     {
      "targetId": "14.204559_121.158226",
-     "bearing": 58.0,
+     "bearing": 52.0,
      "distance": 97.8
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": -169.5
+   "heading": -175.4
   },
   {
    "id": "14.204559_121.158226",
@@ -5142,18 +4947,18 @@
    "connections": [
     {
      "targetId": "14.204699_121.158592",
-     "bearing": 68.6,
+     "bearing": 60.0,
      "distance": 42.4
     },
     {
      "targetId": "14.204090_121.157458",
-     "bearing": 238.0,
+     "bearing": 240.0,
      "distance": 97.8
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": -167.4
+   "heading": -176.0
   },
   {
    "id": "14.204699_121.158592",
@@ -5165,18 +4970,18 @@
    "connections": [
     {
      "targetId": "14.204559_121.158226",
-     "bearing": 248.6,
+     "bearing": 242.1,
      "distance": 42.4
     },
     {
      "targetId": "14.204921_121.159037",
-     "bearing": 62.9,
+     "bearing": 62.1,
      "distance": 53.9
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": -159.5
+   "heading": -160.4
   },
   {
    "id": "14.204921_121.159037",
@@ -5188,18 +4993,18 @@
    "connections": [
     {
      "targetId": "14.204965_121.159133",
-     "bearing": 340.8,
+     "bearing": 338.0,
      "distance": 11.4
     },
     {
      "targetId": "14.204699_121.158592",
-     "bearing": 242.9,
+     "bearing": 244.4,
      "distance": 53.9
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": 100.6
+   "heading": 97.8
   },
   {
    "id": "14.204965_121.159133",
@@ -5211,18 +5016,18 @@
    "connections": [
     {
      "targetId": "14.204921_121.159037",
-     "bearing": 243.3,
+     "bearing": 244.4,
      "distance": 11.4
     },
     {
      "targetId": "14.205753_121.158740",
-     "bearing": 334.0,
+     "bearing": 338.0,
      "distance": 96.9
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": 155.1
+   "heading": 159.0
   },
   {
    "id": "14.205753_121.158740",
@@ -5234,18 +5039,18 @@
    "connections": [
     {
      "targetId": "14.206318_121.158484",
-     "bearing": 336.1,
+     "bearing": 335.8,
      "distance": 68.3
     },
     {
      "targetId": "14.204965_121.159133",
-     "bearing": 154.0,
+     "bearing": 153.9,
      "distance": 96.9
     }
    ],
    "street": "Purok 7",
    "area": "Barangay 1",
-   "heading": 179.5
+   "heading": 179.1
   },
   {
    "id": "14.206318_121.158484",
@@ -5257,18 +5062,18 @@
    "connections": [
     {
      "targetId": "14.206644_121.158332",
-     "bearing": 335.5,
+     "bearing": 335.8,
      "distance": 39.6
     },
     {
      "targetId": "14.205753_121.158740",
-     "bearing": 156.1,
+     "bearing": 155.8,
      "distance": 68.3
     }
    ],
    "street": "Purok 7",
    "area": "Barangay 1",
-   "heading": -85.9
+   "heading": -85.6
   },
   {
    "id": "14.206644_121.158332",
@@ -5280,18 +5085,18 @@
    "connections": [
     {
      "targetId": "14.206875_121.158217",
-     "bearing": 334.1,
+     "bearing": 336.2,
      "distance": 28.4
     },
     {
      "targetId": "14.206318_121.158484",
-     "bearing": 155.5,
+     "bearing": 156.2,
      "distance": 39.6
     }
    ],
    "street": "Purok 7",
    "area": "Barangay 1",
-   "heading": -175.6
+   "heading": -173.5
   },
   {
    "id": "14.206875_121.158217",
@@ -5303,12 +5108,12 @@
    "connections": [
     {
      "targetId": "14.206644_121.158332",
-     "bearing": 154.1,
+     "bearing": 156.2,
      "distance": 28.4
     },
     {
      "targetId": "14.207369_121.157993",
-     "bearing": 336.1,
+     "bearing": 336.2,
      "distance": 59.7
     }
    ],
@@ -5326,18 +5131,18 @@
    "connections": [
     {
      "targetId": "14.206875_121.158217",
-     "bearing": 156.1,
+     "bearing": 143.7,
      "distance": 59.7
     },
     {
      "targetId": "14.207995_121.157587",
-     "bearing": 327.7,
+     "bearing": 323.7,
      "distance": 81.9
     }
    ],
    "street": "Purok 7",
    "area": "Barangay 1",
-   "heading": -84.5
+   "heading": -88.5
   },
   {
    "id": "14.207995_121.157587",
@@ -5349,13 +5154,13 @@
    "connections": [
     {
      "targetId": "14.207369_121.157993",
-     "bearing": 147.7,
+     "bearing": 150.9,
      "distance": 81.9
     }
    ],
    "street": "Purok 7",
    "area": "Barangay 1",
-   "heading": 177.3
+   "heading": -179.5
   },
   {
    "id": "14.205275_121.154720",
@@ -5367,23 +5172,13 @@
    "connections": [
     {
      "targetId": "14.205300_121.155062",
-     "bearing": 85.7,
+     "bearing": 93.4,
      "distance": 37.0
-    },
-    {
-     "targetId": "14.205679_121.154679",
-     "bearing": 2.6,
-     "distance": 44.9
-    },
-    {
-     "targetId": "14.204851_121.154531",
-     "bearing": 200.3,
-     "distance": 51.1
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": 18.9
+   "heading": 26.6
   },
   {
    "id": "14.205300_121.155062",
@@ -5395,18 +5190,18 @@
    "connections": [
     {
      "targetId": "14.205275_121.154720",
-     "bearing": 265.7,
+     "bearing": 222.8,
      "distance": 37.0
     },
     {
      "targetId": "14.205813_121.155492",
-     "bearing": 39.3,
+     "bearing": 42.8,
      "distance": 73.3
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -128.0
+   "heading": -124.5
   },
   {
    "id": "14.205813_121.155492",
@@ -5417,19 +5212,14 @@
    "source": "IMG_20261024_151156_00_626",
    "connections": [
     {
-     "targetId": "14.205906_121.155800",
-     "bearing": 140.0,
-     "distance": 34.8
-    },
-    {
      "targetId": "14.205300_121.155062",
-     "bearing": 219.3,
+     "bearing": 224.8,
      "distance": 73.3
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -3.4
+   "heading": 2.1
   }
  ]
 }
