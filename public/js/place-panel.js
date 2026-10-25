@@ -568,7 +568,7 @@ async function fetchManifestNode(nodeId) {
     if (!nodeId) return null;
     if (!placePanel360ManifestCache) {
         try {
-            const res = await fetch('../assets/360/manifest.json');
+            const res = await fetch('../assets/360/manifest.json', { cache: 'no-cache' });
             if (res.ok) {
                 const data = await res.json();
                 placePanel360ManifestCache = {};
@@ -2347,7 +2347,7 @@ function loadPlacePanel360Links() {
     if (!placePanel360LoadPromise) {
         placePanel360LoadPromise = (async () => {
             try {
-                const res = await fetch('../assets/360/place-links.json');
+                const res = await fetch('../assets/360/place-links.json', { cache: 'no-cache' });
                 if (res.ok) {
                     const data = await res.json();
                     (data.links || []).forEach(link => {

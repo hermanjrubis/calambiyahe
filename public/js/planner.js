@@ -1227,8 +1227,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 load360LinksPromise = (async () => {
                     try {
                         const [linksRes, manifestRes] = await Promise.allSettled([
-                            fetch('../assets/360/place-links.json'),
-                            fetch('../assets/360/manifest.json')
+                            fetch('../assets/360/place-links.json', { cache: 'no-cache' }),
+                            fetch('../assets/360/manifest.json', { cache: 'no-cache' })
                         ]);
                         if (manifestRes.status === 'fulfilled' && manifestRes.value.ok) {
                             const mData = await manifestRes.value.json();

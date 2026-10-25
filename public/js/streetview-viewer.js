@@ -69,8 +69,8 @@
         if (manifestData && placeLinksData) return;
         try {
             const [mRes, pRes] = await Promise.all([
-                fetch('../assets/360/manifest.json'),
-                fetch('../assets/360/place-links.json')
+                fetch('../assets/360/manifest.json', { cache: 'no-cache' }),
+                fetch('../assets/360/place-links.json', { cache: 'no-cache' })
             ]);
             if (mRes.ok) manifestData = await mRes.json();
             if (pRes.ok) placeLinksData = await pRes.json();
@@ -429,8 +429,8 @@
         let lenM = tex.w * mPerPx;
         const maxLen = 24;
         if (lenM > maxLen) { mPerPx *= maxLen / lenM; lenM = maxLen; }
-        const f0 = narrow ? 2.4 : 2.9;                  // starts beside the arrow, close to you
-        const latC = narrow ? 1.5 : 2.1;                // right of the arrow
+        const f0 = narrow ? 3.0 : 2.9;                  // starts beside the arrow, close to you
+        const latC = narrow ? 1.95 : 2.1;               // right of the arrow
         const widthM = tex.h * mPerPx;
         const P = (u, v) => projectGround(cam, yaw, f0 + u * mPerPx, latC + (v - tex.h / 2) * mPerPx);
         const N = 24;
@@ -595,6 +595,11 @@
         if (isDragging || isTransitioning || isNavLocked) {
             isDragging = false;
             return;
+        }
+        // A click that arrives without a mouse move first (e.g. a pen or a quick tap) still finds the arrow
+        if (!activeHoverConnection) {
+            const match = detectNavigableConnectionAtScreen(e.clientX, e.clientY);
+            if (match) activeHoverConnection = match.connection;
         }
         if (activeHoverConnection) {
             const conn = activeHoverConnection;
