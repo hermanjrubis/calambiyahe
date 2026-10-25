@@ -984,9 +984,180 @@
             }
         }
 
+        /* Plan route / Call buttons */
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .profile-actions[hidden],
+        .profile-action-btn[hidden] { display: none; }
+        .profile-action-btn {
+            flex: 1;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: #FFFFFF;
+            color: var(--navy-dark);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .profile-action-btn i { font-size: 1.1rem; }
+        .profile-action-btn:hover { background: #F8FAFC; }
+        .profile-action-btn:active { transform: scale(0.97); }
+        .profile-action-btn.is-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #FFFFFF;
+        }
+        .profile-action-btn.is-primary:hover { background: #1F69B8; border-color: #1F69B8; }
+        @media (min-width: 768px) {
+            .profile-action-btn { flex: 0 0 auto; padding: 0 20px; }
+        }
+        .business-mini-map {
+            height: 180px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #EEF2F7;
+        }
+
+        /* Floating bottom bar (phones only) */
+        .cz-bottom-nav { display: none; }
+
+        /* Name on its own line, category under it (no floating "·") */
+        .profile-title-sep { display: none !important; }
+        .profile-category-text:not([style*="none"]) {
+            display: block !important;
+            margin-top: 4px;
+        }
+        .profile-business-name { display: block; }
+        .profile-business-name .verified-icon { margin-left: 4px; }
+        .profile-meta-details { margin-top: 12px; }
+
+        /* The site navbar switches to its 68px phone version at 768px and below */
+        @media (max-width: 768px) {
+            body { padding-top: 68px; }
+            .subnav-bar { top: 68px; }
+        }
+
+        /* ---------- Phone layout ---------- */
+        @media (max-width: 767px) {
+            .subnav-bar { padding: 6px 0; }
+            .subnav-container { padding: 0 16px; }
+            .business-container {
+                margin: 16px auto 0;
+                padding: 0 16px calc(64px + 48px + env(safe-area-inset-bottom, 0px));
+            }
+
+            /* Avatar + name on one row, everything else full width under it */
+            .profile-hero-card { padding: 18px 16px 16px; margin-bottom: 20px; }
+            .profile-hero-top {
+                display: grid;
+                grid-template-columns: 64px minmax(0, 1fr);
+                column-gap: 14px;
+                align-items: center;
+            }
+            .profile-info-wrap { display: contents; }
+            .profile-avatar-wrap { grid-column: 1; grid-row: 1; width: 64px; height: 64px; }
+            .profile-business-name {
+                grid-column: 2;
+                grid-row: 1;
+                display: block;
+                margin: 0;
+                font-size: 1.2rem;
+                line-height: 1.25;
+                overflow-wrap: anywhere;
+            }
+            .profile-business-name .verified-icon { margin-left: 4px; font-size: 1rem; }
+            .profile-title-sep { display: none !important; }
+            .profile-category-text:not([style*="none"]) {
+                display: block !important;
+                margin-top: 4px;
+                font-size: 0.85rem;
+                letter-spacing: 0;
+            }
+            .profile-meta-details,
+            .profile-description,
+            .profile-actions,
+            #businessMapSection { grid-column: 1 / -1; }
+            .profile-meta-details { margin-top: 16px; gap: 8px; }
+            .meta-detail-item { align-items: flex-start; line-height: 1.4; }
+            .meta-detail-item i { margin-top: 1px; }
+            .meta-detail-item > span { min-width: 0; overflow-wrap: anywhere; }
+            .profile-description { margin-top: 14px; padding-top: 14px; }
+            .business-mini-map { height: 150px; }
+
+            /* Instagram-like tight grid */
+            .posts-section-header { margin-bottom: 10px; padding-bottom: 10px; }
+            .posts-grid { gap: 3px !important; margin: 0 -4px; }
+            .post-card-thumb { border-radius: 4px; }
+            .post-card-thumb:hover { transform: none; }
+
+            .cz-bottom-nav {
+                display: flex;
+                position: fixed;
+                left: max(16px, env(safe-area-inset-left, 0px));
+                right: max(16px, env(safe-area-inset-right, 0px));
+                bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+                max-width: 440px;
+                margin: 0 auto;
+                height: 64px;
+                padding: 0 6px;
+                background: #FFFFFF;
+                border: 1px solid var(--border-color);
+                border-radius: 32px;
+                box-shadow: none;
+                z-index: 900;
+                align-items: center;
+                justify-content: space-around;
+                transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+            }
+            .cz-bottom-nav.is-hidden {
+                transform: translateY(calc(100% + 32px));
+                opacity: 0;
+                pointer-events: none;
+            }
+            .cz-bottom-btn {
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--navy-dark);
+                font-size: 26px;
+                text-decoration: none;
+                transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), background 0.15s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .cz-bottom-btn:active { transform: scale(0.86); background: #EEF5FD; }
+            .cz-bottom-btn.bounce i { animation: czNavBounce 0.45s cubic-bezier(0.34, 1.56, 0.64, 1); }
+            @keyframes czNavBounce {
+                0% { transform: scale(1); }
+                35% { transform: scale(0.78); }
+                70% { transform: scale(1.14); }
+                100% { transform: scale(1); }
+            }
+        }
+        @media (max-width: 360px) {
+            .cz-bottom-nav { left: 12px; right: 12px; padding: 0 2px; }
+            .cz-bottom-btn { width: 44px; height: 44px; font-size: 24px; }
+            .profile-action-btn { font-size: 0.9rem; }
+        }
+
         @media (max-width: 640px) {
             .subnav-bar {
-                padding: 8px 0;
+                padding: 6px 0;
             }
             .breadcrumb-trail {
                 display: none; /* Keep subnav uncluttered on small screens */
@@ -1441,13 +1612,19 @@
 
                         <div class="profile-description" id="businessDescription" style="display: none;"></div>
 
+                        <div class="profile-actions" id="profileActions" hidden>
+                            <a id="btnPlanRouteHere" href="#" class="profile-action-btn is-primary" hidden>
+                                <i class="ti ti-route" aria-hidden="true"></i>
+                                <span>Plan route</span>
+                            </a>
+                            <a id="btnCallBusiness" href="#" class="profile-action-btn" hidden>
+                                <i class="ti ti-phone" aria-hidden="true"></i>
+                                <span>Call</span>
+                            </a>
+                        </div>
+
                         <div id="businessMapSection" style="display: none; margin-top: 16px;">
-                            <div id="businessMiniMap" style="height: 180px; width: 100%; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden;"></div>
-                            <div style="margin-top: 8px;">
-                                <a id="btnPlanRouteHere" href="#" style="font-size: 0.9rem; font-weight: 600; color: var(--primary); text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">
-                                    Plan route here →
-                                </a>
-                            </div>
+                            <div id="businessMiniMap" class="business-mini-map"></div>
                         </div>
                     </div>
                 </div>
@@ -1474,6 +1651,15 @@
         </div>
 
     </main>
+
+    <!-- Floating bottom bar on phones (same as the Updates page) -->
+    <nav class="cz-bottom-nav" id="czBottomNav" aria-label="Mobile Navigation">
+        <a href="/discover" class="cz-bottom-btn" aria-label="Updates"><i class="ti ti-home" aria-hidden="true"></i></a>
+        <a href="/discover?search=1" class="cz-bottom-btn" aria-label="Search"><i class="ti ti-search" aria-hidden="true"></i></a>
+        <a href="/discover?compose=1" class="cz-bottom-btn" aria-label="New post"><i class="ti ti-square-plus" aria-hidden="true"></i></a>
+        <a href="/planner" class="cz-bottom-btn" aria-label="Planner"><i class="ti ti-route" aria-hidden="true"></i></a>
+        <a href="/login?redirect=/my-business" class="cz-bottom-btn" id="czBottomAccount" aria-label="Account"><i class="ti ti-user" aria-hidden="true"></i></a>
+    </nav>
 
     <!-- ====================================================
          RESPONSIVE INSTAGRAM-STYLE LIGHTBOX
@@ -1711,6 +1897,8 @@
         // --- 1. INITIALIZE & PARSE URL ---
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
+            const czAccount = document.getElementById('czBottomAccount');
+            if (czAccount) czAccount.href = user ? '/my-business' : `/login?redirect=${encodeURIComponent(location.pathname + location.search)}`;
             if (postLightbox.style.display !== 'none' && posts[activePostIndex]) {
                 syncLightboxLikeState();
             }
@@ -1859,7 +2047,17 @@
             // Existing businesses have no pin: business.html must hide map and "Plan route here" when location is missing, and must not throw.
             const businessMapSection = document.getElementById('businessMapSection');
             const btnPlanRouteHere = document.getElementById('btnPlanRouteHere');
-            if (bus.location && typeof bus.location.lat === 'number' && typeof bus.location.lng === 'number' && businessMapSection) {
+            const btnCallBusiness = document.getElementById('btnCallBusiness');
+            const profileActions = document.getElementById('profileActions');
+            const hasPin = !!(bus.location && typeof bus.location.lat === 'number' && typeof bus.location.lng === 'number');
+            const telDigits = (bus.contactNumber || '').replace(/[^0-9+]/g, '');
+            if (btnPlanRouteHere) btnPlanRouteHere.hidden = !hasPin;
+            if (btnCallBusiness) {
+                btnCallBusiness.hidden = telDigits.length < 7;
+                if (!btnCallBusiness.hidden) btnCallBusiness.href = `tel:${telDigits}`;
+            }
+            if (profileActions) profileActions.hidden = !hasPin && (!btnCallBusiness || btnCallBusiness.hidden);
+            if (hasPin && businessMapSection) {
                 businessMapSection.style.display = 'block';
                 if (btnPlanRouteHere) {
                     btnPlanRouteHere.href = `/planner?destName=${encodeURIComponent(bus.name || 'Business')}&destLat=${bus.location.lat}&destLng=${bus.location.lng}`;
@@ -2330,6 +2528,33 @@
         initPage();
     </script>
     <script src="../js/i18n.js?v=2.9.1"></script>
+    <script>
+        (function () {
+            const nav = document.getElementById('czBottomNav');
+            if (!nav) return;
+            nav.querySelectorAll('.cz-bottom-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.classList.remove('bounce');
+                    void btn.offsetWidth;
+                    btn.classList.add('bounce');
+                });
+                btn.addEventListener('animationend', () => btn.classList.remove('bounce'));
+            });
+            let lastY = window.scrollY, ticking = false;
+            window.addEventListener('scroll', () => {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(() => {
+                    const y = window.scrollY, d = y - lastY;
+                    const nearBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 80;
+                    if (y < 80 || d < -6 || nearBottom) nav.classList.remove('is-hidden');
+                    else if (d > 6) nav.classList.add('is-hidden');
+                    if (Math.abs(d) > 6) lastY = y;
+                    ticking = false;
+                });
+            }, { passive: true });
+        })();
+    </script>
 </body>
 
 </html>

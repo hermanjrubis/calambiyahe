@@ -88,44 +88,86 @@
             text-decoration: none;
         }
         .topbar-logo {
-            height: 24px;
+            height: 34px;
             width: auto;
+            display: block;
+        }
+        @media (max-width: 767px) {
+            .topbar-logo { height: 30px; } /* same as the site navbar logo on phones */
         }
         .topbar-right {
             display: flex;
             align-items: center;
             gap: 8px;
         }
+        /* Same "Sign in" pill as the rest of the site (style.css .mobile-signin-pill) */
         .topbar-auth {
-            color: var(--navy-dark);
-            text-decoration: none;
-            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 40px;
+            padding: 0 14px 0 11px;
+            border-radius: 999px;
+            background: #2272C3;
+            color: #FFFFFF;
+            font-family: 'Sora', sans-serif;
             font-weight: 600;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            transition: background 0.15s ease, color 0.15s ease;
+            font-size: 13.5px;
+            line-height: 1;
+            white-space: nowrap;
+            text-decoration: none;
+            flex-shrink: 0;
+            transition: background 0.15s ease, transform 0.15s var(--ease-out);
         }
-        .topbar-auth:hover { background: var(--brand-blue-light); color: var(--brand-blue-dark); }
-        .topbar-menu-btn,
+        .topbar-auth:hover { background: var(--brand-blue-dark); }
+        .topbar-auth:active { transform: scale(0.97); }
+        .topbar-auth-icon { width: 17px; height: 17px; display: block; flex-shrink: 0; }
+        /* Same hamburger as the rest of the site (style.css .mobile-menu-btn + .menu-toggle-icon) */
+        .topbar-menu-btn {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 14px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .topbar-menu-btn:hover { transform: scale(1.1); }
+        .topbar-menu-btn:active { opacity: 0.7; }
+        .menu-toggle-icon {
+            display: block;
+            transition: transform 500ms ease-in-out;
+        }
+        .menu-toggle-icon.open { transform: rotate(-45deg); }
+        .menu-toggle-morph {
+            stroke-dasharray: 12 63;
+            transition: stroke-dasharray 500ms ease-in-out, stroke-dashoffset 500ms ease-in-out;
+        }
+        .menu-toggle-icon.open .menu-toggle-morph {
+            stroke-dasharray: 20 300;
+            stroke-dashoffset: -32.42px;
+        }
         .updates-drawer-close {
             width: 42px;
             height: 42px;
             border-radius: 50%;
             border: none;
-            background: transparent;
-            color: var(--brand-blue);
-            font-size: 26px;
+            background: #F1F5F9;
+            color: var(--navy-dark);
+            font-size: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: background 0.15s ease, transform 0.15s var(--ease-out);
         }
-        .topbar-menu-btn:hover,
-        .updates-drawer-close:hover { background: var(--brand-blue-light); }
-        .topbar-menu-btn:active,
+        .updates-drawer-close:hover { background: #E2E8F0; }
         .updates-drawer-close:active { transform: scale(0.9); }
-        .updates-drawer-close { background: #F1F5F9; color: var(--navy-dark); font-size: 22px; }
 
         .updates-drawer-overlay {
             position: fixed;
@@ -1297,7 +1339,7 @@
                 height: 56px;
                 padding: 0 16px;
             }
-            .topbar-menu-btn { margin-right: -8px; }
+            .topbar-menu-btn { margin-right: -4px; }
             .updates-page-wrapper {
                 padding: 16px 16px calc(var(--nav-h) + 48px + env(safe-area-inset-bottom, 0px));
             }
@@ -1514,9 +1556,12 @@
             <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="topbar-logo">
         </a>
         <div class="topbar-right">
-            <a href="/login?redirect=/discover" id="topbarAuthLink" class="topbar-auth">Sign In</a>
+            <a href="/login?redirect=/discover" id="topbarAuthLink" class="topbar-auth"><svg class="topbar-auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="topbar-auth-text">Sign in</span></a>
             <button type="button" class="topbar-menu-btn" id="btnTopMenu" aria-label="Open menu" aria-expanded="false" aria-controls="updatesDrawer">
-                <i class="ti ti-menu-2" aria-hidden="true"></i>
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true">
+                    <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                    <path class="menu-toggle-line" d="M7 16 27 16" />
+                </svg>
             </button>
         </div>
     </header>
@@ -2521,7 +2566,7 @@
         // New Post Action Trigger
         async function handleNewPostClick() {
             if (!currentUser) {
-                window.location.href = '/login?redirect=/discover';
+                window.location.href = '/login?redirect=' + encodeURIComponent('/discover?compose=1');
                 return;
             }
 
@@ -2624,6 +2669,19 @@
             moveCatIndicator();
         });
 
+        // Links from other pages' bottom bar: /discover?search=1 and /discover?compose=1
+        const entryParams = new URLSearchParams(window.location.search);
+        let wantsCompose = entryParams.get('compose') === '1';
+        if (entryParams.has('search') || entryParams.has('compose')) {
+            history.replaceState(null, '', window.location.pathname);
+        }
+        if (entryParams.get('search') === '1') {
+            requestAnimationFrame(() => {
+                if (isPhone()) openMobileSearch();
+                else desktopSearchInput?.focus();
+            });
+        }
+
         // Site menu drawer
         const menuBtn = document.getElementById('btnTopMenu');
         const menuDrawer = document.getElementById('updatesDrawer');
@@ -2631,6 +2689,7 @@
         function setMenuOpen(open) {
             document.body.classList.toggle('menu-open', open);
             menuBtn?.setAttribute('aria-expanded', open ? 'true' : 'false');
+            menuBtn?.querySelector('.menu-toggle-icon')?.classList.toggle('open', open);
             menuDrawer?.setAttribute('aria-hidden', open ? 'false' : 'true');
             document.documentElement.style.overflow = open ? 'hidden' : '';
             if (open) setTimeout(() => document.getElementById('btnTopMenuClose')?.focus({ preventScroll: true }), 80);
@@ -2668,7 +2727,7 @@
             currentUser = user;
             if (user) {
                 if (topbarAuthLink) {
-                    topbarAuthLink.textContent = 'My Business';
+                    topbarAuthLink.querySelector('.topbar-auth-text').textContent = 'My Business';
                     topbarAuthLink.href = '/my-business';
                 }
                 if (btnNavAccount) {
@@ -2692,15 +2751,17 @@
                 } catch (e) {
                     console.warn('Could not check user business ownership:', e);
                 }
+                if (wantsCompose) { wantsCompose = false; handleNewPostClick(); }
             } else {
                 if (topbarAuthLink) {
-                    topbarAuthLink.textContent = 'Sign In';
+                    topbarAuthLink.querySelector('.topbar-auth-text').textContent = 'Sign in';
                     topbarAuthLink.href = '/login?redirect=/discover';
                 }
                 if (btnNavAccount) {
                     btnNavAccount.href = '/login?redirect=/discover';
                 }
                 userLiveBusiness = null;
+                if (wantsCompose) { wantsCompose = false; handleNewPostClick(); }
             }
         });
 
