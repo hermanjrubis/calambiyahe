@@ -1165,20 +1165,36 @@ document.addEventListener('DOMContentLoaded', () => {
         // =============================================
 
         // Category metadata: icon, color, label mappings
+        // Category pins: one flat color per category + a Tabler line icon (same icon set as the
+        // category sheet in planner-category.js). Colors are picked to stay apart from each other
+        // and readable as text on the light map.
+        const PIN_ICONS = {
+            malls: 'M3 21l18 0M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4M5 21l0 -10.15M19 21l0 -10.15M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4',
+            eateries: 'M19 3v12h-5c-.023 -3.681 .184 -7.406 5 -12zm0 12v6h-1v-3m-10 -14v17m-3 -17v3a3 3 0 1 0 6 0v-3',
+            schools: 'M22 9l-10 -4l-10 4l10 4l10 -4v6M6 10.6v5.4a6 3 0 0 0 12 0v-5.4',
+            terminals: 'M6 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M14 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M4 17v-11a1 1 0 0 1 1 -1h14a1 1 0 0 1 1 1v11h-2m-4 0h-4M4 11h16M8 5v6M16 5v6',
+            coffee: 'M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5zM16.746 16.726a3 3 0 1 0 .252 -5.555',
+            government: 'M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9zM5 21v-7',
+            health: 'M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2M6 8h12a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-8a2 2 0 0 1 2 -2zM10 14h4M12 12v4',
+            banks: 'M3 21h18M3 10h18M5 6l7 -3l7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3',
+            hotels: 'M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M22 17v-3h-20M2 8v9M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5z',
+            establishments: 'M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304zM9 11v-5a3 3 0 0 1 6 0v5',
+            pin: 'M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z'
+        };
         const CATEGORY_META = {
-            malls: { icon: 'storefront-outline', color: '#2563EB', label: 'Mall' },
-            eateries: { icon: 'restaurant-outline', color: '#D97706', label: 'Eatery' },
-            schools: { icon: 'school-outline', color: '#059669', label: 'School' },
-            terminals: { icon: 'bus-outline', color: '#0284C7', label: 'Terminal' },
-            Terminal: { icon: 'bus-outline', color: '#0284C7', label: 'Terminal' },
-            Stop: { icon: 'pin-outline', color: '#64748B', label: 'Transit Stop' },
-            coffee: { icon: 'cafe-outline', color: '#854D0E', label: 'Coffee Shop' },
-            government: { icon: 'flag-outline', color: '#475569', label: 'Government & Landmark' },
-            health: { icon: 'medkit-outline', color: '#DC2626', label: 'Health' },
-            banks: { icon: 'cash-outline', color: '#0F766E', label: 'Bank' },
-            hotels: { icon: 'bed-outline', color: '#7C3AED', label: 'Hotel' },
-            establishments: { icon: 'bag-handle-outline', color: '#4F46E5', label: 'Shop & Service' },
-            all: { icon: 'location-outline', color: '#378ADD', label: 'Place' },
+            malls: { icon: 'malls', color: '#D6336C', label: 'Mall' },
+            eateries: { icon: 'eateries', color: '#E8590C', label: 'Eatery' },
+            schools: { icon: 'schools', color: '#2F9E44', label: 'School' },
+            terminals: { icon: 'terminals', color: '#378ADD', label: 'Terminal' },
+            Terminal: { icon: 'terminals', color: '#378ADD', label: 'Terminal' },
+            Stop: { icon: 'pin', color: '#64748B', label: 'Transit Stop' },
+            coffee: { icon: 'coffee', color: '#8B5E3C', label: 'Coffee Shop' },
+            government: { icon: 'government', color: '#495057', label: 'Government & Landmark' },
+            health: { icon: 'health', color: '#E03131', label: 'Health' },
+            banks: { icon: 'banks', color: '#0C8599', label: 'Bank' },
+            hotels: { icon: 'hotels', color: '#AE3EC9', label: 'Hotel' },
+            establishments: { icon: 'establishments', color: '#7048E8', label: 'Shop & Service' },
+            all: { icon: 'pin', color: '#378ADD', label: 'Place' },
         };
 
         // Dynamic place coordinates resolver: reads directly from the shared verified places data
@@ -1426,7 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // category results (planner-category.js); no MapLibre popup anymore.
         function buildCategoryPlaceMarker(place) {
             if (!place) return null;
-            const meta = CATEGORY_META[place.category] || { icon: 'location-outline', color: '#6366F1', label: place.category };
+            const meta = CATEGORY_META[place.category] || CATEGORY_META[String(place.category || '').toLowerCase()] || CATEGORY_META.all;
             const lat = parseFloat(place.lat);
             const lng = parseFloat(place.lng);
             if (isNaN(lat) || isNaN(lng)) return null;
@@ -1438,20 +1454,45 @@ document.addEventListener('DOMContentLoaded', () => {
             iconEl.setAttribute('aria-label', place.name || 'Place');
             if (place.slug) iconEl.dataset.slug = place.slug;
 
+            iconEl.style.setProperty('--pin-color', meta.color);
             const wrapper = document.createElement('div');
             wrapper.className = 'calzada-pin-wrapper';
-            wrapper.style.setProperty('--pin-color', meta.color);
             const ring = document.createElement('span');
             ring.className = 'czc-ring';
             ring.setAttribute('aria-hidden', 'true');
             const body = document.createElement('div');
             body.className = 'calzada-pin-body';
-            const ion = document.createElement('ion-icon');
-            ion.setAttribute('name', meta.icon);
-            body.appendChild(ion);
+            const SVG_NS = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(SVG_NS, 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('width', '17');
+            svg.setAttribute('height', '17');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', '#FFFFFF');
+            svg.setAttribute('stroke-width', '2.2');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            svg.setAttribute('aria-hidden', 'true');
+            const path = document.createElementNS(SVG_NS, 'path');
+            path.setAttribute('d', PIN_ICONS[meta.icon] || PIN_ICONS.pin);
+            svg.appendChild(path);
+            body.appendChild(svg);
+            // The dot under the pin marks the exact spot
+            const dot = document.createElement('span');
+            dot.className = 'czp-dot';
+            dot.setAttribute('aria-hidden', 'true');
             wrapper.appendChild(ring);
             wrapper.appendChild(body);
+            wrapper.appendChild(dot);
             iconEl.appendChild(wrapper);
+            // Place name beside the pin; pinDeclutter hides it where it would collide
+            if (place.name) {
+                const label = document.createElement('span');
+                label.className = 'czp-label';
+                label.setAttribute('aria-hidden', 'true');
+                label.textContent = place.name;
+                iconEl.appendChild(label);
+            }
 
             const onPinTap = (e) => {
                 if (e && e.stopPropagation) e.stopPropagation();
@@ -1482,7 +1523,10 @@ document.addEventListener('DOMContentLoaded', () => {
          */
         const pinDeclutter = (() => {
             const items = new Set();
-            const GROUP_W = 28, GROUP_H = 32;   // pin is 32x38 px
+            const GROUP_W = 28, GROUP_H = 32;   // pin head is 32 px wide
+            // Pin geometry (see .calzada-pin-wrapper in planner.css): anchored at the dot,
+            // 46 px tall, head centre 30 px above the anchor; labels start 19 px from the centre line.
+            const PIN_HALF_W = 16, PIN_H = 46, HEAD_CY = 30, LABEL_GAP = 19, LABEL_H = 20;
             const FAN_ZOOM = 17.5;    // from here on, fan out instead of grouping
             let raf = 0;
 
@@ -1565,6 +1609,45 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     });
                 }
+                placeLabels(list);
+            }
+            // Names go to the right of a pin, or to the left if the right is taken; a name that
+            // would cover another pin or name is hidden (the selected pin is placed first).
+            function placeLabels(list) {
+                const shown = list.filter(it => !it.el.classList.contains('czc-pin-hidden'));
+                const boxes = [];
+                const pos = new Map();
+                shown.forEach(it => {
+                    const off = it.marker.getOffset ? it.marker.getOffset() : { x: 0, y: 0 };
+                    const x = it.pt.x + (off.x || 0), y = it.pt.y + (off.y || 0);
+                    pos.set(it, { x, y });
+                    boxes.push({ x1: x - PIN_HALF_W, x2: x + PIN_HALF_W, y1: y - PIN_H, y2: y, owner: it });
+                });
+                const hits = (r, self) => boxes.some(b => b.owner !== self &&
+                    r.x1 < b.x2 && r.x2 > b.x1 && r.y1 < b.y2 && r.y2 > b.y1);
+                list.forEach(it => {
+                    const label = it.el.querySelector('.czp-label');
+                    if (!label) return;
+                    const p = pos.get(it);
+                    if (!p || it.el.classList.contains('czc-pin-grouped')) {
+                        it.el.classList.add('czp-nolabel');
+                        return;
+                    }
+                    if (!it.lw) it.lw = label.offsetWidth;
+                    const w = it.lw || 0;
+                    const cy = p.y - HEAD_CY;
+                    // the selected pin's ring is wider: its name sits 10 px further out
+                    const gap = LABEL_GAP + (it.el.classList.contains('czc-pin-selected') ? 10 : 0);
+                    const right = { x1: p.x + gap, x2: p.x + gap + w, y1: cy - LABEL_H / 2, y2: cy + LABEL_H / 2 };
+                    const left = { x1: p.x - gap - w, x2: p.x - gap, y1: right.y1, y2: right.y2 };
+                    let side = null;
+                    if (!w) side = null;
+                    else if (!hits(right, it)) side = right;
+                    else if (!hits(left, it)) side = left;
+                    it.el.classList.toggle('czp-nolabel', !side);
+                    it.el.classList.toggle('czp-label-left', side === left);
+                    if (side) boxes.push(Object.assign({ owner: it }, side));
+                });
             }
             // Returns true when the tap was used to zoom into a group
             function zoomIntoGroup(el) {
@@ -2494,6 +2577,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 return (r && r.height ? r.bottom : 0) + CTRL_GAP;
             };
 
+            // While the user is doing something (panning or pinching the map, dragging the
+            // sheet, or the map flying to a picked place) the buttons fade out so they don't
+            // sit on top of what the user is looking at; they come back a moment after it all
+            // stops. Phones only, and never during a journey (the map moves on its own there).
+            let busy = false;
+            let idleTimer = 0;
+            let touching = false;
+            const IDLE_MS = 900;
+            const canHide = () => mobileMq.matches && !document.body.classList.contains('navigation-active');
+            const setBusy = (on) => {
+                clearTimeout(idleTimer);
+                if (on) {
+                    if (!busy && canHide()) { busy = true; sync(); }
+                    return;
+                }
+                if (!busy) return;
+                idleTimer = setTimeout(() => {
+                    if (touching || map.isMoving()) return;
+                    busy = false;
+                    sync();
+                }, IDLE_MS);
+            };
+            // A tap on the buttons themselves must not hide them
+            const onControl = (e) => !!(e.target && e.target.closest && e.target.closest('.maplibregl-ctrl'));
+            const onTouchStart = (e) => {
+                if (onControl(e)) return;
+                touching = true;
+                setBusy(true);
+            };
+            const onTouchEnd = (e) => {
+                touching = !!(e.touches && e.touches.length);
+                if (!touching && !map.isMoving()) setBusy(false);
+            };
+            map.getContainer().addEventListener('touchstart', onTouchStart, { passive: true });
+            directionsCard.addEventListener('touchstart', onTouchStart, { passive: true });
+            document.addEventListener('touchend', onTouchEnd, { passive: true });
+            document.addEventListener('touchcancel', onTouchEnd, { passive: true });
+            map.on('movestart', () => setBusy(true));
+            map.on('moveend', () => { if (!touching) setBusy(false); });
+            // A journey starting while the buttons are hidden: give them back right away
+            new MutationObserver(() => {
+                if (busy && !canHide()) { clearTimeout(idleTimer); busy = false; sync(); }
+            }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+
             const sync = () => {
                 const sheetShown = directionsCard.offsetParent !== null && directionsCard.offsetHeight > 0;
                 if (!mobileMq.matches || !sheetShown) {
@@ -2502,6 +2629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         c.style.removeProperty('--ctrl-lift');
                         c.style.removeProperty('transition');
                         c.classList.remove('ctrl-no-room');
+                        c.classList.toggle('ctrl-busy', busy);
                     });
                     return;
                 }
@@ -2516,8 +2644,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // rather than overlap the sheet or the category bar.
                 const noRoom = visBottom - stack.height < topLimit();
                 corners.forEach(c => c.classList.toggle('ctrl-no-room', noRoom));
+                corners.forEach(c => c.classList.toggle('ctrl-busy', busy));
                 // visibility flips after the fade when hiding, immediately when showing.
-                const fade = `opacity 0.2s ease, visibility 0s linear ${noRoom ? '0.2s' : '0s'}`;
+                const fade = `opacity 0.2s ease, visibility 0s linear ${(noRoom || busy) ? '0.2s' : '0s'}`;
                 const transition = directionsCard.style.transition === 'none'
                     ? fade
                     : `transform var(--sheet-dur) var(--sheet-spring), ${fade}`;

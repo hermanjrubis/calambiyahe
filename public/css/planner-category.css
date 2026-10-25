@@ -380,8 +380,9 @@
     width: 52px;
     height: 52px;
     border-radius: 50%;
-    border: 2.5px solid #2272C3;
+    border: 2.5px solid var(--pin-color, #2272C3);
     background: rgba(55, 138, 221, 0.12);
+    background: color-mix(in srgb, var(--pin-color, #378ADD) 14%, transparent);
     pointer-events: none;
     opacity: 0;
     transition: opacity 120ms ease-out;
