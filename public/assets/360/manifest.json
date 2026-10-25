@@ -106,7 +106,7 @@
      "distance": 42.6
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Barangay 1",
    "heading": -51.8
   },
@@ -129,7 +129,7 @@
      "distance": 39.4
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Barangay 1",
    "heading": -55.1
   },
@@ -152,7 +152,7 @@
      "distance": 30.3
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Barangay 1",
    "heading": 31.0
   },
@@ -175,7 +175,7 @@
      "distance": 54.1
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Barangay 1",
    "heading": 20.9
   },
@@ -198,7 +198,7 @@
      "distance": 57.1
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Barangay 1",
    "heading": -1.6
   },
@@ -221,7 +221,7 @@
      "distance": 57.1
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Barangay 1",
    "heading": -10.4
   },
@@ -244,7 +244,7 @@
      "distance": 45.8
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Real",
    "heading": 7.8
   },
@@ -258,7 +258,7 @@
    "connections": [
     {
      "targetId": "14.204121_121.154276",
-     "bearing": 236.2,
+     "bearing": 235.8,
      "distance": 33.4
     },
     {
@@ -267,7 +267,7 @@
      "distance": 43.2
     }
    ],
-   "street": "Cadena de Amor Street",
+   "street": "SM City Calamba",
    "area": "Real",
    "heading": 20.4
   },
@@ -280,19 +280,24 @@
    "source": "IMG_20261024_133100_00_407",
    "connections": [
     {
+     "targetId": "14.204386_121.154190",
+     "bearing": 315,
+     "distance": 30.7
+    },
+    {
      "targetId": "14.204293_121.154530",
-     "bearing": 56.8,
+     "bearing": 55.8,
      "distance": 33.4
     },
     {
      "targetId": "14.203755_121.154501",
-     "bearing": 238.9,
+     "bearing": 146.9,
      "distance": 47.2
     }
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": 86.5
+   "heading": -5.5
   },
   {
    "id": "14.203755_121.154501",
@@ -2789,6 +2794,11 @@
    "source": "IMG_20261024_140904_00_515",
    "connections": [
     {
+     "targetId": "14.204121_121.154276",
+     "bearing": 155,
+     "distance": 30.7
+    },
+    {
      "targetId": "14.204851_121.154531",
      "bearing": 39.1,
      "distance": 63.2
@@ -4711,14 +4721,14 @@
    "source": "IMG_20261024_150017_00_603",
    "connections": [
     {
-     "targetId": "14.204944_121.156474",
-     "bearing": 239.0,
-     "distance": 7.2
-    },
-    {
      "targetId": "14.204725_121.156722",
      "bearing": 144.4,
      "distance": 29.2
+    },
+    {
+     "targetId": "14.204944_121.156474",
+     "bearing": 239.0,
+     "distance": 41.1
     },
     {
      "targetId": "14.205243_121.156300",
@@ -4732,21 +4742,21 @@
   },
   {
    "id": "14.204944_121.156474",
-   "lat": 14.204944,
-   "lng": 121.156474,
+   "lat": 14.204767,
+   "lng": 121.156185,
    "file": "14.204944, 121.156474.jpg",
    "northOffset": 48.3,
    "source": "IMG_20261024_150036_00_604",
    "connections": [
     {
      "targetId": "14.204915_121.156534",
-     "bearing": 144.4,
-     "distance": 7.2
+     "bearing": 59.0,
+     "distance": 41.1
     },
     {
      "targetId": "14.204539_121.155787",
      "bearing": 239.0,
-     "distance": 86.6
+     "distance": 49.8
     }
    ],
    "street": "Cadena de Amor Street",
@@ -4769,7 +4779,7 @@
     {
      "targetId": "14.204944_121.156474",
      "bearing": 56.7,
-     "distance": 86.6
+     "distance": 49.8
     }
    ],
    "street": "Cadena de Amor Street",
