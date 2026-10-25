@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Business Plans – Calzada</title>
+    <link rel="canonical" href="https://calzadaph.com/plans">
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+    <link rel="manifest" href="../manifest.json">
+    <meta property="og:title" content="Calzada - Business Plans">
+    <meta property="og:description" content="Get found by commuters on their way to you. Pick a plan and get on the Calzada map.">
+    <meta name="description" content="Get found by commuters on their way to you. Pick a plan and get on the Calzada map.">
+
+    <!-- Google Fonts Preconnect -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- Google Fonts -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+
+    <!-- Common CSS -->
+    <link rel="stylesheet" href="../css/style.css?v=2.9.0">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.9.0">
+
+    <style>
+        :root {
+            --brand-blue: #378ADD;
+            --brand-blue-hover: #1F69B8;
+            --card-border: #E2E8F0;
+            --text-dark: #042C53;
+            --text-muted: #64748B;
+            --success-green: #16A34A;
+            --bg-light: #F8FAFC;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #FFFFFF;
+            color: var(--text-dark);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 90px;
+        }
+
+        .plans-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 48px 24px 64px;
+        }
+
+        /* Hero */
+        .plans-hero {
+            text-align: center;
+            max-width: 780px;
+            margin: 0 auto 52px;
+        }
+
+        .plans-eyebrow {
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--brand-blue-hover);
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .plans-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-dark);
+            margin-bottom: 16px;
+        }
+
+        .plans-subline {
+            font-size: 17px;
+            line-height: 1.55;
+            color: var(--text-muted);
+        }
+
+        /* Desktop Grid */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+            align-items: stretch;
+        }
+
+        /* Flat White Cards */
+        .plan-card {
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 32px 28px;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: border-color 0.15s ease;
+        }
+
+        .plan-card.recommended {
+            border: 2px solid var(--brand-blue);
+        }
+
+        .plan-recommended-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--brand-blue-hover);
+            margin-bottom: 8px;
+        }
+
+        .plan-header {
+            margin-bottom: 20px;
+        }
+
+        .plan-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .plan-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            min-height: 20px;
+        }
+
+        .plan-pricing {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .plan-price-amount {
+            font-family: 'Sora', sans-serif;
+            font-size: 38px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .plan-price-period {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .btn-plan {
+            width: 100%;
+            height: 44px;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-bottom: 28px;
+        }
+
+        .btn-plan.outline {
+            background: transparent;
+            border: 1px solid var(--brand-blue);
+            color: var(--brand-blue);
+        }
+
+        .btn-plan.outline:hover {
+            border-color: var(--brand-blue-hover);
+            color: var(--brand-blue-hover);
+            background: #F0F7FF;
+        }
+
+        .btn-plan.solid {
+            background: var(--brand-blue);
+            border: 1px solid var(--brand-blue);
+            color: #FFFFFF;
+        }
+
+        .btn-plan.solid:hover {
+            background: var(--brand-blue-hover);
+            border-color: var(--brand-blue-hover);
+        }
+
+        .plan-features {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: auto;
+        }
+
+        .plan-feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            color: var(--text-dark);
+            line-height: 1.45;
+        }
+
+        .plan-feature-item i {
+            color: var(--success-green);
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .plans-disclaimer {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 64px;
+        }
+
+        /* Section Headings */
+        .section-heading {
+            font-family: 'Sora', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 24px;
+        }
+
+        /* Compare Table */
+        .compare-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            margin-bottom: 64px;
+            background: #FFFFFF;
+        }
+
+        .compare-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+            min-width: 680px;
+        }
+
+        .compare-table th, 
+        .compare-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--card-border);
+            vertical-align: middle;
+        }
+
+        .compare-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .compare-table th {
+            font-family: 'Sora', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-dark);
+            background: #FFFFFF;
+        }
+
+        .compare-table th.col-recommended {
+            background: #EEF5FD;
+            color: var(--brand-blue-hover);
+        }
+
+        .compare-table td.col-recommended {
+            background: #F6FAFE;
+        }
+
+        .compare-check {
+            color: var(--success-green);
+            font-size: 18px;
+        }
+
+        .compare-dash {
+            color: #94A3B8;
+            font-size: 16px;
+        }
+
+        /* Add-ons & FAQ Grids */
+        .addons-grid,
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 64px;
+        }
+
+        .addon-card,
+        .faq-card {
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: none;
+        }
+
+        .addon-title,
+        .faq-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .addon-price {
+            font-family: 'Sora', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .addon-desc,
+        .faq-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Sticky bottom bar on phone */
+        .sticky-bottom-bar {
+            display: none;
+        }
+
+        /* Mobile Adjustments (≤ 767px) */
+        @media (max-width: 767px) {
+            .plans-main {
+                padding: 32px 16px 120px;
+            }
+
+            .plans-title {
+                font-size: 28px;
+            }
+
+            .plans-subline {
+                font-size: 15px;
+            }
+
+            .plans-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            /* Selectable Stacked Cards */
+            .plan-card {
+                padding: 18px;
+                cursor: pointer;
+                transition: border-color 0.15s ease, background-color 0.15s ease;
+            }
+
+            .plan-card.selected {
+                border: 2px solid var(--brand-blue) !important;
+            }
+
+            .plan-card:not(.selected) {
+                border: 1px solid var(--card-border);
+            }
+
+            .plan-card-mobile-row {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                width: 100%;
+            }
+
+            .plan-radio-circle {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                border: 2px solid var(--card-border);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+            }
+
+            .plan-card.selected .plan-radio-circle {
+                border-color: var(--brand-blue);
+            }
+
+            .plan-radio-circle::after {
+                content: '';
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: var(--brand-blue);
+                opacity: 0;
+                transform: scale(0.5);
+                transition: all 0.15s ease;
+            }
+
+            .plan-card.selected .plan-radio-circle::after {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            .plan-card-meta {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .plan-tag-label {
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: var(--brand-blue-hover);
+                margin-bottom: 2px;
+            }
+
+            .plan-name-mobile {
+                font-family: 'Sora', sans-serif;
+                font-size: 17px;
+                font-weight: 700;
+                color: var(--text-dark);
+            }
+
+            .plan-desc-mobile {
+                font-size: 13px;
+                color: var(--text-muted);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .plan-price-mobile {
+                text-align: right;
+                flex-shrink: 0;
+            }
+
+            .plan-price-amount-mobile {
+                font-family: 'Sora', sans-serif;
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--text-dark);
+            }
+
+            .plan-price-period-mobile {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+
+            /* Checklist only expanded when selected on mobile */
+            .plan-card .btn-plan {
+                display: none;
+            }
+
+            .plan-card .plan-features {
+                display: none;
+                margin-top: 18px;
+                padding-top: 16px;
+                border-top: 1px solid var(--card-border);
+            }
+
+            .plan-card.selected .plan-features {
+                display: flex;
+            }
+
+            /* Sticky Phone Bar */
+            .sticky-bottom-bar {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: #FFFFFF;
+                border-top: 1px solid var(--card-border);
+                padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+                z-index: 1000;
+            }
+
+            .btn-sticky-continue {
+                width: 100%;
+                height: 48px;
+                background: var(--brand-blue);
+                color: #FFFFFF;
+                border: none;
+                border-radius: 8px;
+                font-family: 'Outfit', sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .sticky-bar-note {
+                font-size: 12px;
+                color: var(--text-muted);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header / Navigation -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="/" class="brand-logo">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="logo-img" draggable="false">
+                </a>
+            </div>
+
+            <nav class="nav-center" id="navLinks">
+                <a href="/about" class="nav-link" data-i18n="footer.nav.about">About Us</a>
+                <a href="/places" class="nav-link" data-i18n="footer.nav.explore">Places</a>
+                <a href="/faq" class="nav-link" data-i18n="footer.nav.faq">FAQs</a>
+                <a href="/feedback" class="nav-link" data-i18n="footer.nav.feedback">Feedback</a>
+                <a href="/planner" class="nav-link" data-i18n="footer.nav.planner">Planner</a>
+                <a href="/plans" class="nav-link active" data-i18n="nav.for_businesses">For businesses</a>
+            </nav>
+
+            <div class="nav-right">
+                <div class="lang-dropdown-container">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
+                        <i class="ti ti-language lang-icon" aria-hidden="true"></i>
+                        <span class="lang-active">EN</span>
+                        <i class="ti ti-chevron-down" style="font-size: 14px;" aria-hidden="true"></i>
+                    </button>
+                    <div class="lang-dropdown-menu" role="menu">
+                        <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
+                            <span class="lang-name">English</span>
+                        </button>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
+                            <span class="lang-name">Tagalog</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="nav-auth-wrap" id="navAuthWrap">
+                    <a href="/login?redirect=/plans" class="nav-login-btn" id="navLoginBtn">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="plans-main">
+        <!-- Hero -->
+        <section class="plans-hero">
+            <span class="plans-eyebrow" data-i18n="plans.hero.eyebrow">FOR BUSINESSES IN CALAMBA</span>
+            <h1 class="plans-title" data-i18n="plans.hero.title">Get found by commuters on their way to you</h1>
+            <p class="plans-subline" data-i18n="plans.hero.sub">
+                Pick a plan, pay once after we approve your business, and you're on the Calzada map with a route and fare right to your door.
+            </p>
+        </section>
+
+        <!-- Plans Grid -->
+        <section class="plans-grid" id="plansGrid" role="radiogroup" aria-label="Business plans">
+            <!-- Rendered dynamically by plans.js using CALZADA_PLANS -->
+        </section>
+
+        <p class="plans-disclaimer" data-i18n="plans.disclaimer">
+            Launch prices. Pay with GCash, only after your business is approved. No monthly charges.
+        </p>
+
+        <!-- Compare Table -->
+        <h2 class="section-heading" data-i18n="plans.compare.title">Compare plans</h2>
+        <div class="compare-table-wrap">
+            <table class="compare-table" aria-label="Compare plan features">
+                <thead>
+                    <tr>
+                        <th style="width: 34%;">Feature</th>
+                        <th style="width: 22%;" id="thPlanListed">Listed</th>
+                        <th style="width: 22%;" class="col-recommended" id="thPlanPlus360">Listed + 360</th>
+                        <th style="width: 22%;" id="thPlanFeatured">Featured</th>
+                    </tr>
+                </thead>
+                <tbody id="compareTableBody">
+                    <!-- Populated dynamically to reflect config -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Add-ons -->
+        <h2 class="section-heading" data-i18n="plans.addons.title">Add-ons</h2>
+        <div class="addons-grid" id="addonsGrid">
+            <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Questions -->
+        <h2 class="section-heading" data-i18n="plans.faq.title">Questions</h2>
+        <div class="faq-grid">
+            <div class="faq-card">
+                <h3 class="faq-title" data-i18n="plans.faq.q1">Is this a monthly subscription?</h3>
+                <p class="faq-desc" data-i18n="plans.faq.a1">No. You pay once for the plan you choose.</p>
+            </div>
+            <div class="faq-card">
+                <h3 class="faq-title" data-i18n="plans.faq.q2">When do I pay?</h3>
+                <p class="faq-desc" data-i18n="plans.faq.a2">After we approve your business details. If we can't approve it, you don't pay anything.</p>
+            </div>
+            <div class="faq-card">
+                <h3 class="faq-title" data-i18n="plans.faq.q3">How do I pay?</h3>
+                <p class="faq-desc" data-i18n="plans.faq.a3">Scan the Calzada GCash QR, then upload the receipt on My Business.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Sticky Bottom Bar for Phone -->
+    <aside class="sticky-bottom-bar" id="stickyBottomBar" aria-label="Continue with plan">
+        <a href="/submit?plan=plus360" class="btn-sticky-continue" id="btnStickyContinue">
+            Continue with Listed + 360
+        </a>
+        <span class="sticky-bar-note" data-i18n="plans.pay_after_approval">You'll pay with GCash after approval</span>
+    </aside>
+
+    <!-- Scripts -->
+    <script src="../js/plans-config.js?v=2.9.0"></script>
+    <script src="../js/i18n.js?v=2.9.1"></script>
+    <script src="../js/plans.js?v=2.9.0"></script>
+</body>
+
+</html>

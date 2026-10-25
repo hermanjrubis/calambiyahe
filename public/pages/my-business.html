@@ -238,7 +238,161 @@
 
         .status-dot-approved { background-color: #16A34A; }
         .status-dot-pending { background-color: #D97706; }
+        .status-dot-needs_changes { background-color: #DC2626; }
+        .status-dot-awaiting_payment { background-color: #378ADD; }
+        .status-dot-payment_review { background-color: #D97706; }
         .status-dot-rejected { background-color: #DC2626; }
+
+        .flat-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: none;
+        }
+
+        .btn-outline {
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            border-radius: var(--radius-sm);
+            color: #1F69B8;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 10px 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn-outline:hover {
+            border-color: #378ADD;
+            color: #378ADD;
+        }
+
+        .btn-blue {
+            background: #378ADD;
+            border: none;
+            border-radius: var(--radius-sm);
+            color: #FFFFFF;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 12px 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.15s ease;
+        }
+
+        .btn-blue:hover {
+            background: #1F69B8;
+        }
+
+        .btn-blue:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .receipt-upload-row {
+            border: 1px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #F8FAFC;
+            cursor: pointer;
+            margin-top: 8px;
+            margin-bottom: 12px;
+            transition: border-color 0.15s ease;
+        }
+
+        .receipt-upload-row:hover {
+            border-color: #378ADD;
+        }
+
+        .progress-tracker {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 14px;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .progress-step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+
+        .progress-step-icon.done {
+            background: #DCFCE7;
+            color: #16A34A;
+            border: 1px solid #16A34A;
+        }
+
+        .progress-step-icon.active {
+            background: #FEF3C7;
+            border: 2px solid #D97706;
+            color: #D97706;
+        }
+
+        .progress-step-icon.upcoming {
+            background: #F1F5F9;
+            border: 1px solid #CBD5E1;
+            color: #94A3B8;
+        }
+
+        .progress-step-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .progress-step-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--navy-dark);
+        }
+
+        .progress-step-sub {
+            font-size: 13px;
+            color: #64748B;
+            margin-top: 2px;
+        }
+
+        .plan-select-option {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border-color 0.15s ease;
+        }
+
+        .plan-select-option.selected {
+            border: 2px solid #378ADD;
+        }
 
         .public-profile-link {
             color: #378ADD;
@@ -983,7 +1137,25 @@
                 <h1 class="business-name" id="pendingBusinessName">--</h1>
                 <div class="status-line">
                     <span class="status-dot status-dot-pending" aria-hidden="true"></span>
-                    <span class="status-text">Pending review</span>
+                    <span class="status-text" data-i18n="mybus.status.pending">Pending review</span>
+                </div>
+            </div>
+
+            <!-- Chosen Plan Card -->
+            <div class="flat-card" style="margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+                    <div>
+                        <strong id="pendingPlanName" style="font-family: 'Sora', sans-serif; font-size: 16px; color: var(--navy-dark);">--</strong>
+                        <p id="pendingPlanCostNote" style="color: #64748B; font-size: 14px; margin-top: 4px;">--</p>
+                    </div>
+                    <button type="button" id="btnToggleChangePlan" class="btn-outline" style="padding: 6px 14px; font-size: 13px;" data-i18n="mybus.pending.change_plan">Change plan</button>
+                </div>
+                <div id="pendingPlanChangeContainer" style="display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid #E2E8F0;">
+                    <div id="pendingPlanOptions" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    <div style="display: flex; gap: 10px; margin-top: 14px;">
+                        <button type="button" id="btnSavePendingPlan" class="btn-primary" style="padding: 8px 18px; font-size: 14px;">Save plan</button>
+                        <button type="button" id="btnCancelPendingPlan" class="btn-cancel" style="padding: 8px 14px; font-size: 14px;">Cancel</button>
+                    </div>
                 </div>
             </div>
 
@@ -1025,6 +1197,274 @@
         </div>
 
         <!-- ====================================================
+             STATE: NEEDS CHANGES
+             ==================================================== -->
+        <div id="stateNeedsChanges" style="display: none;">
+            <div class="section-block">
+                <h1 class="business-name" id="needsChangesBusinessName">--</h1>
+                <div class="status-line">
+                    <span class="status-dot status-dot-needs_changes" aria-hidden="true"></span>
+                    <span class="status-text" data-i18n="mybus.status.needs_changes">Needs changes</span>
+                </div>
+            </div>
+
+            <!-- Admin Review Note -->
+            <div class="flat-card" style="border-left: 4px solid #DC2626; margin-bottom: 24px;">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #DC2626; margin-bottom: 6px;" data-i18n="mybus.needs_changes.title">Action needed</h2>
+                <p id="needsChangesReviewNote" style="font-size: 14px; color: #334155; line-height: 1.5; margin: 0;">--</p>
+            </div>
+
+            <!-- Resubmit form -->
+            <div class="flat-card">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 18px;">Update registration details</h2>
+                <form id="resubmitForm" novalidate>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="resubmitName">Business name</label>
+                        <input type="text" id="resubmitName" class="form-input" required maxlength="80">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="resubmitCategory">Category</label>
+                        <select id="resubmitCategory" class="form-select" required style="width: 100%; border: 1px solid #CBD5E1; border-radius: var(--radius-sm); padding: 10px 14px; font-family: 'Outfit', sans-serif; font-size: 15px; background: #FFFFFF;">
+                            <option value="malls">Malls</option>
+                            <option value="eateries">Eateries & Dining</option>
+                            <option value="coffee">Coffee Shops</option>
+                            <option value="schools">Schools & Universities</option>
+                            <option value="terminals">Terminals & Transit</option>
+                            <option value="establishments">Commercial Establishments & Services</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="resubmitServiceType">Service type / Tagline <span style="font-weight: 400; color: #64748B;">(optional)</span></label>
+                        <input type="text" id="resubmitServiceType" class="form-input" maxlength="40">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="resubmitAddress">Address</label>
+                        <input type="text" id="resubmitAddress" class="form-input" required maxlength="160">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="resubmitContact">Contact number <span style="font-weight: 400; color: #64748B;">(optional)</span></label>
+                        <input type="text" id="resubmitContact" class="form-input" maxlength="20">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="resubmitDescription">Description <span style="font-weight: 400; color: #64748B;">(optional)</span></label>
+                        <textarea id="resubmitDescription" class="form-textarea" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label">Social profiles <span style="font-weight: 400; color: #64748B;">(optional)</span></label>
+                        <input type="text" id="resubmitFb" class="form-input" placeholder="Facebook username or URL" style="margin-bottom: 8px;">
+                        <input type="text" id="resubmitIg" class="form-input" placeholder="Instagram handle" style="margin-bottom: 8px;">
+                        <input type="text" id="resubmitTt" class="form-input" placeholder="TikTok username">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label">Plan</label>
+                        <div id="resubmitPlanOptions" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+                    <div>
+                        <button type="submit" id="btnResubmitReview" class="btn-blue" style="min-height: 44px;" data-i18n="mybus.needs_changes.resubmit">Resubmit for review</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ====================================================
+             STATE: AWAITING PAYMENT
+             ==================================================== -->
+        <div id="stateAwaitingPayment" style="display: none;">
+            <div class="section-block">
+                <h1 class="business-name" id="awaitingBusinessName">--</h1>
+                <div class="status-line">
+                    <span class="status-dot status-dot-awaiting_payment" aria-hidden="true"></span>
+                    <span class="status-text" data-i18n="mybus.status.awaiting_payment">Approved · pay to go live</span>
+                </div>
+            </div>
+
+            <!-- Red banner if previously not_matched -->
+            <div id="paymentNotMatchedNotice" class="flat-card" style="border-left: 4px solid #DC2626; background: #FEF2F2; color: #991B1B; padding: 16px; margin-bottom: 24px; display: none;">
+                <strong style="display: block; font-size: 15px; margin-bottom: 4px;">Receipt update needed</strong>
+                <p id="paymentNotMatchedReason" style="font-size: 14px; line-height: 1.5; color: #991B1B; margin: 0;">--</p>
+            </div>
+
+            <!-- Card: One step left -->
+            <div class="flat-card">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 8px;" data-i18n="mybus.awaiting.one_step">One step left</h2>
+                <p style="font-size: 14px; color: #475569; line-height: 1.5;" data-i18n="mybus.awaiting.one_step_desc">Your details are approved. Pay once to put your business on the Calzada map and start posting updates.</p>
+                <hr style="border: 0; border-top: 1px solid #E2E8F0; margin: 16px 0;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <div>
+                        <span id="awaitingPlanTitle" style="font-size: 15px; font-weight: 600; color: var(--navy-dark);">-- plan</span>,
+                        <span style="font-size: 14px; color: #64748B;" data-i18n="mybus.awaiting.one_time">one-time</span>
+                    </div>
+                    <span id="awaitingPlanAmount" style="font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #378ADD;">₱--</span>
+                </div>
+                <div style="margin-top: 8px;">
+                    <a href="javascript:void(0)" id="btnAwaitingChangePlan" style="font-size: 13px; color: #378ADD; text-decoration: none;" data-i18n="mybus.pending.change_plan">Change plan</a>
+                    <div id="awaitingPlanChangeContainer" style="display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #E2E8F0;">
+                        <div id="awaitingPlanOptions" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                        <div style="display: flex; gap: 8px; margin-top: 10px;">
+                            <button type="button" id="btnSaveAwaitingPlan" class="btn-primary" style="padding: 6px 14px; font-size: 13px;">Save</button>
+                            <button type="button" id="btnCancelAwaitingPlan" class="btn-cancel" style="padding: 6px 12px; font-size: 13px;">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 1: Scan and pay with GCash -->
+            <div class="flat-card">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 16px;" data-i18n="mybus.awaiting.step1_title">1. Scan and pay with GCash</h2>
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <img id="awaitingQrImg" src="/assets/payments/gcash-qr.png" alt="Calzada PH GCash QR code" style="width: 100%; max-width: 320px; border-radius: 12px; border: 1px solid #E2E8F0; display: block; margin: 0 auto;">
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <a href="/assets/payments/gcash-qr.png" download="Calzada-GCash-QR.png" class="btn-outline" style="width: 100%; box-sizing: border-box; text-align: center;" data-i18n="mybus.awaiting.save_qr">Save QR to your phone</a>
+                </div>
+                <p id="awaitingPayInstructions" style="font-size: 14px; color: #475569; line-height: 1.5; margin: 0;">
+                    Open GCash, tap QR, then scan this code (or upload the saved image). Pay exactly <strong id="awaitingExactAmount">₱--</strong> so we can match it.
+                </p>
+            </div>
+
+            <!-- Card 2: Send us the receipt -->
+            <div class="flat-card">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); margin-bottom: 16px;" data-i18n="mybus.awaiting.step2_title">2. Send us the receipt</h2>
+                <form id="receiptUploadForm" novalidate>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label class="form-label" for="receiptRefNo" data-i18n="mybus.awaiting.ref_label">Reference no.</label>
+                        <input type="text" id="receiptRefNo" class="form-input" inputmode="numeric" pattern="[0-9]*" placeholder="13-digit number on your receipt" maxlength="20" required>
+                        <span id="errReceiptRef" class="field-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;"></span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" data-i18n="mybus.awaiting.receipt_label">Receipt screenshot</label>
+                        <input type="file" id="receiptFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                        <div id="receiptPickerRow" class="receipt-upload-row">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="ti ti-upload" style="font-size: 18px; color: #378ADD;"></i>
+                                <span id="receiptPickerText" style="font-size: 14px; font-weight: 500; color: #042C53;" data-i18n="mybus.awaiting.choose_photo">Choose photo</span>
+                            </div>
+                            <span style="font-size: 13px; color: #64748B;">JPG or PNG</span>
+                        </div>
+                        <div id="receiptThumbnailContainer" style="display: none; margin-top: 8px;">
+                            <img id="receiptThumbnailImg" src="" alt="Receipt preview" style="max-width: 160px; max-height: 200px; border-radius: 8px; border: 1px solid #E2E8F0; display: block;">
+                        </div>
+                        <span id="errReceiptFile" class="field-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;"></span>
+                    </div>
+
+                    <div style="margin-bottom: 14px;">
+                        <button type="submit" id="btnSubmitReceipt" class="btn-blue" style="min-height: 46px;" data-i18n="mybus.awaiting.send_btn">Send for checking</button>
+                    </div>
+
+                    <p id="receiptReviewNoteText" style="font-size: 13px; color: #64748B; line-height: 1.5; margin: 0; text-align: center;">
+                        We check payments within 1–2 days and email you once your listing is live.
+                    </p>
+                </form>
+            </div>
+        </div>
+
+        <!-- ====================================================
+             STATE: PAYMENT UNDER REVIEW
+             ==================================================== -->
+        <div id="statePaymentReview" style="display: none;">
+            <div class="section-block">
+                <h1 class="business-name" id="reviewBusinessName">--</h1>
+                <div class="status-line">
+                    <span class="status-dot status-dot-payment_review" aria-hidden="true"></span>
+                    <span class="status-text" data-i18n="mybus.status.payment_review">Payment under review</span>
+                </div>
+            </div>
+
+            <!-- 4-step progress card -->
+            <div class="flat-card">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: var(--navy-dark); margin-bottom: 16px;">Listing progress</h2>
+                <div class="progress-tracker">
+                    <div class="progress-step">
+                        <div class="progress-step-icon done"><i class="ti ti-check"></i></div>
+                        <div class="progress-step-content">
+                            <div class="progress-step-title" data-i18n="mybus.review.step1">Registered</div>
+                            <div class="progress-step-sub" id="stepDateRegistered">--</div>
+                        </div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-step-icon done"><i class="ti ti-check"></i></div>
+                        <div class="progress-step-content">
+                            <div class="progress-step-title" data-i18n="mybus.review.step2">Details approved</div>
+                            <div class="progress-step-sub" id="stepDateApproved">--</div>
+                        </div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-step-icon active"><span style="width: 8px; height: 8px; border-radius: 50%; background: #D97706; display: inline-block;"></span></div>
+                        <div class="progress-step-content">
+                            <div class="progress-step-title" style="color: #D97706;" data-i18n="mybus.review.step3">Payment under review</div>
+                            <div class="progress-step-sub" id="stepDatePaymentSent">Sent. We'll email you once it's checked.</div>
+                        </div>
+                    </div>
+                    <div class="progress-step">
+                        <div class="progress-step-icon upcoming"><span style="width: 8px; height: 8px; border-radius: 50%; background: #CBD5E1; display: inline-block;"></span></div>
+                        <div class="progress-step-content">
+                            <div class="progress-step-title" style="color: #64748B;" data-i18n="mybus.review.step4">Live on Calzada</div>
+                            <div class="progress-step-sub" data-i18n="mybus.review.step4_desc">Map, Places and Updates</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card: What you sent -->
+            <div class="flat-card">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+                    <h2 style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: var(--navy-dark); margin: 0;" data-i18n="mybus.review.what_you_sent">What you sent</h2>
+                    <button type="button" id="btnReplaceReceipt" class="btn-outline" style="padding: 6px 14px; font-size: 13px;" data-i18n="mybus.review.replace_receipt">Replace receipt</button>
+                </div>
+                <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
+                    <div id="sentReceiptThumbWrap" style="flex-shrink: 0;">
+                        <img id="sentReceiptThumb" src="" alt="Submitted receipt" style="width: 90px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #E2E8F0; display: block; cursor: pointer;">
+                    </div>
+                    <div style="flex: 1; min-width: 180px;">
+                        <div style="font-size: 14px; font-weight: 600; color: #042C53;" data-i18n="mybus.review.paid_with">Paid with GCash</div>
+                        <div id="sentReceiptRef" style="font-size: 13px; color: #64748B; font-family: monospace; margin-top: 4px;">Ref. •••• ----</div>
+                        <div id="sentReceiptAmountPlan" style="font-size: 14px; color: #378ADD; font-weight: 700; margin-top: 6px;">₱-- · -- plan</div>
+                    </div>
+                </div>
+
+                <!-- Hidden replacement form: reveals when 'Replace receipt' is clicked -->
+                <div id="replaceReceiptFormContainer" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
+                    <h3 style="font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; color: var(--navy-dark); margin-bottom: 12px;">Upload replacement receipt</h3>
+                    <form id="replaceReceiptForm" novalidate>
+                        <div class="form-group" style="margin-bottom: 14px;">
+                            <label class="form-label" for="replaceRefNo">Reference no.</label>
+                            <input type="text" id="replaceRefNo" class="form-input" inputmode="numeric" pattern="[0-9]*" placeholder="13-digit number on your receipt" maxlength="20" required>
+                            <span id="errReplaceRef" class="field-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 16px;">
+                            <label class="form-label">New receipt screenshot</label>
+                            <input type="file" id="replaceFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                            <div id="replacePickerRow" class="receipt-upload-row">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="ti ti-upload" style="font-size: 18px; color: #378ADD;"></i>
+                                    <span id="replacePickerText" style="font-size: 14px; font-weight: 500; color: #042C53;">Choose photo</span>
+                                </div>
+                                <span style="font-size: 13px; color: #64748B;">JPG or PNG</span>
+                            </div>
+                            <div id="replaceThumbnailContainer" style="display: none; margin-top: 8px;">
+                                <img id="replaceThumbnailImg" src="" alt="Replacement receipt preview" style="max-width: 160px; max-height: 200px; border-radius: 8px; border: 1px solid #E2E8F0; display: block;">
+                            </div>
+                            <span id="errReplaceFile" class="field-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;"></span>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" id="btnSubmitReplaceReceipt" class="btn-blue" style="width: auto; padding: 10px 20px;">Submit replacement</button>
+                            <button type="button" id="btnCancelReplaceReceipt" class="btn-cancel" style="padding: 10px 16px;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Card: Once you're live -->
+            <div class="flat-card">
+                <h2 style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: var(--navy-dark); margin-bottom: 6px;" data-i18n="mybus.review.once_live_title">Once you're live</h2>
+                <p style="font-size: 14px; color: #64748B; line-height: 1.5; margin: 0;" data-i18n="mybus.review.once_live_desc">
+                    Commuters can find your business on the map and in Places, plan a jeepney route to it, and see what you post in Updates.
+                </p>
+            </div>
+        </div>
+
+        <!-- ====================================================
              STATE C: STATUS APPROVED
              ==================================================== -->
         <div id="stateApproved" style="display: none;">
@@ -1033,9 +1473,11 @@
                 <h1 class="business-name" id="approvedBusinessName">--</h1>
                 <div class="status-line">
                     <span class="status-dot status-dot-approved" aria-hidden="true"></span>
-                    <span class="status-text">Approved · Live</span>
+                    <span class="status-text" data-i18n="mybus.status.approved">Live</span>
                 </div>
-                <div>
+                <!-- Plan, shoot, and feature meta -->
+                <div id="approvedPlanMeta" style="font-size: 13px; color: #64748B; margin-top: 8px;">--</div>
+                <div style="margin-top: 10px;">
                     <a href="#" id="btnViewPublicProfile" class="public-profile-link">View public profile</a>
                 </div>
             </div>
@@ -1213,7 +1655,7 @@
                 <h1 class="business-name" id="rejectedBusinessName">--</h1>
                 <div class="status-line">
                     <span class="status-dot status-dot-rejected" aria-hidden="true"></span>
-                    <span class="status-text">Application rejected</span>
+                    <span class="status-text" data-i18n="mybus.status.rejected">Not approved</span>
                 </div>
                 <p id="rejectionReasonText" class="rejection-reason" style="margin-top: 12px;">--</p>
             </div>
@@ -1241,6 +1683,10 @@
 
     </main>
 
+    <!-- Plans Configuration and i18n -->
+    <script src="../js/plans-config.js?v=2.9.0"></script>
+    <script src="../js/i18n.js?v=2.9.1"></script>
+
     <script type="module">
         import {
             auth,
@@ -1259,8 +1705,15 @@
             runTransaction,
             onAuthStateChanged,
             signOut,
-            getFirebaseIdToken
+            getFirebaseIdToken,
+            writeBatch
         } from "../js/firebase-init.js";
+
+        import { 
+            countBusinessPostsThisMonth, 
+            getPostLimitForPlan, 
+            uploadPostPhotos 
+        } from "../js/post-composer.js?v=2.9.1";
 
         const CATEGORY_NAMES = {
             malls: 'Malls',
@@ -1280,6 +1733,9 @@
 
         const stateNoBusiness = document.getElementById('stateNoBusiness');
         const statePending = document.getElementById('statePending');
+        const stateNeedsChanges = document.getElementById('stateNeedsChanges');
+        const stateAwaitingPayment = document.getElementById('stateAwaitingPayment');
+        const statePaymentReview = document.getElementById('statePaymentReview');
         const stateApproved = document.getElementById('stateApproved');
         const stateRejected = document.getElementById('stateRejected');
 
@@ -1293,6 +1749,74 @@
         const pendingLocation = document.getElementById('pendingLocation');
         const pendingSocialRow = document.getElementById('pendingSocialRow');
         const pendingSocialLinks = document.getElementById('pendingSocialLinks');
+        const pendingPlanName = document.getElementById('pendingPlanName');
+        const pendingPlanCostNote = document.getElementById('pendingPlanCostNote');
+        const btnToggleChangePlan = document.getElementById('btnToggleChangePlan');
+        const pendingPlanChangeContainer = document.getElementById('pendingPlanChangeContainer');
+        const pendingPlanOptions = document.getElementById('pendingPlanOptions');
+        const btnSavePendingPlan = document.getElementById('btnSavePendingPlan');
+        const btnCancelPendingPlan = document.getElementById('btnCancelPendingPlan');
+
+        const needsChangesBusinessName = document.getElementById('needsChangesBusinessName');
+        const needsChangesReviewNote = document.getElementById('needsChangesReviewNote');
+        const resubmitForm = document.getElementById('resubmitForm');
+        const resubmitName = document.getElementById('resubmitName');
+        const resubmitCategory = document.getElementById('resubmitCategory');
+        const resubmitServiceType = document.getElementById('resubmitServiceType');
+        const resubmitAddress = document.getElementById('resubmitAddress');
+        const resubmitContact = document.getElementById('resubmitContact');
+        const resubmitDescription = document.getElementById('resubmitDescription');
+        const resubmitFb = document.getElementById('resubmitFb');
+        const resubmitIg = document.getElementById('resubmitIg');
+        const resubmitTt = document.getElementById('resubmitTt');
+        const resubmitPlanOptions = document.getElementById('resubmitPlanOptions');
+        const btnResubmitReview = document.getElementById('btnResubmitReview');
+
+        const awaitingBusinessName = document.getElementById('awaitingBusinessName');
+        const paymentNotMatchedNotice = document.getElementById('paymentNotMatchedNotice');
+        const paymentNotMatchedReason = document.getElementById('paymentNotMatchedReason');
+        const awaitingPlanTitle = document.getElementById('awaitingPlanTitle');
+        const awaitingPlanAmount = document.getElementById('awaitingPlanAmount');
+        const btnAwaitingChangePlan = document.getElementById('btnAwaitingChangePlan');
+        const awaitingPlanChangeContainer = document.getElementById('awaitingPlanChangeContainer');
+        const awaitingPlanOptions = document.getElementById('awaitingPlanOptions');
+        const btnSaveAwaitingPlan = document.getElementById('btnSaveAwaitingPlan');
+        const btnCancelAwaitingPlan = document.getElementById('btnCancelAwaitingPlan');
+        const awaitingQrImg = document.getElementById('awaitingQrImg');
+        const awaitingPayInstructions = document.getElementById('awaitingPayInstructions');
+        const awaitingExactAmount = document.getElementById('awaitingExactAmount');
+        const receiptUploadForm = document.getElementById('receiptUploadForm');
+        const receiptRefNo = document.getElementById('receiptRefNo');
+        const errReceiptRef = document.getElementById('errReceiptRef');
+        const receiptFileInput = document.getElementById('receiptFileInput');
+        const receiptPickerRow = document.getElementById('receiptPickerRow');
+        const receiptPickerText = document.getElementById('receiptPickerText');
+        const receiptThumbnailContainer = document.getElementById('receiptThumbnailContainer');
+        const receiptThumbnailImg = document.getElementById('receiptThumbnailImg');
+        const errReceiptFile = document.getElementById('errReceiptFile');
+        const btnSubmitReceipt = document.getElementById('btnSubmitReceipt');
+        const receiptReviewNoteText = document.getElementById('receiptReviewNoteText');
+
+        const reviewBusinessName = document.getElementById('reviewBusinessName');
+        const stepDateRegistered = document.getElementById('stepDateRegistered');
+        const stepDateApproved = document.getElementById('stepDateApproved');
+        const stepDatePaymentSent = document.getElementById('stepDatePaymentSent');
+        const btnReplaceReceipt = document.getElementById('btnReplaceReceipt');
+        const sentReceiptThumb = document.getElementById('sentReceiptThumb');
+        const sentReceiptRef = document.getElementById('sentReceiptRef');
+        const sentReceiptAmountPlan = document.getElementById('sentReceiptAmountPlan');
+        const replaceReceiptFormContainer = document.getElementById('replaceReceiptFormContainer');
+        const replaceReceiptForm = document.getElementById('replaceReceiptForm');
+        const replaceRefNo = document.getElementById('replaceRefNo');
+        const errReplaceRef = document.getElementById('errReplaceRef');
+        const replaceFileInput = document.getElementById('replaceFileInput');
+        const replacePickerRow = document.getElementById('replacePickerRow');
+        const replacePickerText = document.getElementById('replacePickerText');
+        const replaceThumbnailContainer = document.getElementById('replaceThumbnailContainer');
+        const replaceThumbnailImg = document.getElementById('replaceThumbnailImg');
+        const errReplaceFile = document.getElementById('errReplaceFile');
+        const btnSubmitReplaceReceipt = document.getElementById('btnSubmitReplaceReceipt');
+        const btnCancelReplaceReceipt = document.getElementById('btnCancelReplaceReceipt');
 
         const approvedBusinessName = document.getElementById('approvedBusinessName');
         const approvedCategory = document.getElementById('approvedCategory');
@@ -1397,6 +1921,9 @@
         }
 
         onAuthStateChanged(auth, async (user) => {
+            if ((!user || user.isAnonymous) && window.__MOCK_AUTH_USER__) {
+                user = window.__MOCK_AUTH_USER__;
+            }
             if (!user || user.isAnonymous) {
                 window.location.href = "/login?redirect=/my-business";
                 return;
@@ -1445,17 +1972,11 @@
                     activeBusinessId = docSnap.id;
 
                     const status = activeBusiness.status || 'pending';
-                    if (status === 'approved' || status === 'pending') {
+                    if (status !== 'rejected') {
                         const topbarReg = document.getElementById('topbarRegisterBtn');
                         if (topbarReg) topbarReg.remove();
                     }
-                    if (status === 'approved') {
-                        renderState('approved');
-                    } else if (status === 'rejected') {
-                        renderState('rejected');
-                    } else {
-                        renderState('pending');
-                    }
+                    renderState(status);
                 }
 
             } catch (err) {
@@ -1720,9 +2241,90 @@
             document.getElementById('editRowTiktok')?.classList.remove('invalid');
         }
 
-        function renderState(stateKey) {
+        let selectedPendingPlan = 'plus360';
+        let selectedResubmitPlan = 'plus360';
+        let selectedAwaitingPlan = 'plus360';
+        let selectedReceiptFile = null;
+        let receiptPreviewUrl = null;
+        let selectedReplaceFile = null;
+        let replacePreviewUrl = null;
+
+        function formatSimpleDate(val) {
+            if (!val) return '--';
+            const d = val.toDate ? val.toDate() : (val instanceof Date ? val : new Date(val));
+            return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getPostsThisMonthCount() {
+            return countBusinessPostsThisMonth(businessPosts);
+        }
+
+        function updatePlanMetaDisplay() {
+            if (!activeBusiness || activeBusiness.status !== 'approved') return;
+            const planId = activeBusiness.plan;
+            const planCfg = window.CALZADA_PLANS?.[planId];
+            const planDisplayName = planCfg ? planCfg.name : (activeBusiness.legacyPlan || !activeBusiness.plan ? 'Listed (legacy)' : 'Listed');
+            const limit = planCfg ? planCfg.postsPerMonth : 4;
+            const curMonthCount = getPostsThisMonthCount();
+            const limitStr = limit === null ? 'Unlimited' : `${curMonthCount}/${limit}`;
+            let planLine = `${planDisplayName} plan · posts this month: ${limitStr}`;
+
+            if (planCfg && planCfg.has360) {
+                const shootMap = { to_schedule: 'to schedule', scheduled: 'scheduled', done: 'done', none: 'none' };
+                const shootStatus = shootMap[activeBusiness.shoot360] || (activeBusiness.shoot360 || 'to schedule');
+                planLine += ` · 360 shoot: ${shootStatus}`;
+            }
+
+            if (planId === 'featured' && activeBusiness.featuredUntil) {
+                const featDate = activeBusiness.featuredUntil.toDate ? activeBusiness.featuredUntil.toDate() : new Date(activeBusiness.featuredUntil);
+                planLine += ` · Featured until ${featDate.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+            }
+
+            const approvedPlanMeta = document.getElementById('approvedPlanMeta');
+            if (approvedPlanMeta) {
+                approvedPlanMeta.textContent = planLine;
+            }
+        }
+
+        function renderPlanOptionCards(containerEl, currentPlanId, onSelectCallback) {
+            if (!containerEl || !window.CALZADA_PLANS) return;
+            containerEl.innerHTML = '';
+            let selectedId = currentPlanId || 'plus360';
+            Object.keys(window.CALZADA_PLANS).forEach(pid => {
+                const p = window.CALZADA_PLANS[pid];
+                const card = document.createElement('div');
+                card.className = `plan-select-option ${pid === selectedId ? 'selected' : ''}`;
+                card.dataset.planId = pid;
+                card.innerHTML = `
+                    <div>
+                        <strong style="font-size: 14px; color: #042C53;">${escapeHtml(p.name)}</strong>
+                        ${p.recommended ? `<span style="font-size: 11px; font-weight: 700; color: #378ADD; margin-left: 6px; text-transform: uppercase;">Recommended</span>` : ''}
+                        <div style="font-size: 12px; color: #64748B; margin-top: 2px;">
+                            ${p.postsPerMonth === null ? 'Unlimited updates' : `${p.postsPerMonth} updates / mo`}
+                            ${p.has360 ? ' · 360 photo shoot' : ''}
+                            ${p.featuredDays ? ` · ${p.featuredDays} days featured` : ''}
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #042C53;">
+                        ₱${p.price}
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    selectedId = pid;
+                    containerEl.querySelectorAll('.plan-select-option').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    if (onSelectCallback) onSelectCallback(pid);
+                });
+                containerEl.appendChild(card);
+            });
+        }
+
+        async function renderState(stateKey) {
             stateNoBusiness.style.display = 'none';
             statePending.style.display = 'none';
+            stateNeedsChanges.style.display = 'none';
+            stateAwaitingPayment.style.display = 'none';
+            statePaymentReview.style.display = 'none';
             stateApproved.style.display = 'none';
             stateRejected.style.display = 'none';
             profileEditorForm.style.display = (stateKey === 'approved') ? 'block' : 'none';
@@ -1734,7 +2336,6 @@
                 return;
             }
 
-            // B1: Display serviceType instead of "Commercial Establishment" when it exists
             const categoryLabel = activeBusiness.serviceType || CATEGORY_NAMES[activeBusiness.category] || activeBusiness.category || 'General';
 
             if (stateKey === 'pending') {
@@ -1746,7 +2347,120 @@
                 pendingDocId.textContent = activeBusinessId;
                 renderLocationRow(pendingLocation, pendingLocationRow, activeBusiness.location);
                 renderSocialLinksRow(pendingSocialLinks, pendingSocialRow, activeBusiness.socialLinks);
+
+                // Plan info
+                const planId = activeBusiness.plan || 'plus360';
+                const planObj = window.CALZADA_PLANS?.[planId] || window.CALZADA_PLANS?.plus360;
+                if (planObj) {
+                    pendingPlanName.textContent = `${planObj.name} plan`;
+                    pendingPlanCostNote.textContent = `You'll pay ₱${planObj.price} after we approve your details.`;
+                }
+                pendingPlanChangeContainer.style.display = 'none';
                 statePending.style.display = 'block';
+
+            } else if (stateKey === 'needs_changes') {
+                needsChangesBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+                needsChangesReviewNote.textContent = activeBusiness.reviewNote || activeBusiness.rejectionReason || 'Please review your details and resubmit.';
+
+                // Pre-fill form fields
+                resubmitName.value = activeBusiness.name || '';
+                resubmitCategory.value = activeBusiness.category || 'establishments';
+                resubmitServiceType.value = activeBusiness.serviceType || '';
+                resubmitAddress.value = activeBusiness.address || '';
+                resubmitContact.value = activeBusiness.contactNumber || '';
+                resubmitDescription.value = activeBusiness.description || '';
+                resubmitFb.value = extractUsernameOnly('facebook', activeBusiness.socialLinks?.facebook || '');
+                resubmitIg.value = extractUsernameOnly('instagram', activeBusiness.socialLinks?.instagram || '');
+                resubmitTt.value = extractUsernameOnly('tiktok', activeBusiness.socialLinks?.tiktok || '');
+
+                selectedResubmitPlan = activeBusiness.plan || 'plus360';
+                renderPlanOptionCards(resubmitPlanOptions, selectedResubmitPlan, (pid) => {
+                    selectedResubmitPlan = pid;
+                });
+
+                stateNeedsChanges.style.display = 'block';
+
+            } else if (stateKey === 'awaiting_payment') {
+                awaitingBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+
+                // Check if last payment was not_matched
+                if (activeBusiness.reviewNote) {
+                    paymentNotMatchedReason.textContent = activeBusiness.reviewNote;
+                    paymentNotMatchedNotice.style.display = 'block';
+                } else {
+                    paymentNotMatchedNotice.style.display = 'none';
+                }
+
+                const planId = activeBusiness.plan || 'plus360';
+                const planObj = window.CALZADA_PLANS?.[planId] || window.CALZADA_PLANS?.plus360;
+                const price = activeBusiness.amountDue || (planObj ? planObj.price : 199);
+
+                awaitingPlanTitle.textContent = `${planObj ? planObj.name : 'Listed + 360'} plan`;
+                awaitingPlanAmount.textContent = `₱${price}`;
+                awaitingExactAmount.textContent = `₱${price}`;
+
+                // Set QR code image from CALZADA_PAYMENT
+                if (window.CALZADA_PAYMENT && window.CALZADA_PAYMENT.qrImage) {
+                    awaitingQrImg.src = window.CALZADA_PAYMENT.qrImage;
+                }
+
+                // Dynamic review time text
+                const lang = localStorage.getItem('calzada_lang') || 'en';
+                const reviewTime = window.CALZADA_PAYMENT?.reviewTimeText?.[lang] || window.CALZADA_PAYMENT?.reviewTimeText?.en || 'within 1–2 days';
+                receiptReviewNoteText.textContent = `We check payments ${reviewTime} and email you once your listing is live.`;
+
+                // Reset receipt form
+                receiptRefNo.value = '';
+                selectedReceiptFile = null;
+                if (receiptPreviewUrl) {
+                    URL.revokeObjectURL(receiptPreviewUrl);
+                    receiptPreviewUrl = null;
+                }
+                receiptPickerText.textContent = 'Choose photo';
+                receiptThumbnailContainer.style.display = 'none';
+                errReceiptRef.style.display = 'none';
+                errReceiptFile.style.display = 'none';
+                btnSubmitReceipt.disabled = false;
+                btnSubmitReceipt.textContent = 'Send for checking';
+                awaitingPlanChangeContainer.style.display = 'none';
+
+                stateAwaitingPayment.style.display = 'block';
+
+            } else if (stateKey === 'payment_review') {
+                reviewBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+
+                // Progress dates
+                stepDateRegistered.textContent = formatSimpleDate(activeBusiness.submittedAt);
+                stepDateApproved.textContent = formatSimpleDate(activeBusiness.detailsApprovedAt || activeBusiness.updatedAt);
+
+                // Fetch latest payment
+                let activePayment = window.__TEST_MOCK_PAYMENT__ || null;
+                if (!activePayment && activeBusiness.lastPaymentId) {
+                    try {
+                        const pSnap = await getDoc(doc(db, "payments", activeBusiness.lastPaymentId));
+                        if (pSnap.exists()) {
+                            activePayment = pSnap.data();
+                        }
+                    } catch (e) {
+                        console.error('Error fetching payment doc:', e);
+                    }
+                }
+
+                if (activePayment) {
+                    stepDatePaymentSent.textContent = `Sent ${formatSimpleDate(activePayment.submittedAt)}. We'll email you once it's checked.`;
+                    sentReceiptThumb.src = activePayment.receiptUrl || '';
+                    const last4 = activePayment.referenceNo ? activePayment.referenceNo.slice(-4) : '----';
+                    sentReceiptRef.textContent = `Ref. •••• ${last4}`;
+                    const pObj = window.CALZADA_PLANS?.[activePayment.plan] || window.CALZADA_PLANS?.[activeBusiness.plan];
+                    sentReceiptAmountPlan.textContent = `₱${activePayment.amountDue} · ${pObj ? pObj.name : 'Listed + 360'} plan`;
+                } else {
+                    stepDatePaymentSent.textContent = `Sent. We'll email you once it's checked.`;
+                    sentReceiptRef.textContent = `Ref. •••• ----`;
+                }
+
+                replaceReceiptFormContainer.style.display = 'none';
+                statePaymentReview.style.display = 'block';
+
             } else if (stateKey === 'approved') {
                 approvedBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
                 approvedCategory.textContent = categoryLabel;
@@ -1787,17 +2501,48 @@
                 resetPhotoPreview();
                 updateSaveButtonState();
                 resetPostForm();
-                loadBusinessPosts(activeBusinessId);
+                await loadBusinessPosts(activeBusinessId);
+                updatePlanMetaDisplay();
 
                 stateApproved.style.display = 'block';
+
             } else if (stateKey === 'rejected') {
                 rejectedBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
                 rejectedCategory.textContent = categoryLabel;
                 rejectedAddress.textContent = activeBusiness.address || '--';
                 rejectedDocId.textContent = activeBusinessId;
-                rejectionReasonText.textContent = activeBusiness.rejectionReason || 'No specific reason provided.';
+                rejectionReasonText.textContent = activeBusiness.reviewNote || activeBusiness.rejectionReason || 'No specific reason provided.';
                 stateRejected.style.display = 'block';
             }
+        }
+
+        if (typeof window !== 'undefined') {
+            window.__TEST_RENDER_STATE__ = async (state, mockBus, mockPosts, mockPayment) => {
+                loadingOverlay.style.display = 'none';
+                mybusTopbar.style.display = 'flex';
+                mybusContainer.style.display = 'block';
+                activeBusiness = mockBus;
+                activeBusinessId = mockBus ? (mockBus.id || 'bus_test_123') : null;
+                if (mockPosts) {
+                    window.__TEST_MOCK_POSTS__ = mockPosts;
+                    businessPosts = mockPosts;
+                } else if (state === 'approved') {
+                    window.__TEST_MOCK_POSTS__ = [];
+                    businessPosts = [];
+                }
+                if (mockPayment && activeBusiness) {
+                    activeBusiness.lastPaymentId = 'pay_test_123';
+                }
+                await renderState(state);
+                if (mockPayment) {
+                    stepDatePaymentSent.textContent = `Sent ${formatSimpleDate(mockPayment.submittedAt)}. We'll email you once it's checked.`;
+                    sentReceiptThumb.src = mockPayment.receiptUrl || '';
+                    const last4 = mockPayment.referenceNo ? mockPayment.referenceNo.slice(-4) : '----';
+                    sentReceiptRef.textContent = `Ref. •••• ${last4}`;
+                    const pObj = window.CALZADA_PLANS?.[mockPayment.plan] || window.CALZADA_PLANS?.[activeBusiness?.plan];
+                    sentReceiptAmountPlan.textContent = `₱${mockPayment.amountDue} · ${pObj ? pObj.name : 'Listed + 360'} plan`;
+                }
+            };
         }
 
         function setPhotoThumbnail(url) {
@@ -2011,6 +2756,407 @@
             }
         });
 
+        // --- Phase 3: Pending Plan Change Listeners ---
+        btnToggleChangePlan?.addEventListener('click', () => {
+            const isHidden = pendingPlanChangeContainer.style.display === 'none';
+            pendingPlanChangeContainer.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                selectedPendingPlan = activeBusiness.plan || 'plus360';
+                renderPlanOptionCards(pendingPlanOptions, selectedPendingPlan, (pid) => {
+                    selectedPendingPlan = pid;
+                });
+            }
+        });
+
+        btnCancelPendingPlan?.addEventListener('click', () => {
+            pendingPlanChangeContainer.style.display = 'none';
+        });
+
+        btnSavePendingPlan?.addEventListener('click', async () => {
+            if (!selectedPendingPlan || selectedPendingPlan === activeBusiness.plan) {
+                pendingPlanChangeContainer.style.display = 'none';
+                return;
+            }
+            btnSavePendingPlan.disabled = true;
+            try {
+                await updateDoc(doc(db, "businesses", activeBusinessId), {
+                    plan: selectedPendingPlan,
+                    updatedAt: serverTimestamp()
+                });
+                activeBusiness.plan = selectedPendingPlan;
+                pendingPlanChangeContainer.style.display = 'none';
+                renderState('pending');
+                showBanner('Plan updated!', 'success');
+            } catch (err) {
+                console.error('Failed to change plan:', err);
+                showBanner('Could not update plan.', 'error');
+            } finally {
+                btnSavePendingPlan.disabled = false;
+            }
+        });
+
+        // --- Phase 3: Needs Changes Resubmit Listener ---
+        resubmitForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = resubmitName.value.trim();
+            const category = resubmitCategory.value;
+            const serviceType = resubmitServiceType.value.trim() || null;
+            const address = resubmitAddress.value.trim();
+            const contact = resubmitContact.value.trim() || null;
+            const desc = resubmitDescription.value.trim() || null;
+
+            if (!name || !category || !address) {
+                showBanner('Please fill in all required fields.', 'error');
+                return;
+            }
+
+            const fbRes = normalizeSocialLink('facebook', resubmitFb.value);
+            const igRes = normalizeSocialLink('instagram', resubmitIg.value);
+            const ttRes = normalizeSocialLink('tiktok', resubmitTt.value);
+            if (!fbRes.isValid || !igRes.isValid || !ttRes.isValid) {
+                showBanner('Please enter valid social links.', 'error');
+                return;
+            }
+
+            btnResubmitReview.disabled = true;
+            btnResubmitReview.textContent = 'Submitting...';
+
+            try {
+                const busDocRef = doc(db, "businesses", activeBusinessId);
+                const updatePayload = {
+                    name,
+                    category,
+                    serviceType,
+                    address,
+                    contactNumber: contact,
+                    description: desc,
+                    socialLinks: {
+                        facebook: fbRes.value,
+                        instagram: igRes.value,
+                        tiktok: ttRes.value
+                    },
+                    plan: selectedResubmitPlan || activeBusiness.plan || 'plus360',
+                    status: 'pending',
+                    updatedAt: serverTimestamp()
+                };
+
+                await updateDoc(busDocRef, updatePayload);
+
+                activeBusiness = { ...activeBusiness, ...updatePayload };
+                showBanner('Application resubmitted for review!', 'success');
+                renderState('pending');
+
+            } catch (err) {
+                console.error('Error resubmitting business:', err);
+                btnResubmitReview.disabled = false;
+                btnResubmitReview.textContent = 'Resubmit for review';
+                showBanner(err.message || 'Failed to resubmit application.', 'error');
+            }
+        });
+
+        // --- Phase 3: Awaiting Payment Plan Change Listeners ---
+        btnAwaitingChangePlan?.addEventListener('click', () => {
+            const isHidden = awaitingPlanChangeContainer.style.display === 'none';
+            awaitingPlanChangeContainer.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) {
+                selectedAwaitingPlan = activeBusiness.plan || 'plus360';
+                renderPlanOptionCards(awaitingPlanOptions, selectedAwaitingPlan, (pid) => {
+                    selectedAwaitingPlan = pid;
+                });
+            }
+        });
+
+        btnCancelAwaitingPlan?.addEventListener('click', () => {
+            awaitingPlanChangeContainer.style.display = 'none';
+        });
+
+        btnSaveAwaitingPlan?.addEventListener('click', async () => {
+            if (!selectedAwaitingPlan || selectedAwaitingPlan === activeBusiness.plan) {
+                awaitingPlanChangeContainer.style.display = 'none';
+                return;
+            }
+            btnSaveAwaitingPlan.disabled = true;
+            try {
+                const newPrice = window.CALZADA_PLANS[selectedAwaitingPlan].price;
+                await updateDoc(doc(db, "businesses", activeBusinessId), {
+                    plan: selectedAwaitingPlan,
+                    amountDue: newPrice,
+                    updatedAt: serverTimestamp()
+                });
+                activeBusiness.plan = selectedAwaitingPlan;
+                activeBusiness.amountDue = newPrice;
+                awaitingPlanChangeContainer.style.display = 'none';
+                renderState('awaiting_payment');
+                showBanner('Plan updated!', 'success');
+            } catch (err) {
+                console.error('Failed to change plan in awaiting_payment:', err);
+                showBanner('Could not update plan.', 'error');
+            } finally {
+                btnSaveAwaitingPlan.disabled = false;
+            }
+        });
+
+        // --- Phase 3: Receipt Upload Listeners (Awaiting Payment) ---
+        if (receiptPickerRow && receiptFileInput) {
+            receiptPickerRow.addEventListener('click', () => receiptFileInput.click());
+            receiptFileInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    errReceiptFile.textContent = 'File exceeds 10 MB limit.';
+                    errReceiptFile.style.display = 'block';
+                    return;
+                }
+                selectedReceiptFile = file;
+                errReceiptFile.style.display = 'none';
+                receiptPickerText.textContent = file.name;
+                if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+                receiptPreviewUrl = URL.createObjectURL(file);
+                receiptThumbnailImg.src = receiptPreviewUrl;
+                receiptThumbnailContainer.style.display = 'block';
+            });
+        }
+
+        receiptUploadForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errReceiptRef.style.display = 'none';
+            errReceiptFile.style.display = 'none';
+
+            const rawRef = receiptRefNo.value.replace(/\s+/g, '');
+            if (!/^[0-9]{10,20}$/.test(rawRef)) {
+                errReceiptRef.textContent = 'Enter a valid 10 to 20 digit reference number.';
+                errReceiptRef.style.display = 'block';
+                receiptRefNo.focus();
+                return;
+            }
+
+            if (!selectedReceiptFile) {
+                errReceiptFile.textContent = 'Please choose a receipt photo.';
+                errReceiptFile.style.display = 'block';
+                return;
+            }
+
+            btnSubmitReceipt.disabled = true;
+            btnSubmitReceipt.textContent = 'Uploading receipt...';
+
+            try {
+                const idToken = await getFirebaseIdToken();
+                const formData = new FormData();
+                formData.append('businessId', activeBusinessId);
+                formData.append('receipt', selectedReceiptFile);
+
+                const uploadRes = await fetch('/api/payments/upload-receipt', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${idToken}` },
+                    body: formData
+                });
+
+                const uploadData = await uploadRes.json();
+                if (!uploadRes.ok) throw new Error(uploadData.error || 'Receipt upload failed');
+
+                const receiptUrl = uploadData.receiptUrl;
+                btnSubmitReceipt.textContent = 'Submitting payment...';
+
+                const paymentDocRef = doc(collection(db, "payments"));
+                const newPaymentId = paymentDocRef.id;
+                const refDocRef = doc(db, "paymentRefs", rawRef);
+                const busDocRef = doc(db, "businesses", activeBusinessId);
+
+                const planObj = window.CALZADA_PLANS?.[activeBusiness.plan] || window.CALZADA_PLANS.plus360;
+                const due = activeBusiness.amountDue || planObj.price;
+
+                const batch = writeBatch(db);
+                batch.set(paymentDocRef, {
+                    businessId: activeBusinessId,
+                    ownerId: currentUser.uid,
+                    plan: activeBusiness.plan || 'plus360',
+                    amountDue: due,
+                    referenceNo: rawRef,
+                    receiptUrl: receiptUrl,
+                    status: 'submitted',
+                    reviewNote: null,
+                    submittedAt: serverTimestamp(),
+                    reviewedAt: null,
+                    reviewedBy: null
+                });
+
+                batch.set(refDocRef, {
+                    businessId: activeBusinessId,
+                    paymentId: newPaymentId,
+                    createdAt: serverTimestamp()
+                });
+
+                batch.update(busDocRef, {
+                    status: 'payment_review',
+                    lastPaymentId: newPaymentId,
+                    updatedAt: serverTimestamp()
+                });
+
+                await batch.commit();
+
+                // Dispatch owner notification
+                try {
+                    await fetch('/api/admin/notify-owner', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({
+                            businessId: activeBusinessId,
+                            event: 'payment_received'
+                        })
+                    });
+                } catch (notifyErr) {
+                    console.warn('Could not dispatch payment_received notification:', notifyErr);
+                }
+
+                activeBusiness.status = 'payment_review';
+                activeBusiness.lastPaymentId = newPaymentId;
+                showBanner('Receipt submitted successfully!', 'success');
+                renderState('payment_review');
+
+            } catch (err) {
+                console.error('Error submitting payment receipt:', err);
+                btnSubmitReceipt.disabled = false;
+                btnSubmitReceipt.textContent = 'Send for checking';
+
+                if (err.message && (err.message.includes('already exists') || err.code === 'permission-denied')) {
+                    showBanner("This reference number was already used. Check your receipt.", 'error');
+                    errReceiptRef.textContent = "This reference number was already used. Check your receipt.";
+                    errReceiptRef.style.display = 'block';
+                } else {
+                    showBanner(err.message || 'Failed to submit receipt. Please try again.', 'error');
+                }
+            }
+        });
+
+        // --- Phase 3: Replace Receipt Listeners (Payment Review) ---
+        btnReplaceReceipt?.addEventListener('click', () => {
+            const isHidden = replaceReceiptFormContainer.style.display === 'none';
+            replaceReceiptFormContainer.style.display = isHidden ? 'block' : 'none';
+        });
+
+        btnCancelReplaceReceipt?.addEventListener('click', () => {
+            replaceReceiptFormContainer.style.display = 'none';
+        });
+
+        if (replacePickerRow && replaceFileInput) {
+            replacePickerRow.addEventListener('click', () => replaceFileInput.click());
+            replaceFileInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    errReplaceFile.textContent = 'File exceeds 10 MB limit.';
+                    errReplaceFile.style.display = 'block';
+                    return;
+                }
+                selectedReplaceFile = file;
+                errReplaceFile.style.display = 'none';
+                replacePickerText.textContent = file.name;
+                if (replacePreviewUrl) URL.revokeObjectURL(replacePreviewUrl);
+                replacePreviewUrl = URL.createObjectURL(file);
+                replaceThumbnailImg.src = replacePreviewUrl;
+                replaceThumbnailContainer.style.display = 'block';
+            });
+        }
+
+        replaceReceiptForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errReplaceRef.style.display = 'none';
+            errReplaceFile.style.display = 'none';
+
+            const rawRef = replaceRefNo.value.replace(/\s+/g, '');
+            if (!/^[0-9]{10,20}$/.test(rawRef)) {
+                errReplaceRef.textContent = 'Enter a valid 10 to 20 digit reference number.';
+                errReplaceRef.style.display = 'block';
+                return;
+            }
+
+            if (!selectedReplaceFile) {
+                errReplaceFile.textContent = 'Please choose a replacement receipt photo.';
+                errReplaceFile.style.display = 'block';
+                return;
+            }
+
+            btnSubmitReplaceReceipt.disabled = true;
+            btnSubmitReplaceReceipt.textContent = 'Uploading...';
+
+            try {
+                const idToken = await getFirebaseIdToken();
+                const formData = new FormData();
+                formData.append('businessId', activeBusinessId);
+                formData.append('receipt', selectedReplaceFile);
+
+                const uploadRes = await fetch('/api/payments/upload-receipt', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${idToken}` },
+                    body: formData
+                });
+
+                const uploadData = await uploadRes.json();
+                if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
+
+                const receiptUrl = uploadData.receiptUrl;
+                btnSubmitReplaceReceipt.textContent = 'Saving...';
+
+                const paymentDocRef = doc(collection(db, "payments"));
+                const newPaymentId = paymentDocRef.id;
+                const refDocRef = doc(db, "paymentRefs", rawRef);
+                const busDocRef = doc(db, "businesses", activeBusinessId);
+
+                const planObj = window.CALZADA_PLANS?.[activeBusiness.plan] || window.CALZADA_PLANS.plus360;
+                const due = activeBusiness.amountDue || planObj.price;
+
+                const batch = writeBatch(db);
+                batch.set(paymentDocRef, {
+                    businessId: activeBusinessId,
+                    ownerId: currentUser.uid,
+                    plan: activeBusiness.plan || 'plus360',
+                    amountDue: due,
+                    referenceNo: rawRef,
+                    receiptUrl: receiptUrl,
+                    status: 'submitted',
+                    reviewNote: null,
+                    submittedAt: serverTimestamp(),
+                    reviewedAt: null,
+                    reviewedBy: null
+                });
+
+                batch.set(refDocRef, {
+                    businessId: activeBusinessId,
+                    paymentId: newPaymentId,
+                    createdAt: serverTimestamp()
+                });
+
+                batch.update(busDocRef, {
+                    status: 'payment_review',
+                    lastPaymentId: newPaymentId,
+                    updatedAt: serverTimestamp()
+                });
+
+                await batch.commit();
+
+                activeBusiness.lastPaymentId = newPaymentId;
+                replaceReceiptFormContainer.style.display = 'none';
+                showBanner('Receipt updated successfully!', 'success');
+                renderState('payment_review');
+
+            } catch (err) {
+                console.error('Error replacing receipt:', err);
+                btnSubmitReplaceReceipt.disabled = false;
+                btnSubmitReplaceReceipt.textContent = 'Submit replacement';
+
+                if (err.message && (err.message.includes('already exists') || err.code === 'permission-denied')) {
+                    showBanner("This reference number was already used. Check your receipt.", 'error');
+                    errReplaceRef.textContent = "This reference number was already used. Check your receipt.";
+                    errReplaceRef.style.display = 'block';
+                } else {
+                    showBanner(err.message || 'Failed to replace receipt.', 'error');
+                }
+            }
+        });
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -2153,37 +3299,26 @@
                     const newPostRef = doc(collection(db, 'posts'));
                     const newPostId = newPostRef.id;
 
-                    const formData = new FormData();
-                    formData.append('postId', newPostId);
-                    formData.append('businessId', activeBusinessId);
-                    selectedPostPhotoFiles.forEach(item => {
-                        formData.append('photos', item.file);
-                    });
-
-                    const uploadRes = await fetch('/api/posts/upload-photo', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: formData
-                    });
-
-                    const uploadData = await uploadRes.json();
-                    if (!uploadRes.ok) {
-                        throw new Error(uploadData.error || 'Failed to upload post photos.');
-                    }
+                    const photoUrls = await uploadPostPhotos(
+                        newPostId, 
+                        activeBusinessId, 
+                        selectedPostPhotoFiles.map(i => i.file), 
+                        token
+                    );
 
                     const postData = {
                         businessId: activeBusinessId,
                         businessName: activeBusiness ? activeBusiness.name : '',
                         businessCategory: activeBusiness ? activeBusiness.category : '',
                         ownerId: currentUser.uid,
-                        photoUrls: uploadData.photoUrls,
+                        photoUrls: photoUrls,
                         caption: (postCaptionInput ? postCaptionInput.value.trim() : '') || null,
                         likeCount: 0,
                         createdAt: serverTimestamp(),
                         updatedAt: null,
-                        status: 'active'
+                        status: 'active',
+                        label: 'announcement',
+                        promoUntil: null
                     };
 
                     await setDoc(newPostRef, postData);
@@ -2211,6 +3346,11 @@
 
         async function loadBusinessPosts(busId) {
             if (!postsListContainer) return;
+            if (window.__TEST_MOCK_POSTS__) {
+                businessPosts = window.__TEST_MOCK_POSTS__;
+                renderPostsList();
+                return;
+            }
             try {
                 const postsQuery = query(
                     collection(db, 'posts'),

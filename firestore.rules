@@ -152,6 +152,11 @@ service cloud.firestore {
         && resource.data.submittedBy == request.auth.uid && resource.data.status == 'pending';
     }
 
+    // Keep prices in sync with window.CALZADA_PLANS in public/js/plans-config.js
+    function planPrice(p) {
+      return p == 'listed' ? 59 : (p == 'plus360' ? 199 : (p == 'featured' ? 299 : 0));
+    }
+
     // Businesses collection security rules (Instagram Business model)
     match /businesses/{businessId} {
       // Create: Authenticated owner only, status forced to pending, profilePhotoUrl & approvedAt forced to null
@@ -166,8 +171,13 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly([
           'name', 'category', 'address', 'description', 'contactNumber', 
           'ownerId', 'status', 'submittedAt', 'profilePhotoUrl', 'approvedAt',
-          'serviceType', 'socialLinks', 'location'
+          'serviceType', 'socialLinks', 'location', 'plan'
         ])
+        && request.resource.data.plan in ['listed', 'plus360', 'featured']
+        && !('reviewNote' in request.resource.data)
+        && !('paidAt' in request.resource.data)
+        && !('featuredUntil' in request.resource.data)
+        && !('amountDue' in request.resource.data)
         && request.resource.data.name is string 
         && request.resource.data.name.size() >= 1 
         && request.resource.data.name.size() <= 80
@@ -187,14 +197,19 @@ service cloud.firestore {
 
       // Update:
       // 1. Admin: explicit moderation/content field allowlist
-      // 2. Owner: explicit profile field allowlist, ONLY when existing doc is approved
+      // 2. Owner: edit profile when approved
+      // 3. Owner: resubmit from needs_changes
+      // 4. Owner: change plan while pending
+      // 5. Owner: change plan while awaiting_payment
+      // 6. Owner: pay (awaiting_payment -> payment_review)
       allow update: if request.auth != null && (
         (
           request.auth.token.admin == true
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'status', 'approvedAt', 'rejectionReason', 'name', 
+            'status', 'approvedAt', 'rejectionReason', 'reviewNote', 'name', 
             'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt',
-            'serviceType', 'socialLinks', 'location'
+            'serviceType', 'socialLinks', 'location',
+            'plan', 'amountDue', 'detailsApprovedAt', 'paidAt', 'featuredUntil', 'shoot360', 'legacyPlan', 'lastPaymentId'
           ])
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
@@ -202,7 +217,10 @@ service cloud.firestore {
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['serviceType']) || request.resource.data.get('serviceType', null) == null || (request.resource.data.serviceType is string && request.resource.data.serviceType.size() >= 2 && request.resource.data.serviceType.size() <= 40))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['socialLinks']) || isValidSocialLinks(request.resource.data.get('socialLinks', null)))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['location']) || isValidLocation(request.resource.data.location))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['reviewNote']) || request.resource.data.get('reviewNote', null) == null || (request.resource.data.reviewNote is string && request.resource.data.reviewNote.size() <= 500))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['shoot360']) || request.resource.data.get('shoot360', null) == null || request.resource.data.shoot360 in ['none', 'to_schedule', 'scheduled', 'done'])
         ) || (
+          // Owner edit profile (only when approved)
           resource.data.ownerId == request.auth.uid
           && resource.data.status == 'approved'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profilePhotoUrl', 'description', 'updatedAt', 'socialLinks'])
@@ -212,6 +230,55 @@ service cloud.firestore {
           && (request.resource.data.profilePhotoUrl == null || isValidCloudinaryUrl(request.resource.data.profilePhotoUrl))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['socialLinks']) || isValidSocialLinks(request.resource.data.get('socialLinks', null)))
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
+        ) || (
+          // Owner resubmit from needs_changes
+          resource.data.ownerId == request.auth.uid
+          && resource.data.status == 'needs_changes'
+          && request.resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'name', 'category', 'serviceType', 'address', 'location', 
+            'description', 'contactNumber', 'socialLinks', 'plan', 'updatedAt'
+          ])
+          && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 80
+          && request.resource.data.address is string && request.resource.data.address.size() >= 1 && request.resource.data.address.size() <= 160
+          && (request.resource.data.description == null || (request.resource.data.description is string && request.resource.data.description.size() <= 500))
+          && request.resource.data.category in ['malls', 'eateries', 'coffee', 'schools', 'terminals', 'establishments']
+          && (request.resource.data.contactNumber == null || (request.resource.data.contactNumber is string && request.resource.data.contactNumber.size() <= 20))
+          && (request.resource.data.get('serviceType', null) == null || (request.resource.data.serviceType is string && request.resource.data.serviceType.size() >= 2 && request.resource.data.serviceType.size() <= 40))
+          && isValidSocialLinks(request.resource.data.get('socialLinks', null))
+          && isValidLocation(request.resource.data.location)
+          && request.resource.data.plan in ['listed', 'plus360', 'featured']
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
+        ) || (
+          // Owner change plan: while pending
+          resource.data.ownerId == request.auth.uid
+          && resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['plan', 'updatedAt'])
+          && request.resource.data.plan in ['listed', 'plus360', 'featured']
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
+        ) || (
+          // Owner change plan: while awaiting_payment
+          resource.data.ownerId == request.auth.uid
+          && resource.data.status == 'awaiting_payment'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['plan', 'amountDue', 'updatedAt'])
+          && request.resource.data.plan in ['listed', 'plus360', 'featured']
+          && request.resource.data.amountDue == planPrice(request.resource.data.plan)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
+          && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
+        ) || (
+          // Owner pay: awaiting_payment or payment_review -> payment_review (initial pay or receipt replacement)
+          resource.data.ownerId == request.auth.uid
+          && (resource.data.status == 'awaiting_payment' || resource.data.status == 'payment_review')
+          && request.resource.data.status == 'payment_review'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'lastPaymentId', 'updatedAt'])
+          && request.resource.data.lastPaymentId is string
+          && existsAfter(/databases/$(database)/documents/payments/$(request.resource.data.lastPaymentId))
+          && getAfter(/databases/$(database)/documents/payments/$(request.resource.data.lastPaymentId)).data.businessId == businessId
+          && getAfter(/databases/$(database)/documents/payments/$(request.resource.data.lastPaymentId)).data.status == 'submitted'
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
           && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
         )
@@ -233,7 +300,74 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.token.admin == true;
     }
 
-    // Posts collection security rules (Phase 4.5)
+    // Payments collection security rules (Phase 1.3)
+    match /payments/{paymentId} {
+      // Create: owner only. ownerId == auth.uid. status == 'submitted'. The business belongs to the owner and is awaiting_payment or payment_review (for receipt replacement). amountDue == business.amountDue.
+      allow create: if request.auth != null
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status == 'submitted'
+        && request.resource.data.keys().hasOnly([
+          'businessId', 'ownerId', 'plan', 'amountDue', 'referenceNo',
+          'receiptUrl', 'status', 'reviewNote', 'submittedAt', 'reviewedAt', 'reviewedBy'
+        ])
+        && request.resource.data.businessId is string
+        && exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId))
+        && get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerId == request.auth.uid
+        && (get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.status in ['awaiting_payment', 'payment_review'])
+        && request.resource.data.amountDue == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.amountDue
+        && request.resource.data.plan == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.plan
+        && request.resource.data.referenceNo is string
+        && request.resource.data.referenceNo.matches('^[0-9]{10,20}$')
+        // The reference-number lock must be written in the same batch and point at this payment,
+        // so a reference number can never be used twice even if someone skips the website.
+        && existsAfter(/databases/$(database)/documents/paymentRefs/$(request.resource.data.referenceNo))
+        && getAfter(/databases/$(database)/documents/paymentRefs/$(request.resource.data.referenceNo)).data.paymentId == paymentId
+        && isValidCloudinaryUrl(request.resource.data.receiptUrl)
+        && request.resource.data.submittedAt == request.time
+        && request.resource.data.reviewedAt == null
+        && request.resource.data.reviewedBy == null
+        && request.resource.data.reviewNote == null;
+
+      // Read: the owner or an admin.
+      allow read: if request.auth != null
+        && (resource.data.ownerId == request.auth.uid || request.auth.token.admin == true);
+
+      // Update: admin only (status, reviewNote, reviewedAt == request.time, reviewedBy == auth.uid).
+      allow update: if request.auth != null
+        && request.auth.token.admin == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'reviewNote', 'reviewedAt', 'reviewedBy'])
+        && request.resource.data.status in ['verified', 'not_matched']
+        && (request.resource.data.get('reviewNote', null) == null || (request.resource.data.reviewNote is string && request.resource.data.reviewNote.size() <= 500))
+        && request.resource.data.reviewedAt == request.time
+        && request.resource.data.reviewedBy == request.auth.uid;
+
+      // Delete: never.
+      allow delete: if false;
+    }
+
+    // Payment reference number lock (Phase 1.4)
+    match /paymentRefs/{referenceNo} {
+      // Create: owner only, and only together with the matching payment (existsAfter the payment).
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['businessId', 'paymentId', 'createdAt'])
+        && request.resource.data.createdAt == request.time
+        && referenceNo.matches('^[0-9]{10,20}$')
+        && request.resource.data.paymentId is string
+        && existsAfter(/databases/$(database)/documents/payments/$(request.resource.data.paymentId))
+        && getAfter(/databases/$(database)/documents/payments/$(request.resource.data.paymentId)).data.ownerId == request.auth.uid
+        && getAfter(/databases/$(database)/documents/payments/$(request.resource.data.paymentId)).data.referenceNo == referenceNo
+        && getAfter(/databases/$(database)/documents/payments/$(request.resource.data.paymentId)).data.businessId == request.resource.data.businessId;
+
+      // Read: admin only.
+      allow read: if request.auth != null && request.auth.token.admin == true;
+
+      // Update: never. Delete: admin only, used when a payment is marked "doesn't match"
+      // so the owner can send the same reference number again with a clearer receipt.
+      allow update: if false;
+      allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Posts collection security rules (Phase 4.5 & Phase 1.5)
     match /posts/{postId} {
       // Create: Authenticated user who owns the post, status forced to 'active',
       // likeCount forced to 0, photoUrls list with 1 to 5 items,
@@ -256,9 +390,12 @@ service cloud.firestore {
         // FIX 3: keys().hasOnly([...]) and caption null or string <= 500
         && request.resource.data.keys().hasOnly([
           'businessId', 'businessName', 'businessCategory', 'ownerId', 
-          'photoUrls', 'caption', 'likeCount', 'createdAt', 'updatedAt', 'status'
+          'photoUrls', 'caption', 'likeCount', 'createdAt', 'updatedAt', 'status',
+          'label', 'promoUntil'
         ])
         && (request.resource.data.caption == null || (request.resource.data.caption is string && request.resource.data.caption.size() <= 500))
+        && (!('label' in request.resource.data) || request.resource.data.label in ['announcement', 'promo', 'new_item'])
+        && (!('promoUntil' in request.resource.data) || request.resource.data.promoUntil == null || request.resource.data.promoUntil is timestamp)
         // FIX 2: createdAt == request.time, updatedAt == null
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == null
@@ -269,13 +406,14 @@ service cloud.firestore {
         && request.resource.data.businessName == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.name
         && request.resource.data.businessCategory == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.category;
 
-      // Read: Public (no gate) for all posts
-      allow read: if true;
+      // Read: Public (no gate) for non-hidden posts, owner or admin for hidden posts
+      allow read: if resource.data.get('status', 'active') != 'hidden'
+        || (request.auth != null && (resource.data.ownerId == request.auth.uid || request.auth.token.admin == true));
 
       // Update:
       // Branch 1: Owner editing ONLY caption and updatedAt
       // Branch 2: Any authenticated user atomically toggling their own like (+1/-1 synchronized with like doc)
-      // Branch 3: Admin moderation
+      // Branch 3: Admin moderation (status, pinnedUntil, updatedAt, etc.)
       allow update: if request.auth != null && (
         (
           resource.data.ownerId == request.auth.uid

@@ -1127,6 +1127,31 @@ async function verifyApprovedBusinessOwner(businessId, uid) {
     return { businessData };
 }
 
+/**
+ * Shared helper: verify that a business exists, belongs to the authenticated user, and is awaiting_payment or payment_review.
+ * Returns { error, status } on failure or { businessData } on success.
+ */
+async function verifyAwaitingPaymentBusinessOwner(businessId, uid) {
+    const adminDb = getFirestore();
+    const businessDocRef = adminDb.collection('businesses').doc(businessId);
+    const businessDoc = await businessDocRef.get();
+
+    if (!businessDoc.exists) {
+        return { error: 'Business not found.', status: 404 };
+    }
+
+    const businessData = businessDoc.data();
+    if (businessData.ownerId !== uid) {
+        return { error: 'Forbidden: You do not own this business.', status: 403 };
+    }
+
+    if (businessData.status !== 'awaiting_payment' && businessData.status !== 'payment_review') {
+        return { error: 'Forbidden: Business is not awaiting payment or under payment review.', status: 403 };
+    }
+
+    return { businessData };
+}
+
 const businessPhotoUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -1222,6 +1247,80 @@ app.post('/api/businesses/upload-photo', requireAuth, (req, res) => {
     });
 });
 
+const paymentReceiptUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+        files: 1
+    }
+}).single('receipt');
+
+// POST /api/payments/upload-receipt - Authenticated receipt upload for awaiting_payment business
+app.post('/api/payments/upload-receipt', requireAuth, (req, res) => {
+    paymentReceiptUpload(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size exceeds 10MB limit.' });
+            }
+            return res.status(400).json({ error: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ error: err.message || 'File upload error' });
+        }
+
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId. Must be alphanumeric.' });
+        }
+
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ error: 'A receipt photo file is required.' });
+        }
+
+        // Verify genuine image mimetype via magic bytes
+        const realMime = detectImageMimeType(file.buffer);
+        if (!realMime) {
+            return res.status(400).json({ 
+                error: `File "${file.originalname}" is not a valid image. Only JPEG, PNG, and WebP are allowed.` 
+            });
+        }
+
+        // Verify server-side that the business's ownerId == uid and status == 'awaiting_payment'
+        try {
+            const check = await verifyAwaitingPaymentBusinessOwner(businessId, req.user.uid);
+            if (check.error) {
+                return res.status(check.status).json({ error: check.error });
+            }
+        } catch (dbErr) {
+            console.error('Error verifying business document with Admin SDK:', dbErr);
+            return res.status(500).json({ error: 'Failed to verify business details.' });
+        }
+
+        if (!cloudinaryConfigured()) {
+            console.error('Cloudinary is not configured; refusing to accept an upload that could not be served.');
+            return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+        }
+
+        try {
+            const safeFileName = crypto.randomBytes(8).toString('hex');
+            const { url: receiptUrl } = await uploadBuffer(
+                file.buffer,
+                `calzada/payments/${businessId}`,
+                safeFileName
+            );
+
+            return res.json({
+                success: true,
+                businessId,
+                receiptUrl
+            });
+        } catch (writeErr) {
+            console.error('Error uploading payment receipt to Cloudinary:', writeErr);
+            return res.status(500).json({ error: 'Failed to upload receipt to image hosting.' });
+        }
+    });
+});
+
 const postPhotosUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -1278,14 +1377,60 @@ app.post('/api/posts/upload-photo', requireAuth, (req, res) => {
         }
 
         // Server-side Admin SDK verification: verify business ownership and approved status
+        let businessData = null;
         try {
             const check = await verifyApprovedBusinessOwner(businessId, req.user.uid);
             if (check.error) {
                 return res.status(check.status).json({ error: check.error });
             }
+            businessData = check.businessData;
         } catch (dbErr) {
             console.error('Error verifying business document with Admin SDK:', dbErr);
             return res.status(500).json({ error: 'Failed to verify business details.' });
+        }
+
+        // Server-side post limit enforcement based on business plan (Phase 5)
+        const plan = businessData.plan || 'listed';
+        const planLimits = { listed: 4, plus360: 8, featured: null };
+        const postLimit = planLimits[plan] !== undefined ? planLimits[plan] : 4;
+
+        if (postLimit !== null) {
+            try {
+                const now = new Date();
+                const manilaFmt = new Intl.DateTimeFormat('en-US', {
+                    timeZone: 'Asia/Manila',
+                    year: 'numeric',
+                    month: 'numeric'
+                });
+                const [curMonth, curYear] = manilaFmt.format(now).split('/').map(Number);
+
+                const adminDb = getFirestore();
+                const postsSnap = await adminDb.collection('posts')
+                    .where('businessId', '==', businessId)
+                    .where('status', 'in', ['active', 'hidden'])
+                    .get();
+
+                let postsThisMonth = 0;
+                postsSnap.forEach(d => {
+                    const data = d.data();
+                    if (data.createdAt) {
+                        const postDate = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                        const [pMonth, pYear] = manilaFmt.format(postDate).split('/').map(Number);
+                        if (pMonth === curMonth && pYear === curYear) {
+                            postsThisMonth++;
+                        }
+                    }
+                });
+
+                if (postsThisMonth >= postLimit) {
+                    return res.status(403).json({
+                        error: `Monthly post limit reached (${postsThisMonth}/${postLimit} posts this month for ${plan === 'plus360' ? 'Listed + 360' : 'Listed'} plan).`
+                    });
+                }
+            } catch (limitErr) {
+                console.error('Error verifying monthly post limit:', limitErr);
+                return res.status(500).json({ error: 'Failed to verify monthly post limit.' });
+            }
         }
 
         if (!cloudinaryConfigured()) {
@@ -1466,7 +1611,7 @@ app.delete(['/api/user/photo', '/api/users/:uid/photo'], async (req, res) => {
 // FEEDBACK NOTIFICATION & STORAGE API
 // =============================================
 const nodemailer = require('nodemailer');
-const { generateFeedbackEmailHtml, generateFeedbackThankYouEmailHtml, generateReminderEmailHtml } = require('./email-template');
+const { generateFeedbackEmailHtml, generateFeedbackThankYouEmailHtml, generateReminderEmailHtml, generateOwnerNotificationEmail } = require('./email-template');
 
 function getEmailTransporter() {
     const user = process.env.GMAIL_USER;
@@ -1602,6 +1747,129 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
         emailSent,
         thankYouEmailSent
     });
+});
+
+// =============================================
+// BUSINESS OWNER NOTIFICATION API
+// =============================================
+// POST /api/admin/notify-owner - Admin or owner notification dispatch
+app.post('/api/admin/notify-owner', requireAuth, async (req, res) => {
+    const { businessId, event, reason, amountDue, plan, referenceNo } = req.body || {};
+
+    const validEvents = ['received', 'needs_changes', 'approved_unpaid', 'payment_received', 'not_matched', 'live', 'declined'];
+    if (!event || !validEvents.includes(event)) {
+        return res.status(400).json({ error: `Invalid event. Must be one of: ${validEvents.join(', ')}` });
+    }
+
+    if (!businessId || typeof businessId !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+        return res.status(400).json({ error: 'Invalid or missing businessId.' });
+    }
+
+    try {
+        const adminDb = getFirestore();
+        if (!adminDb) {
+            return res.status(500).json({ error: 'Database service unavailable.' });
+        }
+
+        const businessDoc = await adminDb.collection('businesses').doc(businessId).get();
+        if (!businessDoc.exists) {
+            return res.status(404).json({ error: 'Business not found.' });
+        }
+
+        const business = businessDoc.data();
+
+        // Authorization check:
+        // Admin token allowed for all events.
+        // Owner token allowed ONLY for 'payment_received' or 'received' for their own business.
+        const isAdmin = req.user && req.user.admin === true;
+        const isOwner = req.user && business.ownerId === req.user.uid;
+
+        if (!isAdmin) {
+            if ((event === 'payment_received' || event === 'received') && isOwner) {
+                // Allowed
+            } else {
+                return res.status(403).json({ error: 'Forbidden: Insufficient permissions to dispatch this notification.' });
+            }
+        }
+
+        // Fetch owner email: from businesses/{id}/private/owner or auth.getUser(ownerId)
+        let ownerEmail = null;
+        try {
+            const privateDoc = await adminDb.collection('businesses').doc(businessId).collection('private').doc('owner').get();
+            if (privateDoc.exists && privateDoc.data().ownerEmail) {
+                ownerEmail = privateDoc.data().ownerEmail.trim();
+            }
+        } catch (privErr) {
+            console.warn('Could not read private/owner:', privErr.message);
+        }
+
+        if (!ownerEmail && business.ownerId) {
+            try {
+                const adminAuth = getAuth();
+                if (adminAuth) {
+                    const userRecord = await adminAuth.getUser(business.ownerId);
+                    if (userRecord && userRecord.email) {
+                        ownerEmail = userRecord.email.trim();
+                    }
+                }
+            } catch (authErr) {
+                console.warn('Could not retrieve user record for owner:', authErr.message);
+            }
+        }
+
+        if (!ownerEmail && req.user.email) {
+            if (isOwner) ownerEmail = req.user.email.trim();
+        }
+
+        // DRY_RUN_EMAIL support: log instead of sending email
+        if (process.env.DRY_RUN_EMAIL === 'true') {
+            console.log(`[DRY_RUN_EMAIL] event="${event}" businessId="${businessId}" businessName="${business.name}" to="${ownerEmail || 'unknown'}" reason="${reason || ''}"`);
+            return res.json({
+                success: true,
+                dryRun: true,
+                event,
+                businessId,
+                ownerEmail
+            });
+        }
+
+        const transporter = getEmailTransporter();
+        if (!transporter || !ownerEmail) {
+            console.warn(`[NOTIFY-OWNER] Cannot dispatch email. transporter=${!!transporter}, ownerEmail=${ownerEmail}`);
+            return res.json({
+                success: false,
+                warning: !ownerEmail ? 'Owner email not found' : 'Email transporter not configured',
+                event
+            });
+        }
+
+        const { subject, html } = generateOwnerNotificationEmail({
+            event,
+            business,
+            reason,
+            amountDue: amountDue || business.amountDue,
+            plan: plan || business.plan,
+            referenceNo: referenceNo || business.lastPaymentRef
+        });
+
+        await transporter.sendMail({
+            from: `"Calzada" <${process.env.GMAIL_USER}>`,
+            to: ownerEmail,
+            subject,
+            html
+        });
+
+        console.log(`[NOTIFY-OWNER] Sent "${event}" email to ${ownerEmail} for business "${business.name}"`);
+        return res.json({
+            success: true,
+            event,
+            ownerEmail
+        });
+
+    } catch (err) {
+        console.error('[NOTIFY-OWNER] Error dispatching owner notification:', err);
+        return res.status(500).json({ error: 'Failed to dispatch notification email.' });
+    }
 });
 
 // =============================================

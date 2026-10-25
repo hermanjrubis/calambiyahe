@@ -28,6 +28,7 @@
     { "source": "/submit", "destination": "/pages/submit.html" },
     { "source": "/admin", "destination": "/pages/admin.html" },
     { "source": "/calibrate-360", "destination": "/pages/calibrate-360.html" },
+    { "source": "/plans", "destination": "/pages/plans.html" },
     { "source": "/(.*)", "destination": "/api/index.js" }
   ],
   "headers": [
@@ -71,7 +72,7 @@
       ]
     },
     {
-      "source": "/(about|fares|planner|faq|feedback|places|discover|login|business|my-business|submit|admin|calibrate-360)",
+      "source": "/(about|fares|planner|faq|feedback|places|discover|login|business|my-business|submit|admin|calibrate-360|plans)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }
       ]

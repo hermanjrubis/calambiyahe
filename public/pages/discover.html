@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Updates – Calzada</title>
     <link rel="canonical" href="https://calzadaph.com/discover">
-    <meta name="description" content="Discover local businesses, updates, and moments across Calamba City on Calzada.">
+    <meta name="description" content="What's new at places around Calamba. Discover local business updates, announcements, and promos on Calzada.">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 
@@ -14,29 +14,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Google Fonts (Non-blocking) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <!-- Google Fonts -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Sora:wght@400;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
+    <link rel="stylesheet" href="../css/skeleton.css?v=2.9.1">
 
     <style>
         :root {
-            --primary: #1F69B8;
-            --primary-dark: #185FA5;
-            --primary-light: #F0F7FF;
+            --brand-blue: #378ADD;
+            --brand-blue-dark: #1F69B8;
+            --brand-blue-light: #EEF5FD;
             --navy-dark: #042C53;
             --navy-muted: #64748B;
-            --navy-subtle: #5A6A7F;
+            --navy-subtle: #94A3B8;
             --bg-page: #F8F9FC;
             --card-bg: #FFFFFF;
             --border-color: #E2E8F0;
             --border-subtle: #F1F5F9;
-            --danger: #DC2626;
-            --danger-bg: #FEF2F2;
+            --label-announcement: #64748B;
+            --label-promo: #B45309;
+            --label-new-item: #1F69B8;
+            --like-heart: #E11D48;
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-pill: 999px;
@@ -57,706 +59,1015 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* 1. Top Bar Navigation */
-        .discover-topbar {
-            height: 60px;
+        /* Top Bar */
+        .site-topbar {
+            height: 64px;
             background: #FFFFFF;
             border-bottom: 1px solid var(--border-color);
-            padding: 0 28px;
+            padding: 0 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
         }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
         .topbar-brand {
             display: flex;
             align-items: center;
+            gap: 10px;
             text-decoration: none;
         }
-
         .topbar-logo {
             height: 24px;
             width: auto;
         }
-
-        .topbar-breadcrumb {
+        .topbar-nav {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.88rem;
+            gap: 20px;
         }
-
-        .breadcrumb-root {
-            color: var(--navy-subtle);
-            font-weight: 500;
+        .topbar-nav a {
+            color: var(--navy-dark);
             text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
             transition: color 0.15s ease;
         }
-
-        .breadcrumb-root:hover {
-            color: var(--navy-dark);
+        .topbar-nav a:hover {
+            color: var(--brand-blue-dark);
         }
-
-        .breadcrumb-sep {
-            color: #CBD5E1;
-            font-size: 0.8rem;
-        }
-
-        .breadcrumb-current {
-            color: var(--navy-dark);
-            font-family: 'Sora', sans-serif;
+        .topbar-nav a.active {
+            color: var(--brand-blue-dark);
             font-weight: 700;
-            font-size: 0.88rem;
         }
 
-        .topbar-right {
+        /* Page Layout */
+        .updates-page-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 20px 80px;
+        }
+
+        /* Header Row */
+        .updates-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 24px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .updates-title-block {
+            flex: 1;
+            min-width: 260px;
+        }
+        .updates-h1 {
+            font-family: 'Sora', sans-serif;
+            font-size: 34px;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+        .updates-subtitle {
+            font-size: 15px;
+            color: var(--navy-muted);
+        }
+
+        .updates-header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
-
-        .topbar-nav-link {
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: var(--navy-muted);
-            text-decoration: none;
-            transition: color 0.15s ease;
+        .search-box-wrap {
+            position: relative;
+            width: 280px;
         }
-
-        .topbar-nav-link:hover {
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--navy-subtle);
+            font-size: 18px;
+            pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px 0 40px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #FFFFFF;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
             color: var(--navy-dark);
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .search-input:focus {
+            border-color: var(--brand-blue);
         }
 
-        .topbar-auth-btn {
+        .btn-new-post {
+            height: 44px;
+            padding: 0 18px;
+            background: var(--brand-blue);
+            color: #FFFFFF;
+            border: 1px solid var(--brand-blue);
+            border-radius: var(--radius-sm);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: #FFFFFF;
-            color: var(--navy-dark);
-            border: 1px solid var(--border-color);
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: var(--radius-sm);
-            text-decoration: none;
-            transition: all 0.15s ease;
-        }
-
-        .topbar-auth-btn:hover {
-            background: #F8FAFC;
-            border-color: #CBD5E1;
-            color: var(--primary);
-        }
-
-        .topbar-user-pill {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .topbar-user-email {
-            font-size: 0.84rem;
-            color: var(--navy-muted);
-            max-width: 160px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            transition: background 0.15s ease;
             white-space: nowrap;
         }
+        .btn-new-post:hover {
+            background: var(--brand-blue-dark);
+            border-color: var(--brand-blue-dark);
+        }
 
-        .topbar-logout-btn {
+        /* Category Underline Tabs (not pills!) */
+        .category-underline-tabs {
+            display: flex;
+            gap: 28px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 28px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .category-underline-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .cat-tab {
             background: transparent;
             border: none;
-            color: var(--navy-subtle);
-            cursor: pointer;
-            padding: 4px;
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            font-size: 1.1rem;
-            transition: color 0.15s ease;
-        }
-
-        .topbar-logout-btn:hover {
-            color: var(--danger);
-        }
-
-        /* 2. Main Page Layout */
-        .discover-container {
-            max-width: 470px;
-            margin: 0 auto;
-            padding: 24px 16px 64px;
-        }
-
-        .page-header {
-            margin-bottom: 24px;
-            text-align: left;
-        }
-
-        .page-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 1.65rem;
-            font-weight: 800;
-            color: var(--navy-dark);
-            letter-spacing: -0.02em;
-        }
-
-        .page-subtitle {
-            font-size: 0.95rem;
+            border-bottom: 2px solid transparent;
+            padding: 10px 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
             color: var(--navy-muted);
-            margin-top: 4px;
-            line-height: 1.4;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .cat-tab:hover {
+            color: var(--navy-dark);
+        }
+        .cat-tab.active {
+            color: var(--brand-blue-dark);
+            border-bottom-color: var(--brand-blue);
         }
 
-        /* 3. Feed & Post Card */
-        .discover-feed {
+        /* Two Columns Desktop: Feed (max 680px) + Sidebar (min 300px) */
+        .updates-grid-layout {
+            display: flex;
+            gap: 32px;
+            align-items: flex-start;
+        }
+        .updates-feed-col {
+            flex: 1;
+            max-width: 680px;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             gap: 24px;
         }
+        .updates-sidebar-col {
+            width: 340px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
 
-        .discover-card {
-            background: var(--card-bg);
+        /* Flat White Cards (Design System Rule: 1px solid #E2E8F0, 12px radius, NO shadows) */
+        .flat-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: none !important;
+        }
+
+        /* Post Card */
+        .post-card {
+            background: #FFFFFF;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             overflow: hidden;
+            box-shadow: none !important;
             display: flex;
-            flex-direction: column; /* Mobile default: stacked layout */
-            transition: border-color 0.15s ease;
+            flex-direction: column;
         }
-
-        .discover-card:hover {
-            border-color: #CBD5E1;
+        .post-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-
-        /* Photo / Media Panel */
-        .card-media-panel {
-            width: 100%;
-            background-color: var(--sk-base, #e6ecf4);
+        .post-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #EAF2FC;
+            color: #1F69B8;
+            font-family: 'Sora', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            user-select: none;
             overflow: hidden;
-            transition: background-color 200ms ease;
+            flex-shrink: 0;
+            text-decoration: none;
+            border: 1px solid var(--border-color);
         }
-
-        .card-media-panel.media-loaded {
-            background-color: #091E33;
-        }
-
-        .card-media-wrap {
-            position: relative;
+        .post-avatar img {
             width: 100%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            object-fit: cover;
+        }
+        .post-meta-col {
+            flex: 1;
+            min-width: 0;
+        }
+        .post-business-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--navy-dark);
+            text-decoration: none;
+            display: inline-block;
+            white-space: nowrap;
             overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .post-business-name:hover {
+            color: var(--brand-blue-dark);
+        }
+        .post-sub-line {
+            font-size: 12px;
+            color: var(--navy-muted);
+            margin-top: 2px;
         }
 
-        .card-media-img {
+        /* Photo Carousel: 4:3 Aspect Ratio */
+        .post-media-wrap {
+            position: relative;
+            width: 100%;
+            padding-top: 75%; /* 4:3 aspect ratio */
+            background: #0E2A47;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .post-media-img {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
-            opacity: 0;
-            transition: opacity 200ms ease;
         }
-
-        .card-media-img.loaded {
-            opacity: 1;
+        .carousel-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(4, 44, 83, 0.7);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 12px;
+            z-index: 10;
         }
-
-        /* Carousel Controls attached inside Photo Panel */
-        .carousel-btn {
+        .carousel-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(255, 255, 255, 0.85);
+            color: var(--navy-dark);
             border: none;
-            color: #FFFFFF;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.05rem;
-            cursor: pointer;
-            z-index: 5;
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-            transition: background 0.15s ease, transform 0.15s ease;
+            font-size: 16px;
+            z-index: 10;
+            transition: background 0.15s ease;
         }
-
-        .carousel-btn:hover {
-            background: rgba(0, 0, 0, 0.75);
-            color: #FFFFFF;
-            transform: translateY(-50%) scale(1.08);
+        .carousel-arrow:hover {
+            background: #FFFFFF;
         }
+        .carousel-arrow.prev { left: 12px; }
+        .carousel-arrow.next { right: 12px; }
 
-        .carousel-btn.carousel-prev {
-            left: 12px;
-        }
-
-        .carousel-btn.carousel-next {
-            right: 12px;
-        }
-
-        .carousel-dots {
+        /* Double Tap Heart Pop Animation */
+        .double-tap-heart {
             position: absolute;
-            bottom: 12px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 0;
-            z-index: 5;
+            transform: translate(-50%, -50%) scale(0.4);
+            font-size: 96px;
+            color: #FFFFFF;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 25;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+            animation: doubleTapPop 800ms ease-out forwards;
+        }
+        @keyframes doubleTapPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+            15% { opacity: 0.95; transform: translate(-50%, -50%) scale(1.15); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(0.95); }
+            45% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .double-tap-heart {
+                animation: doubleTapFade 800ms ease-out forwards;
+            }
+            @keyframes doubleTapFade {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            }
         }
 
-        .carousel-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.4);
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            transition: all 0.15s ease;
+        /* Post Body & Actions */
+        .post-content {
+            padding: 16px 20px 20px;
+        }
+        .post-label-line {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+        .label-announcement { color: var(--label-announcement); }
+        .label-promo { color: var(--label-promo); }
+        .label-new-item { color: var(--label-new-item); }
+        .label-pinned {
+            color: var(--brand-blue-dark);
+            margin-bottom: 4px;
+            display: inline-block;
         }
 
-        .carousel-dot.active {
-            background: #FFFFFF;
-            transform: scale(1.2);
+        .post-caption {
+            font-size: 14px;
+            color: var(--navy-dark);
+            line-height: 1.55;
+            margin-bottom: 16px;
         }
 
-        /* Info Panel (Header + Caption + Engagement) */
-        .card-info-panel {
-            width: 100%;
-            background: #FFFFFF;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-        }
-
-        .card-header {
+        .post-actions-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid var(--border-subtle);
-            flex-shrink: 0;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-subtle);
         }
-
-        .card-header-left {
+        .post-actions-left {
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-width: 0;
-            flex: 1;
+            gap: 16px;
         }
-
-        .card-avatar {
-            width: 40px;
-            height: 40px;
+        .btn-post-heart {
+            background: transparent;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--navy-muted);
+            cursor: pointer;
+            padding: 4px 6px;
             border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background: #F8FAFC;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .btn-post-heart i {
+            font-size: 20px;
+            color: var(--navy-muted);
+            transition: transform 0.15s ease;
+        }
+        .btn-post-heart.liked {
+            color: var(--like-heart);
+        }
+        .btn-post-heart.liked i {
+            color: var(--like-heart);
+        }
+        .btn-post-heart:hover i {
+            transform: scale(1.15);
         }
 
-        .card-avatar-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        /* Shown instead of a broken-image icon when a post has no photo, or when the
-           stored URL fails to load (older posts still hold pre-Cloudinary local paths). */
-        .card-media-empty {
-            width: 100%;
-            height: 100%;
-            min-height: 260px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: #6B8BA8;
-            background: #0E2A47;
-        }
-
-        .card-media-empty i {
-            font-size: 2.25rem;
-            opacity: 0.55;
-        }
-
-        .card-media-empty span {
-            font-size: 0.8125rem;
-            letter-spacing: -0.01em;
-            opacity: 0.75;
-        }
-
-        /* Business initials, used when there is no avatar or the avatar fails to load. */
-        .card-avatar-initials {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            font-family: var(--font-primary, 'Sora', sans-serif);
-            font-weight: 700;
-            font-size: 0.875rem;
-            letter-spacing: 0.02em;
-            color: var(--primary, #378ADD);
-            text-transform: uppercase;
-        }
-
-        .card-avatar-placeholder {
-            font-size: 1.25rem;
-            color: var(--primary);
-            line-height: 1;
-        }
-
-        .card-bus-info {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            flex: 1;
-        }
-
-        .card-bus-name-row {
+        .btn-post-action {
+            background: transparent;
+            border: none;
             display: flex;
             align-items: center;
             gap: 5px;
-            min-width: 0;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--navy-muted);
+            text-decoration: none;
+            cursor: pointer;
+            padding: 4px 6px;
+            transition: color 0.15s ease;
+        }
+        .btn-post-action:hover {
+            color: var(--navy-dark);
         }
 
-        .card-bus-name {
+        .btn-plan-route-outline {
+            background: #FFFFFF;
+            color: var(--brand-blue);
+            border: 1px solid var(--brand-blue);
+            border-radius: var(--radius-sm);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-plan-route-outline:hover {
+            background: var(--brand-blue-light);
+            color: var(--brand-blue-dark);
+            border-color: var(--brand-blue-dark);
+        }
+
+        /* Sidebar Cards */
+        .sidebar-widget-title {
             font-family: 'Sora', sans-serif;
-            font-size: 0.92rem;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 8px;
+        }
+        .sidebar-widget-text {
+            font-size: 13px;
+            color: var(--navy-muted);
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+        .btn-sidebar-cta {
+            display: inline-block;
+            background: var(--brand-blue);
+            color: #FFFFFF;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 9px 18px;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s ease;
+        }
+        .btn-sidebar-cta:hover {
+            background: var(--brand-blue-dark);
+        }
+
+        /* "New on Calzada" List */
+        .new-businesses-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .new-business-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: inherit;
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s ease;
+        }
+        .new-business-item:hover {
+            background: #F8FAFC;
+        }
+        .new-bus-photo {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+            background: #EAF2FC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Sora', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1F69B8;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .new-bus-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .new-bus-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .new-bus-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
             font-weight: 700;
             color: var(--navy-dark);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            text-decoration: none;
-            transition: color 0.15s ease;
         }
-
-        .card-bus-name:hover {
-            color: var(--primary);
-        }
-
-        .card-verified-icon {
-            color: var(--primary);
-            font-size: 0.95rem;
-            flex-shrink: 0;
-        }
-
-        .card-bus-category {
-            font-size: 0.78rem;
+        .new-bus-sub {
+            font-size: 12px;
             color: var(--navy-muted);
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
             margin-top: 2px;
         }
 
-        .card-timestamp {
-            font-size: 0.8rem;
-            color: var(--navy-subtle);
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-
-        .card-body {
-            flex: 1;
-            padding: 14px 0;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .card-body::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .card-body::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 4px;
-        }
-
-        .card-caption {
-            font-size: 0.92rem;
-            color: var(--navy-dark);
-            line-height: 1.5;
-            white-space: pre-line;
-            word-break: break-word;
-        }
-
-        .card-footer {
-            padding-top: 12px;
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-            margin-top: auto;
-        }
-
-        .btn-like-post {
-            background: transparent;
-            border: none;
-            color: var(--navy-muted);
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.88rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 8px;
-            margin-left: -8px;
-            border-radius: var(--radius-sm);
-            transition: all 0.15s ease;
-        }
-
-        .btn-like-post i {
-            font-size: 1.25rem;
-            color: var(--navy-subtle);
-            transition: color 0.15s ease, transform 0.15s ease;
-        }
-
-        .btn-like-post.liked i {
-            color: var(--primary);
-        }
-
-        .btn-like-post.liked {
-            color: var(--primary);
-        }
-
-        .btn-like-post:hover:not(:disabled) {
-            background: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .btn-like-post:hover:not(:disabled) i {
-            color: var(--primary);
-        }
-
-        .btn-like-post:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
-
-        /* 4. Pagination / Load More */
-        .pagination-wrap {
-            margin-top: 28px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .btn-load-more {
+        /* Live Businesses Compact Search Results */
+        .search-places-box {
             background: #FFFFFF;
             border: 1px solid var(--border-color);
-            color: var(--navy-dark);
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.92rem;
-            font-weight: 600;
-            padding: 10px 24px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s ease;
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        .search-places-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--navy-subtle);
+            margin-bottom: 10px;
         }
 
-        .btn-load-more:hover:not(:disabled) {
-            background: #F8FAFC;
-            border-color: #CBD5E1;
-            color: var(--primary);
-        }
-
-        .btn-load-more:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        /* 5. Empty State */
-        .feed-empty-state {
+        /* Empty & Error States */
+        .state-notice-card {
             background: #FFFFFF;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             padding: 48px 24px;
             text-align: center;
+            box-shadow: none;
+        }
+        .state-notice-text {
+            font-size: 15px;
             color: var(--navy-muted);
-            font-size: 0.95rem;
+            margin-bottom: 16px;
         }
 
-
-        /* 7. Responsive Breakpoints (Matching Lightbox Architecture) */
-        @media (min-width: 768px) {
-            .discover-container {
-                max-width: 880px;
-                padding: 36px 20px 72px;
-            }
-
-            .discover-card {
-                flex-direction: row;
-                height: 520px;
-            }
-
-            .card-media-panel {
-                width: 60%;
-                height: 100%;
-                flex-shrink: 0;
-            }
-
-            .card-info-panel {
-                width: 40%;
-                height: 100%;
-                border-left: 1px solid var(--border-color);
-                padding: 20px 22px;
-            }
-
-            .card-body {
-                overflow-y: auto;
-                padding-right: 4px;
-            }
+        /* Shared Composer Sheet / Modal Styles */
+        .composer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 44, 83, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .composer-container {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 520px;
+            box-shadow: none !important;
+            padding: 24px;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.97); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .composer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .composer-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--navy-dark);
+        }
+        .composer-sub {
+            font-size: 12px;
+            color: var(--navy-muted);
+            margin-top: 2px;
+        }
+        .composer-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: var(--navy-subtle);
+            cursor: pointer;
+        }
+        .composer-segmented {
+            display: flex;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .segmented-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--navy-muted);
+            cursor: pointer;
+            background: #FFFFFF;
+            transition: all 0.15s ease;
+        }
+        .segmented-item input {
+            display: none;
+        }
+        .segmented-item.active {
+            background: var(--brand-blue-light);
+            color: var(--brand-blue-dark);
+        }
+        .promo-date-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 13px;
+        }
+        .promo-date-input {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 6px 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            color: var(--navy-dark);
+            outline: none;
+        }
+        .composer-dropzone {
+            border: 2px dashed #CBD5E1;
+            border-radius: var(--radius-sm);
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 14px;
+            background: #F8FAFC;
+            transition: border-color 0.15s ease;
+        }
+        .composer-dropzone:hover {
+            border-color: var(--brand-blue);
+        }
+        .composer-thumbs-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 14px;
+        }
+        .composer-thumb-item {
+            position: relative;
+            width: 64px;
+            height: 48px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            flex-shrink: 0;
+        }
+        .composer-thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .composer-thumb-remove {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 18px;
+            height: 18px;
+            background: rgba(0,0,0,0.6);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+        .composer-textarea {
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            color: var(--navy-dark);
+            resize: vertical;
+            outline: none;
+            margin-bottom: 16px;
+        }
+        .composer-textarea:focus {
+            border-color: var(--brand-blue);
+        }
+        .composer-footer {
+            display: flex;
+            justify-content: flex-end;
+        }
+        .composer-submit-btn {
+            background: var(--brand-blue);
+            color: #FFFFFF;
+            border: 1px solid var(--brand-blue);
+            padding: 8px 20px;
+            border-radius: var(--radius-sm);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .composer-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
+        /* Floating Bottom Navigation Bar (Phone ≤ 767px) */
+        .floating-bottom-nav {
+            display: none;
+        }
+
+        /* Responsive Breakpoints */
         @media (max-width: 767px) {
-            .discover-container {
-                max-width: 470px;
-                padding: 20px 16px 48px;
+            .updates-page-wrapper {
+                padding: 16px 14px 110px; /* Safe padding for bottom bar */
             }
-
-            .discover-card {
+            .updates-grid-layout {
                 flex-direction: column;
-                height: auto;
+                gap: 20px;
+            }
+            .updates-feed-col {
+                max-width: 100%;
+            }
+            .updates-sidebar-col {
+                display: none; /* Desktop sidebar hidden; Own a Business card sits after 1st post */
+            }
+            .btn-new-post,
+            .search-box-wrap {
+                display: none; /* Moved to floating bottom nav on phone */
+            }
+            .updates-header-row {
+                margin-bottom: 16px;
+            }
+            .updates-h1 {
+                font-size: 26px;
             }
 
-            .card-media-panel {
+            /* Floating Bottom Bar */
+            .floating-bottom-nav {
+                display: flex;
+                position: fixed;
+                left: 16px;
+                right: 16px;
+                bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+                height: 64px;
+                background: #FFFFFF;
+                border: 1px solid var(--border-color);
+                border-radius: 32px;
+                box-shadow: none !important;
+                z-index: 900;
+                align-items: center;
+                justify-content: space-around;
+                padding: 0 6px;
+            }
+            .keyboard-open .floating-bottom-nav,
+            body.composer-open .floating-bottom-nav {
+                display: none !important;
+            }
+            .bottom-nav-btn {
+                background: transparent;
+                border: none;
+                width: 48px;
+                height: 48px;
+                border-radius: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--navy-dark);
+                font-size: 26px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: background 0.15s ease;
+            }
+            .bottom-nav-btn.active {
+                background: var(--brand-blue-light);
+                color: var(--brand-blue-dark);
+            }
+
+            /* Mobile Search Header Replace */
+            .mobile-search-bar {
+                display: flex;
+                align-items: center;
+                gap: 10px;
                 width: 100%;
-                aspect-ratio: 4 / 5;
+                margin-bottom: 12px;
+            }
+            .mobile-search-input {
+                flex: 1;
+                height: 44px;
+                padding: 0 14px 0 38px;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-sm);
+                font-size: 14px;
+                outline: none;
+            }
+            .mobile-search-cancel {
+                background: transparent;
+                border: none;
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--brand-blue-dark);
+                cursor: pointer;
             }
 
-            .card-info-panel {
-                width: 100%;
-                padding: 16px;
-                border-left: none;
+            /* Bottom Sheet on Mobile for Composer */
+            .composer-overlay {
+                padding: 0;
+                align-items: flex-end;
             }
-        }
-
-        @media (max-width: 640px) {
-            .discover-topbar {
-                padding: 0 16px;
-            }
-            .breadcrumb-root,
-            .breadcrumb-sep {
-                display: none;
-            }
-            .topbar-nav-link {
-                display: none;
-            }
-            .topbar-user-email {
-                display: none;
+            .composer-container {
+                max-width: none;
+                border-radius: 16px 16px 0 0;
+                border-bottom: none;
+                max-height: 90vh;
+                overflow-y: auto;
             }
         }
     </style>
 </head>
 
 <body>
-    <!-- Top Bar Navigation -->
-    <header class="discover-topbar">
-        <div class="topbar-left">
-            <a href="/" class="topbar-brand">
-                <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="topbar-logo">
-            </a>
-            <div class="topbar-breadcrumb">
-                <a href="/" class="breadcrumb-root">Home</a>
-                <span class="breadcrumb-sep">/</span>
-                <span class="breadcrumb-current">Updates</span>
-            </div>
-        </div>
 
-        <div class="topbar-right">
-            <a href="/about" class="topbar-nav-link">About Us</a>
-            <a href="/places" class="topbar-nav-link">Places</a>
-            <a href="/faq" class="topbar-nav-link">FAQs</a>
-            <a href="/planner" class="topbar-nav-link">Planner</a>
-            
-            <div id="authNavContainer">
-                <a href="/login?redirect=/discover" class="topbar-auth-btn" id="navSignInBtn">
-                    <i class="ti ti-user"></i>
-                    <span>Sign In</span>
-                </a>
-                <div class="topbar-user-pill" id="navUserPill" style="display: none;">
-                    <a href="/my-business" class="topbar-nav-link" style="font-weight: 600; color: var(--primary);">My Business</a>
-                    <span class="topbar-user-email" id="navUserEmail"></span>
-                    <button type="button" class="topbar-logout-btn" id="navLogoutBtn" title="Log Out" aria-label="Log Out">
-                        <i class="ti ti-logout"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
+    <!-- Header Navigation -->
+    <header class="site-topbar">
+        <a href="/" class="topbar-brand" title="Calzada Home">
+            <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="topbar-logo">
+        </a>
+        <nav class="topbar-nav">
+            <a href="/discover" class="active" data-i18n="nav.updates">Updates</a>
+            <a href="/places" data-i18n="nav.places">Places</a>
+            <a href="/planner" data-i18n="nav.planner">Planner</a>
+            <a href="/plans" data-i18n="nav.forBusinesses">For businesses</a>
+            <a href="/login?redirect=/discover" id="topbarAuthLink" style="font-weight: 600;">Sign In</a>
+        </nav>
     </header>
 
-    <!-- Main Container -->
-    <main class="discover-container">
-        <div class="page-header">
-            <h1 class="page-title">Updates</h1>
-            <p class="page-subtitle">Local businesses and moments around Calamba.</p>
-            <p class="discover-owner-cta" id="discoverOwnerCta" style="margin-top: 8px; font-size: 0.88rem; color: #64748B;">Own a business in Calamba? <a href="/submit" style="color: #1F69B8; text-decoration: underline;">List it on Calzada</a></p>
+    <!-- Main Updates Content -->
+    <main class="updates-page-wrapper">
+
+        <!-- Mobile Search Block (Revealed on phone when Search icon is tapped) -->
+        <div id="mobileSearchBlock" style="display: none;">
+            <div class="mobile-search-bar">
+                <div style="position: relative; flex: 1;">
+                    <i class="ti ti-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--navy-subtle); font-size: 18px;"></i>
+                    <input type="text" id="mobileSearchInput" class="mobile-search-input" placeholder="Search businesses or posts">
+                </div>
+                <button type="button" class="mobile-search-cancel" id="btnCancelMobileSearch">Cancel</button>
+            </div>
+            <div id="mobileSearchHint" style="font-size: 12px; color: var(--navy-muted); margin-bottom: 16px;">
+                Try a place, a barangay, or "promo"
+            </div>
         </div>
 
-        <!-- Feed List -->
-        <div class="discover-feed" id="discoverFeed" aria-busy="false">
-            <!-- Populated via JS -->
+        <!-- Header Row (Desktop Search & New Post) -->
+        <div class="updates-header-row" id="updatesTitleRow">
+            <div class="updates-title-block">
+                <h1 class="updates-h1">Updates</h1>
+                <p class="updates-subtitle">What's new at places around Calamba.</p>
+            </div>
+
+            <div class="updates-header-actions">
+                <div class="search-box-wrap">
+                    <i class="ti ti-search search-icon"></i>
+                    <input type="text" id="desktopSearchInput" class="search-input" placeholder="Search businesses or posts">
+                </div>
+                <button type="button" class="btn-new-post" id="btnDesktopNewPost">
+                    <i class="ti ti-plus"></i>
+                    <span>New post</span>
+                </button>
+            </div>
         </div>
 
-        <!-- Visually hidden status for screen readers -->
-        <div class="sr-only" role="status" id="feedStatus" aria-live="polite"></div>
-
-        <!-- Empty State -->
-        <div class="feed-empty-state" id="feedEmptyState" style="display: none;">
-            No posts yet. Check back soon.
+        <!-- Category Tabs (Underline row) -->
+        <div class="category-underline-tabs">
+            <button type="button" class="cat-tab active" data-category="all">All</button>
+            <button type="button" class="cat-tab" data-category="eateries">Eateries</button>
+            <button type="button" class="cat-tab" data-category="coffee">Coffee shops</button>
+            <button type="button" class="cat-tab" data-category="establishments">Shops & services</button>
+            <button type="button" class="cat-tab" data-category="hotels">Hotels & stays</button>
+            <button type="button" class="cat-tab" data-category="schools">Schools</button>
         </div>
 
-        <!-- Pagination Load More -->
-        <div class="pagination-wrap" id="paginationWrap" style="display: none;">
-            <button type="button" class="btn-load-more" id="btnLoadMore">Load more</button>
+        <!-- Matching Live Places Box (shown during active search) -->
+        <div class="search-places-box" id="searchPlacesBox" style="display: none;">
+            <div class="search-places-title">Matching Places in Calamba</div>
+            <div id="searchPlacesList" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
+
+        <!-- Two Columns Layout -->
+        <div class="updates-grid-layout">
+
+            <!-- Feed Column (max 680px) -->
+            <div class="updates-feed-col" id="updatesFeedContainer">
+                <!-- Posts or skeletons rendered here -->
+            </div>
+
+            <!-- Desktop Sidebar Column (min 300px) -->
+            <aside class="updates-sidebar-col">
+                <!-- Own a Business Card -->
+                <div class="flat-card" id="sidebarOwnBusinessCard">
+                    <h2 class="sidebar-widget-title">Own a business in Calamba?</h2>
+                    <p class="sidebar-widget-text">
+                        List it on Calzada so commuters can find it, plan a route to it, and see your updates here.
+                    </p>
+                    <a href="/plans" class="btn-sidebar-cta">List your business</a>
+                </div>
+
+                <!-- New on Calzada Card -->
+                <div class="flat-card" id="sidebarNewOnCalzadaCard">
+                    <h2 class="sidebar-widget-title" style="margin-bottom: 14px;">New on Calzada</h2>
+                    <div class="new-businesses-list" id="newBusinessesList">
+                        <!-- Populated dynamically: Featured first, then newest paidAt -->
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+
     </main>
 
-    <!-- Firebase SDK Logic -->
+    <!-- Floating Bottom Navigation Bar (Phone ≤ 767px) -->
+    <nav class="floating-bottom-nav" id="floatingBottomNav" aria-label="Mobile Navigation">
+        <!-- 1. Updates (active) -->
+        <button type="button" class="bottom-nav-btn active" id="btnNavUpdates" title="Updates">
+            <i class="ti ti-home"></i>
+        </button>
+
+        <!-- 2. Search -->
+        <button type="button" class="bottom-nav-btn" id="btnNavSearch" title="Search">
+            <i class="ti ti-search"></i>
+        </button>
+
+        <!-- 3. New Post -->
+        <button type="button" class="bottom-nav-btn" id="btnNavNewPost" title="New post">
+            <i class="ti ti-square-plus"></i>
+        </button>
+
+        <!-- 4. Planner -->
+        <a href="/planner" class="bottom-nav-btn" id="btnNavPlanner" title="Planner">
+            <i class="ti ti-route"></i>
+        </a>
+
+        <!-- 5. Account -->
+        <a href="/login?redirect=/discover" class="bottom-nav-btn" id="btnNavAccount" title="Account">
+            <i class="ti ti-user" id="navAccountIcon"></i>
+        </a>
+    </nav>
+
+    <!-- Plans Config & i18n -->
+    <script src="../js/plans-config.js?v=2.9.1"></script>
+    <script src="../js/i18n.js?v=2.9.1"></script>
+
+    <!-- Script Module -->
     <script type="module">
         import { 
             auth, 
             db, 
             onAuthStateChanged, 
-            signOut,
             collection, 
             doc, 
             getDoc, 
@@ -765,689 +1076,745 @@
             where, 
             orderBy, 
             limit, 
-            startAfter,
-            documentId,
-            serverTimestamp,
-            runTransaction 
+            serverTimestamp, 
+            Timestamp,
+            setDoc,
+            runTransaction,
+            getFirebaseIdToken 
         } from '../js/firebase-init.js';
 
+        import { 
+            openPostComposer, 
+            countBusinessPostsThisMonth 
+        } from '../js/post-composer.js?v=2.9.1';
+
+        // State
         let currentUser = null;
+        let userLiveBusiness = null;
+        let allLiveBusinesses = [];
         let postsData = [];
         let postCarouselIndices = new Map();
-        let lastDocSnapshot = null;
-        let hasMorePosts = false;
-        let isFetching = false;
-        const PAGE_SIZE = 12;
+        let currentCategoryFilter = 'all';
+        let searchQuery = '';
+        let isSearchActive = false;
 
-        const discoverFeed = document.getElementById('discoverFeed');
-        const feedEmptyState = document.getElementById('feedEmptyState');
-        const paginationWrap = document.getElementById('paginationWrap');
-        const btnLoadMore = document.getElementById('btnLoadMore');
-        let skeletonTimer = null;
+        const feedContainer = document.getElementById('updatesFeedContainer');
+        const desktopSearchInput = document.getElementById('desktopSearchInput');
+        const mobileSearchInput = document.getElementById('mobileSearchInput');
+        const mobileSearchBlock = document.getElementById('mobileSearchBlock');
+        const updatesTitleRow = document.getElementById('updatesTitleRow');
+        const btnCancelMobileSearch = document.getElementById('btnCancelMobileSearch');
+        const searchPlacesBox = document.getElementById('searchPlacesBox');
+        const searchPlacesList = document.getElementById('searchPlacesList');
+        const topbarAuthLink = document.getElementById('topbarAuthLink');
+        const btnNavAccount = document.getElementById('btnNavAccount');
 
-        function getSkeletonCardHtml() {
-            return `
-            <article class="discover-card is-skeleton" aria-hidden="true">
-                <div class="card-media-panel">
-                    <div class="card-media-wrap">
-                        <div class="skeleton-media"></div>
-                    </div>
-                </div>
-                <div class="card-info-panel">
-                    <div class="card-header">
-                        <div class="card-header-left">
-                            <div class="card-avatar skeleton-avatar"></div>
-                            <div class="card-bus-info">
-                                <div class="card-bus-name-row">
-                                    <div class="skeleton-line sk-line-name"></div>
-                                </div>
-                                <div class="skeleton-line sk-line-category"></div>
-                            </div>
-                        </div>
-                        <div class="skeleton-line sk-line-time"></div>
-                    </div>
-                    <div class="card-body">
-                        <div class="skeleton-line sk-line-caption-1"></div>
-                        <div class="skeleton-line sk-line-caption-2"></div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="skeleton-line sk-line-like"></div>
-                    </div>
-                </div>
-            </article>
-            `;
-        }
-
-        function showSkeletons() {
-            if (!discoverFeed) return;
-            discoverFeed.setAttribute('aria-busy', 'true');
-            const statusEl = document.getElementById('feedStatus');
-            if (statusEl) statusEl.textContent = 'Loading posts';
-
-            const count = window.innerWidth >= 768 ? 2 : 1;
-            let skHtml = '';
-            for (let i = 0; i < count; i++) {
-                skHtml += getSkeletonCardHtml();
-            }
-            discoverFeed.innerHTML = skHtml;
-        }
-
-        function clearSkeletons() {
-            if (skeletonTimer) {
-                clearTimeout(skeletonTimer);
-                skeletonTimer = null;
-            }
-            if (discoverFeed) {
-                discoverFeed.setAttribute('aria-busy', 'false');
-            }
-            const statusEl = document.getElementById('feedStatus');
-            if (statusEl) statusEl.textContent = '';
-        }
-
-        window.onMediaImgLoaded = function(img) {
-            if (!img) return;
-            img.classList.add('loaded');
-            const panel = img.closest('.card-media-panel');
-            if (panel) panel.classList.add('media-loaded');
-        };
-
-        const navSignInBtn = document.getElementById('navSignInBtn');
-        const navUserPill = document.getElementById('navUserPill');
-        const navUserEmail = document.getElementById('navUserEmail');
-        const navLogoutBtn = document.getElementById('navLogoutBtn');
-
-        // Category formatting helper
-        function formatCategoryName(cat) {
-            if (!cat) return 'Local Business';
-            const map = {
-                'malls': 'Malls & Shopping',
-                'eateries': 'Eateries & Dining',
-                'resorts': 'Resorts & Hot Springs',
-                'landmarks': 'Landmarks & Culture',
-                'recreation': 'Parks & Recreation',
-                'services': 'Services & Utilities',
-                'establishments': 'Commercial Establishment'
-            };
-            return map[cat] || (cat.charAt(0).toUpperCase() + cat.slice(1));
-        }
-
-        // Relative timestamp formatter
-        function formatRelativeDate(timestamp) {
-            if (!timestamp) return '';
-            let date = null;
-            if (timestamp.toDate) date = timestamp.toDate();
-            else if (timestamp.seconds) date = new Date(timestamp.seconds * 1000);
-            else if (timestamp instanceof Date) date = timestamp;
-            else return '';
-
-            const now = new Date();
-            const diffSeconds = Math.floor((now - date) / 1000);
-            if (diffSeconds < 60) return 'Just now';
-            const diffMinutes = Math.floor(diffSeconds / 60);
-            if (diffMinutes < 60) return `${diffMinutes}m ago`;
-            const diffHours = Math.floor(diffMinutes / 60);
-            if (diffHours < 24) return `${diffHours}h ago`;
-            const diffDays = Math.floor(diffHours / 24);
-            if (diffDays < 7) return `${diffDays}d ago`;
-
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        }
-
-        // HTML escaping helper
         function escapeHtml(str) {
-            if (!str) return '';
             const div = document.createElement('div');
-            div.textContent = str;
+            div.textContent = str || '';
             return div.innerHTML;
         }
 
-        // 1. Auth State Monitoring
-        onAuthStateChanged(auth, async (user) => {
-            currentUser = user;
-            const ownerCta = document.getElementById('discoverOwnerCta');
-            if (user) {
-                if (navSignInBtn) navSignInBtn.style.display = 'none';
-                if (navUserPill) navUserPill.style.display = 'flex';
-                if (navUserEmail) navUserEmail.textContent = user.email || 'User';
-
-                // Hide registration link if user already has an active business (pending or approved)
-                try {
-                    const snap = await getDocs(query(collection(db, 'businesses'), where('ownerId', '==', user.uid)));
-                    const hasBiz = !snap.empty && snap.docs.some(d => {
-                        const st = d.data().status;
-                        return st === 'pending' || st === 'approved';
-                    });
-                    if (ownerCta) ownerCta.style.display = hasBiz ? 'none' : 'block';
-                } catch (_) {
-                    if (ownerCta) ownerCta.style.display = 'block';
-                }
-
-                // Sync like state for already rendered posts
-                await syncLikeStatesForLoadedPosts();
-            } else {
-                if (navSignInBtn) navSignInBtn.style.display = 'inline-flex';
-                if (navUserPill) navUserPill.style.display = 'none';
-                if (ownerCta) ownerCta.style.display = 'block';
-            }
-        });
-
-        if (navLogoutBtn) {
-            navLogoutBtn.addEventListener('click', async () => {
-                try {
-                    await signOut(auth);
-                    window.location.reload();
-                } catch (err) {
-                    console.error('Logout failed:', err);
-                }
-            });
-        }
-
-        // 2. Fetch Business Profile Photos in Single Batched Query
-        async function fetchBatchedBusinessPhotos(businessIds) {
-            const photoMap = new Map();
-            const uniqueIds = Array.from(new Set(businessIds.filter(id => Boolean(id))));
-            if (uniqueIds.length === 0) return photoMap;
-
+        function formatRelativeDate(val) {
+            if (!val) return 'Recently';
             try {
-                // Single batched 'in' query across unique businessIds (supports up to 30)
-                const q = query(
-                    collection(db, 'businesses'),
-                    where(documentId(), 'in', uniqueIds)
-                );
-                const snapshot = await getDocs(q);
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    photoMap.set(docSnap.id, data.profilePhotoUrl || null);
-                });
-            } catch (err) {
-                // Fallback B resilience: If batched collection query omits or errors on revoked docs
-                await Promise.all(uniqueIds.map(async (busId) => {
-                    try {
-                        const snap = await getDoc(doc(db, 'businesses', busId));
-                        if (snap.exists()) photoMap.set(busId, snap.data().profilePhotoUrl || null);
-                        else photoMap.set(busId, null);
-                    } catch (_) {
-                        photoMap.set(busId, null);
-                    }
-                }));
+                const d = val.toDate ? val.toDate() : (val instanceof Date ? val : new Date(val));
+                if (isNaN(d.getTime())) return 'Recently';
+                const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+                if (diffSec < 60) return 'Just now';
+                const diffMin = Math.floor(diffSec / 60);
+                if (diffMin < 60) return `${diffMin}m ago`;
+                const diffHours = Math.floor(diffMin / 60);
+                if (diffHours < 24) return `${diffHours}h ago`;
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 30) return `${diffDays}d ago`;
+                return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+            } catch (_) {
+                return 'Recently';
             }
-
-            return photoMap;
         }
 
-        // 3. Load Feed Posts
-        async function loadDiscoverFeed(isLoadMore = false) {
-            if (isFetching) return;
-            isFetching = true;
+        function formatCategoryLabel(cat) {
+            const map = {
+                eateries: 'Eatery',
+                coffee: 'Coffee shop',
+                establishments: 'Shops & services',
+                hotels: 'Hotels & stays',
+                schools: 'School',
+                malls: 'Mall'
+            };
+            return map[cat] || (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'Place');
+        }
 
-            if (!isLoadMore) {
-                feedEmptyState.style.display = 'none';
-                if (paginationWrap) paginationWrap.style.display = 'none';
-                // If posts arrive in under 150ms, do not show the skeleton at all
-                skeletonTimer = setTimeout(() => {
-                    showSkeletons();
-                }, 150);
-            } else {
-                btnLoadMore.disabled = true;
-                btnLoadMore.textContent = 'Loading...';
-            }
-
-            try {
-                let postsQuery;
-                if (isLoadMore && lastDocSnapshot) {
-                    postsQuery = query(
-                        collection(db, 'posts'),
-                        orderBy('createdAt', 'desc'),
-                        startAfter(lastDocSnapshot),
-                        limit(PAGE_SIZE)
-                    );
-                } else {
-                    postsQuery = query(
-                        collection(db, 'posts'),
-                        orderBy('createdAt', 'desc'),
-                        limit(PAGE_SIZE)
-                    );
-                }
-
-                const snapshot = await getDocs(postsQuery);
-                const docsCount = snapshot.docs.length;
-
-                if (docsCount > 0) {
-                    lastDocSnapshot = snapshot.docs[docsCount - 1];
-                    hasMorePosts = docsCount === PAGE_SIZE;
-
-                    const newPosts = snapshot.docs
-                        .filter(docSnap => docSnap.data().status === 'active')
-                        .map(docSnap => {
-                            const d = docSnap.data();
-                            let photos = [];
-                            if (Array.isArray(d.photoUrls)) {
-                                photos = d.photoUrls;
-                            } else if (d.photoUrl) {
-                                photos = [d.photoUrl];
-                            }
-                            return {
-                                id: docSnap.id,
-                                ...d,
-                                photoUrls: photos,
-                                likeCount: typeof d.likeCount === 'number' ? d.likeCount : 0,
-                                isLiked: false,
-                                profilePhotoUrl: null // will be populated via batch fetch
-                            };
-                        });
-
-                    // Batched fresh profile photo fetch
-                    const busIds = newPosts.map(p => p.businessId);
-                    const photoMap = await fetchBatchedBusinessPhotos(busIds);
-
-                    newPosts.forEach(p => {
-                        // Safe fallback handling:
-                        // Case a: doc returned but profilePhotoUrl is null
-                        // Case b: doc missing (e.g. revoked status) -> photoMap.get(p.businessId) returns undefined
-                        p.profilePhotoUrl = photoMap.get(p.businessId) || null;
-                    });
-
-                    clearSkeletons();
-
-                    if (isLoadMore) {
-                        postsData = postsData.concat(newPosts);
-                        appendPostsToFeed(newPosts);
-                    } else {
-                        postsData = newPosts;
-                        renderFullFeed();
-                    }
-
-                    if (currentUser) {
-                        await syncLikeStatesForLoadedPosts();
-                    }
-
-                } else {
-                    hasMorePosts = false;
-                    clearSkeletons();
-                    if (!isLoadMore) {
-                        postsData = [];
-                        discoverFeed.innerHTML = '';
-                        feedEmptyState.style.display = 'block';
-                    }
-                }
-
-                if (paginationWrap) {
-                    paginationWrap.style.display = hasMorePosts ? 'flex' : 'none';
-                }
-
-            } catch (err) {
-                console.error('Error loading discover feed:', err);
-                clearSkeletons();
-                if (!isLoadMore) {
-                    discoverFeed.innerHTML = `
-                        <div class="quiet-error-state">
-                            <p class="quiet-error-text">Couldn't load this right now. Try refreshing.</p>
-                            <button type="button" class="quiet-error-action" onclick="window.location.reload()">Refresh</button>
+        // Show Skeleton Cards while loading
+        function showSkeletons() {
+            if (!feedContainer) return;
+            feedContainer.innerHTML = `
+                <div class="post-card is-skeleton" style="padding: 20px;">
+                    <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 16px;">
+                        <div style="width: 44px; height: 44px; border-radius: 50%; background: #E2E8F0;"></div>
+                        <div style="flex: 1;">
+                            <div style="width: 140px; height: 16px; background: #E2E8F0; border-radius: 4px; margin-bottom: 6px;"></div>
+                            <div style="width: 90px; height: 12px; background: #E2E8F0; border-radius: 4px;"></div>
                         </div>
-                    `;
-                }
-            } finally {
-                clearSkeletons();
-                isFetching = false;
-                if (btnLoadMore) {
-                    btnLoadMore.disabled = false;
-                    btnLoadMore.textContent = 'Load more';
-                }
-            }
-        }
-
-        // 4. Like state synchronizer for authenticated viewer
-        async function syncLikeStatesForLoadedPosts() {
-            if (!currentUser || postsData.length === 0) return;
-            await Promise.all(postsData.map(async (post) => {
-                try {
-                    const likeSnap = await getDoc(doc(db, 'posts', post.id, 'likes', currentUser.uid));
-                    const isLiked = likeSnap.exists();
-                    post.isLiked = isLiked;
-                    const btn = document.querySelector(`.btn-like-post[data-post-id="${post.id}"]`);
-                    if (btn) {
-                        btn.classList.toggle('liked', isLiked);
-                        const icon = btn.querySelector('i');
-                        if (icon) icon.className = `ti ${isLiked ? 'ti-heart-filled' : 'ti-heart'}`;
-                    }
-                } catch (e) {
-                    console.warn('Could not sync like state for post', post.id, e);
-                }
-            }));
-        }
-
-        /**
-         * True only for a URL a browser can actually fetch from any deployment.
-         *
-         * Uploads now return an absolute Cloudinary https URL. Posts created before that
-         * hold a relative "/uploads/..." path pointing at a file on whichever machine
-         * received the upload - it resolves nowhere in production, so treat it as missing
-         * and show the placeholder instead of letting the browser draw a broken icon.
-         */
-        function isUsableImageUrl(url) {
-            if (typeof url !== 'string') return false;
-            const trimmed = url.trim();
-            if (!trimmed) return false;
-            if (trimmed.startsWith('/uploads/')) return false;
-            return /^https?:\/\//i.test(trimmed) || trimmed.startsWith('data:') || trimmed.startsWith('../assets/');
-        }
-
-        /** Up to two initials from the business name, e.g. "Shabu ni Erms" -> "SE". */
-        function businessInitials(name) {
-            if (typeof name !== 'string') return '';
-            const words = name.trim().split(/\s+/).filter(w => /[A-Za-z0-9]/.test(w));
-            if (words.length === 0) return '';
-            // A single word contributes its first two letters/digits, skipping punctuation
-            // so "7-Eleven" reads as "7E" rather than "7-".
-            if (words.length === 1) return words[0].replace(/[^A-Za-z0-9]/g, '').slice(0, 2);
-            return (words[0][0] || '') + (words[words.length - 1][0] || '');
-        }
-
-        function mediaFallbackHtml() {
-            return `
-                <div class="card-media-empty" role="img" aria-label="No photo for this post">
-                    <i class="ti ti-photo-off"></i>
-                    <span>No photo</span>
-                </div>`;
-        }
-
-        /** Swaps a failed avatar for the business initials (or the generic store icon). */
-        function showAvatarFallback(img) {
-            if (!img || !img.parentElement) return;
-            const initials = img.getAttribute('data-initials') || '';
-            img.outerHTML = initials
-                ? `<span class="card-avatar-initials">${escapeHtml(initials)}</span>`
-                : `<i class="ti ti-building-store card-avatar-placeholder"></i>`;
-        }
-        window.showAvatarFallback = showAvatarFallback;
-
-        /** Swaps a failed <img> for the neutral panel, so a dead URL never shows as broken. */
-        function showMediaFallback(postId) {
-            const img = document.getElementById(`media-img-${postId}`);
-            if (img && img.parentElement) {
-                img.outerHTML = mediaFallbackHtml();
-            }
-        }
-        window.showMediaFallback = showMediaFallback;
-
-        // 5. Render single card HTML
-        function generatePostCardHtml(post) {
-            const photos = post.photoUrls || [];
-            const currentIdx = postCarouselIndices.get(post.id) || 0;
-            const isMulti = photos.length > 1;
-            const currentPhoto = photos[currentIdx] || photos[0] || '';
-
-            // Avatar: the business initials stand in when there is no photo, and also when
-            // the photo fails to load - posts created before image hosting stored a local
-            // "/uploads/..." path that 404s anywhere but the machine that received it.
-            const initials = businessInitials(post.businessName);
-            let avatarHtml = '';
-            if (isUsableImageUrl(post.profilePhotoUrl)) {
-                avatarHtml = `<img src="${escapeHtml(post.profilePhotoUrl)}" alt="${escapeHtml(post.businessName || 'Business')}" class="card-avatar-img" data-initials="${escapeHtml(initials)}" onerror="showAvatarFallback(this)">`;
-            } else if (initials) {
-                avatarHtml = `<span class="card-avatar-initials">${escapeHtml(initials)}</span>`;
-            } else {
-                avatarHtml = `<i class="ti ti-building-store card-avatar-placeholder"></i>`;
-            }
-
-            // Media / Carousel rendering inside .card-media-panel. A post with no usable
-            // photo gets a neutral panel rather than a broken-image icon.
-            let mediaInnerHtml = isUsableImageUrl(currentPhoto)
-                ? `<img src="${escapeHtml(currentPhoto)}" alt="Post photo" class="card-media-img" id="media-img-${post.id}" onload="onMediaImgLoaded(this)" onerror="showMediaFallback('${post.id}')">`
-                : mediaFallbackHtml();
-
-            if (isMulti) {
-                let dotsHtml = '';
-                for (let i = 0; i < photos.length; i++) {
-                    dotsHtml += `<button type="button" class="carousel-dot ${i === currentIdx ? 'active' : ''}" data-post-id="${post.id}" data-dot-index="${i}" aria-label="Go to photo ${i + 1}"></button>`;
-                }
-
-                mediaInnerHtml += `
-                    <button type="button" class="carousel-btn carousel-prev" data-post-id="${post.id}" aria-label="Previous photo">
-                        <i class="ti ti-chevron-left"></i>
-                    </button>
-                    <button type="button" class="carousel-btn carousel-next" data-post-id="${post.id}" aria-label="Next photo">
-                        <i class="ti ti-chevron-right"></i>
-                    </button>
-                    <div class="carousel-dots" id="dots-${post.id}">
-                        ${dotsHtml}
                     </div>
-                `;
-            }
-
-            return `
-            <article class="discover-card" id="card-${post.id}" data-post-id="${post.id}">
-                <!-- Left/Top: Media Photo Panel (~60-65% desktop, 100% mobile) -->
-                <div class="card-media-panel">
-                    <div class="card-media-wrap" id="media-wrap-${post.id}">
-                        ${mediaInnerHtml}
-                    </div>
+                    <div style="width: 100%; padding-top: 75%; background: #E2E8F0; border-radius: 8px; margin-bottom: 16px;"></div>
+                    <div style="width: 70%; height: 14px; background: #E2E8F0; border-radius: 4px;"></div>
                 </div>
-
-                <!-- Right/Bottom: Info Panel (~35-40% desktop, 100% mobile) -->
-                <div class="card-info-panel">
-                    <div class="card-header">
-                        <div class="card-header-left">
-                            <a href="/business?id=${post.businessId}" class="card-avatar" id="avatar-${post.id}" style="text-decoration: none; color: inherit;" title="View business profile">
-                                ${avatarHtml}
-                            </a>
-                            <div class="card-bus-info">
-                                <div class="card-bus-name-row">
-                                    <a href="/business?id=${post.businessId}" class="card-bus-name" title="View business profile">
-                                        ${escapeHtml(post.businessName || 'Local Business')}
-                                    </a>
-                                    <i class="ti ti-circle-check card-verified-icon" title="Verified business"></i>
-                                </div>
-                                <span class="card-bus-category">${formatCategoryName(post.businessCategory)}</span>
-                            </div>
-                        </div>
-                        <time class="card-timestamp">${formatRelativeDate(post.createdAt)}</time>
-                    </div>
-
-                    <div class="card-body">
-                        ${post.caption ? `<p class="card-caption">${escapeHtml(post.caption)}</p>` : ''}
-                    </div>
-
-                    <div class="card-footer">
-                        <button type="button" class="btn-like-post ${post.isLiked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like post">
-                            <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
-                            <span class="like-count">${post.likeCount || 0}</span>
-                        </button>
-                    </div>
-                </div>
-            </article>
             `;
         }
 
-        // 6. Attach Card Event Listeners (Carousels & Likes)
-        function attachCardListeners(container) {
-            // Media Image loaded transition
-            container.querySelectorAll('.card-media-img').forEach(img => {
-                if (img.complete && img.naturalWidth > 0) {
-                    onMediaImgLoaded(img);
-                } else {
-                    img.addEventListener('load', () => onMediaImgLoaded(img), { once: true });
+        // Load Feed & Live Businesses
+        async function loadUpdatesFeed() {
+            if (typeof window !== 'undefined' && window.__TEST_MOCK_FEED__) {
+                return;
+            }
+            showSkeletons();
+            try {
+                // 1. Fetch live businesses
+                const bQuery = query(collection(db, 'businesses'), where('status', '==', 'approved'));
+                const bSnap = await getDocs(bQuery);
+                if (typeof window !== 'undefined' && window.__TEST_MOCK_FEED__) return;
+                allLiveBusinesses = bSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // 2. Fetch posts
+                const pQuery = query(collection(db, 'posts'), where('status', '==', 'active'));
+                const pSnap = await getDocs(pQuery);
+                const loaded = pSnap.docs.map(d => {
+                    const data = d.data();
+                    let photos = [];
+                    if (Array.isArray(data.photoUrls)) photos = data.photoUrls;
+                    else if (data.photoUrl) photos = [data.photoUrl];
+
+                    return {
+                        id: d.id,
+                        ...data,
+                        photoUrls: photos,
+                        likeCount: typeof data.likeCount === 'number' ? data.likeCount : 0,
+                        isLiked: false
+                    };
+                });
+
+                // Load liked state if user is logged in
+                if (currentUser) {
+                    await Promise.all(loaded.map(async p => {
+                        try {
+                            const lSnap = await getDoc(doc(db, 'posts', p.id, 'likes', currentUser.uid));
+                            p.isLiked = lSnap.exists();
+                        } catch (_) {}
+                    }));
                 }
-            });
-            // Carousel Prev
-            container.querySelectorAll('.carousel-prev').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const postId = btn.getAttribute('data-post-id');
-                    const post = postsData.find(p => p.id === postId);
-                    if (!post || !post.photoUrls || post.photoUrls.length <= 1) return;
 
-                    let idx = postCarouselIndices.get(postId) || 0;
-                    idx = (idx - 1 + post.photoUrls.length) % post.photoUrls.length;
-                    postCarouselIndices.set(postId, idx);
-                    updateCarouselCard(postId, post.photoUrls, idx);
-                });
-            });
+                if (typeof window !== 'undefined' && window.__TEST_MOCK_FEED__) return;
+                postsData = loaded;
+                renderFeed();
+                renderSidebarNewBusinesses();
 
-            // Carousel Next
-            container.querySelectorAll('.carousel-next').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const postId = btn.getAttribute('data-post-id');
-                    const post = postsData.find(p => p.id === postId);
-                    if (!post || !post.photoUrls || post.photoUrls.length <= 1) return;
-
-                    let idx = postCarouselIndices.get(postId) || 0;
-                    idx = (idx + 1) % post.photoUrls.length;
-                    postCarouselIndices.set(postId, idx);
-                    updateCarouselCard(postId, post.photoUrls, idx);
-                });
-            });
-
-            // Carousel Dots
-            container.querySelectorAll('.carousel-dot').forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const postId = dot.getAttribute('data-post-id');
-                    const targetIdx = parseInt(dot.getAttribute('data-dot-index'), 10);
-                    const post = postsData.find(p => p.id === postId);
-                    if (!post || !post.photoUrls || isNaN(targetIdx)) return;
-
-                    postCarouselIndices.set(postId, targetIdx);
-                    updateCarouselCard(postId, post.photoUrls, targetIdx);
-                });
-            });
-
-            // Atomic Like Button with Unauthenticated Client-Side Redirect
-            container.querySelectorAll('.btn-like-post').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-
-                    // Unauthenticated Guard: Fail-fast redirect to login
-                    if (!currentUser) {
-                        window.location.href = '/login?redirect=/discover';
-                        return;
-                    }
-
-                    const postId = btn.getAttribute('data-post-id');
-                    const post = postsData.find(p => p.id === postId);
-                    if (!post) return;
-
-                    btn.disabled = true;
-
-                    try {
-                        const postRef = doc(db, 'posts', postId);
-                        const likeRef = doc(db, 'posts', postId, 'likes', currentUser.uid);
-
-                        const result = await runTransaction(db, async (transaction) => {
-                            const postDoc = await transaction.get(postRef);
-                            if (!postDoc.exists()) {
-                                throw new Error('Post does not exist.');
-                            }
-
-                            const likeDoc = await transaction.get(likeRef);
-                            const currentlyLiked = likeDoc.exists();
-                            const currentCount = typeof postDoc.data().likeCount === 'number' ? postDoc.data().likeCount : 0;
-
-                            if (currentlyLiked) {
-                                transaction.delete(likeRef);
-                                const newCount = Math.max(0, currentCount - 1);
-                                transaction.update(postRef, { likeCount: newCount });
-                                return { liked: false, count: newCount };
-                            } else {
-                                transaction.set(likeRef, { likedAt: serverTimestamp() });
-                                const newCount = currentCount + 1;
-                                transaction.update(postRef, { likeCount: newCount });
-                                return { liked: true, count: newCount };
-                            }
-                        });
-
-                        post.isLiked = result.liked;
-                        post.likeCount = result.count;
-
-                        btn.classList.toggle('liked', result.liked);
-                        const icon = btn.querySelector('i');
-                        if (icon) {
-                            icon.className = `ti ${result.liked ? 'ti-heart-filled' : 'ti-heart'}`;
-                        }
-                        const countSpan = btn.querySelector('.like-count');
-                        if (countSpan) {
-                            countSpan.textContent = result.count;
-                        }
-
-                    } catch (err) {
-                        console.error('Error updating like:', err);
-                    } finally {
-                        btn.disabled = false;
-                    }
-                });
-            });
-        }
-
-        // 7. Update Carousel Image and Dot state on slide change
-        function updateCarouselCard(postId, photos, activeIdx) {
-            const imgEl = document.getElementById(`media-img-${postId}`);
-            if (imgEl && isUsableImageUrl(photos[activeIdx])) {
-                imgEl.src = photos[activeIdx];
-            }
-
-            const dotsContainer = document.getElementById(`dots-${postId}`);
-            if (dotsContainer) {
-                const dots = dotsContainer.querySelectorAll('.carousel-dot');
-                dots.forEach((dot, idx) => {
-                    dot.classList.toggle('active', idx === activeIdx);
-                });
+            } catch (err) {
+                console.error('Error loading updates feed:', err);
+                if (feedContainer) {
+                    feedContainer.innerHTML = `
+                        <div class="state-notice-card">
+                            <p class="state-notice-text">Could not load updates. Please check your connection.</p>
+                            <button type="button" class="btn-sidebar-cta" onclick="window.location.reload()">Try again</button>
+                        </div>
+                    `;
+                }
             }
         }
 
-        // 8. Full Feed Render
-        function renderFullFeed() {
-            if (!discoverFeed) return;
-            if (postsData.length === 0) {
-                discoverFeed.innerHTML = '';
-                feedEmptyState.style.display = 'block';
+        // Render Feed
+        function renderFeed() {
+            if (!feedContainer) return;
+
+            let filtered = postsData.slice();
+
+            // Filter by Category
+            if (currentCategoryFilter !== 'all') {
+                filtered = filtered.filter(p => {
+                    const cat = (p.businessCategory || '').toLowerCase();
+                    if (currentCategoryFilter === 'eateries') return cat === 'eateries' || cat.includes('dining');
+                    if (currentCategoryFilter === 'coffee') return cat === 'coffee' || cat.includes('cafe');
+                    if (currentCategoryFilter === 'establishments') return cat === 'establishments' || cat.includes('shop') || cat === 'malls';
+                    if (currentCategoryFilter === 'hotels') return cat === 'hotels' || cat.includes('stay') || cat.includes('resort');
+                    if (currentCategoryFilter === 'schools') return cat === 'schools' || cat.includes('univ');
+                    return cat === currentCategoryFilter;
+                });
+            }
+
+            // Filter by Search Query (debounced)
+            if (searchQuery.trim()) {
+                const q = searchQuery.toLowerCase().trim();
+                filtered = filtered.filter(p => {
+                    const name = (p.businessName || '').toLowerCase();
+                    const caption = (p.caption || '').toLowerCase();
+                    const category = (p.businessCategory || '').toLowerCase();
+                    const bus = allLiveBusinesses.find(b => b.id === p.businessId);
+                    const barangay = (bus?.barangay || bus?.address || '').toLowerCase();
+                    const label = (p.label || '').toLowerCase();
+
+                    return name.includes(q) || caption.includes(q) || category.includes(q) || barangay.includes(q) || label.includes(q);
+                });
+            }
+
+            // Sort: Pinned posts (pinnedUntil > now) appear first, then newest createdAt
+            const now = Date.now();
+            filtered.sort((a, b) => {
+                const pinTimeA = a.pinnedUntil?.toMillis ? a.pinnedUntil.toMillis() : (a.pinnedUntil ? new Date(a.pinnedUntil).getTime() : 0);
+                const pinTimeB = b.pinnedUntil?.toMillis ? b.pinnedUntil.toMillis() : (b.pinnedUntil ? new Date(b.pinnedUntil).getTime() : 0);
+                const isPinnedA = pinTimeA > now ? 1 : 0;
+                const isPinnedB = pinTimeB > now ? 1 : 0;
+                if (isPinnedA !== isPinnedB) return isPinnedB - isPinnedA;
+
+                const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : (a.createdAt ? new Date(a.createdAt).getTime() : 0);
+                const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : (b.createdAt ? new Date(b.createdAt).getTime() : 0);
+                return timeB - timeA;
+            });
+
+            // Empty States
+            if (filtered.length === 0) {
+                if (searchQuery.trim()) {
+                    feedContainer.innerHTML = `
+                        <div class="state-notice-card">
+                            <p class="state-notice-text">No posts or places match "${escapeHtml(searchQuery)}".</p>
+                        </div>
+                    `;
+                } else {
+                    feedContainer.innerHTML = `
+                        <div class="state-notice-card">
+                            <p class="state-notice-text">No updates yet. Check back soon.</p>
+                        </div>
+                    `;
+                }
                 return;
             }
 
-            feedEmptyState.style.display = 'none';
-            let html = '';
-            postsData.forEach(post => {
-                html += generatePostCardHtml(post);
-            });
+            // Render post cards
+            feedContainer.innerHTML = '';
+            filtered.forEach((post, index) => {
+                const cardEl = createPostCardElement(post);
+                feedContainer.appendChild(cardEl);
 
-            discoverFeed.innerHTML = html;
-            attachCardListeners(discoverFeed);
+                // Phone (≤ 767px): The "Own a business" card sits after the first post
+                if (index === 0 && window.innerWidth <= 767) {
+                    const mobileOwnBusCard = document.createElement('div');
+                    mobileOwnBusCard.className = 'flat-card mobile-own-bus-card';
+                    mobileOwnBusCard.style.margin = '4px 0';
+                    mobileOwnBusCard.innerHTML = `
+                        <h2 class="sidebar-widget-title">Own a business in Calamba?</h2>
+                        <p class="sidebar-widget-text">
+                            List it on Calzada so commuters can find it, plan a route to it, and see your updates here.
+                        </p>
+                        <a href="/plans" class="btn-sidebar-cta">List your business</a>
+                    `;
+                    feedContainer.appendChild(mobileOwnBusCard);
+                }
+            });
         }
 
-        // 9. Append newly fetched batch for pagination
-        function appendPostsToFeed(newPosts) {
-            if (!discoverFeed || newPosts.length === 0) return;
-            const tempContainer = document.createElement('div');
-            let html = '';
-            newPosts.forEach(post => {
-                html += generatePostCardHtml(post);
-            });
-            tempContainer.innerHTML = html;
+        // Create Individual Post Card
+        function createPostCardElement(post) {
+            const card = document.createElement('article');
+            card.className = 'post-card';
+            card.id = `post-${post.id}`;
 
-            while (tempContainer.firstChild) {
-                const child = tempContainer.firstChild;
-                discoverFeed.appendChild(child);
+            const bus = allLiveBusinesses.find(b => b.id === post.businessId);
+            const busName = bus ? bus.name : (post.businessName || 'Local Business');
+            const category = formatCategoryLabel(bus ? bus.category : post.businessCategory);
+            const barangay = bus?.barangay || 'Calamba';
+            const dateStr = formatRelativeDate(post.createdAt);
+
+            const now = Date.now();
+            const pinTime = post.pinnedUntil?.toMillis ? post.pinnedUntil.toMillis() : (post.pinnedUntil ? new Date(post.pinnedUntil).getTime() : 0);
+            const isPinned = pinTime > now;
+
+            // Photos
+            const photos = post.photoUrls && post.photoUrls.length > 0 ? post.photoUrls : ['/assets/places/creekside-halang/photo.webp'];
+            const curIdx = postCarouselIndices.get(post.id) || 0;
+            const isMulti = photos.length > 1;
+
+            // Label line
+            let labelHtml = '';
+            if (post.label === 'promo') {
+                const promoDate = post.promoUntil ? formatRelativeDate(post.promoUntil) : '';
+                labelHtml = `<div class="post-label-line label-promo">PROMO ${promoDate ? `· UNTIL ${promoDate.toUpperCase()}` : ''}</div>`;
+            } else if (post.label === 'new_item') {
+                labelHtml = `<div class="post-label-line label-new-item">NEW ITEM</div>`;
+            } else {
+                labelHtml = `<div class="post-label-line label-announcement">ANNOUNCEMENT</div>`;
             }
 
-            attachCardListeners(discoverFeed);
+            // Planner params
+            const destLat = bus?.location?.lat ?? 14.211;
+            const destLng = bus?.location?.lng ?? 121.165;
+            const plannerUrl = `/planner?destName=${encodeURIComponent(busName)}&destLat=${destLat}&destLng=${destLng}`;
+
+            // Avatar photo or initials
+            const avatarHtml = bus?.profilePhotoUrl 
+                ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="${escapeHtml(busName)}">`
+                : busName.slice(0, 2).toUpperCase();
+
+            card.innerHTML = `
+                <div class="post-header">
+                    <a href="/business?id=${post.businessId}" class="post-avatar" title="View place">
+                        ${avatarHtml}
+                    </a>
+                    <div class="post-meta-col">
+                        <a href="/business?id=${post.businessId}" class="post-business-name">${escapeHtml(busName)}</a>
+                        <div class="post-sub-line">${escapeHtml(category)} · Brgy. ${escapeHtml(barangay)} · ${dateStr}</div>
+                    </div>
+                </div>
+
+                <!-- Photo Carousel with Double-Tap to Like -->
+                <div class="post-media-wrap" id="mediaWrap-${post.id}">
+                    <img src="${escapeHtml(photos[curIdx])}" alt="Update photo" class="post-media-img" id="mediaImg-${post.id}">
+                    ${isMulti ? `<div class="carousel-badge" id="badge-${post.id}">${curIdx + 1} / ${photos.length}</div>` : ''}
+                    ${isMulti ? `
+                        <button type="button" class="carousel-arrow prev" data-post-id="${post.id}" aria-label="Previous photo">
+                            <i class="ti ti-chevron-left"></i>
+                        </button>
+                        <button type="button" class="carousel-arrow next" data-post-id="${post.id}" aria-label="Next photo">
+                            <i class="ti ti-chevron-right"></i>
+                        </button>
+                    ` : ''}
+                </div>
+
+                <div class="post-content">
+                    ${isPinned ? `<div class="post-label-line label-pinned"><i class="ti ti-pin"></i> PINNED</div>` : ''}
+                    ${labelHtml}
+                    ${post.caption ? `<p class="post-caption">${escapeHtml(post.caption)}</p>` : ''}
+
+                    <div class="post-actions-row">
+                        <div class="post-actions-left">
+                            <button type="button" class="btn-post-heart ${post.isLiked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like post">
+                                <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
+                                <span class="like-count">${post.likeCount || 0}</span>
+                            </button>
+                            <a href="/business?id=${post.businessId}" class="btn-post-action" title="View place">
+                                <i class="ti ti-map-pin"></i>
+                                <span>View place</span>
+                            </a>
+                        </div>
+                        <a href="${plannerUrl}" class="btn-plan-route-outline" title="Plan route to place">
+                            <i class="ti ti-route"></i>
+                            <span>Plan route</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+
+            // Double Tap to Like Listener
+            const mediaWrap = card.querySelector(`#mediaWrap-${post.id}`);
+            let lastTapTime = 0;
+            let lastTapX = 0;
+            let lastTapY = 0;
+
+            const onDoubleTap = (clientX, clientY) => {
+                triggerHeartAnimation(mediaWrap);
+                if (!post.isLiked) {
+                    togglePostLike(post, card);
+                }
+            };
+
+            mediaWrap.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                const touch = e.changedTouches[0];
+                const timeDiff = now - lastTapTime;
+                const dist = Math.hypot(touch.clientX - lastTapX, touch.clientY - lastTapY);
+
+                if (timeDiff < 300 && dist < 30) {
+                    lastTapTime = 0;
+                    onDoubleTap(touch.clientX, touch.clientY);
+                } else {
+                    lastTapTime = now;
+                    lastTapX = touch.clientX;
+                    lastTapY = touch.clientY;
+                }
+            });
+
+            mediaWrap.addEventListener('dblclick', (e) => {
+                onDoubleTap(e.clientX, e.clientY);
+            });
+
+            // Carousel arrow clicks
+            if (isMulti) {
+                const prevBtn = card.querySelector('.carousel-arrow.prev');
+                const nextBtn = card.querySelector('.carousel-arrow.next');
+                const imgEl = card.querySelector(`#mediaImg-${post.id}`);
+                const badgeEl = card.querySelector(`#badge-${post.id}`);
+
+                const updateCarousel = (newIdx) => {
+                    postCarouselIndices.set(post.id, newIdx);
+                    imgEl.src = photos[newIdx];
+                    if (badgeEl) badgeEl.textContent = `${newIdx + 1} / ${photos.length}`;
+                };
+
+                prevBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    let idx = postCarouselIndices.get(post.id) || 0;
+                    idx = (idx - 1 + photos.length) % photos.length;
+                    updateCarousel(idx);
+                });
+
+                nextBtn?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    let idx = postCarouselIndices.get(post.id) || 0;
+                    idx = (idx + 1) % photos.length;
+                    updateCarousel(idx);
+                });
+            }
+
+            // Heart button toggle like
+            const heartBtn = card.querySelector('.btn-post-heart');
+            heartBtn?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePostLike(post, card);
+            });
+
+            return card;
         }
 
-        // 10. Load More Button Listener
-        if (btnLoadMore) {
-            btnLoadMore.addEventListener('click', () => {
-                loadDiscoverFeed(true);
+        // Center 96px Heart Pop Animation
+        function triggerHeartAnimation(container) {
+            const heart = document.createElement('i');
+            heart.className = 'ti ti-heart-filled double-tap-heart';
+            container.appendChild(heart);
+            setTimeout(() => heart.remove(), 850);
+        }
+
+        // Like / Unlike Firestore Transaction
+        async function togglePostLike(post, card) {
+            if (!currentUser) {
+                window.location.href = '/login?redirect=/discover';
+                return;
+            }
+
+            const heartBtn = card.querySelector('.btn-post-heart');
+            const heartIcon = heartBtn?.querySelector('i');
+            const countEl = heartBtn?.querySelector('.like-count');
+            if (heartBtn) heartBtn.disabled = true;
+
+            if (typeof window !== 'undefined' && window.__TEST_MOCK_LIKE__) {
+                const newLiked = !post.isLiked;
+                const newCount = newLiked ? (post.likeCount || 0) + 1 : Math.max(0, (post.likeCount || 0) - 1);
+                post.isLiked = newLiked;
+                post.likeCount = newCount;
+                if (heartBtn && heartIcon && countEl) {
+                    heartBtn.classList.toggle('liked', newLiked);
+                    heartIcon.className = `ti ${newLiked ? 'ti-heart-filled' : 'ti-heart'}`;
+                    countEl.textContent = newCount;
+                }
+                if (heartBtn) heartBtn.disabled = false;
+                return;
+            }
+
+            try {
+                const postRef = doc(db, 'posts', post.id);
+                const likeRef = doc(db, 'posts', post.id, 'likes', currentUser.uid);
+
+                const result = await runTransaction(db, async (transaction) => {
+                    const pDoc = await transaction.get(postRef);
+                    if (!pDoc.exists()) throw new Error('Post does not exist.');
+
+                    const lDoc = await transaction.get(likeRef);
+                    const currentlyLiked = lDoc.exists();
+                    const curCount = typeof pDoc.data().likeCount === 'number' ? pDoc.data().likeCount : 0;
+
+                    if (currentlyLiked) {
+                        transaction.delete(likeRef);
+                        const newCount = Math.max(0, curCount - 1);
+                        transaction.update(postRef, { likeCount: newCount });
+                        return { liked: false, count: newCount };
+                    } else {
+                        transaction.set(likeRef, { likedAt: serverTimestamp() });
+                        const newCount = curCount + 1;
+                        transaction.update(postRef, { likeCount: newCount });
+                        return { liked: true, count: newCount };
+                    }
+                });
+
+                post.isLiked = result.liked;
+                post.likeCount = result.count;
+
+                if (heartBtn && heartIcon && countEl) {
+                    heartBtn.classList.toggle('liked', result.liked);
+                    heartIcon.className = `ti ${result.liked ? 'ti-heart-filled' : 'ti-heart'}`;
+                    countEl.textContent = result.count;
+                }
+
+            } catch (err) {
+                console.error('Error toggling like:', err);
+            } finally {
+                if (heartBtn) heartBtn.disabled = false;
+            }
+        }
+
+        // Sidebar "New on Calzada" List
+        function renderSidebarNewBusinesses() {
+            const container = document.getElementById('newBusinessesList');
+            if (!container) return;
+
+            // Featured businesses first (featuredUntil > now), then newest paidAt
+            const now = Date.now();
+            const sorted = allLiveBusinesses.slice().sort((a, b) => {
+                const featA = a.featuredUntil?.toMillis ? a.featuredUntil.toMillis() : (a.featuredUntil ? new Date(a.featuredUntil).getTime() : 0);
+                const featB = b.featuredUntil?.toMillis ? b.featuredUntil.toMillis() : (b.featuredUntil ? new Date(b.featuredUntil).getTime() : 0);
+                const isFeatA = featA > now ? 1 : 0;
+                const isFeatB = featB > now ? 1 : 0;
+                if (isFeatA !== isFeatB) return isFeatB - isFeatA;
+
+                const paidA = a.paidAt?.toMillis ? a.paidAt.toMillis() : (a.paidAt ? new Date(a.paidAt).getTime() : 0);
+                const paidB = b.paidAt?.toMillis ? b.paidAt.toMillis() : (b.paidAt ? new Date(b.paidAt).getTime() : 0);
+                return paidB - paidA;
+            });
+
+            const top5 = sorted.slice(0, 5);
+            container.innerHTML = top5.map(bus => {
+                const photoHtml = bus.profilePhotoUrl
+                    ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="${escapeHtml(bus.name)}">`
+                    : (bus.name || 'PL').slice(0, 2).toUpperCase();
+
+                return `
+                    <a href="/business?id=${bus.id}" class="new-business-item">
+                        <div class="new-bus-photo">
+                            ${photoHtml}
+                        </div>
+                        <div class="new-bus-info">
+                            <div class="new-bus-name">${escapeHtml(bus.name)}</div>
+                            <div class="new-bus-sub">${formatCategoryLabel(bus.category)} · Brgy. ${escapeHtml(bus.barangay || 'Calamba')}</div>
+                        </div>
+                    </a>
+                `;
+            }).join('');
+        }
+
+        // Category Tab Filter Listeners
+        document.querySelectorAll('.cat-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategoryFilter = tab.getAttribute('data-category');
+                renderFeed();
+            });
+        });
+
+        // Search Input Handling (Debounced 200ms)
+        let searchDebounceTimer = null;
+        function handleSearchInput(val) {
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(() => {
+                searchQuery = val;
+                renderFeed();
+                renderMatchingPlaces(val);
+            }, 200);
+        }
+
+        if (desktopSearchInput) {
+            desktopSearchInput.addEventListener('input', (e) => {
+                handleSearchInput(e.target.value);
+            });
+        }
+        if (mobileSearchInput) {
+            mobileSearchInput.addEventListener('input', (e) => {
+                handleSearchInput(e.target.value);
             });
         }
 
-        // Expose helpers for testing and verification
-        window.generatePostCardHtml = generatePostCardHtml;
-        window.getSkeletonCardHtml = getSkeletonCardHtml;
-        window.showSkeletons = showSkeletons;
-        window.clearSkeletons = clearSkeletons;
-        window.attachCardListeners = attachCardListeners;
+        // Matching Places Display
+        function renderMatchingPlaces(q) {
+            if (!searchPlacesBox || !searchPlacesList) return;
+            const clean = q.toLowerCase().trim();
+            if (!clean) {
+                searchPlacesBox.style.display = 'none';
+                searchPlacesList.innerHTML = '';
+                return;
+            }
+
+            const matches = allLiveBusinesses.filter(b => {
+                return (b.name || '').toLowerCase().includes(clean) ||
+                       (b.category || '').toLowerCase().includes(clean) ||
+                       (b.address || '').toLowerCase().includes(clean) ||
+                       (b.barangay || '').toLowerCase().includes(clean);
+            }).slice(0, 3);
+
+            if (matches.length === 0) {
+                searchPlacesBox.style.display = 'none';
+                return;
+            }
+
+            searchPlacesBox.style.display = 'block';
+            searchPlacesList.innerHTML = matches.map(bus => `
+                <a href="/business?id=${bus.id}" style="display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: var(--navy-dark); padding: 8px 10px; border-radius: 6px; background: #F8FAFC;">
+                    <div>
+                        <strong style="font-size: 14px;">${escapeHtml(bus.name)}</strong>
+                        <div style="font-size: 12px; color: var(--navy-muted);">${formatCategoryLabel(bus.category)} · Brgy. ${escapeHtml(bus.barangay || 'Calamba')}</div>
+                    </div>
+                    <span style="font-size: 12px; color: var(--brand-blue-dark); font-weight: 600;">View &rarr;</span>
+                </a>
+            `).join('');
+        }
+
+        // Mobile Search Toggle
+        const btnNavSearch = document.getElementById('btnNavSearch');
+        if (btnNavSearch && mobileSearchBlock && updatesTitleRow) {
+            btnNavSearch.addEventListener('click', () => {
+                updatesTitleRow.style.display = 'none';
+                mobileSearchBlock.style.display = 'block';
+                mobileSearchInput.focus();
+            });
+        }
+        if (btnCancelMobileSearch && mobileSearchBlock && updatesTitleRow) {
+            btnCancelMobileSearch.addEventListener('click', () => {
+                mobileSearchInput.value = '';
+                searchQuery = '';
+                mobileSearchBlock.style.display = 'none';
+                updatesTitleRow.style.display = 'flex';
+                renderMatchingPlaces('');
+                renderFeed();
+            });
+        }
+
+        // New Post Action Trigger
+        async function handleNewPostClick() {
+            if (!currentUser) {
+                window.location.href = '/login?redirect=/discover';
+                return;
+            }
+
+            // Check if user has an approved business
+            if (!userLiveBusiness) {
+                showNotListedSheet();
+                return;
+            }
+
+            // User has a live business -> Open shared composer
+            document.body.classList.add('composer-open');
+            openPostComposer({
+                business: userLiveBusiness,
+                currentUser: currentUser,
+                existingPosts: postsData.filter(p => p.businessId === userLiveBusiness.id),
+                getFirebaseIdToken: getFirebaseIdToken,
+                db: db,
+                setDoc: setDoc,
+                doc: doc,
+                collection: collection,
+                serverTimestamp: serverTimestamp,
+                Timestamp: Timestamp,
+                onSuccess: (newPost) => {
+                    document.body.classList.remove('composer-open');
+                    postsData.unshift(newPost);
+                    renderFeed();
+                },
+                onError: (err) => {
+                    document.body.classList.remove('composer-open');
+                    alert(`Failed to post: ${err.message}`);
+                }
+            });
+        }
+
+        function showNotListedSheet() {
+            const sheet = document.createElement('div');
+            sheet.className = 'composer-overlay';
+            sheet.innerHTML = `
+                <div class="composer-container not-listed-dialog" style="text-align: center; padding: 32px 24px;">
+                    <i class="ti ti-building-store" style="font-size: 40px; color: var(--brand-blue); margin-bottom: 12px;"></i>
+                    <h2 style="font-family: 'Sora', sans-serif; font-size: 18px; margin-bottom: 8px;">Only listed businesses can post</h2>
+                    <p style="font-size: 14px; color: var(--navy-muted); margin-bottom: 24px; line-height: 1.5;">
+                        List your business on Calzada to start publishing updates, promos, and announcements directly to commuters.
+                    </p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <a href="/plans" class="btn-sidebar-cta" style="padding: 10px 20px;">See plans</a>
+                        <button type="button" class="btn-sidebar-cta" id="btnCloseNotListed" style="background: #FFFFFF; color: var(--navy-dark); border: 1px solid var(--border-color);">Close</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(sheet);
+            sheet.querySelector('#btnCloseNotListed')?.addEventListener('click', () => sheet.remove());
+            sheet.addEventListener('click', (e) => { if (e.target === sheet) sheet.remove(); });
+        }
+
+        const btnDesktopNewPost = document.getElementById('btnDesktopNewPost');
+        if (btnDesktopNewPost) btnDesktopNewPost.addEventListener('click', handleNewPostClick);
+
+        const btnNavNewPost = document.getElementById('btnNavNewPost');
+        if (btnNavNewPost) btnNavNewPost.addEventListener('click', handleNewPostClick);
+
+        // Hide floating bottom nav when keyboard opens
+        const onInputFocus = (e) => {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                document.body.classList.add('keyboard-open');
+            }
+        };
+        const onInputBlur = (e) => {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) {
+                document.body.classList.remove('keyboard-open');
+            }
+        };
+        document.addEventListener('focus', onInputFocus, true);
+        document.addEventListener('blur', onInputBlur, true);
+        document.addEventListener('focusin', onInputFocus);
+        document.addEventListener('focusout', onInputBlur);
+
+        // Test Data Injection Hook for Playwright E2E
+        if (typeof window !== 'undefined') {
+            window.__TEST_DISCOVER_DATA__ = (mockPosts, mockLiveBusinesses, mockAuthUser, mockUserBusiness) => {
+                window.__TEST_MOCK_FEED__ = true;
+                if (mockAuthUser !== undefined) currentUser = mockAuthUser;
+                if (mockUserBusiness !== undefined) userLiveBusiness = mockUserBusiness;
+                if (mockLiveBusinesses !== undefined && mockLiveBusinesses !== null) allLiveBusinesses = mockLiveBusinesses;
+                if (mockPosts !== undefined && mockPosts !== null) postsData = mockPosts;
+
+                renderFeed();
+                renderSidebarNewBusinesses();
+            };
+            window.togglePostLike = togglePostLike;
+        }
+
+        // Firebase Auth State
+        onAuthStateChanged(auth, async (user) => {
+            if (typeof window !== 'undefined' && window.__MOCK_DISCOVER_USER__) {
+                currentUser = window.__MOCK_DISCOVER_USER__;
+                return;
+            }
+
+            currentUser = user;
+            if (user) {
+                if (topbarAuthLink) {
+                    topbarAuthLink.textContent = 'My Business';
+                    topbarAuthLink.href = '/my-business';
+                }
+                if (btnNavAccount) {
+                    btnNavAccount.href = '/my-business';
+                }
+
+                // Query if user owns an approved business
+                try {
+                    const q = query(
+                        collection(db, 'businesses'),
+                        where('ownerId', '==', user.uid),
+                        where('status', '==', 'approved')
+                    );
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        userLiveBusiness = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                    }
+                } catch (e) {
+                    console.warn('Could not check user business ownership:', e);
+                }
+            } else {
+                if (topbarAuthLink) {
+                    topbarAuthLink.textContent = 'Sign In';
+                    topbarAuthLink.href = '/login?redirect=/discover';
+                }
+                if (btnNavAccount) {
+                    btnNavAccount.href = '/login?redirect=/discover';
+                }
+                userLiveBusiness = null;
+            }
+        });
 
         // Initial Load
-        loadDiscoverFeed(false);
+        loadUpdatesFeed();
     </script>
 </body>
 

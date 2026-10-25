@@ -383,6 +383,209 @@ function generateReminderEmailHtml({
     };
 }
 
+/**
+ * Owner Notification Emails for Application & Payment lifecycle events
+ */
+function generateOwnerNotificationEmail({ event, business, reason, amountDue, plan, referenceNo }) {
+    const businessName = escapeHtml(business?.name || 'Your business');
+    const subjectName = String(business?.name || 'Your business').replace(/[\r\n]+/g, ' ').trim();
+    const safeReason = escapeHtml(reason || business?.reviewNote || 'No specific note provided.');
+    const planName = plan === 'plus360' ? 'Listed + 360' : (plan === 'featured' ? 'Featured' : 'Listed');
+    const amount = amountDue || (plan === 'featured' ? 299 : (plan === 'plus360' ? 199 : 59));
+    const baseUrl = process.env.PRODUCTION_ORIGIN || 'https://calzadaph.com';
+    const myBusinessUrl = `${baseUrl}/my-business`;
+
+    let subject = '';
+    let bodyHtml = '';
+
+    switch (event) {
+        case 'received':
+            subject = `We got your application for ${subjectName}`;
+            bodyHtml = `
+              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                We got your application for <strong>${businessName}</strong>.
+              </p>
+              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
+                The Calzada team checks every registration to make sure commuters get accurate information. We'll email you once our review is complete.
+              </p>
+            `;
+            break;
+
+        case 'needs_changes':
+            subject = `Action needed: changes requested for ${subjectName}`;
+            bodyHtml = `
+              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                Our team reviewed your application for <strong>${businessName}</strong> and requested a few changes before approval:
+              </p>
+              <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #991B1B; line-height: 1.5;">
+                ${safeReason}
+              </div>
+              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
+                Please visit your business page to update your details and resubmit for review.
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td>
+                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+                      Update &amp; Resubmit
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            `;
+            break;
+
+        case 'approved_unpaid':
+            subject = `Your details are approved – pay with GCash to go live on Calzada`;
+            bodyHtml = `
+              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                Great news! Details for <strong>${businessName}</strong> have been approved by Calzada.
+              </p>
+              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="font-size: 14px; color: #64748B; padding-bottom: 8px;">Chosen Plan</td>
+                    <td style="font-size: 14px; font-weight: 700; color: #042C53; text-align: right; padding-bottom: 8px;">${planName}</td>
+                  </tr>
+                  <tr>
+                    <td style="font-size: 14px; color: #64748B;">Amount Due</td>
+                    <td style="font-size: 18px; font-weight: 800; color: #378ADD; text-align: right;">₱${amount}</td>
+                  </tr>
+                </table>
+              </div>
+              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                Pay exactly <strong>₱${amount}</strong> with GCash, then upload the receipt on My Business to go live on the Calzada map.
+              </p>
+              <div style="text-align: center; margin: 24px 0;">
+                <img src="${baseUrl}/assets/payments/gcash-qr.png" alt="Calzada PH GCash QR code" style="max-width: 260px; border-radius: 12px; border: 1px solid #E2E8F0;" />
+              </div>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto 24px;">
+                <tr>
+                  <td>
+                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+                      Upload Receipt on My Business
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            `;
+            break;
+
+        case 'payment_received':
+            subject = `We got your receipt for ${subjectName}`;
+            bodyHtml = `
+              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                We got your receipt for <strong>${businessName}</strong>.
+              </p>
+              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
+                Our team checks payments within 1–2 days against our GCash statement. We'll email you once your listing is verified and live on the map.
+              </p>
+            `;
+            break;
+
+        case 'not_matched':
+            subject = `Payment receipt update for ${subjectName}`;
+            bodyHtml = `
+              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                We reviewed the payment receipt submitted for <strong>${businessName}</strong>, but could not verify it:
+              </p>
+              <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #991B1B; line-height: 1.5;">
+                ${safeReason}
+              </div>
+              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
+                Please check your reference number and upload the correct GCash confirmation receipt on My Business.
+              </p>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td>
+                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+                      Re-upload Receipt
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            `;
+            break;
+
+        case 'live':
+            subject = `${subjectName} is live on Calzada`;
+            const refText = referenceNo ? escapeHtml(referenceNo) : 'Verified';
+            const today = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+            bodyHtml = `
+              <p style="font-size: 16px; line-height: 1.6; color: #16A34A; font-weight: 700; margin-bottom: 12px;">
+                🎉 Your business is now live on Calzada!
+              </p>
+              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 24px;">
+                Commuters in Calamba can now find <strong>${businessName}</strong> on the map, browse it in Places, plan jeepney routes to it, and see your updates.
+              </p>
+              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px; margin-bottom: 24px;">
+                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 12px;">
+                  Payment Acknowledgment (Not an official receipt)
+                </div>
+                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size: 13px;">
+                  <tr>
+                    <td style="color: #64748B; padding-bottom: 6px;">Business:</td>
+                    <td style="font-weight: 600; color: #042C53; text-align: right; padding-bottom: 6px;">${businessName}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #64748B; padding-bottom: 6px;">Plan:</td>
+                    <td style="font-weight: 600; color: #042C53; text-align: right; padding-bottom: 6px;">${planName}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #64748B; padding-bottom: 6px;">Amount Paid:</td>
+                    <td style="font-weight: 700; color: #16A34A; text-align: right; padding-bottom: 6px;">₱${amount}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #64748B; padding-bottom: 6px;">Reference No:</td>
+                    <td style="font-family: monospace; color: #042C53; text-align: right; padding-bottom: 6px;">${refText}</td>
+                  </tr>
+                  <tr>
+                    <td style="color: #64748B;">Date Verified:</td>
+                    <td style="color: #042C53; text-align: right;">${today}</td>
+                  </tr>
+                </table>
+              </div>
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+                <tr>
+                  <td>
+                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+                      Open Business Dashboard
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            `;
+            break;
+
+        case 'declined':
+            subject = `Application status for ${subjectName}`;
+            bodyHtml = `
+              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                Thank you for your interest in listing <strong>${businessName}</strong> on Calzada.
+              </p>
+              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
+                After reviewing your application, we are unable to approve this listing at this time:
+              </p>
+              <div style="background-color: #F1F5F9; border-left: 4px solid #64748B; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #475569; line-height: 1.5;">
+                ${safeReason}
+              </div>
+              <p style="font-size: 13px; color: #64748B; line-height: 1.5;">
+                Declined registrations do not incur any charges.
+              </p>
+            `;
+            break;
+    }
+
+    return {
+        subject,
+        html: renderEmailShell({
+            title: subject,
+            contentHtml: bodyHtml,
+            showFooter: true
+        })
+    };
+}
+
 module.exports = {
     escapeHtml,
     formatRating,
@@ -390,5 +593,7 @@ module.exports = {
     renderEmailShell,
     generateFeedbackEmailHtml,
     generateFeedbackThankYouEmailHtml,
-    generateReminderEmailHtml
+    generateReminderEmailHtml,
+    generateOwnerNotificationEmail
 };
+
