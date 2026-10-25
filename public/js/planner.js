@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             dragRotate: true,
             touchPitch: false,
             pitchWithRotate: false,
-            maxPitch: 0,
+            maxPitch: 65,
             preserveDrawingBuffer: true,
             canvasContextAttributes: {
                 preserveDrawingBuffer: true
@@ -696,6 +696,57 @@ document.addEventListener('DOMContentLoaded', () => {
             return next;
         }
 
+        // ── 3D journey view ──────────────────────────────────────────────────────
+        // While a journey is running the map tilts (3D buildings from the map style stand up),
+        // turns with the direction of travel on phones and desktop, and shows a soft sky.
+        const NAV_ZOOM = 17.5;
+        const navPitch = () => (prefersReducedMotion() ? 40 : (window.innerWidth <= 768 ? 60 : 55));
+        // Direction of the route a little ahead of where you are (used before GPS/compass give a heading)
+        function routeBearingAhead(fromLngLat) {
+            const pts = trackedCoordinates || [];
+            if (pts.length < 2) return null;
+            const from = fromLngLat || (displayLocation ? displayLocation.point : (currentLocation ? [currentLocation.lng, currentLocation.lat] : (selectedCoords.origin ? toLngLat(selectedCoords.origin) : null)));
+            if (!from) return null;
+            let bestI = 0, bestD = Infinity;
+            const start = Math.max(0, (lastMatchedSegmentIndex || 0) - 2);
+            for (let i = start; i < pts.length; i++) {
+                const d = getHaversineDist(from[1], from[0], pts[i][1], pts[i][0]);
+                if (d < bestD) { bestD = d; bestI = i; }
+                if (d > bestD + 0.5) break; // walked past the nearest point
+            }
+            // first route point at least ~30 m ahead
+            let j = bestI + 1;
+            while (j < pts.length - 1 && getHaversineDist(pts[bestI][1], pts[bestI][0], pts[j][1], pts[j][0]) * 1000 < 30) j++;
+            if (j >= pts.length) return null;
+            const [lng1, lat1] = pts[bestI], [lng2, lat2] = pts[j];
+            const y = Math.sin((lng2 - lng1) * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180);
+            const x = Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180)
+                - Math.sin(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.cos((lng2 - lng1) * Math.PI / 180);
+            return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+        }
+        // Map turns with you on phones and desktop alike (heading-up)
+        function navMapBearing() {
+            if (currentNavHeading !== null && currentNavHeading !== undefined && !isNaN(currentNavHeading)) return currentNavHeading;
+            const rb = routeBearingAhead();
+            return rb === null ? 0 : rb;
+        }
+        let navSkySet = false;
+        function setNavSky() {
+            if (navSkySet || typeof map.setSky !== 'function') return;
+            try {
+                map.setSky({
+                    'sky-color': '#9CCBF2',
+                    'horizon-color': '#E3F0FB',
+                    'fog-color': '#F4F8FC',
+                    'sky-horizon-blend': 0.5,
+                    'horizon-fog-blend': 0.6,
+                    'fog-ground-blend': 0.75,
+                    'atmosphere-blend': 0.6
+                });
+                navSkySet = true;
+            } catch (_) {}
+        }
+
         // E4: Single camera update path building one easeTo call
         function applyCamera(opts = {}) {
             if (!map || !mapAutoFollow || !isTrackingArrival) return;
@@ -704,17 +755,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const center = opts.center || (displayLocation ? displayLocation.point : (currentLocation ? [currentLocation.lng, currentLocation.lat] : (selectedCoords.origin ? [selectedCoords.origin[1], selectedCoords.origin[0]] : null)));
             if (!center) return;
 
-            const isPhone = window.innerWidth <= 768;
-            const finalMapBearing = opts.bearing !== undefined ? opts.bearing : (isPhone ? (currentNavHeading || 0) : 0);
+            const finalMapBearing = opts.bearing !== undefined ? opts.bearing : navMapBearing();
             const padding = opts.padding !== undefined ? opts.padding : computeCameraPadding();
-            const zoom = opts.zoom !== undefined ? opts.zoom : 17;
+            const zoom = opts.zoom !== undefined ? opts.zoom : NAV_ZOOM;
             const duration = opts.duration !== undefined ? opts.duration : (prefersReducedMotion() ? 0 : 300);
 
             map.easeTo({
                 center: center,
                 bearing: finalMapBearing,
                 zoom: zoom,
-                pitch: 0,
+                pitch: navPitch(),
                 padding: padding,
                 duration: duration,
                 easing: t => t,
@@ -754,13 +804,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!isFastJeep) {
                     currentNavHeading = compassHeading;
 
-                    const isPhone = window.innerWidth <= 768;
-                    const finalMapBearing = isPhone ? (currentNavHeading || 0) : 0;
+                    const finalMapBearing = navMapBearing();
 
                     const pointerEl = userMarker?.getElement()?.querySelector('.nav-cursor-wrapper');
-                    if (pointerEl) {
-                        pointerEl.style.transform = isPhone ? 'rotate(0deg)' : `rotate(${currentNavHeading || 0}deg)`;
-                    }
+                    if (pointerEl) pointerEl.style.transform = 'rotate(0deg)';
 
                     const compass = document.getElementById('compassSvg');
                     if (compass) {
@@ -929,7 +976,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const padRight = 0;
                 const baseTopPadding = topEdge + 16;
                 const baseBottomPadding = (vh - bottomEdge) + 16;
-                const padTop = Math.round(baseTopPadding);
+                // In the tilted journey view put you a little below the middle, so more road ahead shows
+                const navTilt = document.body.classList.contains('navigation-active') ? 0.22 * Math.max(0, vh - baseTopPadding - baseBottomPadding) : 0;
+                const padTop = Math.round(baseTopPadding + navTilt);
                 const padBottom = Math.round(baseBottomPadding);
                 return { top: padTop, bottom: padBottom, left: padLeft, right: padRight };
             }
@@ -5449,8 +5498,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const zoomControlGroup = document.querySelector('.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group');
             if (zoomControlGroup) zoomControlGroup.style.removeProperty('display');
 
-            // Reset map bearing to north
-            map.easeTo({ bearing: 0, duration: 300 });
+            // Back to the flat, north-up map
+            map.easeTo({ bearing: 0, pitch: 0, duration: prefersReducedMotion() ? 0 : 500 });
 
             // Hide Active nav overlays
             if (activeNavPanel) activeNavPanel.style.setProperty('display', 'none', 'important');
@@ -5660,13 +5709,15 @@ document.addEventListener('DOMContentLoaded', () => {
             startActiveJourneyUI();
 
             const initPadding = computeCameraPadding();
+            setNavSky();
+            const initBearing = routeBearingAhead(toLngLat(selectedCoords.origin));
             map.easeTo({
                 center: toLngLat(selectedCoords.origin),
-                zoom: 17,
-                bearing: 0,
-                pitch: 0,
+                zoom: NAV_ZOOM,
+                bearing: initBearing === null ? 0 : initBearing,
+                pitch: navPitch(),
                 padding: initPadding,
-                duration: prefersReducedMotion() ? 0 : 600,
+                duration: prefersReducedMotion() ? 0 : 1200,
                 easing: t => t,
                 essential: true
             });
@@ -5817,13 +5868,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const targetPt = displayLocation ? displayLocation.point : (currentLocation ? [currentLocation.lng, currentLocation.lat] : (selectedCoords?.origin ? toLngLat(selectedCoords.origin) : null));
                 if (!targetPt) return;
                 const padding = computeCameraPadding();
-                const bearing = window.innerWidth <= 768 ? (currentNavHeading || 0) : 0;
+                const bearing = navMapBearing();
                 const dur = prefersReducedMotion() ? 0 : 600;
                 map.easeTo({
                     center: targetPt,
                     bearing: bearing,
-                    zoom: 17,
-                    pitch: 0,
+                    zoom: NAV_ZOOM,
+                    pitch: navPitch(),
                     padding: padding,
                     duration: dur,
                     easing: t => t,
@@ -5835,12 +5886,12 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', () => {
             if (isTrackingArrival && mapAutoFollow && displayLocation) {
                 const padding = computeCameraPadding();
-                const bearing = window.innerWidth <= 768 ? (currentNavHeading || 0) : 0;
+                const bearing = navMapBearing();
                 map.easeTo({
                     center: displayLocation.point,
                     bearing: bearing,
-                    zoom: 17,
-                    pitch: 0,
+                    zoom: NAV_ZOOM,
+                    pitch: navPitch(),
                     padding: padding,
                     duration: 0,
                     easing: t => t,
@@ -5852,12 +5903,12 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 if (isTrackingArrival && mapAutoFollow && displayLocation) {
                     const padding = computeCameraPadding();
-                    const bearing = window.innerWidth <= 768 ? (currentNavHeading || 0) : 0;
+                    const bearing = navMapBearing();
                     map.easeTo({
                         center: displayLocation.point,
                         bearing: bearing,
-                        zoom: 17,
-                        pitch: 0,
+                        zoom: NAV_ZOOM,
+                        pitch: navPitch(),
                         padding: padding,
                         duration: 0,
                         easing: t => t,
@@ -5998,7 +6049,8 @@ document.addEventListener('DOMContentLoaded', () => {
             userMarker = new maplibregl.Marker({
                 element: uEl,
                 anchor: 'center',
-                rotationAlignment: 'viewport'
+                rotationAlignment: 'viewport',
+                pitchAlignment: 'map'   // lies flat on the tilted 3D map
             }).setLngLat(initLngLat).addTo(map);
 
             // compass rotated in handleLocationUpdate
@@ -6138,19 +6190,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentNavHeading = smoothHeading(currentNavHeading, targetHeading, 4, 0.3);
             }
 
-            // Phone (max-width 768px): heading-up. Map bearing = heading, arrow points straight up.
-            // Desktop: north-up. Map bearing 0, arrow rotates to the heading.
-            const isPhone = window.innerWidth <= 768;
-            const finalMapBearing = isPhone ? (currentNavHeading || 0) : 0;
+            // 3D journey view, phones and desktop: heading-up. Map bearing = heading, arrow points straight up.
+            const finalMapBearing = navMapBearing();
 
             const pointerEl = userMarker?.getElement()?.querySelector('.nav-cursor-wrapper');
-            if (pointerEl) {
-                if (isPhone) {
-                    pointerEl.style.transform = 'rotate(0deg)';
-                } else {
-                    pointerEl.style.transform = `rotate(${currentNavHeading || 0}deg)`;
-                }
-            }
+            if (pointerEl) pointerEl.style.transform = 'rotate(0deg)';
 
             // Keep #compassSvg in sync with the final map bearing
             const compass = document.getElementById('compassSvg');
@@ -6459,7 +6503,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userMarker) { userMarker.remove(); userMarker = null; }
             if (gpsCircle) { gpsCircle = null; }
             if (originMarker) originMarker.addTo(map);
-            map.setBearing(0);
+            map.easeTo({ bearing: 0, pitch: 0, duration: prefersReducedMotion() ? 0 : 500 });
 
             const trip = buildTrip();
             // States saved before journeyId existed have none: one id for this arrival is enough.
