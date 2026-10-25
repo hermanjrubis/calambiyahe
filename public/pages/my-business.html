@@ -824,11 +824,63 @@
         }
 
         .photo-strip-wrap {
-            display: flex;
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
             gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
+            margin-top: 12px;
+            max-width: 100%;
         }
+        .photo-strip-wrap[style*="none"] { display: none !important; }
+        .photo-strip-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: #F1F5F9;
+            min-width: 0;
+        }
+        .photo-strip-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .photo-strip-item:first-child::after {
+            content: "Cover";
+            position: absolute;
+            left: 6px;
+            bottom: 5px;
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 700;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+        }
+        .photo-strip-remove {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(4, 44, 83, 0.72);
+            color: #FFFFFF;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        @media (min-width: 641px) {
+            .photo-strip-wrap { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 520px; }
+        }
+
+        /* Keep every state inside the screen width (iPhone Safari ignores overflow on body alone) */
+        html, body { max-width: 100%; overflow-x: hidden; }
+        @supports (overflow: clip) { html, body { overflow-x: clip; } }
+        .mybus-container img { max-width: 100%; }
+        .mybus-container { overflow-wrap: anywhere; }
 
         .strip-thumb {
             width: 56px;
@@ -1408,7 +1460,7 @@
 
             <!-- Card: What you sent -->
             <div class="flat-card">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
                     <h2 style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: var(--navy-dark); margin: 0;" data-i18n="mybus.review.what_you_sent">What you sent</h2>
                     <button type="button" id="btnReplaceReceipt" class="btn-outline" style="padding: 6px 14px; font-size: 13px;" data-i18n="mybus.review.replace_receipt">Replace receipt</button>
                 </div>
@@ -1416,7 +1468,7 @@
                     <div id="sentReceiptThumbWrap" style="flex-shrink: 0;">
                         <img id="sentReceiptThumb" src="" alt="Submitted receipt" style="width: 90px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #E2E8F0; display: block; cursor: pointer;">
                     </div>
-                    <div style="flex: 1; min-width: 180px;">
+                    <div style="flex: 1; min-width: 0;">
                         <div style="font-size: 14px; font-weight: 600; color: #042C53;" data-i18n="mybus.review.paid_with">Paid with GCash</div>
                         <div id="sentReceiptRef" style="font-size: 13px; color: #64748B; font-family: monospace; margin-top: 4px;">Ref. •••• ----</div>
                         <div id="sentReceiptAmountPlan" style="font-size: 14px; color: #378ADD; font-weight: 700; margin-top: 6px;">₱-- · -- plan</div>
@@ -1712,8 +1764,10 @@
         import { 
             countBusinessPostsThisMonth, 
             getPostLimitForPlan, 
-            uploadPostPhotos 
-        } from "../js/post-composer.js?v=2.9.1";
+            uploadPostPhotos,
+            compressImageFile,
+            readApiJson
+        } from "../js/post-composer.js?v=2.9.3";
 
         const CATEGORY_NAMES = {
             malls: 'Malls',
@@ -2713,13 +2767,13 @@
                     const token = await getFirebaseIdToken();
                     const formData = new FormData();
                     formData.append('businessId', activeBusinessId);
-                    formData.append('photo', selectedPhotoFile);
+                    formData.append('photo', await compressImageFile(selectedPhotoFile));
                     const uploadRes = await fetch('/api/businesses/upload-photo', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
                     });
-                    const uploadData = await uploadRes.json();
+                    const uploadData = await readApiJson(uploadRes);
                     if (!uploadRes.ok) throw new Error(uploadData.error);
                     updatedPhotoUrl = uploadData.photoUrl;
                 }
@@ -2943,7 +2997,7 @@
                 const idToken = await getFirebaseIdToken();
                 const formData = new FormData();
                 formData.append('businessId', activeBusinessId);
-                formData.append('receipt', selectedReceiptFile);
+                formData.append('receipt', await compressImageFile(selectedReceiptFile, { maxSide: 2000, quality: 0.88, maxBytes: 1500 * 1024 }));
 
                 const uploadRes = await fetch('/api/payments/upload-receipt', {
                     method: 'POST',
@@ -2951,7 +3005,7 @@
                     body: formData
                 });
 
-                const uploadData = await uploadRes.json();
+                const uploadData = await readApiJson(uploadRes);
                 if (!uploadRes.ok) throw new Error(uploadData.error || 'Receipt upload failed');
 
                 const receiptUrl = uploadData.receiptUrl;
@@ -3086,7 +3140,7 @@
                 const idToken = await getFirebaseIdToken();
                 const formData = new FormData();
                 formData.append('businessId', activeBusinessId);
-                formData.append('receipt', selectedReplaceFile);
+                formData.append('receipt', await compressImageFile(selectedReplaceFile, { maxSide: 2000, quality: 0.88, maxBytes: 1500 * 1024 }));
 
                 const uploadRes = await fetch('/api/payments/upload-receipt', {
                     method: 'POST',
@@ -3094,7 +3148,7 @@
                     body: formData
                 });
 
-                const uploadData = await uploadRes.json();
+                const uploadData = await readApiJson(uploadRes);
                 if (!uploadRes.ok) throw new Error(uploadData.error || 'Upload failed');
 
                 const receiptUrl = uploadData.receiptUrl;

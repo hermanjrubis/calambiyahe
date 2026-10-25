@@ -29,11 +29,84 @@ export function getPostLimitForPlan(planId) {
     return 4; // Listed default limit
 }
 
+/**
+ * Shrink a photo before upload. Phone photos are often 3-8MB; the API (Vercel) rejects request
+ * bodies over ~4.5MB with a plain-text error, which Safari reports as
+ * "The string did not match the expected pattern". Long side 1600px, JPEG, about 0.8MB max.
+ */
+export async function compressImageFile(file, { maxSide = 1600, quality = 0.82, maxBytes = 850 * 1024 } = {}) {
+    if (!file || !/^image\/(jpeg|png|webp)$/i.test(file.type || '')) return file;
+    if (file.size <= 400 * 1024) return file;
+
+    let source = null;
+    let objectUrl = null;
+    try {
+        if (typeof createImageBitmap === 'function') {
+            source = await createImageBitmap(file, { imageOrientation: 'from-image' });
+        }
+    } catch (_) {
+        source = null;
+    }
+    if (!source) {
+        objectUrl = URL.createObjectURL(file);
+        source = await new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Could not read this photo. Try a JPG or PNG.'));
+            img.src = objectUrl;
+        });
+    }
+
+    try {
+        const w = source.width || source.naturalWidth;
+        const h = source.height || source.naturalHeight;
+        if (!w || !h) return file;
+        const scale = Math.min(1, maxSide / Math.max(w, h));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(w * scale));
+        canvas.height = Math.max(1, Math.round(h * scale));
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#FFFFFF'; // PNG transparency becomes white instead of black
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+
+        const toBlob = (q) => new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', q));
+        let q = quality;
+        let blob = await toBlob(q);
+        while (blob && blob.size > maxBytes && q > 0.5) {
+            q -= 0.08;
+            blob = await toBlob(q);
+        }
+        if (!blob || blob.size >= file.size) return file;
+        const baseName = (file.name || 'photo').replace(/\.[^.]+$/, '');
+        return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg', lastModified: Date.now() });
+    } finally {
+        if (source && typeof source.close === 'function') source.close();
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+    }
+}
+
+/**
+ * Read an API response as JSON without crashing on plain-text errors (e.g. "Request Entity Too Large").
+ */
+export async function readApiJson(res) {
+    const text = await res.text();
+    try {
+        return text ? JSON.parse(text) : {};
+    } catch (_) {
+        if (res.status === 413) return { error: 'The photos are too large to upload. Try fewer or smaller photos.' };
+        return { error: res.ok ? 'Unexpected reply from the server. Please try again.' : `Upload failed (error ${res.status}). Please try again.` };
+    }
+}
+
 export async function uploadPostPhotos(postId, businessId, files, token) {
+    const ready = [];
+    for (const f of files) ready.push(await compressImageFile(f));
+
     const formData = new FormData();
     formData.append('postId', postId);
     formData.append('businessId', businessId);
-    files.forEach(f => {
+    ready.forEach(f => {
         formData.append('photos', f);
     });
 
@@ -45,9 +118,12 @@ export async function uploadPostPhotos(postId, businessId, files, token) {
         body: formData
     });
 
-    const data = await res.json();
+    const data = await readApiJson(res);
     if (!res.ok) {
         throw new Error(data.error || 'Failed to upload photos.');
+    }
+    if (!Array.isArray(data.photoUrls) || data.photoUrls.length === 0) {
+        throw new Error('The photos did not upload. Please try again.');
     }
     return data.photoUrls;
 }
@@ -120,7 +196,7 @@ export function openPostComposer({
                     <button type="button" class="composer-add-tile" id="composerAddTile">
                         <i class="ti ti-photo-plus" aria-hidden="true"></i>
                         <span class="composer-add-title">Add photos</span>
-                        <span class="composer-add-sub">Up to 5 · JPG, PNG, WebP · 10MB each</span>
+                        <span class="composer-add-sub">Up to 5 · JPG, PNG or WebP</span>
                     </button>
                 </div>
                 <input type="file" id="composerFileInput" accept="image/jpeg,image/png,image/webp" multiple hidden>
@@ -290,8 +366,8 @@ export function openPostComposer({
         fileInput.value = '';
         if (files.length === 0) return;
 
-        const tooBig = files.filter(f => f.size > 10 * 1024 * 1024);
-        const valid = files.filter(f => f.size <= 10 * 1024 * 1024);
+        const tooBig = files.filter(f => f.size > 25 * 1024 * 1024);
+        const valid = files.filter(f => f.size <= 25 * 1024 * 1024);
         const availableSlots = 5 - selectedFiles.length;
         const toAdd = valid.slice(0, availableSlots);
 
@@ -299,7 +375,7 @@ export function openPostComposer({
             selectedFiles.push({ file, previewUrl: URL.createObjectURL(file) });
         });
 
-        if (tooBig.length) showError(`${tooBig.length === 1 ? 'One photo is' : `${tooBig.length} photos are`} over 10MB and ${tooBig.length === 1 ? 'was' : 'were'} skipped.`);
+        if (tooBig.length) showError(`${tooBig.length === 1 ? 'One photo is' : `${tooBig.length} photos are`} over 25MB and ${tooBig.length === 1 ? 'was' : 'were'} skipped.`);
         else if (valid.length > availableSlots) showError('Only 5 photos per post. The extra photos were skipped.');
         else showError('');
 

@@ -1728,7 +1728,7 @@
         import { 
             openPostComposer, 
             countBusinessPostsThisMonth 
-        } from '../js/post-composer.js?v=2.9.2';
+        } from '../js/post-composer.js?v=2.9.3';
 
         // State
         let currentUser = null;
@@ -2744,6 +2744,8 @@
                     const snap = await getDocs(q);
                     if (!snap.empty) {
                         userLiveBusiness = { id: snap.docs[0].id, ...snap.docs[0].data() };
+                        // Account goes straight to your live profile, like Instagram
+                        if (btnNavAccount) btnNavAccount.href = `/business?id=${encodeURIComponent(userLiveBusiness.id)}`;
                         const ownCard = document.getElementById('sidebarOwnBusinessCard');
                         if (ownCard) ownCard.hidden = true;
                         document.querySelectorAll('.mobile-own-bus-card').forEach(el => el.remove());
