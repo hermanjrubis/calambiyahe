@@ -1,3 +1,5155 @@
 {
- "nodes": []
+ "nodes": [
+  {
+   "id": "14.201974_121.155773",
+   "lat": 14.201974,
+   "lng": 121.155773,
+   "file": "14.201974, 121.155773.jpg",
+   "northOffset": 81.6,
+   "source": "IMG_20261024_132714_00_395",
+   "connections": [
+    {
+     "targetId": "14.202240_121.156214",
+     "bearing": 58.3,
+     "distance": 55.9
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -23.3
+  },
+  {
+   "id": "14.202240_121.156214",
+   "lat": 14.20224,
+   "lng": 121.156214,
+   "file": "14.202240, 121.156214.jpg",
+   "northOffset": 91.8,
+   "source": "IMG_20261024_132727_00_396",
+   "connections": [
+    {
+     "targetId": "14.202453_121.156541",
+     "bearing": 56.3,
+     "distance": 42.4
+    },
+    {
+     "targetId": "14.201974_121.155773",
+     "bearing": 238.3,
+     "distance": 55.9
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -35.6
+  },
+  {
+   "id": "14.202453_121.156541",
+   "lat": 14.202453,
+   "lng": 121.156541,
+   "file": "14.202453, 121.156541.jpg",
+   "northOffset": 54.6,
+   "source": "IMG_20261024_132742_00_397",
+   "connections": [
+    {
+     "targetId": "14.202373_121.156527",
+     "bearing": 189.7,
+     "distance": 9.0
+    },
+    {
+     "targetId": "14.202718_121.156444",
+     "bearing": 340.3,
+     "distance": 31.1
+    },
+    {
+     "targetId": "14.202240_121.156214",
+     "bearing": 236.3,
+     "distance": 42.4
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -74.3
+  },
+  {
+   "id": "14.202718_121.156444",
+   "lat": 14.202718,
+   "lng": 121.156444,
+   "file": "14.202718, 121.156444.jpg",
+   "northOffset": 25.7,
+   "source": "IMG_20261024_132756_00_398",
+   "connections": [
+    {
+     "targetId": "14.202453_121.156541",
+     "bearing": 160.3,
+     "distance": 31.1
+    },
+    {
+     "targetId": "14.203070_121.156283",
+     "bearing": 335.9,
+     "distance": 42.6
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -49.7
+  },
+  {
+   "id": "14.203070_121.156283",
+   "lat": 14.20307,
+   "lng": 121.156283,
+   "file": "14.203070, 121.156283.jpg",
+   "northOffset": 20.9,
+   "source": "IMG_20261024_132810_00_399",
+   "connections": [
+    {
+     "targetId": "14.203379_121.156102",
+     "bearing": 330.2,
+     "distance": 39.4
+    },
+    {
+     "targetId": "14.202718_121.156444",
+     "bearing": 155.9,
+     "distance": 42.6
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -50.6
+  },
+  {
+   "id": "14.203379_121.156102",
+   "lat": 14.203379,
+   "lng": 121.156102,
+   "file": "14.203379, 121.156102.jpg",
+   "northOffset": 24.1,
+   "source": "IMG_20261024_132823_00_400",
+   "connections": [
+    {
+     "targetId": "14.203600_121.155936",
+     "bearing": 323.8,
+     "distance": 30.3
+    },
+    {
+     "targetId": "14.203070_121.156283",
+     "bearing": 150.2,
+     "distance": 39.4
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -60.4
+  },
+  {
+   "id": "14.203600_121.155936",
+   "lat": 14.2036,
+   "lng": 121.155936,
+   "file": "14.203600, 121.155936.jpg",
+   "northOffset": 301.1,
+   "source": "IMG_20261024_132845_00_401",
+   "connections": [
+    {
+     "targetId": "14.203851_121.155845",
+     "bearing": 340.5,
+     "distance": 29.4
+    },
+    {
+     "targetId": "14.203379_121.156102",
+     "bearing": 143.8,
+     "distance": 30.3
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": 39.4
+  },
+  {
+   "id": "14.203851_121.155845",
+   "lat": 14.203851,
+   "lng": 121.155845,
+   "file": "14.203851, 121.155845.jpg",
+   "northOffset": 314.9,
+   "source": "IMG_20261024_132949_00_402",
+   "connections": [
+    {
+     "targetId": "14.204047_121.155924",
+     "bearing": 21.5,
+     "distance": 23.3
+    },
+    {
+     "targetId": "14.203600_121.155936",
+     "bearing": 160.5,
+     "distance": 29.4
+    },
+    {
+     "targetId": "14.204279_121.155603",
+     "bearing": 331.1,
+     "distance": 54.1
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": 16.2
+  },
+  {
+   "id": "14.204279_121.155603",
+   "lat": 14.204279,
+   "lng": 121.155603,
+   "file": "14.204279, 121.155603.jpg",
+   "northOffset": 329.4,
+   "source": "IMG_20261024_133003_00_403",
+   "connections": [
+    {
+     "targetId": "14.203851_121.155845",
+     "bearing": 151.1,
+     "distance": 54.1
+    },
+    {
+     "targetId": "14.204670_121.155257",
+     "bearing": 319.2,
+     "distance": 57.1
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -10.3
+  },
+  {
+   "id": "14.204670_121.155257",
+   "lat": 14.20467,
+   "lng": 121.155257,
+   "file": "14.204670, 121.155257.jpg",
+   "northOffset": 277.2,
+   "source": "IMG_20261024_133019_00_404",
+   "connections": [
+    {
+     "targetId": "14.204498_121.154871",
+     "bearing": 245.5,
+     "distance": 45.8
+    },
+    {
+     "targetId": "14.204279_121.155603",
+     "bearing": 139.2,
+     "distance": 57.1
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -31.7
+  },
+  {
+   "id": "14.204498_121.154871",
+   "lat": 14.204498,
+   "lng": 121.154871,
+   "file": "14.204498, 121.154871.jpg",
+   "northOffset": 228.0,
+   "source": "IMG_20261024_133032_00_405",
+   "connections": [
+    {
+     "targetId": "14.204293_121.154530",
+     "bearing": 238.4,
+     "distance": 43.2
+    },
+    {
+     "targetId": "14.204670_121.155257",
+     "bearing": 65.5,
+     "distance": 45.8
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Real",
+   "heading": 10.3
+  },
+  {
+   "id": "14.204293_121.154530",
+   "lat": 14.204293,
+   "lng": 121.15453,
+   "file": "14.204293, 121.154530.jpg",
+   "northOffset": 216.4,
+   "source": "IMG_20261024_133046_00_406",
+   "connections": [
+    {
+     "targetId": "14.204121_121.154276",
+     "bearing": 235.2,
+     "distance": 33.4
+    },
+    {
+     "targetId": "14.204498_121.154871",
+     "bearing": 58.4,
+     "distance": 43.2
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Real",
+   "heading": 18.9
+  },
+  {
+   "id": "14.204121_121.154276",
+   "lat": 14.204121,
+   "lng": 121.154276,
+   "file": "14.204121, 121.154276.jpg",
+   "northOffset": 152.3,
+   "source": "IMG_20261024_133100_00_407",
+   "connections": [
+    {
+     "targetId": "14.204293_121.154530",
+     "bearing": 55.2,
+     "distance": 33.4
+    },
+    {
+     "targetId": "14.203755_121.154501",
+     "bearing": 149.0,
+     "distance": 47.2
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -3.3
+  },
+  {
+   "id": "14.203755_121.154501",
+   "lat": 14.203755,
+   "lng": 121.154501,
+   "file": "14.203755, 121.154501.jpg",
+   "northOffset": 147.2,
+   "source": "IMG_20261024_133113_00_408",
+   "connections": [
+    {
+     "targetId": "14.203481_121.154659",
+     "bearing": 150.6,
+     "distance": 34.8
+    },
+    {
+     "targetId": "14.204121_121.154276",
+     "bearing": 329.0,
+     "distance": 47.2
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": 3.4
+  },
+  {
+   "id": "14.203481_121.154659",
+   "lat": 14.203481,
+   "lng": 121.154659,
+   "file": "14.203481, 121.154659.jpg",
+   "northOffset": 111.2,
+   "source": "IMG_20261024_133127_00_409",
+   "connections": [
+    {
+     "targetId": "14.203334_121.154749",
+     "bearing": 149.1,
+     "distance": 18.9
+    },
+    {
+     "targetId": "14.203755_121.154501",
+     "bearing": 330.6,
+     "distance": 34.8
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": 37.9
+  },
+  {
+   "id": "14.203334_121.154749",
+   "lat": 14.203334,
+   "lng": 121.154749,
+   "file": "14.203334, 121.154749.jpg",
+   "northOffset": 244.2,
+   "source": "IMG_20261024_133142_00_410",
+   "connections": [
+    {
+     "targetId": "14.203481_121.154659",
+     "bearing": 329.1,
+     "distance": 18.9
+    },
+    {
+     "targetId": "14.202885_121.155011",
+     "bearing": 150.3,
+     "distance": 57.1
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -93.9
+  },
+  {
+   "id": "14.202885_121.155011",
+   "lat": 14.202885,
+   "lng": 121.155011,
+   "file": "14.202885, 121.155011.jpg",
+   "northOffset": 188.8,
+   "source": "IMG_20261024_133154_00_411",
+   "connections": [
+    {
+     "targetId": "14.203334_121.154749",
+     "bearing": 330.3,
+     "distance": 57.1
+    },
+    {
+     "targetId": "14.202268_121.155440",
+     "bearing": 145.8,
+     "distance": 82.4
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -43.0
+  },
+  {
+   "id": "14.202268_121.155440",
+   "lat": 14.202268,
+   "lng": 121.15544,
+   "file": "14.202268, 121.155440.jpg",
+   "northOffset": 188.3,
+   "source": "IMG_20261024_133208_00_412",
+   "connections": [
+    {
+     "targetId": "14.201914_121.155748",
+     "bearing": 139.7,
+     "distance": 51.4
+    },
+    {
+     "targetId": "14.202885_121.155011",
+     "bearing": 325.8,
+     "distance": 82.4
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -48.6
+  },
+  {
+   "id": "14.201914_121.155748",
+   "lat": 14.201914,
+   "lng": 121.155748,
+   "file": "14.201914, 121.155748.jpg",
+   "northOffset": 110.0,
+   "source": "IMG_20261024_133221_00_413",
+   "connections": [
+    {
+     "targetId": "14.202268_121.155440",
+     "bearing": 319.7,
+     "distance": 51.4
+    },
+    {
+     "targetId": "14.202373_121.156527",
+     "bearing": 58.9,
+     "distance": 98.2
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -51.1
+  },
+  {
+   "id": "14.202373_121.156527",
+   "lat": 14.202373,
+   "lng": 121.156527,
+   "file": "14.202373, 121.156527.jpg",
+   "northOffset": 79.8,
+   "source": "IMG_20261024_133235_00_414",
+   "connections": [
+    {
+     "targetId": "14.202453_121.156541",
+     "bearing": 9.7,
+     "distance": 9.0
+    },
+    {
+     "targetId": "14.202640_121.156988",
+     "bearing": 59.3,
+     "distance": 57.9
+    },
+    {
+     "targetId": "14.201914_121.155748",
+     "bearing": 238.9,
+     "distance": 98.2
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Real",
+   "heading": -20.4
+  },
+  {
+   "id": "14.202640_121.156988",
+   "lat": 14.20264,
+   "lng": 121.156988,
+   "file": "14.202640, 121.156988.jpg",
+   "northOffset": 87.0,
+   "source": "IMG_20261024_133250_00_415",
+   "connections": [
+    {
+     "targetId": "14.202858_121.157328",
+     "bearing": 56.7,
+     "distance": 43.9
+    },
+    {
+     "targetId": "14.202373_121.156527",
+     "bearing": 239.3,
+     "distance": 57.9
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Barangay 1",
+   "heading": -30.3
+  },
+  {
+   "id": "14.202858_121.157328",
+   "lat": 14.202858,
+   "lng": 121.157328,
+   "file": "14.202858, 121.157328.jpg",
+   "northOffset": 82.6,
+   "source": "IMG_20261024_133304_00_416",
+   "connections": [
+    {
+     "targetId": "14.202640_121.156988",
+     "bearing": 236.7,
+     "distance": 43.9
+    },
+    {
+     "targetId": "14.203101_121.157724",
+     "bearing": 57.8,
+     "distance": 50.5
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Barangay 1",
+   "heading": -24.8
+  },
+  {
+   "id": "14.203101_121.157724",
+   "lat": 14.203101,
+   "lng": 121.157724,
+   "file": "14.203101, 121.157724.jpg",
+   "northOffset": 87.3,
+   "source": "IMG_20261024_133319_00_417",
+   "connections": [
+    {
+     "targetId": "14.202946_121.157952",
+     "bearing": 124.9,
+     "distance": 30.0
+    },
+    {
+     "targetId": "14.202858_121.157328",
+     "bearing": 237.8,
+     "distance": 50.5
+    }
+   ],
+   "street": "SM City Calamba Bypass Road",
+   "area": "Barangay 1",
+   "heading": 37.5
+  },
+  {
+   "id": "14.202946_121.157952",
+   "lat": 14.202946,
+   "lng": 121.157952,
+   "file": "14.202946, 121.157952.jpg",
+   "northOffset": 174.6,
+   "source": "IMG_20261024_133333_00_418",
+   "connections": [
+    {
+     "targetId": "14.203101_121.157724",
+     "bearing": 304.9,
+     "distance": 30.0
+    },
+    {
+     "targetId": "14.202561_121.158257",
+     "bearing": 142.3,
+     "distance": 53.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -32.3
+  },
+  {
+   "id": "14.202561_121.158257",
+   "lat": 14.202561,
+   "lng": 121.158257,
+   "file": "14.202561, 121.158257.jpg",
+   "northOffset": 182.0,
+   "source": "IMG_20261024_133347_00_419",
+   "connections": [
+    {
+     "targetId": "14.202258_121.158469",
+     "bearing": 145.7,
+     "distance": 40.6
+    },
+    {
+     "targetId": "14.202946_121.157952",
+     "bearing": 322.3,
+     "distance": 53.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -36.4
+  },
+  {
+   "id": "14.202258_121.158469",
+   "lat": 14.202258,
+   "lng": 121.158469,
+   "file": "14.202258, 121.158469.jpg",
+   "northOffset": 247.5,
+   "source": "IMG_20261024_133401_00_420",
+   "connections": [
+    {
+     "targetId": "14.202047_121.158428",
+     "bearing": 190.7,
+     "distance": 23.7
+    },
+    {
+     "targetId": "14.202561_121.158257",
+     "bearing": 325.7,
+     "distance": 40.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -56.7
+  },
+  {
+   "id": "14.202047_121.158428",
+   "lat": 14.202047,
+   "lng": 121.158428,
+   "file": "14.202047, 121.158428.jpg",
+   "northOffset": 294.6,
+   "source": "IMG_20261024_133415_00_421",
+   "connections": [
+    {
+     "targetId": "14.202258_121.158469",
+     "bearing": 10.7,
+     "distance": 23.7
+    },
+    {
+     "targetId": "14.201838_121.157983",
+     "bearing": 244.3,
+     "distance": 53.3
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Lecheria",
+   "heading": -50.3
+  },
+  {
+   "id": "14.201838_121.157983",
+   "lat": 14.201838,
+   "lng": 121.157983,
+   "file": "14.201838, 121.157983.jpg",
+   "northOffset": 229.8,
+   "source": "IMG_20261024_133430_00_422",
+   "connections": [
+    {
+     "targetId": "14.201648_121.157621",
+     "bearing": 241.7,
+     "distance": 44.4
+    },
+    {
+     "targetId": "14.202047_121.158428",
+     "bearing": 64.3,
+     "distance": 53.3
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Lecheria",
+   "heading": 12.0
+  },
+  {
+   "id": "14.201648_121.157621",
+   "lat": 14.201648,
+   "lng": 121.157621,
+   "file": "14.201648, 121.157621.jpg",
+   "northOffset": 258.6,
+   "source": "IMG_20261024_133445_00_423",
+   "connections": [
+    {
+     "targetId": "14.201838_121.157983",
+     "bearing": 61.7,
+     "distance": 44.4
+    },
+    {
+     "targetId": "14.201439_121.157224",
+     "bearing": 241.7,
+     "distance": 48.7
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Lecheria",
+   "heading": -17.0
+  },
+  {
+   "id": "14.201439_121.157224",
+   "lat": 14.201439,
+   "lng": 121.157224,
+   "file": "14.201439, 121.157224.jpg",
+   "northOffset": 269.8,
+   "source": "IMG_20261024_133459_00_424",
+   "connections": [
+    {
+     "targetId": "14.201216_121.156858",
+     "bearing": 238.0,
+     "distance": 46.6
+    },
+    {
+     "targetId": "14.201648_121.157621",
+     "bearing": 61.7,
+     "distance": 48.7
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Lecheria",
+   "heading": -31.8
+  },
+  {
+   "id": "14.201216_121.156858",
+   "lat": 14.201216,
+   "lng": 121.156858,
+   "file": "14.201216, 121.156858.jpg",
+   "northOffset": 248.6,
+   "source": "IMG_20261024_133513_00_425",
+   "connections": [
+    {
+     "targetId": "14.201439_121.157224",
+     "bearing": 58.0,
+     "distance": 46.6
+    },
+    {
+     "targetId": "14.200992_121.156466",
+     "bearing": 239.7,
+     "distance": 49.0
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -8.9
+  },
+  {
+   "id": "14.200992_121.156466",
+   "lat": 14.200992,
+   "lng": 121.156466,
+   "file": "14.200992, 121.156466.jpg",
+   "northOffset": 276.1,
+   "source": "IMG_20261024_133527_00_426",
+   "connections": [
+    {
+     "targetId": "14.201216_121.156858",
+     "bearing": 59.7,
+     "distance": 49.0
+    },
+    {
+     "targetId": "14.200704_121.156030",
+     "bearing": 235.9,
+     "distance": 56.8
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -40.2
+  },
+  {
+   "id": "14.200704_121.156030",
+   "lat": 14.200704,
+   "lng": 121.15603,
+   "file": "14.200704, 121.156030.jpg",
+   "northOffset": 253.7,
+   "source": "IMG_20261024_133541_00_427",
+   "connections": [
+    {
+     "targetId": "14.200992_121.156466",
+     "bearing": 55.9,
+     "distance": 56.8
+    },
+    {
+     "targetId": "14.200355_121.155384",
+     "bearing": 241.0,
+     "distance": 79.7
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -12.7
+  },
+  {
+   "id": "14.200355_121.155384",
+   "lat": 14.200355,
+   "lng": 121.155384,
+   "file": "14.200355, 121.155384.jpg",
+   "northOffset": 268.1,
+   "source": "IMG_20261024_133557_00_428",
+   "connections": [
+    {
+     "targetId": "14.200069_121.154889",
+     "bearing": 239.4,
+     "distance": 62.1
+    },
+    {
+     "targetId": "14.200704_121.156030",
+     "bearing": 61.0,
+     "distance": 79.7
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -28.8
+  },
+  {
+   "id": "14.200069_121.154889",
+   "lat": 14.200069,
+   "lng": 121.154889,
+   "file": "14.200069, 121.154889.jpg",
+   "northOffset": 254.8,
+   "source": "IMG_20261024_133613_00_429",
+   "connections": [
+    {
+     "targetId": "14.199863_121.154357",
+     "bearing": 248.4,
+     "distance": 61.8
+    },
+    {
+     "targetId": "14.200355_121.155384",
+     "bearing": 59.4,
+     "distance": 62.1
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -6.4
+  },
+  {
+   "id": "14.199863_121.154357",
+   "lat": 14.199863,
+   "lng": 121.154357,
+   "file": "14.199863, 121.154357.jpg",
+   "northOffset": 262.6,
+   "source": "IMG_20261024_133626_00_430",
+   "connections": [
+    {
+     "targetId": "14.200069_121.154889",
+     "bearing": 68.4,
+     "distance": 61.8
+    },
+    {
+     "targetId": "14.199620_121.153834",
+     "bearing": 244.5,
+     "distance": 62.5
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -18.1
+  },
+  {
+   "id": "14.199620_121.153834",
+   "lat": 14.19962,
+   "lng": 121.153834,
+   "file": "14.199620, 121.153834.jpg",
+   "northOffset": 252.3,
+   "source": "IMG_20261024_133641_00_431",
+   "connections": [
+    {
+     "targetId": "14.199610_121.153708",
+     "bearing": 265.4,
+     "distance": 13.6
+    },
+    {
+     "targetId": "14.199863_121.154357",
+     "bearing": 64.5,
+     "distance": 62.5
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": 13.0
+  },
+  {
+   "id": "14.199610_121.153708",
+   "lat": 14.19961,
+   "lng": 121.153708,
+   "file": "14.199610, 121.153708.jpg",
+   "northOffset": 261.8,
+   "source": "IMG_20261024_133749_00_432",
+   "connections": [
+    {
+     "targetId": "14.199609_121.153706",
+     "bearing": 242.9,
+     "distance": 1
+    },
+    {
+     "targetId": "14.199620_121.153834",
+     "bearing": 85.4,
+     "distance": 13.6
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": 3.6
+  },
+  {
+   "id": "14.199609_121.153706",
+   "lat": 14.199609,
+   "lng": 121.153706,
+   "file": "14.199609, 121.153706.jpg",
+   "northOffset": 285.4,
+   "source": "IMG_20261024_133825_00_433",
+   "connections": [
+    {
+     "targetId": "14.199610_121.153708",
+     "bearing": 62.9,
+     "distance": 1
+    },
+    {
+     "targetId": "14.199504_121.153492",
+     "bearing": 243.3,
+     "distance": 25.8
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -42.1
+  },
+  {
+   "id": "14.199504_121.153492",
+   "lat": 14.199504,
+   "lng": 121.153492,
+   "file": "14.199504, 121.153492.jpg",
+   "northOffset": 286.8,
+   "source": "IMG_20261024_133840_00_434",
+   "connections": [
+    {
+     "targetId": "14.199609_121.153706",
+     "bearing": 63.3,
+     "distance": 25.8
+    },
+    {
+     "targetId": "14.199331_121.153140",
+     "bearing": 243.3,
+     "distance": 42.5
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -43.5
+  },
+  {
+   "id": "14.199331_121.153140",
+   "lat": 14.199331,
+   "lng": 121.15314,
+   "file": "14.199331, 121.153140.jpg",
+   "northOffset": 288.2,
+   "source": "IMG_20261024_133853_00_435",
+   "connections": [
+    {
+     "targetId": "14.199504_121.153492",
+     "bearing": 63.3,
+     "distance": 42.5
+    },
+    {
+     "targetId": "14.199246_121.152738",
+     "bearing": 257.8,
+     "distance": 44.4
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -30.4
+  },
+  {
+   "id": "14.199246_121.152738",
+   "lat": 14.199246,
+   "lng": 121.152738,
+   "file": "14.199246, 121.152738.jpg",
+   "northOffset": 279.5,
+   "source": "IMG_20261024_133908_00_436",
+   "connections": [
+    {
+     "targetId": "14.199331_121.153140",
+     "bearing": 77.8,
+     "distance": 44.4
+    },
+    {
+     "targetId": "14.198995_121.152305",
+     "bearing": 239.3,
+     "distance": 54.3
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -40.2
+  },
+  {
+   "id": "14.198995_121.152305",
+   "lat": 14.198995,
+   "lng": 121.152305,
+   "file": "14.198995, 121.152305.jpg",
+   "northOffset": 263.4,
+   "source": "IMG_20261024_133925_00_437",
+   "connections": [
+    {
+     "targetId": "14.198802_121.151979",
+     "bearing": 238.8,
+     "distance": 41.1
+    },
+    {
+     "targetId": "14.199246_121.152738",
+     "bearing": 59.3,
+     "distance": 54.3
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -24.7
+  },
+  {
+   "id": "14.198802_121.151979",
+   "lat": 14.198802,
+   "lng": 121.151979,
+   "file": "14.198802, 121.151979.jpg",
+   "northOffset": 278.2,
+   "source": "IMG_20261024_133939_00_438",
+   "connections": [
+    {
+     "targetId": "14.198765_121.151939",
+     "bearing": 226.5,
+     "distance": 5.9
+    },
+    {
+     "targetId": "14.198995_121.152305",
+     "bearing": 58.8,
+     "distance": 41.1
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -51.7
+  },
+  {
+   "id": "14.198765_121.151939",
+   "lat": 14.198765,
+   "lng": 121.151939,
+   "file": "14.198765, 121.151939.jpg",
+   "northOffset": 179.1,
+   "source": "IMG_20261024_133955_00_439",
+   "connections": [
+    {
+     "targetId": "14.198802_121.151979",
+     "bearing": 46.5,
+     "distance": 5.9
+    },
+    {
+     "targetId": "14.198464_121.151959",
+     "bearing": 176.3,
+     "distance": 33.4
+    }
+   ],
+   "street": "LTO Road",
+   "area": "Real",
+   "heading": -2.8
+  },
+  {
+   "id": "14.198464_121.151959",
+   "lat": 14.198464,
+   "lng": 121.151959,
+   "file": "14.198464, 121.151959.jpg",
+   "northOffset": 254.0,
+   "source": "IMG_20261024_134012_00_440",
+   "connections": [
+    {
+     "targetId": "14.198339_121.151758",
+     "bearing": 237.5,
+     "distance": 25.7
+    },
+    {
+     "targetId": "14.198765_121.151939",
+     "bearing": 356.3,
+     "distance": 33.4
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -16.5
+  },
+  {
+   "id": "14.198339_121.151758",
+   "lat": 14.198339,
+   "lng": 121.151758,
+   "file": "14.198339, 121.151758.jpg",
+   "northOffset": 199.6,
+   "source": "IMG_20261024_134026_00_441",
+   "connections": [
+    {
+     "targetId": "14.198464_121.151959",
+     "bearing": 57.5,
+     "distance": 25.7
+    },
+    {
+     "targetId": "14.197875_121.151993",
+     "bearing": 153.7,
+     "distance": 57.2
+    }
+   ],
+   "street": "Kamagong Street",
+   "area": "Real",
+   "heading": -45.9
+  },
+  {
+   "id": "14.197875_121.151993",
+   "lat": 14.197875,
+   "lng": 121.151993,
+   "file": "14.197875, 121.151993.jpg",
+   "northOffset": 169.0,
+   "source": "IMG_20261024_134039_00_442",
+   "connections": [
+    {
+     "targetId": "14.198339_121.151758",
+     "bearing": 333.7,
+     "distance": 57.2
+    },
+    {
+     "targetId": "14.197275_121.152304",
+     "bearing": 153.2,
+     "distance": 74.4
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -15.8
+  },
+  {
+   "id": "14.197275_121.152304",
+   "lat": 14.197275,
+   "lng": 121.152304,
+   "file": "14.197275, 121.152304.jpg",
+   "northOffset": 166.7,
+   "source": "IMG_20261024_134053_00_443",
+   "connections": [
+    {
+     "targetId": "14.196979_121.152656",
+     "bearing": 130.7,
+     "distance": 50.1
+    },
+    {
+     "targetId": "14.197875_121.151993",
+     "bearing": 333.2,
+     "distance": 74.4
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -36.0
+  },
+  {
+   "id": "14.196979_121.152656",
+   "lat": 14.196979,
+   "lng": 121.152656,
+   "file": "14.196979, 121.152656.jpg",
+   "northOffset": 180.5,
+   "source": "IMG_20261024_134107_00_444",
+   "connections": [
+    {
+     "targetId": "14.197275_121.152304",
+     "bearing": 310.7,
+     "distance": 50.1
+    },
+    {
+     "targetId": "14.196667_121.153177",
+     "bearing": 121.5,
+     "distance": 66.0
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -59.0
+  },
+  {
+   "id": "14.196667_121.153177",
+   "lat": 14.196667,
+   "lng": 121.153177,
+   "file": "14.196667, 121.153177.jpg",
+   "northOffset": 135.0,
+   "source": "IMG_20261024_134121_00_445",
+   "connections": [
+    {
+     "targetId": "14.196979_121.152656",
+     "bearing": 301.5,
+     "distance": 66.0
+    },
+    {
+     "targetId": "14.196344_121.153723",
+     "bearing": 121.2,
+     "distance": 68.9
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -13.8
+  },
+  {
+   "id": "14.196344_121.153723",
+   "lat": 14.196344,
+   "lng": 121.153723,
+   "file": "14.196344, 121.153723.jpg",
+   "northOffset": 126.3,
+   "source": "IMG_20261024_134135_00_446",
+   "connections": [
+    {
+     "targetId": "14.196667_121.153177",
+     "bearing": 301.2,
+     "distance": 68.9
+    },
+    {
+     "targetId": "14.195989_121.154285",
+     "bearing": 122.9,
+     "distance": 72.2
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -3.4
+  },
+  {
+   "id": "14.195989_121.154285",
+   "lat": 14.195989,
+   "lng": 121.154285,
+   "file": "14.195989, 121.154285.jpg",
+   "northOffset": 126.3,
+   "source": "IMG_20261024_134149_00_447",
+   "connections": [
+    {
+     "targetId": "14.196344_121.153723",
+     "bearing": 302.9,
+     "distance": 72.2
+    },
+    {
+     "targetId": "14.195653_121.154874",
+     "bearing": 120.3,
+     "distance": 73.6
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -6.0
+  },
+  {
+   "id": "14.195653_121.154874",
+   "lat": 14.195653,
+   "lng": 121.154874,
+   "file": "14.195653, 121.154874.jpg",
+   "northOffset": 118.7,
+   "source": "IMG_20261024_134203_00_448",
+   "connections": [
+    {
+     "targetId": "14.195373_121.155355",
+     "bearing": 120.8,
+     "distance": 60.4
+    },
+    {
+     "targetId": "14.195989_121.154285",
+     "bearing": 300.3,
+     "distance": 73.6
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": 2.1
+  },
+  {
+   "id": "14.195373_121.155355",
+   "lat": 14.195373,
+   "lng": 121.155355,
+   "file": "14.195373, 121.155355.jpg",
+   "northOffset": 134.2,
+   "source": "IMG_20261024_134217_00_449",
+   "connections": [
+    {
+     "targetId": "14.195653_121.154874",
+     "bearing": 300.8,
+     "distance": 60.4
+    },
+    {
+     "targetId": "14.195027_121.155936",
+     "bearing": 121.4,
+     "distance": 73.5
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -12.8
+  },
+  {
+   "id": "14.195027_121.155936",
+   "lat": 14.195027,
+   "lng": 121.155936,
+   "file": "14.195027, 121.155936.jpg",
+   "northOffset": 73.2,
+   "source": "IMG_20261024_134231_00_450",
+   "connections": [
+    {
+     "targetId": "14.195373_121.155355",
+     "bearing": 301.4,
+     "distance": 73.5
+    },
+    {
+     "targetId": "14.194640_121.156575",
+     "bearing": 121.8,
+     "distance": 81.2
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": 48.6
+  },
+  {
+   "id": "14.194640_121.156575",
+   "lat": 14.19464,
+   "lng": 121.156575,
+   "file": "14.194640, 121.156575.jpg",
+   "northOffset": 131.4,
+   "source": "IMG_20261024_134244_00_451",
+   "connections": [
+    {
+     "targetId": "14.195027_121.155936",
+     "bearing": 301.8,
+     "distance": 81.2
+    },
+    {
+     "targetId": "14.194055_121.157548",
+     "bearing": 121.6,
+     "distance": 123.3
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -9.8
+  },
+  {
+   "id": "14.194055_121.157548",
+   "lat": 14.194055,
+   "lng": 121.157548,
+   "file": "14.194055, 121.157548.jpg",
+   "northOffset": 142.1,
+   "source": "IMG_20261024_134314_00_452",
+   "connections": [
+    {
+     "targetId": "14.193863_121.158017",
+     "bearing": 112.8,
+     "distance": 54.9
+    },
+    {
+     "targetId": "14.194640_121.156575",
+     "bearing": 301.6,
+     "distance": 123.3
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -29.4
+  },
+  {
+   "id": "14.193863_121.158017",
+   "lat": 14.193863,
+   "lng": 121.158017,
+   "file": "14.193863, 121.158017.jpg",
+   "northOffset": 94.9,
+   "source": "IMG_20261024_134328_00_453",
+   "connections": [
+    {
+     "targetId": "14.194055_121.157548",
+     "bearing": 292.8,
+     "distance": 54.9
+    },
+    {
+     "targetId": "14.194090_121.158540",
+     "bearing": 66.0,
+     "distance": 61.8
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Real",
+   "heading": -28.8
+  },
+  {
+   "id": "14.194090_121.158540",
+   "lat": 14.19409,
+   "lng": 121.15854,
+   "file": "14.194090, 121.158540.jpg",
+   "northOffset": 76.0,
+   "source": "IMG_20261024_134343_00_454",
+   "connections": [
+    {
+     "targetId": "14.193863_121.158017",
+     "bearing": 246.0,
+     "distance": 61.8
+    },
+    {
+     "targetId": "14.194476_121.159279",
+     "bearing": 61.8,
+     "distance": 90.5
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Real",
+   "heading": -14.1
+  },
+  {
+   "id": "14.194476_121.159279",
+   "lat": 14.194476,
+   "lng": 121.159279,
+   "file": "14.194476, 121.159279.jpg",
+   "northOffset": 62.1,
+   "source": "IMG_20261024_134405_00_455",
+   "connections": [
+    {
+     "targetId": "14.194774_121.159727",
+     "bearing": 55.7,
+     "distance": 58.5
+    },
+    {
+     "targetId": "14.194090_121.158540",
+     "bearing": 241.8,
+     "distance": 90.5
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Real",
+   "heading": -6.4
+  },
+  {
+   "id": "14.194774_121.159727",
+   "lat": 14.194774,
+   "lng": 121.159727,
+   "file": "14.194774, 121.159727.jpg",
+   "northOffset": 63.2,
+   "source": "IMG_20261024_134419_00_456",
+   "connections": [
+    {
+     "targetId": "14.194476_121.159279",
+     "bearing": 235.7,
+     "distance": 58.5
+    },
+    {
+     "targetId": "14.195111_121.160224",
+     "bearing": 55.2,
+     "distance": 65.3
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Real",
+   "heading": -8.0
+  },
+  {
+   "id": "14.195111_121.160224",
+   "lat": 14.195111,
+   "lng": 121.160224,
+   "file": "14.195111, 121.160224.jpg",
+   "northOffset": 63.9,
+   "source": "IMG_20261024_134432_00_457",
+   "connections": [
+    {
+     "targetId": "14.195408_121.160657",
+     "bearing": 54.9,
+     "distance": 57.1
+    },
+    {
+     "targetId": "14.194774_121.159727",
+     "bearing": 235.2,
+     "distance": 65.3
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Real",
+   "heading": -9.0
+  },
+  {
+   "id": "14.195408_121.160657",
+   "lat": 14.195408,
+   "lng": 121.160657,
+   "file": "14.195408, 121.160657.jpg",
+   "northOffset": 60.5,
+   "source": "IMG_20261024_134446_00_458",
+   "connections": [
+    {
+     "targetId": "14.195566_121.160919",
+     "bearing": 58.3,
+     "distance": 33.2
+    },
+    {
+     "targetId": "14.195111_121.160224",
+     "bearing": 234.9,
+     "distance": 57.1
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Real",
+   "heading": -2.2
+  },
+  {
+   "id": "14.195566_121.160919",
+   "lat": 14.195566,
+   "lng": 121.160919,
+   "file": "14.195566, 121.160919.jpg",
+   "northOffset": 60.3,
+   "source": "IMG_20261024_134500_00_459",
+   "connections": [
+    {
+     "targetId": "14.195408_121.160657",
+     "bearing": 238.3,
+     "distance": 33.2
+    },
+    {
+     "targetId": "14.195894_121.161381",
+     "bearing": 54.0,
+     "distance": 61.7
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Halang",
+   "heading": -6.4
+  },
+  {
+   "id": "14.195894_121.161381",
+   "lat": 14.195894,
+   "lng": 121.161381,
+   "file": "14.195894, 121.161381.jpg",
+   "northOffset": 58.5,
+   "source": "IMG_20261024_134516_00_460",
+   "connections": [
+    {
+     "targetId": "14.196221_121.161798",
+     "bearing": 51.2,
+     "distance": 57.7
+    },
+    {
+     "targetId": "14.195566_121.160919",
+     "bearing": 234.0,
+     "distance": 61.7
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Halang",
+   "heading": -7.3
+  },
+  {
+   "id": "14.196221_121.161798",
+   "lat": 14.196221,
+   "lng": 121.161798,
+   "file": "14.196221, 121.161798.jpg",
+   "northOffset": 56.2,
+   "source": "IMG_20261024_134530_00_461",
+   "connections": [
+    {
+     "targetId": "14.196250_121.161664",
+     "bearing": 282.5,
+     "distance": 14.8
+    },
+    {
+     "targetId": "14.195894_121.161381",
+     "bearing": 231.2,
+     "distance": 57.7
+    },
+    {
+     "targetId": "14.196584_121.162267",
+     "bearing": 51.6,
+     "distance": 64.6
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Halang",
+   "heading": -4.6
+  },
+  {
+   "id": "14.196584_121.162267",
+   "lat": 14.196584,
+   "lng": 121.162267,
+   "file": "14.196584, 121.162267.jpg",
+   "northOffset": 59.2,
+   "source": "IMG_20261024_134548_00_462",
+   "connections": [
+    {
+     "targetId": "14.196697_121.162699",
+     "bearing": 75.0,
+     "distance": 48.3
+    },
+    {
+     "targetId": "14.196221_121.161798",
+     "bearing": 231.6,
+     "distance": 64.6
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Halang",
+   "heading": 15.8
+  },
+  {
+   "id": "14.196697_121.162699",
+   "lat": 14.196697,
+   "lng": 121.162699,
+   "file": "14.196697, 121.162699.jpg",
+   "northOffset": 145.8,
+   "source": "IMG_20261024_134603_00_463",
+   "connections": [
+    {
+     "targetId": "14.196584_121.162267",
+     "bearing": 255.0,
+     "distance": 48.3
+    },
+    {
+     "targetId": "14.196231_121.163082",
+     "bearing": 141.3,
+     "distance": 66.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -4.5
+  },
+  {
+   "id": "14.196231_121.163082",
+   "lat": 14.196231,
+   "lng": 121.163082,
+   "file": "14.196231, 121.163082.jpg",
+   "northOffset": 151.8,
+   "source": "IMG_20261024_134616_00_464",
+   "connections": [
+    {
+     "targetId": "14.196697_121.162699",
+     "bearing": 321.3,
+     "distance": 66.1
+    },
+    {
+     "targetId": "14.195646_121.163581",
+     "bearing": 140.2,
+     "distance": 84.2
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -11.6
+  },
+  {
+   "id": "14.195646_121.163581",
+   "lat": 14.195646,
+   "lng": 121.163581,
+   "file": "14.195646, 121.163581.jpg",
+   "northOffset": 138.0,
+   "source": "IMG_20261024_134632_00_465",
+   "connections": [
+    {
+     "targetId": "14.195127_121.164041",
+     "bearing": 139.1,
+     "distance": 75.9
+    },
+    {
+     "targetId": "14.196231_121.163082",
+     "bearing": 320.2,
+     "distance": 84.2
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": 1.1
+  },
+  {
+   "id": "14.195127_121.164041",
+   "lat": 14.195127,
+   "lng": 121.164041,
+   "file": "14.195127, 121.164041.jpg",
+   "northOffset": 150.4,
+   "source": "IMG_20261024_134648_00_466",
+   "connections": [
+    {
+     "targetId": "14.194664_121.164449",
+     "bearing": 139.3,
+     "distance": 67.5
+    },
+    {
+     "targetId": "14.195646_121.163581",
+     "bearing": 319.1,
+     "distance": 75.9
+    }
+   ],
+   "street": "Saint Dominic Street",
+   "area": "Halang",
+   "heading": -11.0
+  },
+  {
+   "id": "14.194664_121.164449",
+   "lat": 14.194664,
+   "lng": 121.164449,
+   "file": "14.194664, 121.164449.jpg",
+   "northOffset": 148.1,
+   "source": "IMG_20261024_134703_00_467",
+   "connections": [
+    {
+     "targetId": "14.195127_121.164041",
+     "bearing": 319.3,
+     "distance": 67.5
+    },
+    {
+     "targetId": "14.194154_121.164883",
+     "bearing": 140.3,
+     "distance": 73.3
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -7.9
+  },
+  {
+   "id": "14.194154_121.164883",
+   "lat": 14.194154,
+   "lng": 121.164883,
+   "file": "14.194154, 121.164883.jpg",
+   "northOffset": 144.1,
+   "source": "IMG_20261024_134716_00_468",
+   "connections": [
+    {
+     "targetId": "14.193702_121.165266",
+     "bearing": 140.4,
+     "distance": 64.9
+    },
+    {
+     "targetId": "14.194664_121.164449",
+     "bearing": 320.3,
+     "distance": 73.3
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -3.7
+  },
+  {
+   "id": "14.193702_121.165266",
+   "lat": 14.193702,
+   "lng": 121.165266,
+   "file": "14.193702, 121.165266.jpg",
+   "northOffset": 145.5,
+   "source": "IMG_20261024_134731_00_469",
+   "connections": [
+    {
+     "targetId": "14.194154_121.164883",
+     "bearing": 320.4,
+     "distance": 64.9
+    },
+    {
+     "targetId": "14.193157_121.165727",
+     "bearing": 140.5,
+     "distance": 78.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -5.1
+  },
+  {
+   "id": "14.193157_121.165727",
+   "lat": 14.193157,
+   "lng": 121.165727,
+   "file": "14.193157, 121.165727.jpg",
+   "northOffset": 151.1,
+   "source": "IMG_20261024_134745_00_470",
+   "connections": [
+    {
+     "targetId": "14.193702_121.165266",
+     "bearing": 320.5,
+     "distance": 78.1
+    },
+    {
+     "targetId": "14.192606_121.166200",
+     "bearing": 140.0,
+     "distance": 79.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -11.0
+  },
+  {
+   "id": "14.192606_121.166200",
+   "lat": 14.192606,
+   "lng": 121.1662,
+   "file": "14.192606, 121.166200.jpg",
+   "northOffset": 149.3,
+   "source": "IMG_20261024_134800_00_471",
+   "connections": [
+    {
+     "targetId": "14.192624_121.166339",
+     "bearing": 82.4,
+     "distance": 15.1
+    },
+    {
+     "targetId": "14.192162_121.166588",
+     "bearing": 139.5,
+     "distance": 64.5
+    },
+    {
+     "targetId": "14.193157_121.165727",
+     "bearing": 320.0,
+     "distance": 79.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": -9.7
+  },
+  {
+   "id": "14.192162_121.166588",
+   "lat": 14.192162,
+   "lng": 121.166588,
+   "file": "14.192162, 121.166588.jpg",
+   "northOffset": 151.1,
+   "source": "IMG_20261024_134813_00_472",
+   "connections": [
+    {
+     "targetId": "14.191908_121.166596",
+     "bearing": 178.2,
+     "distance": 28.1
+    },
+    {
+     "targetId": "14.192606_121.166200",
+     "bearing": 319.5,
+     "distance": 64.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": 27.1
+  },
+  {
+   "id": "14.191908_121.166596",
+   "lat": 14.191908,
+   "lng": 121.166596,
+   "file": "14.191908, 121.166596.jpg",
+   "northOffset": 241.2,
+   "source": "IMG_20261024_134827_00_473",
+   "connections": [
+    {
+     "targetId": "14.191832_121.166507",
+     "bearing": 228.8,
+     "distance": 12.8
+    },
+    {
+     "targetId": "14.192162_121.166588",
+     "bearing": 358.2,
+     "distance": 28.1
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -12.3
+  },
+  {
+   "id": "14.191832_121.166507",
+   "lat": 14.191832,
+   "lng": 121.166507,
+   "file": "14.191832, 121.166507.jpg",
+   "northOffset": 250.3,
+   "source": "IMG_20261024_134841_00_474",
+   "connections": [
+    {
+     "targetId": "14.191908_121.166596",
+     "bearing": 48.8,
+     "distance": 12.8
+    },
+    {
+     "targetId": "14.191735_121.166405",
+     "bearing": 225.7,
+     "distance": 15.4
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -24.6
+  },
+  {
+   "id": "14.191735_121.166405",
+   "lat": 14.191735,
+   "lng": 121.166405,
+   "file": "14.191735, 121.166405.jpg",
+   "northOffset": 253.1,
+   "source": "IMG_20261024_134856_00_475",
+   "connections": [
+    {
+     "targetId": "14.191832_121.166507",
+     "bearing": 45.7,
+     "distance": 15.4
+    },
+    {
+     "targetId": "14.191437_121.166050",
+     "bearing": 229.3,
+     "distance": 50.5
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -23.8
+  },
+  {
+   "id": "14.191437_121.166050",
+   "lat": 14.191437,
+   "lng": 121.16605,
+   "file": "14.191437, 121.166050.jpg",
+   "northOffset": 243.9,
+   "source": "IMG_20261024_134911_00_476",
+   "connections": [
+    {
+     "targetId": "14.191735_121.166405",
+     "bearing": 49.3,
+     "distance": 50.5
+    },
+    {
+     "targetId": "14.191139_121.165682",
+     "bearing": 230.3,
+     "distance": 51.6
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -13.6
+  },
+  {
+   "id": "14.191139_121.165682",
+   "lat": 14.191139,
+   "lng": 121.165682,
+   "file": "14.191139, 121.165682.jpg",
+   "northOffset": 244.3,
+   "source": "IMG_20261024_134925_00_477",
+   "connections": [
+    {
+     "targetId": "14.190860_121.165338",
+     "bearing": 230.3,
+     "distance": 48.3
+    },
+    {
+     "targetId": "14.191437_121.166050",
+     "bearing": 50.3,
+     "distance": 51.6
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -14.0
+  },
+  {
+   "id": "14.190860_121.165338",
+   "lat": 14.19086,
+   "lng": 121.165338,
+   "file": "14.190860, 121.165338.jpg",
+   "northOffset": 238.7,
+   "source": "IMG_20261024_134939_00_478",
+   "connections": [
+    {
+     "targetId": "14.190576_121.165013",
+     "bearing": 228.2,
+     "distance": 47.1
+    },
+    {
+     "targetId": "14.191139_121.165682",
+     "bearing": 50.3,
+     "distance": 48.3
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -10.6
+  },
+  {
+   "id": "14.190576_121.165013",
+   "lat": 14.190576,
+   "lng": 121.165013,
+   "file": "14.190576, 121.165013.jpg",
+   "northOffset": 232.4,
+   "source": "IMG_20261024_134955_00_479",
+   "connections": [
+    {
+     "targetId": "14.190319_121.164721",
+     "bearing": 228.0,
+     "distance": 42.4
+    },
+    {
+     "targetId": "14.190860_121.165338",
+     "bearing": 48.2,
+     "distance": 47.1
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -4.5
+  },
+  {
+   "id": "14.190319_121.164721",
+   "lat": 14.190319,
+   "lng": 121.164721,
+   "file": "14.190319, 121.164721.jpg",
+   "northOffset": 235.5,
+   "source": "IMG_20261024_135012_00_480",
+   "connections": [
+    {
+     "targetId": "14.190576_121.165013",
+     "bearing": 48.0,
+     "distance": 42.4
+    },
+    {
+     "targetId": "14.190003_121.164309",
+     "bearing": 231.8,
+     "distance": 56.6
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -3.6
+  },
+  {
+   "id": "14.190003_121.164309",
+   "lat": 14.190003,
+   "lng": 121.164309,
+   "file": "14.190003, 121.164309.jpg",
+   "northOffset": 234.6,
+   "source": "IMG_20261024_135029_00_481",
+   "connections": [
+    {
+     "targetId": "14.189690_121.163915",
+     "bearing": 230.9,
+     "distance": 54.8
+    },
+    {
+     "targetId": "14.190319_121.164721",
+     "bearing": 51.8,
+     "distance": 56.6
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -3.7
+  },
+  {
+   "id": "14.189690_121.163915",
+   "lat": 14.18969,
+   "lng": 121.163915,
+   "file": "14.189690, 121.163915.jpg",
+   "northOffset": 234.6,
+   "source": "IMG_20261024_135044_00_482",
+   "connections": [
+    {
+     "targetId": "14.189566_121.163747",
+     "bearing": 232.9,
+     "distance": 22.7
+    },
+    {
+     "targetId": "14.190003_121.164309",
+     "bearing": 50.9,
+     "distance": 54.8
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -1.7
+  },
+  {
+   "id": "14.189566_121.163747",
+   "lat": 14.189566,
+   "lng": 121.163747,
+   "file": "14.189566, 121.163747.jpg",
+   "northOffset": 237.3,
+   "source": "IMG_20261024_135058_00_483",
+   "connections": [
+    {
+     "targetId": "14.189690_121.163915",
+     "bearing": 52.9,
+     "distance": 22.7
+    },
+    {
+     "targetId": "14.189234_121.163385",
+     "bearing": 226.8,
+     "distance": 53.6
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -10.5
+  },
+  {
+   "id": "14.189234_121.163385",
+   "lat": 14.189234,
+   "lng": 121.163385,
+   "file": "14.189234, 121.163385.jpg",
+   "northOffset": 229.2,
+   "source": "IMG_20261024_135119_00_484",
+   "connections": [
+    {
+     "targetId": "14.188990_121.163079",
+     "bearing": 230.8,
+     "distance": 42.6
+    },
+    {
+     "targetId": "14.189566_121.163747",
+     "bearing": 46.8,
+     "distance": 53.6
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": 1.6
+  },
+  {
+   "id": "14.188990_121.163079",
+   "lat": 14.18899,
+   "lng": 121.163079,
+   "file": "14.188990, 121.163079.jpg",
+   "northOffset": 236.2,
+   "source": "IMG_20261024_135132_00_485",
+   "connections": [
+    {
+     "targetId": "14.189234_121.163385",
+     "bearing": 50.8,
+     "distance": 42.6
+    },
+    {
+     "targetId": "14.188675_121.162693",
+     "bearing": 230.1,
+     "distance": 54.3
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -6.1
+  },
+  {
+   "id": "14.188675_121.162693",
+   "lat": 14.188675,
+   "lng": 121.162693,
+   "file": "14.188675, 121.162693.jpg",
+   "northOffset": 238.7,
+   "source": "IMG_20261024_135146_00_486",
+   "connections": [
+    {
+     "targetId": "14.188990_121.163079",
+     "bearing": 50.1,
+     "distance": 54.3
+    }
+   ],
+   "street": "Ipil-ipil Street",
+   "area": "Bucal",
+   "heading": -8.6
+  },
+  {
+   "id": "14.190986_121.167677",
+   "lat": 14.190986,
+   "lng": 121.167677,
+   "file": "14.190986, 121.167677.jpg",
+   "northOffset": 330.9,
+   "source": "IMG_20261024_135542_00_487",
+   "connections": [
+    {
+     "targetId": "14.191467_121.167281",
+     "bearing": 321.2,
+     "distance": 68.2
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": -9.7
+  },
+  {
+   "id": "14.191467_121.167281",
+   "lat": 14.191467,
+   "lng": 121.167281,
+   "file": "14.191467, 121.167281.jpg",
+   "northOffset": 326.8,
+   "source": "IMG_20261024_135557_00_488",
+   "connections": [
+    {
+     "targetId": "14.191934_121.166907",
+     "bearing": 322.0,
+     "distance": 65.5
+    },
+    {
+     "targetId": "14.190986_121.167677",
+     "bearing": 141.2,
+     "distance": 68.2
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": -4.8
+  },
+  {
+   "id": "14.191934_121.166907",
+   "lat": 14.191934,
+   "lng": 121.166907,
+   "file": "14.191934, 121.166907.jpg",
+   "northOffset": 340.2,
+   "source": "IMG_20261024_135611_00_489",
+   "connections": [
+    {
+     "targetId": "14.191467_121.167281",
+     "bearing": 142.0,
+     "distance": 65.5
+    },
+    {
+     "targetId": "14.192438_121.166508",
+     "bearing": 322.3,
+     "distance": 70.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": -17.9
+  },
+  {
+   "id": "14.192438_121.166508",
+   "lat": 14.192438,
+   "lng": 121.166508,
+   "file": "14.192438, 121.166508.jpg",
+   "northOffset": 340.4,
+   "source": "IMG_20261024_135626_00_490",
+   "connections": [
+    {
+     "targetId": "14.192624_121.166339",
+     "bearing": 318.4,
+     "distance": 27.5
+    },
+    {
+     "targetId": "14.191934_121.166907",
+     "bearing": 142.3,
+     "distance": 70.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": -21.9
+  },
+  {
+   "id": "14.192624_121.166339",
+   "lat": 14.192624,
+   "lng": 121.166339,
+   "file": "14.192624, 121.166339.jpg",
+   "northOffset": 349.7,
+   "source": "IMG_20261024_135640_00_491",
+   "connections": [
+    {
+     "targetId": "14.192606_121.166200",
+     "bearing": 262.4,
+     "distance": 15.1
+    },
+    {
+     "targetId": "14.192438_121.166508",
+     "bearing": 138.4,
+     "distance": 27.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Bucal",
+   "heading": -31.3
+  },
+  {
+   "id": "14.196913_121.162656",
+   "lat": 14.196913,
+   "lng": 121.162656,
+   "file": "14.196913, 121.162656.jpg",
+   "northOffset": 337.4,
+   "source": "IMG_20261024_140225_00_492",
+   "connections": [
+    {
+     "targetId": "14.197540_121.162125",
+     "bearing": 320.4,
+     "distance": 89.9
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -17.0
+  },
+  {
+   "id": "14.197540_121.162125",
+   "lat": 14.19754,
+   "lng": 121.162125,
+   "file": "14.197540, 121.162125.jpg",
+   "northOffset": 341.7,
+   "source": "IMG_20261024_140239_00_493",
+   "connections": [
+    {
+     "targetId": "14.197979_121.161764",
+     "bearing": 321.3,
+     "distance": 62.2
+    },
+    {
+     "targetId": "14.196913_121.162656",
+     "bearing": 140.4,
+     "distance": 89.9
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -20.5
+  },
+  {
+   "id": "14.197979_121.161764",
+   "lat": 14.197979,
+   "lng": 121.161764,
+   "file": "14.197979, 121.161764.jpg",
+   "northOffset": 346.9,
+   "source": "IMG_20261024_140252_00_494",
+   "connections": [
+    {
+     "targetId": "14.197540_121.162125",
+     "bearing": 141.3,
+     "distance": 62.2
+    },
+    {
+     "targetId": "14.198599_121.161334",
+     "bearing": 325.9,
+     "distance": 82.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Halang",
+   "heading": -21.0
+  },
+  {
+   "id": "14.198599_121.161334",
+   "lat": 14.198599,
+   "lng": 121.161334,
+   "file": "14.198599, 121.161334.jpg",
+   "northOffset": 347.5,
+   "source": "IMG_20261024_140306_00_495",
+   "connections": [
+    {
+     "targetId": "14.197979_121.161764",
+     "bearing": 145.9,
+     "distance": 82.8
+    },
+    {
+     "targetId": "14.199283_121.160805",
+     "bearing": 323.0,
+     "distance": 94.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -24.6
+  },
+  {
+   "id": "14.199283_121.160805",
+   "lat": 14.199283,
+   "lng": 121.160805,
+   "file": "14.199283, 121.160805.jpg",
+   "northOffset": 348.5,
+   "source": "IMG_20261024_140320_00_496",
+   "connections": [
+    {
+     "targetId": "14.199940_121.160308",
+     "bearing": 323.6,
+     "distance": 90.3
+    },
+    {
+     "targetId": "14.198599_121.161334",
+     "bearing": 143.0,
+     "distance": 94.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -25.0
+  },
+  {
+   "id": "14.199940_121.160308",
+   "lat": 14.19994,
+   "lng": 121.160308,
+   "file": "14.199940, 121.160308.jpg",
+   "northOffset": 341.9,
+   "source": "IMG_20261024_140334_00_497",
+   "connections": [
+    {
+     "targetId": "14.200527_121.159868",
+     "bearing": 323.8,
+     "distance": 80.4
+    },
+    {
+     "targetId": "14.199283_121.160805",
+     "bearing": 143.6,
+     "distance": 90.3
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -18.1
+  },
+  {
+   "id": "14.200527_121.159868",
+   "lat": 14.200527,
+   "lng": 121.159868,
+   "file": "14.200527, 121.159868.jpg",
+   "northOffset": 329.1,
+   "source": "IMG_20261024_140407_00_498",
+   "connections": [
+    {
+     "targetId": "14.200839_121.159628",
+     "bearing": 323.1,
+     "distance": 43.1
+    },
+    {
+     "targetId": "14.199940_121.160308",
+     "bearing": 143.8,
+     "distance": 80.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -6.0
+  },
+  {
+   "id": "14.200839_121.159628",
+   "lat": 14.200839,
+   "lng": 121.159628,
+   "file": "14.200839, 121.159628.jpg",
+   "northOffset": 334.5,
+   "source": "IMG_20261024_140423_00_499",
+   "connections": [
+    {
+     "targetId": "14.201117_121.159409",
+     "bearing": 322.4,
+     "distance": 38.8
+    },
+    {
+     "targetId": "14.200527_121.159868",
+     "bearing": 143.1,
+     "distance": 43.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -12.1
+  },
+  {
+   "id": "14.201117_121.159409",
+   "lat": 14.201117,
+   "lng": 121.159409,
+   "file": "14.201117, 121.159409.jpg",
+   "northOffset": 335.5,
+   "source": "IMG_20261024_140438_00_500",
+   "connections": [
+    {
+     "targetId": "14.200839_121.159628",
+     "bearing": 142.4,
+     "distance": 38.8
+    },
+    {
+     "targetId": "14.201410_121.159201",
+     "bearing": 325.3,
+     "distance": 39.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -10.3
+  },
+  {
+   "id": "14.201410_121.159201",
+   "lat": 14.20141,
+   "lng": 121.159201,
+   "file": "14.201410, 121.159201.jpg",
+   "northOffset": 335.1,
+   "source": "IMG_20261024_140452_00_501",
+   "connections": [
+    {
+     "targetId": "14.201117_121.159409",
+     "bearing": 145.3,
+     "distance": 39.4
+    },
+    {
+     "targetId": "14.201897_121.158835",
+     "bearing": 323.7,
+     "distance": 66.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -11.4
+  },
+  {
+   "id": "14.201897_121.158835",
+   "lat": 14.201897,
+   "lng": 121.158835,
+   "file": "14.201897, 121.158835.jpg",
+   "northOffset": 331.1,
+   "source": "IMG_20261024_140507_00_502",
+   "connections": [
+    {
+     "targetId": "14.201410_121.159201",
+     "bearing": 143.7,
+     "distance": 66.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Lecheria",
+   "heading": -7.4
+  },
+  {
+   "id": "14.203303_121.157764",
+   "lat": 14.203303,
+   "lng": 121.157764,
+   "file": "14.203303, 121.157764.jpg",
+   "northOffset": 336.2,
+   "source": "IMG_20261024_140548_00_503",
+   "connections": [
+    {
+     "targetId": "14.203806_121.157412",
+     "bearing": 325.7,
+     "distance": 67.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -10.6
+  },
+  {
+   "id": "14.203806_121.157412",
+   "lat": 14.203806,
+   "lng": 121.157412,
+   "file": "14.203806, 121.157412.jpg",
+   "northOffset": 333.1,
+   "source": "IMG_20261024_140602_00_504",
+   "connections": [
+    {
+     "targetId": "14.204158_121.157143",
+     "bearing": 323.3,
+     "distance": 48.6
+    },
+    {
+     "targetId": "14.203303_121.157764",
+     "bearing": 145.7,
+     "distance": 67.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -9.8
+  },
+  {
+   "id": "14.204158_121.157143",
+   "lat": 14.204158,
+   "lng": 121.157143,
+   "file": "14.204158, 121.157143.jpg",
+   "northOffset": 339.5,
+   "source": "IMG_20261024_140616_00_505",
+   "connections": [
+    {
+     "targetId": "14.203806_121.157412",
+     "bearing": 143.3,
+     "distance": 48.6
+    },
+    {
+     "targetId": "14.204725_121.156722",
+     "bearing": 324.1,
+     "distance": 77.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -15.4
+  },
+  {
+   "id": "14.204725_121.156722",
+   "lat": 14.204725,
+   "lng": 121.156722,
+   "file": "14.204725, 121.156722.jpg",
+   "northOffset": 337.2,
+   "source": "IMG_20261024_140630_00_506",
+   "connections": [
+    {
+     "targetId": "14.205243_121.156300",
+     "bearing": 321.5,
+     "distance": 73.2
+    },
+    {
+     "targetId": "14.204158_121.157143",
+     "bearing": 144.1,
+     "distance": 77.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -15.7
+  },
+  {
+   "id": "14.205243_121.156300",
+   "lat": 14.205243,
+   "lng": 121.1563,
+   "file": "14.205243, 121.156300.jpg",
+   "northOffset": 337.3,
+   "source": "IMG_20261024_140645_00_507",
+   "connections": [
+    {
+     "targetId": "14.205441_121.156152",
+     "bearing": 323.9,
+     "distance": 27.1
+    },
+    {
+     "targetId": "14.204725_121.156722",
+     "bearing": 141.5,
+     "distance": 73.2
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -13.4
+  },
+  {
+   "id": "14.205441_121.156152",
+   "lat": 14.205441,
+   "lng": 121.156152,
+   "file": "14.205441, 121.156152.jpg",
+   "northOffset": 332.2,
+   "source": "IMG_20261024_140701_00_508",
+   "connections": [
+    {
+     "targetId": "14.205243_121.156300",
+     "bearing": 143.9,
+     "distance": 27.1
+    },
+    {
+     "targetId": "14.205906_121.155800",
+     "bearing": 323.5,
+     "distance": 63.9
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -8.7
+  },
+  {
+   "id": "14.205906_121.155800",
+   "lat": 14.205906,
+   "lng": 121.1558,
+   "file": "14.205906, 121.155800.jpg",
+   "northOffset": 325.9,
+   "source": "IMG_20261024_140731_00_509",
+   "connections": [
+    {
+     "targetId": "14.205441_121.156152",
+     "bearing": 143.5,
+     "distance": 63.9
+    },
+    {
+     "targetId": "14.206326_121.155391",
+     "bearing": 316.5,
+     "distance": 64.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -9.5
+  },
+  {
+   "id": "14.206326_121.155391",
+   "lat": 14.206326,
+   "lng": 121.155391,
+   "file": "14.206326, 121.155391.jpg",
+   "northOffset": 312.9,
+   "source": "IMG_20261024_140746_00_510",
+   "connections": [
+    {
+     "targetId": "14.205906_121.155800",
+     "bearing": 136.5,
+     "distance": 64.1
+    },
+    {
+     "targetId": "14.206816_121.154789",
+     "bearing": 309.8,
+     "distance": 84.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -3.1
+  },
+  {
+   "id": "14.206816_121.154789",
+   "lat": 14.206816,
+   "lng": 121.154789,
+   "file": "14.206816, 121.154789.jpg",
+   "northOffset": 294.2,
+   "source": "IMG_20261024_140806_00_511",
+   "connections": [
+    {
+     "targetId": "14.206468_121.154605",
+     "bearing": 207.3,
+     "distance": 43.3
+    },
+    {
+     "targetId": "14.206326_121.155391",
+     "bearing": 129.8,
+     "distance": 84.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -87.0
+  },
+  {
+   "id": "14.206468_121.154605",
+   "lat": 14.206468,
+   "lng": 121.154605,
+   "file": "14.206468, 121.154605.jpg",
+   "northOffset": 186.8,
+   "source": "IMG_20261024_140822_00_512",
+   "connections": [
+    {
+     "targetId": "14.206816_121.154789",
+     "bearing": 27.3,
+     "distance": 43.3
+    },
+    {
+     "targetId": "14.205679_121.154679",
+     "bearing": 174.8,
+     "distance": 87.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -12.0
+  },
+  {
+   "id": "14.205679_121.154679",
+   "lat": 14.205679,
+   "lng": 121.154679,
+   "file": "14.205679, 121.154679.jpg",
+   "northOffset": 190.0,
+   "source": "IMG_20261024_140837_00_513",
+   "connections": [
+    {
+     "targetId": "14.206468_121.154605",
+     "bearing": 354.8,
+     "distance": 87.6
+    },
+    {
+     "targetId": "14.204851_121.154531",
+     "bearing": 189.9,
+     "distance": 92.9
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -0.1
+  },
+  {
+   "id": "14.204851_121.154531",
+   "lat": 14.204851,
+   "lng": 121.154531,
+   "file": "14.204851, 121.154531.jpg",
+   "northOffset": 219.8,
+   "source": "IMG_20261024_140851_00_514",
+   "connections": [
+    {
+     "targetId": "14.204386_121.154190",
+     "bearing": 215.6,
+     "distance": 63.2
+    },
+    {
+     "targetId": "14.205679_121.154679",
+     "bearing": 9.9,
+     "distance": 92.9
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -4.2
+  },
+  {
+   "id": "14.204386_121.154190",
+   "lat": 14.204386,
+   "lng": 121.15419,
+   "file": "14.204386, 121.154190.jpg",
+   "northOffset": 236.1,
+   "source": "IMG_20261024_140904_00_515",
+   "connections": [
+    {
+     "targetId": "14.204851_121.154531",
+     "bearing": 35.6,
+     "distance": 63.2
+    },
+    {
+     "targetId": "14.203729_121.153589",
+     "bearing": 221.8,
+     "distance": 97.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -14.3
+  },
+  {
+   "id": "14.203729_121.153589",
+   "lat": 14.203729,
+   "lng": 121.153589,
+   "file": "14.203729, 121.153589.jpg",
+   "northOffset": 234.4,
+   "source": "IMG_20261024_140921_00_516",
+   "connections": [
+    {
+     "targetId": "14.203106_121.153041",
+     "bearing": 220.6,
+     "distance": 90.8
+    },
+    {
+     "targetId": "14.204386_121.154190",
+     "bearing": 41.8,
+     "distance": 97.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -13.7
+  },
+  {
+   "id": "14.203106_121.153041",
+   "lat": 14.203106,
+   "lng": 121.153041,
+   "file": "14.203106, 121.153041.jpg",
+   "northOffset": 222.5,
+   "source": "IMG_20261024_140935_00_517",
+   "connections": [
+    {
+     "targetId": "14.202503_121.152515",
+     "bearing": 220.4,
+     "distance": 87.6
+    },
+    {
+     "targetId": "14.203729_121.153589",
+     "bearing": 40.6,
+     "distance": 90.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -2.1
+  },
+  {
+   "id": "14.202503_121.152515",
+   "lat": 14.202503,
+   "lng": 121.152515,
+   "file": "14.202503, 121.152515.jpg",
+   "northOffset": 225.8,
+   "source": "IMG_20261024_140951_00_518",
+   "connections": [
+    {
+     "targetId": "14.203106_121.153041",
+     "bearing": 40.4,
+     "distance": 87.6
+    },
+    {
+     "targetId": "14.201795_121.151985",
+     "bearing": 216.2,
+     "distance": 97.0
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -9.6
+  },
+  {
+   "id": "14.201795_121.151985",
+   "lat": 14.201795,
+   "lng": 121.151985,
+   "file": "14.201795, 121.151985.jpg",
+   "northOffset": 222.5,
+   "source": "IMG_20261024_141004_00_519",
+   "connections": [
+    {
+     "targetId": "14.201384_121.151721",
+     "bearing": 212.1,
+     "distance": 53.6
+    },
+    {
+     "targetId": "14.202503_121.152515",
+     "bearing": 36.2,
+     "distance": 97.0
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -10.5
+  },
+  {
+   "id": "14.201384_121.151721",
+   "lat": 14.201384,
+   "lng": 121.151721,
+   "file": "14.201384, 121.151721.jpg",
+   "northOffset": 208.5,
+   "source": "IMG_20261024_141020_00_520",
+   "connections": [
+    {
+     "targetId": "14.201086_121.151513",
+     "bearing": 214.3,
+     "distance": 39.9
+    },
+    {
+     "targetId": "14.201795_121.151985",
+     "bearing": 32.1,
+     "distance": 53.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 5.8
+  },
+  {
+   "id": "14.201086_121.151513",
+   "lat": 14.201086,
+   "lng": 121.151513,
+   "file": "14.201086, 121.151513.jpg",
+   "northOffset": 216.4,
+   "source": "IMG_20261024_141036_00_521",
+   "connections": [
+    {
+     "targetId": "14.200792_121.151311",
+     "bearing": 213.8,
+     "distance": 39.1
+    },
+    {
+     "targetId": "14.201384_121.151721",
+     "bearing": 34.3,
+     "distance": 39.9
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -2.6
+  },
+  {
+   "id": "14.200792_121.151311",
+   "lat": 14.200792,
+   "lng": 121.151311,
+   "file": "14.200792, 121.151311.jpg",
+   "northOffset": 217.1,
+   "source": "IMG_20261024_141052_00_522",
+   "connections": [
+    {
+     "targetId": "14.200687_121.151243",
+     "bearing": 212.3,
+     "distance": 13.7
+    },
+    {
+     "targetId": "14.201086_121.151513",
+     "bearing": 33.8,
+     "distance": 39.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -4.8
+  },
+  {
+   "id": "14.200687_121.151243",
+   "lat": 14.200687,
+   "lng": 121.151243,
+   "file": "14.200687, 121.151243.jpg",
+   "northOffset": 218.1,
+   "source": "IMG_20261024_141108_00_523",
+   "connections": [
+    {
+     "targetId": "14.200792_121.151311",
+     "bearing": 32.3,
+     "distance": 13.7
+    },
+    {
+     "targetId": "14.200390_121.151080",
+     "bearing": 208.2,
+     "distance": 37.3
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -9.9
+  },
+  {
+   "id": "14.200390_121.151080",
+   "lat": 14.20039,
+   "lng": 121.15108,
+   "file": "14.200390, 121.151080.jpg",
+   "northOffset": 224.9,
+   "source": "IMG_20261024_141227_00_524",
+   "connections": [
+    {
+     "targetId": "14.200687_121.151243",
+     "bearing": 28.2,
+     "distance": 37.3
+    },
+    {
+     "targetId": "14.199845_121.150463",
+     "bearing": 227.9,
+     "distance": 89.8
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 3.0
+  },
+  {
+   "id": "14.199845_121.150463",
+   "lat": 14.199845,
+   "lng": 121.150463,
+   "file": "14.199845, 121.150463.jpg",
+   "northOffset": 240.5,
+   "source": "IMG_20261024_141242_00_525",
+   "connections": [
+    {
+     "targetId": "14.200390_121.151080",
+     "bearing": 47.9,
+     "distance": 89.8
+    },
+    {
+     "targetId": "14.199331_121.149663",
+     "bearing": 236.6,
+     "distance": 103.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -3.8
+  },
+  {
+   "id": "14.199331_121.149663",
+   "lat": 14.199331,
+   "lng": 121.149663,
+   "file": "14.199331, 121.149663.jpg",
+   "northOffset": 237.5,
+   "source": "IMG_20261024_141256_00_526",
+   "connections": [
+    {
+     "targetId": "14.198926_121.148992",
+     "bearing": 238.3,
+     "distance": 85.1
+    },
+    {
+     "targetId": "14.199845_121.150463",
+     "bearing": 56.6,
+     "distance": 103.4
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 0.8
+  },
+  {
+   "id": "14.198926_121.148992",
+   "lat": 14.198926,
+   "lng": 121.148992,
+   "file": "14.198926, 121.148992.jpg",
+   "northOffset": 240.2,
+   "source": "IMG_20261024_141310_00_527",
+   "connections": [
+    {
+     "targetId": "14.199331_121.149663",
+     "bearing": 58.3,
+     "distance": 85.1
+    },
+    {
+     "targetId": "14.198481_121.148265",
+     "bearing": 237.9,
+     "distance": 92.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -2.2
+  },
+  {
+   "id": "14.198481_121.148265",
+   "lat": 14.198481,
+   "lng": 121.148265,
+   "file": "14.198481, 121.148265.jpg",
+   "northOffset": 233.9,
+   "source": "IMG_20261024_141324_00_528",
+   "connections": [
+    {
+     "targetId": "14.198926_121.148992",
+     "bearing": 57.9,
+     "distance": 92.6
+    },
+    {
+     "targetId": "14.198021_121.147499",
+     "bearing": 238.4,
+     "distance": 97.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 4.4
+  },
+  {
+   "id": "14.198021_121.147499",
+   "lat": 14.198021,
+   "lng": 121.147499,
+   "file": "14.198021, 121.147499.jpg",
+   "northOffset": 243.6,
+   "source": "IMG_20261024_141338_00_529",
+   "connections": [
+    {
+     "targetId": "14.197674_121.146947",
+     "bearing": 237.2,
+     "distance": 70.9
+    },
+    {
+     "targetId": "14.198481_121.148265",
+     "bearing": 58.4,
+     "distance": 97.1
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -6.4
+  },
+  {
+   "id": "14.197674_121.146947",
+   "lat": 14.197674,
+   "lng": 121.146947,
+   "file": "14.197674, 121.146947.jpg",
+   "northOffset": 236.1,
+   "source": "IMG_20261024_141353_00_530",
+   "connections": [
+    {
+     "targetId": "14.198021_121.147499",
+     "bearing": 57.2,
+     "distance": 70.9
+    },
+    {
+     "targetId": "14.197254_121.146304",
+     "bearing": 236.2,
+     "distance": 83.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 0.1
+  },
+  {
+   "id": "14.197254_121.146304",
+   "lat": 14.197254,
+   "lng": 121.146304,
+   "file": "14.197254, 121.146304.jpg",
+   "northOffset": 247.4,
+   "source": "IMG_20261024_141408_00_531",
+   "connections": [
+    {
+     "targetId": "14.197674_121.146947",
+     "bearing": 56.2,
+     "distance": 83.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -11.2
+  },
+  {
+   "id": "14.196239_121.144895",
+   "lat": 14.196239,
+   "lng": 121.144895,
+   "file": "14.196239, 121.144895.jpg",
+   "northOffset": 230.0,
+   "source": "IMG_20261024_141435_00_533",
+   "connections": [
+    {
+     "targetId": "14.195657_121.144132",
+     "bearing": 232.0,
+     "distance": 104.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 2.0
+  },
+  {
+   "id": "14.195657_121.144132",
+   "lat": 14.195657,
+   "lng": 121.144132,
+   "file": "14.195657, 121.144132.jpg",
+   "northOffset": 234.1,
+   "source": "IMG_20261024_141449_00_534",
+   "connections": [
+    {
+     "targetId": "14.195108_121.143384",
+     "bearing": 233.1,
+     "distance": 101.0
+    },
+    {
+     "targetId": "14.196239_121.144895",
+     "bearing": 52.0,
+     "distance": 104.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -1.0
+  },
+  {
+   "id": "14.195108_121.143384",
+   "lat": 14.195108,
+   "lng": 121.143384,
+   "file": "14.195108, 121.143384.jpg",
+   "northOffset": 238.0,
+   "source": "IMG_20261024_141512_00_535",
+   "connections": [
+    {
+     "targetId": "14.194869_121.143286",
+     "bearing": 201.8,
+     "distance": 28.5
+    },
+    {
+     "targetId": "14.195657_121.144132",
+     "bearing": 53.1,
+     "distance": 101.0
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": -36.2
+  },
+  {
+   "id": "14.194869_121.143286",
+   "lat": 14.194869,
+   "lng": 121.143286,
+   "file": "14.194869, 121.143286.jpg",
+   "northOffset": 150.7,
+   "source": "IMG_20261024_143241_00_537",
+   "connections": [
+    {
+     "targetId": "14.195108_121.143384",
+     "bearing": 21.8,
+     "distance": 28.5
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 51.1
+  },
+  {
+   "id": "14.196429_121.145282",
+   "lat": 14.196429,
+   "lng": 121.145282,
+   "file": "14.196429, 121.145282.jpg",
+   "northOffset": 78.3,
+   "source": "IMG_20261024_143406_00_538",
+   "connections": [
+    {
+     "targetId": "14.196556_121.145716",
+     "bearing": 73.3,
+     "distance": 48.9
+    }
+   ],
+   "street": "Rambutan Street",
+   "area": "Real",
+   "heading": -5.0
+  },
+  {
+   "id": "14.196556_121.145716",
+   "lat": 14.196556,
+   "lng": 121.145716,
+   "file": "14.196556, 121.145716.jpg",
+   "northOffset": 73.8,
+   "source": "IMG_20261024_143422_00_539",
+   "connections": [
+    {
+     "targetId": "14.196628_121.146158",
+     "bearing": 80.5,
+     "distance": 48.4
+    },
+    {
+     "targetId": "14.196429_121.145282",
+     "bearing": 253.3,
+     "distance": 48.9
+    }
+   ],
+   "street": "Rambutan Street",
+   "area": "Real",
+   "heading": 6.7
+  },
+  {
+   "id": "14.196628_121.146158",
+   "lat": 14.196628,
+   "lng": 121.146158,
+   "file": "14.196628, 121.146158.jpg",
+   "northOffset": 84.9,
+   "source": "IMG_20261024_143438_00_540",
+   "connections": [
+    {
+     "targetId": "14.196651_121.146585",
+     "bearing": 86.8,
+     "distance": 46.2
+    },
+    {
+     "targetId": "14.196556_121.145716",
+     "bearing": 260.5,
+     "distance": 48.4
+    }
+   ],
+   "street": "Rambutan Street",
+   "area": "Real",
+   "heading": 2.0
+  },
+  {
+   "id": "14.196651_121.146585",
+   "lat": 14.196651,
+   "lng": 121.146585,
+   "file": "14.196651, 121.146585.jpg",
+   "northOffset": 85.5,
+   "source": "IMG_20261024_143452_00_541",
+   "connections": [
+    {
+     "targetId": "14.196628_121.146158",
+     "bearing": 266.8,
+     "distance": 46.2
+    },
+    {
+     "targetId": "14.196848_121.147070",
+     "bearing": 67.4,
+     "distance": 56.7
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": -18.1
+  },
+  {
+   "id": "14.196848_121.147070",
+   "lat": 14.196848,
+   "lng": 121.14707,
+   "file": "14.196848, 121.147070.jpg",
+   "northOffset": 59.2,
+   "source": "IMG_20261024_143509_00_542",
+   "connections": [
+    {
+     "targetId": "14.197003_121.147438",
+     "bearing": 66.7,
+     "distance": 43.3
+    },
+    {
+     "targetId": "14.196651_121.146585",
+     "bearing": 247.4,
+     "distance": 56.7
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 7.5
+  },
+  {
+   "id": "14.197003_121.147438",
+   "lat": 14.197003,
+   "lng": 121.147438,
+   "file": "14.197003, 121.147438.jpg",
+   "northOffset": 66.7,
+   "source": "IMG_20261024_143524_00_543",
+   "connections": [
+    {
+     "targetId": "14.196848_121.147070",
+     "bearing": 246.7,
+     "distance": 43.3
+    },
+    {
+     "targetId": "14.197145_121.147825",
+     "bearing": 69.4,
+     "distance": 44.6
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 2.7
+  },
+  {
+   "id": "14.197145_121.147825",
+   "lat": 14.197145,
+   "lng": 121.147825,
+   "file": "14.197145, 121.147825.jpg",
+   "northOffset": 68.5,
+   "source": "IMG_20261024_143538_00_544",
+   "connections": [
+    {
+     "targetId": "14.197003_121.147438",
+     "bearing": 249.4,
+     "distance": 44.6
+    },
+    {
+     "targetId": "14.197384_121.148449",
+     "bearing": 68.6,
+     "distance": 72.3
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 0.0
+  },
+  {
+   "id": "14.197384_121.148449",
+   "lat": 14.197384,
+   "lng": 121.148449,
+   "file": "14.197384, 121.148449.jpg",
+   "northOffset": 54.2,
+   "source": "IMG_20261024_143553_00_545",
+   "connections": [
+    {
+     "targetId": "14.197698_121.148826",
+     "bearing": 49.5,
+     "distance": 53.5
+    },
+    {
+     "targetId": "14.197145_121.147825",
+     "bearing": 248.6,
+     "distance": 72.3
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": -4.7
+  },
+  {
+   "id": "14.197698_121.148826",
+   "lat": 14.197698,
+   "lng": 121.148826,
+   "file": "14.197698, 121.148826.jpg",
+   "northOffset": 41.8,
+   "source": "IMG_20261024_143608_00_546",
+   "connections": [
+    {
+     "targetId": "14.197992_121.149087",
+     "bearing": 40.9,
+     "distance": 43.0
+    },
+    {
+     "targetId": "14.197384_121.148449",
+     "bearing": 229.5,
+     "distance": 53.5
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": -0.9
+  },
+  {
+   "id": "14.197992_121.149087",
+   "lat": 14.197992,
+   "lng": 121.149087,
+   "file": "14.197992, 121.149087.jpg",
+   "northOffset": 48.8,
+   "source": "IMG_20261024_143627_00_547",
+   "connections": [
+    {
+     "targetId": "14.197698_121.148826",
+     "bearing": 220.9,
+     "distance": 43.0
+    },
+    {
+     "targetId": "14.198296_121.149390",
+     "bearing": 44.2,
+     "distance": 46.9
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": -4.6
+  },
+  {
+   "id": "14.198296_121.149390",
+   "lat": 14.198296,
+   "lng": 121.14939,
+   "file": "14.198296, 121.149390.jpg",
+   "northOffset": 50.4,
+   "source": "IMG_20261024_143641_00_548",
+   "connections": [
+    {
+     "targetId": "14.197992_121.149087",
+     "bearing": 224.2,
+     "distance": 46.9
+    },
+    {
+     "targetId": "14.198765_121.149842",
+     "bearing": 43.2,
+     "distance": 71.2
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": -7.2
+  },
+  {
+   "id": "14.198765_121.149842",
+   "lat": 14.198765,
+   "lng": 121.149842,
+   "file": "14.198765, 121.149842.jpg",
+   "northOffset": 55.4,
+   "source": "IMG_20261024_143705_00_549",
+   "connections": [
+    {
+     "targetId": "14.198899_121.150180",
+     "bearing": 67.9,
+     "distance": 39.4
+    },
+    {
+     "targetId": "14.198296_121.149390",
+     "bearing": 223.2,
+     "distance": 71.2
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 12.5
+  },
+  {
+   "id": "14.198899_121.150180",
+   "lat": 14.198899,
+   "lng": 121.15018,
+   "file": "14.198899, 121.150180.jpg",
+   "northOffset": 65.0,
+   "source": "IMG_20261024_143720_00_550",
+   "connections": [
+    {
+     "targetId": "14.199010_121.150507",
+     "bearing": 70.8,
+     "distance": 37.4
+    },
+    {
+     "targetId": "14.198765_121.149842",
+     "bearing": 247.9,
+     "distance": 39.4
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 5.8
+  },
+  {
+   "id": "14.199010_121.150507",
+   "lat": 14.19901,
+   "lng": 121.150507,
+   "file": "14.199010, 121.150507.jpg",
+   "northOffset": 243.2,
+   "source": "IMG_20261024_143737_00_551",
+   "connections": [
+    {
+     "targetId": "14.198899_121.150180",
+     "bearing": 250.8,
+     "distance": 37.4
+    },
+    {
+     "targetId": "14.199331_121.150774",
+     "bearing": 39.1,
+     "distance": 45.7
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 155.9
+  },
+  {
+   "id": "14.199331_121.150774",
+   "lat": 14.199331,
+   "lng": 121.150774,
+   "file": "14.199331, 121.150774.jpg",
+   "northOffset": 28.8,
+   "source": "IMG_20261024_143753_00_552",
+   "connections": [
+    {
+     "targetId": "14.199010_121.150507",
+     "bearing": 219.1,
+     "distance": 45.7
+    }
+   ],
+   "street": "San Vicente Ferrer Street",
+   "area": "Real",
+   "heading": 10.2
+  },
+  {
+   "id": "14.199626_121.150930",
+   "lat": 14.199626,
+   "lng": 121.15093,
+   "file": "14.199626, 121.150930.jpg",
+   "northOffset": 100.8,
+   "source": "IMG_20261024_144008_00_553",
+   "connections": [
+    {
+     "targetId": "14.199195_121.151448",
+     "bearing": 130.4,
+     "distance": 73.5
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": 29.7
+  },
+  {
+   "id": "14.199195_121.151448",
+   "lat": 14.199195,
+   "lng": 121.151448,
+   "file": "14.199195, 121.151448.jpg",
+   "northOffset": 151.7,
+   "source": "IMG_20261024_144024_00_554",
+   "connections": [
+    {
+     "targetId": "14.198954_121.151660",
+     "bearing": 139.4,
+     "distance": 35.1
+    },
+    {
+     "targetId": "14.199626_121.150930",
+     "bearing": 310.4,
+     "distance": 73.5
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -12.3
+  },
+  {
+   "id": "14.198954_121.151660",
+   "lat": 14.198954,
+   "lng": 121.15166,
+   "file": "14.198954, 121.151660.jpg",
+   "northOffset": 159.0,
+   "source": "IMG_20261024_144038_00_555",
+   "connections": [
+    {
+     "targetId": "14.199195_121.151448",
+     "bearing": 319.4,
+     "distance": 35.1
+    },
+    {
+     "targetId": "14.198692_121.151247",
+     "bearing": 237.0,
+     "distance": 53.2
+    }
+   ],
+   "street": "Narra Street",
+   "area": "Real",
+   "heading": 78.0
+  },
+  {
+   "id": "14.198692_121.151247",
+   "lat": 14.198692,
+   "lng": 121.151247,
+   "file": "14.198692, 121.151247.jpg",
+   "northOffset": 50.6,
+   "source": "IMG_20261024_144057_00_556",
+   "connections": [
+    {
+     "targetId": "14.198954_121.151660",
+     "bearing": 57.0,
+     "distance": 53.2
+    },
+    {
+     "targetId": "14.198301_121.150936",
+     "bearing": 217.8,
+     "distance": 54.7
+    }
+   ],
+   "street": "Narra Street",
+   "area": "Real",
+   "heading": 167.2
+  },
+  {
+   "id": "14.198301_121.150936",
+   "lat": 14.198301,
+   "lng": 121.150936,
+   "file": "14.198301, 121.150936.jpg",
+   "northOffset": 52.5,
+   "source": "IMG_20261024_144118_00_557",
+   "connections": [
+    {
+     "targetId": "14.198658_121.151193",
+     "bearing": 35.1,
+     "distance": 48.2
+    },
+    {
+     "targetId": "14.198692_121.151247",
+     "bearing": 37.8,
+     "distance": 54.7
+    }
+   ],
+   "street": "Narra Street",
+   "area": "Real",
+   "heading": -17.4
+  },
+  {
+   "id": "14.198658_121.151193",
+   "lat": 14.198658,
+   "lng": 121.151193,
+   "file": "14.198658, 121.151193.jpg",
+   "northOffset": 354.4,
+   "source": "IMG_20261024_144315_00_558",
+   "connections": [
+    {
+     "targetId": "14.198301_121.150936",
+     "bearing": 215.1,
+     "distance": 48.2
+    },
+    {
+     "targetId": "14.198230_121.151425",
+     "bearing": 152.1,
+     "distance": 53.5
+    }
+   ],
+   "street": "Yakal Street",
+   "area": "Real",
+   "heading": 157.7
+  },
+  {
+   "id": "14.198230_121.151425",
+   "lat": 14.19823,
+   "lng": 121.151425,
+   "file": "14.198230, 121.151425.jpg",
+   "northOffset": 342.1,
+   "source": "IMG_20261024_144328_00_559",
+   "connections": [
+    {
+     "targetId": "14.197946_121.151602",
+     "bearing": 148.7,
+     "distance": 36.8
+    },
+    {
+     "targetId": "14.198658_121.151193",
+     "bearing": 332.1,
+     "distance": 53.5
+    }
+   ],
+   "street": "Lauan Street",
+   "area": "Real",
+   "heading": 166.6
+  },
+  {
+   "id": "14.197946_121.151602",
+   "lat": 14.197946,
+   "lng": 121.151602,
+   "file": "14.197946, 121.151602.jpg",
+   "northOffset": 333.0,
+   "source": "IMG_20261024_144343_00_560",
+   "connections": [
+    {
+     "targetId": "14.198230_121.151425",
+     "bearing": 328.7,
+     "distance": 36.8
+    },
+    {
+     "targetId": "14.197572_121.151854",
+     "bearing": 146.7,
+     "distance": 49.5
+    }
+   ],
+   "street": "Lauan Street",
+   "area": "Real",
+   "heading": 173.7
+  },
+  {
+   "id": "14.197572_121.151854",
+   "lat": 14.197572,
+   "lng": 121.151854,
+   "file": "14.197572, 121.151854.jpg",
+   "northOffset": 335.4,
+   "source": "IMG_20261024_144359_00_561",
+   "connections": [
+    {
+     "targetId": "14.197547_121.151834",
+     "bearing": 218.0,
+     "distance": 3.5
+    },
+    {
+     "targetId": "14.197946_121.151602",
+     "bearing": 326.7,
+     "distance": 49.5
+    }
+   ],
+   "street": "Lauan Street",
+   "area": "Real",
+   "heading": 171.3
+  },
+  {
+   "id": "14.197547_121.151834",
+   "lat": 14.197547,
+   "lng": 121.151834,
+   "file": "14.197547, 121.151834.jpg",
+   "northOffset": 233.0,
+   "source": "IMG_20261024_144413_00_562",
+   "connections": [
+    {
+     "targetId": "14.197572_121.151854",
+     "bearing": 38.0,
+     "distance": 3.5
+    },
+    {
+     "targetId": "14.197187_121.151131",
+     "bearing": 242.3,
+     "distance": 85.7
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": 9.3
+  },
+  {
+   "id": "14.197187_121.151131",
+   "lat": 14.197187,
+   "lng": 121.151131,
+   "file": "14.197187, 121.151131.jpg",
+   "northOffset": 204.8,
+   "source": "IMG_20261024_144428_00_563",
+   "connections": [
+    {
+     "targetId": "14.196878_121.150628",
+     "bearing": 237.8,
+     "distance": 64.1
+    },
+    {
+     "targetId": "14.197547_121.151834",
+     "bearing": 62.3,
+     "distance": 85.7
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": 33.0
+  },
+  {
+   "id": "14.196878_121.150628",
+   "lat": 14.196878,
+   "lng": 121.150628,
+   "file": "14.196878, 121.150628.jpg",
+   "northOffset": 241.8,
+   "source": "IMG_20261024_144443_00_564",
+   "connections": [
+    {
+     "targetId": "14.196689_121.150290",
+     "bearing": 240.2,
+     "distance": 42.0
+    },
+    {
+     "targetId": "14.197187_121.151131",
+     "bearing": 57.8,
+     "distance": 64.1
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": -1.6
+  },
+  {
+   "id": "14.196689_121.150290",
+   "lat": 14.196689,
+   "lng": 121.15029,
+   "file": "14.196689, 121.150290.jpg",
+   "northOffset": 240.3,
+   "source": "IMG_20261024_144457_00_565",
+   "connections": [
+    {
+     "targetId": "14.196878_121.150628",
+     "bearing": 60.2,
+     "distance": 42.0
+    },
+    {
+     "targetId": "14.196340_121.149739",
+     "bearing": 237.0,
+     "distance": 70.9
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": -3.2
+  },
+  {
+   "id": "14.196340_121.149739",
+   "lat": 14.19634,
+   "lng": 121.149739,
+   "file": "14.196340, 121.149739.jpg",
+   "northOffset": 234.5,
+   "source": "IMG_20261024_144513_00_566",
+   "connections": [
+    {
+     "targetId": "14.196090_121.149271",
+     "bearing": 241.3,
+     "distance": 57.6
+    },
+    {
+     "targetId": "14.196689_121.150290",
+     "bearing": 57.0,
+     "distance": 70.9
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": 6.8
+  },
+  {
+   "id": "14.196090_121.149271",
+   "lat": 14.19609,
+   "lng": 121.149271,
+   "file": "14.196090, 121.149271.jpg",
+   "northOffset": 234.6,
+   "source": "IMG_20261024_144527_00_567",
+   "connections": [
+    {
+     "targetId": "14.195907_121.148932",
+     "bearing": 241.1,
+     "distance": 41.8
+    },
+    {
+     "targetId": "14.196340_121.149739",
+     "bearing": 61.3,
+     "distance": 57.6
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": 6.4
+  },
+  {
+   "id": "14.195907_121.148932",
+   "lat": 14.195907,
+   "lng": 121.148932,
+   "file": "14.195907, 121.148932.jpg",
+   "northOffset": 239.5,
+   "source": "IMG_20261024_144541_00_568",
+   "connections": [
+    {
+     "targetId": "14.196090_121.149271",
+     "bearing": 61.1,
+     "distance": 41.8
+    },
+    {
+     "targetId": "14.195629_121.148306",
+     "bearing": 245.5,
+     "distance": 74.2
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": 6.1
+  },
+  {
+   "id": "14.195629_121.148306",
+   "lat": 14.195629,
+   "lng": 121.148306,
+   "file": "14.195629, 121.148306.jpg",
+   "northOffset": 208.7,
+   "source": "IMG_20261024_144603_00_569",
+   "connections": [
+    {
+     "targetId": "14.195331_121.148330",
+     "bearing": 175.5,
+     "distance": 33.1
+    },
+    {
+     "targetId": "14.195907_121.148932",
+     "bearing": 65.5,
+     "distance": 74.2
+    }
+   ],
+   "street": "Mulawin Street",
+   "area": "Real",
+   "heading": -33.2
+  },
+  {
+   "id": "14.195331_121.148330",
+   "lat": 14.195331,
+   "lng": 121.14833,
+   "file": "14.195331, 121.148330.jpg",
+   "northOffset": 110.8,
+   "source": "IMG_20261024_144619_00_570",
+   "connections": [
+    {
+     "targetId": "14.195629_121.148306",
+     "bearing": 355.5,
+     "distance": 33.1
+    },
+    {
+     "targetId": "14.195538_121.148843",
+     "bearing": 67.5,
+     "distance": 59.9
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": -43.3
+  },
+  {
+   "id": "14.195538_121.148843",
+   "lat": 14.195538,
+   "lng": 121.148843,
+   "file": "14.195538, 121.148843.jpg",
+   "northOffset": 58.1,
+   "source": "IMG_20261024_144635_00_571",
+   "connections": [
+    {
+     "targetId": "14.195331_121.148330",
+     "bearing": 247.5,
+     "distance": 59.9
+    },
+    {
+     "targetId": "14.195811_121.149368",
+     "bearing": 62.0,
+     "distance": 64.2
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": 3.9
+  },
+  {
+   "id": "14.195811_121.149368",
+   "lat": 14.195811,
+   "lng": 121.149368,
+   "file": "14.195811, 121.149368.jpg",
+   "northOffset": 58.4,
+   "source": "IMG_20261024_144648_00_572",
+   "connections": [
+    {
+     "targetId": "14.195538_121.148843",
+     "bearing": 242.0,
+     "distance": 64.2
+    },
+    {
+     "targetId": "14.196089_121.149914",
+     "bearing": 62.5,
+     "distance": 66.5
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": 4.0
+  },
+  {
+   "id": "14.196089_121.149914",
+   "lat": 14.196089,
+   "lng": 121.149914,
+   "file": "14.196089, 121.149914.jpg",
+   "northOffset": 66.5,
+   "source": "IMG_20261024_144703_00_573",
+   "connections": [
+    {
+     "targetId": "14.195811_121.149368",
+     "bearing": 242.5,
+     "distance": 66.5
+    },
+    {
+     "targetId": "14.196369_121.150472",
+     "bearing": 62.8,
+     "distance": 67.7
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": -3.7
+  },
+  {
+   "id": "14.196369_121.150472",
+   "lat": 14.196369,
+   "lng": 121.150472,
+   "file": "14.196369, 121.150472.jpg",
+   "northOffset": 58.3,
+   "source": "IMG_20261024_144717_00_574",
+   "connections": [
+    {
+     "targetId": "14.196600_121.150855",
+     "bearing": 58.3,
+     "distance": 48.6
+    },
+    {
+     "targetId": "14.196089_121.149914",
+     "bearing": 242.8,
+     "distance": 67.7
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": -0.0
+  },
+  {
+   "id": "14.196600_121.150855",
+   "lat": 14.1966,
+   "lng": 121.150855,
+   "file": "14.196600, 121.150855.jpg",
+   "northOffset": 60.5,
+   "source": "IMG_20261024_144730_00_575",
+   "connections": [
+    {
+     "targetId": "14.196369_121.150472",
+     "bearing": 238.3,
+     "distance": 48.6
+    },
+    {
+     "targetId": "14.196852_121.151334",
+     "bearing": 61.7,
+     "distance": 58.7
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": 1.2
+  },
+  {
+   "id": "14.196852_121.151334",
+   "lat": 14.196852,
+   "lng": 121.151334,
+   "file": "14.196852, 121.151334.jpg",
+   "northOffset": 65.2,
+   "source": "IMG_20261024_144744_00_576",
+   "connections": [
+    {
+     "targetId": "14.196600_121.150855",
+     "bearing": 241.7,
+     "distance": 58.7
+    },
+    {
+     "targetId": "14.197154_121.151921",
+     "bearing": 62.2,
+     "distance": 71.6
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": -3.0
+  },
+  {
+   "id": "14.197154_121.151921",
+   "lat": 14.197154,
+   "lng": 121.151921,
+   "file": "14.197154, 121.151921.jpg",
+   "northOffset": 70.3,
+   "source": "IMG_20261024_144757_00_577",
+   "connections": [
+    {
+     "targetId": "14.197336_121.152243",
+     "bearing": 59.9,
+     "distance": 40.2
+    },
+    {
+     "targetId": "14.196852_121.151334",
+     "bearing": 242.2,
+     "distance": 71.6
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": -10.3
+  },
+  {
+   "id": "14.197336_121.152243",
+   "lat": 14.197336,
+   "lng": 121.152243,
+   "file": "14.197336, 121.152243.jpg",
+   "northOffset": 69.6,
+   "source": "IMG_20261024_144813_00_578",
+   "connections": [
+    {
+     "targetId": "14.197154_121.151921",
+     "bearing": 239.9,
+     "distance": 40.2
+    }
+   ],
+   "street": "Marangal Street",
+   "area": "Real",
+   "heading": -9.7
+  },
+  {
+   "id": "14.195667_121.154860",
+   "lat": 14.195667,
+   "lng": 121.15486,
+   "file": "14.195667, 121.154860.jpg",
+   "northOffset": 88.0,
+   "source": "IMG_20261024_144909_00_579",
+   "connections": [
+    {
+     "targetId": "14.195965_121.155486",
+     "bearing": 64.0,
+     "distance": 75.2
+    }
+   ],
+   "street": "Requesto Avenue",
+   "area": "Real",
+   "heading": -24.0
+  },
+  {
+   "id": "14.195965_121.155486",
+   "lat": 14.195965,
+   "lng": 121.155486,
+   "file": "14.195965, 121.155486.jpg",
+   "northOffset": 73.6,
+   "source": "IMG_20261024_144923_00_580",
+   "connections": [
+    {
+     "targetId": "14.195667_121.154860",
+     "bearing": 244.0,
+     "distance": 75.2
+    },
+    {
+     "targetId": "14.196294_121.156167",
+     "bearing": 63.7,
+     "distance": 82.0
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Real",
+   "heading": -9.9
+  },
+  {
+   "id": "14.196294_121.156167",
+   "lat": 14.196294,
+   "lng": 121.156167,
+   "file": "14.196294, 121.156167.jpg",
+   "northOffset": 65.7,
+   "source": "IMG_20261024_144938_00_581",
+   "connections": [
+    {
+     "targetId": "14.196526_121.156625",
+     "bearing": 62.6,
+     "distance": 55.7
+    },
+    {
+     "targetId": "14.195965_121.155486",
+     "bearing": 243.7,
+     "distance": 82.0
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Real",
+   "heading": -3.1
+  },
+  {
+   "id": "14.196526_121.156625",
+   "lat": 14.196526,
+   "lng": 121.156625,
+   "file": "14.196526, 121.156625.jpg",
+   "northOffset": 35.7,
+   "source": "IMG_20261024_144952_00_582",
+   "connections": [
+    {
+     "targetId": "14.196294_121.156167",
+     "bearing": 242.6,
+     "distance": 55.7
+    },
+    {
+     "targetId": "14.196931_121.157366",
+     "bearing": 60.8,
+     "distance": 91.7
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Real",
+   "heading": 25.1
+  },
+  {
+   "id": "14.196931_121.157366",
+   "lat": 14.196931,
+   "lng": 121.157366,
+   "file": "14.196931, 121.157366.jpg",
+   "northOffset": 67.9,
+   "source": "IMG_20261024_145007_00_583",
+   "connections": [
+    {
+     "targetId": "14.196526_121.156625",
+     "bearing": 240.8,
+     "distance": 91.7
+    },
+    {
+     "targetId": "14.197352_121.158235",
+     "bearing": 63.6,
+     "distance": 104.7
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Real",
+   "heading": -4.3
+  },
+  {
+   "id": "14.197352_121.158235",
+   "lat": 14.197352,
+   "lng": 121.158235,
+   "file": "14.197352, 121.158235.jpg",
+   "northOffset": 72.5,
+   "source": "IMG_20261024_145024_00_584",
+   "connections": [
+    {
+     "targetId": "14.196931_121.157366",
+     "bearing": 243.6,
+     "distance": 104.7
+    },
+    {
+     "targetId": "14.197826_121.159140",
+     "bearing": 61.8,
+     "distance": 110.8
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Real",
+   "heading": -10.7
+  },
+  {
+   "id": "14.197826_121.159140",
+   "lat": 14.197826,
+   "lng": 121.15914,
+   "file": "14.197826, 121.159140.jpg",
+   "northOffset": 66.9,
+   "source": "IMG_20261024_145038_00_585",
+   "connections": [
+    {
+     "targetId": "14.198119_121.159593",
+     "bearing": 56.5,
+     "distance": 58.6
+    },
+    {
+     "targetId": "14.197352_121.158235",
+     "bearing": 241.8,
+     "distance": 110.8
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Real",
+   "heading": -10.4
+  },
+  {
+   "id": "14.198119_121.159593",
+   "lat": 14.198119,
+   "lng": 121.159593,
+   "file": "14.198119, 121.159593.jpg",
+   "northOffset": 66.7,
+   "source": "IMG_20261024_145053_00_586",
+   "connections": [
+    {
+     "targetId": "14.197826_121.159140",
+     "bearing": 236.5,
+     "distance": 58.6
+    },
+    {
+     "targetId": "14.198265_121.160146",
+     "bearing": 74.9,
+     "distance": 61.8
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Lecheria",
+   "heading": 8.1
+  },
+  {
+   "id": "14.198265_121.160146",
+   "lat": 14.198265,
+   "lng": 121.160146,
+   "file": "14.198265, 121.160146.jpg",
+   "northOffset": 84.6,
+   "source": "IMG_20261024_145108_00_587",
+   "connections": [
+    {
+     "targetId": "14.198350_121.160665",
+     "bearing": 80.5,
+     "distance": 56.8
+    },
+    {
+     "targetId": "14.198119_121.159593",
+     "bearing": 254.9,
+     "distance": 61.8
+    }
+   ],
+   "street": "Cuervo II Road",
+   "area": "Lecheria",
+   "heading": -4.1
+  },
+  {
+   "id": "14.198350_121.160665",
+   "lat": 14.19835,
+   "lng": 121.160665,
+   "file": "14.198350, 121.160665.jpg",
+   "northOffset": 155.0,
+   "source": "IMG_20261024_145124_00_588",
+   "connections": [
+    {
+     "targetId": "14.198059_121.160820",
+     "bearing": 152.5,
+     "distance": 36.3
+    },
+    {
+     "targetId": "14.198265_121.160146",
+     "bearing": 260.5,
+     "distance": 56.8
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Halang",
+   "heading": -2.5
+  },
+  {
+   "id": "14.198059_121.160820",
+   "lat": 14.198059,
+   "lng": 121.16082,
+   "file": "14.198059, 121.160820.jpg",
+   "northOffset": 101.7,
+   "source": "IMG_20261024_145139_00_589",
+   "connections": [
+    {
+     "targetId": "14.198350_121.160665",
+     "bearing": 332.5,
+     "distance": 36.3
+    },
+    {
+     "targetId": "14.197687_121.161123",
+     "bearing": 141.5,
+     "distance": 52.5
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Halang",
+   "heading": 39.8
+  },
+  {
+   "id": "14.197687_121.161123",
+   "lat": 14.197687,
+   "lng": 121.161123,
+   "file": "14.197687, 121.161123.jpg",
+   "northOffset": 147.5,
+   "source": "IMG_20261024_145154_00_590",
+   "connections": [
+    {
+     "targetId": "14.197330_121.161433",
+     "bearing": 139.7,
+     "distance": 51.7
+    },
+    {
+     "targetId": "14.198059_121.160820",
+     "bearing": 321.5,
+     "distance": 52.5
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Halang",
+   "heading": -7.8
+  },
+  {
+   "id": "14.197330_121.161433",
+   "lat": 14.19733,
+   "lng": 121.161433,
+   "file": "14.197330, 121.161433.jpg",
+   "northOffset": 140.6,
+   "source": "IMG_20261024_145208_00_591",
+   "connections": [
+    {
+     "targetId": "14.197687_121.161123",
+     "bearing": 319.7,
+     "distance": 51.7
+    },
+    {
+     "targetId": "14.196668_121.161952",
+     "bearing": 142.6,
+     "distance": 92.2
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Halang",
+   "heading": 2.0
+  },
+  {
+   "id": "14.196668_121.161952",
+   "lat": 14.196668,
+   "lng": 121.161952,
+   "file": "14.196668, 121.161952.jpg",
+   "northOffset": 185.1,
+   "source": "IMG_20261024_145237_00_592",
+   "connections": [
+    {
+     "targetId": "14.196250_121.161664",
+     "bearing": 213.9,
+     "distance": 55.7
+    },
+    {
+     "targetId": "14.197330_121.161433",
+     "bearing": 322.6,
+     "distance": 92.2
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Halang",
+   "heading": 28.8
+  },
+  {
+   "id": "14.196250_121.161664",
+   "lat": 14.19625,
+   "lng": 121.161664,
+   "file": "14.196250, 121.161664.jpg",
+   "northOffset": 261.2,
+   "source": "IMG_20261024_145256_00_593",
+   "connections": [
+    {
+     "targetId": "14.196221_121.161798",
+     "bearing": 102.5,
+     "distance": 14.8
+    },
+    {
+     "targetId": "14.196493_121.161447",
+     "bearing": 318.9,
+     "distance": 35.6
+    },
+    {
+     "targetId": "14.196668_121.161952",
+     "bearing": 33.9,
+     "distance": 55.7
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Halang",
+   "heading": 57.7
+  },
+  {
+   "id": "14.196493_121.161447",
+   "lat": 14.196493,
+   "lng": 121.161447,
+   "file": "14.196493, 121.161447.jpg",
+   "northOffset": 301.4,
+   "source": "IMG_20261024_145310_00_594",
+   "connections": [
+    {
+     "targetId": "14.196250_121.161664",
+     "bearing": 138.9,
+     "distance": 35.6
+    },
+    {
+     "targetId": "14.196860_121.161218",
+     "bearing": 328.7,
+     "distance": 47.5
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Halang",
+   "heading": 27.3
+  },
+  {
+   "id": "14.196860_121.161218",
+   "lat": 14.19686,
+   "lng": 121.161218,
+   "file": "14.196860, 121.161218.jpg",
+   "northOffset": 328.3,
+   "source": "IMG_20261024_145342_00_596",
+   "connections": [
+    {
+     "targetId": "14.196493_121.161447",
+     "bearing": 148.7,
+     "distance": 47.5
+    },
+    {
+     "targetId": "14.197719_121.160501",
+     "bearing": 320.8,
+     "distance": 122.5
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Halang",
+   "heading": -7.5
+  },
+  {
+   "id": "14.197719_121.160501",
+   "lat": 14.197719,
+   "lng": 121.160501,
+   "file": "14.197719, 121.160501.jpg",
+   "northOffset": 272.7,
+   "source": "IMG_20261024_145421_00_598",
+   "connections": [
+    {
+     "targetId": "14.197424_121.160314",
+     "bearing": 211.7,
+     "distance": 38.4
+    },
+    {
+     "targetId": "14.196860_121.161218",
+     "bearing": 140.8,
+     "distance": 122.5
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Halang",
+   "heading": -61.0
+  },
+  {
+   "id": "14.197424_121.160314",
+   "lat": 14.197424,
+   "lng": 121.160314,
+   "file": "14.197424, 121.160314.jpg",
+   "northOffset": 209.9,
+   "source": "IMG_20261024_145435_00_599",
+   "connections": [
+    {
+     "targetId": "14.197719_121.160501",
+     "bearing": 31.7,
+     "distance": 38.4
+    },
+    {
+     "targetId": "14.196936_121.160515",
+     "bearing": 158.1,
+     "distance": 58.2
+    }
+   ],
+   "street": "Camia Street",
+   "area": "Halang",
+   "heading": -51.8
+  },
+  {
+   "id": "14.196936_121.160515",
+   "lat": 14.196936,
+   "lng": 121.160515,
+   "file": "14.196936, 121.160515.jpg",
+   "northOffset": 326.3,
+   "source": "IMG_20261024_145449_00_600",
+   "connections": [
+    {
+     "targetId": "14.197424_121.160314",
+     "bearing": 338.1,
+     "distance": 58.2
+    },
+    {
+     "targetId": "14.196335_121.160829",
+     "bearing": 153.0,
+     "distance": 74.6
+    }
+   ],
+   "street": "Camia Street",
+   "area": "Halang",
+   "heading": -173.3
+  },
+  {
+   "id": "14.196335_121.160829",
+   "lat": 14.196335,
+   "lng": 121.160829,
+   "file": "14.196335, 121.160829.jpg",
+   "northOffset": 327.3,
+   "source": "IMG_20261024_145505_00_601",
+   "connections": [
+    {
+     "targetId": "14.195902_121.161088",
+     "bearing": 149.7,
+     "distance": 55.4
+    },
+    {
+     "targetId": "14.196936_121.160515",
+     "bearing": 333.0,
+     "distance": 74.6
+    }
+   ],
+   "street": "Camia Street",
+   "area": "Halang",
+   "heading": -177.6
+  },
+  {
+   "id": "14.195902_121.161088",
+   "lat": 14.195902,
+   "lng": 121.161088,
+   "file": "14.195902, 121.161088.jpg",
+   "northOffset": 323.9,
+   "source": "IMG_20261024_145522_00_602",
+   "connections": [
+    {
+     "targetId": "14.196335_121.160829",
+     "bearing": 329.7,
+     "distance": 55.4
+    }
+   ],
+   "street": "Camia Street",
+   "area": "Halang",
+   "heading": -174.2
+  },
+  {
+   "id": "14.204915_121.156534",
+   "lat": 14.204915,
+   "lng": 121.156534,
+   "file": "14.204915, 121.156534.jpg",
+   "northOffset": 40.9,
+   "source": "IMG_20261024_150017_00_603",
+   "connections": [
+    {
+     "targetId": "14.204944_121.156474",
+     "bearing": 296.3,
+     "distance": 7.2
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -104.6
+  },
+  {
+   "id": "14.204944_121.156474",
+   "lat": 14.204944,
+   "lng": 121.156474,
+   "file": "14.204944, 121.156474.jpg",
+   "northOffset": 48.3,
+   "source": "IMG_20261024_150036_00_604",
+   "connections": [
+    {
+     "targetId": "14.204915_121.156534",
+     "bearing": 116.3,
+     "distance": 7.2
+    },
+    {
+     "targetId": "14.204539_121.155787",
+     "bearing": 238.9,
+     "distance": 86.6
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -169.4
+  },
+  {
+   "id": "14.204539_121.155787",
+   "lat": 14.204539,
+   "lng": 121.155787,
+   "file": "14.204539, 121.155787.jpg",
+   "northOffset": 70.4,
+   "source": "IMG_20261024_150058_00_605",
+   "connections": [
+    {
+     "targetId": "14.204467_121.155674",
+     "bearing": 236.9,
+     "distance": 14.6
+    },
+    {
+     "targetId": "14.204944_121.156474",
+     "bearing": 58.9,
+     "distance": 86.6
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": 166.5
+  },
+  {
+   "id": "14.204467_121.155674",
+   "lat": 14.204467,
+   "lng": 121.155674,
+   "file": "14.204467, 121.155674.jpg",
+   "northOffset": 57.5,
+   "source": "IMG_20261024_150115_00_606",
+   "connections": [
+    {
+     "targetId": "14.204539_121.155787",
+     "bearing": 56.9,
+     "distance": 14.6
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": 179.4
+  },
+  {
+   "id": "14.204047_121.155924",
+   "lat": 14.204047,
+   "lng": 121.155924,
+   "file": "14.204047, 121.155924.jpg",
+   "northOffset": 312.5,
+   "source": "IMG_20261024_150319_00_608",
+   "connections": [
+    {
+     "targetId": "14.203851_121.155845",
+     "bearing": 201.5,
+     "distance": 23.3
+    },
+    {
+     "targetId": "14.203787_121.156111",
+     "bearing": 144.9,
+     "distance": 35.1
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -167.6
+  },
+  {
+   "id": "14.203787_121.156111",
+   "lat": 14.203787,
+   "lng": 121.156111,
+   "file": "14.203787, 121.156111.jpg",
+   "northOffset": 312.1,
+   "source": "IMG_20261024_150341_00_609",
+   "connections": [
+    {
+     "targetId": "14.204047_121.155924",
+     "bearing": 324.9,
+     "distance": 35.1
+    },
+    {
+     "targetId": "14.203521_121.156303",
+     "bearing": 144.8,
+     "distance": 36.0
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -167.2
+  },
+  {
+   "id": "14.203521_121.156303",
+   "lat": 14.203521,
+   "lng": 121.156303,
+   "file": "14.203521, 121.156303.jpg",
+   "northOffset": 288.4,
+   "source": "IMG_20261024_150505_00_610",
+   "connections": [
+    {
+     "targetId": "14.203787_121.156111",
+     "bearing": 324.8,
+     "distance": 36.0
+    },
+    {
+     "targetId": "14.203885_121.157170",
+     "bearing": 66.7,
+     "distance": 101.9
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": 138.4
+  },
+  {
+   "id": "14.203885_121.157170",
+   "lat": 14.203885,
+   "lng": 121.15717,
+   "file": "14.203885, 121.157170.jpg",
+   "northOffset": 234.9,
+   "source": "IMG_20261024_150557_00_611",
+   "connections": [
+    {
+     "targetId": "14.203976_121.157306",
+     "bearing": 55.6,
+     "distance": 17.8
+    },
+    {
+     "targetId": "14.203521_121.156303",
+     "bearing": 246.7,
+     "distance": 101.9
+    }
+   ],
+   "street": "Cadena de Amor Street",
+   "area": "Barangay 1",
+   "heading": -179.4
+  },
+  {
+   "id": "14.203976_121.157306",
+   "lat": 14.203976,
+   "lng": 121.157306,
+   "file": "14.203976, 121.157306.jpg",
+   "northOffset": 225.4,
+   "source": "IMG_20261024_150611_00_612",
+   "connections": [
+    {
+     "targetId": "14.203885_121.157170",
+     "bearing": 235.6,
+     "distance": 17.8
+    },
+    {
+     "targetId": "14.204090_121.157458",
+     "bearing": 52.5,
+     "distance": 20.7
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Barangay 1",
+   "heading": -172.9
+  },
+  {
+   "id": "14.204090_121.157458",
+   "lat": 14.20409,
+   "lng": 121.157458,
+   "file": "14.204090, 121.157458.jpg",
+   "northOffset": 227.5,
+   "source": "IMG_20261024_150626_00_613",
+   "connections": [
+    {
+     "targetId": "14.203976_121.157306",
+     "bearing": 232.5,
+     "distance": 20.7
+    },
+    {
+     "targetId": "14.204559_121.158226",
+     "bearing": 58.0,
+     "distance": 97.8
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Barangay 1",
+   "heading": -169.5
+  },
+  {
+   "id": "14.204559_121.158226",
+   "lat": 14.204559,
+   "lng": 121.158226,
+   "file": "14.204559, 121.158226.jpg",
+   "northOffset": 236.0,
+   "source": "IMG_20261024_150648_00_614",
+   "connections": [
+    {
+     "targetId": "14.204699_121.158592",
+     "bearing": 68.6,
+     "distance": 42.4
+    },
+    {
+     "targetId": "14.204090_121.157458",
+     "bearing": 238.0,
+     "distance": 97.8
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Barangay 1",
+   "heading": -167.4
+  },
+  {
+   "id": "14.204699_121.158592",
+   "lat": 14.204699,
+   "lng": 121.158592,
+   "file": "14.204699, 121.158592.jpg",
+   "northOffset": 222.4,
+   "source": "IMG_20261024_150702_00_615",
+   "connections": [
+    {
+     "targetId": "14.204559_121.158226",
+     "bearing": 248.6,
+     "distance": 42.4
+    },
+    {
+     "targetId": "14.204921_121.159037",
+     "bearing": 62.9,
+     "distance": 53.9
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Barangay 1",
+   "heading": -159.5
+  },
+  {
+   "id": "14.204921_121.159037",
+   "lat": 14.204921,
+   "lng": 121.159037,
+   "file": "14.204921, 121.159037.jpg",
+   "northOffset": 240.2,
+   "source": "IMG_20261024_150718_00_616",
+   "connections": [
+    {
+     "targetId": "14.204965_121.159133",
+     "bearing": 64.8,
+     "distance": 11.4
+    },
+    {
+     "targetId": "14.204699_121.158592",
+     "bearing": 242.9,
+     "distance": 53.9
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Barangay 1",
+   "heading": -175.3
+  },
+  {
+   "id": "14.204965_121.159133",
+   "lat": 14.204965,
+   "lng": 121.159133,
+   "file": "14.204965, 121.159133.jpg",
+   "northOffset": 179.0,
+   "source": "IMG_20261024_150732_00_617",
+   "connections": [
+    {
+     "targetId": "14.204921_121.159037",
+     "bearing": 244.8,
+     "distance": 11.4
+    },
+    {
+     "targetId": "14.205753_121.158740",
+     "bearing": 334.0,
+     "distance": 96.9
+    }
+   ],
+   "street": "Sampaguita Street",
+   "area": "Barangay 1",
+   "heading": 155.1
+  },
+  {
+   "id": "14.205753_121.158740",
+   "lat": 14.205753,
+   "lng": 121.15874,
+   "file": "14.205753, 121.158740.jpg",
+   "northOffset": 156.7,
+   "source": "IMG_20261024_150747_00_618",
+   "connections": [
+    {
+     "targetId": "14.206318_121.158484",
+     "bearing": 336.1,
+     "distance": 68.3
+    },
+    {
+     "targetId": "14.204965_121.159133",
+     "bearing": 154.0,
+     "distance": 96.9
+    }
+   ],
+   "street": "Purok 7",
+   "area": "Barangay 1",
+   "heading": 179.5
+  },
+  {
+   "id": "14.206318_121.158484",
+   "lat": 14.206318,
+   "lng": 121.158484,
+   "file": "14.206318, 121.158484.jpg",
+   "northOffset": 61.4,
+   "source": "IMG_20261024_150804_00_619",
+   "connections": [
+    {
+     "targetId": "14.206644_121.158332",
+     "bearing": 335.5,
+     "distance": 39.6
+    },
+    {
+     "targetId": "14.205753_121.158740",
+     "bearing": 156.1,
+     "distance": 68.3
+    }
+   ],
+   "street": "Purok 7",
+   "area": "Barangay 1",
+   "heading": -85.9
+  },
+  {
+   "id": "14.206644_121.158332",
+   "lat": 14.206644,
+   "lng": 121.158332,
+   "file": "14.206644, 121.158332.jpg",
+   "northOffset": 149.7,
+   "source": "IMG_20261024_150818_00_620",
+   "connections": [
+    {
+     "targetId": "14.206875_121.158217",
+     "bearing": 334.1,
+     "distance": 28.4
+    },
+    {
+     "targetId": "14.206318_121.158484",
+     "bearing": 155.5,
+     "distance": 39.6
+    }
+   ],
+   "street": "Purok 7",
+   "area": "Barangay 1",
+   "heading": -175.6
+  },
+  {
+   "id": "14.206875_121.158217",
+   "lat": 14.206875,
+   "lng": 121.158217,
+   "file": "14.206875, 121.158217.jpg",
+   "northOffset": 86.6,
+   "source": "IMG_20261024_150832_00_621",
+   "connections": [
+    {
+     "targetId": "14.206644_121.158332",
+     "bearing": 154.1,
+     "distance": 28.4
+    },
+    {
+     "targetId": "14.207369_121.157993",
+     "bearing": 336.1,
+     "distance": 59.7
+    }
+   ],
+   "street": "Purok 7",
+   "area": "Barangay 1",
+   "heading": -110.4
+  },
+  {
+   "id": "14.207369_121.157993",
+   "lat": 14.207369,
+   "lng": 121.157993,
+   "file": "14.207369, 121.157993.jpg",
+   "northOffset": 52.1,
+   "source": "IMG_20261024_150847_00_622",
+   "connections": [
+    {
+     "targetId": "14.206875_121.158217",
+     "bearing": 156.1,
+     "distance": 59.7
+    },
+    {
+     "targetId": "14.207995_121.157587",
+     "bearing": 327.7,
+     "distance": 81.9
+    }
+   ],
+   "street": "Purok 7",
+   "area": "Barangay 1",
+   "heading": -84.5
+  },
+  {
+   "id": "14.207995_121.157587",
+   "lat": 14.207995,
+   "lng": 121.157587,
+   "file": "14.207995, 121.157587.jpg",
+   "northOffset": 150.4,
+   "source": "IMG_20261024_150912_00_623",
+   "connections": [
+    {
+     "targetId": "14.207369_121.157993",
+     "bearing": 147.7,
+     "distance": 81.9
+    }
+   ],
+   "street": "Purok 7",
+   "area": "Barangay 1",
+   "heading": 177.3
+  },
+  {
+   "id": "14.205275_121.154720",
+   "lat": 14.205275,
+   "lng": 121.15472,
+   "file": "14.205275, 121.154720.jpg",
+   "northOffset": 66.8,
+   "source": "IMG_20261024_151128_00_624",
+   "connections": [
+    {
+     "targetId": "14.205300_121.155062",
+     "bearing": 85.7,
+     "distance": 37.0
+    }
+   ],
+   "street": "National Highway",
+   "area": "Real",
+   "heading": 18.9
+  },
+  {
+   "id": "14.205300_121.155062",
+   "lat": 14.2053,
+   "lng": 121.155062,
+   "file": "14.205300, 121.155062.jpg",
+   "northOffset": 167.3,
+   "source": "IMG_20261024_151143_00_625",
+   "connections": [
+    {
+     "targetId": "14.205275_121.154720",
+     "bearing": 265.7,
+     "distance": 37.0
+    },
+    {
+     "targetId": "14.205813_121.155492",
+     "bearing": 39.3,
+     "distance": 73.3
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -128.0
+  },
+  {
+   "id": "14.205813_121.155492",
+   "lat": 14.205813,
+   "lng": 121.155492,
+   "file": "14.205813, 121.155492.jpg",
+   "northOffset": 42.7,
+   "source": "IMG_20261024_151156_00_626",
+   "connections": [
+    {
+     "targetId": "14.205300_121.155062",
+     "bearing": 219.3,
+     "distance": 73.3
+    }
+   ],
+   "street": "National Highway",
+   "area": "Barangay 1",
+   "heading": -3.4
+  }
+ ]
 }

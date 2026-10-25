@@ -53,6 +53,8 @@
     let closeBtnEl = null;
     let compassBtnEl = null;
     let compassNeedleEl = null;
+    let datePillEl = null;
+    let dateTextEl = null;
 
     function cleanupPannellumFadeImages() {
         if (!containerEl) return;
@@ -89,26 +91,34 @@
                 <canvas id="calzadaRoadCanvas" class="sv-road-canvas" aria-hidden="true"></canvas>
                 <div id="streetviewFadeCurtain" class="streetview-fade-curtain"></div>
 
-                <div class="sv-info-card" id="svInfoCard">
-                    <div class="sv-info-text">
-                        <div class="sv-info-title" id="svInfoTitle"></div>
-                        <div class="sv-info-sub" id="svInfoSub"></div>
-                    </div>
+                <div class="sv-date-pill" id="svDatePill" hidden>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"></path>
+                        <path d="M3.6 9h16.8M3.6 15h16.8"></path>
+                        <path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path>
+                    </svg>
+                    <span id="svDateText"></span>
                 </div>
 
                 <div class="sv-actions">
+                    <button type="button" class="sv-icon-btn sv-compass" id="svCompassBtn" aria-label="Face north" title="Face north">
+                        <svg id="svCompassNeedle" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3 L15.2 12 L8.8 12 Z" fill="#F87171"></path>
+                            <path d="M12 21 L8.8 12 L15.2 12 Z" fill="#FFFFFF"></path>
+                        </svg>
+                    </button>
                     <button type="button" class="sv-icon-btn" id="streetviewCloseBtn" aria-label="Exit 360 view" title="Exit (Esc)">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
                     </button>
-                    <button type="button" class="sv-icon-btn sv-compass" id="svCompassBtn" aria-label="Face north" title="Face north">
-                        <svg id="svCompassNeedle" width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M12 3 L15.2 12 L8.8 12 Z" fill="#378ADD"></path>
-                            <path d="M12 21 L8.8 12 L15.2 12 Z" fill="#CBD5E1"></path>
-                        </svg>
-                    </button>
+                </div>
+
+                <div class="sv-info-card" id="svInfoCard">
+                    <div class="sv-info-grip" aria-hidden="true"></div>
+                    <div class="sv-info-title" id="svInfoTitle"></div>
+                    <div class="sv-info-sub" id="svInfoSub"></div>
                 </div>
 
                 <div class="sv-hint" id="streetviewControlsHud">Drag to look around · Tap the arrows on the road to move</div>
@@ -131,6 +141,8 @@
         closeBtnEl = document.getElementById('streetviewCloseBtn');
         compassBtnEl = document.getElementById('svCompassBtn');
         compassNeedleEl = document.getElementById('svCompassNeedle');
+        datePillEl = document.getElementById('svDatePill');
+        dateTextEl = document.getElementById('svDateText');
     }
 
     function bindEvents() {
@@ -264,17 +276,18 @@
     }
 
     // A point on the road: `fwd` meters ahead along the photo yaw, `lat` meters to the right.
-    function projectGround(cam, baseYaw, fwd, lat) {
+    function projectGround(cam, baseYaw, fwd, lat, height) {
         if (fwd <= 0.2) return null;
         const yaw = baseYaw + Math.atan2(lat, fwd) * 180 / Math.PI;
-        const pitch = -Math.atan2(CAMERA_HEIGHT_M, Math.hypot(fwd, lat)) * 180 / Math.PI;
+        const pitch = -Math.atan2(CAMERA_HEIGHT_M - (height || 0), Math.hypot(fwd, lat)) * 180 / Math.PI;
         return projectDir(cam, yaw, pitch);
     }
 
     // ── Road guides (canvas) ───────────────────────────────────────────────────
 
-    // Chevron outline in road meters: [forward, lateral]
-    const CHEVRON = [[0.62, 0], [-0.34, 0.98], [-0.6, 0.74], [0.1, 0.06], [0.1, -0.06], [-0.6, -0.74], [-0.34, -0.98]];
+    // Chevron outline in road meters: [forward, lateral]. Thick arms, like a painted road arrow.
+    const CHEVRON = [[0.55, 0], [-0.25, 0.95], [-0.62, 0.62], [0.02, 0.0], [-0.62, -0.62], [-0.25, -0.95]];
+    const CHEVRON_RAISE = 0.12; // metres: the white top sits a little above the grey base
 
     function drawRoadGuides() {
         rafDrawId = null;
@@ -304,6 +317,9 @@
 
         if (isTransitioning) { drawnChevrons = []; return; }
 
+        // Street names painted on the road first, arrows on top
+        for (const lab of streetLabelsFor(node, cam)) drawStreetLabel(ctx, cam, lab.text, lab.yaw, dpr);
+
         const chevrons = [];
         for (const conn of navConnections(node)) {
             const baseYaw = photoYawOf(node, conn.bearing);
@@ -313,39 +329,148 @@
         drawnChevrons = chevrons;
     }
 
-    function chevronPath(ctx, cam, baseYaw, dist, scale) {
-        const pts = CHEVRON.map(([f, l]) => projectGround(cam, baseYaw, dist + f * scale, l * scale));
-        if (!pts.every(Boolean)) return null;
+    function polyAt(cam, baseYaw, dist, scale, height) {
+        const pts = CHEVRON.map(([f, l]) => projectGround(cam, baseYaw, dist + f * scale, l * scale, height));
+        return pts.every(Boolean) ? pts : null;
+    }
+
+    function fillPoly(ctx, pts, style) {
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
         for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
         ctx.closePath();
-        return pts;
+        ctx.fillStyle = style;
+        ctx.fill();
     }
 
-    // Thin outlined arrow lying on the road; fills brand blue on hover.
+    // Raised white chevron on the road: soft shadow, grey sides, white top. Blue when hovered.
     function drawArrow(ctx, cam, conn, baseYaw, hovered, chevrons) {
         // Phones show more ground per pixel, so bring the arrow closer and make it larger
         const narrow = cam.W < 600;
-        const dist = narrow ? 3.4 : 4.2;
+        const dist = narrow ? 3.3 : 4.0;
+        const scale = (narrow ? 1.15 : 0.95) * (hovered ? 1.08 : 1);
+        const base = polyAt(cam, baseYaw, dist, scale, 0);
+        const top = polyAt(cam, baseYaw, dist, scale, CHEVRON_RAISE);
+        if (!base || !top) return;
         ctx.save();
-        const pts = chevronPath(ctx, cam, baseYaw, dist, narrow ? 1.2 : 0.95);
-        if (pts) {
-            ctx.lineJoin = 'round';
-            if (hovered) {
-                ctx.fillStyle = 'rgba(55, 138, 221, 0.35)';
-                ctx.fill();
-            }
-            ctx.lineWidth = hovered ? 3.5 : 2.5;
-            ctx.strokeStyle = hovered ? '#378ADD' : 'rgba(255, 255, 255, 0.95)';
-            ctx.stroke();
+        ctx.lineJoin = 'round';
+        // shadow on the road
+        ctx.filter = 'blur(3px)';
+        fillPoly(ctx, polyAt(cam, baseYaw, dist + 0.06, scale * 1.04, 0) || base, 'rgba(0, 0, 0, 0.28)');
+        ctx.filter = 'none';
+        // sides: join the base and the top outline
+        const side = hovered ? '#2B6CB0' : '#9AA3AE';
+        for (let i = 0; i < base.length; i++) {
+            const j = (i + 1) % base.length;
+            fillPoly(ctx, [base[i], base[j], top[j], top[i]], side);
         }
+        fillPoly(ctx, top, hovered ? '#5EA2EA' : '#FFFFFF');
         ctx.restore();
-        if (!pts) return;
         const c = projectGround(cam, baseYaw, dist, 0);
         if (!c) return;
-        const span = Math.hypot(pts[1].x - pts[6].x, pts[1].y - pts[6].y);
-        chevrons.push({ conn, x: c.x, y: c.y, r: Math.max(28, span * 0.75) });
+        const span = Math.hypot(top[1].x - top[5].x, top[1].y - top[5].y);
+        chevrons.push({ conn, x: c.x, y: c.y, r: Math.max(30, span * 0.75) });
+    }
+
+    // ── Street names painted on the road ───────────────────────────────────────
+
+    // Which name goes along which road: one label per street, on the branch you are most
+    // nearly facing, and only when that branch is in front of you.
+    function streetLabelsFor(node, cam) {
+        const byName = new Map();
+        for (const conn of navConnections(node)) {
+            const target = nodeById(conn.targetId);
+            const name = (target && target.street) || node.street;
+            if (!name) continue;
+            const yaw = photoYawOf(node, conn.bearing);
+            const off = Math.abs(normYaw(yaw - cam.yaw));
+            if (off > 75) continue;
+            const prev = byName.get(name);
+            if (!prev || off < prev.off) byName.set(name, { text: name, yaw, off });
+        }
+        return [...byName.values()].slice(0, 2);
+    }
+
+    const labelCache = new Map();
+    function labelTexture(text) {
+        if (labelCache.has(text)) return labelCache.get(text);
+        const px = 96;
+        const font = `700 ${px}px 'Sora', 'Outfit', system-ui, sans-serif`;
+        const m = document.createElement('canvas').getContext('2d');
+        m.font = font;
+        const w = Math.ceil(m.measureText(text).width) + px * 0.6;
+        const h = Math.ceil(px * 1.45);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const g = c.getContext('2d');
+        g.font = font;
+        g.textBaseline = 'middle';
+        g.lineJoin = 'round';
+        // dark edge underneath (the "thickness"), then a dark outline, then white
+        g.fillStyle = 'rgba(15, 23, 42, 0.55)';
+        g.fillText(text, px * 0.3 + 4, h / 2 + 7);
+        g.strokeStyle = 'rgba(15, 23, 42, 0.85)';
+        g.lineWidth = px * 0.14;
+        g.strokeText(text, px * 0.3, h / 2);
+        g.fillStyle = '#FFFFFF';
+        g.fillText(text, px * 0.3, h / 2);
+        const tex = { c, w, h, px };
+        labelCache.set(text, tex);
+        return tex;
+    }
+
+    // Lay the text flat on the road, reading away from you along `yaw` (letters' tops to the left,
+    // like the road names in Google Street View). Drawn in thin slices so the perspective is right.
+    function drawStreetLabel(ctx, cam, text, yaw, dpr) {
+        const tex = labelTexture(text);
+        const narrow = cam.W < 600;
+        const letterM = narrow ? 1.7 : 1.5;            // letter height on the road (metres)
+        let mPerPx = letterM / tex.px;
+        let lenM = tex.w * mPerPx;
+        const maxLen = 24;
+        if (lenM > maxLen) { mPerPx *= maxLen / lenM; lenM = maxLen; }
+        const f0 = narrow ? 2.4 : 2.9;                  // starts beside the arrow, close to you
+        const latC = narrow ? 1.5 : 2.1;                // right of the arrow
+        const widthM = tex.h * mPerPx;
+        const P = (u, v) => projectGround(cam, yaw, f0 + u * mPerPx, latC + (v - tex.h / 2) * mPerPx);
+        const N = 24;
+        ctx.save();
+        ctx.globalAlpha = 0.96;
+        for (let i = 0; i < N; i++) {
+            const u0 = tex.w * i / N, u1 = tex.w * (i + 1) / N;
+            const a = P(u0, 0), b = P(u1, 0), c = P(u1, tex.h), d = P(u0, tex.h);
+            if (!a || !b || !c || !d) continue;
+            drawTri(ctx, tex.c, [u0, 0, u1, 0, u1, tex.h], [a, b, c], dpr);
+            drawTri(ctx, tex.c, [u0, 0, u1, tex.h, u0, tex.h], [a, c, d], dpr);
+        }
+        ctx.restore();
+        void widthM;
+    }
+
+    // Affine-map one triangle of the texture onto the screen triangle
+    function drawTri(ctx, img, s, d, dpr) {
+        const [u0, v0, u1, v1, u2, v2] = s;
+        const X0 = d[0].x, Y0 = d[0].y, X1 = d[1].x, Y1 = d[1].y, X2 = d[2].x, Y2 = d[2].y;
+        const den = u0 * v1 + v0 * u2 + u1 * v2 - v1 * u2 - v0 * u1 - u0 * v2;
+        if (!den) return;
+        const ma = (X0 * v1 + v0 * X2 + X1 * v2 - v1 * X2 - v0 * X1 - X0 * v2) / den;
+        const mb = (u0 * X1 + X0 * u2 + u1 * X2 - X1 * u2 - X0 * u1 - u0 * X2) / den;
+        const mc = (u0 * v1 * X2 + v0 * X1 * u2 + X0 * u1 * v2 - X0 * v1 * u2 - v0 * u1 * X2 - u0 * X1 * v2) / den;
+        const md = (Y0 * v1 + v0 * Y2 + Y1 * v2 - v1 * Y2 - v0 * Y1 - Y0 * v2) / den;
+        const me = (u0 * Y1 + Y0 * u2 + u1 * Y2 - Y1 * u2 - Y0 * u1 - u0 * Y2) / den;
+        const mf = (u0 * v1 * Y2 + v0 * Y1 * u2 + Y0 * u1 * v2 - Y0 * v1 * u2 - v0 * u1 * Y2 - u0 * Y1 * v2) / den;
+        ctx.save();
+        // grow the clip a hair so the slices meet without hairline gaps
+        const cx = (X0 + X1 + X2) / 3, cy = (Y0 + Y1 + Y2) / 3, k = 1.02;
+        ctx.beginPath();
+        ctx.moveTo(cx + (X0 - cx) * k, cy + (Y0 - cy) * k);
+        ctx.lineTo(cx + (X1 - cx) * k, cy + (Y1 - cy) * k);
+        ctx.lineTo(cx + (X2 - cx) * k, cy + (Y2 - cy) * k);
+        ctx.closePath();
+        ctx.clip();
+        ctx.setTransform(dpr * ma, dpr * md, dpr * mb, dpr * me, dpr * mc, dpr * mf);
+        ctx.drawImage(img, 0, 0);
+        ctx.restore();
     }
 
     function startDrawing() {
@@ -692,9 +817,12 @@
         if (matchedPlace && node.street) parts.push(node.street);
         parts.push(node.area ? `${node.area}, Calamba` : 'Calamba');
         const when = capturedLabel(node);
-        if (when) parts.push(when);
         infoTitleEl.textContent = title;
         infoSubEl.textContent = parts.join(' · ');
+        if (dateTextEl && datePillEl) {
+            dateTextEl.textContent = when;
+            datePillEl.hidden = !when;
+        }
     }
 
     // ── Launch / close ─────────────────────────────────────────────────────────
