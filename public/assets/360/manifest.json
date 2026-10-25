@@ -9,6 +9,11 @@
    "source": "IMG_20261024_132714_00_395",
    "connections": [
     {
+     "targetId": "14.202268_121.155440",
+     "bearing": 323.5,
+     "distance": 48.5
+    },
+    {
      "targetId": "14.202240_121.156214",
      "bearing": 58.3,
      "distance": 55.9
@@ -50,11 +55,6 @@
    "source": "IMG_20261024_132742_00_397",
    "connections": [
     {
-     "targetId": "14.202373_121.156527",
-     "bearing": 189.7,
-     "distance": 9.0
-    },
-    {
      "targetId": "14.202718_121.156444",
      "bearing": 340.3,
      "distance": 31.1
@@ -81,6 +81,11 @@
      "targetId": "14.202453_121.156541",
      "bearing": 160.3,
      "distance": 31.1
+    },
+    {
+     "targetId": "14.202373_121.156527",
+     "bearing": 239.0,
+     "distance": 39.2
     },
     {
      "targetId": "14.203070_121.156283",
@@ -123,6 +128,11 @@
    "northOffset": 24.1,
    "source": "IMG_20261024_132823_00_400",
    "connections": [
+    {
+     "targetId": "14.203521_121.156303",
+     "bearing": 84.6,
+     "distance": 26.8
+    },
     {
      "targetId": "14.203600_121.155936",
      "bearing": 323.8,
@@ -169,11 +179,6 @@
    "northOffset": 314.9,
    "source": "IMG_20261024_132949_00_402",
    "connections": [
-    {
-     "targetId": "14.204047_121.155924",
-     "bearing": 21.5,
-     "distance": 23.3
-    },
     {
      "targetId": "14.203600_121.155936",
      "bearing": 160.5,
@@ -298,6 +303,11 @@
      "targetId": "14.203755_121.154501",
      "bearing": 149.0,
      "distance": 47.2
+    },
+    {
+     "targetId": "14.203729_121.153589",
+     "bearing": 221.2,
+     "distance": 85.9
     }
    ],
    "street": "SM City Calamba Bypass Road",
@@ -337,7 +347,7 @@
    "connections": [
     {
      "targetId": "14.203334_121.154749",
-     "bearing": 149.1,
+     "bearing": 150.0,
      "distance": 18.9
     },
     {
@@ -348,7 +358,7 @@
    ],
    "street": "SM City Calamba Bypass Road",
    "area": "Real",
-   "heading": 37.9
+   "heading": 38.8
   },
   {
    "id": "14.203334_121.154749",
@@ -360,7 +370,7 @@
    "connections": [
     {
      "targetId": "14.203481_121.154659",
-     "bearing": 329.1,
+     "bearing": 330.1,
      "distance": 18.9
     },
     {
@@ -404,6 +414,11 @@
    "northOffset": 188.3,
    "source": "IMG_20261024_133208_00_412",
    "connections": [
+    {
+     "targetId": "14.201974_121.155773",
+     "bearing": 58.3,
+     "distance": 48.5
+    },
     {
      "targetId": "14.201914_121.155748",
      "bearing": 139.7,
@@ -451,9 +466,9 @@
    "source": "IMG_20261024_133235_00_414",
    "connections": [
     {
-     "targetId": "14.202453_121.156541",
-     "bearing": 9.7,
-     "distance": 9.0
+     "targetId": "14.202718_121.156444",
+     "bearing": 337.8,
+     "distance": 39.2
     },
     {
      "targetId": "14.202640_121.156988",
@@ -525,6 +540,11 @@
    "source": "IMG_20261024_133319_00_417",
    "connections": [
     {
+     "targetId": "14.203303_121.157764",
+     "bearing": 324.0,
+     "distance": 22.7
+    },
+    {
      "targetId": "14.202946_121.157952",
      "bearing": 124.9,
      "distance": 30.0
@@ -595,7 +615,7 @@
    "connections": [
     {
      "targetId": "14.202047_121.158428",
-     "bearing": 190.7,
+     "bearing": 228.5,
      "distance": 23.7
     },
     {
@@ -606,7 +626,7 @@
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -56.7
+   "heading": -19.0
   },
   {
    "id": "14.202047_121.158428",
@@ -618,8 +638,13 @@
    "connections": [
     {
      "targetId": "14.202258_121.158469",
-     "bearing": 10.7,
+     "bearing": 342.0,
      "distance": 23.7
+    },
+    {
+     "targetId": "14.201897_121.158835",
+     "bearing": 143.5,
+     "distance": 46.9
     },
     {
      "targetId": "14.201838_121.157983",
@@ -848,7 +873,7 @@
    "connections": [
     {
      "targetId": "14.199610_121.153708",
-     "bearing": 265.4,
+     "bearing": 265.0,
      "distance": 13.6
     },
     {
@@ -859,7 +884,7 @@
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": 13.0
+   "heading": 12.6
   },
   {
    "id": "14.199610_121.153708",
@@ -871,18 +896,18 @@
    "connections": [
     {
      "targetId": "14.199609_121.153706",
-     "bearing": 242.9,
+     "bearing": 243.3,
      "distance": 1
     },
     {
      "targetId": "14.199620_121.153834",
-     "bearing": 85.4,
+     "bearing": 68.2,
      "distance": 13.6
     }
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": 3.6
+   "heading": -13.5
   },
   {
    "id": "14.199609_121.153706",
@@ -894,7 +919,7 @@
    "connections": [
     {
      "targetId": "14.199610_121.153708",
-     "bearing": 62.9,
+     "bearing": 85.0,
      "distance": 1
     },
     {
@@ -1009,7 +1034,7 @@
    "connections": [
     {
      "targetId": "14.198765_121.151939",
-     "bearing": 226.5,
+     "bearing": 183.3,
      "distance": 5.9
     },
     {
@@ -1020,7 +1045,7 @@
    ],
    "street": "LTO Road",
    "area": "Real",
-   "heading": -51.7
+   "heading": -94.9
   },
   {
    "id": "14.198765_121.151939",
@@ -1032,7 +1057,7 @@
    "connections": [
     {
      "targetId": "14.198802_121.151979",
-     "bearing": 46.5,
+     "bearing": 57.2,
      "distance": 5.9
     },
     {
@@ -1105,6 +1130,11 @@
      "distance": 57.2
     },
     {
+     "targetId": "14.197336_121.152243",
+     "bearing": 239.9,
+     "distance": 65.4
+    },
+    {
      "targetId": "14.197275_121.152304",
      "bearing": 153.2,
      "distance": 74.4
@@ -1122,6 +1152,11 @@
    "northOffset": 166.7,
    "source": "IMG_20261024_134053_00_443",
    "connections": [
+    {
+     "targetId": "14.197336_121.152243",
+     "bearing": 239.9,
+     "distance": 9.4
+    },
     {
      "targetId": "14.196979_121.152656",
      "bearing": 130.7,
@@ -1215,6 +1250,11 @@
    "source": "IMG_20261024_134149_00_447",
    "connections": [
     {
+     "targetId": "14.195667_121.154860",
+     "bearing": 64.0,
+     "distance": 71.5
+    },
+    {
      "targetId": "14.196344_121.153723",
      "bearing": 302.9,
      "distance": 72.2
@@ -1238,6 +1278,11 @@
    "source": "IMG_20261024_134203_00_448",
    "connections": [
     {
+     "targetId": "14.195667_121.154860",
+     "bearing": 244.0,
+     "distance": 2.2
+    },
+    {
      "targetId": "14.195373_121.155355",
      "bearing": 120.8,
      "distance": 60.4
@@ -1246,6 +1291,11 @@
      "targetId": "14.195989_121.154285",
      "bearing": 300.3,
      "distance": 73.6
+    },
+    {
+     "targetId": "14.195965_121.155486",
+     "bearing": 63.8,
+     "distance": 74.5
     }
    ],
    "street": "Requesto Avenue",
@@ -1496,6 +1546,11 @@
      "distance": 33.2
     },
     {
+     "targetId": "14.195902_121.161088",
+     "bearing": 329.7,
+     "distance": 41.4
+    },
+    {
      "targetId": "14.195894_121.161381",
      "bearing": 54.0,
      "distance": 61.7
@@ -1513,6 +1568,11 @@
    "northOffset": 58.5,
    "source": "IMG_20261024_134516_00_460",
    "connections": [
+    {
+     "targetId": "14.195902_121.161088",
+     "bearing": 329.7,
+     "distance": 31.6
+    },
     {
      "targetId": "14.196221_121.161798",
      "bearing": 51.2,
@@ -1537,9 +1597,9 @@
    "source": "IMG_20261024_134530_00_461",
    "connections": [
     {
-     "targetId": "14.196250_121.161664",
-     "bearing": 282.5,
-     "distance": 14.8
+     "targetId": "14.196493_121.161447",
+     "bearing": 324.5,
+     "distance": 48.4
     },
     {
      "targetId": "14.195894_121.161381",
@@ -1570,6 +1630,11 @@
      "distance": 48.3
     },
     {
+     "targetId": "14.196913_121.162656",
+     "bearing": 320.4,
+     "distance": 55.6
+    },
+    {
      "targetId": "14.196221_121.161798",
      "bearing": 231.6,
      "distance": 64.6
@@ -1587,6 +1652,11 @@
    "northOffset": 145.8,
    "source": "IMG_20261024_134603_00_463",
    "connections": [
+    {
+     "targetId": "14.196913_121.162656",
+     "bearing": 320.4,
+     "distance": 24.3
+    },
     {
      "targetId": "14.196584_121.162267",
      "bearing": 255.0,
@@ -1772,11 +1842,6 @@
    "source": "IMG_20261024_134800_00_471",
    "connections": [
     {
-     "targetId": "14.192624_121.166339",
-     "bearing": 82.4,
-     "distance": 15.1
-    },
-    {
      "targetId": "14.192162_121.166588",
      "bearing": 139.5,
      "distance": 64.5
@@ -1824,18 +1889,28 @@
    "connections": [
     {
      "targetId": "14.191832_121.166507",
-     "bearing": 228.8,
+     "bearing": 227.1,
      "distance": 12.8
     },
     {
      "targetId": "14.192162_121.166588",
      "bearing": 358.2,
      "distance": 28.1
+    },
+    {
+     "targetId": "14.191934_121.166907",
+     "bearing": 142.2,
+     "distance": 33.7
+    },
+    {
+     "targetId": "14.192438_121.166508",
+     "bearing": 321.2,
+     "distance": 59.4
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -12.3
+   "heading": -14.0
   },
   {
    "id": "14.191832_121.166507",
@@ -1847,18 +1922,18 @@
    "connections": [
     {
      "targetId": "14.191908_121.166596",
-     "bearing": 48.8,
+     "bearing": 13.5,
      "distance": 12.8
     },
     {
      "targetId": "14.191735_121.166405",
-     "bearing": 225.7,
+     "bearing": 228.5,
      "distance": 15.4
     }
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -24.6
+   "heading": -21.9
   },
   {
    "id": "14.191735_121.166405",
@@ -1870,7 +1945,7 @@
    "connections": [
     {
      "targetId": "14.191832_121.166507",
-     "bearing": 45.7,
+     "bearing": 47.1,
      "distance": 15.4
     },
     {
@@ -2031,7 +2106,7 @@
    "connections": [
     {
      "targetId": "14.189566_121.163747",
-     "bearing": 232.9,
+     "bearing": 228.6,
      "distance": 22.7
     },
     {
@@ -2042,7 +2117,7 @@
    ],
    "street": "Ipil-ipil Street",
    "area": "Bucal",
-   "heading": -1.7
+   "heading": -6.0
   },
   {
    "id": "14.189566_121.163747",
@@ -2054,7 +2129,7 @@
    "connections": [
     {
      "targetId": "14.189690_121.163915",
-     "bearing": 52.9,
+     "bearing": 51.5,
      "distance": 22.7
     },
     {
@@ -2181,6 +2256,11 @@
    "source": "IMG_20261024_135611_00_489",
    "connections": [
     {
+     "targetId": "14.191908_121.166596",
+     "bearing": 193.5,
+     "distance": 33.7
+    },
+    {
      "targetId": "14.191467_121.167281",
      "bearing": 142.0,
      "distance": 65.5
@@ -2209,6 +2289,11 @@
      "distance": 27.5
     },
     {
+     "targetId": "14.191908_121.166596",
+     "bearing": 193.5,
+     "distance": 59.4
+    },
+    {
      "targetId": "14.191934_121.166907",
      "bearing": 142.3,
      "distance": 70.4
@@ -2227,11 +2312,6 @@
    "source": "IMG_20261024_135640_00_491",
    "connections": [
     {
-     "targetId": "14.192606_121.166200",
-     "bearing": 262.4,
-     "distance": 15.1
-    },
-    {
      "targetId": "14.192438_121.166508",
      "bearing": 138.4,
      "distance": 27.5
@@ -2249,6 +2329,16 @@
    "northOffset": 337.4,
    "source": "IMG_20261024_140225_00_492",
    "connections": [
+    {
+     "targetId": "14.196697_121.162699",
+     "bearing": 113.9,
+     "distance": 24.3
+    },
+    {
+     "targetId": "14.196584_121.162267",
+     "bearing": 241.6,
+     "distance": 55.6
+    },
     {
      "targetId": "14.197540_121.162125",
      "bearing": 320.4,
@@ -2475,14 +2565,24 @@
    "source": "IMG_20261024_140507_00_502",
    "connections": [
     {
+     "targetId": "14.202047_121.158428",
+     "bearing": 228.5,
+     "distance": 46.9
+    },
+    {
      "targetId": "14.201410_121.159201",
      "bearing": 143.7,
      "distance": 66.8
+    },
+    {
+     "targetId": "14.203303_121.157764",
+     "bearing": 323.4,
+     "distance": 193.7
     }
    ],
    "street": "National Highway",
    "area": "Lecheria",
-   "heading": -7.4
+   "heading": -7.8
   },
   {
    "id": "14.203303_121.157764",
@@ -2493,9 +2593,19 @@
    "source": "IMG_20261024_140548_00_503",
    "connections": [
     {
+     "targetId": "14.203101_121.157724",
+     "bearing": 261.8,
+     "distance": 22.7
+    },
+    {
      "targetId": "14.203806_121.157412",
      "bearing": 325.7,
      "distance": 67.4
+    },
+    {
+     "targetId": "14.201897_121.158835",
+     "bearing": 143.4,
+     "distance": 193.7
     }
    ],
    "street": "National Highway",
@@ -2510,6 +2620,16 @@
    "northOffset": 333.1,
    "source": "IMG_20261024_140602_00_504",
    "connections": [
+    {
+     "targetId": "14.203976_121.157306",
+     "bearing": 53.9,
+     "distance": 22.0
+    },
+    {
+     "targetId": "14.203885_121.157170",
+     "bearing": 245.1,
+     "distance": 27.5
+    },
     {
      "targetId": "14.204158_121.157143",
      "bearing": 323.3,
@@ -2533,6 +2653,16 @@
    "northOffset": 339.5,
    "source": "IMG_20261024_140616_00_505",
    "connections": [
+    {
+     "targetId": "14.203976_121.157306",
+     "bearing": 53.9,
+     "distance": 26.7
+    },
+    {
+     "targetId": "14.203885_121.157170",
+     "bearing": 245.1,
+     "distance": 30.3
+    },
     {
      "targetId": "14.203806_121.157412",
      "bearing": 143.3,
@@ -2585,6 +2715,11 @@
      "distance": 27.1
     },
     {
+     "targetId": "14.204944_121.156474",
+     "bearing": 62.7,
+     "distance": 38.0
+    },
+    {
      "targetId": "14.204725_121.156722",
      "bearing": 141.5,
      "distance": 73.2
@@ -2625,6 +2760,11 @@
    "northOffset": 325.9,
    "source": "IMG_20261024_140731_00_509",
    "connections": [
+    {
+     "targetId": "14.205813_121.155492",
+     "bearing": 219.3,
+     "distance": 34.8
+    },
     {
      "targetId": "14.205441_121.156152",
      "bearing": 143.5,
@@ -2718,6 +2858,11 @@
    "source": "IMG_20261024_140837_00_513",
    "connections": [
     {
+     "targetId": "14.205275_121.154720",
+     "bearing": 85.7,
+     "distance": 44.9
+    },
+    {
      "targetId": "14.206468_121.154605",
      "bearing": 354.8,
      "distance": 87.6
@@ -2740,6 +2885,11 @@
    "northOffset": 219.8,
    "source": "IMG_20261024_140851_00_514",
    "connections": [
+    {
+     "targetId": "14.205275_121.154720",
+     "bearing": 85.7,
+     "distance": 51.1
+    },
     {
      "targetId": "14.204386_121.154190",
      "bearing": 215.6,
@@ -2786,6 +2936,11 @@
    "northOffset": 234.4,
    "source": "IMG_20261024_140921_00_516",
    "connections": [
+    {
+     "targetId": "14.204121_121.154276",
+     "bearing": 3.0,
+     "distance": 85.9
+    },
     {
      "targetId": "14.203106_121.153041",
      "bearing": 220.6,
@@ -2926,7 +3081,7 @@
    "connections": [
     {
      "targetId": "14.200687_121.151243",
-     "bearing": 212.3,
+     "bearing": 209.3,
      "distance": 13.7
     },
     {
@@ -2937,7 +3092,7 @@
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -4.8
+   "heading": -7.8
   },
   {
    "id": "14.200687_121.151243",
@@ -2949,7 +3104,7 @@
    "connections": [
     {
      "targetId": "14.200792_121.151311",
-     "bearing": 32.3,
+     "bearing": 33.4,
      "distance": 13.7
     },
     {
@@ -3135,11 +3290,16 @@
      "targetId": "14.197674_121.146947",
      "bearing": 56.2,
      "distance": 83.5
+    },
+    {
+     "targetId": "14.196239_121.144895",
+     "bearing": 233.6,
+     "distance": 189.0
     }
    ],
    "street": "National Highway",
    "area": "Real",
-   "heading": -11.2
+   "heading": -13.8
   },
   {
    "id": "14.196239_121.144895",
@@ -3153,6 +3313,11 @@
      "targetId": "14.195657_121.144132",
      "bearing": 232.0,
      "distance": 104.5
+    },
+    {
+     "targetId": "14.197254_121.146304",
+     "bearing": 53.6,
+     "distance": 189.0
     }
    ],
    "street": "National Highway",
@@ -3549,6 +3714,11 @@
    "source": "IMG_20261024_143753_00_552",
    "connections": [
     {
+     "targetId": "14.199626_121.150930",
+     "bearing": 27.3,
+     "distance": 36.7
+    },
+    {
      "targetId": "14.199010_121.150507",
      "bearing": 219.1,
      "distance": 45.7
@@ -3556,7 +3726,7 @@
    ],
    "street": "San Vicente Ferrer Street",
    "area": "Real",
-   "heading": 10.2
+   "heading": -1.5
   },
   {
    "id": "14.199626_121.150930",
@@ -3566,6 +3736,11 @@
    "northOffset": 100.8,
    "source": "IMG_20261024_144008_00_553",
    "connections": [
+    {
+     "targetId": "14.199331_121.150774",
+     "bearing": 207.3,
+     "distance": 36.7
+    },
     {
      "targetId": "14.199195_121.151448",
      "bearing": 130.4,
@@ -3631,9 +3806,19 @@
    "source": "IMG_20261024_144057_00_556",
    "connections": [
     {
+     "targetId": "14.198658_121.151193",
+     "bearing": 278.5,
+     "distance": 6.9
+    },
+    {
      "targetId": "14.198954_121.151660",
      "bearing": 57.0,
      "distance": 53.2
+    },
+    {
+     "targetId": "14.198230_121.151425",
+     "bearing": 150.7,
+     "distance": 54.6
     },
     {
      "targetId": "14.198301_121.150936",
@@ -3677,6 +3862,11 @@
    "source": "IMG_20261024_144315_00_558",
    "connections": [
     {
+     "targetId": "14.198692_121.151247",
+     "bearing": 47.3,
+     "distance": 6.9
+    },
+    {
      "targetId": "14.198301_121.150936",
      "bearing": 215.1,
      "distance": 48.2
@@ -3708,6 +3898,11 @@
      "targetId": "14.198658_121.151193",
      "bearing": 332.1,
      "distance": 53.5
+    },
+    {
+     "targetId": "14.198692_121.151247",
+     "bearing": 47.3,
+     "distance": 54.6
     }
    ],
    "street": "Lauan Street",
@@ -3747,7 +3942,7 @@
    "connections": [
     {
      "targetId": "14.197547_121.151834",
-     "bearing": 218.0,
+     "bearing": 241.4,
      "distance": 3.5
     },
     {
@@ -3770,7 +3965,7 @@
    "connections": [
     {
      "targetId": "14.197572_121.151854",
-     "bearing": 38.0,
+     "bearing": 330.4,
      "distance": 3.5
     },
     {
@@ -4137,9 +4332,19 @@
    "source": "IMG_20261024_144813_00_578",
    "connections": [
     {
+     "targetId": "14.197275_121.152304",
+     "bearing": 144.2,
+     "distance": 9.4
+    },
+    {
      "targetId": "14.197154_121.151921",
      "bearing": 239.9,
      "distance": 40.2
+    },
+    {
+     "targetId": "14.197875_121.151993",
+     "bearing": 333.4,
+     "distance": 65.4
     }
    ],
    "street": "Marangal Street",
@@ -4154,6 +4359,16 @@
    "northOffset": 88.0,
    "source": "IMG_20261024_144909_00_579",
    "connections": [
+    {
+     "targetId": "14.195653_121.154874",
+     "bearing": 120.5,
+     "distance": 2.2
+    },
+    {
+     "targetId": "14.195989_121.154285",
+     "bearing": 301.6,
+     "distance": 71.5
+    },
     {
      "targetId": "14.195965_121.155486",
      "bearing": 64.0,
@@ -4172,6 +4387,11 @@
    "northOffset": 73.6,
    "source": "IMG_20261024_144923_00_580",
    "connections": [
+    {
+     "targetId": "14.195653_121.154874",
+     "bearing": 300.5,
+     "distance": 74.5
+    },
     {
      "targetId": "14.195667_121.154860",
      "bearing": 244.0,
@@ -4472,11 +4692,6 @@
    "source": "IMG_20261024_145256_00_593",
    "connections": [
     {
-     "targetId": "14.196221_121.161798",
-     "bearing": 102.5,
-     "distance": 14.8
-    },
-    {
      "targetId": "14.196493_121.161447",
      "bearing": 318.9,
      "distance": 35.6
@@ -4508,6 +4723,11 @@
      "targetId": "14.196860_121.161218",
      "bearing": 328.7,
      "distance": 47.5
+    },
+    {
+     "targetId": "14.196221_121.161798",
+     "bearing": 51.4,
+     "distance": 48.4
     }
    ],
    "street": "Rosal Street",
@@ -4638,6 +4858,16 @@
    "source": "IMG_20261024_145522_00_602",
    "connections": [
     {
+     "targetId": "14.195894_121.161381",
+     "bearing": 52.6,
+     "distance": 31.6
+    },
+    {
+     "targetId": "14.195566_121.160919",
+     "bearing": 235.5,
+     "distance": 41.4
+    },
+    {
      "targetId": "14.196335_121.160829",
      "bearing": 329.7,
      "distance": 55.4
@@ -4657,13 +4887,13 @@
    "connections": [
     {
      "targetId": "14.204944_121.156474",
-     "bearing": 296.3,
+     "bearing": 242.7,
      "distance": 7.2
     }
    ],
    "street": "National Highway",
    "area": "Barangay 1",
-   "heading": -104.6
+   "heading": -158.2
   },
   {
    "id": "14.204944_121.156474",
@@ -4677,6 +4907,11 @@
      "targetId": "14.204915_121.156534",
      "bearing": 116.3,
      "distance": 7.2
+    },
+    {
+     "targetId": "14.205243_121.156300",
+     "bearing": 322.2,
+     "distance": 38.0
     },
     {
      "targetId": "14.204539_121.155787",
@@ -4698,7 +4933,7 @@
    "connections": [
     {
      "targetId": "14.204467_121.155674",
-     "bearing": 236.9,
+     "bearing": 164.8,
      "distance": 14.6
     },
     {
@@ -4709,7 +4944,7 @@
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 166.5
+   "heading": 94.4
   },
   {
    "id": "14.204467_121.155674",
@@ -4721,13 +4956,18 @@
    "connections": [
     {
      "targetId": "14.204539_121.155787",
-     "bearing": 56.9,
+     "bearing": 58.6,
      "distance": 14.6
+    },
+    {
+     "targetId": "14.204047_121.155924",
+     "bearing": 149.8,
+     "distance": 53.7
     }
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": 179.4
+   "heading": 92.4
   },
   {
    "id": "14.204047_121.155924",
@@ -4738,14 +4978,14 @@
    "source": "IMG_20261024_150319_00_608",
    "connections": [
     {
-     "targetId": "14.203851_121.155845",
-     "bearing": 201.5,
-     "distance": 23.3
-    },
-    {
      "targetId": "14.203787_121.156111",
      "bearing": 144.9,
      "distance": 35.1
+    },
+    {
+     "targetId": "14.204467_121.155674",
+     "bearing": 329.8,
+     "distance": 53.7
     }
    ],
    "street": "Cadena de Amor Street",
@@ -4784,6 +5024,11 @@
    "source": "IMG_20261024_150505_00_610",
    "connections": [
     {
+     "targetId": "14.203379_121.156102",
+     "bearing": 147.4,
+     "distance": 26.8
+    },
+    {
      "targetId": "14.203787_121.156111",
      "bearing": 324.8,
      "distance": 36.0
@@ -4808,8 +5053,18 @@
    "connections": [
     {
      "targetId": "14.203976_121.157306",
-     "bearing": 55.6,
+     "bearing": 53.9,
      "distance": 17.8
+    },
+    {
+     "targetId": "14.203806_121.157412",
+     "bearing": 144.7,
+     "distance": 27.5
+    },
+    {
+     "targetId": "14.204158_121.157143",
+     "bearing": 323.8,
+     "distance": 30.3
     },
     {
      "targetId": "14.203521_121.156303",
@@ -4819,7 +5074,7 @@
    ],
    "street": "Cadena de Amor Street",
    "area": "Barangay 1",
-   "heading": -179.4
+   "heading": 179.0
   },
   {
    "id": "14.203976_121.157306",
@@ -4831,18 +5086,28 @@
    "connections": [
     {
      "targetId": "14.203885_121.157170",
-     "bearing": 235.6,
+     "bearing": 245.1,
      "distance": 17.8
     },
     {
      "targetId": "14.204090_121.157458",
-     "bearing": 52.5,
+     "bearing": 57.0,
      "distance": 20.7
+    },
+    {
+     "targetId": "14.203806_121.157412",
+     "bearing": 144.7,
+     "distance": 22.0
+    },
+    {
+     "targetId": "14.204158_121.157143",
+     "bearing": 323.8,
+     "distance": 26.7
     }
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": -172.9
+   "heading": -168.3
   },
   {
    "id": "14.204090_121.157458",
@@ -4854,7 +5119,7 @@
    "connections": [
     {
      "targetId": "14.203976_121.157306",
-     "bearing": 232.5,
+     "bearing": 233.9,
      "distance": 20.7
     },
     {
@@ -4923,7 +5188,7 @@
    "connections": [
     {
      "targetId": "14.204965_121.159133",
-     "bearing": 64.8,
+     "bearing": 340.8,
      "distance": 11.4
     },
     {
@@ -4934,7 +5199,7 @@
    ],
    "street": "Sampaguita Street",
    "area": "Barangay 1",
-   "heading": -175.3
+   "heading": 100.6
   },
   {
    "id": "14.204965_121.159133",
@@ -4946,7 +5211,7 @@
    "connections": [
     {
      "targetId": "14.204921_121.159037",
-     "bearing": 244.8,
+     "bearing": 243.3,
      "distance": 11.4
     },
     {
@@ -5104,6 +5369,16 @@
      "targetId": "14.205300_121.155062",
      "bearing": 85.7,
      "distance": 37.0
+    },
+    {
+     "targetId": "14.205679_121.154679",
+     "bearing": 2.6,
+     "distance": 44.9
+    },
+    {
+     "targetId": "14.204851_121.154531",
+     "bearing": 200.3,
+     "distance": 51.1
     }
    ],
    "street": "National Highway",
@@ -5141,6 +5416,11 @@
    "northOffset": 42.7,
    "source": "IMG_20261024_151156_00_626",
    "connections": [
+    {
+     "targetId": "14.205906_121.155800",
+     "bearing": 140.0,
+     "distance": 34.8
+    },
     {
      "targetId": "14.205300_121.155062",
      "bearing": 219.3,

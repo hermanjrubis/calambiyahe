@@ -92,11 +92,7 @@
                 <div id="streetviewFadeCurtain" class="streetview-fade-curtain"></div>
 
                 <div class="sv-date-pill" id="svDatePill" hidden>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0"></path>
-                        <path d="M3.6 9h16.8M3.6 15h16.8"></path>
-                        <path d="M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"></path>
-                    </svg>
+                    <img class="sv-date-logo" src="../assets/logo-white-64.png" width="18" height="18" alt="" aria-hidden="true">
                     <span id="svDateText"></span>
                 </div>
 
@@ -380,9 +376,12 @@
         const byName = new Map();
         for (const conn of navConnections(node)) {
             const target = nodeById(conn.targetId);
-            const name = (target && target.street) || node.street;
-            if (!name) continue;
             const yaw = photoYawOf(node, conn.bearing);
+            // Straight on (or back) you stay on this street; a branch that turns off gets its own name
+            const straight = typeof node.heading !== 'number'
+                || Math.abs(normYaw(yaw - node.heading)) < 35 || Math.abs(normYaw(yaw - node.heading)) > 145;
+            const name = (!straight && target && target.street) || node.street || (target && target.street);
+            if (!name) continue;
             const off = Math.abs(normYaw(yaw - cam.yaw));
             if (off > 75) continue;
             const prev = byName.get(name);
@@ -430,7 +429,7 @@
         const maxLen = 24;
         if (lenM > maxLen) { mPerPx *= maxLen / lenM; lenM = maxLen; }
         const f0 = narrow ? 3.0 : 2.9;                  // starts beside the arrow, close to you
-        const latC = narrow ? 1.95 : 2.1;               // right of the arrow
+        const latC = narrow ? -1.9 : -2.1;              // left of the arrow, over the middle of the road (we drive on the right)
         const widthM = tex.h * mPerPx;
         const P = (u, v) => projectGround(cam, yaw, f0 + u * mPerPx, latC + (v - tex.h / 2) * mPerPx);
         const N = 24;

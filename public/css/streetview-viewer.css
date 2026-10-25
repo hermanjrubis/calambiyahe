@@ -105,7 +105,7 @@
     align-items: center;
     gap: 8px;
     height: 40px;
-    padding: 0 16px 0 13px;
+    padding: 0 16px 0 12px;
     border-radius: 999px;
     background: rgba(15, 23, 42, 0.62);
     color: #FFFFFF;
@@ -115,6 +115,13 @@
     pointer-events: none;
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
+}
+
+.sv-date-logo {
+    width: 18px;
+    height: 18px;
+    display: block;
+    flex-shrink: 0;
 }
 
 .sv-date-pill[hidden] {
