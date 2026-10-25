@@ -1299,7 +1299,17 @@
             animation: mediaShimmer 1.3s linear infinite;
             border-radius: 6px;
         }
+        .post-card.is-skeleton { width: 100%; pointer-events: none; }
         .post-card.is-skeleton .sk-head { display: flex; gap: 12px; align-items: center; padding: 16px 20px; }
+        .post-card.is-skeleton .sk-actions { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px 18px; border-top: 1px solid var(--border-subtle); }
+        .sk-sidebar-row { display: flex; align-items: center; gap: 12px; padding: 8px; }
+        .sk-sidebar-row .sk-thumb { width: 48px; height: 48px; border-radius: var(--radius-sm); flex-shrink: 0; }
+        .feed-loading-note {
+            text-align: center;
+            font-size: 13px;
+            color: var(--navy-muted);
+            animation: dropIn 0.3s var(--ease-out);
+        }
         .post-card.is-skeleton .sk-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
         .post-card.is-skeleton .sk-media { aspect-ratio: 4 / 3; border-radius: 0; }
         .post-card.is-skeleton .sk-lines { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
@@ -1345,9 +1355,11 @@
             }
             .updates-grid-layout {
                 flex-direction: column;
+                align-items: stretch;
                 gap: 20px;
             }
             .updates-feed-col {
+                width: 100%;
                 max-width: 100%;
                 gap: 16px;
             }
@@ -1788,26 +1800,53 @@
             return map[cat] || (cat ? cat.charAt(0).toUpperCase() + cat.slice(1) : 'Place');
         }
 
-        // Show Skeleton Cards while loading
+        // Show Skeleton Cards while loading (feed + "New on Calzada"), shaped like the real cards
+        let slowLoadTimer = null;
         function showSkeletons() {
             if (!feedContainer) return;
-            const one = `
+            const one = (lines) => `
                 <div class="post-card is-skeleton" aria-hidden="true">
                     <div class="sk-head">
                         <div class="sk-block sk-avatar"></div>
                         <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
-                            <div class="sk-block" style="width: 140px; height: 14px;"></div>
-                            <div class="sk-block" style="width: 96px; height: 11px;"></div>
+                            <div class="sk-block" style="width: 46%; height: 14px;"></div>
+                            <div class="sk-block" style="width: 30%; height: 11px;"></div>
                         </div>
                     </div>
                     <div class="sk-block sk-media"></div>
                     <div class="sk-lines">
-                        <div class="sk-block" style="width: 90px; height: 11px;"></div>
-                        <div class="sk-block" style="width: 80%; height: 13px;"></div>
+                        <div class="sk-block" style="width: 92px; height: 11px;"></div>
+                        ${lines.map(wd => `<div class="sk-block" style="width: ${wd}; height: 13px;"></div>`).join('')}
+                    </div>
+                    <div class="sk-actions">
+                        <div class="sk-block" style="width: 64px; height: 18px;"></div>
+                        <div class="sk-block" style="width: 112px; height: 32px; border-radius: var(--radius-sm);"></div>
                     </div>
                 </div>`;
-            feedContainer.innerHTML = one + one;
+            feedContainer.innerHTML = one(['88%', '64%']) + one(['72%']);
             feedContainer.setAttribute('aria-busy', 'true');
+
+            const sideList = document.getElementById('newBusinessesList');
+            if (sideList && !sideList.children.length) {
+                sideList.innerHTML = [70, 55, 62].map(w => `
+                    <div class="sk-sidebar-row" aria-hidden="true">
+                        <div class="sk-block sk-thumb"></div>
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 6px;">
+                            <div class="sk-block" style="width: ${w}%; height: 13px;"></div>
+                            <div class="sk-block" style="width: ${w - 20}%; height: 10px;"></div>
+                        </div>
+                    </div>`).join('');
+            }
+
+            // Slow connection: say so instead of shimmering forever
+            clearTimeout(slowLoadTimer);
+            slowLoadTimer = setTimeout(() => {
+                if (feedContainer.getAttribute('aria-busy') !== 'true' || feedContainer.querySelector('.feed-loading-note')) return;
+                const note = document.createElement('p');
+                note.className = 'feed-loading-note';
+                note.textContent = 'Still loading updates… your connection seems slow.';
+                feedContainer.prepend(note);
+            }, 8000);
         }
 
         // Load Feed & Live Businesses
@@ -1858,6 +1897,10 @@
 
             } catch (err) {
                 console.error('Error loading updates feed:', err);
+                clearTimeout(slowLoadTimer);
+                if (feedContainer) feedContainer.removeAttribute('aria-busy');
+                const sideList = document.getElementById('newBusinessesList');
+                if (sideList && sideList.querySelector('.sk-sidebar-row')) sideList.innerHTML = '';
                 if (feedContainer) {
                     feedContainer.innerHTML = `
                         <div class="state-notice-card">
@@ -1872,6 +1915,7 @@
         // Render Feed
         function renderFeed({ animate = true } = {}) {
             if (!feedContainer) return;
+            clearTimeout(slowLoadTimer);
             feedContainer.removeAttribute('aria-busy');
 
             let filtered = postsData.slice();
@@ -2346,6 +2390,10 @@
             });
 
             const top5 = sorted.slice(0, 5);
+            if (top5.length === 0) {
+                container.innerHTML = '<p class="sidebar-widget-text" style="margin: 0;">No businesses yet. Be the first to list yours.</p>';
+                return;
+            }
             container.innerHTML = top5.map(bus => {
                 const photoHtml = bus.profilePhotoUrl
                     ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="" loading="lazy">`
