@@ -1,6 +1,185 @@
 {
  "nodes": [
   {
+   "id": "14.205298_121.156238",
+   "lat": 14.205264,
+   "lng": 121.156318,
+   "file": "14.205298, 121.156238.jpg",
+   "northOffset": 70.5,
+   "source": "IMG_20261016_122650_00_264",
+   "connections": [
+    {
+     "targetId": "14.205243_121.156300",
+     "bearing": 144.4,
+     "distance": 3.0
+    },
+    {
+     "targetId": "14.205323_121.156401",
+     "bearing": 67.3,
+     "distance": 11.1
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -3.1
+  },
+  {
+   "id": "14.205323_121.156401",
+   "lat": 14.205323,
+   "lng": 121.156401,
+   "file": "14.205323, 121.156401.jpg",
+   "northOffset": 82,
+   "source": "IMG_20261016_122740_00_265",
+   "connections": [
+    {
+     "targetId": "14.205349_121.156493",
+     "bearing": 67.3,
+     "distance": 10.3
+    },
+    {
+     "targetId": "14.205298_121.156238",
+     "bearing": 247.3,
+     "distance": 11.1
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -14.7
+  },
+  {
+   "id": "14.205349_121.156493",
+   "lat": 14.205349,
+   "lng": 121.156493,
+   "file": "14.205349, 121.156493.jpg",
+   "northOffset": 79.5,
+   "source": "IMG_20261016_122756_00_266",
+   "connections": [
+    {
+     "targetId": "14.205323_121.156401",
+     "bearing": 247.3,
+     "distance": 10.3
+    },
+    {
+     "targetId": "14.205553_121.156938",
+     "bearing": 67.3,
+     "distance": 53.1
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -12.1
+  },
+  {
+   "id": "14.205553_121.156938",
+   "lat": 14.205553,
+   "lng": 121.156938,
+   "file": "14.205553, 121.156938.jpg",
+   "northOffset": 79.8,
+   "source": "IMG_20261016_122858_00_267",
+   "connections": [
+    {
+     "targetId": "14.205609_121.157111",
+     "bearing": 67.3,
+     "distance": 19.7
+    },
+    {
+     "targetId": "14.205349_121.156493",
+     "bearing": 247.3,
+     "distance": 53.1
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -12.5
+  },
+  {
+   "id": "14.205609_121.157111",
+   "lat": 14.205609,
+   "lng": 121.157111,
+   "file": "14.205609, 121.157111.jpg",
+   "northOffset": 86.0,
+   "source": "IMG_20261016_122927_00_268",
+   "connections": [
+    {
+     "targetId": "14.205553_121.156938",
+     "bearing": 247.3,
+     "distance": 19.7
+    },
+    {
+     "targetId": "14.205673_121.157340",
+     "bearing": 67.3,
+     "distance": 25.7
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -18.7
+  },
+  {
+   "id": "14.205673_121.157340",
+   "lat": 14.205673,
+   "lng": 121.15734,
+   "file": "14.205673, 121.157340.jpg",
+   "northOffset": 69.8,
+   "source": "IMG_20261016_122954_00_269",
+   "connections": [
+    {
+     "targetId": "14.205609_121.157111",
+     "bearing": 247.3,
+     "distance": 25.7
+    },
+    {
+     "targetId": "14.205781_121.157579",
+     "bearing": 67.3,
+     "distance": 28.4
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -2.5
+  },
+  {
+   "id": "14.205781_121.157579",
+   "lat": 14.205781,
+   "lng": 121.157579,
+   "file": "14.205781, 121.157579.jpg",
+   "northOffset": 92.0,
+   "source": "IMG_20261016_123048_00_271",
+   "connections": [
+    {
+     "targetId": "14.205820_121.157620",
+     "bearing": 67.3,
+     "distance": 6.2
+    },
+    {
+     "targetId": "14.205673_121.157340",
+     "bearing": 247.3,
+     "distance": 28.4
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -24.6
+  },
+  {
+   "id": "14.205820_121.157620",
+   "lat": 14.20582,
+   "lng": 121.15762,
+   "file": "14.205820, 121.157620.jpg",
+   "northOffset": 92.3,
+   "source": "IMG_20261016_123137_00_273",
+   "connections": [
+    {
+     "targetId": "14.205781_121.157579",
+     "bearing": 247.3,
+     "distance": 6.2
+    }
+   ],
+   "street": "Rosal Street",
+   "area": "Barangay 1",
+   "heading": -24.9
+  },
+  {
    "id": "14.201974_121.155773",
    "lat": 14.201974,
    "lng": 121.155773,
@@ -514,11 +693,6 @@
    "northOffset": 87.3,
    "source": "IMG_20261024_133319_00_417",
    "connections": [
-    {
-     "targetId": "14.203303_121.157764",
-     "bearing": 325.6,
-     "distance": 22.7
-    },
     {
      "targetId": "14.202946_121.157952",
      "bearing": 142.1,
@@ -2503,11 +2677,6 @@
    "source": "IMG_20261024_140548_00_503",
    "connections": [
     {
-     "targetId": "14.203101_121.157724",
-     "bearing": 245.1,
-     "distance": 22.7
-    },
-    {
      "targetId": "14.203806_121.157412",
      "bearing": 325.0,
      "distance": 67.4
@@ -2609,6 +2778,11 @@
    "northOffset": 337.3,
    "source": "IMG_20261024_140645_00_507",
    "connections": [
+    {
+     "targetId": "14.205298_121.156238",
+     "bearing": 67.3,
+     "distance": 3.0
+    },
     {
      "targetId": "14.205441_121.156152",
      "bearing": 324.4,
