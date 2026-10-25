@@ -24,6 +24,8 @@
 
     <!-- Common CSS -->
     <link rel="stylesheet" href="../css/style.css?v=2.9.0">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="../css/skeleton.css?v=2.9.0">
 
     <style>
@@ -55,7 +57,13 @@
         .plans-main {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 48px 24px 64px;
+            /* the site navbar is fixed, so leave room for it above the hero */
+            padding: calc(var(--plans-nav-h, 78px) + 56px) 24px 64px;
+        }
+
+        /* Desktop: the compact radio row is phone-only */
+        .plan-card-mobile-row {
+            display: none;
         }
 
         /* Hero */
@@ -83,6 +91,7 @@
             line-height: 1.2;
             color: var(--text-dark);
             margin-bottom: 16px;
+            text-wrap: balance;
         }
 
         .plans-subline {
@@ -347,11 +356,23 @@
         /* Mobile Adjustments (≤ 767px) */
         @media (max-width: 767px) {
             .plans-main {
-                padding: 32px 16px 120px;
+                padding: calc(var(--plans-nav-h, 72px) + 32px) 16px 140px;
+            }
+
+            .plans-hero {
+                margin-bottom: 32px;
+            }
+
+            /* Phone shows the compact radio row; the big desktop header/price would repeat it */
+            .plan-card .plan-header,
+            .plan-card .plan-pricing {
+                display: none;
             }
 
             .plans-title {
                 font-size: 28px;
+                line-height: 1.25;
+                text-wrap: balance;
             }
 
             .plans-subline {
@@ -561,6 +582,13 @@
                     <a href="/login?redirect=/plans" class="nav-login-btn" id="navLoginBtn">Sign In</a>
                 </div>
             </div>
+
+            <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                    <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                    <path class="menu-toggle-line" d="M7 16 27 16" />
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -636,7 +664,59 @@
     <!-- Scripts -->
     <script src="../js/plans-config.js?v=2.9.0"></script>
     <script src="../js/i18n.js?v=2.9.1"></script>
-    <script src="../js/plans.js?v=2.9.0"></script>
+    <script src="../js/plans.js?v=2.9.1"></script>
+    <script src="../js/script.js?v=2.6.7"></script>
+
+    <div class="drawer-overlay" id="sideDrawerOverlay"></div>
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-top">
+            <a href="/" class="drawer-brand" aria-label="Calzada Home">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+            </a>
+            <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        </div>
+        <nav class="drawer-links">
+            <div class="drawer-nav-group">
+                <a href="/" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
+                <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
+                <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Places</span></a>
+                <a href="/planner" class="drawer-nav-item"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="/discover" class="drawer-nav-item"><span data-i18n="nav.updates">Updates</span></a>
+                <a href="/plans" class="drawer-nav-item active"><span data-i18n="nav.for_businesses">For businesses</span></a>
+                <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
+                <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
+            </div>
+
+            <div class="drawer-separator"></div>
+
+            <!-- Mobile Language Selection Row -->
+            <div class="mobile-lang-row">
+                <span class="mobile-lang-label">Language / Wika</span>
+                <div class="lang-dropdown-container mobile-lang-container">
+                        <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
+                            <i class="ti ti-language lang-icon" aria-hidden="true"></i>
+                            <span class="lang-active">EN</span>
+                            <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
+                        </button>
+                        <div class="lang-dropdown-menu" role="menu">
+                            <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
+                                <span class="lang-name">English</span>
+                                <span class="lang-code">EN</span>
+                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                            </button>
+                            <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
+                                <span class="lang-name">Tagalog</span>
+                                <span class="lang-code">TL</span>
+                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+            </div>
+        </nav>
+        <div class="drawer-footer-text">© 2026 Calzada</div>
+    </div>
 </body>
 
 </html>

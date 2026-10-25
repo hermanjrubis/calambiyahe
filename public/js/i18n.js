@@ -743,6 +743,7 @@ window.translations = {
 
         // === Plans & Business ===
         'nav.for_businesses':        'For businesses',
+        'nav.updates':               'Updates',
         'plans.hero.eyebrow':        'FOR BUSINESSES IN CALAMBA',
         'plans.hero.title':          'Get found by commuters on their way to you',
         'plans.hero.sub':            "Pick a plan, pay once after we approve your business, and you're on the Calzada map with a route and fare right to your door.",
@@ -1549,6 +1550,7 @@ window.translations = {
 
         // === Plans & Business ===
         'nav.for_businesses':        'Para sa Negosyo',
+        'nav.updates':               'Mga Update',
         'plans.hero.eyebrow':        'PARA SA MGA NEGOSYO SA CALAMBA',
         'plans.hero.title':          'Matagpuan ng mga commuter na papunta sa iyo',
         'plans.hero.sub':            'Pumili ng plano, magbayad nang isang beses matapos maaprubahan ang iyong negosyo, at mapapasama ka sa mapa ng Calzada na may ruta at pamasahe hanggang sa iyong pinto.',

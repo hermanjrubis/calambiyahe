@@ -211,6 +211,8 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword, 
             signInWithPopup, 
+            signInWithRedirect,
+            getRedirectResult,
             GoogleAuthProvider, 
             fetchSignInMethodsForEmail,
             updateProfile,
@@ -502,30 +504,103 @@
         });
 
         // Handle Google Sign-in (handles both sign-in and registration seamlessly)
+        //
+        // Phones (iPhone Safari especially) open the Google popup as a separate tab. When the user picks
+        // "Use another account", Google can finish in a tab that can't see the sign-in state, which ends on
+        // Firebase's "missing initial state" page. On phones we use a full-page redirect instead, which keeps
+        // everything in one tab on calzadaph.com (the /__/auth proxy in vercel.json makes it same-origin).
+        const GOOGLE_PENDING_KEY = 'calzada_google_redirect_pending';
+        const canRedirectSameOrigin = (window.FIREBASE_CONFIG?.authDomain || '') === window.location.hostname;
+        const isTouchDevice = window.matchMedia('(pointer: coarse)').matches ||
+            /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const preferRedirect = canRedirectSameOrigin && isTouchDevice;
+        const googleBtnOriginalHTML = googleLoginBtn.innerHTML;
+
+        const setGoogleBusy = (busy) => {
+            if (busy) {
+                googleLoginBtn.innerText = 'Signing in with Google...';
+                googleLoginBtn.disabled = true;
+            } else {
+                googleLoginBtn.innerHTML = googleBtnOriginalHTML;
+                googleLoginBtn.disabled = false;
+            }
+        };
+
+        const friendlyGoogleError = (err) => {
+            const code = err?.code || '';
+            if (code === 'auth/missing-initial-state' || code === 'auth/web-storage-unsupported' || code === 'auth/operation-not-supported-in-this-environment') {
+                return 'Your browser blocked the Google sign-in. Open calzadaph.com in Safari or Chrome (not inside Messenger or Facebook) and try again.';
+            }
+            if (code === 'auth/network-request-failed') return 'No connection. Check your internet and try again.';
+            if (code === 'auth/account-exists-with-different-credential') return 'This email already has a Calzada account with a password. Sign in with your email and password instead.';
+            if (code === 'auth/too-many-requests') return 'Too many attempts. Please wait a minute and try again.';
+            return err?.message || 'Google sign-in failed. Please try again.';
+        };
+
+        const showGoogleError = (err) => {
+            const msg = friendlyGoogleError(err);
+            if (stepPassword.classList.contains('active')) showError(loginError, msg);
+            else if (stepRegister.classList.contains('active')) showError(regError, msg);
+            else showError(emailError, msg);
+        };
+
+        const finishGoogleSignIn = (user) => {
+            logActivity(user.uid, "login", "google"); // fire-and-forget
+            window.location.href = getSafeRedirectUrl();
+        };
+
+        // Coming back from the Google redirect
+        let redirectPending = false;
+        try { redirectPending = sessionStorage.getItem(GOOGLE_PENDING_KEY) === '1'; } catch (_) {}
+        if (redirectPending) setGoogleBusy(true);
+        getRedirectResult(auth)
+            .then((result) => {
+                try { sessionStorage.removeItem(GOOGLE_PENDING_KEY); } catch (_) {}
+                if (result && result.user) {
+                    finishGoogleSignIn(result.user);
+                } else if (redirectPending) {
+                    setGoogleBusy(false);
+                }
+            })
+            .catch((err) => {
+                try { sessionStorage.removeItem(GOOGLE_PENDING_KEY); } catch (_) {}
+                setGoogleBusy(false);
+                console.error('Google redirect sign-in failed:', err);
+                showGoogleError(err);
+            });
+
+        const startGoogleRedirect = async (provider) => {
+            try { sessionStorage.setItem(GOOGLE_PENDING_KEY, '1'); } catch (_) {}
+            await signInWithRedirect(auth, provider);
+        };
+
         googleLoginBtn.addEventListener('click', async () => {
             hideAllErrors();
             const provider = new GoogleAuthProvider();
-
-            // UI feedback
-            const originalHTML = googleLoginBtn.innerHTML;
-            googleLoginBtn.innerText = 'Signing in with Google...';
-            googleLoginBtn.disabled = true;
+            // Always show the account chooser so switching to a different Google account works
+            provider.setCustomParameters({ prompt: 'select_account' });
+            setGoogleBusy(true);
 
             try {
+                if (preferRedirect) {
+                    await startGoogleRedirect(provider);
+                    return; // the page navigates away
+                }
                 const userCredential = await signInWithPopup(auth, provider);
-                logActivity(userCredential.user.uid, "login", "google"); // fire-and-forget
-                window.location.href = getSafeRedirectUrl();
+                finishGoogleSignIn(userCredential.user);
             } catch (err) {
-                googleLoginBtn.innerHTML = originalHTML;
-                googleLoginBtn.disabled = false;
-                if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
-                    if (stepPassword.classList.contains('active')) {
-                        showError(loginError, err.message);
-                    } else if (stepRegister.classList.contains('active')) {
-                        showError(regError, err.message);
-                    } else {
-                        showError(emailError, err.message);
+                if (err.code === 'auth/popup-blocked' && canRedirectSameOrigin) {
+                    try {
+                        await startGoogleRedirect(provider);
+                        return;
+                    } catch (redirectErr) {
+                        err = redirectErr;
                     }
+                }
+                setGoogleBusy(false);
+                if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+                    console.error('Google sign-in failed:', err);
+                    showGoogleError(err);
                 }
             }
         });
