@@ -7630,3 +7630,51 @@ body.pick-destination .mp-icon-to { display: inline; }
         margin-bottom: var(--sheet-lift, 0px);
     }
 }
+
+
+/* ── Route loading chip (replaces the dashed arc drawn on the map) ── */
+.route-loading-chip {
+    position: fixed;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    left: 50%;
+    z-index: 3000;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 10px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 999px;
+    color: #042C53;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -6px);
+    transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.route-loading-chip.is-visible { opacity: 1; transform: translate(-50%, 0); }
+.route-loading-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid #D6E6F8;
+    border-top-color: #378ADD;
+    animation: routeChipSpin 0.7s linear infinite;
+}
+@keyframes routeChipSpin { to { transform: rotate(360deg); } }
+@media (max-width: 768px) {
+    /* Phones before a trip: the sheet already says "Finding routes" and covers the map */
+    .route-loading-chip:not(.is-journey) { display: none; }
+}
+@media (min-width: 769px) {
+    /* Desktop: over the map, below the category bar, clear of the left panel */
+    .route-loading-chip { left: calc(50% + 200px); top: 76px; }
+    .route-loading-chip.is-journey { left: calc(50% + 280px); top: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .route-loading-spinner { animation-duration: 2s; }
+    .route-loading-chip { transition: none; }
+}

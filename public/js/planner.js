@@ -2163,6 +2163,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 startLeg: activeLegIndex
             });
             liveEtaSig = sig;
+            if (liveEtaSmoother) liveEtaSmoother.reset();
             return liveEta;
         }
 
@@ -4077,53 +4078,53 @@ document.addEventListener('DOMContentLoaded', () => {
         // so the map itself shows that something is happening.
         let routeSearchAnim = 0;
         const ROUTE_SEARCH_SRC = 'calzada-route-search';
+        // Route loading on the map: the current route lines fade and a small "Finding routes" chip
+        // shows at the top of the map. No guessed line is drawn (it read as a real route, and in the
+        // tilted journey view it looped across the map).
+        const ROUTE_LINE_LAYERS = ['walk-route-layer', 'transit-route-layer', 'transit-route-casing', 'route-connector-layer', 'completed-route-layer', 'next-transit-route-layer', 'next-transit-route-casing'];
+        const routeLineOpacity = {};
         function showRouteSearchLine(on) {
             if (!map || !map.getStyle) return;
-            const clear = () => {
-                if (routeSearchAnim) { cancelAnimationFrame(routeSearchAnim); routeSearchAnim = 0; }
-                try { if (map.getLayer(ROUTE_SEARCH_SRC)) map.removeLayer(ROUTE_SEARCH_SRC); } catch (_) {}
-                try { if (map.getSource(ROUTE_SEARCH_SRC)) map.removeSource(ROUTE_SEARCH_SRC); } catch (_) {}
-            };
-            if (!on || !selectedCoords.origin || !selectedCoords.destination) { clear(); return; }
-            const o = selectedCoords.origin, d = selectedCoords.destination;
-            // gentle arc so it does not read as a real route
-            const pts = [];
-            const mx = (o[1] + d[1]) / 2, my = (o[0] + d[0]) / 2;
-            const dx = d[1] - o[1], dy = d[0] - o[0];
-            const cx = mx - dy * 0.18, cy = my + dx * 0.18;
-            for (let i = 0; i <= 32; i++) {
-                const u = i / 32;
-                const lng = (1 - u) * (1 - u) * o[1] + 2 * (1 - u) * u * cx + u * u * d[1];
-                const lat = (1 - u) * (1 - u) * o[0] + 2 * (1 - u) * u * cy + u * u * d[0];
-                pts.push([lng, lat]);
+            // Remove the old arc layer if an older build left one on the map
+            try { if (map.getLayer(ROUTE_SEARCH_SRC)) map.removeLayer(ROUTE_SEARCH_SRC); } catch (_) {}
+            try { if (map.getSource(ROUTE_SEARCH_SRC)) map.removeSource(ROUTE_SEARCH_SRC); } catch (_) {}
+            if (routeSearchAnim) { cancelAnimationFrame(routeSearchAnim); routeSearchAnim = 0; }
+
+            ROUTE_LINE_LAYERS.forEach(id => {
+                try {
+                    if (!map.getLayer(id)) return;
+                    if (on) {
+                        if (!(id in routeLineOpacity)) routeLineOpacity[id] = map.getPaintProperty(id, 'line-opacity');
+                        map.setPaintProperty(id, 'line-opacity-transition', { duration: 200 });
+                        map.setPaintProperty(id, 'line-opacity', 0.3);
+                    } else if (id in routeLineOpacity) {
+                        map.setPaintProperty(id, 'line-opacity', routeLineOpacity[id] ?? 1);
+                        delete routeLineOpacity[id];
+                    }
+                } catch (_) {}
+            });
+
+            let chip = document.getElementById('routeLoadingChip');
+            if (on && !chip) {
+                chip = document.createElement('div');
+                chip.id = 'routeLoadingChip';
+                chip.className = 'route-loading-chip';
+                chip.setAttribute('role', 'status');
+                chip.setAttribute('aria-live', 'polite');
+                chip.innerHTML = '<span class="route-loading-spinner" aria-hidden="true"></span><span class="route-loading-text"></span>';
+                const mapEl = document.getElementById('map');
+                (mapEl && mapEl.parentNode ? mapEl.parentNode : document.body).appendChild(chip);
             }
-            const data = { type: 'Feature', geometry: { type: 'LineString', coordinates: pts } };
-            try {
-                if (map.getSource(ROUTE_SEARCH_SRC)) map.getSource(ROUTE_SEARCH_SRC).setData(data);
-                else {
-                    map.addSource(ROUTE_SEARCH_SRC, { type: 'geojson', data });
-                    map.addLayer({
-                        id: ROUTE_SEARCH_SRC, type: 'line', source: ROUTE_SEARCH_SRC,
-                        layout: { 'line-cap': 'round', 'line-join': 'round' },
-                        paint: { 'line-color': '#378ADD', 'line-width': 4, 'line-opacity': 0.85, 'line-dasharray': [0, 2, 2] }
-                    });
-                }
-            } catch (_) { return; }
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            // March the dashes along the line
-            const seq = [[0, 2, 2], [0.5, 2, 1.5], [1, 2, 1], [1.5, 2, 0.5], [2, 2, 0], [0, 0.5, 2, 1.5], [0, 1, 2, 1], [0, 1.5, 2, 0.5]];
-            let step = 0, last = 0;
-            const tick = (ts) => {
-                if (!routeLoading) { clear(); return; }
-                if (ts - last > 70) {
-                    last = ts;
-                    step = (step + 1) % seq.length;
-                    try { map.setPaintProperty(ROUTE_SEARCH_SRC, 'line-dasharray', seq[step]); } catch (_) {}
-                }
-                routeSearchAnim = requestAnimationFrame(tick);
-            };
-            if (routeSearchAnim) cancelAnimationFrame(routeSearchAnim);
-            routeSearchAnim = requestAnimationFrame(tick);
+            if (!chip) return;
+            if (on) {
+                chip.querySelector('.route-loading-text').textContent = isTrackingArrival
+                    ? (transitLang() === 'tl' ? 'Ina-update ang ruta' : 'Updating your route')
+                    : routeLoadingText();
+                chip.classList.toggle('is-journey', !!isTrackingArrival);
+                requestAnimationFrame(() => chip.classList.add('is-visible'));
+            } else {
+                chip.classList.remove('is-visible');
+            }
         }
 
         function routeLoadingText() { return transitLang() === 'tl' ? 'Hinahanap ang mga ruta' : 'Finding routes'; }
@@ -8650,8 +8651,29 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedMode = newMode;
             setModeUI(newMode);
 
+            const journeyOn = isTrackingArrival && document.body.classList.contains('navigation-active');
+            // Mid-journey: plan the new mode from where you are now, not from where the trip began
+            if (journeyOn && lastFixAt > 0 && currentLocation && selectedCoords.origin) {
+                const awayM = getHaversineDist(currentLocation.lat, currentLocation.lng, selectedCoords.origin[0], selectedCoords.origin[1]) * 1000;
+                if (awayM > 60) selectedCoords.origin = [currentLocation.lat, currentLocation.lng];
+            }
+
             // Trigger full route recalculation per mode
             await executeRouteQuery();
+
+            if (journeyOn && document.body.classList.contains('navigation-active')) {
+                activeLegIndex = 0;
+                lastMatchedSegmentIndex = 0;
+                if (deviationTimer) { clearTimeout(deviationTimer); deviationTimer = null; }
+                resetLiveEta();
+                liveEtaTick(lastFixAt > 0 && currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng, speed: currentGpsSpeed } : undefined);
+                updatePillFareUI();
+                syncNavDisplays(Date.now() - lastMovementTimestamp);
+                const pillLegs = document.getElementById('pillItineraryLegs');
+                const mainLegs = document.getElementById('itineraryLegs');
+                if (pillLegs && mainLegs) pillLegs.innerHTML = mainLegs.innerHTML;
+                saveJourneyState();
+            }
         };
 
         // =============================================
