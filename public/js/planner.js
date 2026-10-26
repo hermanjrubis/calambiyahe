@@ -2114,6 +2114,69 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastOsrmFetchTime = 0;
         let remainingTransitDurationStrRawTimer = null;
         let cachedRemainingSeconds = 0;
+
+        // ── LIVE ETA (js/live-eta.js) ─────────────────────────────────────────
+        // Rebuilt from where you are on each leg, the walking pace measured from your GPS, the
+        // expected wait at the stop, and how fast the jeep has really been moving. Recomputed every
+        // second, so the arrival time keeps moving even when no new GPS fix arrives.
+        let liveEta = null;
+        let liveEtaSig = '';
+        let liveEtaWalkKph = WALK_SPEED_KPH;
+        const liveEtaSmoother = window.CalzadaLiveEta ? window.CalzadaLiveEta.createSmoother() : null;
+
+        function liveEtaSignature() {
+            const w = walkRouteGeojson?.coordinates || [];
+            const j = transitRouteGeojson?.coordinates || [];
+            const f = (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates) || [];
+            const head = c => (c && c.length ? `${c[0][0].toFixed(5)},${c[0][1].toFixed(5)}` : '-');
+            return [selectedMode, w.length, j.length, f.length, head(w), head(j), head(f), pendingTransfer ? pendingTransfer.extraMin : 0].join('|');
+        }
+
+        function resetLiveEta() {
+            liveEta = null;
+            liveEtaSig = '';
+            if (liveEtaSmoother) liveEtaSmoother.reset();
+        }
+
+        function ensureLiveEta() {
+            if (!window.CalzadaLiveEta) return null;
+            const sig = liveEtaSignature();
+            if (liveEta && sig === liveEtaSig) return liveEta;
+            // Keep the walking pace we already learned when the route is rebuilt (reroute, transfer)
+            if (liveEta) liveEtaWalkKph = liveEta.remaining().walkKph || liveEtaWalkKph;
+            const fw = getFinalWalkInfo();
+            liveEta = window.CalzadaLiveEta.createTracker({
+                walkKph: liveEtaWalkKph,
+                jeepKph: JEEPNEY_SPEED_KPH,
+                boardingWaitSec: BOARDING_BUFFER_SEC
+            });
+            const finalWalkCoords = (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates) || [];
+            liveEta.setLegs({
+                walkOnly: selectedMode === 'walking',
+                walk: walkRouteGeojson?.coordinates || [],
+                walkFallbackM: currentWalkDist * 1000,
+                jeep: transitRouteGeojson?.coordinates || [],
+                jeepFallbackM: currentTransitDist * 1000,
+                finalWalk: fw.finalWalkM > 0 ? finalWalkCoords : [],
+                finalWalkFallbackM: fw.finalWalkM || 0,
+                extraSec: pendingTransfer ? pendingTransfer.extraMin * 60 : 0,
+                startLeg: activeLegIndex
+            });
+            liveEtaSig = sig;
+            return liveEta;
+        }
+
+        // fix: { lat, lng, speed } from a GPS update, or nothing for the once-a-second refresh
+        function liveEtaTick(fix) {
+            const tracker = ensureLiveEta();
+            if (!tracker) return false;
+            const now = Date.now();
+            if (fix) tracker.onFix({ lat: fix.lat, lng: fix.lng, speed: fix.speed, t: now, legHint: activeLegIndex });
+            const r = tracker.remaining(now);
+            cachedRemainingSeconds = liveEtaSmoother ? liveEtaSmoother.next(r.seconds, now) : r.seconds;
+            currentRemainingDistanceMeters = r.meters;
+            return true;
+        }
         let countdownInterval = null;
         let activeLegIndex = 0;      // FIX ∗2: declared here to prevent ReferenceError
         let boardingMarker = null;   // FIX ∗8: tracked for cleanup
@@ -4153,7 +4216,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentTransitDist = tRes.distance / 1000;
 
             // Jeepney speed correction: real jeepney avg (~20 km/h) + boarding buffer
-            const correctedTransitDur = (currentTransitDist / JEEPNEY_SPEED_KPH) * 3600 + BOARDING_BUFFER_SEC;
+            const jeepKphNow = window.CalzadaLiveEta ? window.CalzadaLiveEta.jeepDefaultMps(new Date(), JEEPNEY_SPEED_KPH) * 3.6 : JEEPNEY_SPEED_KPH;
+            const correctedTransitDur = (currentTransitDist / jeepKphNow) * 3600 + BOARDING_BUFFER_SEC;
             currentTransitDur = Math.ceil(correctedTransitDur / 60);
 
             // Single centralized fare calculation based on actual transit distance (fare rates loaded
@@ -5533,8 +5597,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Clear existing interval and start fresh 1s countdown timer
             if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+            resetLiveEta();
             countdownInterval = setInterval(() => {
                 try {
+                    liveEtaTick();
                     syncNavDisplays(Date.now() - lastMovementTimestamp);
                 } catch (err) { console.error('[countdownInterval] syncNavDisplays failed:', err); }
             }, 1000);
@@ -6082,7 +6148,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // FIX ∗4: Always clear before starting, prevents duplicate intervals on session recovery
             if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
 
+            resetLiveEta();
             countdownInterval = setInterval(() => {
+                liveEtaTick();
                 syncNavDisplays(Date.now() - lastMovementTimestamp);
             }, 1000);
             const elActiveModeToggle = document.getElementById('activeModeToggle');
@@ -6206,6 +6274,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (deviationTimer) { clearTimeout(deviationTimer); deviationTimer = null; }
             if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+            resetLiveEta();
+            liveEtaWalkKph = WALK_SPEED_KPH;
             // FIX ∗3: remainingTransitDurationStrRawTimer is declared but guard it safely
             if (remainingTransitDurationStrRawTimer) { clearInterval(remainingTransitDurationStrRawTimer); remainingTransitDurationStrRawTimer = null; }
 
@@ -6485,15 +6555,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            if (pendingTransfer) remainingTimeSecs += pendingTransfer.extraMin * 60;
-
             const timeSinceLastMove = Date.now() - lastMovementTimestamp;
-            let effectiveTime = remainingTimeSecs;
-            if (timeSinceLastMove > 480000) {
-                effectiveTime = remainingTimeSecs + (timeSinceLastMove / 1000);
+            if (!liveEtaTick({ lat: latitude, lng: longitude, speed: (typeof speed === 'number' && !isNaN(speed)) ? speed : null })) {
+                // live-eta.js did not load: old estimate
+                if (pendingTransfer) remainingTimeSecs += pendingTransfer.extraMin * 60;
+                let effectiveTime = remainingTimeSecs;
+                if (timeSinceLastMove > 480000) effectiveTime = remainingTimeSecs + (timeSinceLastMove / 1000);
+                cachedRemainingSeconds = effectiveTime;
             }
-
-            cachedRemainingSeconds = effectiveTime;
             updateDynamicBottomPill(timeSinceLastMove);
 
             // Walking from the first jeep's stop to the next one is not a deviation
