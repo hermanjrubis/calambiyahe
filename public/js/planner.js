@@ -607,6 +607,42 @@ document.addEventListener('DOMContentLoaded', () => {
         let selectedCoords = { origin: null, destination: null };
         let originPlaceName = '';
         let destPlaceName = '';
+        let currentOriginKind = 'place'; // 'place' | 'my_location' | 'pinned'
+        let originPlaceId = '';
+        let currentOriginBarangay = null;
+        let currentRouteHistoryId = null;
+        let currentRouteHistoryDest = null;
+        let currentRouteHistoryMode = null;
+        let currentRouteHistoryPlannedAtMs = 0;
+        let currentRouteHistoryStatus = null;
+        let currentRouteHistoryOrigin = null;
+
+        // Auth initialization promise: prevents gate flashing before first callback
+        let authInitDone = false;
+        let authInitPromise = new Promise((resolve) => {
+            let timer = null;
+            const checkAuth = () => {
+                if (window.CalzadaAuth?.onAuthStateChanged) {
+                    window.CalzadaAuth.onAuthStateChanged((user) => {
+                        authInitDone = true;
+                        if (timer) clearTimeout(timer);
+                        resolve(user);
+                    });
+                    return true;
+                }
+                return false;
+            };
+            if (!checkAuth()) {
+                const interval = setInterval(() => {
+                    if (checkAuth()) clearInterval(interval);
+                }, 20);
+                timer = setTimeout(() => {
+                    clearInterval(interval);
+                    authInitDone = true;
+                    resolve(window.CalzadaAuth?.getCurrentUser() || null);
+                }, 2000);
+            }
+        });
         window.selectedCoords = selectedCoords;
         Object.defineProperty(window, 'originPlaceName', {
             get: () => originPlaceName,
@@ -660,7 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isUserLoggedIn = (userAvatarPill.style.display !== 'none' && userAvatarPill.style.display !== '') ||
                                    (window.firebase && window.firebase.auth && window.firebase.auth().currentUser !== null) ||
-                                   (localStorage.getItem('calzada_user_logged_in') === 'true');
+                                   (window.CalzadaAuth?.getCurrentUser() && !window.CalzadaAuth.getCurrentUser().isAnonymous);
 
             if (isUserLoggedIn) {
                 authNavBtn.style.setProperty('display', 'none', 'important');
@@ -2809,7 +2845,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 anchor: document.getElementById(type === 'origin' ? 'openOriginModal' : 'openDestModal'),
                 places: () => (pickerKnownPlaces.length ? pickerKnownPlaces : CALAMBA_PLACES_FALLBACK),
                 userFix: () => (typeof window._calzadaGetUserFix === 'function' ? window._calzadaGetUserFix() : null),
-                onSelect: (name, coords) => { pendingField[type] = null; selectLocation(name, coords); },
+                onSelect: (name, coords, placeObj) => { pendingField[type] = null; selectLocation(name, coords, placeObj); },
                 onPending: (name) => setFieldPending(type, name),
                 onPendingFail: () => setFieldPending(type, null),
                 onMyLocation: () => requestMyLocationOrigin(),
@@ -3227,6 +3263,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
                     originPlaceName = 'My Location';
+                    currentOriginKind = 'my_location';
+                    originPlaceId = '';
+                    currentOriginBarangay = null;
                     window.__calzadaMyLocOriginFix = {
                         lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy
                     };
@@ -3294,15 +3333,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const tempN = originPlaceName;
             originPlaceName = destPlaceName;
             destPlaceName = tempN;
+            currentOriginKind = 'place';
+            originPlaceId = '';
+            currentOriginBarangay = getOriginBarangay();
 
             updateODDisplay();
             executeRouteQuery();
         });
 
-        const selectLocation = (name, coords) => {
+        const selectLocation = (name, coords, placeObj) => {
             if (activeSelectingField === 'origin') {
                 selectedCoords.origin = coords;
                 originPlaceName = name;
+                currentOriginKind = (isMapPicking || name === t('planner.pinned_location')) ? 'pinned' : 'place';
+                originPlaceId = (placeObj && placeObj.id) ? placeObj.id : '';
+                currentOriginBarangay = (placeObj && placeObj.barangay) ? placeObj.barangay : null;
             } else {
                 selectedCoords.destination = coords;
                 destPlaceName = name;
@@ -3430,7 +3475,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderTransitOptionsUI();
                 const o = selectedCoords.origin, d = selectedCoords.destination;
                 const straight = (o && d) ? getHaversineDist(o[0], o[1], d[0], d[1]) * 1000 : 0;
-                applyTransitOption(transitOptions[i], straight).catch((e) => console.error('Option failed:', e));
+                setRouteLoading(true);
+                applyTransitOption(transitOptions[i], straight)
+                    .catch((e) => console.error('Option failed:', e))
+                    .finally(() => {
+                        setRouteLoading(false);
+                        renderPlannerState();
+                    });
             });
         }
 
@@ -4127,9 +4178,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // The option you tapped (Walk / Jeep, a route card) shows a spinner until the new route is ready
+        let routeBusyTrigger = null, routeBusyTriggerAt = 0;
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.nav-panel-mode-btn, .segment-btn[data-mode], .czt-opt');
+            if (btn) { routeBusyTrigger = btn; routeBusyTriggerAt = Date.now(); }
+        }, true);
+        function setRouteBusyUI(on) {
+            document.body.classList.toggle('cz-route-busy', !!on);
+            document.querySelectorAll('.is-route-busy').forEach(el => {
+                el.classList.remove('is-route-busy');
+                el.removeAttribute('aria-busy');
+            });
+            if (!on) return;
+            let btn = (routeBusyTrigger && Date.now() - routeBusyTriggerAt < 1500) ? routeBusyTrigger : null;
+            // A route card is re-drawn when picked: mark the new copy of it
+            if (btn && !document.body.contains(btn) && btn.dataset && btn.dataset.index) {
+                btn = document.querySelector(`#transitOptions .czt-opt[data-index="${btn.dataset.index}"]`);
+            }
+            if (btn) {
+                btn.classList.add('is-route-busy');
+                btn.setAttribute('aria-busy', 'true');
+            }
+        }
+
         function routeLoadingText() { return transitLang() === 'tl' ? 'Hinahanap ang mga ruta' : 'Finding routes'; }
         const setRouteLoading = (on) => {
             routeLoading = on;
+            setRouteBusyUI(on);
             const odBlock = document.querySelector('.od-input-block');
             if (odBlock) odBlock.classList.toggle('is-routing', !!on);
             if (directionsCard) directionsCard.classList.toggle('is-route-loading', !!on);
@@ -4166,8 +4242,357 @@ document.addEventListener('DOMContentLoaded', () => {
                 legs.innerHTML = '<div class="sk-legs">' + row(ICON_WALK, 62, 38) + row(ICON_JEEP, 80, 52) + row(ICON_WALK, 55, 30) + row(ICON_FLAG, 48, 0, true) + '</div>';
             }
         };
+
+        const PLACE_CATEGORY_LABELS = {
+            malls: 'Mall', eateries: 'Eatery', coffee: 'Coffee', schools: 'School',
+            terminals: 'Terminal', government: 'Government & Landmark', health: 'Health', banks: 'Bank',
+            hotels: 'Hotel', establishments: 'Shop & Service'
+        };
+        const clip = (s, max) => (s == null ? null : String(s).trim().slice(0, max));
+        const roundTo = (n, decimals) => {
+            const f = Math.pow(10, decimals);
+            return Math.round((Number(n) || 0) * f) / f;
+        };
+
+        const destinationCategory = () => {
+            const dest = selectedCoords.destination;
+            const places = [...(pickerKnownPlaces || []), ...CALAMBA_PLACES_FALLBACK];
+            const name = (destPlaceName || '').trim().toLowerCase();
+            let place = name ? places.find(p => (p.name || '').trim().toLowerCase() === name) : null;
+            if (!place && dest) {
+                place = places.find(p => p.lat && p.lng && getHaversineDist(dest[0], dest[1], p.lat, p.lng) * 1000 <= 80);
+            }
+            const raw = String(place?.category || '').toLowerCase();
+            return PLACE_CATEGORY_LABELS[raw] || null;
+        };
+
+        const COORDINATE_LIKE = /[0-9]+\.[0-9]{3,}/;
+        const isPinnedLabel = (label) => {
+            const l = (label || '').toLowerCase();
+            const known = ['pinned location', 'naka-pin na lokasyon', String(t('planner.pinned_location')).toLowerCase()];
+            return known.includes(l) || l.startsWith('pinned location (');
+        };
+        const originLabelForTrip = () => {
+            let label = ((priorTrip && priorTrip.originName) || originPlaceName || '').trim();
+            if (!label || label === 'My Location' || currentOriginKind === 'my_location') return 'My Location';
+            if (currentOriginKind === 'pinned' || COORDINATE_LIKE.test(label) || isPinnedLabel(label)) return 'Pinned location';
+            label = clip(label, 120);
+            if (COORDINATE_LIKE.test(label)) return 'Pinned location';
+            return label;
+        };
+
+        const getOriginBarangay = () => {
+            if (currentOriginBarangay && typeof currentOriginBarangay === 'string') return currentOriginBarangay.slice(0, 40);
+            if (currentOriginKind !== 'place') return null;
+            const places = [...(pickerKnownPlaces || []), ...CALAMBA_PLACES_FALLBACK];
+            const name = (originPlaceName || '').trim().toLowerCase();
+            const place = name ? places.find(p => (p.name || '').trim().toLowerCase() === name || (originPlaceId && p.id === originPlaceId)) : null;
+            return (place && place.barangay && typeof place.barangay === 'string') ? place.barangay.slice(0, 40) : null;
+        };
+
+        function showPlanRouteGate() {
+            const gateCard = document.getElementById('planRouteGateCard');
+            const summaryBlock = document.getElementById('routeSummaryBlock');
+            const startBtn = document.getElementById('startJourneyBtn');
+            const legs = document.getElementById('legsContainer');
+            const helper = document.getElementById('startJourneyHelper');
+
+            if (gateCard) gateCard.style.display = 'block';
+            if (summaryBlock) summaryBlock.style.display = 'none';
+            if (startBtn) startBtn.disabled = true;
+            if (legs) legs.innerHTML = '';
+            if (helper) helper.style.display = 'none';
+
+            renderPlannerState();
+
+            if (window.innerWidth <= 768 && typeof setSheetState === 'function') {
+                requestAnimationFrame(() => setSheetState('peek', true));
+            }
+        }
+
+        function hidePlanRouteGate() {
+            const gateCard = document.getElementById('planRouteGateCard');
+            if (gateCard) gateCard.style.display = 'none';
+        }
+
+        function writePendingRoute() {
+            let originData;
+            if (currentOriginKind === 'my_location') {
+                originData = { kind: 'my_location' };
+            } else if (currentOriginKind === 'pinned') {
+                originData = { kind: 'pinned' };
+            } else {
+                originData = {
+                    kind: 'place',
+                    name: originPlaceName || '',
+                    placeId: originPlaceId || ''
+                };
+            }
+            const pending = {
+                dest: {
+                    name: destPlaceName || '',
+                    lat: selectedCoords.destination ? selectedCoords.destination[0] : 0,
+                    lng: selectedCoords.destination ? selectedCoords.destination[1] : 0
+                },
+                origin: originData,
+                mode: selectedMode === 'walking' ? 'walking' : 'jeepney',
+                savedAt: Date.now()
+            };
+            try {
+                sessionStorage.setItem('calzada_pending_route', JSON.stringify(pending));
+            } catch (e) {
+                console.warn('Failed to save pending route to sessionStorage:', e);
+            }
+        }
+
+        async function recordPlannedRouteHistory() {
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) return;
+            if (!selectedCoords.destination) return;
+
+            const destNameClean = clip(destPlaceName || 'Destination', 120);
+            const historyMode = (selectedMode === 'walking' || selectedMode === 'walk') ? 'walk' : 'jeepney';
+            const now = Date.now();
+
+            const originLabelNow = originLabelForTrip();
+            const prevId = currentRouteHistoryId;
+            const prevStatus = currentRouteHistoryStatus;
+            const isSameTrip = currentRouteHistoryDest === destNameClean && currentRouteHistoryMode === historyMode;
+
+            // During a journey, a reroute, a transfer or a restore of the same trip keeps its entry.
+            if (prevId && prevStatus === 'started' && isSameTrip) return;
+            // The same plan again within 2 minutes is not a new entry.
+            if (prevId && prevStatus === 'planned' && isSameTrip && currentRouteHistoryOrigin === originLabelNow
+                && now - currentRouteHistoryPlannedAtMs < 2 * 60 * 1000) return;
+
+            // A mid-journey mode switch: the new route continues the journey, so it starts at once.
+            const continuesJourney = !!(prevId && prevStatus === 'started' && isTrackingArrival);
+
+            // Any other new plan closes the previous open entry, so nothing stays "Planned" or
+            // "In progress" for ever.
+            if (prevId && (prevStatus === 'planned' || prevStatus === 'started')) {
+                try {
+                    const { doc, updateDoc, serverTimestamp, db } = window.CalzadaAuth;
+                    const prevRef = doc(db, 'users', user.uid, 'routeHistory', prevId);
+                    const payload = { status: 'cancelled', cancelReason: 'switched_route' };
+                    if (prevStatus === 'started') payload.endedAt = serverTimestamp();
+                    updateDoc(prevRef, payload)
+                        .catch(e => console.warn('Failed to mark previous route as switched_route:', e));
+                } catch (e) {
+                    console.warn('Error updating previous route doc:', e);
+                }
+            }
+            currentRouteHistoryId = null;
+            currentRouteHistoryStatus = null;
+
+            const estMin = Math.max(0, Math.round(currentWalkDur + (selectedMode === 'walking' ? 0 : currentTransitDur) + ((lastItineraryStops && lastItineraryStops.finalWalkMin) || 0)));
+            const distKm = Math.max(0, roundTo(currentWalkDist + (selectedMode === 'walking' ? 0 : currentTransitDist) + ((lastItineraryStops && lastItineraryStops.finalWalkM ? lastItineraryStops.finalWalkM / 1000 : 0)), 2));
+            const fareVal = selectedMode === 'walking' ? 0 : Math.max(0, roundTo(currentFare || 0, 2));
+            const originKindVal = currentOriginKind === 'my_location' ? 'my_location' : (currentOriginKind === 'pinned' ? 'pinned' : 'place');
+            const cat = destinationCategory();
+            const destCatClean = (cat && typeof cat === 'string') ? clip(cat, 40) : null;
+
+            const docData = {
+                status: 'planned',
+                destName: destNameClean,
+                destLat: Number(selectedCoords.destination[0]),
+                destLng: Number(selectedCoords.destination[1]),
+                destCategory: destCatClean,
+                originLabel: originLabelNow,
+                originKind: originKindVal,
+                originBarangay: getOriginBarangay(),
+                mode: historyMode,
+                estimatedMinutes: estMin,
+                distanceKm: distKm,
+                fare: fareVal,
+                plannedAt: window.CalzadaAuth.serverTimestamp(),
+                startedAt: null,
+                endedAt: null,
+                cancelReason: null
+            };
+
+            try {
+                const { collection, addDoc, db } = window.CalzadaAuth;
+                const colRef = collection(db, `users/${user.uid}/routeHistory`);
+                const docRef = await addDoc(colRef, docData);
+                currentRouteHistoryId = docRef.id;
+                currentRouteHistoryDest = destNameClean;
+                currentRouteHistoryMode = historyMode;
+                currentRouteHistoryPlannedAtMs = now;
+                currentRouteHistoryOrigin = originLabelNow;
+                currentRouteHistoryStatus = 'planned';
+                if (continuesJourney && isTrackingArrival) updateRouteHistoryToStarted();
+                // Keep the entry id with the saved journey, so a reload can still finish it
+                try { saveJourneyState(); } catch (_) { /* not ready yet */ }
+            } catch (err) {
+                console.error('Failed to create routeHistory doc:', err);
+            }
+        }
+
+        function updateRouteHistoryToStarted() {
+            if (!currentRouteHistoryId || currentRouteHistoryStatus !== 'planned') return;
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) return;
+            try {
+                const { doc, updateDoc, serverTimestamp, db } = window.CalzadaAuth;
+                const ref = doc(db, 'users', user.uid, 'routeHistory', currentRouteHistoryId);
+                // Set at once (not after the write) so a quick cancel or arrival, and the saved
+                // journey, already see the trip as started.
+                currentRouteHistoryStatus = 'started';
+                const id = currentRouteHistoryId;
+                updateDoc(ref, {
+                    status: 'started',
+                    startedAt: serverTimestamp()
+                }).catch(err => {
+                    console.warn('Failed to update routeHistory to started:', err);
+                    if (currentRouteHistoryId === id && currentRouteHistoryStatus === 'started') currentRouteHistoryStatus = 'planned';
+                });
+            } catch (e) {
+                console.warn('Error starting route history:', e);
+            }
+        }
+
+        function updateRouteHistoryToCancelled() {
+            if (!currentRouteHistoryId || (currentRouteHistoryStatus !== 'planned' && currentRouteHistoryStatus !== 'started')) return;
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) return;
+            try {
+                const { doc, updateDoc, serverTimestamp, db } = window.CalzadaAuth;
+                const ref = doc(db, 'users', user.uid, 'routeHistory', currentRouteHistoryId);
+                const updatePayload = {
+                    status: 'cancelled',
+                    cancelReason: 'user_cancelled'
+                };
+                if (currentRouteHistoryStatus === 'started') {
+                    updatePayload.endedAt = serverTimestamp();
+                }
+                currentRouteHistoryStatus = 'cancelled';
+                updateDoc(ref, updatePayload)
+                    .catch(err => console.warn('Failed to update routeHistory to cancelled:', err));
+            } catch (e) {
+                console.warn('Error cancelling route history:', e);
+            }
+        }
+
+        function updateRouteHistoryToArrived() {
+            if (!currentRouteHistoryId || currentRouteHistoryStatus !== 'started') return;
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) return;
+            try {
+                const { doc, updateDoc, serverTimestamp, db } = window.CalzadaAuth;
+                const ref = doc(db, 'users', user.uid, 'routeHistory', currentRouteHistoryId);
+                currentRouteHistoryStatus = 'arrived';
+                updateDoc(ref, {
+                    status: 'arrived',
+                    endedAt: serverTimestamp()
+                }).catch(err => console.warn('Failed to update routeHistory to arrived:', err));
+            } catch (e) {
+                console.warn('Error marking route history as arrived:', e);
+            }
+        }
+
+        function resumePendingRoute() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('resume') !== '1') return;
+
+            urlParams.delete('resume');
+            const newSearch = urlParams.toString();
+            const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+            window.history.replaceState(null, '', newUrl);
+
+            const raw = sessionStorage.getItem('calzada_pending_route');
+            sessionStorage.removeItem('calzada_pending_route');
+            if (!raw) return;
+
+            let data;
+            try {
+                data = JSON.parse(raw);
+            } catch (_) { return; }
+
+            if (!data || typeof data !== 'object') return;
+            if (!data.savedAt || (Date.now() - data.savedAt > 15 * 60 * 1000)) return;
+
+            if (data.mode) {
+                selectedMode = data.mode === 'walking' ? 'walking' : 'jeepney';
+                setModeUI(selectedMode);
+            }
+
+            if (data.dest && data.dest.name && Number.isFinite(data.dest.lat) && Number.isFinite(data.dest.lng)) {
+                selectedCoords.destination = [data.dest.lat, data.dest.lng];
+                destPlaceName = data.dest.name;
+                ensureDestMarker();
+                updateODDisplay();
+            }
+
+            if (data.origin && data.origin.kind) {
+                if (data.origin.kind === 'place') {
+                    const allKnown = [
+                        ...(typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) ? window.FALLBACK_PLACES : []),
+                        ...(typeof CALAMBA_PLACES_FALLBACK !== 'undefined' && Array.isArray(CALAMBA_PLACES_FALLBACK) ? CALAMBA_PLACES_FALLBACK : [])
+                    ];
+                    const place = allKnown.find(p => (data.origin.placeId && p.id === data.origin.placeId) ||
+                        (p.name && p.name.trim().toLowerCase() === (data.origin.name || '').trim().toLowerCase()));
+                    const lat = place ? Number(place.lat != null ? place.lat : place.defaultLat) : null;
+                    const lng = place ? Number(place.lng != null ? place.lng : place.defaultLng) : null;
+                    if (place && Number.isFinite(lat) && Number.isFinite(lng)) {
+                        selectedCoords.origin = [lat, lng];
+                        originPlaceName = data.origin.name || place.name;
+                        originPlaceId = place.id || '';
+                        currentOriginKind = 'place';
+                        currentOriginBarangay = place.barangay || null;
+                        ensureOriginMarker();
+                        updateODDisplay();
+                        if (selectedCoords.origin && selectedCoords.destination) {
+                            executeRouteQuery();
+                        }
+                    }
+                } else if (data.origin.kind === 'my_location') {
+                    currentOriginKind = 'my_location';
+                    requestMyLocationOrigin();
+                } else if (data.origin.kind === 'pinned') {
+                    currentOriginKind = 'pinned';
+                    activeSelectingField = 'origin';
+                    triggerMapPicker();
+                    const hintEl = document.getElementById('mapPickerHintText');
+                    if (hintEl) {
+                        const isTl = (window.currentLang === 'tl' || localStorage.getItem('calzada_lang') === 'tl');
+                        hintEl.textContent = isTl ? 'I-pin muli ang iyong panimulang punto' : 'Pin your starting point again';
+                    }
+                }
+            }
+        }
+
+        const btnGateSignIn = document.getElementById('btnGateSignIn');
+        if (btnGateSignIn) {
+            btnGateSignIn.addEventListener('click', () => {
+                writePendingRoute();
+            });
+        }
+        const btnGateRegister = document.getElementById('btnGateRegister');
+        if (btnGateRegister) {
+            btnGateRegister.addEventListener('click', () => {
+                writePendingRoute();
+            });
+        }
+
         const executeRouteQuery = async () => {
-            if (!selectedCoords.origin || !selectedCoords.destination) return executeRouteQueryCore();
+            if (!authInitDone) {
+                await authInitPromise;
+            }
+
+            if (!selectedCoords.origin || !selectedCoords.destination) {
+                hidePlanRouteGate();
+                return executeRouteQueryCore();
+            }
+
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) {
+                showPlanRouteGate();
+                return;
+            }
+
+            hidePlanRouteGate();
+
             let failed = false;
             setRouteLoading(true);
             try {
@@ -4179,6 +4604,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 setRouteLoading(false);
             }
             const hasRoute = !!((walkRouteGeojson && walkRouteGeojson.coordinates?.length >= 2) || (transitRouteGeojson && transitRouteGeojson.coordinates?.length >= 2));
+            if (hasRoute && !failed) {
+                recordPlannedRouteHistory();
+            }
             // Phones: a new route opens the sheet at half height so the route on the map is seen
             // (review #04). Only for a new trip, not for the live origin's quiet replans.
             if (hasRoute && !failed && !isTrackingArrival && window.innerWidth <= 768) {
@@ -4294,6 +4722,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     isJourneyActive: isTrackingArrival,
                     startedAt: journeyStartedAt,
                     journeyId,
+                    // Route history entry of this trip (ids and labels only), so a reload can finish it
+                    history: currentRouteHistoryId ? {
+                        id: currentRouteHistoryId, status: currentRouteHistoryStatus,
+                        dest: currentRouteHistoryDest, mode: currentRouteHistoryMode,
+                        origin: currentRouteHistoryOrigin, plannedAtMs: currentRouteHistoryPlannedAtMs
+                    } : null,
                     savedAt: Date.now(),
                     // Route figures as shown (walk includes the gaps to the road; fare from the jeepney leg)
                     stats: {
@@ -5656,6 +6090,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         function cancelActiveJourney() {
+            updateRouteHistoryToCancelled();
             stopLiveTracking();
             stopCompassListening();
             document.body.classList.remove('navigation-active');
@@ -5894,6 +6329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isTrackingArrival = true;
             journeyStartedAt = Date.now();
             journeyId = newJourneyId();
+            updateRouteHistoryToStarted();
             saveJourneyState();
             if (window.CalzadaTicket) window.CalzadaTicket.preload();
             setMapAutoFollow(true);
@@ -6611,49 +7047,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // The ticket itself is js/trip-ticket.js (window.CalzadaTicket); saving to the
         // account is js/user-stats.js (window.CalzadaTrips).
         // =============================================
-        const PLACE_CATEGORY_LABELS = {
-            malls: 'Mall', eateries: 'Eatery', coffee: 'Coffee', schools: 'School',
-            terminals: 'Terminal', government: 'Government & Landmark', health: 'Health', banks: 'Bank',
-            hotels: 'Hotel', establishments: 'Shop & Service'
-        };
-        const clip = (s, max) => (s == null ? null : String(s).trim().slice(0, max));
-        const roundTo = (n, decimals) => {
-            const f = Math.pow(10, decimals);
-            return Math.round((Number(n) || 0) * f) / f;
-        };
-
-        // Destination category for visits and badges: the known place with the same name,
-        // else one within 80 m of the destination; badge rules match these singular labels.
-        // null when the destination is not a known place.
-        const destinationCategory = () => {
-            const dest = selectedCoords.destination;
-            const places = [...(pickerKnownPlaces || []), ...CALAMBA_PLACES_FALLBACK];
-            const name = (destPlaceName || '').trim().toLowerCase();
-            let place = name ? places.find(p => (p.name || '').trim().toLowerCase() === name) : null;
-            if (!place && dest) {
-                place = places.find(p => p.lat && p.lng && getHaversineDist(dest[0], dest[1], p.lat, p.lng) * 1000 <= 80);
-            }
-            const raw = String(place?.category || '').toLowerCase();
-            return PLACE_CATEGORY_LABELS[raw] || null;
-        };
-
-        // The origin is stored as a label only, never as coordinates. Any label that could hold
-        // coordinates (map-picker pins, URL params, search text, restored or swapped names) is
-        // saved as the language-neutral "Pinned location", translated where it is shown. The
-        // pattern matches the one the Firestore rules reject (a number with 3+ decimals).
-        const COORDINATE_LIKE = /[0-9]+\.[0-9]{3,}/;
-        const isPinnedLabel = (label) => {
-            const l = label.toLowerCase();
-            const known = ['pinned location', 'naka-pin na lokasyon', String(t('planner.pinned_location')).toLowerCase()];
-            return known.includes(l) || l.startsWith('pinned location (');
-        };
-        const originLabelForTrip = () => {
-            const label = ((priorTrip && priorTrip.originName) || originPlaceName || '').trim();
-            if (!label || label === 'My Location') return 'My Location';
-            if (COORDINATE_LIKE.test(label) || isPinnedLabel(label)) return 'Pinned location';
-            return clip(label, 120);
-        };
-
         // Snapshot of the finished trip in the users/{uid}/trips shape (times as epoch ms).
         // Times are real when START JOURNEY recorded journeyStartedAt; leg durations only
         // exist as the planner's estimates.
@@ -6717,6 +7110,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dest = selectedCoords.destination || [];
                 trips.saveTrip(trip, journeyId, { lat: dest[0], lng: dest[1], category: destinationCategory() });
             }
+            updateRouteHistoryToArrived();
 
             if (!window.CalzadaTicket) { cancelActiveJourney(); return; }
             window.CalzadaTicket.open(trip, { onClose: () => cancelActiveJourney() });
@@ -6985,10 +7379,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('mapPickerConfirmBtn').addEventListener('click', () => {
             const c = getPinLngLat();
-            const selectedLabel = (currentPickerLabel && currentPickerLabel !== 'Move map to select location...')
+            const selectedLabel = (currentPickerLabel && currentPickerLabel !== 'Move map to select location...' && !COORDINATE_LIKE.test(currentPickerLabel))
                 ? currentPickerLabel
                 : t('planner.pinned_location'); // coordinates stay in the picker, never in the label
             activeSelectingField = pickerField;
+            if (pickerField === 'origin') {
+                currentOriginKind = 'pinned';
+                originPlaceId = '';
+                currentOriginBarangay = null;
+            }
             cancelMapPicking();
             selectLocation(selectedLabel, [c.lat, c.lng]);
         });
@@ -8448,6 +8847,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // restored: the URL still holds the link the planner was opened with.
         try {
             const urlParams = new URLSearchParams(savedActiveJourney ? '' : window.location.search);
+            if (urlParams.get('resume') === '1') {
+                resumePendingRoute();
+            } else {
             // URLSearchParams.get automatically decodes, so no decodeURIComponent needed
             const destName = urlParams.get('destName') || urlParams.get('dest') || '';
             const destLat = parseFloat(urlParams.get('destLat') || urlParams.get('dlat') || '');
@@ -8640,6 +9042,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+            }
         } catch (urlErr) {
             console.error('URL param error:', urlErr);
         }
@@ -8683,7 +9086,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // (label and coordinates), destination, mode, route legs, boarding point, start time,
         // journey id and current step. Location fixes after this only move the dot and the camera.
         const isSavedLeg = (leg) => !!leg && Array.isArray(leg.coordinates) && Array.isArray(leg.steps) && Number.isFinite(leg.distance);
+        // Restores the route history entry saved with the journey or preview (see saveJourneyState)
+        const restoreRouteHistoryState = (state) => {
+            const h = state && state.history;
+            if (!h || typeof h.id !== 'string' || !/^[A-Za-z0-9]{1,40}$/.test(h.id)) return;
+            if (!['planned', 'started'].includes(h.status)) return;
+            currentRouteHistoryId = h.id;
+            currentRouteHistoryStatus = h.status;
+            currentRouteHistoryDest = typeof h.dest === 'string' ? h.dest : null;
+            currentRouteHistoryMode = h.mode === 'walk' ? 'walk' : 'jeepney';
+            currentRouteHistoryOrigin = typeof h.origin === 'string' ? h.origin : null;
+            // A reload of the same plan keeps its entry instead of adding a new one
+            currentRouteHistoryPlannedAtMs = h.status === 'planned' ? Date.now() : (Number.isFinite(h.plannedAtMs) ? h.plannedAtMs : 0);
+        };
+
         const resumeSavedJourney = (state) => {
+            restoreRouteHistoryState(state);
             selectedCoords.origin = state.origin;
             selectedCoords.destination = state.destination;
             originPlaceName = state.originName || '';
@@ -8800,6 +9218,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             journeyStartedAt = null;
             journeyId = null;
+            restoreRouteHistoryState(state);
 
             // Restore OD state
             selectedCoords.origin = state.origin;

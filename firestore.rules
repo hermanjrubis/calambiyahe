@@ -36,7 +36,7 @@ service cloud.firestore {
 
     match /users/{userId}/{collectionId}/{rest=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId
-        && collectionId != 'trips' && collectionId != 'reminders';
+        && collectionId != 'trips' && collectionId != 'reminders' && collectionId != 'routeHistory';
     }
 
     // Trip history: users/{uid}/trips/{tripId} (tripId = the journey id).
@@ -139,6 +139,90 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
         && resource.data.status == 'scheduled'
         && request.resource.data.status == 'cancelled';
+    }
+
+    // Route History: users/{uid}/routeHistory/{id}
+    // Owner read & delete; owner create (planned, exact 16 keys, coordinates & bounds limits);
+    // Owner update only for specific transitions.
+    function isValidRouteHistoryCreate(r) {
+      return r.keys().hasOnly([
+          'status', 'destName', 'destLat', 'destLng', 'destCategory',
+          'originLabel', 'originKind', 'originBarangay', 'mode',
+          'estimatedMinutes', 'distanceKm', 'fare',
+          'plannedAt', 'startedAt', 'endedAt', 'cancelReason'
+        ])
+        && r.keys().size() == 16
+        && r.status == 'planned'
+        && r.destName is string && r.destName.size() >= 1 && r.destName.size() <= 120
+        && r.destLat is number && r.destLng is number
+        && r.destLat >= 13.9 && r.destLat <= 14.6
+        && r.destLng >= 120.9 && r.destLng <= 121.7
+        && (r.destCategory == null || (r.destCategory is string && r.destCategory.size() <= 40))
+        && r.originLabel is string && r.originLabel.size() <= 120
+        // no coordinates hidden in the label (a number with 3+ decimals)
+        && !r.originLabel.matches('.*[0-9]+[.][0-9]{3,}.*')
+        && r.originKind in ['place', 'my_location', 'pinned']
+        && (r.originBarangay == null || (r.originBarangay is string && r.originBarangay.size() <= 40))
+        && r.mode in ['walk', 'jeepney']
+        && r.estimatedMinutes is number && r.estimatedMinutes >= 0
+        && r.distanceKm is number && r.distanceKm >= 0
+        && r.fare is number && r.fare >= 0
+        && r.plannedAt == request.time
+        && r.startedAt == null
+        && r.endedAt == null
+        && r.cancelReason == null;
+    }
+
+    match /users/{userId}/routeHistory/{routeId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && isValidRouteHistoryCreate(request.resource.data);
+      allow update: if request.auth != null && request.auth.uid == userId
+        && (
+          // Transition 1: planned -> started (sets startedAt == request.time)
+          (
+            resource.data.status == 'planned'
+            && request.resource.data.status == 'started'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'startedAt'])
+            && request.resource.data.startedAt == request.time
+          )
+          // Transition 2: planned -> cancelled (sets cancelReason, optional endedAt)
+          || (
+            resource.data.status == 'planned'
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason'])
+            && request.resource.data.cancelReason in ['user_cancelled', 'switched_route']
+          )
+          || (
+            resource.data.status == 'planned'
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'endedAt'])
+            && request.resource.data.cancelReason in ['user_cancelled', 'switched_route']
+            && (request.resource.data.endedAt == null || request.resource.data.endedAt == request.time)
+          )
+          // Transition 3: started -> cancelled (sets cancelReason, optional endedAt)
+          || (
+            resource.data.status == 'started'
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason', 'endedAt'])
+            && request.resource.data.cancelReason in ['user_cancelled', 'switched_route']
+            && (request.resource.data.endedAt == null || request.resource.data.endedAt == request.time)
+          )
+          || (
+            resource.data.status == 'started'
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelReason'])
+            && request.resource.data.cancelReason in ['user_cancelled', 'switched_route']
+          )
+          // Transition 4: started -> arrived (sets endedAt == request.time)
+          || (
+            resource.data.status == 'started'
+            && request.resource.data.status == 'arrived'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'endedAt'])
+            && request.resource.data.endedAt == request.time
+          )
+        );
     }
 
     // Submissions collection security rules (Legacy / Preserved)

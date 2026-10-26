@@ -17,6 +17,7 @@ import {
     addDoc, 
     deleteDoc,
     updateDoc,
+    writeBatch,
     query, 
     where,
     orderBy, 
@@ -110,7 +111,13 @@ function addActivity(type, message) {
     if (activityFeed.length > 30) activityFeed = activityFeed.slice(0, 30);
     
     try {
-        localStorage.setItem(`calzada_activity_feed_${user.uid}`, JSON.stringify(activityFeed));
+        const actCol = collection(db, `users/${user.uid}/activityFeed`);
+        addDoc(actCol, {
+            type,
+            message,
+            timestamp: serverTimestamp(),
+            read: false
+        }).catch(() => {});
     } catch (_) {}
 
     unreadCount++;
@@ -203,44 +210,24 @@ function renderActivityFeed() {
 
 // Mark all notifications as read (clears badge count)
 window._calzadaMarkActivityAsRead = function () {
-    const user = auth.currentUser;
     activityFeed = activityFeed.map(a => ({ ...a, read: true }));
     unreadCount = 0;
-    if (user && !user.isAnonymous) {
-        try {
-            localStorage.setItem(`calzada_activity_feed_${user.uid}`, JSON.stringify(activityFeed));
-        } catch (_) {}
-    }
-    localStorage.removeItem('calzada_activity_feed');
     updateBellBadge();
     renderActivityFeed();
 };
 
 // Completely wipe / clear the activity feed list
 window._calzadaClearActivity = function () {
-    const user = auth.currentUser;
     activityFeed = [];
     unreadCount = 0;
-    if (user && !user.isAnonymous) {
-        try {
-            localStorage.removeItem(`calzada_activity_feed_${user.uid}`);
-        } catch (_) {}
-    }
-    localStorage.removeItem('calzada_activity_feed');
     updateBellBadge();
     renderActivityFeed();
 };
 
 // Delete single activity item
 window._calzadaDeleteActivityItem = function (id) {
-    const user = auth.currentUser;
     activityFeed = activityFeed.filter(a => String(a.id) !== String(id));
     unreadCount = activityFeed.filter(a => !a.read).length;
-    if (user && !user.isAnonymous) {
-        try {
-            localStorage.setItem(`calzada_activity_feed_${user.uid}`, JSON.stringify(activityFeed));
-        } catch (_) {}
-    }
     updateBellBadge();
     renderActivityFeed();
 };
@@ -259,26 +246,13 @@ export function clearUserState() {
     activityFeed = [];
     unreadCount = 0;
 
-    // 1. Thoroughly wipe all localStorage & sessionStorage user data
+    // 1. Wipe user preferences and session data
     try {
-        localStorage.removeItem('calzada_logged_in');
-        localStorage.removeItem('calzada_user_email');
-        localStorage.removeItem('calzada_user_name');
-        localStorage.removeItem('calzada_activity_feed');
-        localStorage.removeItem('calzadaSavedPlaces');
-        localStorage.removeItem('calzadaLocalVisits');
         localStorage.removeItem('calzada_pref_name');
         localStorage.removeItem('calzada_pref_photo');
         sessionStorage.removeItem('calzadaChatHistory');
         // Saved-journey guard list of the account that signed out
         if (signedOutUid) localStorage.removeItem(`calzada_trips_saved_${signedOutUid}`);
-        
-        // Remove any orphan user-scoped keys
-        Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('calzada_activity_feed_') || k.startsWith('calzada_visits_') || k.startsWith('calzada_saved_') || k.startsWith('calzada_trips_saved_')) {
-                localStorage.removeItem(k);
-            }
-        });
     } catch (_) {}
 
     // 2. Reset Notification Bell & Activity Feed UI
@@ -360,6 +334,9 @@ export function clearUserState() {
     renderSavedList();
     renderVisitsList();
     renderAchievementsList();
+    routeHistory.items = [];
+    routeHistory.loaded = false;
+    renderRouteHistoryList();
 
     // 5. Close any open modal overlays (and forget the signed-out user's trips)
     document.querySelectorAll('.profile-modal-overlay.active').forEach(m => m.classList.remove('active'));
@@ -398,23 +375,22 @@ export async function fetchUserStats(user) {
     activeUser = user;
 
     if (user.isAnonymous) {
-        const localSaved = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
-        currentSaved = localSaved.map((s, idx) => ({ id: `local_${idx}`, placeName: s.name || s.placeName || 'Saved Spot', category: s.category || 'Establishment' }));
-        currentVisits = JSON.parse(localStorage.getItem('calzadaLocalVisits') || '[]');
-        currentBadges = BADGE_DEFINITIONS.filter(b => b.checkUnlocked(currentVisits));
+        currentSaved = [];
+        currentVisits = [];
+        currentBadges = [];
 
         return {
             isAnonymous: true,
-            visits: currentVisits.length,
-            saves: currentSaved.length,
-            badges: currentBadges.length
+            visits: 0,
+            saves: 0,
+            badges: 0
         };
     }
 
     try {
         const uid = user.uid;
 
-        // 1. Read Real Visits from Firestore: users/{uid}/visits with local persistent cache fallback
+        // 1. Read Real Visits from Firestore: users/{uid}/visits
         try {
             const visitsRef = collection(db, `users/${uid}/visits`);
             const visitsSnap = await getDocs(visitsRef);
@@ -427,31 +403,26 @@ export async function fetchUserStats(user) {
                     }
                     return { id: d.id, ...data, date: dateStr };
                 });
-                localStorage.setItem(`calzada_visits_${uid}`, JSON.stringify(currentVisits));
             } else {
-                const cachedVisits = JSON.parse(localStorage.getItem(`calzada_visits_${uid}`) || '[]');
-                currentVisits = cachedVisits;
+                currentVisits = [];
             }
         } catch (e) {
-            console.warn("Firestore visits fetch failed (using local persistent store):", e);
-            currentVisits = JSON.parse(localStorage.getItem(`calzada_visits_${uid}`) || '[]');
+            console.warn("Firestore visits fetch failed:", e);
+            currentVisits = [];
         }
 
-        // 2. Read Real Saved Places from Firestore: users/{uid}/savedPlaces with local cache fallback
+        // 2. Read Real Saved Places from Firestore: users/{uid}/savedPlaces
         try {
             const savedRef = collection(db, `users/${uid}/savedPlaces`);
             const savedSnap = await getDocs(savedRef);
             if (!savedSnap.empty) {
                 currentSaved = savedSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-                localStorage.setItem(`calzada_saved_${uid}`, JSON.stringify(currentSaved));
             } else {
-                const cachedSaved = JSON.parse(localStorage.getItem(`calzada_saved_${uid}`) || localStorage.getItem('calzadaSavedPlaces') || '[]');
-                currentSaved = cachedSaved.map((s, idx) => ({ id: s.id || `saved_${idx}`, placeName: s.name || s.placeName || 'Saved Spot', category: s.category || 'Establishment' }));
+                currentSaved = [];
             }
         } catch (e) {
-            console.warn("Firestore savedPlaces fetch failed (using local persistent store):", e);
-            const cachedSaved = JSON.parse(localStorage.getItem(`calzada_saved_${uid}`) || localStorage.getItem('calzadaSavedPlaces') || '[]');
-            currentSaved = cachedSaved.map((s, idx) => ({ id: s.id || `saved_${idx}`, placeName: s.name || s.placeName || 'Saved Spot', category: s.category || 'Establishment' }));
+            console.warn("Firestore savedPlaces fetch failed:", e);
+            currentSaved = [];
         }
 
         // 3. Dynamically evaluate and sync Badges: users/{uid}/badges
@@ -479,18 +450,16 @@ export async function fetchUserStats(user) {
         };
     } catch (err) {
         console.error("Error reading live stats:", err);
-        const cachedVisits = JSON.parse(localStorage.getItem(`calzada_visits_${user.uid}`) || '[]');
-        const cachedSaved = JSON.parse(localStorage.getItem(`calzada_saved_${user.uid}`) || localStorage.getItem('calzadaSavedPlaces') || '[]');
-        currentVisits = cachedVisits;
-        currentSaved = cachedSaved.map((s, idx) => ({ id: s.id || `saved_${idx}`, placeName: s.name || s.placeName || 'Saved Spot', category: s.category || 'Establishment' }));
-        currentBadges = BADGE_DEFINITIONS.filter(b => b.checkUnlocked(currentVisits));
+        currentVisits = [];
+        currentSaved = [];
+        currentBadges = [];
 
         updateUINumbers();
         return {
             isAnonymous: false,
-            visits: currentVisits.length,
-            saves: currentSaved.length,
-            badges: currentBadges.length
+            visits: 0,
+            saves: 0,
+            badges: 0
         };
     }
 }
@@ -533,7 +502,6 @@ export async function recordVisit(placeName, category) {
     });
 
     if (user && !user.isAnonymous) {
-        localStorage.setItem(`calzada_visits_${user.uid}`, JSON.stringify(currentVisits));
         try {
             const docRef = await addDoc(collection(db, `users/${user.uid}/visits`), {
                 placeName,
@@ -542,10 +510,8 @@ export async function recordVisit(placeName, category) {
             });
             item.id = docRef.id;
         } catch (e) {
-            console.warn("Firestore visit write error (saved locally):", e);
+            console.warn("Firestore visit write error:", e);
         }
-    } else {
-        localStorage.setItem('calzadaLocalVisits', JSON.stringify(currentVisits));
     }
 
     updateUINumbers();
@@ -572,7 +538,6 @@ export async function toggleSavePlace(placeName, category, placeId = null) {
         const removed = currentSaved.splice(existingIndex, 1)[0];
         addActivity('unsave', `Removed "${cleanPlaceName}" from Saved Places`);
         if (user && !user.isAnonymous) {
-            localStorage.setItem(`calzada_saved_${user.uid}`, JSON.stringify(currentSaved));
             const targetId = removed.id || cleanPlaceId;
             if (targetId && !targetId.startsWith('saved_') && !targetId.startsWith('local_')) {
                 try {
@@ -587,7 +552,6 @@ export async function toggleSavePlace(placeName, category, placeId = null) {
         addActivity('save', `Saved "${cleanPlaceName}" (${category || 'Establishment'})`);
 
         if (user && !user.isAnonymous) {
-            localStorage.setItem(`calzada_saved_${user.uid}`, JSON.stringify(currentSaved));
             try {
                 await setDoc(doc(db, `users/${user.uid}/savedPlaces`, cleanPlaceId), {
                     placeName: cleanPlaceName,
@@ -598,8 +562,6 @@ export async function toggleSavePlace(placeName, category, placeId = null) {
         }
     }
 
-    // Keep global localStorage in sync
-    localStorage.setItem('calzadaSavedPlaces', JSON.stringify(currentSaved.map(s => ({ name: s.placeName, category: s.category, id: s.id }))));
     updateUINumbers();
     renderSavedList();
 }
@@ -1183,6 +1145,217 @@ export async function cancelReminder(reminderId) {
 
 window.CalzadaReminders = { open: openRemindersModal, createReminder, cancelReminder, loadReminders };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTE HISTORY: users/{uid}/routeHistory/{routeId}
+// ─────────────────────────────────────────────────────────────────────────────
+let routeHistory = {
+    items: [],
+    loaded: false,
+    loading: false
+};
+
+function formatRouteTime(timeMs) {
+    if (!timeMs) return '';
+    try {
+        const d = new Date(timeMs);
+        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    } catch (_) {
+        return '';
+    }
+}
+
+function getRouteDayLabel(timeMs) {
+    const d = new Date(timeMs);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (d.toDateString() === today.toDateString()) {
+        return window.t ? (window.t('trips.today') || 'Today') : 'Today';
+    }
+    if (d.toDateString() === yesterday.toDateString()) {
+        return window.t ? (window.t('trips.yesterday') || 'Yesterday') : 'Yesterday';
+    }
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function getRouteStatusLabel(status) {
+    const s = String(status || '').toLowerCase();
+    if (s === 'started') return window.t ? (window.t('route_history.status_started') || 'In progress') : 'In progress';
+    if (s === 'cancelled') return window.t ? (window.t('route_history.status_cancelled') || 'Cancelled') : 'Cancelled';
+    if (s === 'arrived') return window.t ? (window.t('route_history.status_arrived') || 'Arrived') : 'Arrived';
+    return window.t ? (window.t('route_history.status_planned') || 'Planned') : 'Planned';
+}
+
+function getRouteModeLabel(mode) {
+    const m = String(mode || '').toLowerCase();
+    if (m === 'walking' || m === 'walk') return window.t ? (window.t('planner.walk') || 'Walk') : 'Walk';
+    return window.t ? (window.t('planner.jeepney') || 'Jeepney') : 'Jeepney';
+}
+
+async function loadRouteHistory() {
+    const user = auth.currentUser || activeUser;
+    if (!user || user.isAnonymous) {
+        routeHistory.items = [];
+        routeHistory.loaded = true;
+        return;
+    }
+    routeHistory.loading = true;
+    try {
+        // Newest 100 only, so a long history never loads (and bills) every entry at once
+        const snap = await getDocs(query(
+            collection(db, `users/${user.uid}/routeHistory`), orderBy('plannedAt', 'desc'), limit(100)));
+        const list = [];
+        snap.forEach(d => {
+            const data = d.data();
+            let timeMs = Date.now();
+            if (data.plannedAt?.toMillis) {
+                timeMs = data.plannedAt.toMillis();
+            } else if (data.plannedAt instanceof Date) {
+                timeMs = data.plannedAt.getTime();
+            } else if (typeof data.plannedAt === 'number') {
+                timeMs = data.plannedAt;
+            }
+            list.push({
+                id: d.id,
+                ...data,
+                timeMs
+            });
+        });
+        list.sort((a, b) => b.timeMs - a.timeMs);
+        routeHistory.items = list;
+        routeHistory.loaded = true;
+    } catch (e) {
+        console.warn('Failed to load route history:', e);
+    } finally {
+        routeHistory.loading = false;
+    }
+}
+
+function renderRouteHistoryList() {
+    const container = document.getElementById('routeHistoryListContainer');
+    const actionsBar = document.getElementById('routeHistoryTopActions');
+    const confirmBar = document.getElementById('routeHistoryConfirmBar');
+    const deleteAllBtn = document.getElementById('btnDeleteAllRoutes');
+
+    if (confirmBar) confirmBar.style.display = 'none';
+    if (deleteAllBtn) deleteAllBtn.style.display = 'inline-block';
+
+    if (!container) return;
+
+    if (!routeHistory.items.length) {
+        if (actionsBar) actionsBar.style.display = 'none';
+        const emptyMsg = window.t ? (window.t('route_history.empty') || 'No routes yet. Plan one in the Planner.') : 'No routes yet. Plan one in the Planner.';
+        container.innerHTML = `
+            <div class="saved-empty-state">
+                <p class="saved-empty-desc">${escapeHtml(emptyMsg)}</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (actionsBar) actionsBar.style.display = 'flex';
+
+    // Group items by day
+    const groups = {};
+    const groupOrder = [];
+    for (const item of routeHistory.items) {
+        const dayKey = getRouteDayLabel(item.timeMs);
+        if (!groups[dayKey]) {
+            groups[dayKey] = [];
+            groupOrder.push(dayKey);
+        }
+        groups[dayKey].push(item);
+    }
+
+    const fromText = window.t ? (window.t('route_history.from') || 'from') : 'from';
+
+    let html = '';
+    for (const day of groupOrder) {
+        html += `<div class="route-history-day-header">${escapeHtml(day)}</div>`;
+        for (const r of groups[day]) {
+            const dest = r.destName || 'Destination';
+            const origin = r.originLabel || 'My Location';
+            const mode = getRouteModeLabel(r.mode);
+            const status = getRouteStatusLabel(r.status);
+            const timeStr = formatRouteTime(r.timeMs);
+
+            html += `
+                <div class="route-history-item" data-route-id="${escapeHtml(r.id)}">
+                    <div class="route-history-item-main">
+                        <div class="route-history-dest-row">
+                            <span class="route-history-dest" title="${escapeHtml(dest)}">${escapeHtml(dest)}</span>
+                            <span class="route-history-origin">${escapeHtml(fromText)} ${escapeHtml(origin)}</span>
+                        </div>
+                        <div class="route-history-meta-row">
+                            <span class="route-history-mode">${escapeHtml(mode)}</span>
+                            <span class="route-history-sep">·</span>
+                            <span class="route-history-status status-${escapeHtml(r.status || 'planned')}">${escapeHtml(status)}</span>
+                            <span class="route-history-sep">·</span>
+                            <span class="route-history-time">${escapeHtml(timeStr)}</span>
+                        </div>
+                    </div>
+                    <button type="button" class="route-history-del-btn" data-route-del="${escapeHtml(r.id)}" aria-label="Delete route">
+                        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                </div>
+            `;
+        }
+    }
+    container.innerHTML = html;
+}
+
+async function deleteSingleRoute(routeId, btn) {
+    const user = auth.currentUser || activeUser;
+    if (!user || user.isAnonymous || !routeId) return;
+    if (btn) btn.disabled = true;
+    try {
+        await deleteDoc(doc(db, `users/${user.uid}/routeHistory`, routeId));
+        routeHistory.items = routeHistory.items.filter(r => r.id !== routeId);
+        renderRouteHistoryList();
+    } catch (err) {
+        console.warn('Failed to delete route:', err);
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function deleteAllRoutes() {
+    const user = auth.currentUser || activeUser;
+    if (!user || user.isAnonymous) return;
+    const confirmYesBtn = document.getElementById('btnConfirmDeleteRoutesYes');
+    if (confirmYesBtn) confirmYesBtn.disabled = true;
+    try {
+        // The list shows the newest 100, so delete in pages until the collection is empty
+        const colRef = collection(db, `users/${user.uid}/routeHistory`);
+        for (let guard = 0; guard < 50; guard++) {
+            const snap = await getDocs(query(colRef, limit(400)));
+            if (snap.empty) break;
+            const batch = writeBatch(db);
+            snap.forEach(d => batch.delete(d.ref));
+            await batch.commit();
+            if (snap.size < 400) break;
+        }
+        routeHistory.items = [];
+        renderRouteHistoryList();
+    } catch (err) {
+        console.warn('Failed to delete all routes:', err);
+    } finally {
+        if (confirmYesBtn) confirmYesBtn.disabled = false;
+    }
+}
+
+export async function openRouteHistoryModal() {
+    openModal('modalRouteHistory');
+    renderRouteHistoryList();
+    const user = auth.currentUser || activeUser;
+    if (user && !user.isAnonymous) {
+        await loadRouteHistory();
+        renderRouteHistoryList();
+    }
+}
+
+window.CalzadaRouteHistory = { open: openRouteHistoryModal, load: loadRouteHistory };
+
 /**
  * Update UI Counter numbers
  */
@@ -1207,6 +1380,77 @@ function updateUINumbers() {
 }
 
 /**
+ * One-time migration: on the first sign-in after this update,
+ * copy legacy local saved places and visits to Firestore, then delete the keys.
+ * Never migrate coordinates of a starting point.
+ */
+async function runOneTimeMigration(user) {
+    if (!user || user.isAnonymous) return;
+    try {
+        const uid = user.uid;
+        const rawSaved = localStorage.getItem('calzadaSavedPlaces') || localStorage.getItem(`calzada_saved_${uid}`);
+        if (rawSaved) {
+            try {
+                const parsed = JSON.parse(rawSaved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    for (const item of parsed) {
+                        const placeName = (item.name || item.placeName || '').trim();
+                        if (placeName) {
+                            const placeId = item.id || placeName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                            const placeDoc = doc(db, `users/${uid}/savedPlaces`, placeId);
+                            await setDoc(placeDoc, {
+                                placeName: placeName,
+                                category: item.category || 'Establishment',
+                                savedAt: serverTimestamp()
+                            }, { merge: true });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Migration error saved places:', err);
+            }
+        }
+
+        const rawVisits = localStorage.getItem('calzadaLocalVisits') || localStorage.getItem(`calzada_visits_${uid}`);
+        if (rawVisits) {
+            try {
+                const parsed = JSON.parse(rawVisits);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    for (const item of parsed) {
+                        const placeName = (item.placeName || item.name || '').trim();
+                        if (placeName) {
+                            const visitId = item.id || `visit_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+                            const visitDoc = doc(db, `users/${uid}/visits`, visitId);
+                            await setDoc(visitDoc, {
+                                placeName: placeName,
+                                category: item.category || 'General',
+                                visitedAt: serverTimestamp()
+                            }, { merge: true });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Migration error visits:', err);
+            }
+        }
+
+        // Clean up legacy keys
+        localStorage.removeItem('calzadaSavedPlaces');
+        localStorage.removeItem('calzadaLocalVisits');
+        localStorage.removeItem(`calzada_saved_${uid}`);
+        localStorage.removeItem(`calzada_visits_${uid}`);
+        localStorage.removeItem(`calzada_activity_feed_${uid}`);
+        localStorage.removeItem('calzada_activity_feed');
+        localStorage.removeItem('calzada_logged_in');
+        localStorage.removeItem('calzada_user_logged_in');
+        localStorage.removeItem('calzada_user_name');
+        localStorage.removeItem('calzada_user_email');
+    } catch (e) {
+        console.warn('One-time migration error:', e);
+    }
+}
+
+/**
  * Modal Renderers & UI Handlers
  */
 export function setupProfileUI() {
@@ -1219,34 +1463,27 @@ export function setupProfileUI() {
     // ─────────────────────────────────────────────────────────────────────────────
     // 1. GLOBAL FIREBASE AUTH STATE SYNC (Profile Pill vs Sign In Button)
     // ─────────────────────────────────────────────────────────────────────────────
-    // Instant local storage check to prevent UI flash
-    const wasLoggedIn = localStorage.getItem('calzada_logged_in') === 'true';
-    if (wasLoggedIn && avatarBtn && authNavBtn) {
-        avatarBtn.style.display = 'flex';
-        authNavBtn.style.display = 'none';
-        const cachedName = localStorage.getItem('calzada_pref_name') || localStorage.getItem('calzada_user_name');
-        if (cachedName) {
-            const nameEl = document.getElementById('userDisplayName');
-            const initialsEl = document.getElementById('userAvatarInitials');
-            const profNameEl = document.getElementById('profileDisplayName');
-            if (nameEl) nameEl.textContent = cachedName;
-            if (profNameEl) profNameEl.textContent = cachedName;
-            if (initialsEl) initialsEl.textContent = cachedName.charAt(0).toUpperCase();
-            const mobileInitialsEl = document.getElementById('mobileAvatarInitials');
-            if (mobileInitialsEl) mobileInitialsEl.textContent = cachedName.charAt(0).toUpperCase();
-        }
-    }
-
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             activeUser = user;
-            localStorage.setItem('calzada_logged_in', 'true');
-            if (user.email) localStorage.setItem('calzada_user_email', user.email);
+            await runOneTimeMigration(user);
 
-            // Load user-specific activity feed
+            // Load user-specific activity feed from Firestore
             try {
-                const userFeedKey = `calzada_activity_feed_${user.uid}`;
-                activityFeed = JSON.parse(localStorage.getItem(userFeedKey) || localStorage.getItem('calzada_activity_feed') || '[]');
+                const actSnap = await getDocs(collection(db, `users/${user.uid}/activityFeed`));
+                const items = [];
+                actSnap.forEach(d => {
+                    const data = d.data();
+                    items.push({
+                        id: d.id,
+                        type: data.type,
+                        message: data.message,
+                        timestamp: data.timestamp?.toMillis ? data.timestamp.toMillis() : Date.now(),
+                        read: !!data.read
+                    });
+                });
+                items.sort((a, b) => b.timestamp - a.timestamp);
+                activityFeed = items.slice(0, 30);
                 unreadCount = activityFeed.filter(a => !a.read).length;
             } catch (_) {
                 activityFeed = [];
@@ -1284,7 +1521,6 @@ export function setupProfileUI() {
             const name = customName || user.displayName || (user.email ? user.email.split('@')[0] : 'Commuter');
             const email = user.email || (user.isAnonymous ? 'guest@calzada.ph' : 'herman@gmail.com');
             const initial = name.charAt(0).toUpperCase();
-            localStorage.setItem('calzada_user_name', name);
 
             // 1. Navbar avatar pill
             if (userDisplayName) userDisplayName.textContent = name;
@@ -1479,6 +1715,47 @@ export function setupProfileUI() {
             e.preventDefault();
             closeDropdown();
             openTripsModal();
+            return;
+        }
+
+        const itemRouteHistory = e.target.closest('#menuRouteHistory');
+        if (itemRouteHistory) {
+            e.preventDefault();
+            closeDropdown();
+            openRouteHistoryModal();
+            return;
+        }
+
+        const delRouteBtn = e.target.closest('#modalRouteHistory .route-history-del-btn');
+        if (delRouteBtn) {
+            e.preventDefault();
+            deleteSingleRoute(delRouteBtn.dataset.routeDel, delRouteBtn);
+            return;
+        }
+
+        const deleteAllRoutesBtn = e.target.closest('#btnDeleteAllRoutes');
+        if (deleteAllRoutesBtn) {
+            e.preventDefault();
+            const confirmBar = document.getElementById('routeHistoryConfirmBar');
+            if (confirmBar) confirmBar.style.display = 'flex';
+            deleteAllRoutesBtn.style.display = 'none';
+            return;
+        }
+
+        const cancelDelAllBtn = e.target.closest('#btnConfirmDeleteRoutesCancel');
+        if (cancelDelAllBtn) {
+            e.preventDefault();
+            const confirmBar = document.getElementById('routeHistoryConfirmBar');
+            if (confirmBar) confirmBar.style.display = 'none';
+            const btn = document.getElementById('btnDeleteAllRoutes');
+            if (btn) btn.style.display = 'inline-block';
+            return;
+        }
+
+        const confirmDelAllBtn = e.target.closest('#btnConfirmDeleteRoutesYes');
+        if (confirmDelAllBtn) {
+            e.preventDefault();
+            deleteAllRoutes();
             return;
         }
 
@@ -2294,7 +2571,7 @@ async function handlePasswordReset() {
     if (!btn || btn.disabled) return;
 
     const user = auth.currentUser || activeUser;
-    const email = user?.email || localStorage.getItem('calzada_user_email');
+    const email = user?.email;
 
     if (!email || user?.isAnonymous) {
         if (errorEl) {
@@ -2496,6 +2773,32 @@ function createProfileModals() {
             </div>
         </div>
 
+        <!-- Modal: Route History -->
+        <div class="profile-modal-overlay" id="modalRouteHistory">
+            <div class="profile-modal-box route-history-modal-box">
+                <div class="profile-modal-header">
+                    <div class="modal-header-title">
+                        <div class="modal-header-icon-box">
+                            <svg width="22" height="22" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+                        </div>
+                        <h3 class="modal-header-heading" data-i18n="route_history.title">${window.t ? (window.t('route_history.title') || 'Route history') : 'Route history'}</h3>
+                    </div>
+                    <button class="modal-close-btn" type="button" aria-label="Close modal">&times;</button>
+                </div>
+                <div class="profile-modal-body">
+                    <div class="route-history-actions-bar" id="routeHistoryTopActions" style="display: none;">
+                        <button type="button" class="btn-delete-all-routes" id="btnDeleteAllRoutes" data-i18n="route_history.delete_all">${window.t ? (window.t('route_history.delete_all') || 'Delete all') : 'Delete all'}</button>
+                        <div class="route-history-confirm-bar" id="routeHistoryConfirmBar" style="display: none;">
+                            <span class="route-history-confirm-text" data-i18n="route_history.delete_confirm">${window.t ? (window.t('route_history.delete_confirm') || 'Delete all routes?') : 'Delete all routes?'}</span>
+                            <button type="button" class="btn-confirm-delete-yes" id="btnConfirmDeleteRoutesYes" data-i18n="route_history.confirm_yes">${window.t ? (window.t('route_history.confirm_yes') || 'Yes, delete') : 'Yes, delete'}</button>
+                            <button type="button" class="btn-confirm-delete-cancel" id="btnConfirmDeleteRoutesCancel" data-i18n="route_history.confirm_cancel">${window.t ? (window.t('route_history.confirm_cancel') || 'Cancel') : 'Cancel'}</button>
+                        </div>
+                    </div>
+                    <div class="route-history-list-wrap" id="routeHistoryListContainer"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Modal: My Reminders -->
         <div class="profile-modal-overlay" id="modalMyReminders">
             <div class="profile-modal-box">
@@ -2623,7 +2926,7 @@ function createProfileModals() {
 window.addEventListener('calzada_lang_changed', () => {
     const pill = document.getElementById('userAvatarPill');
     if (pill) {
-        const name = localStorage.getItem('calzada_user_name') || 'Commuter';
+        const name = (activeUser && (activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : ''))) || localStorage.getItem('calzada_pref_name') || 'Commuter';
         const accTemplate = (window.t ? window.t('planner.account_menu') : 'Account menu, {name}');
         pill.setAttribute('aria-label', accTemplate.replace('{name}', name));
     }
@@ -2637,11 +2940,24 @@ window.addEventListener('calzada_lang_changed', () => {
             }
         }
     }
+    const routeModal = document.getElementById('modalRouteHistory');
+    if (routeModal && routeModal.classList.contains('active')) {
+        renderRouteHistoryList();
+    }
 });
 
 // Expose helpers on window
 window.toggleSavePlace = toggleSavePlace;
 window.recordVisit = recordVisit;
+window.isPlaceSaved = function(placeName) {
+    if (!placeName) return false;
+    const norm = String(placeName).trim().toLowerCase();
+    return currentSaved.some(s => (s.placeName || s.name || '').trim().toLowerCase() === norm);
+};
+window.getCurrentSavedPlaces = function() {
+    return currentSaved.slice();
+};
+window.openRouteHistoryModal = openRouteHistoryModal;
 
 // Auto-initialize setupProfileUI when user-stats.js is loaded
 if (document.readyState === 'loading') {
