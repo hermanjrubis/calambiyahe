@@ -691,7 +691,29 @@ window.translations = {
         'login.terms_notice':    'By continuing, you agree to our <button type="button" class="auth-legal-link" data-open-legal="terms">Terms of Service</button> and <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>.',
         'login.create_btn':     'Create Account',
         'login.secure_access':  '<strong>Secure Access:</strong> Your data is encrypted and securely stored.',
-        'login.guest':          'Continue as Guest',
+        'login.privacy_notice': 'Privacy Notice',
+        // Planner Gate
+        'planner.gate.title':          'Sign in to plan your route',
+        'planner.gate.text':           'Your routes are saved to your account so you can see them again.',
+        'planner.gate.signin':         'Sign in',
+        'planner.gate.create_account': 'Create account',
+        'planner.gate.privacy_line':   'We save the place names of your trips, never your exact location.',
+        'planner.gate.privacy_link':   'Privacy Notice',
+        'planner.pin_origin_again':    'Pin your starting point again',
+        // Route History
+        'nav.user.route_history':      'Route history',
+        'route_history.title':         'Route history',
+        'route_history.from':          'from',
+        'route_history.status_planned':   'Planned',
+        'route_history.status_started':   'In progress',
+        'route_history.status_cancelled': 'Cancelled',
+        'route_history.status_arrived':   'Arrived',
+        'route_history.delete_all':    'Delete all',
+        'route_history.delete_confirm': 'Delete all routes?',
+        'route_history.confirm_yes':   'Yes, delete',
+        'route_history.confirm_cancel': 'Cancel',
+        'route_history.empty':         'No routes yet. Plan one in the Planner.',
+        'places.signin_to_save':       'Sign in to save places',
         // === dynamic/js ===
         'js.calculating':       'Calculating route...',
         'js.sumakay':           'Ride a',
@@ -1497,7 +1519,29 @@ window.translations = {
         'login.terms_notice':    'Sa pagpapatuloy, sumasang-ayon ka sa aming <button type="button" class="auth-legal-link" data-open-legal="terms">Terms of Service</button> at <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>.',
         'login.create_btn':     'Gumawa ng Account',
         'login.secure_access':  '<strong>Secured Access:</strong> Naka-encrypt at ligtas ang iyong data.',
-        'login.guest':          'Magpatuloy bilang Guest',
+        'login.privacy_notice': 'Paunawa sa Privacy',
+        // Planner Gate
+        'planner.gate.title':          'Mag-sign in para makita ang ruta',
+        'planner.gate.text':           'Naka-save ang iyong mga ruta sa iyong account para makita mo ulit ang mga ito.',
+        'planner.gate.signin':         'Mag-sign in',
+        'planner.gate.create_account': 'Gumawa ng account',
+        'planner.gate.privacy_line':   'Ise-save namin ang mga pangalan ng lugar ng iyong mga biyahe, hindi kailanman ang eksaktong lokasyon mo.',
+        'planner.gate.privacy_link':   'Paunawa sa Privacy',
+        'planner.pin_origin_again':    'I-pin muli ang iyong simulang punto',
+        // Route History
+        'nav.user.route_history':      'Kasaysayan ng ruta',
+        'route_history.title':         'Kasaysayan ng ruta',
+        'route_history.from':          'mula sa',
+        'route_history.status_planned':   'Nabalangkas',
+        'route_history.status_started':   'Kasalukuyan',
+        'route_history.status_cancelled': 'Kinansela',
+        'route_history.status_arrived':   'Nakarating',
+        'route_history.delete_all':    'Burahin lahat',
+        'route_history.delete_confirm': 'Burahin ang lahat ng ruta?',
+        'route_history.confirm_yes':   'Oo, burahin',
+        'route_history.confirm_cancel': 'Kanselahin',
+        'route_history.empty':         'Wala pang mga ruta. Magplano ng isa sa Planner.',
+        'places.signin_to_save':       'Mag-sign in para mag-save',
         
         // === dynamic/js ===
         'js.calculating':       'Kinakalkula ang ruta...',
@@ -1686,7 +1730,7 @@ function applyLang(lang) {
         // Re-apply real user display name if signed in, or set translated fallback
         const userDisplayName = document.getElementById('userDisplayName');
         if (userDisplayName) {
-            const cachedName = localStorage.getItem('calzada_pref_name') || localStorage.getItem('calzada_user_name');
+            const cachedName = localStorage.getItem('calzada_pref_name') || (window.CalzadaAuth?.getCurrentUser()?.displayName);
             const fallback = dict['nav.user.commuter'] || enDict['nav.user.commuter'] || 'Commuter';
             if (cachedName && cachedName.trim() && cachedName !== 'Commuter') {
                 userDisplayName.textContent = cachedName;

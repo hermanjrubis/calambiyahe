@@ -27,7 +27,7 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
-    <link rel="stylesheet" href="../css/style.css?v=2.8.4">
+    <link rel="stylesheet" href="../css/style.css?v=2.8.5">
 
     <!-- Firebase Configuration -->
     <script>
@@ -146,11 +146,20 @@
                     <!-- STEP 3: CREATE ACCOUNT STEP (NEW USER) -->
                     <div id="stepRegister" class="auth-step">
                         <h2 class="auth-title">Let's create your account</h2>
-                        <div class="auth-email-row">
+                        <div class="auth-email-row" id="regEmailRow">
                             <span id="regEmailDisplay" class="auth-email-text"></span>
                             <button type="button" id="changeEmailFromReg" class="btn-change-email">Change</button>
                         </div>
                         <form id="formRegister" novalidate>
+                            <div id="regEmailInputWrap" style="display: none; margin-bottom: 12px;">
+                                <label for="regEmailInput" class="auth-input-label">Email address</label>
+                                <div class="input-group">
+                                    <ion-icon name="mail-outline"></ion-icon>
+                                    <input type="email" id="regEmailInput" placeholder="Email Address" autocomplete="email">
+                                </div>
+                                <p id="regEmailInputError" class="auth-error-text"></p>
+                            </div>
+
                             <label for="regName" class="auth-input-label">Full Name</label>
                             <div class="input-group">
                                 <ion-icon name="person-outline"></ion-icon>
@@ -193,14 +202,17 @@
                     <span data-i18n="login.secure_access"><strong>Secure Access:</strong> Your data is encrypted and
                         securely stored. We never sell your personal information.</span>
                 </div>
-                <a href="/" class="guest-link" data-i18n="login.guest">Continue as Guest</a>
+
+                <div class="auth-privacy-link-wrap" style="text-align: center; margin-top: 18px;">
+                    <button type="button" class="auth-legal-link" data-open-legal="privacy" data-i18n="login.privacy_notice" style="background: none; border: none; font-family: 'Outfit', sans-serif; font-size: 0.875rem; color: #64748B; text-decoration: underline; cursor: pointer; padding: 4px 8px;">Privacy Notice</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="../js/legal-modal.js?v=2.6.5"></script>
+    <script src="../js/legal-modal.js?v=2.6.6"></script>
     <script src="../js/script.js?v=2.6.7"></script>
-    <script src="../js/i18n.js?v=2.9.1"></script>
+    <script src="../js/i18n.js?v=2.9.2"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
 
     <!-- Firebase Logic Integration -->
@@ -294,6 +306,12 @@
             loginPass.value = '';
             regName.value = '';
             regPass.value = '';
+            const regEmailRow = document.getElementById('regEmailRow');
+            const regEmailInputWrap = document.getElementById('regEmailInputWrap');
+            const regEmailInput = document.getElementById('regEmailInput');
+            if (regEmailRow) regEmailRow.style.display = '';
+            if (regEmailInputWrap) regEmailInputWrap.style.display = 'none';
+            if (regEmailInput) regEmailInput.value = '';
             if (regTerms) regTerms.checked = false;
             hideAllErrors();
             showStep('email');
@@ -305,6 +323,20 @@
 
         changeEmailFromPass.addEventListener('click', backToEmail);
         changeEmailFromReg.addEventListener('click', backToEmail);
+
+        // Check if opened directly in register mode
+        const initParams = new URLSearchParams(window.location.search);
+        if (initParams.get('mode') === 'register') {
+            showStep('register');
+            const regEmailRow = document.getElementById('regEmailRow');
+            const regEmailInputWrap = document.getElementById('regEmailInputWrap');
+            if (regEmailRow) regEmailRow.style.display = 'none';
+            if (regEmailInputWrap) regEmailInputWrap.style.display = 'block';
+            setTimeout(() => {
+                const regEmailInput = document.getElementById('regEmailInput');
+                if (regEmailInput) regEmailInput.focus();
+            }, 50);
+        }
 
         // Clear inline errors as user types
         emailInput.addEventListener('input', () => hideError(emailError));
@@ -456,6 +488,24 @@
             const name = regName.value.trim();
             const pass = regPass.value;
 
+            let emailToUse = currentEmail;
+            const regEmailInput = document.getElementById('regEmailInput');
+            const regEmailInputError = document.getElementById('regEmailInputError');
+            if (regEmailInputError) hideError(regEmailInputError);
+            if (!emailToUse && regEmailInput) {
+                emailToUse = regEmailInput.value.trim();
+                if (!emailToUse) {
+                    showError(regEmailInputError, "Please enter your email address.");
+                    regEmailInput.focus();
+                    return;
+                }
+                if (!emailRegex.test(emailToUse)) {
+                    showError(regEmailInputError, "Please enter a valid email address.");
+                    regEmailInput.focus();
+                    return;
+                }
+            }
+
             if (!name) {
                 showError(regNameError, "Please enter your full name.");
                 regName.focus();
@@ -482,7 +532,7 @@
             regSubmitBtn.disabled = true;
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, currentEmail, pass);
+                const userCredential = await createUserWithEmailAndPassword(auth, emailToUse, pass);
                 if (name && userCredential.user) {
                     try {
                         await updateProfile(userCredential.user, { displayName: name });

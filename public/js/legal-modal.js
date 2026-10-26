@@ -98,7 +98,18 @@
                 </div>
 
                 <div class="legal-modal-section">
-                    <h3><span class="legal-sec-num">2</span> How We Use Your Information</h3>
+                    <h3><span class="legal-sec-num">2</span> What we save</h3>
+                    <p>Your planned, started, cancelled and finished routes: the destination and the name of where you started.</p>
+                    <p>We never save your exact location.</p>
+                    <p>You can delete one route or all of them in Route history.</p>
+                    <p>Deleting your account deletes them too.</p>
+                    <p style="margin-top: 8px; color: #475569;">
+                        <strong>Sa Tagalog (Kung ano ang aming sine-save):</strong> Ang iyong mga nabalangkas, sinimulan, kinansela, at natapos na ruta: ang destinasyon at ang pangalan ng kung saan ka nagsimula. Hindi namin kailanman sine-save ang iyong eksaktong lokasyon. Maaari mong burahin ang isa o lahat ng mga ruta sa Kasaysayan ng ruta. Kapag binura mo ang iyong account, mabubura rin ang mga ito.
+                    </p>
+                </div>
+
+                <div class="legal-modal-section">
+                    <h3><span class="legal-sec-num">3</span> How We Use Your Information</h3>
                     <p>The information we collect is used to:</p>
                     <ul>
                         <li>Authenticate your identity and manage your account</li>
@@ -111,7 +122,7 @@
                 </div>
 
                 <div class="legal-modal-section">
-                    <h3><span class="legal-sec-num">3</span> Third-Party Services</h3>
+                    <h3><span class="legal-sec-num">4</span> Third-Party Services</h3>
                     <p>Calzada uses the following third-party services. When you use features that rely on them, relevant data is processed by their systems:</p>
                     <ul>
                         <li>
@@ -126,7 +137,7 @@
                 </div>
 
                 <div class="legal-modal-section">
-                    <h3><span class="legal-sec-num">4</span> Data Security</h3>
+                    <h3><span class="legal-sec-num">5</span> Data Security</h3>
                     <p>We take standard, reasonable steps to protect your data:</p>
                     <ul>
                         <li>Passwords are hashed using industry-standard algorithms via Firebase Authentication — never stored in plain text</li>
@@ -137,7 +148,7 @@
                 </div>
 
                 <div class="legal-modal-section">
-                    <h3><span class="legal-sec-num">5</span> User Rights</h3>
+                    <h3><span class="legal-sec-num">6</span> User Rights</h3>
                     <p>You have the following rights regarding your personal data:</p>
                     <ul>
                         <li><strong>Access:</strong> Request a summary of data associated with your account</li>
@@ -148,7 +159,7 @@
                 </div>
 
                 <div class="legal-modal-section">
-                    <h3><span class="legal-sec-num">6</span> Contact Information</h3>
+                    <h3><span class="legal-sec-num">7</span> Contact Information</h3>
                     <p>For questions or concerns about this Privacy Policy, reach us through the <a href="/feedback" class="legal-link">Feedback page</a> or at <a href="mailto:thecalzada@gmail.com" class="legal-link">thecalzada@gmail.com</a>.</p>
                     <p>You may also review our <button type="button" class="legal-link-btn" data-open-legal="terms">Terms of Service</button> for the rules governing use of the App.</p>
                 </div>

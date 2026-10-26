@@ -373,9 +373,36 @@ function initPlacePanelDOM() {
     }
 
     // Save Place Event
+    function showSignInToSavePrompt() {
+        const currentPath = encodeURIComponent(window.location.pathname + window.location.search);
+        const loginUrl = `/login?redirect=${currentPath}`;
+        const isTl = (window.currentLang === 'tl' || localStorage.getItem('calzada_lang') === 'tl');
+        const msg = isTl ? 'Mag-sign in para mag-save' : 'Sign in to save';
+        const actionText = isTl ? 'Mag-sign in' : 'Sign in';
+
+        let toast = document.getElementById('signInToSaveToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'signInToSaveToast';
+            toast.className = 'cz-signin-prompt-toast';
+            document.body.appendChild(toast);
+        }
+        toast.innerHTML = `<span class="cz-prompt-msg">${msg}</span><a href="${loginUrl}" class="cz-prompt-link">${actionText}</a>`;
+        toast.classList.add('visible');
+        setTimeout(() => {
+            toast.classList.remove('visible');
+        }, 4500);
+    }
+
     async function handleSavePlace(e) {
         if (e && e.stopPropagation) e.stopPropagation();
         if (!currentActivePlace) return;
+
+        const user = window.CalzadaAuth?.getCurrentUser();
+        if (!user || user.isAnonymous) {
+            showSignInToSavePrompt();
+            return;
+        }
 
         const placeName = currentActivePlace.name;
         const category = currentActivePlace.category || 'Establishment';
@@ -395,7 +422,7 @@ function initPlacePanelDOM() {
             triggerBookmarkCelebration(saveBtn);
         }
 
-        // Sync with Calzada User Stats / Firestore / localStorage
+        // Sync with Calzada User Stats / Firestore
         if (typeof window.toggleSavePlace === 'function') {
             window.toggleSavePlace(placeName, category, currentPlaceId);
         } else if (window.CalzadaActivity) {
@@ -404,18 +431,6 @@ function initPlacePanelDOM() {
             } else {
                 window.CalzadaActivity.savePlace(currentPlaceId || placeName, placeName, { category });
             }
-        } else {
-            // Fallback direct localStorage toggle
-            let saved = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
-            const idx = saved.findIndex(s => (s.name || s.placeName || '').toLowerCase() === placeName.toLowerCase());
-            if (idx > -1) {
-                saved.splice(idx, 1);
-            } else {
-                const sLat = currentActivePlace && currentActivePlace.lat;
-                const sLng = currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon);
-                saved.unshift({ name: placeName, category, id: currentPlaceId, lat: sLat, lng: sLng });
-            }
-            localStorage.setItem('calzadaSavedPlaces', JSON.stringify(saved));
         }
 
         // Sync to backend endpoint (only if signed in)
@@ -2672,8 +2687,13 @@ async function fillRest(data, placeName, optLat, optLng) {
     // Update Save Button State
     const saveBtn = document.getElementById('ppSaveBtn');
     if (saveBtn) {
-        const savedPlaces = JSON.parse(localStorage.getItem('calzadaSavedPlaces') || '[]');
-        const isSaved = savedPlaces.some(s => (s.name || s.placeName || '').toLowerCase() === data.name.toLowerCase());
+        let isSaved = false;
+        if (typeof window.isPlaceSaved === 'function') {
+            isSaved = window.isPlaceSaved(data.name, data.id);
+        } else if (window.getCurrentSavedPlaces && typeof window.getCurrentSavedPlaces === 'function') {
+            const list = window.getCurrentSavedPlaces();
+            isSaved = list.some(s => (s.name || s.placeName || '').toLowerCase() === (data.name || '').toLowerCase() || (data.id && s.id === data.id));
+        }
         if (isSaved) {
             saveBtn.classList.add('saved');
             saveBtn.setAttribute('aria-pressed', 'true');

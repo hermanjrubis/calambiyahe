@@ -7678,3 +7678,200 @@ body.pick-destination .mp-icon-to { display: inline; }
     .route-loading-spinner { animation-duration: 2s; }
     .route-loading-chip { transition: none; }
 }
+
+
+/* ── Busy state while a new route is being made (Walk / Jeep switch, route card, new trip) ── */
+@keyframes czBusyShimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+/* Numbers that are about to change: ETA, minutes, fare (journey panel, phone pill, summary) */
+body.cz-route-busy .nav-panel-stat-val,
+body.cz-route-busy #pillArrival,
+body.cz-route-busy #pillMin,
+body.cz-route-busy #pillRemTime,
+body.cz-route-busy #pillRemDist,
+body.cz-route-busy #pillArrivalText,
+body.cz-route-busy #pillFareText,
+body.cz-route-busy .czt-opt.is-selected .czt-time,
+body.cz-route-busy #summarySub,
+body.cz-route-busy .czt-opt.is-selected .czt-fare-reg {
+    color: transparent !important;
+    background-image: linear-gradient(100deg, #E6ECF4 30%, #F4F7FB 50%, #E6ECF4 70%);
+    background-size: 200% 100%;
+    animation: czBusyShimmer 1.1s linear infinite;
+    border-radius: 6px;
+    -webkit-text-fill-color: transparent;
+    user-select: none;
+}
+body.cz-route-busy .nav-panel-stat-val { width: fit-content; min-width: 2.6ch; margin-inline: auto; }
+/* Next step and the route list fade while they are rebuilt */
+body.cz-route-busy .nav-panel-next-block,
+body.cz-route-busy .nav-panel-full-route,
+body.cz-route-busy #pillItineraryLegs,
+body.cz-route-busy #transitOptions .czt-opt:not(.is-route-busy) {
+    opacity: 0.45;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+/* No double taps on the options while one is loading */
+body.cz-route-busy .nav-panel-mode-btn,
+body.cz-route-busy .segment-btn[data-mode] {
+    pointer-events: none;
+}
+/* The option you tapped: small spinner */
+.nav-panel-mode-btn.is-route-busy,
+.segment-btn.is-route-busy,
+.czt-opt.is-route-busy {
+    position: relative;
+}
+/* room for the spinner so it never sits on the label */
+.nav-panel-mode-btn.is-route-busy,
+.segment-btn.is-route-busy { padding-right: 34px !important; }
+.nav-panel-mode-btn.is-route-busy::after,
+.segment-btn.is-route-busy::after,
+.czt-opt.is-route-busy::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #FFFFFF;
+    animation: routeChipSpin 0.7s linear infinite;
+}
+.czt-opt.is-route-busy::after {
+    top: 14px;
+    margin-top: 0;
+    border-color: #D6E6F8;
+    border-top-color: #378ADD;
+}
+.segment-btn.is-route-busy::after,
+.nav-panel-mode-btn.is-route-busy:not(.active)::after {
+    border-color: #D6E6F8;
+    border-top-color: #378ADD;
+}
+@media (prefers-reduced-motion: reduce) {
+    body.cz-route-busy .nav-panel-stat-val,
+    body.cz-route-busy #pillArrival,
+    body.cz-route-busy #pillMin { animation: none; }
+}
+
+/* ── Sign-in Gate for Plan Route (Phase 1) ── */
+.plan-route-gate-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 12px 0;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+}
+
+.plan-route-gate-card .gate-card-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0F172A;
+    margin: 0 0 8px 0;
+    line-height: 1.35;
+}
+
+.plan-route-gate-card .gate-card-text {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9375rem;
+    color: #475569;
+    margin: 0 0 16px 0;
+    line-height: 1.45;
+}
+
+.plan-route-gate-card .gate-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.plan-route-gate-card .btn-gate-signin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    background: #378ADD;
+    color: #FFFFFF;
+    border: 1px solid #378ADD;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.15s ease;
+}
+
+.plan-route-gate-card .btn-gate-signin:hover {
+    background: #2b74be;
+    border-color: #2b74be;
+}
+
+.plan-route-gate-card .btn-gate-register {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    background: #FFFFFF;
+    color: #378ADD;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.plan-route-gate-card .btn-gate-register:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.plan-route-gate-card .gate-card-privacy {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8125rem;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.plan-route-gate-card .gate-privacy-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 4px;
+    color: #378ADD;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8125rem;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .plan-route-gate-card {
+        padding: 16px;
+    }
+    .plan-route-gate-card .gate-card-actions {
+        flex-direction: column;
+    }
+    .plan-route-gate-card .btn-gate-signin,
+    .plan-route-gate-card .btn-gate-register {
+        width: 100%;
+        text-align: center;
+    }
+}

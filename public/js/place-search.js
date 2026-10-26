@@ -560,7 +560,7 @@
         }
         addRecent({ name: o.name, location: o.location, lat, lng });
         if (root && !root.hidden) close();
-        o2.onSelect && o2.onSelect(o.name, [lat, lng]);
+        o2.onSelect && o2.onSelect(o.name, [lat, lng], o);
     };
 
     const onListClick = (e) => {

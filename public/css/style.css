@@ -14115,15 +14115,256 @@ button.feature-link-btn {
 .routie-chat-preview[role="button"] * { pointer-events: none; }
 .routie-chat-preview[role="button"]:focus-visible { outline: 3px solid #FFFFFF; outline-offset: 4px; }
 
-/* Review fixes (#16): coverage stated up front */
-.hero-coverage {
-    display: inline-flex; align-items: center; gap: 6px; margin: -0.5rem 0 1.5rem; padding: 6px 12px; border-radius: 16px;
-    background: #EAF2FC; color: #1F4E80; font-family: 'Outfit', sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1.35;
-    animation: heroFadeIn 0.8s var(--ease) 0.45s both;
-}
-.hero-coverage svg { flex-shrink: 0; color: #1F69B8; }
+/* Review fixes (#16): coverage note on the Places page */
 .places-coverage-note {
     display: flex; align-items: flex-start; gap: 8px; margin: 0 0 16px; padding: 10px 14px; border-radius: 12px;
     background: #EAF2FC; color: #1F4E80; font-family: 'Outfit', sans-serif; font-size: 0.875rem; line-height: 1.45;
 }
 .places-coverage-note svg { flex-shrink: 0; margin-top: 1px; color: #1F69B8; }
+
+/* Route History Modal & List Styles (Flat White Cards, 1px solid #E2E8F0, 12px radius, Outfit/Sora) */
+.route-history-modal-box {
+    background: #FFFFFF !important;
+    background-image: none !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    max-width: 600px;
+    width: 92%;
+    max-height: 85vh;
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.route-history-modal-box .profile-modal-header {
+    background: #FFFFFF !important;
+    backdrop-filter: none !important;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 16px 20px;
+}
+
+.route-history-modal-box .modal-header-heading {
+    font-family: 'Sora', sans-serif !important;
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+    color: #0F172A !important;
+}
+
+.route-history-modal-box .profile-modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+}
+
+.route-history-actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.btn-delete-all-routes {
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    color: #64748B;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-delete-all-routes:hover {
+    color: #DC2626;
+    border-color: #FCA5A5;
+}
+
+.route-history-confirm-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #FEF2F2;
+    border: 1px solid #FEE2E2;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+}
+
+.route-history-confirm-text {
+    color: #991B1B;
+    font-weight: 500;
+}
+
+.btn-confirm-delete-yes {
+    background: #DC2626;
+    border: none;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.btn-confirm-delete-cancel {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    color: #475569;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    cursor: pointer;
+}
+
+.route-history-list-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.route-history-day-header {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 8px 0 4px 0;
+}
+
+.route-history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    gap: 12px;
+    box-shadow: none;
+}
+
+.route-history-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+}
+
+.route-history-dest-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.route-history-dest {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #0F172A;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.route-history-origin {
+    font-size: 0.82rem;
+    color: #64748B;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.route-history-meta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: #64748B;
+}
+
+.route-history-mode {
+    font-weight: 500;
+    color: #334155;
+}
+
+.route-history-sep {
+    color: #CBD5E1;
+}
+
+.route-history-status {
+    font-weight: 500;
+    color: #475569;
+}
+
+.route-history-status.status-started {
+    color: #378ADD;
+}
+
+.route-history-status.status-arrived {
+    color: #16A34A;
+}
+
+.route-history-status.status-cancelled {
+    color: #DC2626;
+}
+
+.route-history-time {
+    color: #94A3B8;
+}
+
+.route-history-del-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    color: #94A3B8;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.route-history-del-btn:hover {
+    color: #DC2626;
+    border-color: #FCA5A5;
+    background: #FEF2F2;
+}
+
+/* Sign-in prompt toast/popup for place bookmarking */
+.cz-signin-prompt-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 99999;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.88rem;
+    color: #0F172A;
+}
+
+.cz-signin-prompt-link {
+    color: #378ADD;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+}
+

@@ -11,7 +11,8 @@ import {
     signOut, 
     updateProfile, 
     sendPasswordResetEmail,
-    fetchSignInMethodsForEmail 
+    fetchSignInMethodsForEmail,
+    connectAuthEmulator
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 import { 
     getFirestore, 
@@ -33,7 +34,8 @@ import {
     startAfter,
     documentId,
     writeBatch,
-    deleteField
+    deleteField,
+    connectFirestoreEmulator
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
 // Set authDomain by hostname:
@@ -61,6 +63,19 @@ if (!window.FIREBASE_CONFIG) {
 const app = initializeApp(window.FIREBASE_CONFIG);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// Connect to local emulators when test flag is set on localhost
+const isLocalhost = typeof window !== 'undefined' && 
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const useEmulator = isLocalhost && 
+    (window.location.search.includes('emulator=1') || window.localStorage?.getItem('calzada_use_emulator') === '1' || window.sessionStorage?.getItem('calzada_use_emulator') === '1');
+
+if (useEmulator) {
+    try {
+        connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+        connectFirestoreEmulator(db, '127.0.0.1', 8080);
+    } catch (_) {}
+}
 
 /**
  * Get current Firebase Auth user
@@ -334,7 +349,21 @@ window.CalzadaAuth = {
     getFirebaseIdToken,
     onAuthStateChanged: (cb) => onAuthStateChanged(auth, cb),
     signOut: () => signOut(auth),
-    activity: CalzadaActivity
+    activity: CalzadaActivity,
+    collection,
+    doc,
+    setDoc,
+    getDoc,
+    getDocs,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    where,
+    orderBy,
+    limit,
+    serverTimestamp,
+    writeBatch
 };
 
 export { 
