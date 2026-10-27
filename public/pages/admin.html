@@ -991,6 +991,112 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Live Panel Spinner (24px ring, #378ADD on #E2E8F0) */
+        .panel-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid #E2E8F0;
+            border-top-color: #378ADD;
+            border-radius: 50%;
+            animation: panelSpinAnim 0.8s linear infinite;
+            margin: 32px auto;
+        }
+        @keyframes panelSpinAnim {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Inline Button Spinner */
+        .inline-btn-spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #E2E8F0;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: panelSpinAnim 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        /* New items 1.5 s light-blue highlight */
+        @keyframes newItemHighlight {
+            0% { background-color: #EFF6FF; }
+            100% { background-color: transparent; }
+        }
+        .new-item-highlight {
+            animation: newItemHighlight 1.5s ease-out;
+        }
+
+        /* Topbar Connection Indicator */
+        .topbar-connection-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #16A34A;
+            display: inline-block;
+        }
+        .connection-dot.reconnecting {
+            background-color: #D97706;
+        }
+
+        /* Admin Toasts (Flat white card, 1px solid #E2E8F0, 12px radius, no drop shadows) */
+        .admin-toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 99999;
+            pointer-events: none;
+        }
+        .admin-toast {
+            pointer-events: auto;
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            color: #042C53;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: none;
+            animation: toastSlideAnim 0.25s ease-out;
+            transition: opacity 0.3s ease;
+        }
+        @keyframes toastSlideAnim {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Review comment clamped to 2 lines */
+        .review-comment-clamped {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.4;
+            max-height: 2.8em;
+        }
+
+        /* Action inline error text (no alert()) */
+        .action-inline-error {
+            font-size: 12px;
+            color: #DC2626;
+            margin-top: 6px;
+            display: none;
+        }
     </style>
 </head>
 
@@ -1071,6 +1177,18 @@
                     <span class="nav-text">Posts</span>
                 </a>
 
+                <!-- Reviews -->
+                <a href="#reviews" class="nav-item" data-section="reviews" title="Reviews">
+                    <i class="ti ti-star nav-icon"></i>
+                    <span class="nav-text">Reviews</span>
+                </a>
+
+                <!-- Activity -->
+                <a href="#activity" class="nav-item" data-section="activity" title="Activity">
+                    <i class="ti ti-activity nav-icon"></i>
+                    <span class="nav-text">Activity</span>
+                </a>
+
                 <!-- Settings -->
                 <a href="#settings" class="nav-item" data-section="settings" title="Settings">
                     <i class="ti ti-settings nav-icon"></i>
@@ -1100,6 +1218,10 @@
                         <span>/</span>
                         <span class="breadcrumb-current" id="breadcrumbCurrent">Overview</span>
                     </div>
+                    <div class="topbar-connection-indicator" id="connectionStatusIndicator" title="Live connection status">
+                        <span class="connection-dot" id="connectionDot"></span>
+                        <span id="connectionLabel">Live</span>
+                    </div>
                 </div>
 
                 <div class="topbar-right">
@@ -1125,6 +1247,8 @@
                         <h1 class="section-title">Overview</h1>
                         <p class="section-subtitle">Real-time status of applications, payments, and live establishments.</p>
                     </div>
+
+                    <div id="overviewLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
                     <!-- Four flat stat cards -->
                     <div class="stat-cards-grid">
@@ -1181,6 +1305,8 @@
                         <h1 class="section-title">Applications</h1>
                         <p class="section-subtitle">Review business details, verify locations, and send GCash QR for payment.</p>
                     </div>
+
+                    <div id="applicationsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
                     <!-- Underline tabs (not pills) -->
                     <div class="admin-underline-tabs">
@@ -1285,6 +1411,7 @@
                                             <span>Decline</span>
                                         </button>
                                     </div>
+                                    <div class="action-inline-error" id="appActionInlineError"></div>
 
                                     <!-- Helper note under buttons -->
                                     <div style="font-size: 12px; color: var(--navy-subtle); margin-top: 10px;">
@@ -1295,6 +1422,7 @@
                                     <div class="action-reason-box" id="appReasonBox">
                                         <strong id="appReasonBoxTitle" style="font-size: 13px; color: var(--navy-dark);">Enter reason for owner:</strong>
                                         <textarea class="admin-textarea" id="appReasonTextarea" rows="3" placeholder="Explain clearly what changes are needed or why the application was declined..."></textarea>
+                                        <div class="action-inline-error" id="appReasonInlineError"></div>
                                         <div style="display: flex; gap: 8px;">
                                             <button type="button" class="btn-admin-primary" id="btnSubmitAppReason">Submit & Email Owner</button>
                                             <button type="button" class="btn-admin-secondary" id="btnCancelAppReason">Cancel</button>
@@ -1319,6 +1447,8 @@
                             Collected so far: <span id="paymentsHeaderCollected">₱0</span>
                         </div>
                     </div>
+
+                    <div id="paymentsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
                     <!-- Master-Detail Layout -->
                     <div class="master-detail-layout">
@@ -1409,6 +1539,7 @@
                                             <span>Doesn't match</span>
                                         </button>
                                     </div>
+                                    <div class="action-inline-error" id="paymentActionInlineError"></div>
 
                                     <div style="font-size: 12px; color: var(--navy-subtle); margin-top: 10px;">
                                         Listed + 360 also adds a 360 shoot to your to-do list in Businesses.
@@ -1436,6 +1567,7 @@
                                             </label>
                                         </div>
                                         <textarea class="admin-textarea" id="notMatchedTextarea" rows="2" placeholder="Add specific guidance for the owner..."></textarea>
+                                        <div class="action-inline-error" id="paymentDoesntMatchInlineError"></div>
                                         <div style="display: flex; gap: 8px;">
                                             <button type="button" class="btn-admin-primary" id="btnSendBackToOwner" style="background: var(--dot-red); border-color: var(--dot-red);">Send back to owner</button>
                                             <button type="button" class="btn-admin-secondary" id="btnCancelDoesntMatch">Cancel</button>
@@ -1455,6 +1587,8 @@
                         <h1 class="section-title">Businesses</h1>
                         <p class="section-subtitle">Manage all listings, 360 photo shoots, and visibility across Calamba.</p>
                     </div>
+
+                    <div id="businessesLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
                     <!-- Filter by status -->
                     <div class="admin-underline-tabs">
@@ -1528,6 +1662,7 @@
                             <div class="action-reason-box" id="busHideConfirmBox">
                                 <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
                                 <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Enter reason (visible to owner)..."></textarea>
+                                <div class="action-inline-error" id="busHideInlineError"></div>
                                 <div style="display: flex; gap: 8px;">
                                     <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide from Map</button>
                                     <button type="button" class="btn-admin-secondary" id="btnCancelHideFromMap">Cancel</button>
@@ -1546,6 +1681,8 @@
                         <p class="section-subtitle">Moderate updates posted by businesses in the Updates feed.</p>
                     </div>
 
+                    <div id="postsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
+
                     <div id="postsListContainer" style="display: flex; flex-direction: column; gap: 14px;"></div>
                     <div id="postsEmptyState" class="flat-card" style="display: none; text-align: center; color: var(--navy-muted); padding: 32px 16px;">
                         No business updates found.
@@ -1553,7 +1690,119 @@
                 </section>
 
                 <!-- ==============================================
-                     PANEL 6: SETTINGS
+                     PANEL 6: REVIEWS
+                     ============================================== -->
+                <section class="admin-panel" id="panel-reviews">
+                    <div class="section-header">
+                        <h1 class="section-title">Reviews</h1>
+                        <p class="section-subtitle">Real-time moderation and monitoring of commuter place reviews.</p>
+                    </div>
+
+                    <!-- Filter Controls -->
+                    <div class="flat-card" style="margin-bottom: 16px; padding: 16px;">
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
+                            <div style="flex: 1; min-width: 180px;">
+                                <label for="reviewFilterPlace" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Place</label>
+                                <select id="reviewFilterPlace" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                                    <option value="all">All Places</option>
+                                </select>
+                            </div>
+                            <div style="min-width: 120px;">
+                                <label for="reviewFilterStars" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Stars</label>
+                                <select id="reviewFilterStars" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                                    <option value="all">All Stars</option>
+                                    <option value="5">5 Stars</option>
+                                    <option value="4">4 Stars</option>
+                                    <option value="3">3 Stars</option>
+                                    <option value="2">2 Stars</option>
+                                    <option value="1">1 Star</option>
+                                </select>
+                            </div>
+                            <div style="min-width: 140px;">
+                                <label for="reviewFilterComment" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Comment</label>
+                                <select id="reviewFilterComment" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                                    <option value="all">All Reviews</option>
+                                    <option value="has_comment">Has Comment</option>
+                                    <option value="no_comment">Rating Only</option>
+                                </select>
+                            </div>
+                            <div style="min-width: 130px;">
+                                <label for="reviewFilterDate" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Date Range</label>
+                                <select id="reviewFilterDate" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                                    <option value="all">All Days</option>
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30">Last 30 Days</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Summary line under filters -->
+                        <div id="reviewsSummaryLine" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #E2E8F0; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600; color: #042C53;">
+                            0.0 average · 0 reviews
+                        </div>
+                    </div>
+
+                    <div id="reviewsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
+
+                    <!-- Reviews Table -->
+                    <div class="flat-card" style="padding: 0; overflow-x: auto;">
+                        <table class="admin-table" id="reviewsTable" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid #E2E8F0; background: #F8FAFC;">
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Place</th>
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Stars</th>
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Comment</th>
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Reviewer</th>
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Date</th>
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Status</th>
+                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B; text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reviewsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                        <div id="reviewsEmptyState" style="display: none; padding: 32px 16px; text-align: center; color: #64748B;">
+                            No reviews match the current filters.
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==============================================
+                     PANEL 7: ACTIVITY
+                     ============================================== -->
+                <section class="admin-panel" id="panel-activity">
+                    <div class="section-header">
+                        <h1 class="section-title">Activity</h1>
+                        <p class="section-subtitle">Live real-time feed of admin, owner, and commuter activities.</p>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="flat-card" style="margin-bottom: 16px; padding: 16px;">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <label for="activityFilterType" style="font-size: 13px; font-weight: 600; color: #475569;">Event Category:</label>
+                            <select id="activityFilterType" class="admin-select" style="min-width: 200px; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                                <option value="all">All Events</option>
+                                <option value="application">Applications</option>
+                                <option value="payment">Payments</option>
+                                <option value="business">Businesses & 360</option>
+                                <option value="review">Reviews</option>
+                                <option value="post">Posts</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="activityLoadingSpinner" class="panel-spinner" style="display: none;"></div>
+
+                    <!-- Activity List Container -->
+                    <div id="activityFeedContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
+                    <div id="activityEmptyState" class="flat-card" style="display: none; padding: 32px 16px; text-align: center; color: #64748B;">
+                        No activity records found.
+                    </div>
+                </section>
+
+                <!-- ==============================================
+                     PANEL 8: SETTINGS
                      ============================================== -->
                 <section class="admin-panel" id="panel-settings">
                     <div class="section-header">
@@ -1607,6 +1856,30 @@
         </div>
     </div>
 
+    <!-- Review Moderation Hide Modal -->
+    <div class="zoom-modal" id="reviewHideModal" style="display: none;">
+        <div class="zoom-modal-content" style="max-width: 440px; background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px; box-shadow: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-family: 'Sora', sans-serif; font-size: 16px; margin: 0; color: #042C53;">Hide Review</h3>
+                <button type="button" class="btn-admin-secondary" id="btnCloseReviewHideModal" style="padding: 4px 8px;">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+            <p style="font-size: 13px; color: #64748B; margin: 0 0 12px 0;">
+                Please provide a moderation reason for hiding this review.
+            </p>
+            <textarea class="admin-textarea" id="reviewHideReasonText" rows="3" placeholder="Enter reason (e.g. Inappropriate language or spam)..."></textarea>
+            <div class="action-inline-error" id="reviewHideInlineError"></div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
+                <button type="button" class="btn-admin-secondary" id="btnCancelReviewHide">Cancel</button>
+                <button type="button" class="btn-admin-primary" id="btnConfirmReviewHide" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notification Toasts Container -->
+    <div id="adminToastContainer" class="admin-toast-container"></div>
+
     <!-- MapLibre GL JS -->
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
 
@@ -1624,13 +1897,16 @@
             getDocs, 
             query, 
             where, 
+            orderBy, 
+            limit, 
+            onSnapshot, 
             updateDoc, 
-            writeBatch,
+            writeBatch, 
             serverTimestamp, 
-            Timestamp,
+            Timestamp, 
             onAuthStateChanged, 
             signOut 
-        } from "../js/firebase-init.js";
+        } from "../js/firebase-init.js?v=2.9.2";
 
         // Global DOM Elements
         const loadingState = document.getElementById('loadingState');
@@ -1646,22 +1922,94 @@
         const breadcrumbCurrent = document.getElementById('breadcrumbCurrent');
         const adminNoticeBanner = document.getElementById('adminNoticeBanner');
 
+        const connectionStatusIndicator = document.getElementById('connectionStatusIndicator');
+        const connectionDot = document.getElementById('connectionDot');
+        const connectionLabel = document.getElementById('connectionLabel');
+        const adminToastContainer = document.getElementById('adminToastContainer');
+
+        // Panel Spinners
+        const overviewLoadingSpinner = document.getElementById('overviewLoadingSpinner');
+        const applicationsLoadingSpinner = document.getElementById('applicationsLoadingSpinner');
+        const paymentsLoadingSpinner = document.getElementById('paymentsLoadingSpinner');
+        const businessesLoadingSpinner = document.getElementById('businessesLoadingSpinner');
+        const postsLoadingSpinner = document.getElementById('postsLoadingSpinner');
+        const reviewsLoadingSpinner = document.getElementById('reviewsLoadingSpinner');
+        const activityLoadingSpinner = document.getElementById('activityLoadingSpinner');
+
         // State arrays
         let allBusinesses = [];
         let allPayments = [];
         let allPosts = [];
+        let allReviews = [];
+        let allActivities = [];
         let catalogPlaces = [];
 
+        // Filter & Selection State
         let currentAppFilter = 'pending';
         let selectedAppId = null;
         let selectedPaymentId = null;
         let currentBusFilter = 'all';
+        let selectedDetailBusId = null;
         let detailMapInstance = null;
+        let pendingActionType = null; // 'needs_changes' | 'declined'
+
+        // Review filter state
+        let reviewPlaceFilter = 'all';
+        let reviewStarsFilter = 'all';
+        let reviewFilterCommentVal = 'all';
+        let reviewDateFilterVal = 'all';
+        let activeReviewIdToHide = null;
+
+        // Activity filter state
+        let activityCategoryFilterVal = 'all';
+
+        // Real-time State & Tracking
+        let unsubBusinesses = null;
+        let unsubPayments = null;
+        let unsubPosts = null;
+        let unsubReviews = null;
+        let unsubActivity = null;
+        let isListening = false;
+        let isInitialLoad = true;
+        let initialPendingCount = 5;
+
+        let knownBusinessIds = new Set();
+        let knownPaymentIds = new Set();
+        let knownReviewIds = new Set();
+        let newlyAddedIds = new Set();
+
+        let reconnectTimer = null;
+        let backoffIndex = 0;
+        const backoffDelays = [2000, 5000, 15000, 30000];
+        let tabHiddenTimer = null;
 
         function escapeHtml(str) {
             const div = document.createElement('div');
             div.textContent = str || '';
             return div.innerHTML;
+        }
+
+        function setButtonLoading(btn, isLoading, loadingText = '') {
+            if (!btn) return;
+            btn.disabled = isLoading;
+            if (isLoading) {
+                btn.dataset.origHtml = btn.innerHTML;
+                btn.innerHTML = `<span class="inline-btn-spinner"></span> ${loadingText || 'Processing...'}`;
+            } else if (btn.dataset.origHtml) {
+                btn.innerHTML = btn.dataset.origHtml;
+            }
+        }
+
+        function setInlineError(elemId, msg) {
+            const el = document.getElementById(elemId);
+            if (!el) return;
+            if (msg) {
+                el.textContent = msg;
+                el.style.display = 'block';
+            } else {
+                el.textContent = '';
+                el.style.display = 'none';
+            }
         }
 
         function showAdminNotice(msg, type = 'success') {
@@ -1678,10 +2026,31 @@
             }, 6000);
         }
 
+        function showAdminToast(title, msg, iconClass = 'ti-bell') {
+            if (!adminToastContainer) return;
+            const toast = document.createElement('div');
+            toast.className = 'admin-toast';
+            toast.innerHTML = `
+                <i class="ti ${iconClass}" style="color: var(--brand-blue-dark); font-size: 18px; margin-top: 2px;"></i>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-family: 'Sora', sans-serif; font-size: 13px; color: var(--navy-dark);">${escapeHtml(title)}</div>
+                    <div style="font-size: 12px; color: var(--navy-muted); margin-top: 2px;">${escapeHtml(msg)}</div>
+                </div>
+            `;
+            adminToastContainer.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(10px)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
         function formatAdminDate(ts) {
             if (!ts) return 'N/A';
             try {
                 const date = ts.toDate ? ts.toDate() : (ts instanceof Date ? ts : new Date(ts));
+                if (isNaN(date.getTime())) return 'N/A';
                 return new Intl.DateTimeFormat('en-PH', {
                     month: 'short',
                     day: 'numeric',
@@ -1730,7 +2099,6 @@
                 return { isDuplicate: false, message: 'No other listed place within 30 m with a similar name' };
             }
             const cleanCandidate = name.toLowerCase().trim();
-            // Check places data
             for (const p of catalogPlaces) {
                 const pLat = p.location?.lat ?? p.lat;
                 const pLng = p.location?.lng ?? p.lng;
@@ -1744,7 +2112,6 @@
                     }
                 }
             }
-            // Check approved businesses
             for (const b of allBusinesses) {
                 if (b.id === currentBusId || b.status !== 'approved') continue;
                 if (b.location && typeof b.location.lat === 'number' && typeof b.location.lng === 'number') {
@@ -1760,8 +2127,6 @@
             return { isDuplicate: false, message: 'No other listed place within 30 m with a similar name' };
         }
 
-        // Covered barangay check
-        // TODO: Replace point-in-bounds with official GIS shapefile polygon checks once polygon assets are added.
         function checkCoveredBarangay(address, lat, lng) {
             const text = (address || '').toLowerCase();
             const isUno = text.includes('uno') || text.includes('brgy. 1') || text.includes('brgy 1') || text.includes('poblacion');
@@ -1770,7 +2135,6 @@
 
             const brgyName = isUno ? 'Uno' : (isReal ? 'Real' : (isHalang ? 'Halang' : 'Uno / Real / Halang'));
 
-            // Point-in-bounds check for covered central Calamba
             const inBounds = (typeof lat === 'number' && typeof lng === 'number')
                 ? (lat >= 14.16 && lat <= 14.25 && lng >= 121.12 && lng <= 121.19)
                 : (isUno || isReal || isHalang);
@@ -1785,13 +2149,15 @@
         }
 
         // --- Routing ---
-        const validSections = ['overview', 'applications', 'payments', 'businesses', 'posts', 'settings'];
+        const validSections = ['overview', 'applications', 'payments', 'businesses', 'posts', 'reviews', 'activity', 'settings'];
         const sectionLabels = {
             overview: 'Overview',
             applications: 'Applications',
             payments: 'Payments to verify',
             businesses: 'Businesses',
             posts: 'Posts',
+            reviews: 'Reviews',
+            activity: 'Activity Log',
             settings: 'Settings'
         };
 
@@ -1816,6 +2182,9 @@
             });
 
             if (adminApp) adminApp.classList.remove('drawer-open');
+
+            if (section === 'reviews') renderReviewsSection();
+            if (section === 'activity') renderActivitySection();
         }
 
         window.addEventListener('hashchange', () => {
@@ -1825,6 +2194,7 @@
         // Sidebar Collapse
         const STORAGE_COLLAPSED_KEY = 'calzada_admin_sidebar_collapsed';
         const savedCollapsed = localStorage.getItem(STORAGE_COLLAPSED_KEY) === 'true';
+
         if (window.innerWidth >= 1024 && savedCollapsed && adminApp) {
             adminApp.classList.add('collapsed');
             if (toggleIcon) toggleIcon.className = 'ti ti-layout-sidebar-left-expand';
@@ -1853,59 +2223,58 @@
             sidebarCloseBtn.addEventListener('click', () => adminApp.classList.remove('drawer-open'));
         }
 
-        // --- Data Loading ---
-        async function loadAdminData() {
-            try {
-                // 1. Load catalog places for duplicate check
-                try {
-                    const res = await fetch('/api/places');
-                    if (res.ok) {
-                        const d = await res.json();
-                        catalogPlaces = d.places || [];
-                    }
-                } catch (e) {
-                    console.warn('Could not load /api/places for proximity checks:', e);
-                }
-
-                // 2. Load all businesses
-                const bSnap = await getDocs(collection(db, 'businesses'));
-                allBusinesses = await Promise.all(bSnap.docs.map(async d => {
-                    const data = d.data();
-                    let ownerEmail = data.ownerEmail || null;
-                    try {
-                        const ownerSnap = await getDoc(doc(db, 'businesses', d.id, 'private', 'owner'));
-                        if (ownerSnap.exists()) {
-                            ownerEmail = ownerSnap.data()?.ownerEmail || ownerEmail;
-                        }
-                    } catch (_) {}
-                    return { id: d.id, ...data, ownerEmail };
-                }));
-
-                // 3. Load all payments
-                const pSnap = await getDocs(collection(db, 'payments'));
-                allPayments = pSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                // 4. Load all posts
-                const postSnap = await getDocs(collection(db, 'posts'));
-                allPosts = postSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                renderAllAdminViews();
-
-            } catch (err) {
-                console.error('Error loading admin portal data:', err);
-                showAdminNotice(`Failed to load data: ${err.message}`, 'error');
+        // --- Connection Status Management ---
+        function setConnectionState(state) {
+            if (!connectionDot || !connectionLabel) return;
+            if (state === 'live') {
+                connectionDot.style.background = 'var(--dot-green)';
+                connectionLabel.textContent = 'Live';
+            } else if (state === 'reconnecting') {
+                connectionDot.style.background = '#F59E0B';
+                connectionLabel.textContent = 'Reconnecting…';
+            } else if (state === 'paused') {
+                connectionDot.style.background = '#94A3B8';
+                connectionLabel.textContent = 'Paused (idle)';
             }
         }
 
-        function renderAllAdminViews() {
-            updateOverviewStats();
-            renderApplicationsSection();
-            renderPaymentsSection();
-            renderBusinessesTable();
-            renderPostsSection();
+        function hideInitialSpinners() {
+            [overviewLoadingSpinner, applicationsLoadingSpinner, paymentsLoadingSpinner, businessesLoadingSpinner, postsLoadingSpinner, reviewsLoadingSpinner, activityLoadingSpinner].forEach(sp => {
+                if (sp) sp.style.display = 'none';
+            });
         }
 
-        // --- Overview Stats ---
+        function showInitialSpinners() {
+            [overviewLoadingSpinner, applicationsLoadingSpinner, paymentsLoadingSpinner, businessesLoadingSpinner, postsLoadingSpinner, reviewsLoadingSpinner, activityLoadingSpinner].forEach(sp => {
+                if (sp) sp.style.display = 'block';
+            });
+        }
+
+        function checkInitialComplete() {
+            if (initialPendingCount <= 0 && isInitialLoad) {
+                isInitialLoad = false;
+                hideInitialSpinners();
+                setConnectionState('live');
+                if (adminApp) adminApp.setAttribute('data-realtime-ready', 'true');
+            }
+        }
+
+        // --- Tab Title & Overview Stats ---
+        function isPaymentToVerify(p) {
+            if (p.status !== 'submitted') return false;
+            const bus = allBusinesses.find(b => b.id === p.businessId);
+            if (!bus) return true;
+            if (bus.status !== 'payment_review') return false;
+            return !bus.lastPaymentId || bus.lastPaymentId === p.id;
+        }
+
+        function updateTabTitle() {
+            const pendingApps = allBusinesses.filter(b => b.status === 'pending').length;
+            const reviewPayments = allPayments.filter(isPaymentToVerify).length;
+            const total = pendingApps + reviewPayments;
+            document.title = total > 0 ? `(${total}) Calzada Admin` : 'Calzada Admin';
+        }
+
         function updateOverviewStats() {
             const pendingApps = allBusinesses.filter(b => b.status === 'pending');
             const reviewPayments = allPayments.filter(isPaymentToVerify);
@@ -1914,14 +2283,12 @@
             const verifiedPayments = allPayments.filter(p => p.status === 'verified');
             const totalCollected = verifiedPayments.reduce((acc, p) => acc + (Number(p.amountDue) || 0), 0);
 
-            // Nav counts (amber plain text, not badge)
             const navApps = document.getElementById('navCountApplications');
             if (navApps) navApps.textContent = pendingApps.length;
 
             const navPay = document.getElementById('navCountPayments');
             if (navPay) navPay.textContent = reviewPayments.length;
 
-            // Overview Stat Cards
             const statApps = document.getElementById('statAppsToReview');
             if (statApps) statApps.textContent = pendingApps.length;
 
@@ -1936,7 +2303,202 @@
 
             const headerCol = document.getElementById('paymentsHeaderCollected');
             if (headerCol) headerCol.textContent = `₱${totalCollected.toLocaleString()}`;
+
+            updateTabTitle();
         }
+
+        // --- API Event Trigger Helper ---
+        async function triggerAdminEvent(eventName, entityId, extra = {}) {
+            let token = '';
+            if (auth.currentUser) {
+                token = await auth.currentUser.getIdToken();
+            }
+            const res = await fetch('/api/events', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    event: eventName,
+                    entityId: String(entityId),
+                    ...extra
+                })
+            });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || `Server responded with ${res.status}`);
+            }
+            return await res.json().catch(() => ({ ok: true }));
+        }
+
+        // --- Real-time Listeners Lifecycle ---
+        function stopRealtimeListeners() {
+            if (unsubBusinesses) { unsubBusinesses(); unsubBusinesses = null; }
+            if (unsubPayments) { unsubPayments(); unsubPayments = null; }
+            if (unsubPosts) { unsubPosts(); unsubPosts = null; }
+            if (unsubReviews) { unsubReviews(); unsubReviews = null; }
+            if (unsubActivity) { unsubActivity(); unsubActivity = null; }
+            isListening = false;
+        }
+
+        function scheduleReconnect() {
+            stopRealtimeListeners();
+            setConnectionState('reconnecting');
+            const delay = backoffDelays[Math.min(backoffIndex, backoffDelays.length - 1)];
+            backoffIndex++;
+            clearTimeout(reconnectTimer);
+            reconnectTimer = setTimeout(() => {
+                if (auth.currentUser && !document.hidden) {
+                    startRealtimeListeners();
+                }
+            }, delay);
+        }
+
+        function startRealtimeListeners() {
+            stopRealtimeListeners();
+            clearTimeout(reconnectTimer);
+            isListening = true;
+            initialPendingCount = 5;
+            if (isInitialLoad) {
+                showInitialSpinners();
+            } else {
+                setConnectionState('live');
+            }
+
+            try {
+                // 1. Businesses
+                unsubBusinesses = onSnapshot(collection(db, 'businesses'), (snapshot) => {
+                    const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (!isInitialLoad) {
+                        list.forEach(b => {
+                            if (b.status === 'pending' && !knownBusinessIds.has(b.id)) {
+                                newlyAddedIds.add(b.id);
+                                showAdminToast('New Application', `"${b.name || 'Business'}" submitted a listing.`);
+                                setTimeout(() => newlyAddedIds.delete(b.id), 2000);
+                            }
+                        });
+                    }
+                    knownBusinessIds = new Set(list.map(b => b.id));
+                    allBusinesses = list;
+
+                    if (isInitialLoad) {
+                        initialPendingCount--;
+                        checkInitialComplete();
+                    }
+                    updateOverviewStats();
+                    renderApplicationsSection();
+                    renderBusinessesTable();
+                    renderReviewsSection();
+                }, (err) => {
+                    console.error('Realtime businesses listener error:', err);
+                    scheduleReconnect();
+                });
+
+                // 2. Payments (status == 'submitted')
+                const payQuery = query(collection(db, 'payments'), where('status', '==', 'submitted'));
+                unsubPayments = onSnapshot(payQuery, (snapshot) => {
+                    const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (!isInitialLoad) {
+                        list.forEach(p => {
+                            if (!knownPaymentIds.has(p.id)) {
+                                newlyAddedIds.add(p.id);
+                                const bus = allBusinesses.find(b => b.id === p.businessId);
+                                showAdminToast('New Payment Submitted', `${bus ? bus.name : 'Business'} submitted receipt (₱${p.amountDue}).`);
+                                setTimeout(() => newlyAddedIds.delete(p.id), 2000);
+                            }
+                        });
+                    }
+                    knownPaymentIds = new Set(list.map(p => p.id));
+                    allPayments = list;
+
+                    if (isInitialLoad) {
+                        initialPendingCount--;
+                        checkInitialComplete();
+                    }
+                    updateOverviewStats();
+                    renderPaymentsSection();
+                }, (err) => {
+                    console.error('Realtime payments listener error:', err);
+                    scheduleReconnect();
+                });
+
+                // 3. Posts (orderBy createdAt desc, limit 200)
+                const postsQuery = query(collection(db, 'posts'), orderBy('createdAt', 'desc'), limit(200));
+                unsubPosts = onSnapshot(postsQuery, (snapshot) => {
+                    allPosts = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (isInitialLoad) {
+                        initialPendingCount--;
+                        checkInitialComplete();
+                    }
+                    renderPostsSection();
+                }, (err) => {
+                    console.error('Realtime posts listener error:', err);
+                    scheduleReconnect();
+                });
+
+                // 4. Reviews (orderBy updatedAt desc, limit 200)
+                const revQuery = query(collection(db, 'place_reviews'), orderBy('updatedAt', 'desc'), limit(200));
+                unsubReviews = onSnapshot(revQuery, (snapshot) => {
+                    const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (!isInitialLoad) {
+                        list.forEach(r => {
+                            if (!knownReviewIds.has(r.id)) {
+                                newlyAddedIds.add(r.id);
+                                showAdminToast('New Review Posted', `${r.rating || 5}★ for ${r.placeName || 'a place'}.`);
+                                setTimeout(() => newlyAddedIds.delete(r.id), 2000);
+                            }
+                        });
+                    }
+                    knownReviewIds = new Set(list.map(r => r.id));
+                    allReviews = list;
+
+                    if (isInitialLoad) {
+                        initialPendingCount--;
+                        checkInitialComplete();
+                    }
+                    renderReviewsSection();
+                }, (err) => {
+                    console.error('Realtime reviews listener error:', err);
+                    scheduleReconnect();
+                });
+
+                // 5. Activity (orderBy at desc, limit 100)
+                const actQuery = query(collection(db, 'adminActivity'), orderBy('at', 'desc'), limit(100));
+                unsubActivity = onSnapshot(actQuery, (snapshot) => {
+                    allActivities = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (isInitialLoad) {
+                        initialPendingCount--;
+                        checkInitialComplete();
+                    }
+                    renderActivitySection();
+                }, (err) => {
+                    console.error('Realtime activity listener error:', err);
+                    scheduleReconnect();
+                });
+
+                backoffIndex = 0;
+            } catch (err) {
+                console.error('Error starting realtime listeners:', err);
+                scheduleReconnect();
+            }
+        }
+
+        // Cost Control: Disconnect on 10 minutes hidden, reconnect on visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearTimeout(tabHiddenTimer);
+                tabHiddenTimer = setTimeout(() => {
+                    stopRealtimeListeners();
+                    setConnectionState('paused');
+                }, 600000);
+            } else {
+                clearTimeout(tabHiddenTimer);
+                if (!isListening && auth.currentUser) {
+                    startRealtimeListeners();
+                }
+            }
+        });
 
         // --- Applications View ---
         function renderApplicationsSection() {
@@ -1953,7 +2515,6 @@
             else if (currentAppFilter === 'awaiting_payment') list = awaitingPaymentApps;
             else if (currentAppFilter === 'sent_back') list = sentBackApps;
 
-            // Sort: Featured plans first ("reviewed first"), then oldest first
             list.sort((a, b) => {
                 const isFeatA = a.plan === 'featured' ? 1 : 0;
                 const isFeatB = b.plan === 'featured' ? 1 : 0;
@@ -1980,9 +2541,10 @@
                 const planName = planCfg ? planCfg.name : (bus.plan || 'Listed');
                 const relTime = formatRelativeTime(bus.submittedAt);
                 const isSelected = bus.id === selectedAppId;
+                const isNew = newlyAddedIds.has(bus.id);
 
                 return `
-                    <div class="selectable-item-card ${isSelected ? 'selected' : ''}" data-bus-id="${bus.id}">
+                    <div class="selectable-item-card ${isSelected ? 'selected' : ''} ${isNew ? 'new-item-highlight' : ''}" data-bus-id="${bus.id}">
                         <div class="item-card-title">${escapeHtml(bus.name || 'Unnamed Business')}</div>
                         <div class="item-card-meta">
                             <span>${escapeHtml(bus.serviceType || bus.category || 'General')}</span>
@@ -2010,7 +2572,6 @@
                 });
             });
 
-            // If selected item exists, show it; else auto-select first
             if (selectedAppId) {
                 const found = list.find(b => b.id === selectedAppId);
                 if (found) showAppDetail(found);
@@ -2045,12 +2606,11 @@
             const planCfg = window.CALZADA_PLANS?.[bus.plan] || window.CALZADA_PLANS?.listed;
             const planName = planCfg ? planCfg.name : (bus.plan || 'Listed');
             const planPrice = planCfg ? planCfg.price : 59;
-            const ownerEmail = bus.ownerEmail || 'Email pending private read';
+            const ownerEmail = bus.ownerEmail || 'Email pending';
 
             document.getElementById('appDetailMetaLine').textContent = 
                 `${bus.serviceType || bus.category || 'General'} · Plan: ${planName} (₱${planPrice}) · ${ownerEmail}`;
 
-            // Status dot & text
             const dot = document.getElementById('appDetailStatusDot');
             const statusTxt = document.getElementById('appDetailStatusText');
             if (dot && statusTxt) {
@@ -2073,7 +2633,6 @@
                 }
             }
 
-            // Photo
             const photoImg = document.getElementById('appDetailPhotoImg');
             const photoPlaceholder = document.getElementById('appDetailPhotoPlaceholder');
             if (bus.profilePhotoUrl) {
@@ -2086,7 +2645,6 @@
                 photoPlaceholder.style.display = 'block';
             }
 
-            // Map
             const mapContainer = document.getElementById('appDetailMap');
             if (mapContainer && typeof maplibregl !== 'undefined') {
                 const lat = bus.location?.lat ?? 14.211;
@@ -2111,7 +2669,6 @@
                 }
             }
 
-            // Fields
             document.getElementById('appDetailAddress').textContent = bus.address || 'No address provided';
             document.getElementById('appDetailContact').textContent = bus.contactNumber || 'None provided';
             document.getElementById('appDetailDescription').textContent = bus.description || 'No description provided';
@@ -2122,7 +2679,6 @@
             if (bus.socialLinks?.tiktok) socialParts.push(`<a href="${escapeHtml(bus.socialLinks.tiktok)}" target="_blank" style="color: var(--brand-blue);">TikTok</a>`);
             document.getElementById('appDetailSocialLinks').innerHTML = socialParts.length > 0 ? socialParts.join(' · ') : 'None provided';
 
-            // Automatic Checks
             const brgyCheck = checkCoveredBarangay(bus.address, bus.location?.lat, bus.location?.lng);
             const chkItemBarangay = document.getElementById('chkItemBarangay');
             const chkIconBarangay = document.getElementById('chkIconBarangay');
@@ -2147,18 +2703,17 @@
             chkIconPhoto.className = `ti ${hasPhoto ? 'ti-check' : 'ti-alert-triangle'}`;
             chkTextPhoto.textContent = hasPhoto ? 'Business photo uploaded' : 'No business photo yet';
 
-            // Hide reason box if open
             const reasonBox = document.getElementById('appReasonBox');
             if (reasonBox) reasonBox.style.display = 'none';
+            setInlineError('appActionInlineError', '');
+            setInlineError('appReasonInlineError', '');
 
-            // Button visibility based on status
             const actionsGroup = document.getElementById('appActionButtonsGroup');
             if (actionsGroup) {
                 actionsGroup.style.display = (bus.status === 'pending' || bus.status === 'needs_changes') ? 'flex' : 'none';
             }
         }
 
-        // Underline tab navigation for applications
         document.querySelectorAll('.admin-underline-tab[data-tab]').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.admin-underline-tab[data-tab]').forEach(t => t.classList.remove('active'));
@@ -2170,8 +2725,6 @@
         });
 
         // Application Action Handlers
-        let pendingActionType = null; // 'needs_changes' | 'declined'
-
         const btnApproveApp = document.getElementById('btnApproveApplication');
         if (btnApproveApp) {
             btnApproveApp.addEventListener('click', async () => {
@@ -2180,9 +2733,10 @@
 
                 const planCfg = window.CALZADA_PLANS?.[bus.plan] || window.CALZADA_PLANS?.listed;
                 const price = planCfg ? planCfg.price : 59;
+                setInlineError('appActionInlineError', '');
 
                 try {
-                    btnApproveApp.disabled = true;
+                    setButtonLoading(btnApproveApp, true, 'Approving...');
                     const busRef = doc(db, 'businesses', bus.id);
                     await updateDoc(busRef, {
                         status: 'awaiting_payment',
@@ -2191,21 +2745,20 @@
                         updatedAt: serverTimestamp()
                     });
 
-                    // Trigger server email notification
-                    await notifyOwner(bus.id, 'approved_unpaid', { plan: bus.plan, amountDue: price });
+                    await triggerAdminEvent('application_approved_pay', bus.id, { plan: bus.plan, amountDue: price });
 
                     bus.status = 'awaiting_payment';
                     bus.amountDue = price;
                     bus.detailsApprovedAt = new Date();
 
                     showAdminNotice(`Approved "${bus.name}". Owner notified to pay ₱${price} via GCash.`, 'success');
-                    renderAllAdminViews();
-
+                    renderApplicationsSection();
+                    updateOverviewStats();
                 } catch (err) {
                     console.error('Error approving details:', err);
-                    showAdminNotice(`Failed to approve: ${err.message}`, 'error');
+                    setInlineError('appActionInlineError', `Failed to approve: ${err.message}`);
                 } finally {
-                    btnApproveApp.disabled = false;
+                    setButtonLoading(btnApproveApp, false);
                 }
             });
         }
@@ -2216,6 +2769,7 @@
                 pendingActionType = 'needs_changes';
                 document.getElementById('appReasonBoxTitle').textContent = 'Enter reason for requesting changes:';
                 document.getElementById('appReasonTextarea').value = '';
+                setInlineError('appReasonInlineError', '');
                 document.getElementById('appReasonBox').style.display = 'block';
             });
         }
@@ -2226,6 +2780,7 @@
                 pendingActionType = 'declined';
                 document.getElementById('appReasonBoxTitle').textContent = 'Enter reason for declining application:';
                 document.getElementById('appReasonTextarea').value = '';
+                setInlineError('appReasonInlineError', '');
                 document.getElementById('appReasonBox').style.display = 'block';
             });
         }
@@ -2234,6 +2789,7 @@
         if (btnCancelAppReason) {
             btnCancelAppReason.addEventListener('click', () => {
                 document.getElementById('appReasonBox').style.display = 'none';
+                setInlineError('appReasonInlineError', '');
                 pendingActionType = null;
             });
         }
@@ -2246,12 +2802,13 @@
 
                 const note = document.getElementById('appReasonTextarea').value.trim();
                 if (!note) {
-                    alert('Please enter a reason for the owner.');
+                    setInlineError('appReasonInlineError', 'Please enter a reason for the owner.');
                     return;
                 }
+                setInlineError('appReasonInlineError', '');
 
                 try {
-                    btnSubmitAppReason.disabled = true;
+                    setButtonLoading(btnSubmitAppReason, true, 'Submitting...');
                     const busRef = doc(db, 'businesses', bus.id);
 
                     if (pendingActionType === 'needs_changes') {
@@ -2260,7 +2817,7 @@
                             reviewNote: note,
                             updatedAt: serverTimestamp()
                         });
-                        await notifyOwner(bus.id, 'needs_changes', { reason: note });
+                        await triggerAdminEvent('application_needs_changes', bus.id, { reason: note });
                         bus.status = 'needs_changes';
                         bus.reviewNote = note;
                         showAdminNotice(`Sent changes request to "${bus.name}".`, 'success');
@@ -2270,39 +2827,28 @@
                             reviewNote: note,
                             updatedAt: serverTimestamp()
                         });
-                        await notifyOwner(bus.id, 'declined', { reason: note });
+                        await triggerAdminEvent('application_declined', bus.id, { reason: note });
                         bus.status = 'rejected';
                         bus.reviewNote = note;
                         showAdminNotice(`Declined "${bus.name}".`, 'success');
                     }
 
                     document.getElementById('appReasonBox').style.display = 'none';
-                    renderAllAdminViews();
-
+                    renderApplicationsSection();
+                    updateOverviewStats();
                 } catch (err) {
                     console.error('Error submitting application action:', err);
-                    showAdminNotice(`Failed to submit: ${err.message}`, 'error');
+                    setInlineError('appReasonInlineError', `Failed to submit: ${err.message}`);
                 } finally {
-                    btnSubmitAppReason.disabled = false;
+                    setButtonLoading(btnSubmitAppReason, false);
                 }
             });
         }
 
         // --- Payments View ---
-        // Only the owner's latest receipt needs checking. When an owner replaces a receipt,
-        // the older one stays "submitted" in Firestore but should not show in the queue.
-        function isPaymentToVerify(p) {
-            if (p.status !== 'submitted') return false;
-            const bus = allBusinesses.find(b => b.id === p.businessId);
-            if (!bus) return true;
-            if (bus.status !== 'payment_review') return false;
-            return !bus.lastPaymentId || bus.lastPaymentId === p.id;
-        }
-
         function renderPaymentsSection() {
             const list = allPayments.filter(isPaymentToVerify);
 
-            // Sort: oldest first
             list.sort((a, b) => {
                 const timeA = a.submittedAt?.toMillis ? a.submittedAt.toMillis() : (a.submittedAt ? new Date(a.submittedAt).getTime() : 0);
                 const timeB = b.submittedAt?.toMillis ? b.submittedAt.toMillis() : (b.submittedAt ? new Date(b.submittedAt).getTime() : 0);
@@ -2329,9 +2875,10 @@
                 const last4 = p.referenceNo ? p.referenceNo.slice(-4) : '----';
                 const relTime = formatRelativeTime(p.submittedAt);
                 const isSelected = p.id === selectedPaymentId;
+                const isNew = newlyAddedIds.has(p.id);
 
                 return `
-                    <div class="selectable-item-card ${isSelected ? 'selected' : ''}" data-payment-id="${p.id}">
+                    <div class="selectable-item-card ${isSelected ? 'selected' : ''} ${isNew ? 'new-item-highlight' : ''}" data-payment-id="${p.id}">
                         <div class="item-card-title">${escapeHtml(busName)}</div>
                         <div class="item-card-meta">
                             <span>${escapeHtml(planName)}</span>
@@ -2393,7 +2940,6 @@
             document.getElementById('paymentDetailMetaLine').textContent = 
                 `${bus?.category || 'General'} · Business ID: ${payment.businessId}`;
 
-            // Receipt preview
             const thumb = document.getElementById('paymentReceiptThumb');
             thumb.src = payment.receiptUrl || '';
 
@@ -2403,7 +2949,6 @@
             document.getElementById('paymentDetailRef').textContent = payment.referenceNo || '--';
             document.getElementById('paymentDetailSentAt').textContent = formatAdminDate(payment.submittedAt);
 
-            // GCash Checklist setup
             const chkRefHistory = document.getElementById('chkRefHistory');
             const chkAmountMatch = document.getElementById('chkAmountMatch');
             const chkRefUnique = document.getElementById('chkRefUnique');
@@ -2414,10 +2959,8 @@
             chkAmountMatch.checked = false;
             labelAmountMatch.textContent = `The amount is ₱${payment.amountDue}`;
 
-            // Check if reference number is unique across all verified payments
             const dupCount = allPayments.filter(p => p.referenceNo === payment.referenceNo && p.id !== payment.id && p.status === 'verified').length;
-            const isRefUnique = dupCount === 0;
-            chkRefUnique.checked = isRefUnique;
+            chkRefUnique.checked = dupCount === 0;
             chkRefUnique.disabled = true;
 
             const updateMarkPaidBtn = () => {
@@ -2428,9 +2971,10 @@
             chkAmountMatch.onchange = updateMarkPaidBtn;
             updateMarkPaidBtn();
 
-            // Hide Doesn't match panel
             const panelDoesntMatch = document.getElementById('panelDoesntMatch');
             if (panelDoesntMatch) panelDoesntMatch.style.display = 'none';
+            setInlineError('paymentActionInlineError', '');
+            setInlineError('paymentDoesntMatchInlineError', '');
         }
 
         // Receipt Zoom Modal
@@ -2459,19 +3003,19 @@
             });
         }
 
-        // Payment Verification: Mark as Paid and Go Live
+        // Mark as Paid and Go Live
         const btnMarkPaidAndLive = document.getElementById('btnMarkPaidAndLive');
         if (btnMarkPaidAndLive) {
             btnMarkPaidAndLive.addEventListener('click', async () => {
                 const payment = allPayments.find(p => p.id === selectedPaymentId);
                 if (!payment) return;
                 const bus = allBusinesses.find(b => b.id === payment.businessId);
+                setInlineError('paymentActionInlineError', '');
 
                 try {
-                    btnMarkPaidAndLive.disabled = true;
+                    setButtonLoading(btnMarkPaidAndLive, true, 'Verifying & Activating...');
                     const batch = writeBatch(db);
 
-                    // 1. Update payment doc
                     const payRef = doc(db, 'payments', payment.id);
                     batch.update(payRef, {
                         status: 'verified',
@@ -2479,7 +3023,6 @@
                         reviewedBy: auth.currentUser.uid
                     });
 
-                    // 2. Update business doc
                     const busRef = doc(db, 'businesses', payment.businessId);
                     const planCfg = window.CALZADA_PLANS?.[payment.plan] || window.CALZADA_PLANS?.listed;
                     const has360 = Boolean(planCfg?.has360);
@@ -2500,12 +3043,20 @@
                     batch.update(busRef, busUpdate);
                     await batch.commit();
 
-                    // 3. Notify owner: event 'live'
-                    await notifyOwner(payment.businessId, 'live', {
+                    await triggerAdminEvent('business_live', payment.businessId, {
+                        paymentId: payment.id,
                         plan: payment.plan,
                         amountDue: payment.amountDue,
                         referenceNo: payment.referenceNo
                     });
+
+                    if (has360) {
+                        try {
+                            await triggerAdminEvent('tour360_availed', payment.businessId);
+                        } catch (tErr) {
+                            console.warn('[ADMIN] Failed to trigger tour360_availed event:', tErr);
+                        }
+                    }
 
                     payment.status = 'verified';
                     if (bus) {
@@ -2516,13 +3067,14 @@
                     }
 
                     showAdminNotice(`Payment verified! "${bus?.name || payment.businessId}" is now live on Calzada.`, 'success');
-                    renderAllAdminViews();
-
+                    renderPaymentsSection();
+                    renderBusinessesTable();
+                    updateOverviewStats();
                 } catch (err) {
                     console.error('Error verifying payment:', err);
-                    showAdminNotice(`Failed to verify payment: ${err.message}`, 'error');
+                    setInlineError('paymentActionInlineError', `Failed to verify payment: ${err.message}`);
                 } finally {
-                    btnMarkPaidAndLive.disabled = false;
+                    setButtonLoading(btnMarkPaidAndLive, false);
                 }
             });
         }
@@ -2533,6 +3085,7 @@
         if (btnToggleDoesntMatch && panelDoesntMatch) {
             btnToggleDoesntMatch.addEventListener('click', () => {
                 panelDoesntMatch.style.display = panelDoesntMatch.style.display === 'none' ? 'block' : 'none';
+                setInlineError('paymentDoesntMatchInlineError', '');
             });
         }
 
@@ -2540,6 +3093,7 @@
         if (btnCancelDoesntMatch && panelDoesntMatch) {
             btnCancelDoesntMatch.addEventListener('click', () => {
                 panelDoesntMatch.style.display = 'none';
+                setInlineError('paymentDoesntMatchInlineError', '');
             });
         }
 
@@ -2553,12 +3107,10 @@
                 const radioReason = document.querySelector('input[name="notMatchedReason"]:checked')?.value || 'Other';
                 const extraNote = document.getElementById('notMatchedTextarea').value.trim();
                 const fullReason = extraNote ? `${radioReason}: ${extraNote}` : radioReason;
+                setInlineError('paymentDoesntMatchInlineError', '');
 
                 try {
-                    btnSendBackToOwner.disabled = true;
-
-                    // One batch: payment -> not_matched, business -> awaiting_payment,
-                    // and release the reference-number lock so the owner can resend it.
+                    setButtonLoading(btnSendBackToOwner, true, 'Sending back...');
                     const batch = writeBatch(db);
                     batch.update(doc(db, 'payments', payment.id), {
                         status: 'not_matched',
@@ -2576,8 +3128,10 @@
                     }
                     await batch.commit();
 
-                    // 3. Notify owner
-                    await notifyOwner(payment.businessId, 'not_matched', { reason: fullReason });
+                    await triggerAdminEvent('payment_not_matched', payment.id, {
+                        businessId: payment.businessId,
+                        reason: fullReason
+                    });
 
                     payment.status = 'not_matched';
                     payment.reviewNote = fullReason;
@@ -2586,15 +3140,15 @@
                         bus.reviewNote = fullReason;
                     }
 
-                    showAdminNotice(`Payment marked not matched and sent back to owner.`, 'success');
+                    showAdminNotice('Payment marked not matched and sent back to owner.', 'success');
                     if (panelDoesntMatch) panelDoesntMatch.style.display = 'none';
-                    renderAllAdminViews();
-
+                    renderPaymentsSection();
+                    updateOverviewStats();
                 } catch (err) {
                     console.error('Error rejecting payment:', err);
-                    showAdminNotice(`Failed to send back: ${err.message}`, 'error');
+                    setInlineError('paymentDoesntMatchInlineError', `Failed to send back: ${err.message}`);
                 } finally {
-                    btnSendBackToOwner.disabled = false;
+                    setButtonLoading(btnSendBackToOwner, false);
                 }
             });
         }
@@ -2649,7 +3203,6 @@
                 `;
             }).join('');
 
-            // Shoot 360 select change listeners
             tbody.querySelectorAll('.select-shoot360').forEach(sel => {
                 sel.addEventListener('change', async (e) => {
                     const busId = sel.getAttribute('data-bus-id');
@@ -2670,7 +3223,6 @@
                 });
             });
 
-            // Row click: open detail panel
             tbody.querySelectorAll('tr[data-bus-row-id]').forEach(row => {
                 row.addEventListener('click', () => {
                     const busId = row.getAttribute('data-bus-row-id');
@@ -2680,7 +3232,6 @@
             });
         }
 
-        // Business filter tabs
         document.querySelectorAll('.admin-underline-tab[data-bus-filter]').forEach(tab => {
             tab.addEventListener('click', () => {
                 document.querySelectorAll('.admin-underline-tab[data-bus-filter]').forEach(t => t.classList.remove('active'));
@@ -2690,7 +3241,6 @@
             });
         });
 
-        let selectedDetailBusId = null;
         function showBusinessRowDetail(bus) {
             const card = document.getElementById('businessRowDetailCard');
             if (!card || !bus) return;
@@ -2705,6 +3255,7 @@
 
             document.getElementById('busHideInitialGroup').style.display = 'block';
             document.getElementById('busHideConfirmBox').style.display = 'none';
+            setInlineError('busHideInlineError', '');
 
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -2717,13 +3268,13 @@
             });
         }
 
-        // Hide from map (In-page confirmation, NO confirm())
         const btnTriggerHide = document.getElementById('btnTriggerHideFromMap');
         const hideConfirmBox = document.getElementById('busHideConfirmBox');
         if (btnTriggerHide && hideConfirmBox) {
             btnTriggerHide.addEventListener('click', () => {
                 document.getElementById('busHideInitialGroup').style.display = 'none';
                 document.getElementById('busHideReasonText').value = '';
+                setInlineError('busHideInlineError', '');
                 hideConfirmBox.style.display = 'block';
             });
         }
@@ -2733,6 +3284,7 @@
             btnCancelHide.addEventListener('click', () => {
                 document.getElementById('busHideInitialGroup').style.display = 'block';
                 document.getElementById('busHideConfirmBox').style.display = 'none';
+                setInlineError('busHideInlineError', '');
             });
         }
 
@@ -2742,9 +3294,10 @@
                 const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
                 if (!bus) return;
                 const note = document.getElementById('busHideReasonText').value.trim() || 'Hidden from map by administrator';
+                setInlineError('busHideInlineError', '');
 
                 try {
-                    btnConfirmHide.disabled = true;
+                    setButtonLoading(btnConfirmHide, true, 'Hiding...');
                     const busRef = doc(db, 'businesses', bus.id);
                     await updateDoc(busRef, {
                         status: 'pending',
@@ -2752,18 +3305,21 @@
                         updatedAt: serverTimestamp()
                     });
 
+                    await triggerAdminEvent('business_removed', bus.id, { reason: note });
+
                     bus.status = 'pending';
                     bus.reviewNote = note;
 
                     showAdminNotice(`"${bus.name}" has been hidden from the map and reverted to pending.`, 'success');
                     document.getElementById('businessRowDetailCard').style.display = 'none';
-                    renderAllAdminViews();
-
+                    renderBusinessesTable();
+                    renderApplicationsSection();
+                    updateOverviewStats();
                 } catch (err) {
                     console.error('Error hiding business from map:', err);
-                    showAdminNotice(`Failed to hide business: ${err.message}`, 'error');
+                    setInlineError('busHideInlineError', `Failed to hide business: ${err.message}`);
                 } finally {
-                    btnConfirmHide.disabled = false;
+                    setButtonLoading(btnConfirmHide, false);
                 }
             });
         }
@@ -2817,7 +3373,6 @@
                 `;
             }).join('');
 
-            // Hide / Show post handler
             container.querySelectorAll('.btn-toggle-post-hide').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const postId = btn.getAttribute('data-post-id');
@@ -2825,12 +3380,17 @@
                     const newStatus = curStatus === 'hidden' ? 'active' : 'hidden';
 
                     try {
-                        btn.disabled = true;
+                        setButtonLoading(btn, true, 'Updating...');
                         const postRef = doc(db, 'posts', postId);
                         await updateDoc(postRef, {
                             status: newStatus,
                             updatedAt: serverTimestamp()
                         });
+
+                        if (newStatus === 'hidden') {
+                            await triggerAdminEvent('post_hidden', postId, { reason: 'Moderated by administrator' });
+                        }
+
                         const p = allPosts.find(item => item.id === postId);
                         if (p) p.status = newStatus;
                         showAdminNotice(`Post ${newStatus === 'hidden' ? 'hidden' : 'unhidden'}.`, 'success');
@@ -2839,17 +3399,16 @@
                         console.error('Error toggling post visibility:', err);
                         showAdminNotice(`Failed to update post: ${err.message}`, 'error');
                     } finally {
-                        btn.disabled = false;
+                        setButtonLoading(btn, false);
                     }
                 });
             });
 
-            // Pin for 7 days handler
             container.querySelectorAll('.btn-pin-post').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const postId = btn.getAttribute('data-post-id');
                     try {
-                        btn.disabled = true;
+                        setButtonLoading(btn, true, 'Pinning...');
                         const postRef = doc(db, 'posts', postId);
                         const sevenDaysLater = Timestamp.fromMillis(Date.now() + 7 * 86400000);
                         await updateDoc(postRef, {
@@ -2858,69 +3417,381 @@
                         });
                         const p = allPosts.find(item => item.id === postId);
                         if (p) p.pinnedUntil = sevenDaysLater;
-                        showAdminNotice(`Post pinned for 7 days.`, 'success');
+                        showAdminNotice('Post pinned for 7 days.', 'success');
                         renderPostsSection();
                     } catch (err) {
                         console.error('Error pinning post:', err);
                         showAdminNotice(`Failed to pin post: ${err.message}`, 'error');
                     } finally {
-                        btn.disabled = false;
+                        setButtonLoading(btn, false);
                     }
                 });
             });
         }
 
-        // Server Email Notification Dispatcher
-        async function notifyOwner(businessId, event, extra = {}) {
-            try {
-                let token = '';
-                if (auth.currentUser) {
-                    token = await auth.currentUser.getIdToken();
-                }
-                const res = await fetch('/api/admin/notify-owner', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ businessId, event, ...extra })
-                });
-                if (!res.ok) {
-                    const errData = await res.json().catch(() => ({}));
-                    console.warn(`Notify owner event ${event} response:`, res.status, errData);
-                }
-            } catch (err) {
-                console.warn(`Could not call /api/admin/notify-owner for ${event}:`, err);
+        // --- Reviews View ---
+        function populateReviewPlaceOptions() {
+            const select = document.getElementById('reviewFilterPlace');
+            if (!select) return;
+
+            const placeMap = new Map();
+            allReviews.forEach(r => {
+                const id = r.placeId || r.businessId;
+                const name = r.placeName || id;
+                if (id) placeMap.set(id, name);
+            });
+            allBusinesses.forEach(b => {
+                if (b.id) placeMap.set(b.id, b.name || b.id);
+            });
+            catalogPlaces.forEach(p => {
+                const id = p.id || p.placeId;
+                const name = p.name || id;
+                if (id) placeMap.set(id, name);
+            });
+
+            const current = reviewPlaceFilter;
+            const sortedEntries = Array.from(placeMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+
+            select.innerHTML = '<option value="all">All Places</option>' + sortedEntries.map(([id, name]) => `
+                <option value="${escapeHtml(id)}" ${id === current ? 'selected' : ''}>${escapeHtml(name)}</option>
+            `).join('');
+        }
+
+        function renderReviewsSection() {
+            populateReviewPlaceOptions();
+
+            const tbody = document.getElementById('reviewsTableBody');
+            const emptyState = document.getElementById('reviewsEmptyState');
+            const summaryLine = document.getElementById('reviewsSummaryLine');
+            if (!tbody || !emptyState) return;
+
+            let list = allReviews.slice();
+
+            // 1. Place filter
+            if (reviewPlaceFilter !== 'all') {
+                list = list.filter(r => (r.placeId === reviewPlaceFilter) || (r.businessId === reviewPlaceFilter) || (r.placeName === reviewPlaceFilter));
             }
-        }
 
-        // Test Injection Hook for Playwright E2E & Multi-Viewport Verification
-        if (typeof window !== 'undefined') {
-            window.__TEST_ADMIN_DATA__ = (mockBusinesses, mockPayments, mockPosts) => {
-                loadingState.style.display = 'none';
-                accessDeniedState.style.display = 'none';
-                if (adminApp) adminApp.style.display = 'flex';
+            // 2. Stars filter
+            if (reviewStarsFilter !== 'all') {
+                const targetStars = Number(reviewStarsFilter);
+                list = list.filter(r => Math.round(Number(r.rating) || 0) === targetStars);
+            }
 
-                if (mockBusinesses) allBusinesses = mockBusinesses;
-                if (mockPayments) allPayments = mockPayments;
-                if (mockPosts) allPosts = mockPosts;
+            // 3. Comment filter
+            if (reviewFilterCommentVal === 'has_comment') {
+                list = list.filter(r => Boolean(r.commentText && r.commentText.trim()));
+            } else if (reviewFilterCommentVal === 'no_comment') {
+                list = list.filter(r => !r.commentText || !r.commentText.trim());
+            }
 
-                setActiveSection(getSectionFromHash());
-                renderAllAdminViews();
-            };
-        }
+            // 4. Date filter
+            if (reviewDateFilterVal === '7') {
+                const cutoff = Date.now() - (7 * 86400000);
+                list = list.filter(r => {
+                    const time = r.updatedAt?.toMillis ? r.updatedAt.toMillis() : (r.createdAt?.toMillis ? r.createdAt.toMillis() : new Date(r.updatedAt || r.createdAt || 0).getTime());
+                    return time >= cutoff;
+                });
+            } else if (reviewDateFilterVal === '30') {
+                const cutoff = Date.now() - (30 * 86400000);
+                list = list.filter(r => {
+                    const time = r.updatedAt?.toMillis ? r.updatedAt.toMillis() : (r.createdAt?.toMillis ? r.createdAt.toMillis() : new Date(r.updatedAt || r.createdAt || 0).getTime());
+                    return time >= cutoff;
+                });
+            }
 
-        // Auth Gate
-        onAuthStateChanged(auth, async (user) => {
-            if (typeof window !== 'undefined' && window.__MOCK_ADMIN_USER__) {
-                loadingState.style.display = 'none';
-                accessDeniedState.style.display = 'none';
-                if (adminApp) adminApp.style.display = 'flex';
-                setActiveSection(getSectionFromHash());
+            // Summary calculation
+            const count = list.length;
+            const avg = count > 0 ? (list.reduce((acc, r) => acc + (Number(r.rating) || 0), 0) / count).toFixed(1) : '0.0';
+            if (summaryLine) {
+                summaryLine.textContent = `${avg} average · ${count} review${count === 1 ? '' : 's'}`;
+            }
+
+            if (count === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
                 return;
             }
 
+            emptyState.style.display = 'none';
+            tbody.innerHTML = list.map(r => {
+                const placeTitle = r.placeName || r.placeId || 'Place';
+                const isHidden = r.status === 'hidden' || r.status === 'removed';
+                const ratingNum = Number(r.rating || 5).toFixed(1);
+                const reviewerName = r.userName || 'Anonymous';
+                const reviewerEmail = r.userEmail || '';
+                const dateStr = formatAdminDate(r.updatedAt || r.createdAt);
+                const isNew = newlyAddedIds.has(r.id);
+
+                return `
+                    <tr class="${isNew ? 'new-item-highlight' : ''}" data-review-row-id="${r.id}">
+                        <td style="padding: 12px 16px; font-weight: 600; color: #042C53;">${escapeHtml(placeTitle)}</td>
+                        <td style="padding: 12px 16px;">
+                            <span style="font-weight: 700; color: #D97706;">★ ${ratingNum}</span>
+                        </td>
+                        <td style="padding: 12px 16px;">
+                            <div class="review-comment-clamped">${escapeHtml(r.commentText || '—')}</div>
+                        </td>
+                        <td style="padding: 12px 16px;">
+                            <div style="font-weight: 500; color: #042C53;">${escapeHtml(reviewerName)}</div>
+                            ${reviewerEmail ? `<div style="font-size: 11px; color: #64748B;">${escapeHtml(reviewerEmail)}</div>` : ''}
+                        </td>
+                        <td style="padding: 12px 16px; font-size: 12px; color: #64748B;">${dateStr}</td>
+                        <td style="padding: 12px 16px;">
+                            <div class="status-line">
+                                <span class="status-dot ${isHidden ? 'red' : 'green'}"></span>
+                                <span>${isHidden ? 'Hidden' : 'Active'}</span>
+                            </div>
+                        </td>
+                        <td style="padding: 12px 16px; text-align: right;">
+                            ${isHidden ? `
+                                <button type="button" class="btn-admin-secondary btn-restore-review" data-review-id="${r.id}" style="padding: 4px 10px; font-size: 12px;">Restore</button>
+                            ` : `
+                                <button type="button" class="btn-admin-danger btn-trigger-hide-review" data-review-id="${r.id}" style="padding: 4px 10px; font-size: 12px;">Hide</button>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Hide review trigger
+            tbody.querySelectorAll('.btn-trigger-hide-review').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    activeReviewIdToHide = btn.getAttribute('data-review-id');
+                    const modal = document.getElementById('reviewHideModal');
+                    const textarea = document.getElementById('reviewHideReasonText');
+                    if (textarea) textarea.value = '';
+                    setInlineError('reviewHideInlineError', '');
+                    if (modal) modal.style.display = 'flex';
+                });
+            });
+
+            // Restore review trigger
+            tbody.querySelectorAll('.btn-restore-review').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const reviewId = btn.getAttribute('data-review-id');
+                    try {
+                        setButtonLoading(btn, true, 'Restoring...');
+                        const revRef = doc(db, 'place_reviews', reviewId);
+                        await updateDoc(revRef, {
+                            status: 'active',
+                            hiddenReason: null,
+                            updatedAt: serverTimestamp()
+                        });
+                        const r = allReviews.find(item => item.id === reviewId);
+                        if (r) {
+                            r.status = 'active';
+                            r.hiddenReason = null;
+                        }
+                        showAdminNotice('Review restored to public listing.', 'success');
+                        renderReviewsSection();
+                    } catch (err) {
+                        console.error('Error restoring review:', err);
+                        showAdminNotice(`Failed to restore review: ${err.message}`, 'error');
+                    } finally {
+                        setButtonLoading(btn, false);
+                    }
+                });
+            });
+        }
+
+        // Review Filter Event Listeners
+        const selectRevPlace = document.getElementById('reviewFilterPlace');
+        if (selectRevPlace) {
+            selectRevPlace.addEventListener('change', (e) => {
+                reviewPlaceFilter = e.target.value;
+                renderReviewsSection();
+            });
+        }
+        const selectRevStars = document.getElementById('reviewFilterStars');
+        if (selectRevStars) {
+            selectRevStars.addEventListener('change', (e) => {
+                reviewStarsFilter = e.target.value;
+                renderReviewsSection();
+            });
+        }
+        const selectRevComment = document.getElementById('reviewFilterComment');
+        if (selectRevComment) {
+            selectRevComment.addEventListener('change', (e) => {
+                reviewFilterCommentVal = e.target.value;
+                renderReviewsSection();
+            });
+        }
+        const selectRevDate = document.getElementById('reviewFilterDate');
+        if (selectRevDate) {
+            selectRevDate.addEventListener('change', (e) => {
+                reviewDateFilterVal = e.target.value;
+                renderReviewsSection();
+            });
+        }
+
+        // Review Hide Modal Handlers
+        const reviewHideModal = document.getElementById('reviewHideModal');
+        const btnCloseRevModal = document.getElementById('btnCloseReviewHideModal');
+        const btnCancelRevModal = document.getElementById('btnCancelReviewHide');
+        const btnConfirmRevHide = document.getElementById('btnConfirmReviewHide');
+
+        if (btnCloseRevModal && reviewHideModal) {
+            btnCloseRevModal.addEventListener('click', () => {
+                reviewHideModal.style.display = 'none';
+                activeReviewIdToHide = null;
+            });
+        }
+        if (btnCancelRevModal && reviewHideModal) {
+            btnCancelRevModal.addEventListener('click', () => {
+                reviewHideModal.style.display = 'none';
+                activeReviewIdToHide = null;
+            });
+        }
+        if (reviewHideModal) {
+            reviewHideModal.addEventListener('click', (e) => {
+                if (e.target === reviewHideModal) {
+                    reviewHideModal.style.display = 'none';
+                    activeReviewIdToHide = null;
+                }
+            });
+        }
+
+        if (btnConfirmRevHide) {
+            btnConfirmRevHide.addEventListener('click', async () => {
+                if (!activeReviewIdToHide) return;
+                const reason = document.getElementById('reviewHideReasonText').value.trim();
+                if (!reason) {
+                    setInlineError('reviewHideInlineError', 'Please enter a moderation reason.');
+                    return;
+                }
+                setInlineError('reviewHideInlineError', '');
+
+                try {
+                    setButtonLoading(btnConfirmRevHide, true, 'Hiding...');
+                    const revRef = doc(db, 'place_reviews', activeReviewIdToHide);
+                    await updateDoc(revRef, {
+                        status: 'hidden',
+                        hiddenReason: reason,
+                        updatedAt: serverTimestamp()
+                    });
+
+                    await triggerAdminEvent('review_removed', activeReviewIdToHide, { reason });
+
+                    const r = allReviews.find(item => item.id === activeReviewIdToHide);
+                    if (r) {
+                        r.status = 'hidden';
+                        r.hiddenReason = reason;
+                    }
+
+                    if (reviewHideModal) reviewHideModal.style.display = 'none';
+                    showAdminNotice('Review hidden from public listing.', 'success');
+                    renderReviewsSection();
+                } catch (err) {
+                    console.error('Error hiding review:', err);
+                    setInlineError('reviewHideInlineError', `Failed to hide review: ${err.message}`);
+                } finally {
+                    setButtonLoading(btnConfirmRevHide, false);
+                }
+            });
+        }
+
+        // --- Activity View ---
+        function renderActivitySection() {
+            const container = document.getElementById('activityFeedContainer');
+            const emptyState = document.getElementById('activityEmptyState');
+            if (!container || !emptyState) return;
+
+            let list = allActivities.slice();
+
+            if (activityCategoryFilterVal !== 'all') {
+                if (activityCategoryFilterVal === 'application') {
+                    list = list.filter(a => a.event && a.event.startsWith('application_'));
+                } else if (activityCategoryFilterVal === 'payment') {
+                    list = list.filter(a => a.event && a.event.startsWith('payment_'));
+                } else if (activityCategoryFilterVal === 'business') {
+                    list = list.filter(a => a.event && (a.event.startsWith('business_') || a.event.startsWith('tour360_')));
+                } else if (activityCategoryFilterVal === 'review') {
+                    list = list.filter(a => a.event && a.event.startsWith('review_'));
+                } else if (activityCategoryFilterVal === 'post') {
+                    list = list.filter(a => a.event && a.event.startsWith('post_'));
+                }
+            }
+
+            if (list.length === 0) {
+                container.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = list.map(a => {
+                let roleBadgeBg = '#F1F5F9';
+                let roleBadgeColor = '#475569';
+                let roleLabel = 'User';
+
+                if (a.actorRole === 'admin') {
+                    roleBadgeBg = '#EFF6FF';
+                    roleBadgeColor = '#1D4ED8';
+                    roleLabel = 'Admin';
+                } else if (a.actorRole === 'owner') {
+                    roleBadgeBg = '#ECFDF5';
+                    roleBadgeColor = '#047857';
+                    roleLabel = 'Owner';
+                }
+
+                let iconClass = 'ti-activity';
+                if (a.event && a.event.includes('payment')) iconClass = 'ti-receipt';
+                else if (a.event && a.event.includes('application')) iconClass = 'ti-file-text';
+                else if (a.event && a.event.includes('review')) iconClass = 'ti-star';
+                else if (a.event && a.event.includes('tour360')) iconClass = 'ti-camera';
+                else if (a.event && a.event.includes('live')) iconClass = 'ti-circle-check';
+
+                const relTime = formatRelativeTime(a.at);
+
+                return `
+                    <div class="flat-card" style="display: flex; gap: 14px; align-items: center; padding: 14px 18px;">
+                        <div style="width: 36px; height: 36px; border-radius: 8px; background: #F8FAFC; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="ti ${iconClass}" style="color: var(--brand-blue-dark); font-size: 18px;"></i>
+                        </div>
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="font-size: 13px; font-weight: 600; color: var(--navy-dark);">${escapeHtml(a.summary || a.event)}</span>
+                                <span style="display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; background: ${roleBadgeBg}; color: ${roleBadgeColor};">${roleLabel}</span>
+                            </div>
+                            <div style="font-size: 11px; color: var(--navy-subtle); margin-top: 2px;">
+                                Event: <code style="font-family: monospace; color: var(--brand-blue-dark);">${escapeHtml(a.event)}</code>
+                                ${a.entityId ? ` · ID: ${escapeHtml(a.entityId)}` : ''}
+                            </div>
+                        </div>
+                        <div style="font-size: 12px; color: var(--navy-subtle); white-space: nowrap; flex-shrink: 0;">
+                            ${relTime}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        const selectActivityCategory = document.getElementById('activityFilterType');
+        if (selectActivityCategory) {
+            selectActivityCategory.addEventListener('change', (e) => {
+                activityCategoryFilterVal = e.target.value;
+                renderActivitySection();
+            });
+        }
+
+        // --- Catalog Places Loading for Proximity Checks ---
+        async function loadCatalogPlaces() {
+            try {
+                const res = await fetch('/api/places');
+                if (res.ok) {
+                    const d = await res.json();
+                    catalogPlaces = d.places || [];
+                }
+            } catch (e) {
+                console.warn('Could not load /api/places for proximity checks:', e);
+            }
+        }
+
+        // --- Auth Gate ---
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
+                stopRealtimeListeners();
                 loadingState.style.display = 'none';
                 if (adminApp) adminApp.style.display = 'none';
                 accessDeniedState.style.display = 'flex';
@@ -2944,8 +3815,10 @@
                     if (settingsUid) settingsUid.textContent = user.uid;
 
                     setActiveSection(getSectionFromHash());
-                    await loadAdminData();
+                    await loadCatalogPlaces();
+                    startRealtimeListeners();
                 } else {
+                    stopRealtimeListeners();
                     loadingState.style.display = 'none';
                     if (adminApp) adminApp.style.display = 'none';
                     accessDeniedState.style.display = 'flex';
@@ -2960,6 +3833,7 @@
 
         // Sign out
         const handleSignOut = async () => {
+            stopRealtimeListeners();
             await signOut(auth);
             window.location.href = "/";
         };

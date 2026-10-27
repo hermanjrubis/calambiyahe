@@ -20,6 +20,24 @@ const AUTH_EMU_PORT = 9099;
 let serverProcess = null;
 let authServer = null;
 
+function createEmulatorToken(uid = 'emulator_user_p1') {
+    const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({
+        sub: uid,
+        user_id: uid,
+        aud: "calzada-web",
+        iss: "https://securetoken.google.com/calzada-web",
+        email: 'test@calzada.ph',
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+        auth_time: Math.floor(Date.now() / 1000),
+        firebase: {
+            sign_in_provider: "password"
+        }
+    })).toString('base64url');
+    return `${header}.${payload}.`;
+}
+
 // Firebase Auth Emulator REST server
 function startAuthEmulator() {
     return new Promise((resolve) => {
@@ -39,7 +57,7 @@ function startAuthEmulator() {
             req.on('end', () => {
                 const url = req.url || '';
                 console.log(`[Auth Emu] ${req.method} ${url}`);
-                const mockJwt = 'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlbXVsYXRvcl91c2VyX3AxIiwidXNlcl9pZCI6ImVtdWxhdG9yX3VzZXJfcDEiLCJhdWQiOiJjYWxhbWJpeWFoZS1kZXYiLCJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vY2FsYW1iaXlhaGUtZGV2IiwiZXhwIjoyNTM0MDIzMDA3OTl9.';
+                const mockJwt = createEmulatorToken('emulator_user_p1');
 
                 if (url.includes('accounts:createAuthUri')) {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -93,12 +111,12 @@ function startAppServer() {
             resolve();
         });
         req.on('error', () => {
-            console.log(`[App Server] Starting node server.js on port ${PORT}...`);
+            console.log(`[App Server] Starting node server.js on port ${PORT} (CALZADA_EMULATORS=1)...`);
             serverProcess = spawn('node', ['server.js'], {
-                env: { ...process.env, PORT: String(PORT) },
+                env: { ...process.env, PORT: String(PORT), CALZADA_EMULATORS: '1', DRY_RUN_EMAIL: 'true' },
                 stdio: 'pipe'
             });
-            setTimeout(resolve, 2000);
+            setTimeout(resolve, 2500);
         });
     });
 }

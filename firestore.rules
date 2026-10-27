@@ -540,5 +540,30 @@ service cloud.firestore {
         allow update: if false;
       }
     }
+
+    // Place Reviews: admin may read and write (hide/restore). Non-admins denied direct client SDK access.
+    // Reviews are written by the server (Admin SDK). The admin client may only hide or restore.
+    match /place_reviews/{reviewId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow update: if request.auth != null && request.auth.token.admin == true
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'hiddenReason', 'updatedAt'])
+        && request.resource.data.status in ['active', 'hidden']
+        && (request.resource.data.get('hiddenReason', null) == null
+            || (request.resource.data.hiddenReason is string && request.resource.data.hiddenReason.size() <= 500));
+      allow create, delete: if false;
+    }
+
+    // Admin Activity Feed: Admin-only read, server-only write.
+    match /adminActivity/{activityId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;
+    }
+
+    // Email Log: Admin-only read, server-only write.
+    match /emailLog/{logId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false;
+    }
   }
 }
+

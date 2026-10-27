@@ -2,7 +2,7 @@
  * scripts/set-admin-role.js
  *
  * Sets the custom claim { admin: true } on a Firebase user account.
- * Usage: node scripts/set-admin-role.js <uid>
+ * Usage: node scripts/set-admin-role.js <uid or email>
  */
 
 const fs = require('fs');
@@ -16,7 +16,7 @@ async function setAdminRole() {
 
     if (!uid || uid.trim() === '') {
         console.error('\n❌ Error: Missing user UID argument.');
-        console.error('Usage: node scripts/set-admin-role.js <uid>\n');
+        console.error('Usage: node scripts/set-admin-role.js <uid or email>\n');
         process.exit(1);
     }
 
@@ -38,10 +38,15 @@ async function setAdminRole() {
     }
 
     const auth = getAuth(app);
+    if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+        console.warn(`\n⚠️  FIREBASE_AUTH_EMULATOR_HOST is set: this changes the EMULATOR, not the live project.`);
+    }
 
     try {
-        // Verify that the user exists in Firebase Auth
-        const user = await auth.getUser(targetUid);
+        // Accept an email or a UID
+        const user = targetUid.includes('@')
+            ? await auth.getUserByEmail(targetUid)
+            : await auth.getUser(targetUid);
         console.log(`\nFound user in Firebase Auth:`);
         console.log(`- UID: ${user.uid}`);
         console.log(`- Email: ${user.email || 'N/A'}`);
@@ -54,10 +59,10 @@ async function setAdminRole() {
             admin: true
         };
 
-        await auth.setCustomUserClaims(targetUid, updatedClaims);
+        await auth.setCustomUserClaims(user.uid, updatedClaims);
 
         // Fetch updated user to verify
-        const updatedUser = await auth.getUser(targetUid);
+        const updatedUser = await auth.getUser(user.uid);
 
         console.log('\n======================================================');
         console.log('✅ SUCCESS: Admin role successfully assigned!');
@@ -72,7 +77,7 @@ async function setAdminRole() {
 
     } catch (err) {
         if (err.code === 'auth/user-not-found') {
-            console.error(`\n❌ Error: No user found with UID "${targetUid}".`);
+            console.error(`\n❌ Error: No user found for "${targetUid}". Sign in once on the site with that account first.`);
         } else {
             console.error('\n❌ Failed to set admin claim:', err.message);
         }

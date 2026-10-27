@@ -1,6 +1,8 @@
 /**
- * Calzada Branded HTML Email Template for Feedback Submissions
- * Table-based inline layout compatible with Gmail, Outlook, Apple Mail, etc.
+ * Calzada Branded HTML Email Templates
+ * Compatible with Gmail, Outlook, Apple Mail, etc.
+ * Design system: Flat white cards, 1px solid #E2E8F0, 12px radius, no drop shadows.
+ * Sora for headings, Outfit for body text. #378ADD is the only accent color.
  */
 
 function escapeHtml(str) {
@@ -15,53 +17,39 @@ function escapeHtml(str) {
 
 function formatRating(rating) {
     if (!rating) return null;
-    const key = String(rating).trim();
-    const map = {
-        '1': { emoji: '😞', label: 'Bad' },
-        '2': { emoji: '😕', label: 'Poor' },
-        '3': { emoji: '😐', label: 'Okay' },
-        '4': { emoji: '🙂', label: 'Good' },
-        '5': { emoji: '😄', label: 'Great' },
-        'Bad': { emoji: '😞', label: 'Bad' },
-        'Poor': { emoji: '😕', label: 'Poor' },
-        'Okay': { emoji: '😐', label: 'Okay' },
-        'Good': { emoji: '🙂', label: 'Good' },
-        'Great': { emoji: '😄', label: 'Great' }
-    };
-
-    if (map[key]) {
-        const item = map[key];
-        return `${item.emoji} ${item.label}`;
+    const num = Number(rating);
+    if (!isNaN(num) && num >= 1 && num <= 5) {
+        return `${'★'.repeat(num)}${'☆'.repeat(5 - num)} (${num}/5)`;
     }
-    return escapeHtml(key);
+    return escapeHtml(String(rating));
 }
 
 function getCategoryStyle(category) {
     const norm = String(category || '').trim().toLowerCase();
     if (norm === 'bug report' || norm.includes('bug')) {
         return {
-            bg: '#FFF7ED',       // warm amber/orange tint
-            color: '#C2410C',    // deep warm amber text
+            bg: '#FFF7ED',
+            color: '#C2410C',
             border: '#FFEDD5'
         };
     }
     if (norm === 'suggestion' || norm.includes('suggest') || norm.includes('feature') || norm.includes('idea')) {
         return {
-            bg: '#EFF6FF',       // soft brand blue tint
-            color: '#1D4ED8',    // deep brand blue text
+            bg: '#EFF6FF',
+            color: '#1D4ED8',
             border: '#DBEAFE'
         };
     }
-    // Default / General
     return {
-        bg: '#F1F5F9',         // soft neutral slate tint
-        color: '#475569',      // neutral slate text
+        bg: '#F1F5F9',
+        color: '#475569',
         border: '#E2E8F0'
     };
 }
 
 /**
  * Shared Branded Email Shell (Table-based layout with Calzada wordmark + arrow flourish)
+ * Flat white card, 1px solid #E2E8F0, 12px radius, no drop shadows.
  */
 function renderEmailShell({ title, contentHtml, footerSubtext, showFooter = true }) {
     return `<!DOCTYPE html>
@@ -71,12 +59,12 @@ function renderEmailShell({ title, contentHtml, footerSubtext, showFooter = true
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(title || 'Calzada')}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F1F5F9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1E293B;">
-  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F1F5F9; padding: 40px 16px;">
+<body style="margin: 0; padding: 0; background-color: #F8F9FC; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #042C53;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F8F9FC; padding: 40px 16px;">
     <tr>
       <td align="center">
-        <!-- Main Container Card -->
-        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #E2E8F0;">
+        <!-- Main Container Card (Flat, 1px solid #E2E8F0, 12px radius, no drop shadows) -->
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px; background-color: #FFFFFF; border-radius: 12px; overflow: hidden; border: 1px solid #E2E8F0;">
           
           <!-- Header Band -->
           <tr>
@@ -84,10 +72,10 @@ function renderEmailShell({ title, contentHtml, footerSubtext, showFooter = true
               <table cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td style="vertical-align: middle;">
-                    <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.6px; line-height: 1; text-decoration: none;">Calzada</span>
+                    <span style="font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 24px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.5px; line-height: 1; text-decoration: none;">Calzada</span>
                   </td>
-                  <td style="vertical-align: middle; padding-left: 7px; padding-top: 2px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+                  <td style="vertical-align: middle; padding-left: 8px; padding-top: 2px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
                       <line x1="5" y1="12" x2="19" y2="12"></line>
                       <polyline points="13 6 19 12 13 18"></polyline>
                     </svg>
@@ -99,7 +87,7 @@ function renderEmailShell({ title, contentHtml, footerSubtext, showFooter = true
 
           <!-- Card Body -->
           <tr>
-            <td style="padding: 28px 32px 30px 32px;">
+            <td style="padding: 32px;">
               ${contentHtml}
             </td>
           </tr>
@@ -108,11 +96,8 @@ function renderEmailShell({ title, contentHtml, footerSubtext, showFooter = true
           <!-- Footer Band -->
           <tr>
             <td style="background-color: #F8FAFC; border-top: 1px solid #E2E8F0; padding: 20px 32px; font-size: 12px; color: #64748B; line-height: 1.5; text-align: left;">
-              <div style="margin-bottom: 4px; font-weight: 500; color: #475569;">
-                This is an automated notification from the Calzada capstone feedback form.
-              </div>
-              <div style="font-size: 11px; color: #94A3B8;">
-                ${footerSubtext || 'Calzada &bull; Calamba City, Laguna &bull; Academic Capstone Project'}
+              <div style="font-family: 'Outfit', sans-serif;">
+                ${footerSubtext || 'This is an automated message from Calzada. Reply to this email to reach us.'}
               </div>
             </td>
           </tr>` : ''}
@@ -126,7 +111,341 @@ function renderEmailShell({ title, contentHtml, footerSubtext, showFooter = true
 }
 
 /**
- * Internal Notification Email (Sent to thecalzada@gmail.com)
+ * Event Email Generator for All 14 Catalog Events
+ * Each email has:
+ * - One clear headline
+ * - 2-4 short lines
+ * - One button (to My Business, place page, or planner)
+ * - Standard automated message footer
+ */
+function renderEventEmail(eventName, payload = {}, recipientType = 'owner') {
+    const baseUrl = process.env.PRODUCTION_ORIGIN || 'https://calzadaph.com';
+    const myBusinessUrl = `${baseUrl}/my-business`;
+    const plannerUrl = `${baseUrl}/planner`;
+    const adminUrl = `${baseUrl}/admin`;
+
+    const b = payload.business || {};
+    const businessName = escapeHtml(b.name || payload.businessName || payload.name || 'Your business');
+    const plainBusName = String(b.name || payload.businessName || payload.name || 'Your business').replace(/[\r\n]+/g, ' ').trim();
+    const safeReason = escapeHtml(payload.reason || b.reviewNote || 'No specific note provided.');
+    const planName = escapeHtml(b.plan === 'plus360' ? 'Listed + 360' : (b.plan === 'featured' ? 'Featured' : 'Listed'));
+    const amount = payload.amountDue || b.amountDue || (b.plan === 'featured' ? 299 : (b.plan === 'plus360' ? 199 : 59));
+    const refNo = escapeHtml(payload.referenceNo || b.lastPaymentRef || 'Submitted');
+    const shootDate = escapeHtml(payload.shootDate || b.tour360ShootDate || 'To be determined');
+    const placeId = escapeHtml(payload.placeId || b.placeId || payload.entityId || '');
+    const placeName = escapeHtml(payload.placeName || b.name || 'Calamba Place');
+    const plainPlaceName = String(payload.placeName || b.name || 'Calamba Place').replace(/[\r\n]+/g, ' ').trim();
+    const reviewerName = escapeHtml(payload.reviewerName || 'A commuter');
+    const ratingStars = formatRating(payload.rating || 5);
+    const commentPreview = escapeHtml(payload.commentText ? (payload.commentText.length > 120 ? payload.commentText.slice(0, 117) + '...' : payload.commentText) : 'No written comment');
+
+    let subject = '';
+    let headline = '';
+    let lines = [];
+    let buttonText = '';
+    let buttonUrl = myBusinessUrl;
+    let extraBox = '';
+
+    switch (eventName) {
+        case 'application_received':
+            if (recipientType === 'admin') {
+                subject = `New business application: ${plainBusName}`;
+                headline = `New application: ${businessName}`;
+                lines = [
+                    `A new business registration was submitted on Calzada.`,
+                    `Category: ${escapeHtml(b.category || 'Local Business')} · Plan: ${planName}.`,
+                    `Review the application details and location pin in the admin panel.`
+                ];
+                buttonText = 'Review in Admin Panel';
+                buttonUrl = `${adminUrl}#applications`;
+            } else {
+                subject = `We got your application for ${plainBusName}`;
+                headline = `We received your application for ${businessName}`;
+                lines = [
+                    `Thank you for registering ${businessName} on Calzada.`,
+                    `The Calzada team verifies every listing to give commuters in Calamba accurate location and contact details.`,
+                    `We will email you once our review is complete.`
+                ];
+                buttonText = 'View on My Business';
+                buttonUrl = myBusinessUrl;
+            }
+            break;
+
+        case 'application_needs_changes':
+            subject = `Action needed: changes requested for ${plainBusName}`;
+            headline = `Changes requested for ${businessName}`;
+            lines = [
+                `Our team reviewed your application and requested adjustments before we can approve it:`,
+                `Please update your details and resubmit when ready.`
+            ];
+            extraBox = `
+              <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #991B1B; line-height: 1.5;">
+                ${safeReason}
+              </div>`;
+            buttonText = 'Update & Resubmit';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'application_approved_pay':
+            subject = `Your details are approved – pay with GCash to go live on Calzada`;
+            headline = `${businessName} is approved – next step: payment`;
+            lines = [
+                `Great news! Your business details have been approved by Calzada.`,
+                `Chosen Plan: ${planName} · Amount Due: ₱${amount}.`,
+                `Pay via GCash and upload your confirmation receipt on My Business to publish your listing.`
+            ];
+            buttonText = 'Upload Receipt on My Business';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'application_declined':
+            subject = `Application status for ${plainBusName}`;
+            headline = `Update on your application for ${businessName}`;
+            lines = [
+                `Thank you for your interest in listing with Calzada.`,
+                `After careful review, we are unable to approve this application at this time:`,
+                `Declined registrations do not incur any charges.`
+            ];
+            extraBox = `
+              <div style="background-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #475569; line-height: 1.5;">
+                ${safeReason}
+              </div>`;
+            buttonText = 'Open My Business';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'payment_received':
+            if (recipientType === 'admin') {
+                subject = `Payment receipt submitted: ${plainBusName}`;
+                headline = `New payment receipt for ${businessName}`;
+                lines = [
+                    `A payment confirmation receipt was uploaded for ${businessName}.`,
+                    `Reference: ${refNo} · Amount Due: ₱${amount}.`,
+                    `Verify this transaction in your GCash merchant portal and publish the listing.`
+                ];
+                buttonText = 'Verify in Admin Panel';
+                buttonUrl = `${adminUrl}#payments`;
+            } else {
+                subject = `We got your receipt for ${plainBusName}`;
+                headline = `We received your payment receipt for ${businessName}`;
+                lines = [
+                    `Thank you for submitting your GCash payment confirmation.`,
+                    `Reference: ${refNo} · Plan: ${planName}.`,
+                    `Our team verifies receipts within 1–2 business days. We will notify you the moment your listing is live.`
+                ];
+                buttonText = 'Check Status on My Business';
+                buttonUrl = myBusinessUrl;
+            }
+            break;
+
+        case 'payment_not_matched':
+            subject = `Payment receipt update for ${plainBusName}`;
+            headline = `Payment could not be verified for ${businessName}`;
+            lines = [
+                `We checked the payment receipt you uploaded, but we were unable to match it with our records:`,
+                `Please double-check your GCash transaction reference number and re-upload the receipt.`
+            ];
+            extraBox = `
+              <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #991B1B; line-height: 1.5;">
+                ${safeReason}
+              </div>`;
+            buttonText = 'Re-upload Receipt';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'business_live':
+            subject = `${plainBusName} is live on Calzada`;
+            headline = `${businessName} is now live on Calzada!`;
+            lines = [
+                `Your payment has been verified and your business listing is officially published.`,
+                `Commuters in Calamba can now find your location, plan jeepney routes to it, and read your updates.`,
+                `You can update photos, post announcements, and view commuter views on your dashboard.`
+            ];
+            buttonText = 'Open Business Dashboard';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'tour360_availed':
+            if (recipientType === 'admin') {
+                subject = `New 360 shoot pending: ${plainBusName}`;
+                headline = `360° virtual tour shoot pending for ${businessName}`;
+                lines = [
+                    `A business has subscribed to a plan including an on-site 360° virtual tour.`,
+                    `Location: ${escapeHtml(b.address || 'Calamba City')} · Contact: ${escapeHtml(b.contactNumber || 'On file')}.`,
+                    `Contact the owner to arrange the photography schedule.`
+                ];
+                buttonText = 'View in Admin Panel';
+                buttonUrl = `${adminUrl}#businesses`;
+            } else {
+                subject = `Your 360° virtual tour: next steps for ${plainBusName}`;
+                headline = `Your 360° virtual tour for ${businessName}`;
+                lines = [
+                    `Your Calzada subscription includes an on-site 360° virtual tour of your establishment.`,
+                    `Our team will reach out to schedule a quick 15-minute photography session at your location.`,
+                    `Once captured, your immersive tour will be published directly on your Calzada listing.`
+                ];
+                buttonText = 'View on My Business';
+                buttonUrl = myBusinessUrl;
+            }
+            break;
+
+        case 'tour360_scheduled':
+            subject = `360° photo shoot scheduled for ${plainBusName}`;
+            headline = `360° shoot scheduled for ${businessName}`;
+            lines = [
+                `Your on-site 360° photography session is confirmed for ${shootDate}.`,
+                `A Calzada photographer will visit your establishment at the scheduled time.`,
+                `Please have your customer area ready so we can capture your space at its best.`
+            ];
+            buttonText = 'View Details on My Business';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'tour360_published':
+            subject = `Your 360° virtual tour is now published for ${plainBusName}`;
+            headline = `Your 360° tour is live on Calzada!`;
+            lines = [
+                `The 360° interactive virtual tour for ${businessName} is now published.`,
+                `Commuters can now look inside your establishment right from your place page.`,
+                `Check out how it looks on the Calzada map.`
+            ];
+            buttonText = 'View Place on Calzada';
+            buttonUrl = placeId ? `${baseUrl}/places?id=${placeId}` : `${baseUrl}/places`;
+            break;
+
+        case 'business_removed':
+            subject = `Listing status update for ${plainBusName}`;
+            headline = `${businessName} has been unlisted from Calzada`;
+            lines = [
+                `Your business listing has been hidden or removed by an administrator:`,
+                `If you have questions or would like to appeal this action, reply directly to this email.`
+            ];
+            extraBox = `
+              <div style="background-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #475569; line-height: 1.5;">
+                ${safeReason}
+              </div>`;
+            buttonText = 'Open My Business';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        case 'review_posted':
+            if (recipientType === 'user') {
+                subject = `Thank you for reviewing ${plainPlaceName}`;
+                headline = `Thank you for your review of ${placeName}`;
+                lines = [
+                    `We received your review for ${placeName}.`,
+                    `Your rating: ${ratingStars} · "${commentPreview}".`,
+                    `Community feedback helps commuters discover quality spots and helps local establishments improve.`
+                ];
+                buttonText = 'View Place & Reviews';
+                buttonUrl = placeId ? `${baseUrl}/places?id=${placeId}` : `${baseUrl}/places`;
+            } else {
+                subject = `New review received for ${plainPlaceName}`;
+                headline = `New review on ${placeName}`;
+                lines = [
+                    `A commuter posted a new review on ${placeName}.`,
+                    `Rating: ${ratingStars} by ${reviewerName}.`,
+                    `Comment: "${commentPreview}".`
+                ];
+                buttonText = 'View Place & Reviews';
+                buttonUrl = placeId ? `${baseUrl}/places?id=${placeId}` : `${baseUrl}/places`;
+            }
+            break;
+
+        case 'review_removed':
+            subject = `Your review for ${plainPlaceName} was removed`;
+            headline = `Notice regarding your review for ${placeName}`;
+            lines = [
+                `Your review for ${placeName} was hidden or removed by Calzada moderation:`,
+                `Please review our community standards to ensure your future contributions remain active.`
+            ];
+            extraBox = `
+              <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #991B1B; line-height: 1.5;">
+                ${safeReason}
+              </div>`;
+            buttonText = 'Visit Calzada Places';
+            buttonUrl = `${baseUrl}/places`;
+            break;
+
+        case 'post_hidden':
+            subject = `Your post for ${plainBusName} has been hidden`;
+            headline = `Post moderation notice for ${businessName}`;
+            lines = [
+                `A post published for ${businessName} was hidden by an administrator:`,
+                `You can view and manage your posts anytime from your My Business dashboard.`
+            ];
+            extraBox = `
+              <div style="background-color: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #991B1B; line-height: 1.5;">
+                ${safeReason}
+              </div>`;
+            buttonText = 'Manage Posts on My Business';
+            buttonUrl = myBusinessUrl;
+            break;
+
+        default:
+            subject = `Update regarding ${plainBusName}`;
+            headline = `Notification for ${businessName}`;
+            lines = [
+                `There is a new update regarding your business listing on Calzada.`,
+                `Please check your dashboard for details.`
+            ];
+            buttonText = 'Open My Business';
+            buttonUrl = myBusinessUrl;
+            break;
+    }
+
+    const linesHtml = lines.map(line => `
+      <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
+        ${line}
+      </p>
+    `).join('');
+
+    const contentHtml = `
+      <h1 style="font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #042C53; margin: 0 0 16px 0; line-height: 1.3;">
+        ${headline}
+      </h1>
+      ${linesHtml}
+      ${extraBox}
+      <table cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0 0 0;">
+        <tr>
+          <td>
+            <a href="${buttonUrl}" style="background-color: #378ADD; color: #FFFFFF; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+              ${buttonText}
+            </a>
+          </td>
+        </tr>
+      </table>
+    `;
+
+    return {
+        subject,
+        html: renderEmailShell({
+            title: subject,
+            contentHtml,
+            showFooter: true
+        })
+    };
+}
+
+/**
+ * Backward compatibility wrapper for existing code calling generateOwnerNotificationEmail
+ */
+function generateOwnerNotificationEmail(params) {
+    const eventMap = {
+        received: 'application_received',
+        needs_changes: 'application_needs_changes',
+        approved_unpaid: 'application_approved_pay',
+        payment_received: 'payment_received',
+        not_matched: 'payment_not_matched',
+        live: 'business_live',
+        declined: 'application_declined'
+    };
+    const mapped = eventMap[params?.event] || params?.event;
+    return renderEventEmail(mapped, params, 'owner');
+}
+
+/**
+ * Internal Notification Email (Feedback Submissions)
  */
 function generateFeedbackEmailHtml({ category, rating, name, email, message, timestamp }) {
     const safeCategory = escapeHtml(category);
@@ -147,14 +466,10 @@ function generateFeedbackEmailHtml({ category, rating, name, email, message, tim
     });
 
     const contentHtml = `
-      <!-- Natural Context Line + Timestamp -->
       <div style="font-size: 14px; line-height: 1.5; color: #64748B; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;">
         New feedback just came in &mdash; <strong style="color: #042C53; font-weight: 600;">${timestampStr}</strong>.
       </div>
-
-      <!-- Field-Row Layout Table -->
       <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
-        <!-- Category Row -->
         <tr>
           <td style="padding: 10px 0; width: 105px; vertical-align: middle;">
             <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block;">Category</span>
@@ -165,9 +480,7 @@ function generateFeedbackEmailHtml({ category, rating, name, email, message, tim
             </span>
           </td>
         </tr>
-
         ${formattedRating ? `
-        <!-- Rating Row -->
         <tr>
           <td style="padding: 10px 0; width: 105px; vertical-align: middle;">
             <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block;">Rating</span>
@@ -175,202 +488,109 @@ function generateFeedbackEmailHtml({ category, rating, name, email, message, tim
           <td style="padding: 10px 0; font-size: 15px; font-weight: 500; color: #042C53; vertical-align: middle;">
             ${formattedRating}
           </td>
-        </tr>
-        ` : ''}
-
-        <!-- Submitter Name Row -->
+        </tr>` : ''}
+        ${safeName ? `
         <tr>
-          <td style="padding: 10px 0; width: 105px; vertical-align: middle;">
-            <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block;">Name</span>
+          <td style="padding: 10px 0; vertical-align: middle;">
+            <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block;">Sender</span>
           </td>
           <td style="padding: 10px 0; font-size: 15px; font-weight: 500; color: #042C53; vertical-align: middle;">
-            ${safeName ? safeName : '<span style="color: #94A3B8; font-weight: 400; font-style: italic;">Not provided</span>'}
+            ${safeName}
           </td>
-        </tr>
-
-        <!-- Submitter Email Row -->
+        </tr>` : ''}
+        ${safeEmail ? `
         <tr>
-          <td style="padding: 10px 0; width: 105px; vertical-align: middle;">
+          <td style="padding: 10px 0; vertical-align: middle;">
             <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; display: block;">Email</span>
           </td>
-          <td style="padding: 10px 0; font-size: 15px; font-weight: 500; vertical-align: middle;">
-            <a href="mailto:${safeEmail}" style="color: #378ADD; text-decoration: none; font-weight: 500;">
-              ${safeEmail}
-            </a>
+          <td style="padding: 10px 0; font-size: 14px; vertical-align: middle;">
+            <a href="mailto:${safeEmail}" style="color: #378ADD; text-decoration: none; font-weight: 500;">${safeEmail}</a>
           </td>
-        </tr>
+        </tr>` : ''}
       </table>
-
-      <!-- Message Section -->
-      <div style="margin-top: 22px; padding-top: 20px; border-top: 1px solid #F1F5F9;">
-        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 10px;">
-          Message
-        </div>
-        <div style="background-color: #F8FAFC; border-left: 4px solid #378ADD; padding: 18px 20px; border-radius: 0 6px 6px 0; color: #042C53; font-size: 15px; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-          ${safeMessage}
-        </div>
-      </div>
+      ${safeMessage ? `
+      <div style="margin-top: 20px; padding: 16px; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
+        <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 8px;">Message</div>
+        <div style="font-size: 14px; line-height: 1.6; color: #334155;">${safeMessage}</div>
+      </div>` : ''}
     `;
 
     return renderEmailShell({
-        title: `[Calzada Feedback] ${category} — from ${name || 'Anonymous'}`,
+        title: `Calzada Feedback: ${category}`,
         contentHtml,
-        footerSubtext: 'Reply directly to this email to contact the submitter.',
+        footerSubtext: 'Calzada • Calamba City, Laguna • Automated notification',
         showFooter: true
     });
 }
 
-/**
- * Submitter Thank-You Email (Sent to user's verified email)
- */
 function generateFeedbackThankYouEmailHtml({ name, category }) {
-    const safeName = name && name.trim() ? escapeHtml(name.trim()) : 'there';
-    const rawCategory = category ? category.trim() : 'Feedback';
-    const catLower = rawCategory.toLowerCase();
-    const catDisplay = (catLower === 'general' || !catLower) ? 'feedback' : escapeHtml(catLower);
+    const safeName = name && name.trim() ? escapeHtml(name.trim()) : null;
+    const greeting = safeName ? `Hi ${safeName},` : 'Hello,';
+    const baseUrl = process.env.PRODUCTION_ORIGIN || 'https://calzadaph.com';
 
     const contentHtml = `
-      <div style="font-size: 14px; line-height: 1.5; color: #64748B; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 1px solid #F1F5F9;">
-        Confirmation &mdash; <strong style="color: #042C53; font-weight: 600;">We received your feedback</strong>.
-      </div>
-
-      <p style="font-size: 15px; line-height: 1.6; color: #1E293B; margin: 0 0 16px 0;">
-        Hi ${safeName},
+      <h1 style="font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #042C53; margin: 0 0 16px 0; line-height: 1.3;">
+        Thank you for helping us improve Calzada
+      </h1>
+      <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
+        ${greeting}
       </p>
-
-      <p style="font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 16px 0;">
-        Thank you for taking the time to share your feedback with us. We&rsquo;ve received your <strong style="color: #042C53;">${catDisplay}</strong> and our team will review it as we continue improving Calzada.
+      <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
+        We received your feedback regarding <strong>${escapeHtml(category || 'Calzada')}</strong>. Every report and suggestion helps make navigating Calamba easier for everyone.
       </p>
-
-      <p style="font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 24px 0;">
-        We appreciate you helping us make the app better.
+      <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 24px 0;">
+        Our team reviews every submission as we expand route coverage and features across the city.
       </p>
-
-      <div style="font-size: 15px; font-weight: 600; color: #042C53;">
-        &mdash; The Calzada Team
-      </div>
-    `;
-
-    return renderEmailShell({
-        title: 'Thank you for your feedback! — Calzada',
-        contentHtml,
-        showFooter: false
-    });
-}
-
-/**
- * Smart Travel Reminder Email (Sent when remindAt is reached)
- */
-function generateReminderEmailHtml({
-    destName,
-    originLabel,
-    leaveTimeStr,
-    arriveTimeStr,
-    modeStr,
-    fareStr,
-    fareRegular,
-    fareDiscounted,
-    plannerUrl,
-    lang = 'en'
-}) {
-    const isTl = lang === 'tl';
-    const safeDest = escapeHtml(destName || 'your destination');
-    const safeOrigin = escapeHtml(originLabel || 'Current Location');
-    const safeLeave = escapeHtml(leaveTimeStr || '--:--');
-    const safeArrive = escapeHtml(arriveTimeStr || '--:--');
-    const safeMode = escapeHtml(modeStr || (isTl ? 'Dyip' : 'Jeepney'));
-    const safeUrl = escapeHtml(plannerUrl || 'https://calzadaph.com/planner');
-
-    let resolvedFareStr = null;
-    if (typeof fareRegular === 'number' && typeof fareDiscounted === 'number') {
-        if (fareRegular === 0) {
-            resolvedFareStr = isTl ? 'Libre' : 'Free';
-        } else {
-            const discLabel = isTl ? 'Estudyante/Senior/PWD' : 'Student/Senior/PWD';
-            resolvedFareStr = `₱${fareRegular.toFixed(2)} (${discLabel} ₱${fareDiscounted.toFixed(2)})`;
-        }
-    }
-
-    const subject = isTl
-        ? `Oras na para umalis papuntang ${destName}`
-        : `Time to leave for ${destName}`;
-
-    const headline = isTl ? 'Oras na para umalis!' : "It's time to leave!";
-    const subheader = isTl
-        ? `Narito ang paalala para sa iyong byahe papuntang <strong style="color: #042C53;">${safeDest}</strong>.`
-        : `Here are the details for your trip to <strong style="color: #042C53;">${safeDest}</strong>.`;
-
-    const labelLeave = isTl ? 'Umalis bago mag' : 'Leave by';
-    const labelArrive = isTl ? 'Tinatayang dating' : 'Estimated arrival';
-    const labelMode = isTl ? 'Sasakyan' : 'Mode';
-    const labelFare = isTl ? 'Pamasahe' : 'Fare estimate';
-    const labelOrigin = isTl ? 'Pinanggalingan' : 'Starting from';
-    const ctaText = isTl ? 'Buksan sa Calzada Planner' : 'Open in Calzada Planner';
-
-    const fareRowHtml = resolvedFareStr ? `
-              <tr>
-                <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelFare}</td>
-                <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${escapeHtml(resolvedFareStr)}</td>
-              </tr>` : '';
-
-    const contentHtml = `
-      <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #2272C3; margin-bottom: 8px;">
-        ${isTl ? 'Paalala sa Byahe' : 'Travel Reminder'}
-      </div>
-      <h2 style="font-size: 22px; font-weight: 800; color: #042C53; margin: 0 0 12px 0; line-height: 1.3;">
-        ${headline}
-      </h2>
-      <p style="font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 24px 0;">
-        ${subheader}
-      </p>
-
-      <!-- Highlight Card -->
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; margin-bottom: 24px; overflow: hidden;">
+      <table cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td style="padding: 20px; border-bottom: 1px solid #E2E8F0; background: #EFF6FF;">
-            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #1D4ED8; margin-bottom: 4px;">
-              ${labelLeave}
-            </div>
-            <div style="font-size: 26px; font-weight: 800; color: #1E3A8A; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              ${safeLeave}
-            </div>
-            <div style="font-size: 13px; color: #475569; margin-top: 4px;">
-              ${labelArrive}: <strong style="color: #0F172A;">${safeArrive}</strong>
-            </div>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding: 18px 20px;">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0">
-              <tr>
-                <td style="padding: 6px 0; font-size: 13px; color: #64748B; width: 120px;">${labelMode}</td>
-                <td style="padding: 6px 0; font-size: 14px; font-weight: 600; color: #0F172A;">${safeMode}</td>
-              </tr>${fareRowHtml}
-              <tr>
-                <td style="padding: 6px 0; font-size: 13px; color: #64748B;">${labelOrigin}</td>
-                <td style="padding: 6px 0; font-size: 14px; color: #334155;">${safeOrigin}</td>
-              </tr>
-            </table>
-          </td>
-        </tr>
-      </table>
-
-      <!-- CTA Button -->
-      <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
-        <tr>
-          <td align="center">
-            <a href="${safeUrl}" style="display: inline-block; background-color: #2272C3; color: #FFFFFF; font-size: 15px; font-weight: 700; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              ${ctaText} &rarr;
+          <td>
+            <a href="${baseUrl}/planner" style="background-color: #378ADD; color: #FFFFFF; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+              Explore Calzada Planner
             </a>
           </td>
         </tr>
       </table>
+    `;
 
-      <div style="font-size: 13px; color: #64748B; line-height: 1.5; border-top: 1px solid #F1F5F9; padding-top: 16px;">
-        ${isTl
-          ? 'Naka-iskedyul ang paalalang ito batay sa iyong napiling oras sa Calzada.'
-          : 'This reminder was scheduled based on your chosen departure time on Calzada.'}
-      </div>
+    return renderEmailShell({
+        title: 'Thank you for your feedback – Calzada',
+        contentHtml,
+        showFooter: true
+    });
+}
+
+function generateReminderEmailHtml({ destName, leaveByStr, etaStr, mode, fareStr, originName, plannerUrl, lang }) {
+    const isTl = (lang || '').toLowerCase() === 'tl';
+    const safeDest = escapeHtml(destName || (isTl ? 'iyong destinasyon' : 'your destination'));
+    const safeLeave = escapeHtml(leaveByStr || 'Now');
+    const safeArrive = escapeHtml(etaStr || '--:--');
+    const safeMode = escapeHtml(mode === 'walking' || mode === 'walk' ? (isTl ? 'Paglalakad' : 'Walking') : 'Jeepney');
+    const safeOrigin = escapeHtml(originName || (isTl ? 'Aking Lokasyon' : 'My Location'));
+    const safeUrl = escapeHtml(plannerUrl || 'https://calzadaph.com/planner');
+
+    const subject = isTl
+        ? `Paalala sa Byahe: Papuntang ${String(destName || 'destinasyon').replace(/[\r\n]+/g, ' ').trim()}`
+        : `Travel Reminder: Trip to ${String(destName || 'destination').replace(/[\r\n]+/g, ' ').trim()}`;
+
+    const contentHtml = `
+      <h1 style="font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: #042C53; margin: 0 0 16px 0; line-height: 1.3;">
+        ${isTl ? `Paalala para sa byahe papuntang ${safeDest}` : `Travel reminder for your trip to ${safeDest}`}
+      </h1>
+      <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
+        ${isTl ? 'Umalis bago mag' : 'Leave by'}: <strong style="color: #042C53;">${safeLeave}</strong> · ${isTl ? 'Tinatayang dating' : 'Estimated arrival'}: <strong style="color: #042C53;">${safeArrive}</strong>.
+      </p>
+      <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
+        ${isTl ? 'Sasakyan' : 'Mode'}: ${safeMode}${fareStr ? ` · ${isTl ? 'Pamasahe' : 'Fare'}: ${escapeHtml(fareStr)}` : ''} · ${isTl ? 'Simula sa' : 'Starting from'}: ${safeOrigin}.
+      </p>
+      <table cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0 0 0;">
+        <tr>
+          <td>
+            <a href="${safeUrl}" style="background-color: #378ADD; color: #FFFFFF; font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
+              ${isTl ? 'Buksan sa Calzada Planner' : 'Open in Calzada Planner'}
+            </a>
+          </td>
+        </tr>
+      </table>
     `;
 
     return {
@@ -378,209 +598,6 @@ function generateReminderEmailHtml({
         html: renderEmailShell({
             title: subject,
             contentHtml,
-            showFooter: false
-        })
-    };
-}
-
-/**
- * Owner Notification Emails for Application & Payment lifecycle events
- */
-function generateOwnerNotificationEmail({ event, business, reason, amountDue, plan, referenceNo }) {
-    const businessName = escapeHtml(business?.name || 'Your business');
-    const subjectName = String(business?.name || 'Your business').replace(/[\r\n]+/g, ' ').trim();
-    const safeReason = escapeHtml(reason || business?.reviewNote || 'No specific note provided.');
-    const planName = plan === 'plus360' ? 'Listed + 360' : (plan === 'featured' ? 'Featured' : 'Listed');
-    const amount = amountDue || (plan === 'featured' ? 299 : (plan === 'plus360' ? 199 : 59));
-    const baseUrl = process.env.PRODUCTION_ORIGIN || 'https://calzadaph.com';
-    const myBusinessUrl = `${baseUrl}/my-business`;
-
-    let subject = '';
-    let bodyHtml = '';
-
-    switch (event) {
-        case 'received':
-            subject = `We got your application for ${subjectName}`;
-            bodyHtml = `
-              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                We got your application for <strong>${businessName}</strong>.
-              </p>
-              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
-                The Calzada team checks every registration to make sure commuters get accurate information. We'll email you once our review is complete.
-              </p>
-            `;
-            break;
-
-        case 'needs_changes':
-            subject = `Action needed: changes requested for ${subjectName}`;
-            bodyHtml = `
-              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                Our team reviewed your application for <strong>${businessName}</strong> and requested a few changes before approval:
-              </p>
-              <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #991B1B; line-height: 1.5;">
-                ${safeReason}
-              </div>
-              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
-                Please visit your business page to update your details and resubmit for review.
-              </p>
-              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
-                      Update &amp; Resubmit
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            `;
-            break;
-
-        case 'approved_unpaid':
-            subject = `Your details are approved – pay with GCash to go live on Calzada`;
-            bodyHtml = `
-              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                Great news! Details for <strong>${businessName}</strong> have been approved by Calzada.
-              </p>
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
-                <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                  <tr>
-                    <td style="font-size: 14px; color: #64748B; padding-bottom: 8px;">Chosen Plan</td>
-                    <td style="font-size: 14px; font-weight: 700; color: #042C53; text-align: right; padding-bottom: 8px;">${planName}</td>
-                  </tr>
-                  <tr>
-                    <td style="font-size: 14px; color: #64748B;">Amount Due</td>
-                    <td style="font-size: 18px; font-weight: 800; color: #378ADD; text-align: right;">₱${amount}</td>
-                  </tr>
-                </table>
-              </div>
-              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                Pay exactly <strong>₱${amount}</strong> with GCash, then upload the receipt on My Business to go live on the Calzada map.
-              </p>
-              <div style="text-align: center; margin: 24px 0;">
-                <img src="${baseUrl}/assets/payments/gcash-qr.png" alt="Calzada PH GCash QR code" style="max-width: 260px; border-radius: 12px; border: 1px solid #E2E8F0;" />
-              </div>
-              <table cellpadding="0" cellspacing="0" border="0" style="margin: 0 auto 24px;">
-                <tr>
-                  <td>
-                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
-                      Upload Receipt on My Business
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            `;
-            break;
-
-        case 'payment_received':
-            subject = `We got your receipt for ${subjectName}`;
-            bodyHtml = `
-              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                We got your receipt for <strong>${businessName}</strong>.
-              </p>
-              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
-                Our team checks payments within 1–2 days against our GCash statement. We'll email you once your listing is verified and live on the map.
-              </p>
-            `;
-            break;
-
-        case 'not_matched':
-            subject = `Payment receipt update for ${subjectName}`;
-            bodyHtml = `
-              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                We reviewed the payment receipt submitted for <strong>${businessName}</strong>, but could not verify it:
-              </p>
-              <div style="background-color: #FEF2F2; border-left: 4px solid #DC2626; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #991B1B; line-height: 1.5;">
-                ${safeReason}
-              </div>
-              <p style="font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 24px;">
-                Please check your reference number and upload the correct GCash confirmation receipt on My Business.
-              </p>
-              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
-                      Re-upload Receipt
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            `;
-            break;
-
-        case 'live':
-            subject = `${subjectName} is live on Calzada`;
-            const refText = referenceNo ? escapeHtml(referenceNo) : 'Verified';
-            const today = new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
-            bodyHtml = `
-              <p style="font-size: 16px; line-height: 1.6; color: #16A34A; font-weight: 700; margin-bottom: 12px;">
-                🎉 Your business is now live on Calzada!
-              </p>
-              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 24px;">
-                Commuters in Calamba can now find <strong>${businessName}</strong> on the map, browse it in Places, plan jeepney routes to it, and see your updates.
-              </p>
-              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 18px; margin-bottom: 24px;">
-                <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 12px;">
-                  Payment Acknowledgment (Not an official receipt)
-                </div>
-                <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size: 13px;">
-                  <tr>
-                    <td style="color: #64748B; padding-bottom: 6px;">Business:</td>
-                    <td style="font-weight: 600; color: #042C53; text-align: right; padding-bottom: 6px;">${businessName}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #64748B; padding-bottom: 6px;">Plan:</td>
-                    <td style="font-weight: 600; color: #042C53; text-align: right; padding-bottom: 6px;">${planName}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #64748B; padding-bottom: 6px;">Amount Paid:</td>
-                    <td style="font-weight: 700; color: #16A34A; text-align: right; padding-bottom: 6px;">₱${amount}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #64748B; padding-bottom: 6px;">Reference No:</td>
-                    <td style="font-family: monospace; color: #042C53; text-align: right; padding-bottom: 6px;">${refText}</td>
-                  </tr>
-                  <tr>
-                    <td style="color: #64748B;">Date Verified:</td>
-                    <td style="color: #042C53; text-align: right;">${today}</td>
-                  </tr>
-                </table>
-              </div>
-              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
-                <tr>
-                  <td>
-                    <a href="${myBusinessUrl}" style="background-color: #378ADD; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 8px; display: inline-block;">
-                      Open Business Dashboard
-                    </a>
-                  </td>
-                </tr>
-              </table>
-            `;
-            break;
-
-        case 'declined':
-            subject = `Application status for ${subjectName}`;
-            bodyHtml = `
-              <p style="font-size: 15px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                Thank you for your interest in listing <strong>${businessName}</strong> on Calzada.
-              </p>
-              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin-bottom: 16px;">
-                After reviewing your application, we are unable to approve this listing at this time:
-              </p>
-              <div style="background-color: #F1F5F9; border-left: 4px solid #64748B; border-radius: 6px; padding: 14px 16px; margin-bottom: 24px; font-size: 14px; color: #475569; line-height: 1.5;">
-                ${safeReason}
-              </div>
-              <p style="font-size: 13px; color: #64748B; line-height: 1.5;">
-                Declined registrations do not incur any charges.
-              </p>
-            `;
-            break;
-    }
-
-    return {
-        subject,
-        html: renderEmailShell({
-            title: subject,
-            contentHtml: bodyHtml,
             showFooter: true
         })
     };
@@ -591,9 +608,10 @@ module.exports = {
     formatRating,
     getCategoryStyle,
     renderEmailShell,
+    renderEventEmail,
+    generateEventEmail: renderEventEmail,
+    generateOwnerNotificationEmail,
     generateFeedbackEmailHtml,
     generateFeedbackThankYouEmailHtml,
-    generateReminderEmailHtml,
-    generateOwnerNotificationEmail
+    generateReminderEmailHtml
 };
-

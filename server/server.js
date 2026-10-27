@@ -21,7 +21,8 @@ const allowedOrigins = [
     process.env.PRODUCTION_ORIGIN,
     'https://calzadaph.com',
     'https://calambiyahe.vercel.app',
-    'http://localhost:5000'
+    'http://localhost:5000',
+    'http://127.0.0.1:5000'
 ].filter(Boolean);
 
 app.use(cors({
@@ -615,6 +616,7 @@ app.get('/api/places/search', (req, res) => {
 
 const { createAuthMiddleware, getAuth } = require('./auth');
 const { getFirestore } = require('firebase-admin/firestore');
+const { EVENTS, sendEvent } = require('./mailer');
 const requireAuth = createAuthMiddleware();
 
 function findPlaceById(rawId) {
@@ -706,10 +708,14 @@ app.get('/api/places/:id/rating', async (req, res) => {
             return res.json({ average_rating: 0, total_ratings: 0 });
         }
         let sum = 0;
+        let total = 0;
         snap.forEach(doc => {
-            sum += Number(doc.data().rating) || 0;
+            const d = doc.data();
+            if (d.status !== 'hidden' && d.status !== 'removed') {
+                sum += Number(d.rating) || 0;
+                total++;
+            }
         });
-        const total = snap.size;
         const avg = total > 0 ? parseFloat((sum / total).toFixed(1)) : 0;
         return res.json({ average_rating: avg, total_ratings: total });
     } catch (err) {
@@ -752,6 +758,9 @@ app.get('/api/places/:id/reviews', async (req, res) => {
 
         snap.forEach(doc => {
             const d = doc.data();
+            if (d.status === 'hidden' || d.status === 'removed') {
+                return;
+            }
             const rawDate = d.createdAt || d.updatedAt || null;
             let parsedDate = null;
             if (rawDate) {
@@ -813,15 +822,17 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
         return res.status(404).json({ error: 'Place not found' });
     }
     const placeId = String(place.id);
+    const placeName = place.name || placeId;
     const rating = parseInt(req.body ? req.body.rating : null, 10);
     if (isNaN(rating) || rating < 1 || rating > 5) {
         return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
     }
 
-    const commentText = req.body && typeof req.body.comment_text === 'string' 
-        ? req.body.comment_text.trim() 
+    const commentText = req.body && typeof req.body.comment_text === 'string'
+        ? (req.body.comment_text.trim().slice(0, 500) || null)
         : null;
     const userId = req.user.uid;
+    const userEmail = req.user.email || null;
     const reviewerName = req.user.name || 'Calzada Commuter';
 
     try {
@@ -832,10 +843,13 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
         const now = new Date();
         const reviewData = {
             placeId,
+            placeName,
             userId,
+            userEmail,
             reviewerName,
             rating,
             commentText,
+            status: existingDoc.exists && existingDoc.data().status ? existingDoc.data().status : 'active',
             updatedAt: now
         };
         if (!existingDoc.exists) {
@@ -844,11 +858,49 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
 
         await reviewRef.set(reviewData, { merge: true });
 
-        // Fetch updated average and total count
+        // Trigger sendEvent('review_posted') and write adminActivity
+        const version = existingDoc.exists ? 2 : 1;
+        try {
+            await sendEvent('review_posted', {
+                entityId: reviewDocId,
+                version,
+                data: {
+                    placeId,
+                    placeName,
+                    rating,
+                    commentText,
+                    reviewerName,
+                    userEmail
+                }
+            });
+        } catch (eventErr) {
+            console.warn('[REVIEWS] Could not trigger sendEvent for review_posted:', eventErr.message);
+        }
+
+        try {
+            await adminDb.collection('adminActivity').add({
+                event: 'review_posted',
+                entityId: reviewDocId,
+                actorUid: userId,
+                actorRole: req.user.admin ? 'admin' : 'user',
+                at: now.toISOString(),
+                summary: `Review (${rating}★) posted for ${placeName}`
+            });
+        } catch (actErr) {
+            console.warn('[REVIEWS] Could not write adminActivity for review_posted:', actErr.message);
+        }
+
+        // Fetch updated average and total count (excluding hidden reviews)
         const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
         let sum = 0;
-        snap.forEach(d => { sum += Number(d.data().rating) || 0; });
-        const totalRatings = snap.size;
+        let totalRatings = 0;
+        snap.forEach(d => {
+            const rData = d.data();
+            if (rData.status !== 'hidden' && rData.status !== 'removed') {
+                sum += Number(rData.rating) || 0;
+                totalRatings++;
+            }
+        });
         const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
 
         const effectiveCreatedAt = existingDoc.exists
@@ -904,10 +956,16 @@ app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
 
         await reviewRef.delete();
 
+        // Same average as the public one: hidden or removed reviews do not count
         const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
         let sum = 0;
-        snap.forEach(d => { sum += Number(d.data().rating) || 0; });
-        const totalRatings = snap.size;
+        let totalRatings = 0;
+        snap.forEach(d => {
+            const rData = d.data();
+            if (rData.status === 'hidden' || rData.status === 'removed') return;
+            sum += Number(rData.rating) || 0;
+            totalRatings++;
+        });
         const averageRating = totalRatings > 0 ? parseFloat((sum / totalRatings).toFixed(1)) : 0;
 
         return res.json({
@@ -1750,127 +1808,256 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
 });
 
 // =============================================
-// BUSINESS OWNER NOTIFICATION API
+// VERIFIED TRIGGER ENDPOINT: POST /api/events & NOTIFY-OWNER ALIAS
 // =============================================
-// POST /api/admin/notify-owner - Admin or owner notification dispatch
-app.post('/api/admin/notify-owner', requireAuth, async (req, res) => {
-    const { businessId, event, reason, amountDue, plan, referenceNo } = req.body || {};
+async function handleTriggerEvent(req, res) {
+    const rawBody = req.body || {};
+    const legacyMap = {
+        'received': 'application_received',
+        'needs_changes': 'application_needs_changes',
+        'approved_unpaid': 'application_approved_pay',
+        'not_matched': 'payment_not_matched',
+        'live': 'business_live',
+        'declined': 'application_declined'
+    };
+    const eventName = legacyMap[rawBody.event] || rawBody.event;
+    const entityId = rawBody.entityId || rawBody.businessId;
 
-    const validEvents = ['received', 'needs_changes', 'approved_unpaid', 'payment_received', 'not_matched', 'live', 'declined'];
-    if (!event || !validEvents.includes(event)) {
-        return res.status(400).json({ error: `Invalid event. Must be one of: ${validEvents.join(', ')}` });
+    if (!eventName || !EVENTS[eventName]) {
+        return res.status(400).json({ error: `Invalid event. Must be one of: ${Object.keys(EVENTS).join(', ')}` });
+    }
+    if (!entityId || typeof entityId !== 'string') {
+        return res.status(400).json({ error: 'entityId is required.' });
     }
 
-    if (!businessId || typeof businessId !== 'string' || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
-        return res.status(400).json({ error: 'Invalid or missing businessId.' });
+    const adminDb = getFirestore();
+    if (!adminDb) {
+        return res.status(500).json({ error: 'Database service unavailable.' });
     }
+
+    const isAdmin = req.user && req.user.admin === true;
+    const adminOnlyEvents = [
+        'application_needs_changes',
+        'application_approved_pay',
+        'application_declined',
+        'payment_not_matched',
+        'business_live',
+        'tour360_scheduled',
+        'tour360_published',
+        'business_removed',
+        'review_removed',
+        'post_hidden'
+    ];
+
+    if (adminOnlyEvents.includes(eventName) && !isAdmin) {
+        return res.status(403).json({ error: 'Forbidden: Insufficient permissions to dispatch this notification.' });
+    }
+
+    let actorRole = isAdmin ? 'admin' : 'user';
+    let summary = '';
+    // Everything in the email comes from Firestore, never from the request body: a client must
+    // not be able to choose recipients, the idempotency version, or the text. Only an admin may
+    // add a short reason (shown escaped in the email).
+    const eventData = {};
+    const adminReason = isAdmin && typeof rawBody.reason === 'string' ? rawBody.reason.trim().slice(0, 500) : '';
+    // Idempotency version, derived from the state the event is about, so a second cycle
+    // (a second receipt, a second "needs changes") gets its own email and a repeat does not.
+    let versionKey = '1';
+    const tsKey = (v) => {
+        if (!v) return '0';
+        if (typeof v.toMillis === 'function') return String(v.toMillis());
+        if (v instanceof Date) return String(v.getTime());
+        const n = Date.parse(v);
+        return Number.isFinite(n) ? String(n) : '0';
+    };
 
     try {
-        const adminDb = getFirestore();
-        if (!adminDb) {
-            return res.status(500).json({ error: 'Database service unavailable.' });
+        // Fired by the reviews API itself after a review is saved, not by clients
+        if (eventName === 'review_posted') {
+            return res.status(403).json({ error: 'Forbidden: review_posted is sent by the server.' });
+        }
+        // Owners may only announce their own application and receipt
+        if ((eventName === 'tour360_availed') && !isAdmin) {
+            return res.status(403).json({ error: 'Forbidden: Insufficient permissions to dispatch this notification.' });
         }
 
-        const businessDoc = await adminDb.collection('businesses').doc(businessId).get();
-        if (!businessDoc.exists) {
-            return res.status(404).json({ error: 'Business not found.' });
-        }
-
-        const business = businessDoc.data();
-
-        // Authorization check:
-        // Admin token allowed for all events.
-        // Owner token allowed ONLY for 'payment_received' or 'received' for their own business.
-        const isAdmin = req.user && req.user.admin === true;
-        const isOwner = req.user && business.ownerId === req.user.uid;
-
-        if (!isAdmin) {
-            if ((event === 'payment_received' || event === 'received') && isOwner) {
-                // Allowed
-            } else {
-                return res.status(403).json({ error: 'Forbidden: Insufficient permissions to dispatch this notification.' });
+        // payment_not_matched is about one payment: entityId is the payment id
+        let businessIdForEvent = entityId;
+        let paymentForEvent = null;
+        if (eventName === 'payment_not_matched') {
+            const payDoc = await adminDb.collection('payments').doc(entityId).get();
+            if (!payDoc.exists) {
+                return res.status(404).json({ error: 'Payment not found.' });
+            }
+            paymentForEvent = payDoc.data();
+            if (paymentForEvent.status !== 'not_matched') {
+                return res.status(409).json({ error: "Conflict: payment_not_matched requires the payment status 'not_matched'." });
+            }
+            businessIdForEvent = paymentForEvent.businessId;
+            if (!businessIdForEvent) {
+                return res.status(409).json({ error: 'Conflict: payment has no businessId.' });
             }
         }
 
-        // Fetch owner email: from businesses/{id}/private/owner or auth.getUser(ownerId)
-        let ownerEmail = null;
-        try {
-            const privateDoc = await adminDb.collection('businesses').doc(businessId).collection('private').doc('owner').get();
-            if (privateDoc.exists && privateDoc.data().ownerEmail) {
-                ownerEmail = privateDoc.data().ownerEmail.trim();
-            }
-        } catch (privErr) {
-            console.warn('Could not read private/owner:', privErr.message);
-        }
+        const isBusinessEvent = [
+            'application_received', 'application_needs_changes', 'application_approved_pay',
+            'application_declined', 'payment_received', 'payment_not_matched', 'business_live',
+            'tour360_availed', 'tour360_scheduled', 'tour360_published', 'business_removed'
+        ].includes(eventName);
 
-        if (!ownerEmail && business.ownerId) {
-            try {
-                const adminAuth = getAuth();
-                if (adminAuth) {
-                    const userRecord = await adminAuth.getUser(business.ownerId);
-                    if (userRecord && userRecord.email) {
-                        ownerEmail = userRecord.email.trim();
-                    }
+        if (isBusinessEvent) {
+            const bDoc = await adminDb.collection('businesses').doc(businessIdForEvent).get();
+            if (!bDoc.exists) {
+                return res.status(404).json({ error: 'Business not found.' });
+            }
+            const bData = bDoc.data();
+            const isOwner = req.user && bData.ownerId === req.user.uid;
+
+            if (!isAdmin) {
+                if ((eventName === 'application_received' || eventName === 'payment_received') && isOwner) {
+                    actorRole = 'owner';
+                } else {
+                    return res.status(403).json({ error: 'Forbidden: You do not have permission to trigger this event.' });
                 }
-            } catch (authErr) {
-                console.warn('Could not retrieve user record for owner:', authErr.message);
+            } else if (isOwner) {
+                actorRole = 'owner';
             }
+
+            // State validations (409 on mismatch)
+            if (eventName === 'business_live') {
+                if (bData.status !== 'approved' || !bData.paidAt) {
+                    return res.status(409).json({ error: "Conflict: business_live requires status 'approved' and paidAt to be set." });
+                }
+                summary = `Business marked live: "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.paidAt);
+            } else if (eventName === 'payment_received') {
+                if (bData.status !== 'payment_review' || !bData.lastPaymentId) {
+                    return res.status(409).json({ error: "Conflict: payment_received requires status 'payment_review' and lastPaymentId." });
+                }
+                const payDoc = await adminDb.collection('payments').doc(bData.lastPaymentId).get();
+                if (!payDoc.exists || payDoc.data().status !== 'submitted') {
+                    return res.status(409).json({ error: "Conflict: payment_received requires lastPaymentId pointing to a 'submitted' payment." });
+                }
+                const amount = payDoc.data().amountDue || bData.amountDue || '199';
+                summary = `Payment ₱${amount} from ${bData.name || entityId}`;
+                eventData.amountDue = amount;
+                eventData.referenceNo = payDoc.data().referenceNo || payDoc.data().referenceNumber || bData.lastPaymentRef;
+                versionKey = bData.lastPaymentId;
+            } else if (eventName === 'application_received') {
+                if (bData.status !== 'pending' && bData.status !== 'submitted') {
+                    return res.status(409).json({ error: "Conflict: application_received requires status 'pending' or 'submitted'." });
+                }
+                summary = `Application submitted: "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.updatedAt || bData.submittedAt);
+            } else if (eventName === 'application_needs_changes') {
+                if (bData.status !== 'needs_changes') {
+                    return res.status(409).json({ error: "Conflict: application_needs_changes requires status 'needs_changes'." });
+                }
+                summary = `Changes requested for "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.updatedAt);
+            } else if (eventName === 'application_approved_pay') {
+                if (bData.status !== 'awaiting_payment') {
+                    return res.status(409).json({ error: "Conflict: application_approved_pay requires status 'awaiting_payment'." });
+                }
+                summary = `Application approved (pay with GCash) for "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.detailsApprovedAt || bData.updatedAt);
+            } else if (eventName === 'application_declined') {
+                if (bData.status !== 'declined' && bData.status !== 'rejected') {
+                    return res.status(409).json({ error: "Conflict: application_declined requires status 'declined' or 'rejected'." });
+                }
+                summary = `Application declined for "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.updatedAt);
+            } else if (eventName === 'payment_not_matched') {
+                summary = `Payment not matched for "${bData.name || businessIdForEvent}"`;
+                eventData.referenceNo = paymentForEvent.referenceNo || paymentForEvent.referenceNumber || '';
+                eventData.reason = paymentForEvent.reviewNote || '';
+                versionKey = '1'; // one email per payment (entityId is the payment)
+            } else if (eventName === 'tour360_availed') {
+                summary = `360 Virtual Tour availed for "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.paidAt);
+            } else if (eventName === 'tour360_scheduled') {
+                summary = `360 shoot scheduled for "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.shoot360Date || bData.updatedAt);
+            } else if (eventName === 'tour360_published') {
+                summary = `360 Virtual Tour published for "${bData.name || entityId}"`;
+                versionKey = String((bData.tour360 && bData.tour360.version) || tsKey(bData.updatedAt));
+            } else if (eventName === 'business_removed') {
+                if (bData.status !== 'removed' && bData.status !== 'hidden' && bData.status !== 'pending') {
+                    return res.status(409).json({ error: "Conflict: business_removed requires status 'removed', 'hidden', or 'pending'." });
+                }
+                summary = `Business removed: "${bData.name || entityId}"`;
+                versionKey = tsKey(bData.updatedAt);
+            }
+
+            eventData.business = bData;
+            eventData.businessId = businessIdForEvent;
+            eventData.businessName = bData.name || businessIdForEvent;
+            eventData.plan = bData.plan;
+            eventData.amountDue = eventData.amountDue || bData.amountDue;
+            eventData.reason = adminReason || eventData.reason || bData.rejectionReason || bData.reviewNote || '';
+        } else if (eventName === 'review_removed') {
+            const revDoc = await adminDb.collection('place_reviews').doc(entityId).get();
+            if (!revDoc.exists) {
+                return res.status(409).json({ error: 'Conflict: review doc does not exist.' });
+            }
+            const revData = revDoc.data();
+            if (revData.status !== 'hidden' && revData.status !== 'removed') {
+                return res.status(409).json({ error: "Conflict: review_removed requires status 'hidden' or 'removed'." });
+            }
+            summary = `Review hidden for ${revData.placeName || revData.placeId || entityId}`;
+            eventData.placeId = revData.placeId;
+            eventData.placeName = revData.placeName || revData.placeId;
+            eventData.rating = revData.rating;
+            eventData.commentText = revData.commentText;
+            eventData.reason = adminReason || revData.hiddenReason || '';
+            versionKey = tsKey(revData.updatedAt);
+        } else if (eventName === 'post_hidden') {
+            const postDoc = await adminDb.collection('posts').doc(entityId).get();
+            if (!postDoc.exists) {
+                return res.status(409).json({ error: 'Conflict: post doc does not exist.' });
+            }
+            const postData = postDoc.data();
+            if (postData.status !== 'hidden') {
+                return res.status(409).json({ error: "Conflict: post_hidden requires post status to be 'hidden'." });
+            }
+            summary = `Post hidden for "${postData.businessName || entityId}"`;
+            eventData.postCaption = postData.caption;
+            eventData.reason = adminReason || postData.hiddenReason || '';
+            eventData.businessId = postData.businessId;
+            versionKey = tsKey(postData.updatedAt);
         }
 
-        if (!ownerEmail && req.user.email) {
-            if (isOwner) ownerEmail = req.user.email.trim();
-        }
-
-        // DRY_RUN_EMAIL support: log instead of sending email
-        if (process.env.DRY_RUN_EMAIL === 'true') {
-            console.log(`[DRY_RUN_EMAIL] event="${event}" businessId="${businessId}" businessName="${business.name}" to="${ownerEmail || 'unknown'}" reason="${reason || ''}"`);
-            return res.json({
-                success: true,
-                dryRun: true,
-                event,
-                businessId,
-                ownerEmail
-            });
-        }
-
-        const transporter = getEmailTransporter();
-        if (!transporter || !ownerEmail) {
-            console.warn(`[NOTIFY-OWNER] Cannot dispatch email. transporter=${!!transporter}, ownerEmail=${ownerEmail}`);
-            return res.json({
-                success: false,
-                warning: !ownerEmail ? 'Owner email not found' : 'Email transporter not configured',
-                event
-            });
-        }
-
-        const { subject, html } = generateOwnerNotificationEmail({
-            event,
-            business,
-            reason,
-            amountDue: amountDue || business.amountDue,
-            plan: plan || business.plan,
-            referenceNo: referenceNo || business.lastPaymentRef
+        // Call sendEvent
+        const sendResult = await sendEvent(eventName, {
+            entityId,
+            version: versionKey,
+            data: eventData
         });
 
-        await transporter.sendMail({
-            from: `"Calzada" <${process.env.GMAIL_USER}>`,
-            to: ownerEmail,
-            subject,
-            html
+        // Write adminActivity/{autoId}
+        await adminDb.collection('adminActivity').add({
+            event: eventName,
+            entityId: String(entityId),
+            actorUid: req.user.uid,
+            actorRole,
+            at: new Date().toISOString(),
+            summary: summary || `Event: ${eventName}`
         });
 
-        console.log(`[NOTIFY-OWNER] Sent "${event}" email to ${ownerEmail} for business "${business.name}"`);
         return res.json({
             success: true,
-            event,
-            ownerEmail
+            event: eventName,
+            entityId,
+            ...sendResult
         });
-
     } catch (err) {
-        console.error('[NOTIFY-OWNER] Error dispatching owner notification:', err);
-        return res.status(500).json({ error: 'Failed to dispatch notification email.' });
+        console.error(`[EVENTS] Error handling ${eventName}:`, err);
+        return res.status(500).json({ error: 'Internal server error processing event.' });
     }
-});
+}
+
+app.post('/api/events', requireAuth, handleTriggerEvent);
+app.post('/api/admin/notify-owner', requireAuth, handleTriggerEvent);
 
 // =============================================
 // TRAVEL REMINDERS DISPATCH API (CRON PROTECTED)
