@@ -5221,9 +5221,9 @@ body.legal-modal-open {
 }
 
 /* Responsive Layout Breakpoints */
-@media (max-width: 1200px) {
+@media (max-width: 1199px) {
     .places-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 20px;
     }
 }
@@ -6000,7 +6000,7 @@ body.legal-modal-open {
     }
 
     .places-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 16px;
     }
 }
@@ -6712,7 +6712,7 @@ body.legal-modal-open {
     box-shadow: none;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1200px) {
     #about-section.about-preview-section {
         margin-left: -64px;
         margin-right: -64px;
@@ -7449,7 +7449,7 @@ input#searchInput,
 
 .faq-container {
     position: relative;
-    max-width: 800px;
+    max-width: 720px;
     width: 100%;
     z-index: 1;
     background: transparent;
@@ -7751,7 +7751,8 @@ input#searchInput,
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 820px;
+    max-width: 720px;
+    margin: 0 auto;
     transition: opacity 200ms ease;
 }
 

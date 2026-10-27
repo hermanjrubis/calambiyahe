@@ -17,6 +17,7 @@ body.fares-page::before {
     pointer-events: none;
 }
 
+html,
 body.fares-page {
     background-color: var(--bg, #f0f6fc);
     color: #3D5068;
@@ -32,9 +33,9 @@ body.fares-page .fares-page-container {
     background: transparent;
 }
 
-/* Single 1120px container for all sections */
+/* Single 720px centered container for all sections */
 .fares-shell {
-    max-width: 1120px;
+    max-width: 720px;
     width: 100%;
     margin: 0 auto;
     box-sizing: border-box;
@@ -557,7 +558,7 @@ body.fares-page .fares-page-container {
     }
 
     .fares-grid-section {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
         gap: 20px;
     }
 
@@ -583,14 +584,14 @@ body.fares-page .fares-page-container {
     }
 }
 
-/* Specific 390px mobile view per specification */
+/* Specific mobile view per specification */
 @media (max-width: 480px) {
     body.fares-page .fares-page-container {
         padding: 92px 16px 0;
     }
 
     .fares-section {
-        padding: 32px 24px;
+        padding: 32px 0;
     }
 
     .fares-main-title {
@@ -623,7 +624,10 @@ body.fares-page .fares-page-container {
 
     .btn-fare-source {
         width: 100%;
+        max-width: 100%;
+        white-space: normal;
         text-align: center;
+        box-sizing: border-box;
     }
 
     /* Table remains side-by-side on mobile, compact 14px */

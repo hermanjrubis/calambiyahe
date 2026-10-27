@@ -187,7 +187,13 @@
     };
     const calzadaPlaces = () => {
         const p = opts && typeof opts.places === 'function' ? opts.places() : [];
-        return (p || []).filter(x => x && x.name && Number.isFinite(+x.lat) && Number.isFinite(+x.lng));
+        return (p || []).filter(x => {
+            if (!x || !x.name || !Number.isFinite(+x.lat) || !Number.isFinite(+x.lng)) return false;
+            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function') {
+                return window.CalzadaScope.contains(+x.lat, +x.lng);
+            }
+            return true;
+        });
     };
 
     // ── DOM ──────────────────────────────────────────────────────────────────
@@ -339,7 +345,12 @@
         if (opts.field === 'origin') shortcuts.push({ type: 'shortcut', action: 'mylocation', icon: 'ti-current-location', label: tr('search.your_location', 'Your location') });
         shortcuts.push({ type: 'shortcut', action: 'pin', icon: 'ti-map-pin-plus', label: tr('search.pin_on_map', 'Pin on map') });
         html += `<div class="cps-shortcuts${shortcuts.length === 1 ? ' is-single' : ''}" role="presentation">${shortcuts.map(add).join('')}</div>`;
-        const recent = readRecent();
+        const recent = readRecent().filter(r => {
+            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function') {
+                return window.CalzadaScope.contains(r.lat, r.lng);
+            }
+            return true;
+        });
         if (recent.length) {
             html += section(tr('search.recent', 'Recent'), `<button type="button" class="cps-link" data-action="clear-recent">${esc(tr('search.recent_clear', 'Clear'))}</button>`);
             html += recent.map(r => add(withDistance({ type: 'recent', name: r.name, location: r.location, lat: r.lat, lng: r.lng }))).join('');
@@ -464,6 +475,9 @@
     const inServiceArea = (o) => {
         const forOrigin = !!(opts && opts.field === 'origin');
         if (Number.isFinite(o.lat) && Number.isFinite(o.lng)) {
+            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function') {
+                return window.CalzadaScope.contains(o.lat, o.lng);
+            }
             if (!inBox(o, forOrigin ? SERVICE_BOX : CALAMBA_BOX)) return false;
             if (!forOrigin && o.city && !/calamba/i.test(o.city)) return false;
             return true;

@@ -428,6 +428,7 @@
 
         return {
             getHours: () => JSON.parse(JSON.stringify(hours)),
+            getOpenHours: () => JSON.parse(JSON.stringify(hours)),
             setHours: (newHours) => {
                 hours = JSON.parse(JSON.stringify(newHours || getDefaultHours()));
                 updateUI();

@@ -31,7 +31,7 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Styles -->
     <link rel="stylesheet" href="../css/style.css?v=2.8.5">
-    <link rel="stylesheet" href="../css/about.css?v=2.8.1">
+    <link rel="stylesheet" href="../css/about.css?v=2.9.1">
     <!-- Skeleton CSS & FOUC Preventer -->
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <script>document.documentElement.classList.add('js-enabled');</script>
@@ -413,27 +413,26 @@
             <!-- 1. Intro -->
             <section class="about-section about-intro-section">
                 <h1 class="about-main-title" data-i18n="about_page.title">About</h1>
-                <p class="about-lead-text" data-i18n="about_page.lead">Calzada is the word for road or pathway. It's also a commuter guide for getting around Calamba, built around direction, clarity, and movement.</p>
-                <div class="about-intro-cols">
-                    <p class="about-intro-p" data-i18n="about_page.p1">Calzada helps you discover places worth visiting around Calamba, then shows you how to get there. Compare travel options based on estimated duration, fare cost, and walking distance — by jeepney or on foot — to find the most convenient way to reach your destination.</p>
-                    <p class="about-intro-p" data-i18n="about_page.p2">The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.</p>
-                </div>
+                <p class="about-body-text" data-i18n="about_page.lead_1">Calzada is the word for road or pathway.</p>
+                <p class="about-body-text" data-i18n="about_page.lead_2">It is also a commuter guide for getting around Calamba, built around direction, clarity, and movement.</p>
+                <p class="about-body-text" data-i18n="about_page.p1_1">Calzada helps you discover places worth visiting around Calamba, then shows you how to get there.</p>
+                <p class="about-body-text" data-i18n="about_page.p1_2">Compare travel options based on estimated duration, fare cost, and walking distance — by jeepney or on foot — to find the most convenient way to reach your destination.</p>
+                <p class="about-body-text" data-i18n="about_page.p2">The platform is fully responsive on desktop and mobile, with a simple interface that makes route planning easy even for first-time users.</p>
             </section>
 
             <!-- 2. Goal -->
-            <section class="about-section about-grid-section">
+            <section class="about-section">
                 <h2 class="about-section-heading" data-i18n="about_page.goal.heading">Goal</h2>
-                <div class="about-section-body">
-                    <p class="about-body-text" data-i18n="about_page.goal.body">Calzada helps commuters find places worth visiting in Calamba and get there by jeepney or on foot, with clear directions, fares and travel times. By bringing places, routes and fares together, it aims to make getting around the city less stressful and help you plan your time and budget.</p>
-                </div>
+                <p class="about-body-text" data-i18n="about_page.goal.body_1">Calzada helps commuters find places worth visiting in Calamba and get there by jeepney or on foot, with clear directions, fares and travel times.</p>
+                <p class="about-body-text" data-i18n="about_page.goal.body_2">By bringing places, routes and fares together, it aims to make getting around the city less stressful and help you plan your time and budget.</p>
             </section>
 
             <!-- 3. What Calzada covers -->
-            <section class="about-section about-grid-section">
-                <div class="about-section-header-col">
-                    <h2 class="about-section-heading" data-i18n="about_page.covers.heading">What Calzada covers</h2>
-                    <p class="about-heading-note" data-i18n="about_page.covers.note">Currently covering 5 barangays in Calamba: Uno, Real, Halang, Lecheria and Bucal. More barangays will be added.</p>
-                </div>
+            <section class="about-section">
+                <h2 class="about-section-heading" data-i18n="about_page.covers.heading">What Calzada covers</h2>
+                <p class="about-body-text" data-i18n="about_page.covers.note_1">Currently covering Brgy. Uno, Real and Halang in Calamba.</p>
+                <p class="about-body-text" data-i18n="about_page.covers.note_2">More barangays will be added.</p>
+
                 <div class="about-covers-content">
                     <!-- Ways to get around -->
                     <div class="about-group-col">
@@ -444,13 +443,6 @@
                                     <img src="../assets/icons/jeepney-icon.png" alt="" aria-hidden="true" draggable="false" width="24" height="24" loading="lazy" decoding="async">
                                 </span>
                                 <span class="about-plain-row-label" data-i18n="about_page.mode.jeepney">Jeepney</span>
-                            </div>
-                            <div class="about-plain-row is-coming-soon">
-                                <span class="about-plain-row-icon">
-                                    <img src="../assets/icons/tricycle-icon.png" alt="" aria-hidden="true" draggable="false" width="24" height="24" loading="lazy" decoding="async">
-                                </span>
-                                <span class="about-plain-row-label" data-i18n="about_page.mode.tricycle">Tricycle</span>
-                                <span class="about-plain-row-soon" data-i18n="about_page.mode.coming_soon">Coming soon</span>
                             </div>
                             <div class="about-plain-row">
                                 <span class="about-plain-row-icon">
@@ -539,7 +531,8 @@
                         </div>
                         <div class="about-routie-info">
                             <h3 class="about-routie-title" data-i18n="about_page.routie.title">Meet Routie</h3>
-                            <p class="about-routie-desc" data-i18n="about_page.routie.desc">Your chat assistant for finding places and getting around Calamba. Just tap “Ask Routie” anytime.</p>
+                            <p class="about-body-text" data-i18n="about_page.routie.desc_1">Your chat assistant for finding places and getting around Calamba.</p>
+                            <p class="about-body-text" data-i18n="about_page.routie.desc_2">Just tap “Ask Routie” anytime.</p>
                         </div>
                     </div>
                     <button id="routieBannerBtn" class="btn-about-routie" type="button" data-i18n="about_page.routie.btn">Ask Routie</button>
@@ -547,64 +540,60 @@
             </section>
 
             <!-- 4b. For local businesses -->
-            <section class="about-section about-grid-section about-business-section" id="business-section">
-                <div class="about-section-header-col">
-                    <h2 class="about-section-heading" data-i18n="about_page.business.heading">For local businesses</h2>
-                    <p class="about-heading-note" data-i18n="about_page.business.note">For shops, eateries and services in Calamba.</p>
+            <section class="about-section about-business-section" id="business-section">
+                <h2 class="about-section-heading" data-i18n="about_page.business.heading">For local businesses</h2>
+                <p class="about-body-text" data-i18n="about_page.business.note">For shops, eateries and services in Calamba.</p>
+                <p class="about-body-text" data-i18n="about_page.business.summary_1">Register your shop, eatery or service on Calzada.</p>
+                <p class="about-body-text" data-i18n="about_page.business.summary_2">Once the Calzada team approves it, add a photo and a short description, then share posts that appear on Updates.</p>
+                <div class="about-business-summary-links">
                     <a href="/submit" class="about-business-link" data-i18n="about_page.business.link">List your business</a>
-                </div>
-                <!-- Review #22: the step-by-step lives on /submit; this section points there -->
-                <div class="about-business-summary">
-                    <p class="about-body-text" data-i18n="about_page.business.summary">Register your shop, eatery or service on Calzada. Once the Calzada team approves it, add a photo and a short description, then share posts that appear on Updates.</p>
-                    <div class="about-business-summary-links">
-                        <a href="/submit#how-it-works" class="about-business-faq-link" data-i18n="about_page.business.how_link">See how registration works</a>
-                        <a href="/faq#faq-business-feed" class="about-business-faq-link" data-i18n="about_page.business.feed_link">How does Updates decide what to show?</a>
-                    </div>
+                    <a href="/submit#how-it-works" class="about-business-faq-link" data-i18n="about_page.business.how_link">See how registration works</a>
+                    <a href="/faq#faq-business-feed" class="about-business-faq-link" data-i18n="about_page.business.feed_link">How does Updates decide what to show?</a>
                 </div>
             </section>
 
             <!-- 5. Why Calzada? -->
-            <section class="about-section about-grid-section">
+            <section class="about-section">
                 <h2 class="about-section-heading" data-i18n="about_page.why.heading">Why Calzada?</h2>
-                <div class="about-why-grid">
+                <div class="about-why-list">
                     <div class="about-why-col">
                         <h3 class="about-why-title" data-i18n="about_page.why.dir.title">Direction</h3>
-                        <p class="about-why-desc" data-i18n="about_page.why.dir.desc">Clear, step-by-step routes so you always know where to go.</p>
+                        <p class="about-body-text" data-i18n="about_page.why.dir.desc">Clear, step-by-step routes so you always know where to go.</p>
                     </div>
                     <div class="about-why-col">
                         <h3 class="about-why-title" data-i18n="about_page.why.trans.title">Transparency</h3>
-                        <p class="about-why-desc" data-i18n="about_page.why.trans.desc">No hidden charges. Fare estimates are shown before you ride.</p>
+                        <p class="about-body-text" data-i18n="about_page.why.trans.desc_1">No hidden charges.</p>
+                        <p class="about-body-text" data-i18n="about_page.why.trans.desc_2">Fare estimates are shown before you ride.</p>
                         <a href="/fares" class="about-transparency-link" data-i18n="about_page.why.trans.link">How fares are computed</a>
                     </div>
                     <div class="about-why-col">
                         <h3 class="about-why-title" data-i18n="about_page.why.comm.title">Community</h3>
-                        <p class="about-why-desc" data-i18n="about_page.why.comm.desc">Made for commuters, by commuters. Free and accessible to all.</p>
+                        <p class="about-body-text" data-i18n="about_page.why.comm.desc_1">Made for commuters, by commuters.</p>
+                        <p class="about-body-text" data-i18n="about_page.why.comm.desc_2">Free and accessible to all.</p>
                     </div>
                 </div>
             </section>
 
             <!-- 6. Made by -->
-            <section class="about-section about-grid-section">
+            <section class="about-section">
                 <h2 class="about-section-heading" data-i18n="about_page.team.heading">Made by</h2>
-                <div class="about-team-content">
-                    <p class="about-team-capstone" data-i18n="about_page.team.capstone">A capstone project by BSIT students of STI College Calamba.</p>
-                    <div class="about-team-grid">
-                        <div class="about-team-member">
-                            <span class="about-team-name">Herman John Rubis</span>
-                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
-                        </div>
-                        <div class="about-team-member">
-                            <span class="about-team-name">Daniel Anthony Bercasio</span>
-                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
-                        </div>
-                        <div class="about-team-member">
-                            <span class="about-team-name">Aldrine Sumapad</span>
-                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
-                        </div>
-                        <div class="about-team-member">
-                            <span class="about-team-name">John Kelly Torres</span>
-                            <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
-                        </div>
+                <p class="about-body-text" data-i18n="about_page.team.capstone">A capstone project by BSIT students of STI College Calamba.</p>
+                <div class="about-team-grid">
+                    <div class="about-team-member">
+                        <span class="about-team-name">Herman John Rubis</span>
+                        <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                    </div>
+                    <div class="about-team-member">
+                        <span class="about-team-name">Daniel Anthony Bercasio</span>
+                        <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                    </div>
+                    <div class="about-team-member">
+                        <span class="about-team-name">Aldrine Sumapad</span>
+                        <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
+                    </div>
+                    <div class="about-team-member">
+                        <span class="about-team-name">John Kelly Torres</span>
+                        <span class="about-team-role" data-i18n="about_page.team.role">BSIT Student</span>
                     </div>
                 </div>
             </section>
@@ -674,7 +663,7 @@
 
     <script src="../js/legal-modal.js?v=2.6.6"></script>
     <script src="../js/script.js?v=2.6.7"></script>
-    <script src="../js/i18n.js?v=2.8.14"></script>
+    <script src="../js/i18n.js?v=2.9.2"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.11"></script>

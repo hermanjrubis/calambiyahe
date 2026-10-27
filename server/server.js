@@ -772,22 +772,25 @@ app.get('/api/places/:id/rating', async (req, res) => {
         }
         const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
         if (snap.empty) {
-            return res.json({ average_rating: 0, total_ratings: 0 });
+            return res.json({ average_rating: 0, total_ratings: 0, breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
         }
         let sum = 0;
         let total = 0;
+        const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         snap.forEach(doc => {
             const d = doc.data();
             if (d.status !== 'hidden' && d.status !== 'removed') {
+                const r = parseInt(d.rating, 10);
+                if (r >= 1 && r <= 5) breakdown[r] = (breakdown[r] || 0) + 1;
                 sum += Number(d.rating) || 0;
                 total++;
             }
         });
         const avg = total > 0 ? parseFloat((sum / total).toFixed(1)) : 0;
-        return res.json({ average_rating: avg, total_ratings: total });
+        return res.json({ average_rating: avg, total_ratings: total, breakdown });
     } catch (err) {
         console.warn('Error fetching place rating from Firestore, returning defaults:', err.message);
-        return res.json({ average_rating: 0, total_ratings: 0 });
+        return res.json({ average_rating: 0, total_ratings: 0, breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } });
     }
 });
 
@@ -816,17 +819,22 @@ app.get('/api/places/:id/reviews', async (req, res) => {
     try {
         const adminDb = getFirestore();
         if (!adminDb) {
-            return res.json({ place_id: placeId, average_rating: 0, total_ratings: 0, reviews: [], user_review: null, limit, offset, has_more: false });
+            return res.json({ place_id: placeId, average_rating: 0, total_ratings: 0, breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, reviews: [], user_review: null, limit, offset, has_more: false });
         }
         const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
         const allReviews = [];
         let userReview = null;
         let sum = 0;
+        const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
         snap.forEach(doc => {
             const d = doc.data();
             if (d.status === 'hidden' || d.status === 'removed') {
                 return;
+            }
+            const r = parseInt(d.rating, 10);
+            if (r >= 1 && r <= 5) {
+                breakdown[r] = (breakdown[r] || 0) + 1;
             }
             const rawDate = d.createdAt || d.updatedAt || null;
             let parsedDate = null;
@@ -840,18 +848,22 @@ app.get('/api/places/:id/reviews', async (req, res) => {
                     parsedDate = isNaN(parsed.getTime()) ? null : parsed;
                 }
             }
+            const isMine = Boolean(callerUid && d.userId === callerUid);
             const rev = {
                 id: doc.id,
                 place_id: placeId,
-                user_id: d.userId,
+                is_mine: isMine,
                 rating: d.rating,
                 comment_text: d.commentText,
                 created_at: parsedDate ? parsedDate.toISOString() : null,
                 reviewer_name: d.reviewerName || 'Calzada Commuter'
             };
+            if (isMine) {
+                rev.user_id = d.userId;
+            }
             sum += Number(d.rating) || 0;
             allReviews.push(rev);
-            if (callerUid && d.userId === callerUid) {
+            if (isMine) {
                 userReview = rev;
             }
         });
@@ -870,6 +882,7 @@ app.get('/api/places/:id/reviews', async (req, res) => {
             place_id: placeId,
             average_rating: averageRating,
             total_ratings: totalRatings,
+            breakdown,
             reviews: pagedReviews,
             user_review: userReview,
             limit,
@@ -878,7 +891,7 @@ app.get('/api/places/:id/reviews', async (req, res) => {
         });
     } catch (err) {
         console.warn('Error fetching place reviews from Firestore:', err.message);
-        return res.json({ place_id: placeId, average_rating: 0, total_ratings: 0, reviews: [], user_review: null, limit, offset, has_more: false });
+        return res.json({ place_id: placeId, average_rating: 0, total_ratings: 0, breakdown: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }, reviews: [], user_review: null, limit, offset, has_more: false });
     }
 });
 
@@ -961,9 +974,12 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
         const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
         let sum = 0;
         let totalRatings = 0;
+        const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         snap.forEach(d => {
             const rData = d.data();
             if (rData.status !== 'hidden' && rData.status !== 'removed') {
+                const r = parseInt(rData.rating, 10);
+                if (r >= 1 && r <= 5) breakdown[r] = (breakdown[r] || 0) + 1;
                 sum += Number(rData.rating) || 0;
                 totalRatings++;
             }
@@ -987,6 +1003,7 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
             message: 'Rating submitted successfully',
             average_rating: averageRating,
             total_ratings: totalRatings,
+            breakdown,
             user_review: {
                 id: reviewDocId,
                 place_id: placeId,
@@ -1027,9 +1044,12 @@ app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
         const snap = await adminDb.collection('place_reviews').where('placeId', '==', placeId).get();
         let sum = 0;
         let totalRatings = 0;
+        const breakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         snap.forEach(d => {
             const rData = d.data();
             if (rData.status === 'hidden' || rData.status === 'removed') return;
+            const r = parseInt(rData.rating, 10);
+            if (r >= 1 && r <= 5) breakdown[r] = (breakdown[r] || 0) + 1;
             sum += Number(rData.rating) || 0;
             totalRatings++;
         });
@@ -1038,7 +1058,8 @@ app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
         return res.json({
             message: 'Review deleted successfully',
             average_rating: averageRating,
-            total_ratings: totalRatings
+            total_ratings: totalRatings,
+            breakdown
         });
     } catch (err) {
         console.error('Error deleting place rating from Firestore:', err);

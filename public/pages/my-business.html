@@ -169,9 +169,9 @@
             }
         }
 
-        /* 2. Main Content Column */
+        /* 2. Main Content Column (680px) */
         .mybus-container {
-            max-width: 720px;
+            max-width: 680px;
             margin: 0 auto;
             padding: 40px 24px 80px;
             display: none;
@@ -873,7 +873,9 @@
             cursor: pointer;
         }
         @media (min-width: 641px) {
-            .photo-strip-wrap { grid-template-columns: repeat(5, minmax(0, 1fr)); max-width: 520px; }
+            .photo-strip-wrap,
+            .photo-grid,
+            .photos-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; max-width: 520px; }
         }
 
         /* Keep every state inside the screen width (iPhone Safari ignores overflow on body alone) */
@@ -1188,8 +1190,8 @@
             <div class="section-block">
                 <h1 class="business-name" id="pendingBusinessName">--</h1>
                 <div class="status-line">
-                    <span class="status-dot status-dot-pending" aria-hidden="true"></span>
-                    <span class="status-text" data-i18n="mybus.status.pending">Pending review</span>
+                    <span class="status-dot status-dot-pending" id="pendingStatusDot" aria-hidden="true"></span>
+                    <span class="status-text" id="pendingStatusText" data-i18n="mybus.status.pending">Pending review</span>
                 </div>
             </div>
 
@@ -2054,14 +2056,31 @@
 
         async function loadUserBusiness(uid) {
             try {
-                const busRef = collection(db, "businesses");
-                const q = query(
-                    busRef,
-                    where("ownerId", "==", uid),
-                    limit(1)
-                );
+                const urlParams = new URLSearchParams(window.location.search);
+                const statusParam = urlParams.get('status');
 
-                const querySnapshot = await getDocs(q);
+                const busRef = collection(db, "businesses");
+                let q;
+                if (statusParam) {
+                    q = query(
+                        busRef,
+                        where("ownerId", "==", uid),
+                        where("status", "==", statusParam),
+                        limit(1)
+                    );
+                } else {
+                    q = query(
+                        busRef,
+                        where("ownerId", "==", uid),
+                        limit(1)
+                    );
+                }
+
+                let querySnapshot = await getDocs(q);
+                if (querySnapshot.empty && statusParam) {
+                    // Fallback to any business for this user
+                    querySnapshot = await getDocs(query(busRef, where("ownerId", "==", uid), limit(1)));
+                }
 
                 loadingOverlay.style.display = 'none';
                 mybusTopbar.style.display = 'flex';
@@ -2443,8 +2462,16 @@
 
             const categoryLabel = activeBusiness.serviceType || CATEGORY_NAMES[activeBusiness.category] || activeBusiness.category || 'General';
 
-            if (stateKey === 'pending') {
+            if (stateKey === 'pending' || stateKey === 'draft') {
                 pendingBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+                const statusTextEl = document.getElementById('pendingStatusText');
+                if (statusTextEl) {
+                    statusTextEl.textContent = (stateKey === 'draft') ? 'Draft' : 'Pending review';
+                }
+                const dotEl = document.getElementById('pendingStatusDot');
+                if (dotEl) {
+                    dotEl.className = (stateKey === 'draft') ? 'status-dot status-dot-draft' : 'status-dot status-dot-pending';
+                }
                 pendingCategory.textContent = categoryLabel;
                 pendingAddress.textContent = activeBusiness.address || '--';
                 pendingContact.textContent = activeBusiness.contactNumber || 'None provided';
@@ -2458,7 +2485,9 @@
                 const planObj = window.CALZADA_PLANS?.[planId] || window.CALZADA_PLANS?.plus360;
                 if (planObj) {
                     pendingPlanName.textContent = `${planObj.name} plan`;
-                    pendingPlanCostNote.textContent = `You'll pay ₱${planObj.price} after we approve your details.`;
+                    pendingPlanCostNote.textContent = (stateKey === 'draft')
+                        ? 'Draft business details are saved.'
+                        : `You'll pay ₱${planObj.price} after we approve your details.`;
                 }
                 pendingPlanChangeContainer.style.display = 'none';
                 statePending.style.display = 'block';
@@ -2748,7 +2777,7 @@
             const currentOfferings = offeringsEditor ? offeringsEditor.getOfferings() : initialOfferings;
             const offeringsChanged = JSON.stringify(currentOfferings) !== JSON.stringify(initialOfferings);
 
-            const currentHours = openHoursEditor ? openHoursEditor.getOpenHours() : initialOpenHours;
+            const currentHours = openHoursEditor ? (typeof openHoursEditor.getHours === 'function' ? openHoursEditor.getHours() : openHoursEditor.getOpenHours()) : initialOpenHours;
             const hoursChanged = JSON.stringify(currentHours) !== JSON.stringify(initialOpenHours);
 
             const hasChanges = descChanged || photoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged;
@@ -2913,7 +2942,7 @@
                     tiktok: ttRes.value
                 };
                 const newOfferings = offeringsEditor ? offeringsEditor.getOfferings() : initialOfferings;
-                const newOpenHours = openHoursEditor ? openHoursEditor.getOpenHours() : initialOpenHours;
+                const newOpenHours = openHoursEditor ? (typeof openHoursEditor.getHours === 'function' ? openHoursEditor.getHours() : openHoursEditor.getOpenHours()) : initialOpenHours;
 
                 const updatePayload = {
                     profilePhotoUrl: updatedThumbnailUrl,

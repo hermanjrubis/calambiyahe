@@ -1,12 +1,12 @@
 /* ==========================================================================
    CALZADA - ABOUT PAGE STYLES
    Strictly scoped to body.about-page
-   No lines / no dividers, one 1120px container, Sora typography
+   Single centered column layout (max-width: 640px) at every size
    ========================================================================== */
 
 :root {
     --biz-spring: cubic-bezier(.34, 1.56, .64, 1);
-    --biz-out:    cubic-bezier(.22, 1, .36, 1);
+    --biz-out: cubic-bezier(.22, 1, .36, 1);
 }
 
 /* Floating header backdrop strip: hides scrolling content above the scrolled nav pill */
@@ -28,241 +28,6 @@ body.about-page {
     overflow-x: hidden;
 }
 
-/* Base override for about page container */
-body.about-page .about-page-container {
-    padding: 130px 24px 0;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    background: transparent;
-}
-
-/* Single 1120px container for all sections */
-.about-shell {
-    max-width: 1120px;
-    width: 100%;
-    margin: 0 auto;
-    box-sizing: border-box;
-}
-
-/* Section base: vertical padding 56px, NO lines/dividers */
-.about-section {
-    padding: 56px 0;
-    border: none !important;
-    border-top: none !important;
-    border-bottom: none !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-
-/* Two-column grid: 280px left column, content right column, 64px gap */
-.about-grid-section {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 64px;
-    align-items: start;
-}
-
-/* Section headings */
-.about-section-heading {
-    font-family: 'Sora', sans-serif;
-    font-size: 24px;
-    font-weight: 600;
-    color: #0E2A47;
-    line-height: 1.25;
-    margin: 0;
-    text-align: left;
-}
-
-/* Sub-note under section heading (What Calzada covers) */
-.about-heading-note {
-    font-size: 15px;
-    color: #5A6A7F;
-    line-height: 1.5;
-    margin-top: 10px;
-    margin-bottom: 0;
-    text-align: left;
-}
-
-/* Body typography */
-.about-body-text {
-    font-size: 17px;
-    line-height: 1.7;
-    color: #3D5068;
-    text-align: left;
-    margin: 0;
-    max-width: 68ch;
-}
-
-/* --------------------------------------------------------------------------
-   1. Intro Section
-   -------------------------------------------------------------------------- */
-.about-intro-section {
-    padding-top: 16px;
-    padding-bottom: 56px;
-}
-
-.about-main-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 44px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: #0E2A47;
-    line-height: 1.1;
-    margin: 0 0 24px 0;
-    text-align: left;
-}
-
-.about-lead-text {
-    font-family: 'Sora', sans-serif;
-    font-size: 22px;
-    font-weight: 500;
-    line-height: 1.45;
-    color: #0E2A47;
-    max-width: 1000px;
-    margin: 0 0 40px 0;
-    text-align: left;
-}
-
-.about-intro-cols {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 64px;
-    align-items: start;
-}
-
-.about-intro-p {
-    font-size: 17px;
-    line-height: 1.65;
-    color: #3D5068;
-    text-align: left;
-    margin: 0;
-    max-width: 68ch;
-}
-
-/* --------------------------------------------------------------------------
-   3. What Calzada Covers
-   -------------------------------------------------------------------------- */
-.about-covers-content {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    gap: 48px;
-    align-items: start;
-}
-
-.about-group-col {
-    display: flex;
-    flex-direction: column;
-}
-
-.about-group-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #5A6A7F;
-    text-transform: none;
-    letter-spacing: 0.01em;
-    margin-bottom: 20px;
-    text-align: left;
-}
-
-.about-item-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.about-item-list-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px 32px;
-}
-
-.about-plain-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-}
-
-.about-plain-row-icon {
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #1F69B8;
-    background: transparent;
-}
-
-.about-plain-row-icon img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
-}
-
-.about-plain-row-icon svg {
-    width: 24px;
-    height: 24px;
-    stroke: #378ADD;
-}
-
-.about-plain-row-label {
-    font-family: 'Sora', sans-serif;
-    font-size: 17px;
-    font-weight: 500;
-    color: #0E2A47;
-    line-height: 1.3;
-}
-
-/* A way to get around that the Planner does not route yet: muted, with a plain "Coming soon" note */
-.about-plain-row.is-coming-soon .about-plain-row-icon img {
-    filter: grayscale(1);
-    opacity: 0.5;
-}
-
-.about-plain-row.is-coming-soon .about-plain-row-label {
-    color: #5A6A7F;
-}
-
-.about-plain-row-soon {
-    font-family: 'Outfit', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: #5A6A7F;
-    line-height: 1.3;
-}
-
-/* --------------------------------------------------------------------------
-   4. Routie Row
-   White fill, NO border, 14px radius, 20px 28px padding
-   -------------------------------------------------------------------------- */
-.about-routie-section {
-    padding: 24px 0;
-}
-
-.about-routie-row {
-    background: #FFFFFF;
-    border: none;
-    border-radius: 14px;
-    padding: 20px 28px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 24px;
-    box-shadow: 0 4px 20px rgba(14, 42, 71, 0.05);
-}
-
-.about-routie-left {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    min-width: 0;
-}
-
 /* Non-draggable icons and logos */
 .logo-img,
 .drawer-logo,
@@ -272,28 +37,202 @@ body.about-page .about-page-container {
     user-select: none;
 }
 
-.about-routie-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 0;
+/* Base override for about page container: centered column with 24px side padding */
+body.about-page .about-page-container {
+    padding: 120px 24px 80px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
     background: transparent;
+    box-sizing: border-box;
+}
+
+/* Single centered column container (max-width: 640px) */
+.about-shell {
+    max-width: 640px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+/* Section base: vertical padding 40px, NO lines/dividers */
+.about-section {
+    padding: 40px 0;
+    border: none !important;
+    border-top: none !important;
+    border-bottom: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.about-intro-section {
+    padding-top: 16px;
+    padding-bottom: 40px;
+}
+
+/* Each section: title in Sora 24px */
+.about-main-title,
+.about-section-heading {
+    font-family: 'Sora', sans-serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #0E2A47;
+    line-height: 1.3;
+    margin: 0 0 16px 0;
+    text-align: left;
+}
+
+/* Sub-note under section heading */
+.about-heading-note {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    color: #5A6A7F;
+    line-height: 1.5;
+    margin-top: 8px;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+/* Paragraphs of one sentence each: max width 640px, Outfit 16px, line-height 1.6, 14px between paragraphs */
+.about-body-text,
+.about-intro-p,
+.about-lead-text,
+.about-shell p {
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: #3D5068;
+    max-width: 640px;
+    margin: 0 0 14px 0;
+    text-align: left;
+}
+
+.about-shell p:last-child {
+    margin-bottom: 0;
+}
+
+/* --------------------------------------------------------------------------
+   3. What Calzada Covers
+   -------------------------------------------------------------------------- */
+.about-covers-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 20px;
+}
+
+.about-group-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.about-group-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #5A6A7F;
+    margin-bottom: 14px;
+    text-align: left;
+}
+
+.about-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.about-item-list-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 24px;
+}
+
+.about-plain-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.about-plain-row-icon {
+    width: 22px;
+    height: 22px;
     flex-shrink: 0;
-    overflow: visible;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1F69B8;
+}
+
+.about-plain-row-icon img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.about-plain-row-icon svg {
+    width: 22px;
+    height: 22px;
+    stroke: #378ADD;
+}
+
+.about-plain-row-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #0E2A47;
+    line-height: 1.3;
+}
+
+/* --------------------------------------------------------------------------
+   4. Routie Row
+   White card, 1px solid #E2E8F0, 12px radius
+   -------------------------------------------------------------------------- */
+.about-routie-section {
+    padding: 24px 0;
+}
+
+.about-routie-row {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    box-sizing: border-box;
+}
+
+.about-routie-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
+
+.about-routie-avatar {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .about-routie-avatar img {
-    width: 56px;
-    height: 56px;
+    width: 48px;
+    height: 48px;
     object-fit: contain;
 }
 
 .about-routie-info {
     display: flex;
     flex-direction: column;
-    gap: 3px;
     min-width: 0;
 }
 
@@ -302,16 +241,17 @@ body.about-page .about-page-container {
     font-size: 18px;
     font-weight: 600;
     color: #0E2A47;
-    margin: 0;
+    margin: 0 0 4px 0;
     text-align: left;
 }
 
-.about-routie-desc {
+.about-routie-info p.about-body-text {
+    margin: 0 0 6px 0;
     font-size: 15px;
-    color: #5A6A7F;
-    line-height: 1.5;
-    margin: 0;
-    text-align: left;
+}
+
+.about-routie-info p.about-body-text:last-child {
+    margin-bottom: 0;
 }
 
 .btn-about-routie {
@@ -319,13 +259,13 @@ body.about-page .about-page-container {
     color: #2272C3;
     border: 1.5px solid #378ADD;
     border-radius: 8px;
-    padding: 10px 22px;
+    padding: 8px 18px;
     font-family: 'Sora', sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
     flex-shrink: 0;
 }
 
@@ -340,880 +280,141 @@ body.about-page .about-page-container {
 }
 
 /* --------------------------------------------------------------------------
-   4b. For local businesses (interactive walkthrough)
+   4b. For local businesses
    -------------------------------------------------------------------------- */
-.about-business-link {
-    display: inline-block;
-    color: #1F69B8;
-    font-size: 15px;
-    font-weight: 600;
-    text-decoration: none;
-    margin-top: 12px;
-    width: fit-content;
-    transition: text-decoration 0.15s ease;
-}
-
-.about-business-link:hover {
-    text-decoration: underline;
-}
-
-.about-business-link:focus-visible {
-    outline: 2px solid #378ADD;
-    outline-offset: 2px;
-}
-
-.about-business-walkthrough {
-    width: 100%;
-    position: relative;
-}
-
-/* Travelling Route Marker & Fill (Desktop >= 900px) */
-.about-business-route-marker {
-    position: absolute;
-    top: 0;
-    left: -2px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background-color: #2272C3;
-    box-shadow: 0 0 0 3px var(--bg, #f0f6fc);
-    z-index: 4;
-    pointer-events: none;
-    transition: transform 560ms var(--biz-spring);
-}
-
-.about-business-route-fill {
-    position: absolute;
-    left: 5px;
-    width: 2px;
-    background-color: #2272C3;
-    transform-origin: top center;
-    transition: transform 460ms var(--biz-out);
-    pointer-events: none;
-    z-index: 3;
-}
-
-/* Step items & buttons */
-.about-business-step-item {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.about-business-step-btn {
-    position: relative;
-    display: flex;
-    align-items: stretch;
-    gap: 16px;
-    width: 100%;
-    padding: 14px 12px 14px 0;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    border-radius: 8px;
-    font-family: inherit;
-    transition: transform 0.15s ease, background-color 0.15s ease;
-}
-
-.about-business-step-btn:focus-visible {
-    outline: 2px solid #378ADD;
-    outline-offset: 2px;
-}
-
-.about-business-step-btn:active {
-    transform: scale(0.98);
-}
-
-/* Stop marker with 12px dot and vertical dashed line */
-.about-business-stop-marker {
-    position: relative;
-    align-self: stretch;
-    width: 12px;
-    display: flex;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.about-business-stop-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: #FFFFFF;
-    border: 2px solid #CBD5E1;
-    box-sizing: border-box;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    z-index: 2;
-    position: relative;
-    margin-top: 5px;
-    flex-shrink: 0;
-}
-
-.about-business-step-btn[aria-selected="true"] .about-business-stop-dot,
-.about-business-step-btn[aria-expanded="true"] .about-business-stop-dot,
-.about-business-step-btn.active .about-business-stop-dot {
-    background-color: #2272C3;
-    border-color: #378ADD;
-}
-
-/* Visited step dot */
-.about-business-step-btn.visited .about-business-stop-dot {
-    background-color: #2272C3;
-    border-color: #378ADD;
-}
-
-.about-business-stop-connector {
-    position: absolute;
-    top: 17px;
-    bottom: -33px;
-    left: 5px;
-    width: 0;
-    border-left: 2px dashed #9CC3EC;
-    z-index: 1;
-    pointer-events: none;
-}
-
-.about-business-step-item:last-child .about-business-stop-connector {
-    display: none;
-}
-
-.about-business-step-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-    transition: transform 160ms ease-out;
-}
-
-.about-business-step-btn:hover .about-business-step-content {
-    transform: translateX(3px);
-}
-
-.about-business-step-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 17px;
-    font-weight: 600;
-    color: #5A6A7F;
-    line-height: 1.3;
-    margin: 0;
-    transition: color 0.15s ease;
-}
-
-.about-business-step-btn:hover .about-business-step-title {
-    color: #0E2A47;
-}
-
-.about-business-step-btn[aria-selected="true"] .about-business-step-title,
-.about-business-step-btn[aria-expanded="true"] .about-business-step-title,
-.about-business-step-btn.active .about-business-step-title {
-    color: #0E2A47;
-}
-
-.about-business-step-desc {
-    font-size: 15px;
-    color: #5A6A7F;
-    line-height: 1.4;
-    margin: 0;
-}
-
-.about-business-step-chevron {
-    display: none;
-}
-
-/* Gray FAQ link under step list */
-.about-business-faq-link {
-    display: inline-block;
-    color: #5A6A7F;
-    font-size: 14px;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    transition: color 0.15s ease;
-    width: fit-content;
-}
-
-.about-business-faq-link:hover {
-    color: #0E2A47;
-}
-
-.about-business-faq-link:focus-visible {
-    outline: 2px solid #378ADD;
-    outline-offset: 2px;
-}
-
-/* Preview Caption & Card */
-.about-business-preview-caption {
-    font-size: 13px;
-    color: #5A6A7F;
-    font-weight: 500;
-    margin-bottom: 8px;
-}
-
-.about-business-card {
-    background: #FFFFFF;
-    border: 1px solid #E2E8F0;
-    border-radius: 12px;
-    padding: 24px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    height: auto;
-}
-
-/* Panel entrance motion */
-@keyframes bizPop {
-    0% {
-        opacity: 0;
-        transform: translateY(18px) scale(0.94);
-    }
-    60% {
-        opacity: 1;
-        transform: translateY(-4px) scale(1.015);
-    }
-    100% {
-        opacity: 1;
-        transform: none;
-    }
-}
-
-.about-business-panel.active .about-business-card {
-    animation: bizPop 520ms var(--biz-spring) both;
-    transform-origin: 50% 0;
-}
-
-/* Staggered Content Animation */
-@keyframes bizChildRise {
-    0% {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    100% {
-        opacity: 1;
-        transform: none;
-    }
-}
-
-.about-business-panel.active .about-business-card > *:not(.about-preview-fields),
-.about-business-panel.active .about-preview-fields > * {
-    animation: bizChildRise 380ms var(--biz-out) both;
-}
-
-.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(1),
-.about-business-panel.active .about-preview-fields > *:nth-child(1) {
-    animation-delay: 120ms;
-}
-
-.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(2),
-.about-business-panel.active .about-preview-fields > *:nth-child(2) {
-    animation-delay: 180ms;
-}
-
-.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(3),
-.about-business-panel.active .about-preview-fields > *:nth-child(3) {
-    animation-delay: 240ms;
-}
-
-.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(4),
-.about-business-panel.active .about-preview-fields > *:nth-child(4) {
-    animation-delay: 300ms;
-}
-
-.about-business-panel.active .about-business-card > *:not(.about-preview-fields):nth-child(5),
-.about-business-panel.active .about-preview-fields > *:nth-child(5) {
-    animation-delay: 360ms;
-}
-
-/* Step 1: Register fields */
-.about-preview-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.about-preview-field-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.about-preview-field-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #0E2A47;
-    margin: 0;
-}
-
-.about-preview-field-box {
-    border: 1px solid #CBD5E1;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: 'Outfit', sans-serif;
-    font-size: 14px;
-    color: #0E2A47;
-    background: #FFFFFF;
-    user-select: text;
-}
-
-.about-preview-pin-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #1F69B8;
-    margin-top: 2px;
-}
-
-/* Step 2: Review */
-.about-preview-biz-name {
-    font-family: 'Sora', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: #0E2A47;
-    margin: 0 0 6px 0;
-}
-
-.about-preview-status-line {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: #5A6A7F;
-    margin-bottom: 12px;
-}
-
-.about-preview-status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
-.about-preview-status-dot.pending {
-    background-color: #D97706;
-}
-
-.about-preview-status-dot.approved {
-    background-color: #16A34A;
-}
-
-.about-preview-notice {
-    font-size: 14px;
-    color: #5A6A7F;
-    line-height: 1.5;
-    margin: 0 0 16px 0;
-}
-
-.about-preview-dl {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 0;
-}
-
-.about-preview-dl-row {
-    display: flex;
-    align-items: baseline;
-    font-size: 14px;
-}
-
-.about-preview-dt {
-    width: 110px;
-    flex-shrink: 0;
-    color: #5A6A7F;
-    margin: 0;
-}
-
-.about-preview-dd {
-    color: #0E2A47;
-    font-weight: 500;
-    margin: 0;
-}
-
-/* Step 3: Profile */
-.about-preview-profile-top {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 12px;
-}
-
-.about-preview-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    background: #F0F6FC;
-    border: 1px solid #CBD5E1;
-    color: #1F69B8;
-    font-family: 'Sora', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.about-preview-desc {
-    font-size: 14px;
-    color: #3D5068;
-    line-height: 1.5;
-    margin: 0 0 16px 0;
-}
-
-.about-preview-socials {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid #E2E8F0;
-    flex-wrap: wrap;
-}
-
-.about-preview-social-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #5A6A7F;
-}
-
-.about-preview-social-link svg {
-    fill: currentColor;
-}
-
-/* Step 4: Discover Post */
-.about-business-card.post-preview {
-    padding: 0;
-    overflow: hidden;
-}
-
-.about-preview-post-media {
-    width: 100%;
-    height: 108px;
-    background-color: #E6ECF4;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.about-preview-post-media .ti-photo {
-    font-size: 28px;
-    color: #9FB3CC;
-}
-
-.about-preview-post-body {
-    padding: 16px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    flex: 1;
-}
-
-.about-preview-post-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.about-preview-post-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    background: #F0F6FC;
-    border: 1px solid #CBD5E1;
-    color: #1F69B8;
-    font-family: 'Sora', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.about-preview-post-meta {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-}
-
-.about-preview-post-name {
-    font-family: 'Sora', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: #0E2A47;
-    line-height: 1.3;
-}
-
-.about-preview-post-sub {
-    font-size: 12px;
-    color: #5A6A7F;
-    margin-top: 2px;
-}
-
-.about-preview-post-caption {
-    font-size: 13.5px;
-    color: #0E2A47;
-    line-height: 1.45;
-    margin: 0;
-}
-
-.about-preview-post-footer {
-    margin-top: auto;
-    padding-top: 10px;
-    border-top: 1px solid #F1F5F9;
-    display: flex;
-    align-items: center;
-}
-
-.about-preview-like-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #5A6A7F;
-}
-
-/* Desktop layout (>= 900px) */
-@media (min-width: 900px) {
-    .about-business-walkthrough {
-        display: grid;
-        grid-template-columns: minmax(260px, 4fr) minmax(340px, 6fr);
-        gap: 0 48px;
-        align-items: start;
-        position: relative;
-    }
-
-    .about-business-step-item {
-        display: contents;
-    }
-
-    .about-business-step-item[data-step="0"] .about-business-step-btn { grid-row: 1; grid-column: 1; }
-    .about-business-step-item[data-step="1"] .about-business-step-btn { grid-row: 2; grid-column: 1; }
-    .about-business-step-item[data-step="2"] .about-business-step-btn { grid-row: 3; grid-column: 1; }
-    .about-business-step-item[data-step="3"] .about-business-step-btn { grid-row: 4; grid-column: 1; }
-
-    .about-business-faq-link {
-        grid-row: 5;
-        grid-column: 1;
-        margin-top: 24px;
-    }
-
-    .about-business-panel {
-        grid-row: 1 / span 5;
-        grid-column: 2;
-        width: 100%;
-        position: relative;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition: opacity 120ms ease, visibility 120ms ease;
-    }
-
-    .about-business-panel.active {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-    }
-
-    /* Without JavaScript on desktop: show all stacked */
-    html:not(.js-enabled) .about-business-walkthrough {
-        display: block;
-    }
-    html:not(.js-enabled) .about-business-step-item {
-        display: block;
-        margin-bottom: 32px;
-    }
-    html:not(.js-enabled) .about-business-panel {
-        display: block;
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        position: static;
-        margin-top: 12px;
-    }
-}
-
-/* Mobile & Tablet (< 900px): Accordion Layout */
-@media (max-width: 899px) {
-    .about-business-walkthrough {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-    }
-
-    .about-business-route-marker,
-    .about-business-route-fill,
-    .about-business-stop-connector {
-        display: none;
-    }
-
-    .about-business-step-item {
-        border-bottom: 1px solid #E2E8F0;
-        padding-bottom: 0;
-    }
-
-    .about-business-step-btn {
-        min-height: 48px;
-        padding: 16px 0;
-        align-items: flex-start;
-    }
-
-    .about-business-stop-marker {
-        margin-top: 5px;
-    }
-
-    .about-business-stop-dot {
-        margin-top: 0;
-    }
-
-    .about-business-stop-dot::after {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        border-radius: 50%;
-        box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.22);
-        opacity: 0;
-        transform: scale(0.6);
-        transition: transform 320ms var(--biz-spring), opacity 320ms var(--biz-spring);
-        pointer-events: none;
-    }
-
-    .about-business-step-btn[aria-selected="true"] .about-business-stop-dot::after,
-    .about-business-step-btn[aria-expanded="true"] .about-business-stop-dot::after,
-    .about-business-step-btn.active .about-business-stop-dot::after {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    .about-business-step-btn.visited .about-business-stop-dot::after {
-        opacity: 0;
-        transform: scale(0.6);
-    }
-
-    .about-business-step-chevron {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #5A6A7F;
-        transition: transform 320ms var(--biz-spring);
-        margin-left: auto;
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    .about-business-step-btn[aria-expanded="true"] .about-business-step-chevron,
-    .about-business-step-btn.active .about-business-step-chevron {
-        transform: rotate(180deg);
-    }
-
-    .about-business-panel {
-        display: grid;
-        grid-template-rows: 0fr;
-        transition: grid-template-rows 360ms var(--biz-out), visibility 360ms var(--biz-out), padding-bottom 360ms var(--biz-out);
-        visibility: hidden;
-        padding-bottom: 0;
-    }
-
-    .about-business-panel.active {
-        grid-template-rows: 1fr;
-        visibility: visible;
-        padding-bottom: 20px;
-    }
-
-    .about-business-panel-inner {
-        overflow: hidden;
-        min-height: 0;
-        width: 100%;
-    }
-
-    .about-business-faq-link {
-        margin-top: 20px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .about-business-route-marker,
-    .about-business-route-fill,
-    .about-business-panel,
-    .about-business-step-chevron,
-    .about-business-step-btn,
-    .about-business-step-content,
-    .about-business-stop-dot,
-    .about-business-stop-dot::after {
-        transition: none !important;
-        animation: none !important;
-    }
-
-    .about-business-panel.active .about-business-card,
-    .about-business-panel.active .about-business-card > *,
-    .about-business-panel.active .about-preview-fields > * {
-        animation: none !important;
-    }
-}
-
-html:not(.js-enabled) .about-business-route-marker,
-html:not(.js-enabled) .about-business-route-fill {
-    display: none !important;
-}
-
-html:not(.js-enabled) .about-business-panel {
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
-    grid-template-rows: 1fr !important;
-}
-
-html:not(.js-enabled) .about-business-panel-inner {
-    overflow: visible !important;
-}
-
-/* --------------------------------------------------------------------------
-   5. Why Calzada?
-   -------------------------------------------------------------------------- */
-.about-why-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 40px;
-    align-items: start;
-}
-
-.about-why-col {
+.about-business-summary-links {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-top: 14px;
 }
 
-.about-why-title {
-    font-family: 'Sora', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: #0E2A47;
-    margin: 0;
-    text-align: left;
-}
-
-.about-why-desc {
-    font-size: 16px;
-    color: #5A6A7F;
-    line-height: 1.6;
-    margin: 0;
-    text-align: left;
-}
-
+.about-business-link,
+.about-business-faq-link,
 .about-transparency-link {
     display: inline-block;
-    color: #2272C3;
-    font-size: 16px;
+    color: #1F69B8;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
     font-weight: 500;
-    text-decoration: none;
-    margin-top: 8px;
-    width: fit-content;
-    transition: text-decoration 0.2s ease;
-}
-
-.about-transparency-link:hover {
     text-decoration: underline;
+    text-underline-offset: 3px;
+    width: fit-content;
+    transition: color 0.15s ease;
 }
 
+.about-business-link:hover,
+.about-business-faq-link:hover,
+.about-transparency-link:hover {
+    color: #134B85;
+}
+
+.about-business-link:focus-visible,
+.about-business-faq-link:focus-visible,
 .about-transparency-link:focus-visible {
     outline: 2px solid #378ADD;
     outline-offset: 2px;
 }
 
 /* --------------------------------------------------------------------------
-   6. Made by
+   5. Why Calzada?
    -------------------------------------------------------------------------- */
-.about-team-content {
+.about-why-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 16px;
+}
+
+.about-why-col {
     display: flex;
     flex-direction: column;
 }
 
-.about-team-capstone {
-    font-size: 16px;
-    color: #3D5068;
-    line-height: 1.6;
-    margin: 0 0 28px 0;
-    text-align: left;
-}
-
-.about-team-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 28px 48px;
-}
-
-.about-team-member {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.about-team-name {
+.about-why-title {
     font-family: 'Sora', sans-serif;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
     color: #0E2A47;
-    margin: 0;
-    text-align: left;
-}
-
-.about-team-role {
-    font-size: 15px;
-    color: #5A6A7F;
-    line-height: 1.4;
+    margin: 0 0 6px 0;
     text-align: left;
 }
 
 /* --------------------------------------------------------------------------
-   7. CTA Block
-   The ONLY filled blue block on the page
+   6. Made by
+   -------------------------------------------------------------------------- */
+.about-team-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.about-team-member {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    box-sizing: border-box;
+}
+
+.about-team-name {
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #0E2A47;
+}
+
+.about-team-role {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: #5A6A7F;
+}
+
+/* --------------------------------------------------------------------------
+   7. CTA Banner
    -------------------------------------------------------------------------- */
 .about-cta-section {
-    padding: 56px 0 96px;
+    padding: 40px 0 64px;
 }
 
 .about-cta-banner {
-    background-color: #2272C3;
-    border-radius: 20px;
-    padding: 56px 64px;
+    background-color: #1E62A8;
+    border-radius: 14px;
+    padding: 32px 28px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 40px;
-    box-shadow: 0 12px 36px rgba(34, 114, 195, 0.22);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    box-sizing: border-box;
 }
 
 .about-cta-text-group {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    max-width: 620px;
+    gap: 10px;
 }
 
 .about-cta-title {
     font-family: 'Sora', sans-serif;
-    font-size: 30px;
+    font-size: 22px;
     font-weight: 700;
     color: #FFFFFF;
-    line-height: 1.2;
+    line-height: 1.25;
     margin: 0;
     text-align: left;
 }
 
+.about-shell .about-cta-sub,
 .about-cta-sub {
-    font-size: 16px;
-    color: #FFFFFF;
+    font-family: 'Outfit', sans-serif;
+    font-size: 15px;
     line-height: 1.5;
+    color: rgba(255, 255, 255, 0.88) !important;
     margin: 0;
-    opacity: 0.95;
     text-align: left;
 }
 
@@ -1224,22 +425,20 @@ html:not(.js-enabled) .about-business-panel-inner {
     background: #FFFFFF;
     color: #1A5CA3;
     font-family: 'Sora', sans-serif;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
-    padding: 16px 32px;
-    border-radius: 10px;
+    padding: 12px 24px;
+    border-radius: 8px;
     text-decoration: none;
     white-space: nowrap;
     border: none;
     cursor: pointer;
-    flex-shrink: 0;
-    transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.15s ease;
 }
 
 .btn-about-cta:hover {
     background: #F8FAFC;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
 .btn-about-cta:focus-visible {
@@ -1248,136 +447,36 @@ html:not(.js-enabled) .about-business-panel-inner {
 }
 
 /* --------------------------------------------------------------------------
-   Responsive Breakpoints
+   Responsive Adaptations
+   The same layout at every width; only the padding changes.
    -------------------------------------------------------------------------- */
-@media (max-width: 1024px) {
-    .about-grid-section {
-        grid-template-columns: 240px 1fr;
-        gap: 40px;
-    }
-
-    .about-covers-content {
-        grid-template-columns: 200px 1fr;
-        gap: 32px;
-    }
-
-    .about-cta-banner {
-        padding: 44px 48px;
-    }
-}
-
 @media (max-width: 768px) {
     body.about-page .about-page-container {
-        padding: 100px 20px 0;
+        padding: 104px 24px 60px;
     }
 
     .about-section {
-        padding: 40px 0;
-    }
-
-    .about-main-title {
-        font-size: 38px;
-    }
-
-    .about-lead-text {
-        font-size: 20px;
-        line-height: 1.45;
-    }
-
-    .about-intro-p,
-    .about-body-text {
-        font-size: 16.5px;
-        line-height: 1.65;
-    }
-
-    .about-grid-section {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .about-section-heading {
-        font-size: 22px;
-    }
-
-    .about-intro-cols {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .about-covers-content {
-        grid-template-columns: 1fr;
-        gap: 32px;
-    }
-
-    .about-why-grid {
-        grid-template-columns: 1fr;
-        gap: 28px;
-    }
-
-    .about-cta-banner {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 36px 28px;
-        gap: 28px;
-    }
-
-    .about-cta-title {
-        font-size: 27px;
-    }
-
-    .btn-about-cta {
-        width: 100%;
-        text-align: center;
+        padding: 32px 0;
     }
 }
 
-/* Specific 390px mobile view per specification */
 @media (max-width: 480px) {
     body.about-page .about-page-container {
-        padding: 92px 16px 0;
+        padding: 96px 20px 48px;
     }
 
     .about-section {
-        padding: 32px 24px;
-    }
-
-    .about-main-title {
-        font-size: 32px;
-        margin-bottom: 16px;
-    }
-
-    .about-lead-text {
-        font-size: 19px;
-        line-height: 1.45;
-        margin-bottom: 28px;
-    }
-
-    .about-intro-p,
-    .about-body-text {
-        font-size: 16px;
-        line-height: 1.65;
-    }
-
-    .about-section-heading {
-        font-size: 21px;
+        padding: 28px 0;
     }
 
     .about-item-list-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
     }
 
     .about-routie-row {
         flex-direction: column;
-        align-items: stretch;
-        padding: 20px;
-        gap: 18px;
-    }
-
-    .about-routie-left {
-        flex-direction: column;
         align-items: flex-start;
-        gap: 14px;
+        gap: 16px;
     }
 
     .btn-about-routie {
@@ -1387,23 +486,10 @@ html:not(.js-enabled) .about-business-panel-inner {
 
     .about-team-grid {
         grid-template-columns: 1fr;
-        gap: 20px;
-    }
-
-    .about-cta-title {
-        font-size: 24px;
-    }
-
-    .about-cta-sub {
-        font-size: 16px;
     }
 
     .btn-about-cta {
         width: 100%;
+        text-align: center;
     }
 }
-
-/* Review fixes (#22): short business summary; the steps are on /submit */
-.about-business-summary { display: flex; flex-direction: column; gap: 16px; align-self: center; }
-.about-business-summary-links { display: flex; flex-wrap: wrap; gap: 8px 24px; }
-.about-business-summary .about-business-faq-link { margin: 0; }

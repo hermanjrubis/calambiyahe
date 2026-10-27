@@ -24,6 +24,7 @@
     <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
     <link rel="stylesheet" href="../css/style.css?v=2.8.5">
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
+    <link rel="stylesheet" href="../css/place-panel.css?v=2.9.0">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
 
     <!-- Ionicons -->
@@ -1585,11 +1586,11 @@
                 <div class="error-icon-wrap">
                     <i class="ti ti-building-store"></i>
                 </div>
-                <h2 class="error-title" id="errorTitle">Business Not Found</h2>
-                <p class="error-desc" id="errorDesc">The requested business profile does not exist or has not been approved yet.</p>
+                <h2 class="error-title" id="errorTitle">This business isn't available.</h2>
+                <p class="error-desc" id="errorDesc">Hindi available ang negosyong ito.</p>
                 <a href="/places" class="btn-text-back" style="font-size: 0.95rem; font-weight: 600;">
                     <i class="ti ti-arrow-left"></i>
-                    <span>Browse Places Guide</span>
+                    <span>Back to Places</span>
                 </a>
             </div>
         </div>
@@ -1658,6 +1659,9 @@
                 </div>
                 <div class="biz-tour-frame" id="bizTourFrame"></div>
             </section>
+
+            <!-- Reviews Section -->
+            <section class="biz-reviews-section" id="bizReviewsSection" aria-label="Reviews and rating"></section>
 
             <!-- Posts Section Header -->
             <div class="posts-section-header">
@@ -1793,6 +1797,8 @@
     <script src="../js/script.js?v=2.6.7"></script>
     <script type="module" src="../js/firebase-init.js"></script>
     <script type="module" src="../js/user-stats.js?v=2.6.11"></script>
+    <script src="../js/reviews-ui.js?v=2.9.0"></script>
+    <script src="../js/scope.js?v=2.9.1"></script>
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
 
     <!-- Page Specific Data & Lightbox Logic -->
@@ -1970,7 +1976,7 @@
             businessId = urlParams.get('id');
 
             if (!businessId) {
-                showError('No Business Specified', 'Please provide a valid business ID in the URL to view its profile.');
+                showError();
                 return;
             }
 
@@ -1979,11 +1985,17 @@
                 const busDocSnap = await getDoc(doc(db, 'businesses', businessId));
 
                 if (!busDocSnap.exists()) {
-                    showError('Business Not Found', 'The requested business could not be found in our database.');
+                    showError();
                     return;
                 }
 
                 businessData = busDocSnap.data();
+
+                // If not approved, treat as unavailable
+                if (businessData.status !== 'approved') {
+                    showError();
+                    return;
+                }
 
                 // Populate Business Profile Header
                 renderBusinessProfile(businessData);
@@ -1996,16 +2008,16 @@
 
             } catch (err) {
                 console.error('Error loading business profile:', err);
-                showError('Failed to Load Profile', err.message || 'An unexpected error occurred while loading this business profile.');
+                showError();
             }
         }
 
-        function showError(title, desc) {
+        function showError() {
             pageLoading.style.display = 'none';
             profileContent.style.display = 'none';
             pageError.style.display = 'flex';
-            if (errorTitle) errorTitle.textContent = title;
-            if (errorDesc) errorDesc.textContent = desc;
+            if (errorTitle) errorTitle.textContent = "This business isn't available.";
+            if (errorDesc) errorDesc.textContent = "Hindi available ang negosyong ito.";
         }
 
         function renderBusinessProfile(bus) {
@@ -2119,10 +2131,50 @@
             }
             if (profileActions) profileActions.hidden = !hasPin && (!btnCallBusiness || btnCallBusiness.hidden);
             syncOwnerControls();
+            function showBizToast(msg) {
+                let toast = document.getElementById('calzadaBizToast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'calzadaBizToast';
+                    toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#042C53;color:#ffffff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:10000;pointer-events:none;transition:opacity 0.25s ease;';
+                    document.body.appendChild(toast);
+                }
+                toast.textContent = msg;
+                toast.style.opacity = '1';
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+                }, 2500);
+            }
+
             if (hasPin && businessMapSection) {
                 businessMapSection.style.display = 'block';
                 if (btnPlanRouteHere) {
                     btnPlanRouteHere.href = `/planner?destName=${encodeURIComponent(bus.name || 'Business')}&destLat=${bus.location.lat}&destLng=${bus.location.lng}`;
+                    btnPlanRouteHere.onclick = (e) => {
+                        const user = auth.currentUser;
+                        if (!user || user.isAnonymous) {
+                            e.preventDefault();
+                            const pending = {
+                                dest: {
+                                    name: bus.name || 'Business',
+                                    lat: bus.location.lat,
+                                    lng: bus.location.lng
+                                },
+                                origin: { kind: 'my_location' },
+                                mode: 'jeepney',
+                                savedAt: Date.now()
+                            };
+                            try {
+                                sessionStorage.setItem('calzada_pending_route', JSON.stringify(pending));
+                            } catch (_) {}
+                            showBizToast('Sign in to see your route');
+                            setTimeout(() => {
+                                window.location.href = '/login?redirect=%2Fplanner%3Fresume%3D1&reason=route';
+                            }, 900);
+                        }
+                    };
                 }
                 if (typeof maplibregl !== 'undefined') {
                     try {
@@ -2137,6 +2189,9 @@
                         new maplibregl.Marker({ color: '#378ADD', anchor: 'bottom' })
                             .setLngLat([bus.location.lng, bus.location.lat])
                             .addTo(miniMap);
+                        if (window.CalzadaScope && typeof window.CalzadaScope.addFog === 'function') {
+                            window.CalzadaScope.addFog(miniMap);
+                        }
                     } catch (e) {
                         console.warn('Mini-map init notice:', e);
                     }
@@ -2153,6 +2208,17 @@
             }
 
             renderTourSection(bus);
+
+            if (window.CalzadaReviewsUI) {
+                const reviewsSection = document.getElementById('bizReviewsSection');
+                if (reviewsSection) {
+                    window.CalzadaReviewsUI.mount(reviewsSection, {
+                        placeId: 'biz_' + businessId,
+                        placeName: bus.name || 'Local Business',
+                        returnUrl: window.location.pathname + window.location.search
+                    });
+                }
+            }
         }
         window.__renderBusinessProfile = renderBusinessProfile;
 

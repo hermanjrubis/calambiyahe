@@ -1006,9 +1006,15 @@ body.navigation-active .calzada-map-card {
 /* Attribution: compact round "i" at the bottom-left (expanded when the map opens) */
 .maplibregl-ctrl-bottom-left {
     bottom: 24px !important;
-    left: 364px !important; /* clear of the 340px directions panel on desktop */
+    left: 404px !important; /* clear of the 380px directions panel on desktop & landscape */
     z-index: 550 !important;
     margin: 0 !important;
+}
+
+@media (max-width: 1023px) {
+    .maplibregl-ctrl-bottom-left {
+        left: 16px !important;
+    }
 }
 
 .maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib {
@@ -1024,7 +1030,13 @@ body.navigation-active .calzada-map-card {
     .maplibregl-ctrl-group .maplibregl-ctrl-zoom-out {
         display: none !important;
     }
+    /* Phones zoom with pinch: the +/- group would be an empty box */
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+        display: none !important;
+    }
+}
 
+@media (max-width: 1023px) {
     .maplibregl-ctrl-bottom-right {
         bottom: 0 !important;
         right: 12px !important;
@@ -1054,11 +1066,6 @@ body.navigation-active .calzada-map-card {
     .maplibregl-ctrl-bottom-right.ctrl-busy .maplibregl-ctrl,
     .maplibregl-ctrl-bottom-left.ctrl-busy .maplibregl-ctrl {
         pointer-events: none;
-    }
-
-    /* Phones zoom with pinch: the +/- group would be an empty box */
-    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
-        display: none !important;
     }
 
     /* The attribution "i" rides above the sheet at the left, like the map buttons at the right */
@@ -1313,15 +1320,38 @@ body.navigation-active .calzada-map-card {
     max-height: calc(var(--vh, 1vh) * 92);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
     .bottom-sheet {
-        background: rgba(255, 255, 255, 0.72);
+        background: rgba(255, 255, 255, 0.88);
         backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
         -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.05);
         border: 1px solid rgba(255, 255, 255, 0.45);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+}
+
+@media (max-width: 767px) {
+    .bottom-sheet {
         border-radius: 24px;
         margin: 0 12px max(12px, env(safe-area-inset-bottom, 12px)) 12px;
+        max-height: calc(var(--vh, 1vh) * 92);
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+    .bottom-sheet {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        margin: 0 auto max(12px, env(safe-area-inset-bottom, 12px)) auto !important;
+        width: min(680px, calc(100vw - 32px)) !important;
+        max-width: 680px !important;
+        max-height: 60vh !important;
+        max-height: calc(var(--vh, 1vh) * 60) !important;
+        border-radius: 24px;
+        pointer-events: auto;
+        z-index: 500;
     }
 }
 
@@ -1351,7 +1381,7 @@ body.navigation-active .calzada-map-card {
     background: #e2e8f0;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .planner-gui-container {
         pointer-events: none;
     }
@@ -1362,8 +1392,9 @@ body.navigation-active .calzada-map-card {
         bottom: 0;
         left: 0;
         right: auto;
-        width: 340px;
-        background: rgba(255, 255, 255, 0.72) !important;
+        width: 380px !important;
+        max-width: 380px !important;
+        background: rgba(255, 255, 255, 0.88) !important;
         backdrop-filter: blur(28px) saturate(200%) brightness(1.05) !important;
         -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.05) !important;
         box-shadow: 4px 0 32px rgba(0, 0, 0, 0.10) !important;

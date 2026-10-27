@@ -2,6 +2,9 @@
 // CALZADA PLANNER — REBUILT ROUTING ENGINE (INTER-CITY ONLY)
 // =============================================
 
+const isSheetLayout = () => window.innerWidth < 1024;
+window.isSheetLayout = isSheetLayout;
+
 function t(key, context) {
     let str = window.t ? window.t(key, context) : key;
     if (context && typeof context === 'object') {
@@ -315,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [121.1652, 14.2117], // Calamba coordinates [lng, lat]
             zoom: 13,
+            minZoom: 13,
             dragRotate: true,
             touchPitch: false,
             pitchWithRotate: false,
@@ -332,6 +336,9 @@ document.addEventListener('DOMContentLoaded', () => {
         window._calzadaMap = map;
         window.calzadaMap = map;
         window.map = map;
+        if (window.CalzadaScope && typeof window.CalzadaScope.addFog === 'function') {
+            window.CalzadaScope.addFog(map);
+        }
         map.touchZoomRotate.enableRotation();
         map.keyboard.enable();
 
@@ -356,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // map opens, then fold into the "i" and only come back when the user taps it.
         const attributionControl = new maplibregl.AttributionControl({
             compact: true,
-            customAttribution: '<a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
+            customAttribution: 'Coverage: Calzada · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
         });
         map.addControl(attributionControl, 'bottom-left');
         const attribEl = () => document.querySelector('.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib');
@@ -386,7 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('resize', () => map.resize());
         setTimeout(() => map.resize(), 0);
         setTimeout(() => map.resize(), 200);
-        map.on('load', () => map.resize());
+        map.on('load', () => {
+            map.resize();
+            if (window.CalzadaScope && typeof window.CalzadaScope.addFog === 'function') {
+                window.CalzadaScope.addFog(map);
+            }
+        });
 
         // GeoJSON Route line layers setup
         const getRouteInsertionBeforeId = () => {
@@ -736,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // While a journey is running the map tilts (3D buildings from the map style stand up),
         // turns with the direction of travel on phones and desktop, and shows a soft sky.
         const NAV_ZOOM = 17.5;
-        const navPitch = () => (prefersReducedMotion() ? 40 : (window.innerWidth <= 768 ? 60 : 55));
+        const navPitch = () => (prefersReducedMotion() ? 40 : (isSheetLayout() ? 60 : 55));
         // Direction of the route a little ahead of where you are (used before GPS/compass give a heading)
         function routeBearingAhead(fromLngLat) {
             const pts = trackedCoordinates || [];
@@ -987,13 +999,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 topEdge = rThen.bottom;
             }
 
-            const sheet = (vw <= 768 && document.body.classList.contains('navigation-active'))
+            const sheet = (isSheetLayout() && document.body.classList.contains('navigation-active'))
                 ? document.getElementById('bottomStatusPill')
                 : (document.getElementById('bottomStatusPill') || document.getElementById('directionsCard'));
             const rSheet = (sheet && getComputedStyle(sheet).display !== 'none') ? sheet.getBoundingClientRect() : null;
             const bottomEdge = (rSheet && rSheet.height > 0) ? rSheet.top : vh;
 
-            if (vw <= 768) {
+            if (isSheetLayout()) {
                 // Visible height between bottom of banner (including Then strip) and top of bottom bar
                 const visibleHeight = Math.max(100, bottomEdge - topEdge);
                 // Center MapLibre pointer at 65% of visible map height:
@@ -1037,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const sheet = document.getElementById('directionsCard');
 
-            if (vw <= 768) {
+            if (isSheetLayout()) {
                 let sheetTop = vh;
                 if (sheet && getComputedStyle(sheet).display !== 'none') {
                     let sheetY = 0;
@@ -1091,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Requirement 2: If the visible map height is under 160px (sheet fully expanded),
             // do not fit; refit when the user lowers the sheet.
-            if (window.innerWidth <= 768 && pad.visibleHeight < 160) {
+            if (isSheetLayout() && pad.visibleHeight < 160) {
                 return;
             }
 
@@ -2246,7 +2258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const isDesktop = window.matchMedia('(min-width: 769px)').matches;
+            const isDesktop = window.matchMedia('(min-width: 1024px)').matches;
             if (isDesktop) {
                 if (activeNavPanel) activeNavPanel.style.setProperty('display', 'flex', 'important');
                 if (activeGuideCard) activeGuideCard.style.setProperty('display', 'none', 'important');
@@ -2282,7 +2294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const getSheetPositions = () => {
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth < 1024;
             if (!isMobile) {
                 return { expanded: 0, peek: 0, collapsed: 0 };
             }
@@ -2321,7 +2333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dsFooterEl = directionsCard ? directionsCard.querySelector('.ds-footer') : null;
         const syncFooterToSheet = (y, animate) => {
             if (!dsFooterEl) return;
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth < 1024;
             const pos = isMobile ? getSheetPositions() : null;
             // Only the fixed-height route sheet lifts its footer; on a content-sized sheet the
             // extra room would make the sheet itself grow.
@@ -2336,7 +2348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const setSheetState = (state, animate = true) => {
             if (!directionsCard) return;
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth < 1024;
             if (!isMobile) { syncFooterToSheet(0, false); return; }
 
             const pos = getSheetPositions();
@@ -2386,7 +2398,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const updateCategoryBarVisibility = () => {
             const catWrapper = document.getElementById('mapCategoryBarWrapper');
             if (!catWrapper) return;
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = isSheetLayout();
             if (!isMobile) {
                 catWrapper.style.opacity = '1';
                 catWrapper.style.pointerEvents = 'auto';
@@ -2460,7 +2472,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // When the sheet's height changes (route found or cleared, fields reset) or the screen
         // resizes, put it back on its current stop so a stale offset can't push it off screen.
         const resnapSheet = () => {
-            if (!directionsCard || sheetDragging || window.innerWidth > 768) return;
+            if (!directionsCard || sheetDragging || window.innerWidth >= 1024) return;
             if (directionsCard.classList.contains('journey-active-hidden')) return;
             const state = ['peek', 'collapsed'].find(s => directionsCard.classList.contains(s)) || 'expanded';
             const want = getSheetPositions()[state === 'peek' && getSheetPositions().peek <= 0 ? 'expanded' : state] ?? 0;
@@ -2478,7 +2490,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.visualViewport) window.visualViewport.addEventListener('resize', () => requestAnimationFrame(resnapSheet));
 
         directionsCard.addEventListener('touchstart', (e) => {
-            const isMobile = window.innerWidth <= 768;
+            const isMobile = window.innerWidth < 1024;
             if (!isMobile || e.touches.length !== 1) return;
 
             const isInteractive = !!e.target.closest('button, input, select, textarea, a, .share-btn');
@@ -2642,7 +2654,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // during a drag. Desktop keeps the CSS position untouched.
         (() => {
             const CTRL_GAP = 12;        // px between the sheet's top edge and the lowest control
-            const mobileMq = window.matchMedia('(max-width: 767px)');
+            const mobileMq = window.matchMedia('(max-width: 1023px)');
             const ctrlCorner = document.querySelector('.maplibregl-ctrl-bottom-right');
             // The attribution "i" at the bottom-left rides on the same lift
             const attribCorner = document.querySelector('.maplibregl-ctrl-bottom-left');
@@ -2722,7 +2734,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }).observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
             const sync = () => {
-                const sheetShown = directionsCard.offsetParent !== null && directionsCard.offsetHeight > 0;
+                const sheetShown = directionsCard.offsetHeight > 0 && !directionsCard.classList.contains('journey-active-hidden') && getComputedStyle(directionsCard).display !== 'none';
                 if (!mobileMq.matches || !sheetShown) {
                     // Desktop, or journey mode with the sheet hidden: fall back to CSS.
                     corners.forEach(c => {
@@ -2735,7 +2747,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 // offsetTop ignores transforms, so this is the sheet's resting top edge;
                 // adding the inline translateY gives where the sheet is (or is heading).
-                const sheetTop = directionsCard.offsetTop + sheetTargetY();
+                const sheetBaseTop = directionsCard.offsetTop || (directionsCard.getBoundingClientRect().top - sheetTargetY());
+                const sheetTop = sheetBaseTop + sheetTargetY();
                 const mapH = map.getContainer().clientHeight;
                 const stack = measureStack();
                 const visBottom = sheetTop - CTRL_GAP;
@@ -3049,6 +3062,10 @@ document.addEventListener('DOMContentLoaded', () => {
             priorTrip = null;
             try { sessionStorage.removeItem(STORAGE_KEY); } catch (e) {}
 
+            if (window.CalzadaScope && typeof window.CalzadaScope.resetBounds === 'function') {
+                window.CalzadaScope.resetBounds(map);
+            }
+
             ensureDestMarker();
             renderPlannerState();
 
@@ -3138,6 +3155,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const sc = document.getElementById('dsScrollContainer');
             if (sc) sc.scrollTop = 0;
             renderPlannerState();
+
+            if (window.CalzadaScope && typeof window.CalzadaScope.resetBounds === 'function') {
+                window.CalzadaScope.resetBounds(map);
+            }
 
             if (currentLocation && currentLocation.lat && currentLocation.lng) {
                 map.flyTo({ center: [currentLocation.lng, currentLocation.lat], zoom: 14 });
@@ -3260,14 +3281,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (pos && pos.coords) {
-                    currentLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                    selectedCoords.origin = [pos.coords.latitude, pos.coords.longitude];
+                    const fixLat = pos.coords.latitude;
+                    const fixLng = pos.coords.longitude;
+
+                    currentLocation = { lat: fixLat, lng: fixLng };
+                    selectedCoords.origin = [fixLat, fixLng];
                     originPlaceName = 'My Location';
                     currentOriginKind = 'my_location';
                     originPlaceId = '';
                     currentOriginBarangay = null;
+                    if (window.CalzadaScope && typeof window.CalzadaScope.expandBoundsForStart === 'function') {
+                        window.CalzadaScope.expandBoundsForStart(map, fixLat, fixLng);
+                    }
                     window.__calzadaMyLocOriginFix = {
-                        lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy
+                        lat: fixLat, lng: fixLng, accuracy: pos.coords.accuracy
                     };
                     updateODDisplay();
 
@@ -3342,12 +3369,28 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         const selectLocation = (name, coords, placeObj) => {
+            if (coords && Array.isArray(coords)) {
+                const lat = Number(coords[0]);
+                const lng = Number(coords[1]);
+                if (activeSelectingField === 'destination') {
+                    if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(lat, lng)) {
+                        const toastMsg = (typeof window.t === 'function')
+                            ? window.t('scope.outside_toast')
+                            : 'Calzada covers Brgy. Uno, Real and Halang for now.';
+                        (window.showToast || showToast)(toastMsg, 'warning');
+                        return false;
+                    }
+                }
+            }
             if (activeSelectingField === 'origin') {
                 selectedCoords.origin = coords;
                 originPlaceName = name;
                 currentOriginKind = (isMapPicking || name === t('planner.pinned_location')) ? 'pinned' : 'place';
                 originPlaceId = (placeObj && placeObj.id) ? placeObj.id : '';
                 currentOriginBarangay = (placeObj && placeObj.barangay) ? placeObj.barangay : null;
+                if (coords && coords.length >= 2 && window.CalzadaScope && typeof window.CalzadaScope.expandBoundsForStart === 'function') {
+                    window.CalzadaScope.expandBoundsForStart(map, coords[0], coords[1]);
+                }
             } else {
                 selectedCoords.destination = coords;
                 destPlaceName = name;
@@ -4290,31 +4333,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return (place && place.barangay && typeof place.barangay === 'string') ? place.barangay.slice(0, 40) : null;
         };
 
-        function showPlanRouteGate() {
-            const gateCard = document.getElementById('planRouteGateCard');
-            const summaryBlock = document.getElementById('routeSummaryBlock');
-            const startBtn = document.getElementById('startJourneyBtn');
-            const legs = document.getElementById('legsContainer');
-            const helper = document.getElementById('startJourneyHelper');
-
-            if (gateCard) gateCard.style.display = 'block';
-            if (summaryBlock) summaryBlock.style.display = 'none';
-            if (startBtn) startBtn.disabled = true;
-            if (legs) legs.innerHTML = '';
-            if (helper) helper.style.display = 'none';
-
-            renderPlannerState();
-
-            if (window.innerWidth <= 768 && typeof setSheetState === 'function') {
-                requestAnimationFrame(() => setSheetState('peek', true));
-            }
-        }
-
-        function hidePlanRouteGate() {
-            const gateCard = document.getElementById('planRouteGateCard');
-            if (gateCard) gateCard.style.display = 'none';
-        }
-
         function writePendingRoute() {
             let originData;
             if (currentOriginKind === 'my_location') {
@@ -4562,36 +4580,38 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const btnGateSignIn = document.getElementById('btnGateSignIn');
-        if (btnGateSignIn) {
-            btnGateSignIn.addEventListener('click', () => {
-                writePendingRoute();
-            });
-        }
-        const btnGateRegister = document.getElementById('btnGateRegister');
-        if (btnGateRegister) {
-            btnGateRegister.addEventListener('click', () => {
-                writePendingRoute();
-            });
-        }
-
         const executeRouteQuery = async () => {
             if (!authInitDone) {
                 await authInitPromise;
             }
 
+            if (selectedCoords.origin && window.CalzadaScope && typeof window.CalzadaScope.expandBoundsForStart === 'function') {
+                const [oLat, oLng] = selectedCoords.origin;
+                window.CalzadaScope.expandBoundsForStart(map, oLat, oLng);
+            }
+
+            if (selectedCoords.destination && window.CalzadaScope && typeof window.CalzadaScope.contains === 'function') {
+                const [dLat, dLng] = selectedCoords.destination;
+                if (!window.CalzadaScope.contains(dLat, dLng)) {
+                    (window.showToast || showToast)(window.t ? window.t('scope.outside_toast') : 'Calzada covers Brgy. Uno, Real and Halang for now.', 'warning');
+                    return;
+                }
+            }
+
             if (!selectedCoords.origin || !selectedCoords.destination) {
-                hidePlanRouteGate();
                 return executeRouteQueryCore();
             }
 
             const user = window.CalzadaAuth?.getCurrentUser();
             if (!user || user.isAnonymous) {
-                showPlanRouteGate();
+                writePendingRoute();
+                const gateMsg = (window.t ? window.t('planner.gate_toast') : null) || 'Sign in to see your route';
+                (window.showToast || showToast)(gateMsg, 'info');
+                setTimeout(() => {
+                    window.location.href = '/login?redirect=%2Fplanner%3Fresume%3D1&reason=route';
+                }, 900);
                 return;
             }
-
-            hidePlanRouteGate();
 
             let failed = false;
             setRouteLoading(true);
@@ -4609,7 +4629,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             // Phones: a new route opens the sheet at half height so the route on the map is seen
             // (review #04). Only for a new trip, not for the live origin's quiet replans.
-            if (hasRoute && !failed && !isTrackingArrival && window.innerWidth <= 768) {
+            if (hasRoute && !failed && !isTrackingArrival && window.innerWidth < 1024) {
                 const o = selectedCoords.origin, d = selectedCoords.destination;
                 const tripKey = `${o[0].toFixed(3)},${o[1].toFixed(3)}|${d[0].toFixed(3)},${d[1].toFixed(3)}|${selectedMode}`;
                 if (tripKey !== lastPeekTripKey && !directionsCard.classList.contains('collapsed')) {
@@ -6260,6 +6280,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window._calzadaClearAllPlannerState = clearAllPlannerState;
         window._calzadaClearOriginField = clearOriginField;
         window._calzadaClearDestField = clearDestField;
+        window._calzadaSetActiveSelectingField = (type) => { activeSelectingField = type; };
         window._calzadaSelectLocation = selectLocation;
         window._calzadaSetDestination = (name, coords) => {
             if (!coords) return;
@@ -7074,8 +7095,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     legs.push({ type: 'walk', durationMin: Math.round(stops.finalWalkMin), distanceKm: roundTo(stops.finalWalkM / 1000, 2), fare: 0, boardStop: null, alightStop: null });
                 }
             }
+            const dest = selectedCoords.destination;
+            const places = [...(pickerKnownPlaces || []), ...CALAMBA_PLACES_FALLBACK];
+            const name = (destPlaceName || '').trim().toLowerCase();
+            let place = name ? places.find(p => (p.name || '').trim().toLowerCase() === name) : null;
+            if (!place && dest) {
+                place = places.find(p => p.lat && p.lng && getHaversineDist(dest[0], dest[1], p.lat, p.lng) * 1000 <= 80);
+            }
             return {
                 destName: clip(destPlaceName || 'Destination', 120),
+                destId: (place && place.id) ? String(place.id) : null,
                 originLabel: originLabelForTrip(),
                 startedAt,
                 arrivedAt,
@@ -7379,6 +7408,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.getElementById('mapPickerConfirmBtn').addEventListener('click', () => {
             const c = getPinLngLat();
+            if (pickerField === 'destination') {
+                if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(c.lat, c.lng)) {
+                    const toastMsg = (typeof window.t === 'function')
+                        ? window.t('scope.outside_toast')
+                        : 'Calzada covers Brgy. Uno, Real and Halang for now.';
+                    showToast(toastMsg, 'warning');
+                    return;
+                }
+            }
             const selectedLabel = (currentPickerLabel && currentPickerLabel !== 'Move map to select location...' && !COORDINATE_LIKE.test(currentPickerLabel))
                 ? currentPickerLabel
                 : t('planner.pinned_location'); // coordinates stay in the picker, never in the label
@@ -7460,9 +7498,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (ra.height && ra.right > rr.left && ra.left < rr.right && ra.top > 80 && ra.top < top) top = ra.top;
                 }
 
-                // In navigation mode on mobile (<=768px):
+                // In navigation mode on mobile (<1024px):
                 // Ensure toast sits above the bottom sheet and does not cover the round map control (#reCenterBtn)
-                if (vw <= 768 && document.body.classList.contains('navigation-active')) {
+                if (isSheetLayout() && document.body.classList.contains('navigation-active')) {
                     const reCenter = document.getElementById('reCenterBtn');
                     if (reCenter) {
                         const rBtn = reCenter.getBoundingClientRect();
@@ -7655,7 +7693,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cont = map.getContainer();
                 const cr = cont.getBoundingClientRect();
                 let top = cr.top, bottom = cr.bottom, left = cr.left, right = cr.right;
-                const mobile = window.innerWidth <= 768;
+                const mobile = isSheetLayout();
                 const card = document.getElementById('directionsCard');
                 const sheetShown = card && card.getClientRects().length > 0 && card.offsetHeight > 0
                     && !card.classList.contains('journey-active-hidden')
@@ -7712,6 +7750,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const onPosition = (pos, { recenter = false } = {}) => {
                 const next = { lng: pos.coords.longitude, lat: pos.coords.latitude };
+                if (recenter && window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(next.lat, next.lng)) {
+                    const outMsg = (window.t ? window.t('scope.your_location_outside') : "You're outside Calzada's area. Pick a starting point inside it.");
+                    showToast(outMsg, 'warning');
+                }
                 lastFixInfo = { lat: next.lat, lng: next.lng, acc: pos.coords.accuracy, ts: Date.now() };
                 moveTo(next);
                 setActive(true);

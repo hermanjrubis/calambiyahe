@@ -98,6 +98,15 @@
         <div class="auth-form-panel">
             <div class="auth-form-container">
                 <div class="auth-content">
+                    <!-- ROUTE REASON NOTICE (Visible when reason=route) -->
+                    <div id="routeGateNotice" class="login-route-notice" style="display: none; margin-bottom: 24px;">
+                        <p id="routeGateLine" class="login-route-line" style="margin: 0 0 8px 0; font-size: 15px; color: var(--navy-dark, #042C53); font-weight: 500; line-height: 1.4;"></p>
+                        <a href="/planner" id="routeGateBackLink" class="login-back-to-map" style="display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: #1F69B8; font-weight: 600; text-decoration: none;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                            Back to map
+                        </a>
+                    </div>
+
                     <!-- STEP 1: EMAIL STEP -->
                     <div id="stepEmail" class="auth-step active">
                         <h2 class="auth-title">Welcome to Calzada</h2>
@@ -336,6 +345,34 @@
                 const regEmailInput = document.getElementById('regEmailInput');
                 if (regEmailInput) regEmailInput.focus();
             }, 50);
+        }
+
+        // Check if redirected from route planning gate (reason=route)
+        if (initParams.get('reason') === 'route') {
+            let dest = '';
+            try {
+                const raw = sessionStorage.getItem('calzada_pending_route');
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    if (data?.dest?.name) dest = data.dest.name;
+                }
+            } catch (_) {}
+            if (!dest && initParams.get('destName')) {
+                dest = initParams.get('destName');
+            }
+
+            const noticeEl = document.getElementById('routeGateNotice');
+            const lineEl = document.getElementById('routeGateLine');
+            if (noticeEl && lineEl) {
+                lineEl.textContent = dest
+                    ? `Sign in to plan your route to ${dest}`
+                    : 'Sign in to plan your route';
+                noticeEl.style.display = 'block';
+            }
+
+            // Keep it to one plain line by hiding the generic auth-subtitle on stepEmail
+            const defaultSub = document.querySelector('#stepEmail .auth-subtitle');
+            if (defaultSub) defaultSub.style.display = 'none';
         }
 
         // Clear inline errors as user types

@@ -153,7 +153,7 @@ async function runTests() {
         const context = await browser.newContext({
             viewport: { width: 1280, height: 800 },
             permissions: ['geolocation'],
-            geolocation: { latitude: 14.1940522, longitude: 121.1596881 }
+            geolocation: { latitude: 14.1940522, longitude: 121.1596881, accuracy: 10 }
         });
         await context.addInitScript(() => {
             sessionStorage.setItem('calzada_use_emulator', '1');
@@ -176,49 +176,64 @@ async function runTests() {
         await page.waitForTimeout(1500);
 
         // Pick a starting point through real UI: Calamba City Hall
+        // Setting both inputs when signed out should toast "Sign in to see your route"
+        // and navigate to /login?redirect=%2Fplanner%3Fresume%3D1&reason=route after ~900ms
+        const navToLoginPromise = page.waitForNavigation({ timeout: 15000 });
         await page.click('#openOriginModal');
         await page.waitForSelector('.cps-input', { state: 'visible', timeout: 5000 });
         await page.fill('.cps-input', 'City Hall');
         const cityHallOption = page.locator('.cps-row[role="option"]').filter({ hasText: 'Calamba City Hall' }).first();
         await cityHallOption.waitFor({ state: 'visible', timeout: 5000 });
         await cityHallOption.click();
-        await page.waitForTimeout(1000);
 
-        const gateState = await page.evaluate(() => {
-            const card = document.getElementById('planRouteGateCard');
-            const startBtn = document.getElementById('startJourneyBtn');
+        // Wait for redirect to login
+        await navToLoginPromise;
+
+        report(routingRequestsCount === 0, `0 network calls to routing servers (actual: ${routingRequestsCount}).`);
+
+        const loginState = await page.evaluate(() => {
+            const notice = document.getElementById('routeGateNotice');
+            const line = document.getElementById('routeGateLine');
+            const backLink = document.getElementById('routeGateBackLink');
             return {
-                cardExists: !!card,
-                cardVisible: card ? window.getComputedStyle(card).display !== 'none' : false,
-                btnDisabled: startBtn ? startBtn.disabled : false,
-                cardText: card ? card.innerText : ''
+                url: window.location.href,
+                noticeVisible: notice ? window.getComputedStyle(notice).display !== 'none' : false,
+                lineText: line ? line.innerText : '',
+                backLinkHref: backLink ? backLink.getAttribute('href') : '',
+                backLinkText: backLink ? backLink.innerText : ''
             };
         });
 
-        report(gateState.cardExists && gateState.cardVisible, 'Sign-in gate card shows when signed out.');
-        report(gateState.btnDisabled, 'Start Journey button is disabled.');
-        report(routingRequestsCount === 0, `0 network calls to routing servers (actual: ${routingRequestsCount}).`);
-        report(gateState.cardText.includes('Sign in to plan your route') || gateState.cardText.includes('Mag-sign in'), 'Gate card displays required sign-in text.');
+        report(loginState.url.includes('/login') && loginState.url.includes('reason=route'), 'Navigated to /login with reason=route and redirect param.');
+        report(loginState.noticeVisible, 'Route gate notice is visible on login page.');
+        report(loginState.lineText.includes('Sign in to plan your route to SM Calamba'), `Login shows plain line with destination (actual: "${loginState.lineText}").`);
+        report(loginState.backLinkHref === '/planner' && loginState.backLinkText.includes('Back to map'), 'Login shows "Back to map" link pointing to /planner.');
+
+        // --- TEST 2: sessionStorage handoff & origin coordinates check ---
+        console.log('\n--- Test 2: Pending route handoff privacy check ("Your location") ---');
+        // Click "Back to map" to return to planner
+        const backNavPromise = page.waitForNavigation({ timeout: 15000 });
+        await page.click('#routeGateBackLink');
+        await backNavPromise;
+        await page.waitForTimeout(1000);
+
+        // Pick destination SM Calamba if needed
+        await page.goto(`${plannerUrl}`, { waitUntil: 'domcontentloaded' });
+        await page.waitForTimeout(1000);
 
         // Now pick "Your location" through the real UI (no window.selectLocation)
+        const yourLocNavPromise = page.waitForNavigation({ timeout: 15000 });
         await page.click('#openOriginModal');
         const yourLocBtn = page.locator('.cps-shortcut').filter({ hasText: /Your location|lokasyon/i }).first();
         await yourLocBtn.waitFor({ state: 'visible', timeout: 5000 });
         await yourLocBtn.click();
-        await page.waitForTimeout(1000);
-
-        // --- TEST 2: sessionStorage handoff & origin coordinates check ---
-        console.log('\n--- Test 2: Pending route handoff privacy check ---');
-        // Click Sign In on the gate card and wait for navigation
-        const gateNavPromise = page.waitForNavigation({ timeout: 15000 });
-        await page.click('#btnGateSignIn');
-        await gateNavPromise;
+        await yourLocNavPromise;
 
         // On the login page, inspect sessionStorage.calzada_pending_route
         const rawPending = await page.evaluate(() => sessionStorage.getItem('calzada_pending_route'));
         const pendingData = rawPending ? JSON.parse(rawPending) : null;
 
-        report(!!pendingData, 'sessionStorage.calzada_pending_route written on sign-in redirect click.');
+        report(!!pendingData, 'sessionStorage.calzada_pending_route written on sign-in redirect.');
         report(
             pendingData && pendingData.origin && pendingData.origin.kind === 'my_location' && pendingData.origin.lat === undefined && pendingData.origin.lng === undefined,
             'Pending route origin has kind "my_location" and ZERO coordinates (privacy RA 10173 preserved).'
@@ -262,20 +277,25 @@ async function runTests() {
         } catch (_) {}
         await page.waitForTimeout(2000);
 
-        const routeHistoryInDb = await page.evaluate(async () => {
-            try {
-                const user = window.CalzadaAuth?.getCurrentUser();
-                if (!user) return { error: 'No authenticated user' };
-                const snap = await window.CalzadaAuth.getDocs(
-                    window.CalzadaAuth.collection(window.CalzadaAuth.db, `users/${user.uid}/routeHistory`)
-                );
-                const docs = [];
-                snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
-                return { count: docs.length, docs };
-            } catch (e) {
-                return { error: e.message };
-            }
-        });
+        let routeHistoryInDb = { count: 0, docs: [] };
+        for (let i = 0; i < 20; i++) {
+            routeHistoryInDb = await page.evaluate(async () => {
+                try {
+                    const user = window.CalzadaAuth?.getCurrentUser();
+                    if (!user) return { error: 'No authenticated user' };
+                    const snap = await window.CalzadaAuth.getDocs(
+                        window.CalzadaAuth.collection(window.CalzadaAuth.db, `users/${user.uid}/routeHistory`)
+                    );
+                    const docs = [];
+                    snap.forEach(d => docs.push({ id: d.id, ...d.data() }));
+                    return { count: docs.length, docs };
+                } catch (e) {
+                    return { error: e.message };
+                }
+            });
+            if (routeHistoryInDb.count >= 1) break;
+            await page.waitForTimeout(500);
+        }
 
         report(
             routeHistoryInDb.count >= 1 && routeHistoryInDb.docs[0].status === 'planned' && routeHistoryInDb.docs[0].mode === 'jeepney',
@@ -451,16 +471,14 @@ async function runTests() {
             const scrollInfo = await page.evaluate(() => {
                 const docEl = document.documentElement;
                 const modal = document.querySelector('#modalRouteHistory .profile-modal-box');
-                const gate = document.getElementById('planRouteGateCard');
                 return {
                     docHasScroll: docEl.scrollWidth > docEl.clientWidth,
-                    modalHasScroll: modal ? modal.scrollWidth > modal.clientWidth : false,
-                    gateHasScroll: gate ? gate.scrollWidth > gate.clientWidth : false
+                    modalHasScroll: modal ? modal.scrollWidth > modal.clientWidth : false
                 };
             });
 
-            const noScroll = !scrollInfo.docHasScroll && !scrollInfo.modalHasScroll && !scrollInfo.gateHasScroll;
-            report(noScroll, `Width ${w}px: No horizontal scroll on page, gate card, or Route history modal.`);
+            const noScroll = !scrollInfo.docHasScroll && !scrollInfo.modalHasScroll;
+            report(noScroll, `Width ${w}px: No horizontal scroll on page or Route history modal.`);
         }
 
         await context.close();

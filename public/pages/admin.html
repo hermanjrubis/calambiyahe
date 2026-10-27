@@ -943,8 +943,117 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Responsive Breakpoints */
-        @media (max-width: 1023px) {
+        /* Tablet (768px – 1199px): Sidebar collapses to 64px icons with tooltips */
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .admin-sidebar {
+                width: 64px !important;
+                transform: translateX(0) !important;
+                z-index: 120;
+            }
+            .admin-content-wrapper {
+                margin-left: 64px !important;
+            }
+            .brand-portal-tag,
+            .nav-text,
+            .nav-count,
+            .sidebar-view-site .nav-text {
+                display: none !important;
+            }
+            .sidebar-header {
+                padding: 0 !important;
+                justify-content: center !important;
+            }
+            .sidebar-brand {
+                justify-content: center !important;
+            }
+            .sidebar-close-btn {
+                display: none !important;
+            }
+            .sidebar-backdrop {
+                display: none !important;
+            }
+            .nav-item {
+                justify-content: center !important;
+                padding: 12px 0 !important;
+                border-left: none !important;
+                position: relative;
+            }
+            .nav-item:hover::after {
+                content: attr(title);
+                position: absolute;
+                left: 72px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #042C53;
+                color: #FFFFFF;
+                font-size: 12px;
+                font-weight: 500;
+                padding: 4px 8px;
+                border-radius: 4px;
+                white-space: nowrap;
+                pointer-events: none;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+            .sidebar-view-site {
+                justify-content: center !important;
+                padding: 8px 0 !important;
+                position: relative;
+            }
+            .sidebar-view-site:hover::after {
+                content: attr(title);
+                position: absolute;
+                left: 72px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #042C53;
+                color: #FFFFFF;
+                font-size: 12px;
+                font-weight: 500;
+                padding: 4px 8px;
+                border-radius: 4px;
+                white-space: nowrap;
+                pointer-events: none;
+                z-index: 1000;
+            }
+        }
+
+        /* Portrait (768px – 1023px): list+detail stacked */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .master-detail-layout {
+                flex-direction: column !important;
+            }
+            .list-col {
+                width: 100% !important;
+                max-width: none !important;
+            }
+            .detail-col {
+                width: 100% !important;
+            }
+            .two-boxes-grid,
+            .detail-fields-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Landscape (1024px – 1199px): list+detail two columns */
+        @media (min-width: 1024px) {
+            .master-detail-layout {
+                flex-direction: row !important;
+            }
+            .list-col {
+                width: 360px !important;
+                max-width: 380px !important;
+                flex-shrink: 0 !important;
+            }
+            .detail-col {
+                flex: 1 !important;
+                min-width: 0 !important;
+            }
+        }
+
+        /* Phone (< 768px): drawer sidebar, stacked layout */
+        @media (max-width: 767px) {
             .admin-sidebar {
                 transform: translateX(-100%);
                 width: 250px !important;
@@ -968,6 +1077,17 @@
             .admin-app.drawer-open .sidebar-backdrop {
                 display: block;
             }
+            .master-detail-layout {
+                flex-direction: column !important;
+            }
+            .list-col {
+                width: 100% !important;
+                max-width: none !important;
+            }
+            .two-boxes-grid,
+            .detail-fields-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* Phones: keep the admin inside the screen */
@@ -978,20 +1098,6 @@
             .topbar-user-email { display: none; }
             .btn-signout span { display: none; }
             .admin-main-content { padding-left: 14px !important; padding-right: 14px !important; }
-        }
-
-        @media (max-width: 860px) {
-            .master-detail-layout {
-                flex-direction: column;
-            }
-            .list-col {
-                width: 100%;
-                max-width: none;
-            }
-            .two-boxes-grid,
-            .detail-fields-grid {
-                grid-template-columns: 1fr;
-            }
         }
 
         /* Live Panel Spinner (24px ring, #378ADD on #E2E8F0) */
@@ -1915,7 +2021,7 @@
             <p style="font-size: 13px; color: #64748B; margin: 0 0 12px 0;">
                 Please provide a moderation reason for hiding this review.
             </p>
-            <textarea class="admin-textarea" id="reviewHideReasonText" rows="3" placeholder="Enter reason (e.g. Inappropriate language or spam)..."></textarea>
+            <textarea class="admin-textarea" id="reviewHideReasonText" rows="3" placeholder="Why is this review hidden? The reviewer sees this.""></textarea>
             <div class="action-inline-error" id="reviewHideInlineError"></div>
             <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px;">
                 <button type="button" class="btn-admin-secondary" id="btnCancelReviewHide">Cancel</button>
@@ -1964,7 +2070,7 @@
                     </button>
                     <span id="tour360Count" style="font-size: 13px; color: #64748B;">0 of 5</span>
                 </div>
-                <p style="font-size: 12px; color: #64748B; margin-top: 6px;">Equirectangular JPG, PNG or WebP with a 2:1 ratio (e.g. 6000×3000). Larger photos are resized to 6000×3000.</p>
+                <p style="font-size: 12px; color: #64748B; margin-top: 6px;">Equirectangular JPG, PNG or WebP with a 2:1 ratio, such as 6000×3000. Larger photos are resized to 6000×3000.</p>
                 <div id="tour360FileError" style="display: none; color: #DC2626; font-size: 13px; margin-top: 6px;"></div>
             </div>
 
@@ -3509,7 +3615,7 @@
             list.innerHTML = tour360Items.map((it, i) => `
                 <div class="tour360-row" data-i="${i}" style="display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px solid ${i === tour360Selected ? '#378ADD' : '#E2E8F0'}; border-radius: 8px; min-width: 0;">
                     <img src="${escapeHtml(it.previewUrl || it.thumbUrl)}" alt="" style="width: 80px; height: 40px; object-fit: cover; border-radius: 4px; flex: 0 0 auto; background: #F1F5F9;">
-                    <input type="text" class="admin-input tour360-label" data-i="${i}" maxlength="60" value="${escapeHtml(it.label)}" placeholder="Label, e.g. Entrance, Inside, Counter" style="flex: 1 1 auto; min-width: 0; padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: inherit;">
+                    <input type="text" class="admin-input tour360-label" data-i="${i}" maxlength="60" value="${escapeHtml(it.label)}" placeholder="Label: Entrance, Inside, Counter…" style="flex: 1 1 auto; min-width: 0; padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: inherit;">
                     <button type="button" class="btn-admin-secondary tour360-view" data-i="${i}" style="padding: 6px 10px;" aria-label="Preview">View</button>
                     <button type="button" class="btn-admin-secondary tour360-remove" data-i="${i}" style="padding: 6px 10px;" aria-label="Remove"><i class="ti ti-trash"></i></button>
                 </div>`).join('') || '<div style="font-size: 13px; color: #64748B;">No photos yet.</div>';
@@ -3545,7 +3651,7 @@
                 await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error(`${file.name} is not an image.`)); img.src = objUrl; });
                 const w = img.naturalWidth, h = img.naturalHeight;
                 if (!w || !h || Math.abs(w / h - 2) > 0.02) {
-                    throw new Error(`${file.name} is ${w}×${h}. A 360 photo must be 2:1, e.g. 6000×3000.`);
+                    throw new Error(`${file.name} is ${w}×${h}. A 360 photo must be 2:1, such as 6000×3000.`);
                 }
                 const scale = Math.min(1, 6000 / w);
                 if (scale === 1 && file.type === 'image/jpeg' && file.size <= 9.5 * 1024 * 1024) return file;

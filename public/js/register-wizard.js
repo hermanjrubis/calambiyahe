@@ -427,7 +427,10 @@ export class RegisterWizard {
 
     isInCoverage(lat, lng) {
         if (typeof lat !== 'number' || typeof lng !== 'number') return false;
-        // Bounding box for Uno, Real, Halang
+        if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function') {
+            return window.CalzadaScope.contains(lat, lng);
+        }
+        // Fallback bounding box for Uno, Real, Halang if scope not loaded yet
         return lat >= COVERAGE_BBOX.minLat && lat <= COVERAGE_BBOX.maxLat &&
                lng >= COVERAGE_BBOX.minLng && lng <= COVERAGE_BBOX.maxLng;
     }
@@ -478,7 +481,7 @@ export class RegisterWizard {
                     <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
                         Business name <span style="color: #DC2626;">*</span>
                     </label>
-                    <input type="text" id="inputBizName" value="${this.escapeHtml(this.formData.name)}" maxlength="80" placeholder="e.g. Rizal Cafe"
+                    <input type="text" id="inputBizName" value="${this.escapeHtml(this.formData.name)}" maxlength="80" placeholder="Your store name"
                         style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
                     />
                     <div id="bizNameError" style="font-size: 12px; color: #DC2626; margin-top: 2px; display: none;">Please enter a business name (1–80 chars).</div>
@@ -652,7 +655,7 @@ export class RegisterWizard {
                     <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
                         Street address <span style="color: #DC2626;">*</span>
                     </label>
-                    <input type="text" id="inputAddress" value="${this.escapeHtml(this.formData.address)}" maxlength="160" placeholder="e.g. 45 Rizal Avenue, Brgy. Real"
+                    <input type="text" id="inputAddress" value="${this.escapeHtml(this.formData.address)}" maxlength="160" placeholder="House no., street, purok"
                         style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
                     />
                     <div id="addressError" style="font-size: 12px; color: #DC2626; margin-top: 2px; display: none;">Street address is required.</div>
@@ -662,7 +665,7 @@ export class RegisterWizard {
                     <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
                         Nearby landmark <span style="font-weight: 400; color: #64748B;">(optional)</span>
                     </label>
-                    <input type="text" id="inputLandmark" value="${this.escapeHtml(this.formData.landmark)}" maxlength="80" placeholder="e.g. In front of City Hall"
+                    <input type="text" id="inputLandmark" value="${this.escapeHtml(this.formData.landmark)}" maxlength="80" placeholder="Near a known spot (optional)"
                         style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
                     />
                 </div>
@@ -707,6 +710,10 @@ export class RegisterWizard {
             zoom: 14
         });
 
+        if (window.CalzadaScope && typeof window.CalzadaScope.addFog === 'function') {
+            window.CalzadaScope.addFog(this.map);
+        }
+
         this.marker = new window.maplibregl.Marker({ draggable: true, color: '#378ADD' })
             .setLngLat(defaultCenter)
             .addTo(this.map);
@@ -714,11 +721,23 @@ export class RegisterWizard {
         const onPinMoved = (lngLat) => {
             const lat = Number(lngLat.lat.toFixed(6));
             const lng = Number(lngLat.lng.toFixed(6));
+
+            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(lat, lng)) {
+                const toastMsg = (typeof window.t === 'function')
+                    ? window.t('scope.outside_toast')
+                    : 'Calzada covers Brgy. Uno, Real and Halang for now.';
+                if (typeof window.showToast === 'function') {
+                    window.showToast(toastMsg, 'warning');
+                }
+                const prev = [this.formData.location.lng || 121.1652, this.formData.location.lat || 14.2117];
+                this.marker.setLngLat(prev);
+                return;
+            }
+
             this.formData.location = { lat, lng };
 
-            const inCoverage = this.isInCoverage(lat, lng);
             const errEl = area.querySelector('#mapCoverageError');
-            if (errEl) errEl.style.display = inCoverage ? 'none' : 'block';
+            if (errEl) errEl.style.display = 'none';
 
             // Auto-preselect nearest barangay
             let nearest = BARANGAY_CENTERS[0];
@@ -745,6 +764,16 @@ export class RegisterWizard {
         });
 
         this.map.on('click', (e) => {
+            const { lat, lng } = e.lngLat;
+            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(lat, lng)) {
+                const toastMsg = (typeof window.t === 'function')
+                    ? window.t('scope.outside_toast')
+                    : 'Calzada covers Brgy. Uno, Real and Halang for now.';
+                if (typeof window.showToast === 'function') {
+                    window.showToast(toastMsg, 'warning');
+                }
+                return;
+            }
             this.marker.setLngLat(e.lngLat);
             onPinMoved(e.lngLat);
         });

@@ -100,13 +100,26 @@
             color: var(--text-muted);
         }
 
-        /* Desktop Grid */
+        /* Desktop & Tablet Landscape Grid: 3 cards in one row */
         .plans-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 24px;
             margin-bottom: 24px;
             align-items: stretch;
+        }
+
+        /* Tablet Portrait (768px–1023px): 2+1 grid */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .plans-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .plans-grid .plan-card:last-child {
+                grid-column: 1 / -1;
+                max-width: 480px;
+                margin: 0 auto;
+                width: 100%;
+            }
         }
 
         /* Flat White Cards */

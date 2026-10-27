@@ -36,6 +36,11 @@
         'ticket.save': 'Save',
         'ticket.done': 'Done',
         'ticket.save_failed': "Couldn't save the ticket. Try again.",
+        'ticket.rate_place': 'How was {place}? Rate it',
+        'places.reviews.thanks_live': 'Thanks! Your review is live.',
+        'places.reviews.composer_placeholder': 'What should other commuters know? (optional)',
+        'places.reviews.post_review': 'Post review',
+        'places.reviews.update_review': 'Update review',
         'trips.cancel': 'Cancel',
         'planner.walk_leg': 'Walk {dist} · {time}',
         'planner.nav_jeepney': 'Jeepney',
@@ -92,6 +97,7 @@
     const ICON_CHECK = '<svg width="14" height="14" viewBox="0 0 512 512" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="48" d="M416 128L192 384l-96-96"/></svg>';
     const ICON_SAVE = '<svg width="18" height="18" viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="40" d="M336 176h40a40 40 0 0140 40v208a40 40 0 01-40 40H136a40 40 0 01-40-40V216a40 40 0 0140-40h40"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="40" d="M176 272l80 80 80-80M256 48v288"/></svg>';
     const ICON_WALK = '<svg width="18" height="18" viewBox="0 0 24 24" fill="#475569" aria-hidden="true"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>';
+    const STAR_SVG = '<svg class="star-outline-svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>';
 
     // ── Stylesheet ───────────────────────────────────────────────────────────
     let cssPromise = null;
@@ -106,8 +112,26 @@
         document.head.appendChild(link);
     }));
 
+    // Helper: Identify known place info from trip
+    const getKnownPlaceInfo = (trip) => {
+        if (!trip) return null;
+        if (trip.destId) return { id: String(trip.destId), name: trip.destName };
+        const name = (trip.destName || '').trim().toLowerCase();
+        if (!name || name === 'destination' || name === 'selected destination' || name.startsWith('pinned location')) {
+            return null;
+        }
+        const places = (window.FALLBACK_PLACES || window.CALAMBA_PLACES || window.CalzadaPlaces?.FALLBACK_PLACES || []);
+        const p = places.find(x => (x.name || '').trim().toLowerCase() === name);
+        if (p && p.id) {
+            return { id: String(p.id), name: p.name };
+        }
+        return null;
+    };
+
     // ── DOM ──────────────────────────────────────────────────────────────────
     let els = null;
+    let ticketActiveRating = 0;
+
     const ensureDom = () => {
         if (els) return els;
         const overlay = document.createElement('div');
@@ -148,6 +172,27 @@
                         <div class="tkt-foot"><span>Salamat sa pagsakay!</span><span class="tkt-domain">calzadaph.com</span></div>
                     </div>
                 </div>
+
+                <!-- Ask at the best moment: Rate known place on arrival ticket -->
+                <div class="tkt-rate-section" data-tkt="rateSection" style="display: none;">
+                    <div class="tkt-rate-prompt" data-tkt="ratePrompt"></div>
+                    <div class="tkt-rate-stars" data-tkt="rateStars">
+                        <button type="button" class="tkt-star-btn" data-val="1" aria-label="1 star">${STAR_SVG}</button>
+                        <button type="button" class="tkt-star-btn" data-val="2" aria-label="2 stars">${STAR_SVG}</button>
+                        <button type="button" class="tkt-star-btn" data-val="3" aria-label="3 stars">${STAR_SVG}</button>
+                        <button type="button" class="tkt-star-btn" data-val="4" aria-label="4 stars">${STAR_SVG}</button>
+                        <button type="button" class="tkt-star-btn" data-val="5" aria-label="5 stars">${STAR_SVG}</button>
+                    </div>
+                    <div class="tkt-rate-live-msg" data-tkt="rateLiveMsg" style="display: none;"></div>
+                    <div class="tkt-rate-composer" data-tkt="rateComposer" style="display: none;">
+                        <textarea class="tkt-rate-input" data-tkt="rateInput" rows="2" maxlength="500" placeholder="${esc(tr('places.reviews.composer_placeholder'))}"></textarea>
+                        <div class="tkt-rate-composer-row">
+                            <span class="tkt-rate-char-count" data-tkt="rateCharCount">0/500</span>
+                            <button type="button" class="tkt-rate-post-btn" data-tkt="ratePostBtn">${esc(tr('places.reviews.post_review'))}</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="tkt-actions">
                     <div class="tkt-btn-row">
                         <button type="button" class="tkt-btn tkt-btn--secondary" data-tkt="save">
@@ -185,6 +230,131 @@
         els.q('done').addEventListener('click', () => close());
         return els;
     };
+
+    function setupTicketRating(knownPlace) {
+        const starBtns = els.dialog.querySelectorAll('.tkt-star-btn');
+        const rateLiveMsg = els.q('rateLiveMsg');
+        const rateComposer = els.q('rateComposer');
+        const rateInput = els.q('rateInput');
+        const rateCharCount = els.q('rateCharCount');
+        const ratePostBtn = els.q('ratePostBtn');
+
+        if (rateLiveMsg) rateLiveMsg.style.display = 'none';
+        if (rateComposer) rateComposer.style.display = 'none';
+        if (rateInput) rateInput.value = '';
+        if (rateCharCount) rateCharCount.textContent = '0/500';
+        ticketActiveRating = 0;
+
+        function updateTicketStars(val) {
+            const rounded = Math.round(val);
+            starBtns.forEach(btn => {
+                const bVal = parseInt(btn.getAttribute('data-val'), 10);
+                if (bVal <= rounded) btn.classList.add('filled');
+                else btn.classList.remove('filled');
+            });
+        }
+        updateTicketStars(0);
+
+        starBtns.forEach(btn => {
+            const val = parseInt(btn.getAttribute('data-val'), 10);
+            btn.onmouseenter = () => {
+                starBtns.forEach(b => {
+                    const bv = parseInt(b.getAttribute('data-val'), 10);
+                    if (bv <= val) b.classList.add('hovered');
+                    else b.classList.remove('hovered');
+                });
+            };
+            btn.onmouseleave = () => {
+                starBtns.forEach(b => b.classList.remove('hovered'));
+                updateTicketStars(ticketActiveRating);
+            };
+
+            const onStarTap = async () => {
+                const authed = window.CalzadaAuth && typeof window.CalzadaAuth.getCurrentUser === 'function' && window.CalzadaAuth.getCurrentUser();
+                if (!authed) {
+                    const pending = {
+                        placeId: knownPlace.id,
+                        placeName: knownPlace.name,
+                        rating: val,
+                        returnUrl: window.location.pathname + window.location.search
+                    };
+                    try { sessionStorage.setItem('calzada_pending_rating', JSON.stringify(pending)); } catch (_) {}
+                    window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+                    return;
+                }
+
+                ticketActiveRating = val;
+                updateTicketStars(ticketActiveRating);
+                btn.classList.add('pop');
+                setTimeout(() => btn.classList.remove('pop'), 350);
+
+                // Post rating immediately
+                try {
+                    let token = null;
+                    if (window.CalzadaAuth && typeof window.CalzadaAuth.getFirebaseIdToken === 'function') {
+                        token = await window.CalzadaAuth.getFirebaseIdToken();
+                    }
+                    if (token) {
+                        await fetch(`/api/places/${encodeURIComponent(knownPlace.id)}/rating`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ rating: val, comment_text: '' })
+                        });
+                        if (rateLiveMsg) {
+                            rateLiveMsg.textContent = tr('places.reviews.thanks_live');
+                            rateLiveMsg.style.display = 'block';
+                        }
+                        if (rateComposer) {
+                            rateComposer.style.display = 'flex';
+                            if (rateInput) rateInput.focus();
+                        }
+                    }
+                } catch (err) {
+                    console.warn('[trip-ticket] Rating post error:', err);
+                }
+            };
+
+            btn.onclick = onStarTap;
+            if (typeof window.bindTap === 'function') window.bindTap(btn, onStarTap);
+        });
+
+        if (rateInput && rateCharCount) {
+            rateInput.oninput = () => {
+                rateCharCount.textContent = `${rateInput.value.length}/500`;
+            };
+        }
+
+        if (ratePostBtn) {
+            const onPostComment = async () => {
+                const comment = rateInput ? rateInput.value.trim() : '';
+                ratePostBtn.disabled = true;
+                try {
+                    let token = null;
+                    if (window.CalzadaAuth && typeof window.CalzadaAuth.getFirebaseIdToken === 'function') {
+                        token = await window.CalzadaAuth.getFirebaseIdToken();
+                    }
+                    if (token) {
+                        await fetch(`/api/places/${encodeURIComponent(knownPlace.id)}/rating`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                            body: JSON.stringify({ rating: ticketActiveRating, comment_text: comment })
+                        });
+                        if (rateLiveMsg) {
+                            rateLiveMsg.textContent = tr('places.reviews.thanks_live');
+                            rateLiveMsg.style.display = 'block';
+                        }
+                        ratePostBtn.textContent = tr('places.reviews.update_review');
+                    }
+                } catch (e) {
+                    console.warn('[trip-ticket] Comment post error:', e);
+                } finally {
+                    ratePostBtn.disabled = false;
+                }
+            };
+            ratePostBtn.onclick = onPostComment;
+            if (typeof window.bindTap === 'function') window.bindTap(ratePostBtn, onPostComment);
+        }
+    }
 
     // ── Rendering ────────────────────────────────────────────────────────────
     let current = null; // { trip, opts, pngPromise, returnFocus }
@@ -245,6 +415,20 @@
         });
         html += stopRow(fmtTime(trip.arrivedAt), 'dest', trip.destName, tr('ticket.arrived'));
         e.q('timeline').innerHTML = html;
+
+        // Known place rating prompt on arrival ticket
+        const knownPlace = getKnownPlaceInfo(trip);
+        const rateSection = e.q('rateSection');
+        if (knownPlace && rateSection) {
+            rateSection.style.display = 'flex';
+            const ratePrompt = e.q('ratePrompt');
+            if (ratePrompt) {
+                ratePrompt.textContent = tr('ticket.rate_place', { place: knownPlace.name });
+            }
+            setupTicketRating(knownPlace);
+        } else if (rateSection) {
+            rateSection.style.display = 'none';
+        }
 
         e.q('saveLbl').textContent = tr('ticket.save');
         e.q('done').textContent = tr('ticket.done');

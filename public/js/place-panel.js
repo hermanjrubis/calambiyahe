@@ -193,105 +193,9 @@ function initPlacePanelDOM() {
                     </div>
                 </div>
 
-                <!-- 3. Rating Section (5 Outline Stars, interactive on hover/click) -->
+                <!-- 3. Rating & Reviews Section (Mounted by CalzadaReviewsUI) -->
                 <div class="panel-rating-section" id="ppRatingCard">
-                    <div class="rating-header">
-                        <span class="rating-label" id="ppRatingLabel">Rating & reviews</span>
-                        <div class="rating-summary-skeleton" id="ppRatingSummarySkeleton" style="display:none;"></div>
-                        <div class="rating-summary" id="ppRatingSummary" style="display:none;">
-                            <span class="rating-score" id="ppRatingScore">0.0</span>
-                            <svg class="rating-star-badge" width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-                            <span class="rating-count" id="ppRatingCount">(0)</span>
-                        </div>
-                    </div>
-
-                    <!-- 5 Outline Star Picker -->
-                    <div class="star-rating-picker" id="ppStarPicker">
-                        <button type="button" class="star-btn" data-value="1" aria-label="1 star">
-                            <svg class="star-outline-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </button>
-                        <button type="button" class="star-btn" data-value="2" aria-label="2 stars">
-                            <svg class="star-outline-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </button>
-                        <button type="button" class="star-btn" data-value="3" aria-label="3 stars">
-                            <svg class="star-outline-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </button>
-                        <button type="button" class="star-btn" data-value="4" aria-label="4 stars">
-                            <svg class="star-outline-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </button>
-                        <button type="button" class="star-btn" data-value="5" aria-label="5 stars">
-                            <svg class="star-outline-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Post-interaction feedback / prompts (Hidden upfront) -->
-                    <div class="rating-feedback-area" id="ppRatingFeedbackArea" style="display:none;">
-                        <!-- Inline unauthenticated login prompt revealed ONLY on star click -->
-                        <div class="rating-inline-auth" id="ppRatingAuthNotice" style="display:none;">
-                            Log in to submit a rating — <a href="/login" class="rating-inline-login-link">Log in</a>
-                        </div>
-
-                        <!-- Action Bar for existing reviews (Collapsed view) -->
-                        <div class="rating-action-bar" id="ppRatingActionBar" style="display:none;">
-                            <button type="button" class="btn-edit-review" id="ppEditReviewBtn">Update rating</button>
-                            <button type="button" class="btn-delete-review" id="ppDeleteReviewBtn" style="display:none;">Delete</button>
-                        </div>
-
-                        <!-- Authenticated review comment & submission -->
-                        <div class="rating-comment-box" id="ppRatingCommentBox" style="display:none;">
-                            <textarea id="ppRatingCommentInput" class="rating-comment-textarea" placeholder="Share your experience... (optional)" rows="2" maxlength="500"></textarea>
-                            <div class="rating-form-buttons">
-                                <button type="button" class="btn-cancel-edit" id="ppCancelEditBtn" style="display:none;">Cancel</button>
-                                <button type="button" class="btn-submit-review" id="ppSubmitReviewBtn">Submit rating</button>
-                            </div>
-                        </div>
-
-                        <p class="rating-prompt" id="ppRatingPrompt" style="display:none;"></p>
-                    </div>
-                </div>
-
-                <!-- 4. Customer Reviews List -->
-                <div class="panel-reviews-section" id="ppReviewsSection">
-                    <div class="reviews-header-skeleton" id="ppReviewsHeaderSkeleton" style="display:none;"></div>
-                    <div class="reviews-section-header" id="ppReviewsHeader" style="display:none;">
-                        <span class="reviews-section-title" id="ppReviewsTitle">Customer reviews (0)</span>
-                        <button type="button" class="reviews-see-more-btn" id="ppReviewsSeeMoreBtn" style="display:none;">See more</button>
-                    </div>
-
-                    <div class="reviews-container" id="ppReviewsContainer">
-                        <div class="reviews-loading-state" id="ppReviewsLoading" style="display:none;">
-                            <div class="review-skeleton-item">
-                                <div class="skeleton-avatar"></div>
-                                <div class="skeleton-lines">
-                                    <div class="skeleton-line short"></div>
-                                    <div class="skeleton-line"></div>
-                                </div>
-                            </div>
-                            <div class="review-skeleton-item">
-                                <div class="skeleton-avatar"></div>
-                                <div class="skeleton-lines">
-                                    <div class="skeleton-line short"></div>
-                                    <div class="skeleton-line"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="reviews-empty-state" id="ppReviewsEmpty" style="display:none;">
-                            No ratings yet.
-                        </div>
-
-                        <div class="reviews-list" id="ppReviewsList"></div>
-                    </div>
+                    <div id="ppReviewsBlock" class="reviews-mount-point"></div>
                 </div>
 
                 <!-- 5. Bottom Action: Plan Route Primary Button -->
@@ -486,6 +390,26 @@ function initPlacePanelDOM() {
         if (typeof window.bindTap === 'function') window.bindTap(saveBtn, handleSavePlace);
     }
 
+    function showPanelToast(msg, type = 'info') {
+        if (typeof window.showToast === 'function') {
+            return window.showToast(msg, type);
+        }
+        let toast = document.getElementById('calzadaPanelToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'calzadaPanelToast';
+            toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#042C53;color:#ffffff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:10000;pointer-events:none;transition:opacity 0.25s ease;';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        toast.style.display = 'block';
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 300);
+        }, 2500);
+    }
+
     // Plan Route Event
     function handlePlanRoute() {
         const placeName = planBtn.getAttribute('data-dest') || (currentActivePlace && currentActivePlace.name);
@@ -493,6 +417,33 @@ function initPlacePanelDOM() {
         const rawLng = planBtn.getAttribute('data-lng') || (currentActivePlace && (currentActivePlace.lng != null ? currentActivePlace.lng : currentActivePlace.lon));
 
         if (placeName) {
+            const user = window.CalzadaAuth?.getCurrentUser();
+            if (!user || user.isAnonymous) {
+                const numLat = parseFloat(rawLat);
+                const numLng = parseFloat(rawLng);
+                const pending = {
+                    dest: {
+                        name: placeName,
+                        lat: !isNaN(numLat) ? numLat : 0,
+                        lng: !isNaN(numLng) ? numLng : 0
+                    },
+                    origin: { kind: 'my_location' },
+                    mode: 'jeepney',
+                    savedAt: Date.now()
+                };
+                try {
+                    sessionStorage.setItem('calzada_pending_route', JSON.stringify(pending));
+                } catch (_) {}
+
+                const toastMsg = (typeof window.t === 'function' ? window.t('planner.gate_toast') : null) || 'Sign in to see your route';
+                showPanelToast(toastMsg, 'info');
+
+                setTimeout(() => {
+                    window.location.href = '/login?redirect=%2Fplanner%3Fresume%3D1&reason=route';
+                }, 900);
+                return;
+            }
+
             // Already on the planner: set the destination in place instead of reloading the page
             const inPlannerLat = parseFloat(rawLat);
             const inPlannerLng = parseFloat(rawLng);
@@ -1927,7 +1878,11 @@ function initAuthListenerForPlacePanel() {
         authListenerInitialized = true;
         window.CalzadaAuth.onAuthStateChanged((user) => {
             if (currentPlaceId) {
-                setupRatingAndReviews(currentPlaceId);
+                if (activePanelReviewsInstance && typeof activePanelReviewsInstance.reload === 'function') {
+                    activePanelReviewsInstance.reload();
+                } else {
+                    setupRatingAndReviews(currentPlaceId);
+                }
             }
         });
     } else {
@@ -1942,584 +1897,35 @@ if (document.readyState === 'loading') {
 }
 
 /**
- * Configure Live Ratings & Reviews
+ * Configure Live Ratings & Reviews (Mounted via CalzadaReviewsUI)
  */
+let activePanelReviewsInstance = null;
+let currentPlaceName = '';
+
 async function setupRatingAndReviews(placeId) {
     if (placeId) currentPlaceId = placeId;
     const activeId = placeId || currentPlaceId;
+    const mountEl = document.getElementById('ppReviewsBlock');
+    if (!mountEl) return;
 
-    const scoreEl = document.getElementById('ppRatingScore');
-    const countEl = document.getElementById('ppRatingCount');
-    const picker = document.getElementById('ppStarPicker');
-    const feedbackArea = document.getElementById('ppRatingFeedbackArea');
-    const authNotice = document.getElementById('ppRatingAuthNotice');
-    const actionBar = document.getElementById('ppRatingActionBar');
-    const editBtn = document.getElementById('ppEditReviewBtn');
-    const cancelBtn = document.getElementById('ppCancelEditBtn');
-    const commentBox = document.getElementById('ppRatingCommentBox');
-    const commentInput = document.getElementById('ppRatingCommentInput');
-    const submitBtn = document.getElementById('ppSubmitReviewBtn');
-    const deleteBtn = document.getElementById('ppDeleteReviewBtn');
-    const promptEl = document.getElementById('ppRatingPrompt');
-
-    const reviewsTitle = document.getElementById('ppReviewsTitle');
-    const seeMoreBtn = document.getElementById('ppReviewsSeeMoreBtn');
-    const reviewsList = document.getElementById('ppReviewsList');
-    const reviewsLoading = document.getElementById('ppReviewsLoading');
-    const reviewsEmpty = document.getElementById('ppReviewsEmpty');
-
-    if (!scoreEl || !picker) return;
-
-    const loggedIn = isUserLoggedIn();
-
-    // Reset Form UI
-    reviewsOffset = 0;
-    activeUserRating = 0;
-    userHasExistingReview = false;
-    if (commentInput) commentInput.value = '';
-    if (feedbackArea) feedbackArea.style.display = 'none';
-    if (authNotice) authNotice.style.display = 'none';
-    if (actionBar) actionBar.style.display = 'none';
-    if (commentBox) commentBox.style.display = 'none';
-    if (deleteBtn) {
-        deleteBtn.style.display = 'none';
-        deleteBtn.disabled = false;
-        deleteBtn.textContent = 'Delete';
-    }
-    if (cancelBtn) cancelBtn.style.display = 'none';
-    if (submitBtn) {
-        submitBtn.textContent = 'Submit rating';
-        submitBtn.disabled = false;
-        submitBtn.style.display = loggedIn ? 'inline-block' : 'none';
-    }
-    if (promptEl) {
-        promptEl.textContent = '';
-        promptEl.style.display = 'none';
-        promptEl.className = 'rating-prompt';
-    }
-
-    const starBtns = picker.querySelectorAll('.star-btn');
-
-    function updateStarsDisplay(val) {
-        const rounded = Math.round(val);
-        starBtns.forEach(btn => {
-            const btnVal = parseInt(btn.getAttribute('data-value'), 10);
-            if (btnVal <= rounded) {
-                btn.classList.add('filled');
-            } else {
-                btn.classList.remove('filled');
-            }
-        });
-    }
-    updateStarsDisplay(0);
-
-    // Star Hover and Click Handlers
-    starBtns.forEach(btn => {
-        const starVal = parseInt(btn.getAttribute('data-value'), 10);
-
-        btn.onmouseenter = () => {
-            starBtns.forEach(b => {
-                const bVal = parseInt(b.getAttribute('data-value'), 10);
-                if (bVal <= starVal) {
-                    b.classList.add('hovered');
-                } else {
-                    b.classList.remove('hovered');
-                }
-            });
-        };
-
-        btn.onmouseleave = () => {
-            starBtns.forEach(b => b.classList.remove('hovered'));
-            updateStarsDisplay(activeUserRating);
-        };
-
-        function onStarAction() {
-            activeUserRating = starVal;
-            updateStarsDisplay(activeUserRating);
-
-            if (feedbackArea) feedbackArea.style.display = 'block';
-
-            const authenticated = isUserLoggedIn();
-
-            if (!authenticated) {
-                if (authNotice) authNotice.style.display = 'block';
-                if (commentBox) commentBox.style.display = 'none';
-                if (actionBar) actionBar.style.display = 'none';
-            } else {
-                if (authNotice) authNotice.style.display = 'none';
-                if (actionBar) actionBar.style.display = 'none';
-                if (commentBox) commentBox.style.display = 'flex';
-                if (submitBtn) {
-                    submitBtn.textContent = userHasExistingReview ? 'Update rating' : 'Submit rating';
-                    submitBtn.style.display = 'inline-block';
-                }
-                if (cancelBtn) cancelBtn.style.display = userHasExistingReview ? 'inline-block' : 'none';
-            }
-        }
-
-        btn.onclick = onStarAction;
-        if (typeof window.bindTap === 'function') {
-            window.bindTap(btn, onStarAction);
-        }
-    });
-
-    // "Update rating" Action Bar Edit Button Handler
-    if (editBtn) {
-        function onEditReview() {
-            if (feedbackArea) feedbackArea.style.display = 'block';
-            if (authNotice) authNotice.style.display = 'none';
-            if (actionBar) actionBar.style.display = 'none';
-            if (commentBox) commentBox.style.display = 'flex';
-            if (submitBtn) {
-                submitBtn.textContent = 'Update rating';
-                submitBtn.style.display = 'inline-block';
-            }
-            if (cancelBtn) cancelBtn.style.display = 'inline-block';
-        }
-        editBtn.onclick = onEditReview;
-        if (typeof window.bindTap === 'function') window.bindTap(editBtn, onEditReview);
-    }
-
-    // Cancel Edit Button Handler
-    if (cancelBtn) {
-        function onCancelEdit() {
-            if (commentBox) commentBox.style.display = 'none';
-            if (userHasExistingReview && actionBar) {
-                actionBar.style.display = 'flex';
-            }
-        }
-        cancelBtn.onclick = onCancelEdit;
-        if (typeof window.bindTap === 'function') window.bindTap(cancelBtn, onCancelEdit);
-    }
-
-    // Review Submission Handler with Loading Spinner & Collapsing
-    if (submitBtn) {
-        async function onSubmitReview() {
-            const targetPlaceId = activeId || currentPlaceId;
-            if (!targetPlaceId) {
-                console.warn('[PLACE PANEL submitBtn.onclick] Missing targetPlaceId!');
-                return;
-            }
-            if (activeUserRating < 1 || activeUserRating > 5) return;
-
-            // In-flight loading state: spinner + disabled button
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-sm"></span> Submitting...';
-
-            try {
-                const token = await fetchAuthToken();
-                if (!token) {
-                    console.warn('[PLACE PANEL submitBtn.onclick] No auth token returned, user is logged out.');
-                    if (authNotice) authNotice.style.display = 'block';
-                    if (commentBox) commentBox.style.display = 'none';
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = userHasExistingReview ? 'Update rating' : 'Submit rating';
-                    return;
-                }
-
-                const commentText = commentInput ? commentInput.value.trim() : '';
-                const payload = {
-                    rating: activeUserRating,
-                    comment_text: commentText
-                };
-
-
-                const res = await fetch(`/api/places/${targetPlaceId}/rating`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-
-                if (res.status === 401) {
-                    if (authNotice) authNotice.style.display = 'block';
-                    if (commentBox) commentBox.style.display = 'none';
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = userHasExistingReview ? 'Update rating' : 'Submit rating';
-                    return;
-                }
-
-                if (!res.ok) {
-                    const errBody = await res.text();
-                    throw new Error(`HTTP ${res.status}: ${errBody}`);
-                }
-
-                const resData = await res.json();
-
-                userHasExistingReview = true;
-
-                // Brief success notification
-                if (promptEl) {
-                    promptEl.textContent = '✓ Thanks for your rating!';
-                    promptEl.style.display = 'block';
-                    promptEl.className = 'rating-prompt success';
-                    // Auto-hide success message after 3.5 seconds
-                    setTimeout(() => {
-                        if (promptEl) promptEl.style.display = 'none';
-                    }, 3500);
-                }
-
-                // Collapse comment box entirely after successful submit
-                if (commentBox) commentBox.style.display = 'none';
-                if (actionBar) actionBar.style.display = 'flex';
-                if (editBtn) editBtn.style.display = 'inline-block';
-                if (deleteBtn) deleteBtn.style.display = 'inline-block';
-
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Update rating';
-
-                // Immediately update rating card summary elements from response data if available
-                if (resData.average_rating !== undefined && resData.total_ratings !== undefined) {
-                    const avg = parseFloat(resData.average_rating) || 0;
-                    const total = parseInt(resData.total_ratings, 10) || 0;
-                    if (scoreEl) scoreEl.textContent = avg.toFixed(1);
-                    if (countEl) countEl.textContent = `(${total})`;
-                    if (reviewsTitle) reviewsTitle.textContent = `Customer reviews (${total})`;
-                }
-
-                // Refresh Reviews list from offset 0
-                await fetchAndRenderReviews(targetPlaceId, true);
-            } catch (err) {
-                console.error('[PLACE PANEL submitBtn.onclick] Error submitting review:', err);
-                if (promptEl) {
-                    promptEl.textContent = 'Failed to submit rating. Please try again.';
-                    promptEl.style.display = 'block';
-                    promptEl.className = 'rating-prompt';
-                }
-                submitBtn.textContent = userHasExistingReview ? 'Update rating' : 'Submit rating';
-                submitBtn.disabled = false;
-            }
-        }
-        submitBtn.onclick = onSubmitReview;
-        if (typeof window.bindTap === 'function') window.bindTap(submitBtn, onSubmitReview);
-    }
-
-    // Review Deletion Handler
-    if (deleteBtn) {
-        let deleteConfirmTimer = null;
-        let isAwaitingDeleteConfirm = false;
-
-        function resetDeleteButton() {
-            if (deleteConfirmTimer) {
-                clearTimeout(deleteConfirmTimer);
-                deleteConfirmTimer = null;
-            }
-            isAwaitingDeleteConfirm = false;
-            if (deleteBtn) {
-                deleteBtn.disabled = false;
-                deleteBtn.textContent = 'Delete';
-            }
-        }
-
-        async function onDeleteBtnClick() {
-            const targetPlaceId = activeId || currentPlaceId;
-            if (!targetPlaceId) {
-                resetDeleteButton();
-                return;
-            }
-
-            // Two-step confirmation: first click asks for confirmation for 4 seconds
-            if (!isAwaitingDeleteConfirm) {
-                isAwaitingDeleteConfirm = true;
-                deleteBtn.textContent = 'Confirm delete?';
-                deleteConfirmTimer = setTimeout(() => {
-                    resetDeleteButton();
-                }, 4000);
-                return;
-            }
-
-            // Second click within 4s: proceed with delete
-            if (deleteConfirmTimer) {
-                clearTimeout(deleteConfirmTimer);
-                deleteConfirmTimer = null;
-            }
-            isAwaitingDeleteConfirm = false;
-
-            deleteBtn.disabled = true;
-            deleteBtn.textContent = 'Deleting...';
-
-            try {
-                const token = await fetchAuthToken();
-                if (!token) {
-                    resetDeleteButton();
-                    return;
-                }
-
-                const res = await fetch(`/api/places/${targetPlaceId}/rating`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-                // Reset state
-                activeUserRating = 0;
-                userHasExistingReview = false;
-                updateStarsDisplay(0);
-                if (commentInput) commentInput.value = '';
-                if (feedbackArea) feedbackArea.style.display = 'none';
-                if (commentBox) commentBox.style.display = 'none';
-                if (actionBar) actionBar.style.display = 'none';
-                deleteBtn.style.display = 'none';
-                if (submitBtn) submitBtn.textContent = 'Submit rating';
-
-                // Refresh Reviews list
-                await fetchAndRenderReviews(targetPlaceId, true);
-            } catch (err) {
-                console.error('[PLACE PANEL deleteBtn.onclick] Error deleting review:', err);
-            } finally {
-                resetDeleteButton();
-            }
-        }
-        deleteBtn.onclick = onDeleteBtnClick;
-        if (typeof window.bindTap === 'function') window.bindTap(deleteBtn, onDeleteBtnClick);
-    }
-
-    // See More Reviews Click
-    if (seeMoreBtn) {
-        async function onSeeMoreReviews() {
-            const targetPlaceId = activeId || currentPlaceId;
-            reviewsOffset += REVIEWS_PAGE_LIMIT;
-            await fetchAndRenderReviews(targetPlaceId, false);
-        }
-        seeMoreBtn.onclick = onSeeMoreReviews;
-        if (typeof window.bindTap === 'function') window.bindTap(seeMoreBtn, onSeeMoreReviews);
-    }
-
-    // Initial Live Fetch for Reviews & Summary
-    if (activeId) {
-        await fetchAndRenderReviews(activeId, true);
-    }
-}
-
-/**
- * Fetch and Render Reviews from Server
- */
-async function fetchAndRenderReviews(placeId, resetList = true) {
-    const activeId = placeId || currentPlaceId;
-
-    const scoreEl = document.getElementById('ppRatingScore');
-    const countEl = document.getElementById('ppRatingCount');
-    const promptEl = document.getElementById('ppRatingPrompt');
-    const authNotice = document.getElementById('ppRatingAuthNotice');
-    const actionBar = document.getElementById('ppRatingActionBar');
-    const editBtn = document.getElementById('ppEditReviewBtn');
-    const commentBox = document.getElementById('ppRatingCommentBox');
-    const commentInput = document.getElementById('ppRatingCommentInput');
-    const submitBtn = document.getElementById('ppSubmitReviewBtn');
-    const deleteBtn = document.getElementById('ppDeleteReviewBtn');
-    const picker = document.getElementById('ppStarPicker');
-
-    const reviewsTitle = document.getElementById('ppReviewsTitle');
-    const seeMoreBtn = document.getElementById('ppReviewsSeeMoreBtn');
-    const reviewsList = document.getElementById('ppReviewsList');
-    const reviewsLoading = document.getElementById('ppReviewsLoading');
-    const reviewsError = document.getElementById('ppReviewsError');
-    const reviewsEmpty = document.getElementById('ppReviewsEmpty');
-
-    const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
-    const ratingSummary = document.getElementById('ppRatingSummary');
-    const reviewsHeaderSkeleton = document.getElementById('ppReviewsHeaderSkeleton');
-    const reviewsHeader = document.getElementById('ppReviewsHeader');
-
-    if (!activeId) {
-        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
-        if (ratingSummary) ratingSummary.style.display = 'none';
-        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
-        if (reviewsHeader) reviewsHeader.style.display = 'none';
-        if (reviewsLoading) reviewsLoading.style.display = 'none';
-        if (reviewsList) reviewsList.style.display = 'none';
-        if (reviewsEmpty) {
-            reviewsEmpty.textContent = typeof window.t === 'function'
-                ? window.t('places.popup.no_reviews_yet')
-                : 'No reviews yet. Be the first to rate this place.';
-            reviewsEmpty.className = 'reviews-empty-state reviews-empty-single-line';
-            reviewsEmpty.style.display = 'block';
+    if (activePanelReviewsInstance && String(activePanelReviewsInstance.placeId) === String(activeId)) {
+        if (typeof activePanelReviewsInstance.reload === 'function') {
+            activePanelReviewsInstance.reload();
         }
         return;
     }
 
-    if (resetList) {
-        reviewsOffset = 0;
-        if (reviewsList) {
-            reviewsList.innerHTML = '';
-            reviewsList.style.display = 'none';
-        }
-        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'block';
-        if (ratingSummary) ratingSummary.style.display = 'none';
-        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'block';
-        if (reviewsHeader) reviewsHeader.style.display = 'none';
-        if (reviewsLoading) reviewsLoading.style.display = 'flex';
-        if (reviewsError) reviewsError.style.display = 'none';
-        if (reviewsEmpty) reviewsEmpty.style.display = 'none';
+    if (activePanelReviewsInstance && typeof activePanelReviewsInstance.destroy === 'function') {
+        activePanelReviewsInstance.destroy();
+        activePanelReviewsInstance = null;
     }
 
-    try {
-        const token = await fetchAuthToken();
-        const headers = {};
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
-
-        const res = await fetch(`/api/places/${activeId}/reviews?limit=${REVIEWS_PAGE_LIMIT}&offset=${reviewsOffset}`, {
-            headers
+    if (window.CalzadaReviewsUI && activeId) {
+        activePanelReviewsInstance = window.CalzadaReviewsUI.mount(mountEl, {
+            placeId: activeId,
+            placeName: currentPlaceName,
+            returnUrl: '/places?place=' + encodeURIComponent(currentPlaceName || activeId)
         });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-
-        // Hide Skeletons now that reviews request has finished
-        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
-        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
-        if (reviewsLoading) reviewsLoading.style.display = 'none';
-
-        // Update Rating Card Summary & Reviews Header
-        const avg = parseFloat(data.average_rating) || 0;
-        const total = parseInt(data.total_ratings, 10) || 0;
-
-        if (total > 0) {
-            if (scoreEl) scoreEl.textContent = avg.toFixed(1);
-            if (countEl) countEl.textContent = `(${total})`;
-            if (reviewsTitle) {
-                reviewsTitle.textContent = typeof window.t === 'function'
-                    ? window.t('places.popup.customer_reviews_count', { count: total })
-                    : `Customer reviews (${total})`;
-            }
-            if (ratingSummary) ratingSummary.style.display = 'flex';
-            if (reviewsHeader) reviewsHeader.style.display = 'flex';
-        } else {
-            if (ratingSummary) ratingSummary.style.display = 'none';
-            if (reviewsHeader) reviewsHeader.style.display = 'none';
-        }
-
-        // Handle Caller's Existing Review
-        const authenticated = isUserLoggedIn();
-        if (data.user_review && resetList && authenticated) {
-            userHasExistingReview = true;
-            activeUserRating = parseInt(data.user_review.rating, 10) || 0;
-            const feedbackArea = document.getElementById('ppRatingFeedbackArea');
-            if (feedbackArea) feedbackArea.style.display = 'block';
-            if (commentInput) commentInput.value = data.user_review.comment_text || '';
-            
-            // Collapsed state by default for existing review:
-            if (commentBox) commentBox.style.display = 'none';
-            if (actionBar) actionBar.style.display = 'flex';
-            if (editBtn) editBtn.style.display = 'inline-block';
-            if (deleteBtn) deleteBtn.style.display = 'inline-block';
-            if (submitBtn) submitBtn.textContent = 'Update rating';
-            if (authNotice) authNotice.style.display = 'none';
-
-            if (picker) {
-                const starBtns = picker.querySelectorAll('.star-btn');
-                starBtns.forEach(btn => {
-                    const btnVal = parseInt(btn.getAttribute('data-value'), 10);
-                    if (btnVal <= activeUserRating) btn.classList.add('filled');
-                    else btn.classList.remove('filled');
-                });
-            }
-        } else if (!authenticated && resetList) {
-            if (commentBox) commentBox.style.display = 'none';
-            if (actionBar) actionBar.style.display = 'none';
-            if (deleteBtn) deleteBtn.style.display = 'none';
-            if (authNotice) authNotice.style.display = 'none';
-        }
-
-        const reviews = data.reviews || [];
-
-        // Empty state check
-        if (total === 0 || (resetList && reviews.length === 0)) {
-            if (ratingSummary) ratingSummary.style.display = 'none';
-            if (reviewsHeader) reviewsHeader.style.display = 'none';
-            if (reviewsEmpty) {
-                reviewsEmpty.textContent = typeof window.t === 'function'
-                    ? window.t('places.popup.no_reviews_yet')
-                    : 'No reviews yet. Be the first to rate this place.';
-                reviewsEmpty.className = 'reviews-empty-state reviews-empty-single-line';
-                reviewsEmpty.style.display = 'block';
-            }
-            if (reviewsList) reviewsList.style.display = 'none';
-            if (seeMoreBtn) seeMoreBtn.style.display = 'none';
-            return;
-        }
-
-        if (ratingSummary) ratingSummary.style.display = 'flex';
-        if (reviewsHeader) reviewsHeader.style.display = 'flex';
-        if (reviewsEmpty) reviewsEmpty.style.display = 'none';
-        if (reviewsList) reviewsList.style.display = 'flex';
-
-        // Render Review Cards
-        const currentFirebaseUser = window.CalzadaAuth?.getCurrentUser();
-        const currentUid = currentFirebaseUser ? currentFirebaseUser.uid : null;
-
-        const html = reviews.map(r => {
-            const reviewerName = r.reviewer_name || 'Calzada Commuter';
-            const initial = reviewerName.trim().charAt(0).toUpperCase() || 'U';
-            const relativeTime = formatRelativeTime(r.created_at);
-            const isOwn = currentUid && r.user_id === currentUid;
-
-            // Generate 5 Stars
-            const rRating = parseInt(r.rating, 10) || 5;
-            let starsHtml = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= rRating) {
-                    starsHtml += '<span>★</span>';
-                } else {
-                    starsHtml += '<span class="star-dim">★</span>';
-                }
-            }
-
-            const commentHtml = r.comment_text && r.comment_text.trim()
-                ? `<p class="review-comment">${escapeHtml(r.comment_text.trim())}</p>`
-                : '';
-
-            return `
-                <div class="review-item">
-                    <div class="review-user-row">
-                        <div class="review-avatar">${initial}</div>
-                        <div class="review-user-meta">
-                            <div class="review-user-name-wrap">
-                                <span class="review-user-name">${escapeHtml(reviewerName)}</span>
-                                ${isOwn ? '<span class="review-badge-self">You</span>' : ''}
-                            </div>
-                            <span class="review-time">${relativeTime}</span>
-                        </div>
-                        <div class="review-stars-row">${starsHtml}</div>
-                    </div>
-                    ${commentHtml}
-                </div>
-            `;
-        }).join('');
-
-        if (resetList) {
-            reviewsList.innerHTML = html;
-        } else {
-            reviewsList.insertAdjacentHTML('beforeend', html);
-        }
-
-        // See More Button Visibility
-        if (seeMoreBtn) {
-            seeMoreBtn.style.display = data.has_more ? 'inline-block' : 'none';
-        }
-    } catch (err) {
-        console.warn('Error fetching place reviews:', err);
-        if (ratingSummarySkeleton) ratingSummarySkeleton.style.display = 'none';
-        if (ratingSummary) ratingSummary.style.display = 'none';
-        if (reviewsHeaderSkeleton) reviewsHeaderSkeleton.style.display = 'none';
-        if (reviewsHeader) reviewsHeader.style.display = 'none';
-        if (reviewsLoading) reviewsLoading.style.display = 'none';
-        if (reviewsList) reviewsList.style.display = 'none';
-        if (resetList && reviewsEmpty) {
-            reviewsEmpty.textContent = typeof window.t === 'function'
-                ? window.t('places.popup.no_reviews_yet')
-                : 'No reviews yet. Be the first to rate this place.';
-            reviewsEmpty.className = 'reviews-empty-state reviews-empty-single-line';
-            reviewsEmpty.style.display = 'block';
-        }
     }
 }
 
@@ -2589,6 +1995,7 @@ function getPlacePanel360Link(placeId, placeName) {
  */
 window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     if (!placeName) return;
+    currentPlaceName = placeName;
     const openOnSlide = openOptions && openOptions.slide === '360' ? 1 : 0;
 
     // 1. Ensure DOM elements exist
@@ -2661,11 +2068,15 @@ window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     );
     let data = normalizedKey ? activeDataStore[normalizedKey] : null;
 
-    if (!data && typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES)) {
-        const fpMatch = window.FALLBACK_PLACES.find(p =>
+    if (!data && typeof window !== 'undefined') {
+        const pool = (Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > 0)
+            ? window.FALLBACK_PLACES
+            : (Array.isArray(window._cachedAllPlaces) ? window._cachedAllPlaces : []);
+        const fpMatch = pool.find(p =>
+            (p.id != null && String(p.id) === String(placeName)) ||
             (p.name && p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) ||
             (p.name && (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm) ||
-            p.id === placeName
+            (p.slug && p.slug.toLowerCase() === targetNorm)
         );
         if (fpMatch) {
             data = {
@@ -2974,13 +2385,17 @@ async function fillRest(data, placeName, optLat, optLng) {
             allPlaces = window.FALLBACK_PLACES;
         }
         const targetNorm = (placeName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const match = allPlaces.find(p => (p.name && p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) || p.id === placeName) ||
-                      allPlaces.find(p => (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm);
+        const match = allPlaces.find(p => (p.name && p.name.toLowerCase().trim() === placeName.toLowerCase().trim()) || (p.id != null && String(p.id) === String(placeName))) ||
+                      allPlaces.find(p => (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') === targetNorm) ||
+                      allPlaces.find(p => p.slug && p.slug.toLowerCase() === targetNorm);
         if (match) {
             placeId = match.id;
             currentPlaceId = match.id;
             data = { ...data, ...match };
             currentActivePlace = data;
+
+            const nameEl = document.getElementById('ppName');
+            if (nameEl && match.name) nameEl.textContent = match.name;
 
             if (planBtn && match.lat != null && (match.lng != null || match.lon != null)) {
                 planBtn.setAttribute('data-lat', match.lat);
