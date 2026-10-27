@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Register Your Business – Calzada</title>
-    <meta name="description" content="Submit a new local place, terminal, or business to help expand the Calzada commuter network in Calamba.">
+    <meta name="description" content="Register your local business or eatery to get commuters straight to your door with jeepney routes and fares in Calamba.">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
 
@@ -13,29 +13,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Google Fonts (Non-blocking) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
-    <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
-    </noscript>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
+    <!-- Google Fonts -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap">
+    <link rel="stylesheet" href="../css/skeleton.css?v=3.0.0">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
 
-        <style>
+    <style>
         :root {
-            --primary: #1F69B8;
+            --primary: #378ADD;
             --primary-dark: #185FA5;
             --primary-light: #F0F7FF;
             --navy-dark: #042C53;
             --navy-muted: #64748B;
             --navy-subtle: #94A3B8;
-            --border-color: #E6EAF0;
+            --border-color: #E2E8F0;
             --danger: #DC2626;
-            --danger-bg: #FEF2F2;
-            --danger-border: #FCA5A5;
-            --radius-sm: 8px;
             --radius-md: 12px;
         }
 
@@ -51,9 +44,22 @@
             color: var(--navy-dark);
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
         }
 
-        /* 1. Top Bar */
+        @media (max-width: 600px) {
+            .topbar-inner {
+                padding: 0 12px;
+            }
+            .topbar-user-email {
+                display: none !important;
+            }
+            .topbar-right {
+                gap: 8px;
+            }
+        }
+
+        /* Top Bar */
         .submit-topbar {
             background: #FFFFFF;
             border-bottom: 1px solid var(--border-color);
@@ -67,18 +73,11 @@
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 32px;
+            padding: 0 24px;
             height: 56px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-        }
-
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
         }
 
         .topbar-brand {
@@ -93,24 +92,16 @@
             display: block;
         }
 
-        .topbar-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--navy-dark);
-            white-space: nowrap;
-        }
-
         .topbar-right {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
             white-space: nowrap;
         }
 
         .topbar-user-email {
             font-size: 13px;
-            color: #6B7785;
+            color: #64748B;
             font-weight: 500;
         }
 
@@ -120,11 +111,6 @@
             font-size: 13px;
             font-weight: 600;
             text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 8px;
-            border-radius: var(--radius-sm);
-            transition: all 0.15s ease;
         }
 
         .topbar-link-btn:hover {
@@ -134,778 +120,80 @@
         .btn-signout {
             background: transparent;
             border: none;
-            color: #6B7785;
+            color: #64748B;
             font-family: 'Outfit', sans-serif;
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
             padding: 6px 8px;
-            min-height: 44px;
-            transition: color 0.15s ease;
         }
 
         .btn-signout:hover {
-            color: var(--danger);
-        }
-
-        @media (max-width: 480px) {
-            .topbar-inner {
-                padding: 0 20px;
-                height: 52px;
-            }
-            .topbar-user-email,
-            .topbar-link-btn {
-                display: none;
-            }
-            .btn-signout .signout-text {
-                display: none;
-            }
-            .btn-signout {
-                padding: 6px;
-                min-width: 44px;
-                min-height: 44px;
-                justify-content: center;
-            }
-        }
-
-        /* 2. Main Content Container */
-        .submit-container {
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 40px 24px 80px;
-            display: none;
-        }
-
-        @media (max-width: 640px) {
-            .submit-container {
-                padding: 28px 20px 60px;
-            }
-        }
-
-        /* 3. Section Headers & Dividers */
-        .section-header {
-            margin-bottom: 40px;
-            padding-bottom: 40px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        @media (max-width: 640px) {
-            .section-header {
-                margin-bottom: 28px;
-                padding-bottom: 28px;
-            }
-        }
-
-        .section-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
             color: var(--navy-dark);
-            letter-spacing: -0.02em;
-            margin-bottom: 8px;
-            line-height: 1.2;
         }
 
-        @media (max-width: 640px) {
-            .section-title {
-                font-size: 26px;
-            }
-        }
-
-        /* Review #22: how registration works */
-        .how-it-works { margin: 0 0 24px; padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: #FFFFFF; scroll-margin-top: 96px; }
-        .how-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--navy-dark); margin: 0 0 12px; }
-        .how-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
-        .how-step { display: flex; gap: 10px; align-items: flex-start; }
-        .how-num { flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--primary-light); color: var(--primary); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-        .how-step strong { display: block; font-size: 14px; color: var(--navy-dark); }
-        .how-step div span { display: block; font-size: 13px; line-height: 1.45; color: #5A6A7F; }
-        @media (max-width: 520px) { .how-steps { grid-template-columns: 1fr; } }
-
-        .section-subtitle {
-            font-size: 14px;
-            color: #6B7785;
-            line-height: 1.5;
-        }
-
-        .rejection-notice {
-            color: #6B7785;
-            font-size: 14px;
-            margin-top: 14px;
-            line-height: 1.5;
-        }
-
-        .submission-form {
-            width: 100%;
-        }
-
-        .form-section {
-            padding-bottom: 32px;
-            margin-bottom: 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        @media (max-width: 640px) {
-            .form-section {
-                padding-bottom: 24px;
-                margin-bottom: 0;
-            }
-        }
-
-        /* 4. Form Fields */
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--navy-dark);
-            margin-bottom: 6px;
-        }
-
-        .form-label .req {
-            color: var(--danger);
-            margin-left: 2px;
-        }
-
-        .form-label .opt {
-            font-size: 13px;
-            color: #6B7785;
-            font-weight: 400;
-            margin-left: 4px;
-        }
-
-        .form-input,
-        .form-select,
-        .form-textarea {
-            width: 100%;
-            border: 1px solid #CBD5E1;
-            border-radius: var(--radius-sm);
-            padding: 10px 14px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 15px;
-            color: var(--navy-dark);
+        /* Auth Gate State */
+        .auth-gate {
+            position: fixed;
+            inset: 0;
             background: #FFFFFF;
-            outline: none;
-            transition: border-color 0.15s ease;
-        }
-
-        .form-input:focus,
-        .form-select:focus,
-        .form-textarea:focus {
-            border-color: var(--primary);
-        }
-
-        input::placeholder,
-        textarea::placeholder {
-            color: #94A3B8;
-            opacity: 1;
-        }
-
-        .field-hint {
-            font-size: 13px;
-            color: #6B7785;
-            margin-top: 6px;
-            line-height: 1.4;
-        }
-
-        .field-error-msg {
-            color: var(--danger);
-            font-size: 13px;
-            margin-top: 6px;
-            display: none;
-            scroll-margin-top: 72px;
-        }
-
-        .field-error-msg.active,
-        .field-error-msg.visible {
-            display: block;
-        }
-
-        @media (max-width: 480px) {
-            .field-error-msg {
-                scroll-margin-top: 68px;
-            }
-        }
-
-        .form-input.invalid,
-        .form-textarea.invalid {
-            border-color: var(--danger);
-        }
-
-        /* Custom Category Dropdown */
-        .custom-select-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .custom-select-trigger {
-            width: 100%;
-            border: 1px solid #CBD5E1;
-            border-radius: var(--radius-sm);
-            padding: 10px 14px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 15px;
-            color: var(--navy-dark);
-            background: #FFFFFF;
-            outline: none;
-            cursor: pointer;
+            z-index: 999;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            text-align: left;
-            transition: border-color 0.15s ease;
+            justify-content: center;
+            padding: 24px;
         }
 
-        .custom-select-trigger.placeholder-active .custom-select-label {
-            color: #94A3B8;
+        .auth-gate-bar {
+            width: 48px;
+            height: 3px;
+            background: #378ADD;
+            border-radius: 2px;
+            animation: pulse 1s infinite ease-in-out;
+            margin-bottom: 12px;
         }
 
-        .custom-select-trigger:focus,
-        .custom-select-wrapper.open .custom-select-trigger {
-            border-color: var(--primary);
+        .auth-gate-text {
+            font-size: 14px;
+            color: #64748B;
         }
 
-        .custom-select-trigger.invalid {
-            border-color: var(--danger);
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scaleX(0.7); }
+            50% { opacity: 1; transform: scaleX(1); }
         }
 
-        .custom-select-label {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .custom-select-chevron {
-            color: var(--navy-subtle);
-            flex-shrink: 0;
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
-
-        .custom-select-wrapper.open .custom-select-chevron {
-            transform: rotate(180deg);
-            color: var(--primary);
-        }
-
-        .custom-select-menu {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background: #FFFFFF;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            box-shadow: 0 4px 12px rgba(4, 44, 83, 0.08);
-            padding: 4px;
-            margin: 0;
-            list-style: none;
-            z-index: 50;
+        /* Responsive Bottom Sheet for Mobile Preview */
+        .preview-bottom-sheet {
             display: none;
-            max-height: 280px;
+            position: fixed;
+            inset: 0;
+            background: rgba(4, 44, 83, 0.4);
+            z-index: 200;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .preview-sheet-content {
+            background: #FFFFFF;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            max-height: 85vh;
             overflow-y: auto;
         }
-
-        .custom-select-wrapper.open .custom-select-menu {
-            display: block;
-        }
-
-        .custom-select-option {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 9px 12px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--navy-dark);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.15s ease;
-            user-select: none;
-        }
-
-        .custom-select-option:hover {
-            background: var(--primary-light);
-            color: var(--primary-dark);
-        }
-
-        .custom-select-option.selected {
-            background: var(--primary-light);
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        .option-check {
-            display: none;
-        }
-
-        .custom-select-option.selected .option-check {
-            display: block;
-        }
-
-        /* Map Pin Location Component */
-        .map-pin-label-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 6px;
-        }
-
-        .map-pin-label-row .form-label {
-            margin-bottom: 0;
-            white-space: nowrap;
-        }
-
-        #useMyLocationBtn {
-            white-space: nowrap;
-            text-align: right;
-            width: auto;
-        }
-
-        /* Phone Input Component */
-        .contact-label-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-        }
-
-        .contact-type-toggle {
-            display: inline-flex;
-            gap: 4px;
-        }
-
-        .contact-type-btn {
-            background: transparent;
-            border: 1px solid #CBD5E1;
-            padding: 3px 10px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            color: #6B7785;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-
-        .contact-type-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: #FFFFFF;
-        }
-
-        .phone-input-wrapper {
-            display: flex;
-            align-items: center;
-            border: 1px solid #CBD5E1;
-            border-radius: var(--radius-sm);
-            background: #FFFFFF;
-            overflow: hidden;
-            transition: border-color 0.15s ease;
-        }
-
-        .phone-input-wrapper:focus-within {
-            border-color: var(--primary);
-        }
-
-        .phone-input-wrapper.invalid {
-            border-color: var(--danger);
-        }
-
-        .phone-prefix {
-            padding: 10px 12px;
-            background: #F8FAFC;
-            color: #6B7785;
-            font-size: 14px;
-            font-weight: 600;
-            user-select: none;
-            border-right: 1px solid #CBD5E1;
-        }
-
-        .phone-input {
-            flex: 1;
-            border: none;
-            outline: none;
-            padding: 10px 14px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 15px;
-            color: var(--navy-dark);
-            background: transparent;
-        }
-
-        /* Choose a Plan (Phase 2.2) */
-        .submit-plans-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .submit-plan-card {
-            background: #FFFFFF;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px 20px;
-            cursor: pointer;
-            transition: border-color 0.15s ease, background-color 0.15s ease;
-            box-shadow: none;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .submit-plan-card.selected {
-            border: 2px solid var(--primary);
-            background: #FFFFFF;
-        }
-
-        .submit-plan-row {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            width: 100%;
-        }
-
-        .submit-plan-radio {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 2px solid #CBD5E1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .submit-plan-card.selected .submit-plan-radio {
-            border-color: var(--primary);
-        }
-
-        .submit-plan-radio::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--primary);
-            opacity: 0;
-            transform: scale(0.5);
-            transition: all 0.15s ease;
-        }
-
-        .submit-plan-card.selected .submit-plan-radio::after {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .submit-plan-meta {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .submit-plan-tag {
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 2px;
-        }
-
-        .submit-plan-name {
-            font-family: 'Sora', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--navy-dark);
-        }
-
-        .submit-plan-desc {
-            font-size: 13px;
-            color: var(--navy-muted);
-        }
-
-        .submit-plan-price {
-            text-align: right;
-            flex-shrink: 0;
-        }
-
-        .submit-plan-amount {
-            font-family: 'Sora', sans-serif;
-            font-size: 19px;
-            font-weight: 700;
-            color: var(--navy-dark);
-        }
-
-        .submit-plan-period {
-            font-size: 12px;
-            color: var(--navy-muted);
-        }
-
-        .submit-plan-features {
-            display: none;
-            padding-top: 12px;
-            border-top: 1px solid var(--border-color);
-            list-style: none;
-            gap: 8px;
-            flex-direction: column;
-        }
-
-        .submit-plan-card.selected .submit-plan-features {
-            display: flex;
-        }
-
-        .submit-plan-feat-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--navy-dark);
-        }
-
-        .submit-plan-feat-item i {
-            color: #16A34A;
-            font-size: 16px;
-        }
-
-        /* Compact Social Links Row Component (C1) */
-        .social-inputs-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .social-input-row {
-            display: flex;
-            align-items: center;
-            border: 1px solid #CBD5E1;
-            border-radius: var(--radius-sm);
-            background: #FFFFFF;
-            overflow: hidden;
-            transition: border-color 0.15s ease;
-            min-height: 42px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .social-input-row:focus-within {
-            border-color: var(--primary);
-        }
-
-        .social-input-row.invalid {
-            border-color: var(--danger);
-        }
-
-        .social-prefix {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            background: #F8FAFC;
-            color: #6B7785;
-            font-size: 13px;
-            font-weight: 500;
-            user-select: none;
-            border-right: 1px solid #CBD5E1;
-            flex-shrink: 0;
-            white-space: nowrap;
-        }
-
-        .social-prefix-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            color: #6B7785;
-            transition: color 0.15s ease;
-        }
-
-        /* Logo color: gray #6B7785 when empty; dark text color when field has value or is focused */
-        .social-input-row:focus-within .social-prefix-icon,
-        .social-input-row.has-value .social-prefix-icon {
-            color: var(--navy-dark);
-        }
-
-        .social-input {
-            flex: 1;
-            min-width: 90px;
-            border: none;
-            outline: none;
-            padding: 10px 14px;
-            font-family: 'Outfit', sans-serif;
-            font-size: 15px;
-            color: var(--navy-dark);
-            background: transparent;
-            box-sizing: border-box;
-        }
-
-        /* Feedback Banner */
-        #formErrorBanner,
-        .form-error-banner {
-            color: var(--danger);
-            border: 1px solid var(--danger);
-            background: transparent;
-            padding: 12px 16px;
-            border-radius: var(--radius-sm);
-            font-size: 14px;
-            margin-bottom: 24px;
-            display: none;
-            line-height: 1.45;
-            scroll-margin-top: 72px;
-        }
-
-        @media (max-width: 480px) {
-            #formErrorBanner,
-            .form-error-banner {
-                scroll-margin-top: 68px;
-            }
-        }
-
-        /* Form Actions (C3) - Exactly 32px below divider */
-        .form-actions {
-            margin-top: 32px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .btn-submit {
-            background: var(--primary);
-            color: #FFFFFF;
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 10px 24px;
-            border-radius: var(--radius-sm);
-            border: none;
-            cursor: pointer;
-            transition: background 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 44px;
-        }
-
-        .btn-submit:hover:not(:disabled) {
-            background: var(--primary-dark);
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-        }
-
-        .btn-cancel {
-            color: #6B7785;
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-cancel:hover {
-            color: var(--navy-dark);
-            text-decoration: underline;
-        }
-
-        @media (max-width: 640px) {
-            .form-actions {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-            .btn-submit {
-                width: 100%;
-            }
-            .btn-cancel {
-                width: 100%;
-                justify-content: center;
-                text-align: center;
-            }
-            #useMyLocationBtn {
-                width: auto;
-                justify-content: flex-end;
-                text-align: right;
-            }
-        }
-
-        /* Success View */
-        .success-card {
-            display: none;
-        }
-
-        .success-title {
-            font-family: 'Sora', sans-serif;
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--navy-dark);
-            margin-bottom: 8px;
-        }
-
-        @media (max-width: 640px) {
-            .success-title {
-                font-size: 26px;
-            }
-        }
-
-        .success-desc {
-            font-size: 14px;
-            color: #6B7785;
-            line-height: 1.5;
-            margin-bottom: 32px;
-        }
-
-        .success-meta-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 36px;
-            padding-bottom: 36px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .success-meta-item {
-            display: flex;
-            align-items: baseline;
-        }
-
-        .success-meta-label {
-            width: 160px;
-            flex-shrink: 0;
-            color: #6B7785;
-            font-size: 14px;
-        }
-
-        .success-meta-val {
-            color: var(--navy-dark);
-            font-size: 14px;
-        }
-
-        @media (max-width: 640px) {
-            .success-meta-item {
-                flex-direction: column;
-                gap: 4px;
-            }
-            .success-meta-label {
-                width: auto;
-                font-size: 13px;
-            }
+        /* Room under the form for the floating Preview button */
+        @media (max-width: 1023px) {
+            #wizardMount { padding-bottom: 72px; }
         }
     </style>
+
+    <script src="../js/plans-config.js?v=3.0.0"></script>
+    <script src="../js/visibility.js?v=3.0.1"></script>
+    <script src="../js/business-fields.js?v=3.0.1"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
 </head>
 
 <body>
@@ -917,7 +205,6 @@
     </div>
 
     <!-- 2. Application Top Bar -->
-        <!-- 2. Application Top Bar -->
     <header class="submit-topbar" id="submitTopbar" style="display: none;">
         <div class="topbar-inner">
             <div class="topbar-left">
@@ -930,573 +217,49 @@
                 <span class="topbar-user-email" id="topbarUserEmail">--</span>
                 <a href="/my-business" class="topbar-link-btn" id="topbarMyBusinessLink">My Business</a>
                 <button type="button" class="btn-signout" id="submitSignOutBtn" title="Sign Out" aria-label="Sign out">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                        <polyline points="16 17 21 12 16 7"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    <span class="signout-text">Sign Out</span>
+                    Sign Out
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- 3. Form Content Area -->
-    <main class="submit-container" id="submitContainer">
-
-        <!-- Page Section Header -->
-        <div class="section-header">
-            <h1 class="section-title">Register your business</h1>
-            <p class="section-subtitle">
-                Create your business's presence on Calzada. Once approved, you'll set up your profile and start posting.
-            </p>
-            <p id="rejectionNotice" class="rejection-notice" style="display: none;"></p>
-        </div>
-
-        <!-- How registration works -->
-        <section class="how-it-works" id="how-it-works" aria-labelledby="howItWorksTitle">
-            <h2 class="how-title" id="howItWorksTitle">How it works</h2>
-            <ol class="how-steps">
-                <li class="how-step"><span class="how-num" aria-hidden="true">1</span><div><strong>Register</strong><span>Pick a plan, enter details and a map pin.</span></div></li>
-                <li class="how-step"><span class="how-num" aria-hidden="true">2</span><div><strong>Review</strong><span>The Calzada team checks your details.</span></div></li>
-                <li class="how-step"><span class="how-num" aria-hidden="true">3</span><div><strong>Pay with GCash</strong><span>Pay once after approval to go live.</span></div></li>
-                <li class="how-step"><span class="how-num" aria-hidden="true">4</span><div><strong>Profile & Posts</strong><span>Share photos and updates with commuters.</span></div></li>
-            </ol>
-        </section>
-
-        <!-- Form Error Banner -->
-        <div class="form-error-banner" id="formErrorBanner" role="alert"></div>
-
-        <!-- Main Form -->
-        <form class="submission-form" id="submissionForm" novalidate>
-
-            <div class="form-section">
-                <!-- Choose a Plan (Phase 2.2) -->
-                <div class="form-group" style="margin-bottom: 24px;">
-                    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px;">
-                        <label class="form-label" style="margin-bottom: 0;">
-                            Choose a plan <span class="req">*</span>
-                        </label>
-                        <a href="/plans" target="_blank" rel="noopener" style="font-size: 13px; color: var(--primary); text-decoration: none; font-weight: 500;">
-                            Compare plans →
-                        </a>
-                    </div>
-                    <div class="submit-plans-group" role="radiogroup" aria-label="Choose a plan" id="submitPlansGroup">
-                        <!-- Populated dynamically from window.CALZADA_PLANS -->
-                    </div>
-                </div>
-
-                <!-- Business Name -->
-                <div class="form-group">
-                    <label class="form-label" for="businessName">
-                        Business or Place Name <span class="req">*</span>
-                    </label>
-                    <input type="text" id="businessName" class="form-input" placeholder="Cafe Rizal" autocomplete="off" maxlength="80">
-                    <div class="field-error-msg" id="errBusinessName">Please provide a business or place name.</div>
-                </div>
-
-                <!-- Category -->
-                <div class="form-group">
-                    <label class="form-label" id="categoryLabel" for="categoryTrigger">
-                        Category <span class="req">*</span>
-                    </label>
-                    <!-- Hidden native select for form serialization & fallback -->
-                    <select id="businessCategory" style="display: none;" tabindex="-1" aria-hidden="true">
-                        <option value="">Select a category...</option>
-                        <option value="malls">Malls</option>
-                        <option value="eateries">Eateries & Dining</option>
-                        <option value="coffee">Coffee Shops</option>
-                        <option value="schools">Schools & Universities</option>
-                        <option value="terminals">Terminals & Transit</option>
-                        <option value="establishments">Commercial Establishments & Services</option>
-                    </select>
-
-                    <!-- Custom Dropdown Container -->
-                    <div class="custom-select-wrapper" id="categoryDropdownWrapper">
-                        <button type="button" 
-                                class="custom-select-trigger placeholder-active" 
-                                id="categoryTrigger" 
-                                aria-haspopup="listbox" 
-                                aria-expanded="false" 
-                                aria-labelledby="categoryLabel categoryTrigger">
-                            <span class="custom-select-label" id="categorySelectedText">Select a category...</span>
-                            <svg class="custom-select-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                        </button>
-
-                        <ul class="custom-select-menu" id="categoryMenu" role="listbox" aria-labelledby="categoryLabel">
-                            <li class="custom-select-option" role="option" data-value="malls" aria-selected="false">
-                                <span class="option-text">Malls</span>
-                                <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </li>
-                            <li class="custom-select-option" role="option" data-value="eateries" aria-selected="false">
-                                <span class="option-text">Eateries & Dining</span>
-                                <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </li>
-                            <li class="custom-select-option" role="option" data-value="coffee" aria-selected="false">
-                                <span class="option-text">Coffee Shops</span>
-                                <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </li>
-                            <li class="custom-select-option" role="option" data-value="schools" aria-selected="false">
-                                <span class="option-text">Schools & Universities</span>
-                                <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </li>
-                            <li class="custom-select-option" role="option" data-value="terminals" aria-selected="false">
-                                <span class="option-text">Terminals & Transit</span>
-                                <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </li>
-                            <li class="custom-select-option" role="option" data-value="establishments" aria-selected="false">
-                                <span class="option-text">Commercial Establishments & Services</span>
-                                <svg class="option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="field-error-msg" id="errBusinessCategory">Please choose a category.</div>
-                </div>
-
-                <!-- Service Type (Shown ONLY when category is establishments) -->
-                <div class="form-group" id="serviceTypeGroup" style="display: none;">
-                    <label class="form-label" for="serviceType">
-                        Type of service <span class="opt">(Optional)</span>
-                    </label>
-                    <input type="text" id="serviceType" class="form-input" list="serviceTypeSuggestions" placeholder="Printing, Laundry, Repair shop" maxlength="40" autocomplete="off">
-                    <datalist id="serviceTypeSuggestions">
-                        <option value="Printing">
-                        <option value="Laundry">
-                        <option value="Repair shop">
-                        <option value="Salon">
-                        <option value="Pharmacy">
-                        <option value="Hardware">
-                        <option value="Water refilling station">
-                    </datalist>
-                    <div class="field-error-msg" id="errServiceType">Please enter between 2 and 40 characters.</div>
-                </div>
-
-                <!-- Business Address -->
-                <div class="form-group">
-                    <label class="form-label" for="businessAddress">
-                        Address / Location in Calamba <span class="req">*</span>
-                    </label>
-                    <input type="text" id="businessAddress" class="form-input" placeholder="National Highway, Brgy. Real, Calamba City" autocomplete="off" maxlength="160">
-                    <div class="field-error-msg" id="errBusinessAddress">Please provide the address or location.</div>
-                    <div class="field-hint">Include barangay or landmark if known.</div>
-                </div>
-
-                <!-- Map Pin Location Picker -->
-                <div class="form-group" id="locationPickerGroup">
-                    <div class="map-pin-label-row" style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-                        <label class="form-label" style="margin-bottom: 0; white-space: nowrap;">
-                            Map Pin <span class="req">*</span>
-                        </label>
-                        <button type="button" id="useMyLocationBtn" class="btn-cancel" style="min-height: auto; padding: 0; font-size: 13px; color: var(--primary); white-space: nowrap; text-align: right; width: auto; justify-content: flex-end;">
-                            Use my current location
-                        </button>
-                    </div>
-                    <div id="locationPickerMap" style="height: 280px; width: 100%; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; position: relative;"></div>
-                    <div class="field-hint" style="margin-top: 6px;">Drop the pin on your exact spot. Your written address above stays as you typed it.</div>
-                    <div class="field-error-msg" id="errLocationPicker">Please drop a pin within Calamba to set your business location.</div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <!-- Description -->
-                <div class="form-group">
-                    <label class="form-label" for="businessDescription">
-                        Description <span class="opt">(Optional)</span>
-                    </label>
-                    <textarea id="businessDescription" class="form-textarea" rows="3" placeholder="Tell commuters what this place offers, popular items, or nearby landmarks..." maxlength="500"></textarea>
-                </div>
-
-                <!-- Contact Number -->
-                <div class="form-group">
-                    <div class="contact-label-row">
-                        <label class="form-label" for="businessContact" style="margin-bottom: 0;">
-                            Contact Number <span class="opt">(Optional)</span>
-                        </label>
-                        <div class="contact-type-toggle" role="group" aria-label="Contact number type">
-                            <button type="button" class="contact-type-btn active" id="typeMobileBtn" data-type="mobile">
-                                Mobile
-                            </button>
-                            <button type="button" class="contact-type-btn" id="typeLandlineBtn" data-type="landline">
-                                Landline
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="phone-input-wrapper" id="phoneInputWrapper">
-                        <span class="phone-prefix" id="phonePrefix">+63</span>
-                        <span class="phone-divider"></span>
-                        <input type="tel" id="businessContact" class="phone-input" placeholder="917 123 4567" autocomplete="off">
-                    </div>
-                    <div class="field-error-msg" id="errBusinessContact">Please enter a valid mobile number.</div>
-                    <div class="field-hint" id="contactHint">Format: +63 9XX XXX XXXX</div>
-                </div>
-
-                <!-- Social links (C1) -->
-                <div class="form-group" style="margin-top: 24px;">
-                    <label class="form-label" style="margin-bottom: 2px;">
-                        Social links <span class="opt">(Optional)</span>
-                    </label>
-                    <div class="field-hint" style="margin-top: 0; margin-bottom: 12px;">Add only the ones you use.</div>
-
-                    <div class="social-inputs-list">
-                        <div>
-                            <div class="social-input-row" id="socialRowFacebook">
-                                <span class="social-prefix">
-                                    <svg class="social-prefix-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                    </svg>
-                                    <span>facebook.com/</span>
-                                </span>
-                                <input type="text" id="socialFacebook" class="social-input" placeholder="yourpage" aria-label="Facebook page name" autocomplete="off" maxlength="200">
-                            </div>
-                            <div class="field-error-msg" id="errSocialFacebook">Please enter a valid Facebook page or URL.</div>
-                        </div>
-
-                        <div>
-                            <div class="social-input-row" id="socialRowInstagram">
-                                <span class="social-prefix">
-                                    <svg class="social-prefix-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-                                        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                                    </svg>
-                                    <span>instagram.com/</span>
-                                </span>
-                                <input type="text" id="socialInstagram" class="social-input" placeholder="username" aria-label="Instagram username" autocomplete="off" maxlength="200">
-                            </div>
-                            <div class="field-error-msg" id="errSocialInstagram">Please enter a valid Instagram profile or URL.</div>
-                        </div>
-
-                        <div>
-                            <div class="social-input-row" id="socialRowTiktok">
-                                <span class="social-prefix">
-                                    <svg class="social-prefix-icon" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
-                                        <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-                                    </svg>
-                                    <span>tiktok.com/@</span>
-                                </span>
-                                <input type="text" id="socialTiktok" class="social-input" placeholder="username" aria-label="TikTok username" autocomplete="off" maxlength="200">
-                            </div>
-                            <div class="field-error-msg" id="errSocialTiktok">Please enter a valid TikTok handle or URL.</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="form-actions">
-                <button type="submit" class="btn-submit" id="submitBtn" disabled>
-                    <span id="submitBtnText">Register Business</span>
-                </button>
-                <a href="/" class="btn-cancel">Cancel</a>
-            </div>
-        </form>
-
-        <!-- Success Confirmation View -->
-        <div class="success-card" id="successCard">
-            <h2 class="success-title">Registration received</h2>
-            <p class="success-desc">
-                Your business is pending review. We'll review your details first. You only pay <span id="successPlanCost">₱199</span> after we approve them.
-            </p>
-            <dl class="success-meta-list">
-                <div class="success-meta-item">
-                    <dt class="success-meta-label">Business Name</dt>
-                    <dd class="success-meta-val" id="metaBusinessName">--</dd>
-                </div>
-                <div class="success-meta-item">
-                    <dt class="success-meta-label">Category</dt>
-                    <dd class="success-meta-val" id="metaBusinessCategory">--</dd>
-                </div>
-                <div class="success-meta-item">
-                    <dt class="success-meta-label">Reference ID</dt>
-                    <dd class="success-meta-val" id="metaBusinessId">--</dd>
-                </div>
-                <div class="success-meta-item">
-                    <dt class="success-meta-label">Status</dt>
-                    <dd class="success-meta-val">Pending review</dd>
-                </div>
-            </dl>
-            <div class="form-actions">
-                <a href="/my-business" class="btn-submit" id="btnViewMyBusiness" style="text-decoration: none;">
-                    View My Business
-                </a>
-                <button type="button" class="btn-cancel" id="btnSubmitAnother" style="background: none; border: none; cursor: pointer;">
-                    Register Another
-                </button>
-            </div>
-        </div>
-
+    <!-- 3. 5-Step Registration Wizard Container -->
+    <main id="submitContainer" style="display: none;">
+        <div id="wizardMount"></div>
     </main>
 
-    <!-- MapLibre GL JS -->
-    <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
+    <!-- 4. Phone Preview Bottom Sheet Modal -->
+    <div id="previewBottomSheet" class="preview-bottom-sheet">
+        <div class="preview-sheet-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+                <span style="font-weight: 700; font-size: 15px; color: #042C53;">Places Live Preview</span>
+                <button type="button" id="btnCloseSheet" style="background: transparent; border: none; font-size: 20px; color: #64748B; cursor: pointer; padding: 4px;">&times;</button>
+            </div>
+            <div id="sheetCardMount"></div>
+        </div>
+    </div>
 
-    <!-- Plans Configuration -->
-    <script src="../js/plans-config.js?v=2.9.0"></script>
-
-    <!-- Client Script: Auth Guard, Validation, Firestore Write -->
     <script type="module">
         import { 
             auth, 
             db, 
             collection, 
-            doc, 
-            setDoc, 
-            writeBatch,
-            serverTimestamp, 
             onAuthStateChanged, 
             signOut,
             query,
             where,
             getDocs
         } from "../js/firebase-init.js";
+        import { signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+        import { RegisterWizard } from "../js/register-wizard.js?v=3.0.1";
 
-        // DOM elements
         const loadingOverlay = document.getElementById('loadingOverlay');
         const submitTopbar = document.getElementById('submitTopbar');
         const submitContainer = document.getElementById('submitContainer');
         const topbarUserEmail = document.getElementById('topbarUserEmail');
         const submitSignOutBtn = document.getElementById('submitSignOutBtn');
 
-        const submissionForm = document.getElementById('submissionForm');
-        const formErrorBanner = document.getElementById('formErrorBanner');
-
-        // Fields
-        const businessName = document.getElementById('businessName');
-        const businessCategory = document.getElementById('businessCategory');
-        const serviceTypeGroup = document.getElementById('serviceTypeGroup');
-        const serviceType = document.getElementById('serviceType');
-        const businessAddress = document.getElementById('businessAddress');
-        const businessDescription = document.getElementById('businessDescription');
-        const businessContact = document.getElementById('businessContact');
-
-        // Location picker elements
-        const locationPickerMap = document.getElementById('locationPickerMap');
-        const useMyLocationBtn = document.getElementById('useMyLocationBtn');
-
-        // Social Links elements
-        const socialFacebook = document.getElementById('socialFacebook');
-        const socialInstagram = document.getElementById('socialInstagram');
-        const socialTiktok = document.getElementById('socialTiktok');
-
-        // Validation error containers
-        const errBusinessName = document.getElementById('errBusinessName');
-        const errBusinessCategory = document.getElementById('errBusinessCategory');
-        const errServiceType = document.getElementById('errServiceType');
-        const errBusinessAddress = document.getElementById('errBusinessAddress');
-        const errLocationPicker = document.getElementById('errLocationPicker');
-        const errSocialFacebook = document.getElementById('errSocialFacebook');
-        const errSocialInstagram = document.getElementById('errSocialInstagram');
-        const errSocialTiktok = document.getElementById('errSocialTiktok');
-
-        const submitBtn = document.getElementById('submitBtn');
-        const submitBtnText = document.getElementById('submitBtnText');
-
-        // Success card elements
-        const successCard = document.getElementById('successCard');
-        const metaBusinessName = document.getElementById('metaBusinessName');
-        const metaBusinessCategory = document.getElementById('metaBusinessCategory');
-        const metaBusinessId = document.getElementById('metaBusinessId');
-        const btnSubmitAnother = document.getElementById('btnSubmitAnother');
-
-        // State
-        let currentUser = null;
-        let selectedLocation = null;
-        let pickerMap = null;
-        let pickerMarker = null;
-
-        // Authoritative Calamba bounds reused from planner
-        const CALAMBA_BOUNDS = { minLat: 14.10, maxLat: 14.30, minLng: 121.05, maxLng: 121.25 };
-        const isInCalamba = (lat, lng) => 
-            typeof lat === 'number' && typeof lng === 'number' &&
-            lat >= CALAMBA_BOUNDS.minLat && lat <= CALAMBA_BOUNDS.maxLat &&
-            lng >= CALAMBA_BOUNDS.minLng && lng <= CALAMBA_BOUNDS.maxLng;
-
-        // Choose a plan state (Phase 2.2)
-        const urlParams = new URLSearchParams(window.location.search);
-        const paramPlan = urlParams.get('plan');
-        let selectedPlan = (paramPlan && window.CALZADA_PLANS && window.CALZADA_PLANS[paramPlan]) ? paramPlan : 'plus360';
-
-        function renderSubmitPlans() {
-            const container = document.getElementById('submitPlansGroup');
-            if (!container || !window.CALZADA_PLANS) return;
-            container.innerHTML = '';
-
-            const tags = { listed: 'BASIC', plus360: 'RECOMMENDED', featured: 'MOST VISIBLE' };
-            const descs = {
-                listed: 'Pin on map & Places, profile, 4 posts/mo',
-                plus360: 'Everything in Listed + 360 photo shoot & view, 8 posts/mo',
-                featured: 'Featured 14 days, pinned post, unlimited posts'
-            };
-            const features = {
-                listed: [
-                    'Pin on the map and in Places',
-                    'Business profile & route planner with fare',
-                    `Post ${window.CALZADA_PLANS.listed.postsPerMonth} updates a month`
-                ],
-                plus360: [
-                    'Everything in Listed',
-                    '360 photo shoot of your place by Calzada team',
-                    '360° view on your profile & street view',
-                    `Post ${window.CALZADA_PLANS.plus360.postsPerMonth} updates a month`
-                ],
-                featured: [
-                    'Everything in Listed + 360',
-                    `Featured in "New on Calzada" for ${window.CALZADA_PLANS.featured.featuredDays} days`,
-                    'Pin one post at top of Updates',
-                    'Unlimited updates',
-                    'Priority application review'
-                ]
-            };
-
-            ['listed', 'plus360', 'featured'].forEach(key => {
-                const plan = window.CALZADA_PLANS[key];
-                if (!plan) return;
-                const isSelected = key === selectedPlan;
-
-                const card = document.createElement('div');
-                card.className = `submit-plan-card ${isSelected ? 'selected' : ''}`;
-                card.id = `submitPlan_${key}`;
-                card.setAttribute('role', 'radio');
-                card.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-                card.setAttribute('tabindex', '0');
-
-                card.innerHTML = `
-                    <div class="submit-plan-row">
-                        <div class="submit-plan-radio" aria-hidden="true"></div>
-                        <div class="submit-plan-meta">
-                            <div class="submit-plan-tag">${tags[key]}</div>
-                            <div class="submit-plan-name">${plan.name}</div>
-                            <div class="submit-plan-desc">${descs[key]}</div>
-                        </div>
-                        <div class="submit-plan-price">
-                            <div class="submit-plan-amount">₱${plan.price}</div>
-                            <div class="submit-plan-period">one-time</div>
-                        </div>
-                    </div>
-                    <ul class="submit-plan-features">
-                        ${features[key].map(f => `
-                            <li class="submit-plan-feat-item">
-                                <i class="ti ti-check" aria-hidden="true"></i>
-                                <span>${f}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                `;
-
-                const handleSelect = () => {
-                    selectedPlan = key;
-                    document.querySelectorAll('.submit-plan-card').forEach(c => {
-                        c.classList.remove('selected');
-                        c.setAttribute('aria-checked', 'false');
-                    });
-                    card.classList.add('selected');
-                    card.setAttribute('aria-checked', 'true');
-                };
-
-                card.addEventListener('click', handleSelect);
-                card.addEventListener('keydown', (e) => {
-                    if (e.key === ' ' || e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSelect();
-                    }
-                });
-
-                container.appendChild(card);
-            });
-        }
-
-        renderSubmitPlans();
-
-        // --- 1. AUTH GUARD ---
-        onAuthStateChanged(auth, async (user) => {
-            if (window.__MOCK_AUTH_USER__) {
-                user = window.__MOCK_AUTH_USER__;
-            }
-            if (!user) {
-                // Not authenticated -> redirect to login with return path
-                window.location.href = "/login?redirect=/submit";
-                return;
-            }
-
-            currentUser = user;
-            if (topbarUserEmail) {
-                topbarUserEmail.textContent = user.email || user.displayName || 'Authenticated User';
-            }
-
-            // Check if user already has an active business ('pending' or 'approved')
-            if (!window.__MOCK_AUTH_USER__) {
-                try {
-                    const q = query(collection(db, "businesses"), where("ownerId", "==", user.uid));
-                const snap = await getDocs(q);
-                let hasActive = false;
-                let rejectedDoc = null;
-                let otherStatusCount = 0;
-
-                snap.docs.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data.status === 'pending' || data.status === 'approved') {
-                        hasActive = true;
-                    } else if (data.status === 'rejected') {
-                        rejectedDoc = data;
-                    } else {
-                        otherStatusCount++;
-                    }
-                });
-
-                if (hasActive) {
-                    window.location.href = "/my-business";
-                    return;
-                }
-
-                // If their only business is 'rejected', let them register again and show the rejection reason above the form in plain gray text
-                if (rejectedDoc && otherStatusCount === 0) {
-                    const rejNotice = document.getElementById('rejectionNotice');
-                    if (rejNotice) {
-                        const reason = rejectedDoc.rejectionReason || 'No specific reason provided.';
-                        rejNotice.textContent = `Previous submission was rejected: ${reason}`;
-                        rejNotice.style.display = 'block';
-                    }
-                }
-                } catch (err) {
-                    console.warn('Error checking existing businesses on submit:', err);
-                }
-            }
-
-            // Reveal application
-            loadingOverlay.style.display = 'none';
-            submitTopbar.style.display = 'block';
-            submitContainer.style.display = 'block';
-
-            // Initialize MapLibre Location Picker once container is visible
-            setTimeout(() => {
-                initPickerMap();
-            }, 50);
-        });
-
-        // Quiet timeout fallback if auth check hangs
-        setTimeout(() => {
-            if (loadingOverlay && loadingOverlay.style.display !== 'none' && !currentUser) {
-                loadingOverlay.innerHTML = `
-                    <div class="quiet-error-state">
-                        <p class="quiet-error-text">Couldn't load this right now. Try refreshing.</p>
-                        <button type="button" class="quiet-error-action" onclick="window.location.reload()">Refresh</button>
-                    </div>
-                `;
-            }
-        }, 8000);
+        let wizardInstance = null;
 
         if (submitSignOutBtn) {
             submitSignOutBtn.addEventListener('click', async () => {
@@ -1505,780 +268,100 @@
             });
         }
 
-        // --- MAPLIBRE LOCATION PICKER ---
-        function initPickerMap() {
-            if (pickerMap || typeof maplibregl === 'undefined' || !document.getElementById('locationPickerMap')) return;
-
-            pickerMap = new maplibregl.Map({
-                container: 'locationPickerMap',
-                style: 'https://tiles.openfreemap.org/styles/liberty',
-                center: [121.1652, 14.2117], // Calamba center [lng, lat]
-                zoom: 13,
-                maxBounds: [[121.05, 14.10], [121.25, 14.30]],
-                attributionControl: false
-            });
-
-            pickerMap.on('load', () => {
-                pickerMap.resize();
-            });
-
-            pickerMap.on('click', (e) => {
-                setMapPin(e.lngLat.lat, e.lngLat.lng);
-            });
-        }
-
-        function setMapPin(lat, lng) {
-            if (!isInCalamba(lat, lng)) {
-                if (errLocationPicker) {
-                    errLocationPicker.textContent = 'Please drop the pin within Calamba City.';
-                    errLocationPicker.classList.add('visible');
-                }
-                return;
-            }
-
-            if (errLocationPicker) errLocationPicker.classList.remove('visible');
-            selectedLocation = { lat: Number(lat.toFixed(7)), lng: Number(lng.toFixed(7)) };
-
-            if (!pickerMarker) {
-                pickerMarker = new maplibregl.Marker({ color: '#378ADD', draggable: true, anchor: 'bottom' })
-                    .setLngLat([lng, lat])
-                    .addTo(pickerMap);
-
-                pickerMarker.on('dragend', () => {
-                    const pos = pickerMarker.getLngLat();
-                    if (isInCalamba(pos.lat, pos.lng)) {
-                        selectedLocation = { lat: Number(pos.lat.toFixed(7)), lng: Number(pos.lng.toFixed(7)) };
-                        if (errLocationPicker) errLocationPicker.classList.remove('visible');
-                    } else {
-                        if (selectedLocation) {
-                            pickerMarker.setLngLat([selectedLocation.lng, selectedLocation.lat]);
-                        }
-                        if (errLocationPicker) {
-                            errLocationPicker.textContent = 'Please drop the pin within Calamba City.';
-                            errLocationPicker.classList.add('visible');
-                        }
-                    }
-                    validateForm();
-                });
-            } else {
-                pickerMarker.setLngLat([lng, lat]);
-            }
-
-            validateForm();
-        }
-
-        if (useMyLocationBtn) {
-            useMyLocationBtn.addEventListener('click', () => {
-                if (!navigator.geolocation) {
-                    if (errLocationPicker) {
-                        errLocationPicker.textContent = 'Geolocation is not supported by your browser.';
-                        errLocationPicker.classList.add('visible');
-                    }
-                    return;
-                }
-                useMyLocationBtn.textContent = 'Locating...';
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        useMyLocationBtn.textContent = 'Use my current location';
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        if (!isInCalamba(lat, lng)) {
-                            if (errLocationPicker) {
-                                errLocationPicker.textContent = 'Your current location is outside Calamba City.';
-                                errLocationPicker.classList.add('visible');
-                            }
-                            return;
-                        }
-                        setMapPin(lat, lng);
-                        if (pickerMap) {
-                            pickerMap.flyTo({ center: [lng, lat], zoom: 16 });
-                        }
-                    },
-                    (err) => {
-                        useMyLocationBtn.textContent = 'Use my current location';
-                        if (errLocationPicker) {
-                            errLocationPicker.textContent = 'Could not access your location. Please tap the map to drop a pin.';
-                            errLocationPicker.classList.add('visible');
-                        }
-                    },
-                    { enableHighAccuracy: true, timeout: 10000 }
-                );
-            });
-        }
-
-        // --- SOCIAL LINKS NORMALIZATION (C1 / D1 / D2) ---
-        function normalizeSocialLink(type, rawVal) {
-            if (!rawVal || !rawVal.trim()) {
-                return { isValid: true, value: null, cleanUsername: '', error: null };
-            }
-            const input = rawVal.trim();
-
-            const hasProtocol = /^https?:\/\//i.test(input);
-            const hasDomainPattern = /^([a-z0-9-]+\.)+(com|org|net|ph|io|co|app|me|info|biz|tv)(\/.*)?$/i.test(input) || (/^[a-z0-9-]+\.[a-z]{2,}\/.+/i.test(input));
-
-            let urlObj = null;
-            if (hasProtocol) {
-                try {
-                    urlObj = new URL(input);
-                } catch (e) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid link or username.' };
-                }
-            } else if (hasDomainPattern) {
-                try {
-                    urlObj = new URL('https://' + input);
-                } catch (e) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid link or username.' };
-                }
-            }
-
-            if (type === 'facebook') {
-                let path = '';
-                let searchParams = null;
-
-                if (urlObj) {
-                    const host = urlObj.hostname.toLowerCase();
-                    const allowedHosts = ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'];
-                    if (!allowedHosts.some(h => host === h || host.endsWith('.' + h))) {
-                        return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a Facebook link or username (other domains are not allowed).' };
-                    }
-                    path = urlObj.pathname;
-                    searchParams = urlObj.searchParams;
-                } else {
-                    try {
-                        const dummy = new URL('https://www.facebook.com/' + input.replace(/^\/+/, ''));
-                        path = dummy.pathname;
-                        searchParams = dummy.searchParams;
-                    } catch (_) {
-                        path = '/' + input.replace(/^\/+/, '');
-                        searchParams = new URLSearchParams();
-                    }
-                }
-
-                const cleanPath = path.replace(/^\/+/, '').replace(/\/+$/, '');
-
-                // Case 1: profile.php with numeric id param
-                if (cleanPath === 'profile.php' || cleanPath.endsWith('/profile.php')) {
-                    const id = searchParams ? searchParams.get('id') : null;
-                    if (id && /^[0-9]{5,20}$/.test(id)) {
-                        const normalized = `https://www.facebook.com/profile.php?id=${id}`;
-                        return { isValid: true, value: normalized, cleanUsername: `profile.php?id=${id}`, error: null };
-                    }
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid Facebook page or username.' };
-                }
-
-                // Case 2: /people/<name>/<digits>
-                const peopleMatch = cleanPath.match(/^people\/[^/]+\/([0-9]{5,20})(?:\/.*)?$/i);
-                if (peopleMatch) {
-                    const id = peopleMatch[1];
-                    const normalized = `https://www.facebook.com/profile.php?id=${id}`;
-                    return { isValid: true, value: normalized, cleanUsername: `profile.php?id=${id}`, error: null };
-                }
-                if (cleanPath === 'people' || cleanPath.startsWith('people/')) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid Facebook page or username.' };
-                }
-
-                // Case 3: redirectors or standalone php endpoints (e.g. l.php, lm.php)
-                if (cleanPath.endsWith('.php') || cleanPath.split('/')[0].endsWith('.php')) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid Facebook page or username.' };
-                }
-
-                // Case 4: username (first path segment) - letters, digits, dots only (1-100 chars)
-                let username = cleanPath.split('/')[0].replace(/^@/, '');
-                if (!username || !/^[A-Za-z0-9.]{1,100}$/.test(username)) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid Facebook page or username.' };
-                }
-
-                const normalized = `https://www.facebook.com/${username}`;
-                if (normalized.length > 200) {
-                    return { isValid: false, value: null, cleanUsername: username, error: 'Link must be 200 characters or fewer.' };
-                }
-                return { isValid: true, value: normalized, cleanUsername: username, error: null };
-            }
-
-            if (type === 'instagram') {
-                let name = '';
-                if (urlObj) {
-                    const host = urlObj.hostname.toLowerCase();
-                    const allowedHosts = ['instagram.com', 'www.instagram.com'];
-                    if (!allowedHosts.some(h => host === h || host.endsWith('.' + h))) {
-                        return { isValid: false, value: null, cleanUsername: input, error: 'Please enter an Instagram link or username (other domains are not allowed).' };
-                    }
-                    name = urlObj.pathname.replace(/^\/+/, '').replace(/\/+$/, '').replace(/^@/, '');
-                } else {
-                    name = input.replace(/^@/, '').replace(/\/+$/, '');
-                }
-                if (!name) return { isValid: true, value: null, cleanUsername: '', error: null };
-                name = name.split('?')[0].split('/')[0].trim();
-                // Letters, digits, dots and underscores (1-30 chars)
-                if (!/^[A-Za-z0-9._]{1,30}$/.test(name)) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid Instagram profile or username.' };
-                }
-                const normalized = `https://www.instagram.com/${name}`;
-                if (normalized.length > 200) {
-                    return { isValid: false, value: null, cleanUsername: name, error: 'Link must be 200 characters or fewer.' };
-                }
-                return { isValid: true, value: normalized, cleanUsername: name, error: null };
-            }
-
-            if (type === 'tiktok') {
-                let name = '';
-                if (urlObj) {
-                    const host = urlObj.hostname.toLowerCase();
-                    const allowedHosts = ['tiktok.com', 'www.tiktok.com'];
-                    if (!allowedHosts.some(h => host === h || host.endsWith('.' + h))) {
-                        return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a TikTok link or handle (other domains are not allowed).' };
-                    }
-                    name = urlObj.pathname.replace(/^\/+/, '').replace(/\/+$/, '').replace(/^@/, '');
-                } else {
-                    name = input.replace(/^@/, '').replace(/\/+$/, '');
-                }
-                if (!name) return { isValid: true, value: null, cleanUsername: '', error: null };
-                name = name.split('?')[0].split('/')[0].trim();
-                // Letters, digits, dots and underscores (1-24 chars)
-                if (!/^[A-Za-z0-9._]{1,24}$/.test(name)) {
-                    return { isValid: false, value: null, cleanUsername: input, error: 'Please enter a valid TikTok handle.' };
-                }
-                const normalized = `https://www.tiktok.com/@${name}`;
-                if (normalized.length > 200) {
-                    return { isValid: false, value: null, cleanUsername: name, error: 'Link must be 200 characters or fewer.' };
-                }
-                return { isValid: true, value: normalized, cleanUsername: name, error: null };
-            }
-
-            return { isValid: true, value: null, cleanUsername: '', error: null };
-        }
-        window.__normalizeSocialLink = normalizeSocialLink;
-
-        // --- 2. CUSTOM CATEGORY DROPDOWN & VALIDATION ---
-        const categoryWrapper = document.getElementById('categoryDropdownWrapper');
-        const categoryTrigger = document.getElementById('categoryTrigger');
-        const categorySelectedText = document.getElementById('categorySelectedText');
-        const categoryOptions = document.querySelectorAll('.custom-select-option');
-        let selectedCategoryValue = null;
-
-        function setCategoryValue(val) {
-            selectedCategoryValue = val || null;
-            if (businessCategory) businessCategory.value = val || '';
-
-            categoryOptions.forEach(opt => {
-                const isSel = Boolean(val && opt.dataset.value === val);
-                opt.classList.toggle('selected', isSel);
-                opt.setAttribute('aria-selected', isSel ? 'true' : 'false');
-            });
-
-            if (val) {
-                const selectedOpt = Array.from(categoryOptions).find(opt => opt.dataset.value === val);
-                const labelText = selectedOpt ? selectedOpt.querySelector('.option-text').textContent : val;
-                if (categorySelectedText) categorySelectedText.textContent = labelText;
-                if (categoryTrigger) {
-                    categoryTrigger.classList.remove('placeholder-active');
-                    categoryTrigger.classList.remove('invalid');
-                }
-                if (errBusinessCategory) errBusinessCategory.classList.remove('visible');
-            } else {
-                if (categorySelectedText) categorySelectedText.textContent = 'Select a category...';
-                if (categoryTrigger) categoryTrigger.classList.add('placeholder-active');
-            }
-
-            // B1: Service type shown directly under Category ONLY when category is 'establishments'
-            if (val === 'establishments') {
-                if (serviceTypeGroup) serviceTypeGroup.style.display = 'block';
-            } else {
-                if (serviceTypeGroup) serviceTypeGroup.style.display = 'none';
-                if (serviceType) {
-                    serviceType.value = '';
-                    serviceType.classList.remove('invalid');
-                }
-                if (errServiceType) errServiceType.classList.remove('visible');
-            }
-
-            validateForm();
-        }
-
-        function toggleCategoryDropdown(force) {
-            if (!categoryWrapper || !categoryTrigger) return;
-            const isOpen = typeof force === 'boolean' ? force : !categoryWrapper.classList.contains('open');
-            categoryWrapper.classList.toggle('open', isOpen);
-            categoryTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        }
-
-        if (categoryTrigger) {
-            categoryTrigger.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleCategoryDropdown();
-            });
-        }
-
-        categoryOptions.forEach(opt => {
-            opt.addEventListener('click', (e) => {
-                e.stopPropagation();
-                setCategoryValue(opt.dataset.value);
-                toggleCategoryDropdown(false);
-            });
-        });
-
-        document.addEventListener('click', (e) => {
-            if (categoryWrapper && !categoryWrapper.contains(e.target)) {
-                toggleCategoryDropdown(false);
-            }
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && categoryWrapper && categoryWrapper.classList.contains('open')) {
-                toggleCategoryDropdown(false);
-                categoryTrigger.focus();
-            }
-        });
-
-        // Contact Number Type & Validation
-        const typeMobileBtn = document.getElementById('typeMobileBtn');
-        const typeLandlineBtn = document.getElementById('typeLandlineBtn');
-        const phoneInputWrapper = document.getElementById('phoneInputWrapper');
-        const errBusinessContact = document.getElementById('errBusinessContact');
-        const contactHint = document.getElementById('contactHint');
-        let contactType = 'mobile';
-
-        function setContactType(type) {
-            contactType = type;
-            if (type === 'mobile') {
-                if (typeMobileBtn) typeMobileBtn.classList.add('active');
-                if (typeLandlineBtn) typeLandlineBtn.classList.remove('active');
-                if (businessContact) businessContact.placeholder = '917 123 4567';
-                if (contactHint) contactHint.textContent = 'Format: +63 9XX XXX XXXX';
-            } else {
-                if (typeLandlineBtn) typeLandlineBtn.classList.add('active');
-                if (typeMobileBtn) typeMobileBtn.classList.remove('active');
-                if (businessContact) businessContact.placeholder = '545 1234 or (049) 545 1234';
-                if (contactHint) contactHint.textContent = 'Format: +63 (049) XXX-XXXX or local 7-digit number';
-            }
-            if (errBusinessContact) errBusinessContact.classList.remove('visible');
-            if (phoneInputWrapper) phoneInputWrapper.classList.remove('invalid');
-            validateForm();
-        }
-
-        if (typeMobileBtn) {
-            typeMobileBtn.addEventListener('click', () => setContactType('mobile'));
-        }
-        if (typeLandlineBtn) {
-            typeLandlineBtn.addEventListener('click', () => setContactType('landline'));
-        }
-
-        function getFormattedContactNumber() {
-            if (!businessContact) return { isValid: true, errorMsg: null, formattedValue: null };
-            const raw = businessContact.value.trim();
-            if (!raw) {
-                return { isValid: true, errorMsg: null, formattedValue: null };
-            }
-
-            let digits = raw.replace(/\D/g, '');
-
-            if (contactType === 'mobile') {
-                // Strip leading 0 or international 63
-                if (digits.startsWith('0')) digits = digits.slice(1);
-                else if (digits.startsWith('63') && digits.length === 12) digits = digits.slice(2);
-
-                if (/^9\d{9}$/.test(digits)) {
-                    return {
-                        isValid: true,
-                        errorMsg: null,
-                        formattedValue: `+63 ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`
-                    };
-                } else {
-                    return {
-                        isValid: false,
-                        errorMsg: 'Please enter a valid 10-digit mobile number starting with 9 (e.g. 917 123 4567).',
-                        formattedValue: null
-                    };
-                }
-            } else {
-                // Landline
-                if (digits.startsWith('0')) digits = digits.slice(1);
-                else if (digits.startsWith('63') && digits.length >= 9) digits = digits.slice(2);
-
-                if (digits.length >= 7 && digits.length <= 10) {
-                    let formatted = '';
-                    if (digits.length === 7) {
-                        formatted = `+63 49 ${digits.slice(0, 3)} ${digits.slice(3)}`;
-                    } else if (digits.length === 9 && digits.startsWith('49')) {
-                        formatted = `+63 49 ${digits.slice(2, 5)} ${digits.slice(5)}`;
-                    } else {
-                        formatted = `+63 ${digits}`;
-                    }
-                    return {
-                        isValid: true,
-                        errorMsg: null,
-                        formattedValue: formatted
-                    };
-                } else {
-                    return {
-                        isValid: false,
-                        errorMsg: 'Please enter a valid landline number (e.g. 545 1234 or (049) 545 1234).',
-                        formattedValue: null
-                    };
-                }
-            }
-        }
-
-        function clearFieldErrors() {
-            errBusinessName.classList.remove('visible');
-            errBusinessCategory.classList.remove('visible');
-            if (errServiceType) errServiceType.classList.remove('visible');
-            errBusinessAddress.classList.remove('visible');
-            if (errLocationPicker) errLocationPicker.classList.remove('visible');
-            if (errBusinessContact) errBusinessContact.classList.remove('visible');
-            if (errSocialFacebook) errSocialFacebook.classList.remove('visible');
-            if (errSocialInstagram) errSocialInstagram.classList.remove('visible');
-            if (errSocialTiktok) errSocialTiktok.classList.remove('visible');
-
-            businessName.classList.remove('invalid');
-            businessCategory.classList.remove('invalid');
-            if (categoryTrigger) categoryTrigger.classList.remove('invalid');
-            if (serviceType) serviceType.classList.remove('invalid');
-            businessAddress.classList.remove('invalid');
-            if (phoneInputWrapper) phoneInputWrapper.classList.remove('invalid');
-            if (socialFacebook) socialFacebook.classList.remove('invalid');
-            if (socialInstagram) socialInstagram.classList.remove('invalid');
-            if (socialTiktok) socialTiktok.classList.remove('invalid');
-            const rowFb = document.getElementById('socialRowFacebook');
-            const rowIg = document.getElementById('socialRowInstagram');
-            const rowTt = document.getElementById('socialRowTiktok');
-            if (rowFb) rowFb.classList.remove('invalid');
-            if (rowIg) rowIg.classList.remove('invalid');
-            if (rowTt) rowTt.classList.remove('invalid');
-        }
-
-        function validateForm() {
-            const nameLen = (businessName.value || '').trim().length;
-            const hasName = nameLen > 0 && nameLen <= 80;
-            const hasCat = Boolean(selectedCategoryValue && selectedCategoryValue.trim().length > 0);
-            const addrLen = (businessAddress.value || '').trim().length;
-            const hasAddr = addrLen > 0 && addrLen <= 160;
-            const descLen = (businessDescription ? businessDescription.value || '' : '').trim().length;
-            const hasValidDesc = descLen <= 500;
-            const contactCheck = getFormattedContactNumber();
-
-            // Service Type: 2..40 if provided and category is establishments
-            let hasValidServiceType = true;
-            if (selectedCategoryValue === 'establishments' && serviceType) {
-                const stVal = serviceType.value.trim();
-                if (stVal.length > 0) {
-                    hasValidServiceType = stVal.length >= 2 && stVal.length <= 40;
-                }
-            }
-
-            // Map Pin Location: Required & strictly inside Calamba bounds
-            const hasLocation = selectedLocation !== null && isInCalamba(selectedLocation.lat, selectedLocation.lng);
-
-            // Social links validation: each must be null or valid domain URL/handle
-            const fbCheck = normalizeSocialLink('facebook', socialFacebook ? socialFacebook.value : '');
-            const igCheck = normalizeSocialLink('instagram', socialInstagram ? socialInstagram.value : '');
-            const ttCheck = normalizeSocialLink('tiktok', socialTiktok ? socialTiktok.value : '');
-            const hasValidSocial = fbCheck.isValid && igCheck.isValid && ttCheck.isValid;
-
-            const isValid = hasName && hasCat && hasAddr && hasValidDesc && contactCheck.isValid && hasValidServiceType && hasLocation && hasValidSocial;
-            submitBtn.disabled = !isValid;
-            return isValid;
-        }
-
-        // Initialize category dropdown to placeholder state
-        setCategoryValue(null);
-
-        // Real-time input listeners for validation
-        [businessName, businessAddress, businessDescription].forEach(el => {
-            if (el) {
-                el.addEventListener('input', () => {
-                    el.classList.remove('invalid');
-                    validateForm();
-                });
-                el.addEventListener('change', () => {
-                    el.classList.remove('invalid');
-                    validateForm();
-                });
-            }
-        });
-
-        if (serviceType) {
-            serviceType.addEventListener('input', () => {
-                errServiceType.classList.remove('visible');
-                serviceType.classList.remove('invalid');
-                validateForm();
-            });
-            serviceType.addEventListener('blur', () => {
-                const val = serviceType.value.trim();
-                if (val.length > 0 && (val.length < 2 || val.length > 40)) {
-                    errServiceType.textContent = 'Please enter between 2 and 40 characters.';
-                    errServiceType.classList.add('visible');
-                    serviceType.classList.add('invalid');
-                } else {
-                    errServiceType.classList.remove('visible');
-                    serviceType.classList.remove('invalid');
-                }
-                validateForm();
-            });
-        }
-
-        if (businessContact) {
-            businessContact.addEventListener('input', () => {
-                const check = getFormattedContactNumber();
-                if (check.isValid || !businessContact.value.trim()) {
-                    if (errBusinessContact) errBusinessContact.classList.remove('visible');
-                    if (phoneInputWrapper) phoneInputWrapper.classList.remove('invalid');
-                }
-                validateForm();
-            });
-
-            businessContact.addEventListener('blur', () => {
-                const check = getFormattedContactNumber();
-                if (!check.isValid && businessContact.value.trim()) {
-                    if (errBusinessContact) {
-                        errBusinessContact.textContent = check.errorMsg;
-                        errBusinessContact.classList.add('visible');
-                    }
-                    if (phoneInputWrapper) phoneInputWrapper.classList.add('invalid');
-                }
-            });
-        }
-
-        // Social inputs listeners (C1)
-        const socialInputsConfig = [
-            { el: socialFacebook, row: document.getElementById('socialRowFacebook'), err: errSocialFacebook, type: 'facebook' },
-            { el: socialInstagram, row: document.getElementById('socialRowInstagram'), err: errSocialInstagram, type: 'instagram' },
-            { el: socialTiktok, row: document.getElementById('socialRowTiktok'), err: errSocialTiktok, type: 'tiktok' }
-        ];
-
-        socialInputsConfig.forEach(({ el, row, err, type }) => {
-            if (el) {
-                const updateRowClass = () => {
-                    if (row) {
-                        row.classList.toggle('has-value', el.value.trim().length > 0);
-                    }
-                };
-
-                const handleNormalize = () => {
-                    const res = normalizeSocialLink(type, el.value);
-                    if (!res.isValid) {
-                        if (err) {
-                            err.textContent = res.error;
-                            err.classList.add('visible');
-                        }
-                        if (row) row.classList.add('invalid');
-                    } else {
-                        if (res.cleanUsername !== undefined) {
-                            el.value = res.cleanUsername;
-                        }
-                        if (err) err.classList.remove('visible');
-                        if (row) row.classList.remove('invalid');
-                    }
-                    updateRowClass();
-                    validateForm();
-                };
-
-                el.addEventListener('input', () => {
-                    updateRowClass();
-                    if (err) err.classList.remove('visible');
-                    if (row) row.classList.remove('invalid');
-                    validateForm();
-                });
-
-                el.addEventListener('paste', () => {
-                    setTimeout(handleNormalize, 0);
-                });
-
-                el.addEventListener('blur', () => {
-                    handleNormalize();
-                });
-            }
-        });
-
-        // --- 3. FORM SUBMISSION (FIRESTORE WRITE TO businesses) ---
-        function showErrorBanner(msg) {
-            formErrorBanner.textContent = msg;
-            formErrorBanner.style.display = 'block';
-            formErrorBanner.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function hideErrorBanner() {
-            formErrorBanner.style.display = 'none';
-            formErrorBanner.textContent = '';
-        }
-
-        submissionForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            hideErrorBanner();
-
-            if (!validateForm()) {
-                if (!businessName.value.trim()) {
-                    errBusinessName.classList.add('visible');
-                    businessName.classList.add('invalid');
-                }
-                if (!selectedCategoryValue) {
-                    errBusinessCategory.classList.add('visible');
-                    businessCategory.classList.add('invalid');
-                    if (categoryTrigger) categoryTrigger.classList.add('invalid');
-                }
-                if (!businessAddress.value.trim()) {
-                    errBusinessAddress.classList.add('visible');
-                    businessAddress.classList.add('invalid');
-                }
-                if (!selectedLocation) {
-                    errLocationPicker.textContent = 'Please place a pin within Calamba to set your business location.';
-                    errLocationPicker.classList.add('visible');
-                }
-                return;
-            }
-
-            const contactCheck = getFormattedContactNumber();
-            if (!contactCheck.isValid) {
-                if (errBusinessContact) {
-                    errBusinessContact.textContent = contactCheck.errorMsg;
-                    errBusinessContact.classList.add('visible');
-                }
-                if (phoneInputWrapper) phoneInputWrapper.classList.add('invalid');
-                return;
-            }
-
-            const fbRes = normalizeSocialLink('facebook', socialFacebook ? socialFacebook.value : '');
-            const igRes = normalizeSocialLink('instagram', socialInstagram ? socialInstagram.value : '');
-            const ttRes = normalizeSocialLink('tiktok', socialTiktok ? socialTiktok.value : '');
-
-            if (!fbRes.isValid) {
-                errSocialFacebook.textContent = fbRes.error;
-                errSocialFacebook.classList.add('visible');
-                socialFacebook.classList.add('invalid');
-                document.getElementById('socialRowFacebook')?.classList.add('invalid');
-                return;
-            }
-            if (!igRes.isValid) {
-                errSocialInstagram.textContent = igRes.error;
-                errSocialInstagram.classList.add('visible');
-                socialInstagram.classList.add('invalid');
-                document.getElementById('socialRowInstagram')?.classList.add('invalid');
-                return;
-            }
-            if (!ttRes.isValid) {
-                errSocialTiktok.textContent = ttRes.error;
-                errSocialTiktok.classList.add('visible');
-                socialTiktok.classList.add('invalid');
-                document.getElementById('socialRowTiktok')?.classList.add('invalid');
-                return;
-            }
-
-            if (!selectedLocation || !isInCalamba(selectedLocation.lat, selectedLocation.lng)) {
-                errLocationPicker.textContent = 'Please place the pin within Calamba City.';
-                errLocationPicker.classList.add('visible');
-                return;
-            }
-
-            // Lock UI and show progress
-            submitBtn.disabled = true;
-            const originalBtnHTML = submitBtn.innerHTML;
-            submitBtnText.textContent = 'Submitting registration...';
-
+        if (!auth.currentUser && typeof window !== 'undefined' && window.__AUTO_SIGNIN_TOKEN__) {
             try {
-                // Generate unique doc ID in businesses collection
-                const busDocRef = doc(collection(db, "businesses"));
-                const businessId = busDocRef.id;
-
-                const hasServiceType = selectedCategoryValue === 'establishments' && serviceType && serviceType.value.trim().length >= 2;
-                const finalServiceType = hasServiceType ? serviceType.value.trim() : null;
-
-                const businessData = {
-                    name: businessName.value.trim(),
-                    category: businessCategory.value,
-                    serviceType: finalServiceType,
-                    address: businessAddress.value.trim(),
-                    location: {
-                        lat: Number(selectedLocation.lat.toFixed(7)),
-                        lng: Number(selectedLocation.lng.toFixed(7))
-                    },
-                    description: businessDescription.value.trim() || null,
-                    contactNumber: contactCheck.formattedValue,
-                    socialLinks: {
-                        facebook: fbRes.value,
-                        instagram: igRes.value,
-                        tiktok: ttRes.value
-                    },
-                    ownerId: currentUser.uid,
-                    status: 'pending',
-                    plan: selectedPlan,
-                    submittedAt: serverTimestamp(),
-                    profilePhotoUrl: null,
-                    approvedAt: null
-                };
-
-                const batch = writeBatch(db);
-                batch.set(busDocRef, businessData);
-                const ownerPrivateRef = doc(db, "businesses", businessId, "private", "owner");
-                batch.set(ownerPrivateRef, {
-                    ownerEmail: currentUser.email || null
-                });
-                await batch.commit();
-
-                // Email the owner and the admin (not awaited: the success card never waits on email)
-                currentUser.getIdToken().then((idToken) => fetch('/api/events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                    body: JSON.stringify({ event: 'application_received', entityId: businessId })
-                })).catch((e) => console.warn('Could not send application_received:', e));
-
-                // Reveal Success Feedback Card
-                submissionForm.style.display = 'none';
-                metaBusinessName.textContent = businessData.name;
-                // B1: Display serviceType instead of "Commercial Establishment" when it exists
-                metaBusinessCategory.textContent = businessData.serviceType || businessCategory.options[businessCategory.selectedIndex]?.text || businessData.category;
-                metaBusinessId.textContent = businessId;
-
-                const planObj = window.CALZADA_PLANS?.[selectedPlan];
-                const planPriceVal = planObj ? planObj.price : 199;
-                const costEl = document.getElementById('successPlanCost');
-                if (costEl) costEl.textContent = `₱${planPriceVal}`;
-
-                successCard.style.display = 'block';
-                successCard.scrollIntoView({ behavior: 'smooth' });
-
+                await signInWithCustomToken(auth, window.__AUTO_SIGNIN_TOKEN__);
             } catch (err) {
-                console.error('Registration failed:', err);
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHTML;
+                console.warn('Auto-sign in with token failed:', err);
+            }
+        }
 
-                if (err.code === 'permission-denied') {
-                    showErrorBanner("We couldn't save your registration. Please check your details and try again.");
-                } else {
-                    showErrorBanner(`Registration failed: ${err.message || 'An unexpected error occurred. Please try again.'}`);
+        onAuthStateChanged(auth, async (user) => {
+            if (window.__MOCK_AUTH_USER__) {
+                user = window.__MOCK_AUTH_USER__;
+            }
+
+            if (!user) {
+                window.location.href = "/login?redirect=/submit";
+                return;
+            }
+
+            if (topbarUserEmail) {
+                topbarUserEmail.textContent = user.email || user.displayName || 'Authenticated User';
+            }
+
+            // Check if user already has an active business ('pending' or 'approved')
+            // unless bypass flag is present for testing
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!window.__MOCK_AUTH_USER__ && !urlParams.has('new')) {
+                try {
+                    const q = query(collection(db, "businesses"), where("ownerId", "==", user.uid));
+                    const snap = await getDocs(q);
+                    let hasActive = false;
+                    snap.docs.forEach(docSnap => {
+                        const data = docSnap.data();
+                        // Any application still in progress counts (one business per owner)
+                        if (['pending', 'needs_changes', 'awaiting_payment', 'payment_review', 'approved'].includes(data.status)) {
+                            hasActive = true;
+                        }
+                    });
+
+                    if (hasActive) {
+                        window.location.href = "/my-business";
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('Error checking existing businesses on submit:', err);
                 }
             }
+
+            loadingOverlay.style.display = 'none';
+            submitTopbar.style.display = 'block';
+            submitContainer.style.display = 'block';
+
+            // Initialize 5-step registration wizard
+            wizardInstance = new RegisterWizard({
+                auth,
+                db,
+                user,
+                containerEl: document.getElementById('wizardMount')
+            });
+            window.wizardInstance = wizardInstance;
+            await wizardInstance.init();
+
+            // Mobile Bottom Sheet Preview Handler
+            const phoneBtn = document.getElementById('btnOpenPhonePreview');
+            const sheet = document.getElementById('previewBottomSheet');
+            const sheetMount = document.getElementById('sheetCardMount');
+            const closeBtn = document.getElementById('btnCloseSheet');
+
+            if (phoneBtn && sheet && sheetMount) {
+                phoneBtn.addEventListener('click', () => {
+                    const liveCard = document.getElementById('placesLiveCard');
+                    if (liveCard) {
+                        sheetMount.innerHTML = liveCard.outerHTML;
+                    }
+                    sheet.style.display = 'flex';
+                });
+
+                closeBtn.addEventListener('click', () => {
+                    sheet.style.display = 'none';
+                });
+
+                sheet.addEventListener('click', (e) => {
+                    if (e.target === sheet) {
+                        sheet.style.display = 'none';
+                    }
+                });
+            }
         });
 
-        // --- 4. SUBMIT ANOTHER ---
-        btnSubmitAnother.addEventListener('click', () => {
-            submissionForm.reset();
-            setCategoryValue(null);
-            setContactType('mobile');
-            if (businessContact) businessContact.value = '';
-            if (serviceType) serviceType.value = '';
-            if (socialFacebook) socialFacebook.value = '';
-            if (socialInstagram) socialInstagram.value = '';
-            if (socialTiktok) socialTiktok.value = '';
-            document.getElementById('socialRowFacebook')?.classList.remove('invalid', 'has-value');
-            document.getElementById('socialRowInstagram')?.classList.remove('invalid', 'has-value');
-            document.getElementById('socialRowTiktok')?.classList.remove('invalid', 'has-value');
-
-            selectedLocation = null;
-            if (pickerMarker) {
-                pickerMarker.remove();
-                pickerMarker = null;
+        // Fallback timeout
+        setTimeout(() => {
+            if (loadingOverlay && loadingOverlay.style.display !== 'none' && !auth.currentUser && !window.__MOCK_AUTH_USER__) {
+                window.location.href = "/login?redirect=/submit";
             }
-            if (pickerMap) {
-                pickerMap.flyTo({ center: [121.1652, 14.2117], zoom: 13 });
-            }
-
-            clearFieldErrors();
-            hideErrorBanner();
-
-            successCard.style.display = 'none';
-            submissionForm.style.display = 'block';
-            validateForm();
-        });
+        }, 8000);
     </script>
 </body>
 

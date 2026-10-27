@@ -69,7 +69,7 @@ const EVENTS = {
 };
 
 function getEmailTransporter() {
-    const user = process.env.GMAIL_USER || 'thecalzadaph@gmail.com';
+    const user = process.env.GMAIL_USER || 'thecalzada@gmail.com';
     const pass = process.env.GMAIL_APP_PASSWORD;
 
     if (!pass) {
@@ -142,7 +142,7 @@ async function resolveRecipients(eventName, entityId, toOverride, data, adminDb)
 
     // 3. Resolve Admin email
     if (roles.includes('admin') && !resolved.admin) {
-        resolved.admin = (process.env.ADMIN_ALERT_EMAIL || 'thecalzadaph@gmail.com').trim();
+        resolved.admin = (process.env.ADMIN_ALERT_EMAIL || 'thecalzada@gmail.com').trim();
     }
 
     // 4. Resolve User / Reviewer email
@@ -347,8 +347,8 @@ async function sendEvent(eventName, options = {}) {
         lastError = 'GMAIL_APP_PASSWORD is not set or transporter could not be created.';
         console.warn(`[MAILER] ${lastError}`);
     } else {
-        const fromAddress = `"Calzada" <${process.env.GMAIL_USER || 'thecalzadaph@gmail.com'}>`;
-        const replyToAddress = process.env.GMAIL_USER || 'thecalzadaph@gmail.com';
+        const fromAddress = `"Calzada" <${process.env.GMAIL_USER || 'thecalzada@gmail.com'}>`;
+        const replyToAddress = process.env.GMAIL_USER || 'thecalzada@gmail.com';
 
         for (const item of itemsToSend) {
             try {

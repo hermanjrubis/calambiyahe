@@ -386,6 +386,35 @@
         }
 
         /* ====================================================
+           360 TOUR (published tour, or "coming soon" on a 360 plan)
+           ==================================================== */
+        .biz-tour-section { margin: 0 0 20px; }
+        .biz-tour-section[hidden] { display: none; }
+        .biz-tour-frame {
+            position: relative; width: 100%; aspect-ratio: 16 / 9; max-width: 100%;
+            border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #0F172A;
+        }
+        .biz-tour-viewer { position: absolute; inset: 0; }
+        .biz-tour-soon {
+            position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 8px; text-align: center; padding: 24px; color: #FFFFFF;
+        }
+        .biz-tour-soon img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+        .biz-tour-soon > :not(img) { position: relative; }
+        .biz-tour-soon-title { font: 600 16px 'Sora', system-ui, sans-serif; }
+        .biz-tour-soon-sub { font: 400 13px 'Outfit', system-ui, sans-serif; color: #CBD5E1; }
+        .biz-tour-tabs {
+            position: absolute; left: 10px; bottom: 10px; z-index: 5; display: flex; gap: 6px;
+            max-width: calc(100% - 20px); overflow-x: auto; scrollbar-width: none;
+        }
+        .biz-tour-tabs button {
+            flex: 0 0 auto; border: 1px solid #E2E8F0; border-radius: 8px; padding: 5px 10px;
+            font: 600 12px 'Outfit', system-ui, sans-serif; background: #FFFFFF; color: #042C53; cursor: pointer;
+        }
+        .biz-tour-tabs button[aria-pressed="true"] { background: #378ADD; color: #FFFFFF; border-color: #378ADD; }
+        @media (max-width: 767px) { .biz-tour-frame { aspect-ratio: 4 / 3; } }
+
+        /* ====================================================
            3-COLUMN POSTS GRID
            ==================================================== */
         .posts-grid {
@@ -1622,6 +1651,14 @@
                 </div>
             </div>
 
+            <!-- 360 tour: the viewer once published, "coming soon" before that -->
+            <section class="biz-tour-section" id="bizTourSection" hidden aria-label="360 degree tour">
+                <div class="posts-section-header">
+                    <h2 class="posts-heading">360° tour</h2>
+                </div>
+                <div class="biz-tour-frame" id="bizTourFrame"></div>
+            </section>
+
             <!-- Posts Section Header -->
             <div class="posts-section-header">
                 <h2 class="posts-heading">Posts</h2>
@@ -2114,8 +2151,91 @@
                 avatarImg.style.display = 'block';
                 avatarPlaceholder.style.display = 'none';
             }
+
+            renderTourSection(bus);
         }
         window.__renderBusinessProfile = renderBusinessProfile;
+
+        // --- 360 TOUR ---
+        // Pannellum loads only when a business has a published tour
+        let pannellumLoading = null;
+        function loadPannellum() {
+            if (window.pannellum) return Promise.resolve();
+            if (pannellumLoading) return pannellumLoading;
+            pannellumLoading = new Promise((resolve, reject) => {
+                const css = document.createElement('link');
+                css.rel = 'stylesheet';
+                css.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
+                document.head.appendChild(css);
+                const js = document.createElement('script');
+                js.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
+                js.onload = () => resolve();
+                js.onerror = () => { pannellumLoading = null; reject(new Error('pannellum')); };
+                document.head.appendChild(js);
+            });
+            return pannellumLoading;
+        }
+
+        let tourViewer = null;
+        async function renderTourSection(bus) {
+            const section = document.getElementById('bizTourSection');
+            const frame = document.getElementById('bizTourFrame');
+            if (!section || !frame) return;
+            const photos = (bus.tour360 && Array.isArray(bus.tour360.photos))
+                ? bus.tour360.photos.filter(p => p && typeof p.url === 'string' && p.url)
+                : [];
+            const has360Plan = bus.plan === 'plus360' || bus.plan === 'featured';
+            if (tourViewer) { try { tourViewer.destroy(); } catch (_) {} tourViewer = null; }
+
+            if (!photos.length) {
+                if (!has360Plan || bus.status !== 'approved') { section.hidden = true; return; }
+                const bg = bus.thumbnailUrl || bus.profilePhotoUrl || '';
+                frame.innerHTML = `
+                    <div class="biz-tour-soon">
+                        ${bg ? `<img src="${escapeHtml(bg)}" alt="" onerror="this.remove()">` : ''}
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8"/><path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/></svg>
+                        <span class="biz-tour-soon-title">360° tour coming soon</span>
+                        <span class="biz-tour-soon-sub">Our team will visit to capture it.</span>
+                    </div>`;
+                section.hidden = false;
+                return;
+            }
+
+            section.hidden = false;
+            frame.innerHTML = '<div class="biz-tour-viewer" id="bizTourViewer"></div>';
+            try {
+                await loadPannellum();
+            } catch (_) {
+                frame.innerHTML = '<div class="biz-tour-soon"><span class="biz-tour-soon-sub">The 360° tour could not load. Check your connection and refresh.</span></div>';
+                return;
+            }
+            const scenes = {};
+            photos.forEach((p, i) => {
+                scenes['s' + i] = { title: p.label || '', type: 'equirectangular', panorama: p.url, hfov: 100 };
+            });
+            tourViewer = window.pannellum.viewer('bizTourViewer', {
+                default: { firstScene: 's0', sceneFadeDuration: 600, autoLoad: true, showControls: false, mouseZoom: false, compass: false },
+                scenes
+            });
+            const tabs = document.createElement('div');
+            tabs.className = 'biz-tour-tabs';
+            photos.forEach((p, i) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = p.label || `View ${i + 1}`;
+                b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+                if (photos.length > 1) {
+                    b.addEventListener('click', () => { try { tourViewer.loadScene('s' + i); } catch (_) {} });
+                } else {
+                    b.style.cursor = 'default';
+                }
+                tabs.appendChild(b);
+            });
+            tourViewer.on('scenechange', (key) => {
+                tabs.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', ('s' + i) === key ? 'true' : 'false'));
+            });
+            frame.appendChild(tabs);
+        }
         window.__deriveSocialHandle = deriveSocialHandle;
 
         // --- 2. FETCH & RENDER POSTS GRID ---

@@ -401,9 +401,14 @@
     const searchCalzada = (query) => calzadaPlaces()
         .map(p => ({ p, score: nameScore(query, p.name) }))
         .filter(x => x.score > 0)
-        .map(x => withDistance({ type: 'calzada', name: x.p.name, nameHtml: highlight(x.p.name, query), location: calzadaLocation(x.p), lat: +x.p.lat, lng: +x.p.lng, kind: CATEGORY_KIND[String(x.p.category || '').toLowerCase()] || 'pin', score: x.score }))
+        .map(x => withDistance({ type: 'calzada', name: x.p.name, nameHtml: highlight(x.p.name, query), location: calzadaLocation(x.p), lat: +x.p.lat, lng: +x.p.lng, kind: CATEGORY_KIND[String(x.p.category || '').toLowerCase()] || 'pin', score: x.score,
+            // kept for the visibility lift of listed businesses
+            id: x.p.id, plan: x.p.source === 'business' ? x.p.plan : undefined, paidAt: x.p.source === 'business' ? x.p.paidAt : undefined }))
         .sort((a, b) => b.score - a.score || ((a.distM != null && b.distM != null) ? a.distM - b.distM : 0))
-        .slice(0, 6);
+        .slice(0, 12);
+    // A boosted business may move up at most 3 places above its text match
+    const liftBoosted = (list) => (window.CalzadaVisibility
+        ? window.CalzadaVisibility.rankSearchResults(list, new Date(), 3) : list).slice(0, 6);
 
     // Geoapify through our server. Throws (so Esri takes over) on no key (204), too many searches (429), an error or 3 s.
     const searchGeocode = async (query, signal) => {
@@ -480,7 +485,7 @@
         controller = new AbortController();
         const { signal } = controller;
         lastQuery = query;
-        const local = searchCalzada(query);
+        const local = liftBoosted(searchCalzada(query));
         const allLocal = calzadaPlaces().map(p => ({ name: p.name, lat: +p.lat, lng: +p.lng }));
         if (!navigator.onLine) {
             renderResults(query, local, [], 'offline');

@@ -556,11 +556,79 @@ function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
+const { createAuthMiddleware, getAuth } = require('./auth');
+const { getFirestore } = require('firebase-admin/firestore');
+const { EVENTS, sendEvent } = require('./mailer');
+const requireAuth = createAuthMiddleware();
+
+let approvedBusinessesCache = null;
+let approvedBusinessesCacheTime = 0;
+const BUSINESSES_CACHE_TTL_MS = 60 * 1000;
+
+function clearApprovedBusinessesCache() {
+    approvedBusinessesCache = null;
+    approvedBusinessesCacheTime = 0;
+}
+
+async function getLiveBusinesses() {
+    const now = Date.now();
+    if (approvedBusinessesCache && (now - approvedBusinessesCacheTime < BUSINESSES_CACHE_TTL_MS)) {
+        return approvedBusinessesCache;
+    }
+    let adminDb = null;
+    try {
+        adminDb = getFirestore();
+    } catch (_) {}
+    if (!adminDb) {
+        return approvedBusinessesCache || [];
+    }
+    try {
+        const snap = await adminDb.collection('businesses')
+            .where('status', '==', 'approved')
+            .get();
+        const list = [];
+        for (const doc of snap.docs) {
+            const d = doc.data();
+            const id = doc.id;
+            const lat = d.location && typeof d.location.lat === 'number' ? d.location.lat : (typeof d.lat === 'number' ? d.lat : null);
+            const lng = d.location && typeof d.location.lng === 'number' ? d.location.lng : (typeof d.lng === 'number' ? d.lng : null);
+            const paidAtIso = d.paidAt ? (typeof d.paidAt.toDate === 'function' ? d.paidAt.toDate().toISOString() : (d.paidAt instanceof Date ? d.paidAt.toISOString() : String(d.paidAt))) : null;
+            const has360 = d.plan === 'plus360' || d.plan === 'featured';
+
+            list.push({
+                id: 'biz_' + id,
+                source: 'business',
+                businessId: id,
+                name: d.name || '',
+                category: d.category || '',
+                lat,
+                lng,
+                barangay: d.barangay || '',
+                photo: d.thumbnailUrl || d.profilePhotoUrl || null,
+                offerings: Array.isArray(d.offerings) ? d.offerings : [],
+                openHours: d.openHours || null,
+                plan: d.plan || 'listed',
+                paidAt: paidAtIso,
+                has360,
+                tour360: d.tour360 || null,
+                ownerId: d.ownerId || null
+            });
+        }
+        approvedBusinessesCache = list;
+        approvedBusinessesCacheTime = now;
+        return list;
+    } catch (err) {
+        console.error('Error loading live businesses for /api/places:', err);
+        return approvedBusinessesCache || [];
+    }
+}
+
 // GET /api/places - Query active places with optional category and proximity filters
-app.get('/api/places', (req, res) => {
+app.get('/api/places', async (req, res) => {
     try {
         const { category, lat, lng, radius, q } = req.query;
-        let places = [...getPlacesData()];
+        const liveBusinesses = await getLiveBusinesses();
+        let places = [...getPlacesData(), ...liveBusinesses];
 
         if (category && category.trim() !== '' && category.trim().toLowerCase() !== 'all') {
             const catNorm = category.trim().toLowerCase();
@@ -600,9 +668,10 @@ app.get('/api/places', (req, res) => {
 });
 
 // GET /api/places/search - Dedicated search endpoint
-app.get('/api/places/search', (req, res) => {
+app.get('/api/places/search', async (req, res) => {
     const q = (req.query.q || '').trim().toLowerCase();
-    let places = getPlacesData();
+    const liveBusinesses = await getLiveBusinesses();
+    let places = [...getPlacesData(), ...liveBusinesses];
     if (q) {
         places = places.filter(p => 
             (p.name || '').toLowerCase().includes(q) ||
@@ -614,20 +683,18 @@ app.get('/api/places/search', (req, res) => {
     return res.json(places);
 });
 
-const { createAuthMiddleware, getAuth } = require('./auth');
-const { getFirestore } = require('firebase-admin/firestore');
-const { EVENTS, sendEvent } = require('./mailer');
-const requireAuth = createAuthMiddleware();
-
-function findPlaceById(rawId) {
+async function findPlaceById(rawId) {
     if (!rawId) return null;
     const places = getPlacesData();
-    return places.find(p => String(p.id) === String(rawId) || p.slug === rawId || (p.name && p.name.toLowerCase() === String(rawId).toLowerCase())) || null;
+    const found = places.find(p => String(p.id) === String(rawId) || p.slug === rawId || (p.name && p.name.toLowerCase() === String(rawId).toLowerCase()));
+    if (found) return found;
+    const bizList = await getLiveBusinesses();
+    return bizList.find(p => String(p.id) === String(rawId) || String(p.businessId) === String(rawId) || (p.name && p.name.toLowerCase() === String(rawId).toLowerCase())) || null;
 }
 
 // GET /api/places/:id - Return full detail for a single place
-app.get('/api/places/:id', (req, res) => {
-    const place = findPlaceById(req.params.id);
+app.get('/api/places/:id', async (req, res) => {
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -636,7 +703,7 @@ app.get('/api/places/:id', (req, res) => {
 
 // POST /api/places/:id/save - Toggle / Save a place bookmark (Protected)
 app.post('/api/places/:id/save', requireAuth, async (req, res) => {
-    const place = findPlaceById(req.params.id);
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -677,8 +744,8 @@ app.post('/api/places/:id/save', requireAuth, async (req, res) => {
 });
 
 // GET /api/places/:id/images - Return images for a place
-app.get('/api/places/:id/images', (req, res) => {
-    const place = findPlaceById(req.params.id);
+app.get('/api/places/:id/images', async (req, res) => {
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -692,7 +759,7 @@ app.get('/api/places/:id/images', (req, res) => {
 
 // GET /api/places/:id/rating - Return average rating and total count for a place (Public)
 app.get('/api/places/:id/rating', async (req, res) => {
-    const place = findPlaceById(req.params.id);
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -726,7 +793,7 @@ app.get('/api/places/:id/rating', async (req, res) => {
 
 // GET /api/places/:id/reviews - Return paginated list of reviews with reviewer display name
 app.get('/api/places/:id/reviews', async (req, res) => {
-    const place = findPlaceById(req.params.id);
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -817,7 +884,7 @@ app.get('/api/places/:id/reviews', async (req, res) => {
 
 // POST /api/places/:id/rating - Upsert a review/rating tied to authenticated user (Protected)
 app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
-    const place = findPlaceById(req.params.id);
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -938,7 +1005,7 @@ app.post('/api/places/:id/rating', requireAuth, async (req, res) => {
 
 // DELETE /api/places/:id/rating - Delete the user's own review for a place (Protected)
 app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
-    const place = findPlaceById(req.params.id);
+    const place = await findPlaceById(req.params.id);
     if (!place) {
         return res.status(404).json({ error: 'Place not found' });
     }
@@ -1300,6 +1367,69 @@ app.post('/api/businesses/upload-photo', requireAuth, (req, res) => {
             });
         } catch (writeErr) {
             console.error('Error uploading business photo to Cloudinary:', writeErr);
+            return res.status(500).json({ error: 'Failed to upload photo to image hosting.' });
+        }
+    });
+});
+
+// POST /api/businesses/upload-thumbnail - Authenticated front photo upload for submit wizard & my-business
+app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
+    businessPhotoUpload(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size exceeds 10MB limit.' });
+            }
+            return res.status(400).json({ error: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ error: err.message || 'File upload error' });
+        }
+
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ error: 'A photo file is required.' });
+        }
+
+        const realMime = detectImageMimeType(file.buffer);
+        if (!realMime) {
+            return res.status(400).json({
+                error: `File "${file.originalname}" is not a valid image. Only JPEG, PNG, and WebP are allowed.`
+            });
+        }
+
+        const uid = req.user.uid;
+        const safeFileName = crypto.randomBytes(8).toString('hex');
+        const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'calzada';
+
+        // In test emulator mode, return mock Cloudinary URL without external network call
+        if (process.env.CALZADA_EMULATORS === '1' && !cloudinaryConfigured()) {
+            return res.json({
+                success: true,
+                url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/front_${safeFileName}.jpg`
+            });
+        }
+
+        if (!cloudinaryConfigured()) {
+            return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+        }
+
+        try {
+            const { url: fileUrl } = await uploadBuffer(
+                file.buffer,
+                `calzada/businesses/${uid}`,
+                `front_${safeFileName}`
+            );
+            return res.json({
+                success: true,
+                url: fileUrl
+            });
+        } catch (uploadErr) {
+            if (process.env.CALZADA_EMULATORS === '1') {
+                return res.json({
+                    success: true,
+                    url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/front_${safeFileName}.jpg`
+                });
+            }
+            console.error('Error uploading front photo to Cloudinary:', uploadErr);
             return res.status(500).json({ error: 'Failed to upload photo to image hosting.' });
         }
     });
@@ -1973,9 +2103,20 @@ async function handleTriggerEvent(req, res) {
                 eventData.reason = paymentForEvent.reviewNote || '';
                 versionKey = '1'; // one email per payment (entityId is the payment)
             } else if (eventName === 'tour360_availed') {
+                if (bData.status !== 'approved' || !bData.paidAt || (bData.plan !== 'plus360' && bData.plan !== 'featured')) {
+                    return res.status(409).json({ error: 'Conflict: tour360_availed requires a live business on a plan with 360.' });
+                }
                 summary = `360 Virtual Tour availed for "${bData.name || entityId}"`;
                 versionKey = tsKey(bData.paidAt);
             } else if (eventName === 'tour360_scheduled') {
+                if (bData.shoot360 !== 'scheduled' || !bData.shoot360Date) {
+                    return res.status(409).json({ error: "Conflict: tour360_scheduled requires shoot360 'scheduled' with a date." });
+                }
+                eventData.shootDate = (() => {
+                    const v = bData.shoot360Date;
+                    const d = typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+                    return Number.isNaN(d.getTime()) ? '' : d.toLocaleDateString('en-PH', { timeZone: 'Asia/Manila', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                })();
                 summary = `360 shoot scheduled for "${bData.name || entityId}"`;
                 versionKey = tsKey(bData.shoot360Date || bData.updatedAt);
             } else if (eventName === 'tour360_published') {
@@ -2044,6 +2185,11 @@ async function handleTriggerEvent(req, res) {
             summary: summary || `Event: ${eventName}`
         });
 
+        // Invalidate in-memory places cache when live businesses change
+        if (['business_live', 'business_removed', 'tour360_published'].includes(eventName)) {
+            clearApprovedBusinessesCache();
+        }
+
         return res.json({
             success: true,
             event: eventName,
@@ -2058,6 +2204,164 @@ async function handleTriggerEvent(req, res) {
 
 app.post('/api/events', requireAuth, handleTriggerEvent);
 app.post('/api/admin/notify-owner', requireAuth, handleTriggerEvent);
+
+// =============================================
+// 360 VIRTUAL TOUR & CLOUDINARY SIGNING (ADMIN)
+// =============================================
+
+// POST /api/admin/cloudinary-sign - Sign upload params for direct browser upload
+app.post('/api/admin/cloudinary-sign', requireAuth, async (req, res) => {
+    if (!req.user || req.user.admin !== true) {
+        return res.status(403).json({ error: 'Forbidden: Admin access required.' });
+    }
+    const businessId = req.body && (req.body.businessId || req.body.id);
+    if (!businessId || typeof businessId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(businessId)) {
+        return res.status(400).json({ error: 'A valid businessId is required.' });
+    }
+    const emulator = process.env.CALZADA_EMULATORS === '1';
+    if (!cloudinaryConfigured() && !emulator) {
+        return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+    }
+    try {
+        const bSnap = await getFirestore().collection('businesses').doc(businessId).get();
+        if (!bSnap.exists) return res.status(404).json({ error: 'Business not found.' });
+        const plan = bSnap.data().plan;
+        if (plan !== 'plus360' && plan !== 'featured') {
+            return res.status(409).json({ error: 'This business is not on a plan with a 360 tour.' });
+        }
+    } catch (e) {
+        return res.status(500).json({ error: 'Could not read the business.' });
+    }
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = `calzada/tours/${businessId}`;
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'calzada';
+    const apiKey = process.env.CLOUDINARY_API_KEY || 'stubbed_api_key';
+    const apiSecret = String(process.env.CLOUDINARY_API_SECRET || 'stubbed_api_secret')
+        .trim()
+        .replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, '');
+    const { v2: cloudinary } = require('cloudinary');
+    // The signature covers the folder and the timestamp (valid about an hour), so an upload
+    // can only land in this business's tour folder.
+    const signature = cloudinary.utils.api_sign_request({ folder, timestamp }, apiSecret);
+    return res.json({
+        cloudName,
+        apiKey,
+        timestamp,
+        signature,
+        folder
+    });
+});
+
+// POST /api/admin/businesses/:id/tour360 - Publish equirectangular 360 tour photos
+app.post('/api/admin/businesses/:id/tour360', requireAuth, async (req, res) => {
+    if (!req.user || req.user.admin !== true) {
+        return res.status(403).json({ error: 'Forbidden: Admin access required.' });
+    }
+    const { id } = req.params;
+    if (!id || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+        return res.status(400).json({ error: 'A valid business ID is required.' });
+    }
+
+    const { photos: rawPhotos } = req.body || {};
+    if (!Array.isArray(rawPhotos) || rawPhotos.length === 0 || rawPhotos.length > 5) {
+        return res.status(400).json({ error: 'photos must be an array of 1 to 5 items.' });
+    }
+
+    // Only our own cloud (the stub name is accepted in emulator mode only)
+    const allowedClouds = process.env.CLOUDINARY_CLOUD_NAME
+        ? [process.env.CLOUDINARY_CLOUD_NAME]
+        : (process.env.CALZADA_EMULATORS === '1' ? ['calzada'] : []);
+    if (!allowedClouds.length) {
+        return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+    }
+    const escapeRe = (v) => v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const urlPattern = new RegExp(
+        `^https://res\\.cloudinary\\.com/(${allowedClouds.map(escapeRe).join('|')})/image/upload/` +
+        `(?:[A-Za-z0-9_,.:-]+/)*?calzada/tours/${escapeRe(id)}/[A-Za-z0-9_.-]+$`
+    );
+
+    const photos = [];
+    for (const p of rawPhotos) {
+        if (!p || typeof p !== 'object' || typeof p.url !== 'string' || typeof p.thumbUrl !== 'string') {
+            return res.status(400).json({ error: 'Each photo must have url, thumbUrl and label.' });
+        }
+        if (p.url.length > 500 || p.thumbUrl.length > 500 || !urlPattern.test(p.url) || !urlPattern.test(p.thumbUrl)) {
+            return res.status(400).json({ error: `Photo url does not match expected cloud and folder for business ${id}.` });
+        }
+        const label = typeof p.label === 'string' ? p.label.replace(/[\r\n]+/g, ' ').trim().slice(0, 60) : '';
+        photos.push({ url: p.url, thumbUrl: p.thumbUrl, label: label || `View ${photos.length + 1}` });
+    }
+
+    const adminDb = getFirestore();
+    if (!adminDb) {
+        return res.status(500).json({ error: 'Database service unavailable.' });
+    }
+
+    try {
+        const bizRef = adminDb.collection('businesses').doc(id);
+        const bizSnap = await bizRef.get();
+        if (!bizSnap.exists) {
+            return res.status(404).json({ error: 'Business not found.' });
+        }
+
+        const bizData = bizSnap.data();
+        if (bizData.status !== 'approved' || (bizData.plan !== 'plus360' && bizData.plan !== 'featured')) {
+            return res.status(409).json({ error: 'The business must be live on a plan with a 360 tour.' });
+        }
+        const currentVersion = (bizData.tour360 && typeof bizData.tour360.version === 'number') ? bizData.tour360.version : 0;
+        const newVersion = currentVersion + 1;
+        const now = new Date();
+
+        const tour360 = {
+            photos,
+            publishedAt: now,
+            version: newVersion
+        };
+
+        await bizRef.update({
+            tour360,
+            shoot360: 'done',
+            updatedAt: now
+        });
+
+        clearApprovedBusinessesCache();
+
+        // Fire tour360_published
+        try {
+            await sendEvent('tour360_published', {
+                entityId: id,
+                version: String(newVersion),
+                data: {
+                    business: { ...bizData, tour360, shoot360: 'done' },
+                    businessId: id,
+                    businessName: bizData.name || id,
+                    plan: bizData.plan
+                }
+            });
+        } catch (evErr) {
+            console.error('[TOUR360] sendEvent tour360_published error:', evErr.message);
+        }
+
+        // Record adminActivity
+        await adminDb.collection('adminActivity').add({
+            event: 'tour360_published',
+            entityId: id,
+            actorUid: req.user.uid,
+            actorRole: 'admin',
+            at: now.toISOString(),
+            summary: `360 Virtual Tour published (v${newVersion}) for "${bizData.name || id}"`
+        });
+
+        return res.json({
+            success: true,
+            tour360,
+            version: newVersion
+        });
+    } catch (err) {
+        console.error('[TOUR360] Publish tour error:', err);
+        return res.status(500).json({ error: 'Internal server error publishing 360 tour.' });
+    }
+});
 
 // =============================================
 // TRAVEL REMINDERS DISPATCH API (CRON PROTECTED)

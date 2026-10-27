@@ -236,6 +236,55 @@ service cloud.firestore {
         && resource.data.submittedBy == request.auth.uid && resource.data.status == 'pending';
     }
 
+    function isValidOfferingItem(item) {
+      return item is string && item.size() >= 1 && item.size() <= 40;
+    }
+
+    function hasValidOfferings(list) {
+      return list is list && list.size() >= 1 && list.size() <= 10
+        && (list.size() < 1 || isValidOfferingItem(list[0]))
+        && (list.size() < 2 || isValidOfferingItem(list[1]))
+        && (list.size() < 3 || isValidOfferingItem(list[2]))
+        && (list.size() < 4 || isValidOfferingItem(list[3]))
+        && (list.size() < 5 || isValidOfferingItem(list[4]))
+        && (list.size() < 6 || isValidOfferingItem(list[5]))
+        && (list.size() < 7 || isValidOfferingItem(list[6]))
+        && (list.size() < 8 || isValidOfferingItem(list[7]))
+        && (list.size() < 9 || isValidOfferingItem(list[8]))
+        && (list.size() < 10 || isValidOfferingItem(list[9]));
+    }
+
+    function isValidOpenHours(h) {
+      return h is map
+        && h.keys().hasOnly(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
+        && (!('mon' in h) || (h.mon is list && h.mon.size() <= 2))
+        && (!('tue' in h) || (h.tue is list && h.tue.size() <= 2))
+        && (!('wed' in h) || (h.wed is list && h.wed.size() <= 2))
+        && (!('thu' in h) || (h.thu is list && h.thu.size() <= 2))
+        && (!('fri' in h) || (h.fri is list && h.fri.size() <= 2))
+        && (!('sat' in h) || (h.sat is list && h.sat.size() <= 2))
+        && (!('sun' in h) || (h.sun is list && h.sun.size() <= 2));
+    }
+
+    function isValidTour360Photo(p) {
+      return p is map && p.keys().hasOnly(['url', 'thumbUrl', 'label'])
+        && p.url is string && p.thumbUrl is string
+        && p.label is string && p.label.size() <= 60;
+    }
+
+    function isValidTour360(t) {
+      return t is map
+        && t.keys().hasOnly(['photos', 'publishedAt', 'version'])
+        && t.photos is list && t.photos.size() >= 1 && t.photos.size() <= 5
+        && (t.photos.size() < 1 || isValidTour360Photo(t.photos[0]))
+        && (t.photos.size() < 2 || isValidTour360Photo(t.photos[1]))
+        && (t.photos.size() < 3 || isValidTour360Photo(t.photos[2]))
+        && (t.photos.size() < 4 || isValidTour360Photo(t.photos[3]))
+        && (t.photos.size() < 5 || isValidTour360Photo(t.photos[4]))
+        && t.publishedAt is timestamp
+        && t.version is number;
+    }
+
     // Keep prices in sync with window.CALZADA_PLANS in public/js/plans-config.js
     function planPrice(p) {
       return p == 'listed' ? 59 : (p == 'plus360' ? 199 : (p == 'featured' ? 299 : 0));
@@ -247,21 +296,25 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.status == 'pending'
-        && request.resource.data.profilePhotoUrl == null
-        && request.resource.data.approvedAt == null
+        && request.resource.data.get('profilePhotoUrl', null) == null
+        && request.resource.data.get('approvedAt', null) == null
         // FIX 2: submittedAt must equal request.time
         && request.resource.data.submittedAt == request.time
         // FIX 3: Field allowlist and size constraints
         && request.resource.data.keys().hasOnly([
           'name', 'category', 'address', 'description', 'contactNumber', 
           'ownerId', 'status', 'submittedAt', 'profilePhotoUrl', 'approvedAt',
-          'serviceType', 'socialLinks', 'location', 'plan'
+          'serviceType', 'socialLinks', 'location', 'plan',
+          'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark'
         ])
         && request.resource.data.plan in ['listed', 'plus360', 'featured']
         && !('reviewNote' in request.resource.data)
         && !('paidAt' in request.resource.data)
         && !('featuredUntil' in request.resource.data)
         && !('amountDue' in request.resource.data)
+        && !('tour360' in request.resource.data)
+        && !('shoot360' in request.resource.data)
+        && !('shoot360Date' in request.resource.data)
         && request.resource.data.name is string 
         && request.resource.data.name.size() >= 1 
         && request.resource.data.name.size() <= 80
@@ -273,7 +326,12 @@ service cloud.firestore {
         && (request.resource.data.contactNumber == null || (request.resource.data.contactNumber is string && request.resource.data.contactNumber.size() <= 20))
         && (request.resource.data.get('serviceType', null) == null || (request.resource.data.serviceType is string && request.resource.data.serviceType.size() >= 2 && request.resource.data.serviceType.size() <= 40))
         && isValidSocialLinks(request.resource.data.get('socialLinks', null))
-        && isValidLocation(request.resource.data.location);
+        && isValidLocation(request.resource.data.location)
+        && isValidCloudinaryUrl(request.resource.data.thumbnailUrl)
+        && hasValidOfferings(request.resource.data.offerings)
+        && isValidOpenHours(request.resource.data.openHours)
+        && request.resource.data.barangay in ['Uno', 'Real', 'Halang']
+        && (request.resource.data.get('landmark', null) == null || (request.resource.data.landmark is string && request.resource.data.landmark.size() <= 80));
 
       // Read: Public read if approved; Owner can read own doc regardless of status; Admins can read all
       allow read: if resource.data.status == 'approved'
@@ -286,14 +344,15 @@ service cloud.firestore {
       // 4. Owner: change plan while pending
       // 5. Owner: change plan while awaiting_payment
       // 6. Owner: pay (awaiting_payment -> payment_review)
-      allow update: if request.auth != null && (
+      allow update: if request.auth != null && resource != null && (
         (
           request.auth.token.admin == true
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'status', 'approvedAt', 'rejectionReason', 'reviewNote', 'name', 
             'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt',
             'serviceType', 'socialLinks', 'location',
-            'plan', 'amountDue', 'detailsApprovedAt', 'paidAt', 'featuredUntil', 'shoot360', 'legacyPlan', 'lastPaymentId'
+            'plan', 'amountDue', 'detailsApprovedAt', 'paidAt', 'featuredUntil', 'shoot360', 'legacyPlan', 'lastPaymentId',
+            'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark', 'tour360', 'shoot360Date'
           ])
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
@@ -303,15 +362,28 @@ service cloud.firestore {
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['location']) || isValidLocation(request.resource.data.location))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['reviewNote']) || request.resource.data.get('reviewNote', null) == null || (request.resource.data.reviewNote is string && request.resource.data.reviewNote.size() <= 500))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['shoot360']) || request.resource.data.get('shoot360', null) == null || request.resource.data.shoot360 in ['none', 'to_schedule', 'scheduled', 'done'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['shoot360Date']) || request.resource.data.get('shoot360Date', null) == null || request.resource.data.shoot360Date is timestamp || (request.resource.data.shoot360Date is string && request.resource.data.shoot360Date.size() <= 40))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['tour360']) || request.resource.data.get('tour360', null) == null || (request.resource.data.tour360 is map && isValidTour360(request.resource.data.tour360)))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['thumbnailUrl']) || isValidCloudinaryUrl(request.resource.data.thumbnailUrl))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['offerings']) || hasValidOfferings(request.resource.data.offerings))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['openHours']) || isValidOpenHours(request.resource.data.openHours))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['barangay']) || request.resource.data.barangay in ['Uno', 'Real', 'Halang'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['landmark']) || request.resource.data.landmark == null || (request.resource.data.landmark is string && request.resource.data.landmark.size() <= 80))
         ) || (
           // Owner edit profile (only when approved)
           resource.data.ownerId == request.auth.uid
           && resource.data.status == 'approved'
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profilePhotoUrl', 'description', 'updatedAt', 'socialLinks'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'profilePhotoUrl', 'description', 'updatedAt', 'socialLinks',
+            'thumbnailUrl', 'offerings', 'openHours'
+          ])
           // FIX 3: Owner update description null or string <= 500
           && (request.resource.data.description == null || (request.resource.data.description is string && request.resource.data.description.size() <= 500))
           // FIX 4: profilePhotoUrl (when not null) must match cloudinary URL regex
           && (request.resource.data.profilePhotoUrl == null || isValidCloudinaryUrl(request.resource.data.profilePhotoUrl))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['thumbnailUrl']) || isValidCloudinaryUrl(request.resource.data.thumbnailUrl))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['offerings']) || hasValidOfferings(request.resource.data.offerings))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['openHours']) || isValidOpenHours(request.resource.data.openHours))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['socialLinks']) || isValidSocialLinks(request.resource.data.get('socialLinks', null)))
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
@@ -323,7 +395,8 @@ service cloud.firestore {
           && request.resource.data.status == 'pending'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'status', 'name', 'category', 'serviceType', 'address', 'location', 
-            'description', 'contactNumber', 'socialLinks', 'plan', 'updatedAt'
+            'description', 'contactNumber', 'socialLinks', 'plan', 'updatedAt',
+            'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark'
           ])
           && request.resource.data.name is string && request.resource.data.name.size() >= 1 && request.resource.data.name.size() <= 80
           && request.resource.data.address is string && request.resource.data.address.size() >= 1 && request.resource.data.address.size() <= 160
@@ -333,6 +406,11 @@ service cloud.firestore {
           && (request.resource.data.get('serviceType', null) == null || (request.resource.data.serviceType is string && request.resource.data.serviceType.size() >= 2 && request.resource.data.serviceType.size() <= 40))
           && isValidSocialLinks(request.resource.data.get('socialLinks', null))
           && isValidLocation(request.resource.data.location)
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['thumbnailUrl']) || isValidCloudinaryUrl(request.resource.data.thumbnailUrl))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['offerings']) || hasValidOfferings(request.resource.data.offerings))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['openHours']) || isValidOpenHours(request.resource.data.openHours))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['barangay']) || request.resource.data.barangay in ['Uno', 'Real', 'Halang'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['landmark']) || request.resource.data.landmark == null || (request.resource.data.landmark is string && request.resource.data.landmark.size() <= 80))
           && request.resource.data.plan in ['listed', 'plus360', 'featured']
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
           && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
@@ -370,6 +448,14 @@ service cloud.firestore {
 
       // Delete: Admins only
       allow delete: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Wizard drafts: businessDrafts/{userId}
+    // Readable and writable by that user only, max ~50 KB.
+    match /businessDrafts/{userId} {
+      allow read, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId
+        && request.resource.data.keys().size() <= 25;
     }
 
     match /businesses/{businessId}/private/{docId} {

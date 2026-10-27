@@ -22,6 +22,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
     <link rel="stylesheet" href="../css/skeleton.css?v=2.9.1">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
 
     <style>
         :root {
@@ -1165,6 +1167,13 @@
                     <span class="nav-count text-amber" id="navCountPayments">0</span>
                 </a>
 
+                <!-- 360 Shoots -->
+                <a href="#shoots" class="nav-item" data-section="shoots" title="360 Shoots">
+                    <i class="ti ti-camera nav-icon"></i>
+                    <span class="nav-text">360 Shoots</span>
+                    <span class="nav-count text-amber" id="navCountShoots">0</span>
+                </a>
+
                 <!-- Businesses -->
                 <a href="#businesses" class="nav-item" data-section="businesses" title="Businesses">
                     <i class="ti ti-building-store nav-icon"></i>
@@ -1580,6 +1589,44 @@
                 </section>
 
                 <!-- ==============================================
+                     PANEL: 360 SHOOTS
+                     ============================================== -->
+                <section class="admin-panel" id="panel-shoots">
+                    <div class="section-header">
+                        <h1 class="section-title">360 Shoots</h1>
+                        <p class="section-subtitle">Track photo shoots, schedule photographer visits, and publish 360 virtual tours.</p>
+                    </div>
+
+                    <!-- Filter Tabs: Pending, Scheduled, Published -->
+                    <div class="admin-underline-tabs">
+                        <button type="button" class="admin-underline-tab active" data-shoot-tab="pending" id="shootTabPending">Pending</button>
+                        <button type="button" class="admin-underline-tab" data-shoot-tab="scheduled" id="shootTabScheduled">Scheduled</button>
+                        <button type="button" class="admin-underline-tab" data-shoot-tab="published" id="shootTabPublished">Published</button>
+                    </div>
+
+                    <!-- Shoots Table -->
+                    <div class="admin-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Business</th>
+                                    <th>Plan</th>
+                                    <th>Paid on</th>
+                                    <th>Days waiting</th>
+                                    <th>Contact number</th>
+                                    <th>Barangay</th>
+                                    <th>Location</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shootsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- ==============================================
                      PANEL 4: BUSINESSES
                      ============================================== -->
                 <section class="admin-panel" id="panel-businesses">
@@ -1877,6 +1924,69 @@
         </div>
     </div>
 
+    <!-- Set Shoot Date Modal -->
+    <div class="zoom-modal" id="setShootDateModal" style="display: none;">
+        <div class="zoom-modal-content" style="max-width: 440px; background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px; box-shadow: none;">
+            <h3 style="font-family: 'Sora', sans-serif; font-size: 18px; margin-bottom: 8px;">Schedule 360 photo shoot</h3>
+            <p style="font-size: 13px; color: #64748B; margin-bottom: 16px;" id="setShootDateBizName">Select the date our team will visit the establishment.</p>
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="field-label" for="shootDateInput" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Shoot Date</label>
+                <input type="date" id="shootDateInput" class="admin-input" style="width: 100%; padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: inherit;">
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button type="button" class="btn-admin-secondary" id="btnCancelShootDate">Cancel</button>
+                <button type="button" class="btn-admin-primary" id="btnConfirmShootDate">Save & Notify Owner</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload 360 Modal -->
+    <div class="zoom-modal" id="upload360Modal" style="display: none;">
+        <div class="zoom-modal-content" style="max-width: 680px; width: 100%; background: #FFFFFF; border-radius: 12px; border: 1px solid #E2E8F0; padding: 24px; box-shadow: none; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; padding-bottom: 12px;">
+                <div>
+                    <h3 style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700;" id="upload360BizTitle">Upload 360 Virtual Tour</h3>
+                    <span style="font-size: 13px; color: #64748B;" id="upload360BizSub"></span>
+                </div>
+                <button type="button" class="btn-admin-secondary" id="btnCloseUpload360Modal" style="padding: 6px 10px;">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+
+            <!-- 360 photos: 1 to 5, each with a label -->
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label class="field-label" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">360 photos (1 to 5)</label>
+                <input type="file" id="tour360FileInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+                <div id="tour360List" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+                    <button type="button" class="btn-admin-secondary" id="btnSelect360File">
+                        <i class="ti ti-upload"></i> Add 360 photos
+                    </button>
+                    <span id="tour360Count" style="font-size: 13px; color: #64748B;">0 of 5</span>
+                </div>
+                <p style="font-size: 12px; color: #64748B; margin-top: 6px;">Equirectangular JPG, PNG or WebP with a 2:1 ratio (e.g. 6000×3000). Larger photos are resized to 6000×3000.</p>
+                <div id="tour360FileError" style="display: none; color: #DC2626; font-size: 13px; margin-top: 6px;"></div>
+            </div>
+
+            <!-- Pannellum Interactive Preview -->
+            <div style="margin-bottom: 16px;">
+                <label class="field-label" style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px;">Preview</label>
+                <div id="adminPannellumPreview" style="width: 100%; height: 320px; max-height: 50vh; background: #0F172A; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: #94A3B8; font-size: 13px;">
+                    Add a 2:1 equirectangular photo to preview it
+                </div>
+            </div>
+            <div id="tour360PublishError" style="display: none; color: #DC2626; font-size: 13px; margin-bottom: 10px;"></div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #E2E8F0; padding-top: 16px;">
+                <button type="button" class="btn-admin-secondary" id="btnCancelUpload360">Cancel</button>
+                <button type="button" class="btn-admin-primary" id="btnPublish360Tour" disabled>
+                    <i class="ti ti-check"></i> Publish 360 tour
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Notification Toasts Container -->
     <div id="adminToastContainer" class="admin-toast-container"></div>
 
@@ -1884,7 +1994,7 @@
     <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
 
     <!-- Plans Configuration -->
-    <script src="../js/plans-config.js?v=2.9.1"></script>
+    <script src="../js/plans-config.js?v=3.0.0"></script>
 
     <!-- Firebase Init & Admin Portal Logic -->
     <script type="module">
@@ -2149,11 +2259,12 @@
         }
 
         // --- Routing ---
-        const validSections = ['overview', 'applications', 'payments', 'businesses', 'posts', 'reviews', 'activity', 'settings'];
+        const validSections = ['overview', 'applications', 'payments', 'shoots', 'businesses', 'posts', 'reviews', 'activity', 'settings'];
         const sectionLabels = {
             overview: 'Overview',
             applications: 'Applications',
             payments: 'Payments to verify',
+            shoots: '360 Shoots',
             businesses: 'Businesses',
             posts: 'Posts',
             reviews: 'Reviews',
@@ -2183,6 +2294,7 @@
 
             if (adminApp) adminApp.classList.remove('drawer-open');
 
+            if (section === 'shoots') renderShootsSection();
             if (section === 'reviews') renderReviewsSection();
             if (section === 'activity') renderActivitySection();
         }
@@ -2289,6 +2401,10 @@
             const navPay = document.getElementById('navCountPayments');
             if (navPay) navPay.textContent = reviewPayments.length;
 
+            const pendingShoots = allBusinesses.filter(b => (b.plan === 'plus360' || b.plan === 'featured') && b.status === 'approved' && (!b.shoot360 || b.shoot360 === 'to_schedule'));
+            const navShoots = document.getElementById('navCountShoots');
+            if (navShoots) navShoots.textContent = pendingShoots.length;
+
             const statApps = document.getElementById('statAppsToReview');
             if (statApps) statApps.textContent = pendingApps.length;
 
@@ -2388,6 +2504,7 @@
                     }
                     updateOverviewStats();
                     renderApplicationsSection();
+                    renderShootsSection();
                     renderBusinessesTable();
                     renderReviewsSection();
                 }, (err) => {
@@ -3152,6 +3269,411 @@
                 }
             });
         }
+
+        // --- 360 Shoots Management ---
+        let currentShootTab = 'pending';
+        let selectedShootBizId = null;
+        let selectedUploadBizId = null;
+        let adminPreviewViewer = null;
+
+        function renderShootsSection() {
+            const tbody = document.getElementById('shootsTableBody');
+            if (!tbody) return;
+
+            const eligibleBusinesses = allBusinesses.filter(b => 
+                (b.plan === 'plus360' || b.plan === 'featured') && b.status === 'approved'
+            );
+
+            let filtered = [];
+            if (currentShootTab === 'pending') {
+                filtered = eligibleBusinesses.filter(b => !b.tour360 && (!b.shoot360 || b.shoot360 === 'to_schedule'));
+            } else if (currentShootTab === 'scheduled') {
+                filtered = eligibleBusinesses.filter(b => b.shoot360 === 'scheduled');
+            } else if (currentShootTab === 'published') {
+                filtered = eligibleBusinesses.filter(b => b.shoot360 === 'done' || b.tour360);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--navy-subtle); padding: 32px;">No ${currentShootTab} 360 shoots.</td></tr>`;
+                return;
+            }
+
+            const now = Date.now();
+            tbody.innerHTML = filtered.map(b => {
+                const name = escapeHtml(b.name || 'Unnamed Business');
+                const plan = escapeHtml(b.plan === 'featured' ? 'Featured' : 'Listed + 360');
+                
+                let paidDateStr = '—';
+                let daysWaiting = 0;
+                let paidAtMillis = 0;
+                if (b.paidAt) {
+                    paidAtMillis = b.paidAt.toDate ? b.paidAt.toDate().getTime() : (b.paidAt instanceof Date ? b.paidAt.getTime() : (typeof b.paidAt === 'number' ? b.paidAt : Date.parse(b.paidAt)));
+                    if (paidAtMillis) {
+                        paidDateStr = new Date(paidAtMillis).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        daysWaiting = Math.max(0, Math.floor((now - paidAtMillis) / (86400000)));
+                    }
+                }
+
+                // Days waiting in plain text: amber > 7, red > 14 (no badge/pill)
+                let daysWaitingStyle = 'color: var(--navy-muted);';
+                if (daysWaiting > 14) {
+                    daysWaitingStyle = 'color: #DC2626; font-weight: 600;';
+                } else if (daysWaiting > 7) {
+                    daysWaitingStyle = 'color: #D97706; font-weight: 600;';
+                }
+
+                const contact = escapeHtml(b.contactNumber || '—');
+                const barangay = escapeHtml(b.barangay || '—');
+                
+                let mapLink = '—';
+                const lat = b.location?.lat ?? b.lat;
+                const lng = b.location?.lng ?? b.lng;
+                if (lat != null && lng != null) {
+                    mapLink = `<a href="https://maps.google.com/?q=${lat},${lng}" target="_blank" rel="noopener noreferrer" class="btn-admin-secondary" style="padding: 4px 8px; font-size: 12px;"><i class="ti ti-map-pin"></i> View Map</a>`;
+                }
+
+                let actionHtml = '';
+                if (currentShootTab === 'pending') {
+                    actionHtml = `<button type="button" class="btn-admin-primary btn-set-shoot" data-id="${b.id}" style="padding: 6px 12px; font-size: 13px;">Set shoot date</button>`;
+                } else if (currentShootTab === 'scheduled') {
+                    let shootDateDisplay = 'Scheduled';
+                    if (b.shoot360Date) {
+                        try {
+                            const d = typeof b.shoot360Date.toDate === 'function' ? b.shoot360Date.toDate() : new Date(b.shoot360Date);
+                            if (!Number.isNaN(d.getTime())) shootDateDisplay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'Asia/Manila' });
+                        } catch (_) {}
+                    }
+                    actionHtml = `
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span style="font-size: 12px; color: var(--navy-muted); margin-right: 4px;">${shootDateDisplay}</span>
+                            <button type="button" class="btn-admin-primary btn-open-upload btn-open-upload-360" data-id="${b.id}" style="padding: 6px 12px; font-size: 13px;">Upload 360</button>
+                            <button type="button" class="btn-admin-secondary btn-set-shoot" data-id="${b.id}" title="Reschedule" style="padding: 6px 8px; font-size: 13px;"><i class="ti ti-calendar"></i></button>
+                        </div>
+                    `;
+                } else {
+                    const v = b.tour360?.version || 1;
+                    actionHtml = `
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span style="font-size: 12px; color: #16A34A; font-weight: 500;">Published (v${v})</span>
+                            <button type="button" class="btn-admin-secondary btn-open-upload" data-id="${b.id}" style="padding: 6px 12px; font-size: 13px;">Re-upload</button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <tr data-shoot-biz-id="${b.id}">
+                        <td>
+                            <div style="font-weight: 600; color: var(--navy-dark);">${name}</div>
+                            <div style="font-size: 11px; color: var(--navy-subtle);">${b.id}</div>
+                        </td>
+                        <td><span style="font-size: 13px;">${plan}</span></td>
+                        <td><span style="font-size: 13px;">${paidDateStr}</span></td>
+                        <td><span style="font-size: 13px; ${daysWaitingStyle}">${daysWaiting} ${daysWaiting === 1 ? 'day' : 'days'}</span></td>
+                        <td><span style="font-size: 13px;">${contact}</span></td>
+                        <td><span style="font-size: 13px;">${barangay}</span></td>
+                        <td>${mapLink}</td>
+                        <td>${actionHtml}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            tbody.querySelectorAll('.btn-set-shoot').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    openSetShootDateModal(id);
+                });
+            });
+
+            tbody.querySelectorAll('.btn-open-upload').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    openUpload360Modal(id);
+                });
+            });
+        }
+
+        document.querySelectorAll('.admin-underline-tab[data-shoot-tab]').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.admin-underline-tab[data-shoot-tab]').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentShootTab = tab.getAttribute('data-shoot-tab');
+                renderShootsSection();
+            });
+        });
+
+        function openSetShootDateModal(businessId) {
+            selectedShootBizId = businessId;
+            const bus = allBusinesses.find(b => b.id === businessId);
+            if (!bus) return;
+
+            const modal = document.getElementById('setShootDateModal');
+            const label = document.getElementById('setShootDateBizName');
+            const dateInput = document.getElementById('shootDateInput');
+
+            if (label) label.textContent = `Schedule shoot for "${bus.name || businessId}".`;
+            if (dateInput) {
+                if (bus.shoot360Date) {
+                    // Firestore Timestamp (or an older ISO string) -> yyyy-mm-dd in Manila time
+                    const sd = typeof bus.shoot360Date.toDate === 'function' ? bus.shoot360Date.toDate() : new Date(bus.shoot360Date);
+                    dateInput.value = Number.isNaN(sd.getTime()) ? '' : new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila' }).format(sd);
+                } else {
+                    const tomorrow = new Date(Date.now() + 86400000);
+                    dateInput.value = tomorrow.toISOString().split('T')[0];
+                }
+            }
+
+            if (modal) modal.style.display = 'flex';
+        }
+
+        document.getElementById('btnCancelShootDate')?.addEventListener('click', () => {
+            const modal = document.getElementById('setShootDateModal');
+            if (modal) modal.style.display = 'none';
+        });
+
+        document.getElementById('btnConfirmShootDate')?.addEventListener('click', async () => {
+            if (!selectedShootBizId) return;
+            const dateInput = document.getElementById('shootDateInput');
+            const val = dateInput ? dateInput.value : '';
+            if (!val) {
+                showAdminNotice('Pick a shoot date first.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnConfirmShootDate');
+            setButtonLoading(btn, true);
+
+            try {
+                const shootDateObj = new Date(val + 'T10:00:00+08:00');
+                const shootDateTs = Timestamp.fromDate(shootDateObj);
+                const busRef = doc(db, 'businesses', selectedShootBizId);
+                await updateDoc(busRef, {
+                    shoot360: 'scheduled',
+                    shoot360Date: shootDateTs,
+                    updatedAt: serverTimestamp()
+                });
+
+                try {
+                    await triggerAdminEvent('tour360_scheduled', selectedShootBizId);
+                } catch (eErr) {
+                    console.warn('[ADMIN] Failed to trigger tour360_scheduled event:', eErr);
+                }
+
+                showAdminNotice('Shoot date scheduled and owner notified.', 'success');
+                const modal = document.getElementById('setShootDateModal');
+                if (modal) modal.style.display = 'none';
+                renderShootsSection();
+            } catch (err) {
+                console.error('Error scheduling shoot:', err);
+                showAdminNotice(`Failed to schedule shoot: ${err.message}`, 'error');
+            } finally {
+                setButtonLoading(btn, false);
+            }
+        });
+
+        // Photos in the drawer: existing ones ({url, thumbUrl, label}) and new ones ({blob, previewUrl, label})
+        let tour360Items = [];
+        let tour360Selected = 0;
+
+        function openUpload360Modal(businessId) {
+            selectedUploadBizId = businessId;
+            const bus = allBusinesses.find(b => b.id === businessId);
+            if (!bus) return;
+
+            tour360Items.forEach(it => { if (it.previewUrl) URL.revokeObjectURL(it.previewUrl); });
+            tour360Items = (bus.tour360 && Array.isArray(bus.tour360.photos) ? bus.tour360.photos : [])
+                .filter(p => p && p.url)
+                .map(p => ({ url: p.url, thumbUrl: p.thumbUrl || p.url, label: p.label || '' }));
+            tour360Selected = 0;
+
+            document.getElementById('upload360BizTitle').textContent = `360 tour – ${bus.name || businessId}`;
+            document.getElementById('upload360BizSub').textContent = `${bus.barangay ? 'Brgy. ' + bus.barangay + ' · ' : ''}${window.CALZADA_PLANS?.[bus.plan]?.name || bus.plan}${bus.tour360?.version ? ' · published v' + bus.tour360.version : ''}`;
+            document.getElementById('tour360FileInput').value = '';
+            document.getElementById('tour360FileError').style.display = 'none';
+            document.getElementById('tour360PublishError').style.display = 'none';
+            renderTour360List();
+            previewTour360(0);
+            document.getElementById('upload360Modal').style.display = 'flex';
+        }
+
+        function closeUpload360Modal() {
+            document.getElementById('upload360Modal').style.display = 'none';
+            if (adminPreviewViewer) { try { adminPreviewViewer.destroy(); } catch (_) {} adminPreviewViewer = null; }
+        }
+
+        function renderTour360List() {
+            const list = document.getElementById('tour360List');
+            const count = document.getElementById('tour360Count');
+            const addBtn = document.getElementById('btnSelect360File');
+            const publishBtn = document.getElementById('btnPublish360Tour');
+            if (!list) return;
+            list.innerHTML = tour360Items.map((it, i) => `
+                <div class="tour360-row" data-i="${i}" style="display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px solid ${i === tour360Selected ? '#378ADD' : '#E2E8F0'}; border-radius: 8px; min-width: 0;">
+                    <img src="${escapeHtml(it.previewUrl || it.thumbUrl)}" alt="" style="width: 80px; height: 40px; object-fit: cover; border-radius: 4px; flex: 0 0 auto; background: #F1F5F9;">
+                    <input type="text" class="admin-input tour360-label" data-i="${i}" maxlength="60" value="${escapeHtml(it.label)}" placeholder="Label, e.g. Entrance, Inside, Counter" style="flex: 1 1 auto; min-width: 0; padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 8px; font-family: inherit;">
+                    <button type="button" class="btn-admin-secondary tour360-view" data-i="${i}" style="padding: 6px 10px;" aria-label="Preview">View</button>
+                    <button type="button" class="btn-admin-secondary tour360-remove" data-i="${i}" style="padding: 6px 10px;" aria-label="Remove"><i class="ti ti-trash"></i></button>
+                </div>`).join('') || '<div style="font-size: 13px; color: #64748B;">No photos yet.</div>';
+            if (count) count.textContent = `${tour360Items.length} of 5`;
+            if (addBtn) addBtn.disabled = tour360Items.length >= 5;
+            const labelsOk = tour360Items.every(it => it.label.trim());
+            if (publishBtn) publishBtn.disabled = !tour360Items.length || !labelsOk;
+        }
+
+        function previewTour360(i) {
+            const box = document.getElementById('adminPannellumPreview');
+            if (adminPreviewViewer) { try { adminPreviewViewer.destroy(); } catch (_) {} adminPreviewViewer = null; }
+            const it = tour360Items[i];
+            if (!it || !box) {
+                if (box) box.innerHTML = 'Add a 2:1 equirectangular photo to preview it';
+                return;
+            }
+            tour360Selected = i;
+            box.innerHTML = '';
+            if (window.pannellum) {
+                adminPreviewViewer = window.pannellum.viewer('adminPannellumPreview', {
+                    type: 'equirectangular', panorama: it.previewUrl || it.url, autoLoad: true, showControls: true
+                });
+            }
+            renderTour360List();
+        }
+
+        // 2:1 check, resize to at most 6000×3000 and JPEG 0.85 so it stays under Cloudinary's 10 MB
+        async function prepare360File(file) {
+            const objUrl = URL.createObjectURL(file);
+            try {
+                const img = new Image();
+                await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error(`${file.name} is not an image.`)); img.src = objUrl; });
+                const w = img.naturalWidth, h = img.naturalHeight;
+                if (!w || !h || Math.abs(w / h - 2) > 0.02) {
+                    throw new Error(`${file.name} is ${w}×${h}. A 360 photo must be 2:1, e.g. 6000×3000.`);
+                }
+                const scale = Math.min(1, 6000 / w);
+                if (scale === 1 && file.type === 'image/jpeg' && file.size <= 9.5 * 1024 * 1024) return file;
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.round(w * scale);
+                canvas.height = Math.round(canvas.width / 2);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+                if (!blob) throw new Error(`${file.name} could not be resized.`);
+                return blob;
+            } finally {
+                URL.revokeObjectURL(objUrl);
+            }
+        }
+
+        document.getElementById('btnCloseUpload360Modal')?.addEventListener('click', closeUpload360Modal);
+        document.getElementById('btnCancelUpload360')?.addEventListener('click', closeUpload360Modal);
+        document.getElementById('btnSelect360File')?.addEventListener('click', () => {
+            document.getElementById('tour360FileInput')?.click();
+        });
+
+        document.getElementById('tour360FileInput')?.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            e.target.value = '';
+            const errEl = document.getElementById('tour360FileError');
+            errEl.style.display = 'none';
+            const errors = [];
+            for (const file of files) {
+                if (tour360Items.length >= 5) { errors.push('A tour has at most 5 photos.'); break; }
+                try {
+                    const blob = await prepare360File(file);
+                    const base = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim().slice(0, 60);
+                    tour360Items.push({ blob, previewUrl: URL.createObjectURL(blob), label: base });
+                } catch (err) {
+                    errors.push(err.message);
+                }
+            }
+            if (errors.length) { errEl.textContent = errors.join(' '); errEl.style.display = 'block'; }
+            previewTour360(tour360Items.length - 1);
+        });
+
+        document.getElementById('tour360List')?.addEventListener('input', (e) => {
+            const inp = e.target.closest('.tour360-label');
+            if (!inp) return;
+            tour360Items[+inp.dataset.i].label = inp.value.slice(0, 60);
+            const publishBtn = document.getElementById('btnPublish360Tour');
+            if (publishBtn) publishBtn.disabled = !tour360Items.length || !tour360Items.every(it => it.label.trim());
+        });
+        document.getElementById('tour360List')?.addEventListener('click', (e) => {
+            const view = e.target.closest('.tour360-view');
+            const rem = e.target.closest('.tour360-remove');
+            if (view) previewTour360(+view.dataset.i);
+            if (rem) {
+                const i = +rem.dataset.i;
+                const [gone] = tour360Items.splice(i, 1);
+                if (gone && gone.previewUrl) URL.revokeObjectURL(gone.previewUrl);
+                previewTour360(Math.min(i, tour360Items.length - 1));
+            }
+        });
+
+        // Cloudinary thumbnail of the same file (a URL transformation, nothing extra stored)
+        const tourThumbUrl = (url) => url.replace('/image/upload/', '/image/upload/c_fill,w_640,h_320,q_auto/');
+
+        document.getElementById('btnPublish360Tour')?.addEventListener('click', async () => {
+            if (!selectedUploadBizId || !tour360Items.length) return;
+            const publishBtn = document.getElementById('btnPublish360Tour');
+            const errEl = document.getElementById('tour360PublishError');
+            errEl.style.display = 'none';
+            setButtonLoading(publishBtn, true, 'Publishing...');
+
+            try {
+                const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                const photos = [];
+                for (let i = 0; i < tour360Items.length; i++) {
+                    const it = tour360Items[i];
+                    if (!it.blob) {
+                        photos.push({ url: it.url, thumbUrl: it.thumbUrl || tourThumbUrl(it.url), label: it.label.trim() });
+                        continue;
+                    }
+                    publishBtn.innerHTML = `<span class="inline-btn-spinner"></span> Uploading ${i + 1} of ${tour360Items.length}...`;
+                    // 1. Signed params for this business's tour folder
+                    const signRes = await fetch('/api/admin/cloudinary-sign', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ businessId: selectedUploadBizId })
+                    });
+                    const signData = await signRes.json().catch(() => ({}));
+                    if (!signRes.ok) throw new Error(signData.error || `Signature request failed (${signRes.status}).`);
+                    // 2. Straight from the browser to Cloudinary (the API cannot carry files this big)
+                    const form = new FormData();
+                    form.append('file', it.blob, `pano_${i + 1}.jpg`);
+                    form.append('api_key', signData.apiKey);
+                    form.append('timestamp', signData.timestamp);
+                    form.append('signature', signData.signature);
+                    form.append('folder', signData.folder);
+                    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(signData.cloudName)}/image/upload`, { method: 'POST', body: form });
+                    const cloudData = await cloudRes.json().catch(() => ({}));
+                    if (!cloudRes.ok || !cloudData.secure_url) throw new Error(cloudData.error?.message || `Upload failed (${cloudRes.status}).`);
+                    it.url = cloudData.secure_url;
+                    it.thumbUrl = tourThumbUrl(cloudData.secure_url);
+                    if (it.previewUrl) URL.revokeObjectURL(it.previewUrl);
+                    delete it.blob; delete it.previewUrl;
+                    photos.push({ url: it.url, thumbUrl: it.thumbUrl, label: it.label.trim() });
+                }
+
+                // 3. Publish: the server checks every URL and bumps the version (new email)
+                publishBtn.innerHTML = '<span class="inline-btn-spinner"></span> Publishing...';
+                const pubRes = await fetch(`/api/admin/businesses/${encodeURIComponent(selectedUploadBizId)}/tour360`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ photos })
+                });
+                const pubData = await pubRes.json().catch(() => ({}));
+                if (!pubRes.ok) throw new Error(pubData.error || `Publish failed (${pubRes.status}).`);
+
+                showAdminNotice(`360 tour published (v${pubData.version}). The owner gets an email.`, 'success');
+                closeUpload360Modal();
+                renderShootsSection();
+            } catch (err) {
+                console.error('Error publishing 360 tour:', err);
+                errEl.textContent = err.message || 'Publishing failed.';
+                errEl.style.display = 'block';
+                renderTour360List();
+            } finally {
+                setButtonLoading(publishBtn, false);
+                renderTour360List();
+            }
+        });
 
         // --- Businesses Table View ---
         function renderBusinessesTable() {

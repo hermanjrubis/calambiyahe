@@ -2677,9 +2677,90 @@
         }
     ];
 
+    const CalzadaPlaces = {
+        _liveBusinesses: null,
+        _lastFetchTime: 0,
+        CACHE_TTL_MS: 30000,
+
+        async loadLiveBusinesses(forceRefresh = false) {
+            const now = Date.now();
+            if (!forceRefresh && this._liveBusinesses && (now - this._lastFetchTime < this.CACHE_TTL_MS)) {
+                return this._liveBusinesses;
+            }
+
+            let businesses = [];
+            // Try fetching from Firestore directly if client SDK is initialized
+            try {
+                if (typeof root.firebase !== 'undefined' && root.firebase.firestore) {
+                    const db = root.firebase.firestore();
+                    const snap = await db.collection('businesses')
+                        .where('status', '==', 'approved')
+                        .get();
+                    if (!snap.empty) {
+                        snap.forEach(doc => {
+                            const d = doc.data();
+                            const id = doc.id;
+                            const lat = d.location && typeof d.location.lat === 'number' ? d.location.lat : (typeof d.lat === 'number' ? d.lat : null);
+                            const lng = d.location && typeof d.location.lng === 'number' ? d.location.lng : (typeof d.lng === 'number' ? d.lng : null);
+                            const paidAtIso = d.paidAt ? (typeof d.paidAt.toDate === 'function' ? d.paidAt.toDate().toISOString() : (d.paidAt instanceof Date ? d.paidAt.toISOString() : String(d.paidAt))) : null;
+                            const has360 = d.plan === 'plus360' || d.plan === 'featured';
+
+                            businesses.push({
+                                id: 'biz_' + id,
+                                source: 'business',
+                                businessId: id,
+                                name: d.name || '',
+                                category: d.category || '',
+                                lat,
+                                lng,
+                                barangay: d.barangay || '',
+                                photo: d.thumbnailUrl || d.profilePhotoUrl || null,
+                                thumbnailUrl: d.thumbnailUrl || d.profilePhotoUrl || null,
+                                offerings: Array.isArray(d.offerings) ? d.offerings : [],
+                                openHours: d.openHours || null,
+                                plan: d.plan || 'listed',
+                                paidAt: paidAtIso,
+                                has360,
+                                tour360: d.tour360 || null,
+                                ownerId: d.ownerId || null
+                            });
+                        });
+                    }
+                }
+            } catch (err) {
+                // Ignore Firestore client read error, will fallback to /api/places
+            }
+
+            // Fallback or augment with /api/places
+            if (businesses.length === 0) {
+                try {
+                    const res = await fetch('/api/places');
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (Array.isArray(data)) {
+                            businesses = data.filter(p => p.source === 'business' || (p.id && String(p.id).startsWith('biz_')));
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            this._liveBusinesses = businesses;
+            this._lastFetchTime = now;
+            return businesses;
+        },
+
+        async getAllPlaces(forceRefresh = false) {
+            const live = await this.loadLiveBusinesses(forceRefresh);
+            const liveIds = new Set(live.map(b => b.id));
+            const staticPlaces = FALLBACK_PLACES.filter(p => !liveIds.has(p.id));
+            return [...staticPlaces, ...live];
+        }
+    };
+
     // Export to global scope
     root.escapeHtml = escapeHtml;
     root.resolvePlaceImageUrl = resolvePlaceImageUrl;
     root.formatPlaceCategory = formatPlaceCategory;
     root.FALLBACK_PLACES = FALLBACK_PLACES;
+    root.CalzadaPlaces = CalzadaPlaces;
 })(typeof window !== 'undefined' ? window : globalThis);

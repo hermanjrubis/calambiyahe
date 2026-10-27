@@ -1537,6 +1537,12 @@
             <!-- Details Block -->
             <div class="section-block">
                 <dl class="details-list">
+                    <div class="details-row" id="approvedThumbnailRow" style="display: none;">
+                        <dt class="details-label">Front photo</dt>
+                        <dd class="details-value">
+                            <img id="approvedThumbnailImg" src="" alt="Business front photo" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px; border: 1px solid #E2E8F0; display: block;">
+                        </dd>
+                    </div>
                     <div class="details-row">
                         <dt class="details-label">Category</dt>
                         <dd class="details-value" id="approvedCategory">--</dd>
@@ -1548,6 +1554,17 @@
                     <div class="details-row">
                         <dt class="details-label">Contact number</dt>
                         <dd class="details-value" id="approvedContact">--</dd>
+                    </div>
+                    <div class="details-row" id="approvedOfferingsRow" style="display: none;">
+                        <dt class="details-label">Offerings</dt>
+                        <dd class="details-value" id="approvedOfferings">--</dd>
+                    </div>
+                    <div class="details-row" id="approvedHoursRow" style="display: none;">
+                        <dt class="details-label">Opening hours</dt>
+                        <dd class="details-value" id="approvedHours">
+                            <div id="approvedHoursStatus" style="font-weight: 600; color: #042C53;">--</div>
+                            <div id="approvedHoursList" style="font-size: 13px; color: #64748B; margin-top: 4px; display: flex; flex-direction: column; gap: 2px;"></div>
+                        </dd>
                     </div>
                     <div class="details-row" id="approvedLocationRow" style="display: none;">
                         <dt class="details-label">Map pin</dt>
@@ -1574,7 +1591,7 @@
                 <!-- Photo Control -->
                 <div class="form-group">
                     <label class="form-label">
-                        Profile photo <span class="opt">(Optional)</span>
+                        Front photo / Thumbnail <span class="opt">(Optional)</span>
                     </label>
                     <div class="photo-control-wrap">
                         <div class="photo-thumbnail" id="photoThumbnail">
@@ -1598,6 +1615,24 @@
                         Description <span class="opt">(Optional)</span>
                     </label>
                     <textarea id="editDescription" class="form-textarea" rows="4" placeholder="Tell commuters what this place offers..." maxlength="500"></textarea>
+                </div>
+
+                <!-- Offerings Field -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label" style="margin-bottom: 2px;">
+                        Offerings <span class="opt">(Optional, up to 10)</span>
+                    </label>
+                    <div class="field-hint" style="font-size: 13px; color: #64748B; margin-top: 0; margin-bottom: 12px;">Top items, specialties, or services commuters can get at your place.</div>
+                    <div id="offeringsEditorContainer"></div>
+                </div>
+
+                <!-- Opening Hours Field -->
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label" style="margin-bottom: 2px;">
+                        Opening hours <span class="opt">(Optional)</span>
+                    </label>
+                    <div class="field-hint" style="font-size: 13px; color: #64748B; margin-top: 0; margin-bottom: 12px;">Set your regular opening hours for each day of the week.</div>
+                    <div id="openHoursEditorContainer"></div>
                 </div>
 
                 <!-- Social links (C1) -->
@@ -1735,8 +1770,9 @@
 
     </main>
 
-    <!-- Plans Configuration and i18n -->
-    <script src="../js/plans-config.js?v=2.9.0"></script>
+    <!-- Plans Configuration, Business Fields, and i18n -->
+    <script src="../js/plans-config.js?v=3.0.0"></script>
+    <script src="../js/business-fields.js?v=3.0.0"></script>
     <script src="../js/i18n.js?v=2.9.2"></script>
 
     <script type="module">
@@ -1882,6 +1918,14 @@
         const approvedSocialRow = document.getElementById('approvedSocialRow');
         const approvedSocialLinks = document.getElementById('approvedSocialLinks');
 
+        const approvedThumbnailRow = document.getElementById('approvedThumbnailRow');
+        const approvedThumbnailImg = document.getElementById('approvedThumbnailImg');
+        const approvedOfferingsRow = document.getElementById('approvedOfferingsRow');
+        const approvedOfferings = document.getElementById('approvedOfferings');
+        const approvedHoursRow = document.getElementById('approvedHoursRow');
+        const approvedHoursStatus = document.getElementById('approvedHoursStatus');
+        const approvedHoursList = document.getElementById('approvedHoursList');
+
         const profileEditorForm = document.getElementById('profileEditorForm');
         const photoThumbnail = document.getElementById('photoThumbnail');
         const photoPlaceholder = document.getElementById('photoPlaceholder');
@@ -1890,6 +1934,8 @@
         const btnChangePhoto = document.getElementById('btnChangePhoto');
         const photoSelectedStatus = document.getElementById('photoSelectedStatus');
         const editDescription = document.getElementById('editDescription');
+        const offeringsEditorContainer = document.getElementById('offeringsEditorContainer');
+        const openHoursEditorContainer = document.getElementById('openHoursEditorContainer');
         const editFacebook = document.getElementById('editFacebook');
         const editInstagram = document.getElementById('editInstagram');
         const editTiktok = document.getElementById('editTiktok');
@@ -1910,8 +1956,13 @@
         let activeBusiness = null;
         let activeBusinessId = null;
 
+        let offeringsEditor = null;
+        let openHoursEditor = null;
         let initialDescription = '';
         let initialPhotoUrl = '';
+        let initialThumbnailUrl = '';
+        let initialOfferings = [];
+        let initialOpenHours = null;
         let initialSocialLinks = { facebook: '', instagram: '', tiktok: '' };
         let selectedPhotoFile = null;
         let localPreviewUrl = null;
@@ -2524,14 +2575,73 @@
                 renderLocationRow(approvedLocation, approvedLocationRow, activeBusiness.location);
                 renderSocialLinksRow(approvedSocialLinks, approvedSocialRow, activeBusiness.socialLinks);
 
+                // View mode thumbnail
+                if (approvedThumbnailRow && approvedThumbnailImg) {
+                    const thumb = activeBusiness.thumbnailUrl || activeBusiness.profilePhotoUrl;
+                    if (thumb) {
+                        approvedThumbnailImg.src = thumb;
+                        approvedThumbnailRow.style.display = 'flex';
+                    } else {
+                        approvedThumbnailRow.style.display = 'none';
+                    }
+                }
+
+                // View mode offerings
+                if (approvedOfferingsRow && approvedOfferings) {
+                    if (Array.isArray(activeBusiness.offerings) && activeBusiness.offerings.length > 0) {
+                        approvedOfferings.textContent = activeBusiness.offerings.join(' · ');
+                        approvedOfferingsRow.style.display = 'flex';
+                    } else {
+                        approvedOfferingsRow.style.display = 'none';
+                    }
+                }
+
+                // View mode open hours
+                if (approvedHoursRow && approvedHoursStatus && approvedHoursList) {
+                    if (activeBusiness.openHours && Object.keys(activeBusiness.openHours).length > 0 && window.CalzadaBusinessFields) {
+                        const status = CalzadaBusinessFields.getOpenStatus(activeBusiness.openHours);
+                        approvedHoursStatus.textContent = status.formattedText;
+                        approvedHoursStatus.style.color = status.isOpen ? '#16A34A' : '#64748B';
+
+                        const weekly = CalzadaBusinessFields.formatWeeklyHours(activeBusiness.openHours);
+                        approvedHoursList.innerHTML = weekly.map(w => `
+                            <div style="display: flex; justify-content: space-between; max-width: 320px; gap: 16px;">
+                                <span style="font-weight: 500; color: #042C53;">${escapeHtml(w.dayName)}</span>
+                                <span>${escapeHtml(w.hoursText)}</span>
+                            </div>
+                        `).join('');
+                        approvedHoursRow.style.display = 'flex';
+                    } else {
+                        approvedHoursRow.style.display = 'none';
+                    }
+                }
+
                 const btnViewPublicProfile = document.getElementById('btnViewPublicProfile');
                 if (btnViewPublicProfile) {
                     btnViewPublicProfile.href = `/business?id=${encodeURIComponent(activeBusinessId)}`;
                 }
 
                 initialDescription = activeBusiness.description || '';
-                initialPhotoUrl = activeBusiness.profilePhotoUrl || '';
+                initialThumbnailUrl = activeBusiness.thumbnailUrl || activeBusiness.profilePhotoUrl || '';
+                initialPhotoUrl = initialThumbnailUrl;
                 editDescription.value = initialDescription;
+
+                initialOfferings = Array.isArray(activeBusiness.offerings) ? [...activeBusiness.offerings] : [];
+                initialOpenHours = activeBusiness.openHours ? JSON.parse(JSON.stringify(activeBusiness.openHours)) : null;
+
+                if (offeringsEditorContainer && window.CalzadaBusinessFields) {
+                    offeringsEditor = CalzadaBusinessFields.renderOfferingsInput(offeringsEditorContainer, {
+                        initialOfferings: initialOfferings,
+                        onChange: () => updateSaveButtonState()
+                    });
+                }
+
+                if (openHoursEditorContainer && window.CalzadaBusinessFields) {
+                    openHoursEditor = CalzadaBusinessFields.renderOpenHoursEditor(openHoursEditorContainer, {
+                        initialHours: initialOpenHours,
+                        onChange: () => updateSaveButtonState()
+                    });
+                }
 
                 initialSocialLinks = {
                     facebook: activeBusiness.socialLinks?.facebook || '',
@@ -2634,8 +2744,16 @@
             const igChanged = (igNorm.value || '') !== (initialSocialLinks.instagram || '');
             const ttChanged = (ttNorm.value || '') !== (initialSocialLinks.tiktok || '');
             const hasSocialErrors = !fbNorm.isValid || !igNorm.isValid || !ttNorm.isValid;
-            const hasChanges = descChanged || photoChanged || fbChanged || igChanged || ttChanged;
+
+            const currentOfferings = offeringsEditor ? offeringsEditor.getOfferings() : initialOfferings;
+            const offeringsChanged = JSON.stringify(currentOfferings) !== JSON.stringify(initialOfferings);
+
+            const currentHours = openHoursEditor ? openHoursEditor.getOpenHours() : initialOpenHours;
+            const hoursChanged = JSON.stringify(currentHours) !== JSON.stringify(initialOpenHours);
+
+            const hasChanges = descChanged || photoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged;
             saveChangesBtn.disabled = !hasChanges || hasSocialErrors;
+            resetChangesBtn.style.display = hasChanges ? 'inline-flex' : 'none';
             resetChangesBtn.disabled = !hasChanges;
         }
 
@@ -2724,6 +2842,13 @@
             document.getElementById('editRowTiktok')?.classList.toggle('has-value', Boolean(editTiktok?.value.trim()));
             clearSocialErrors();
             resetPhotoPreview();
+            if (offeringsEditor) offeringsEditor.setOfferings(initialOfferings);
+            if (openHoursEditor && openHoursEditorContainer && window.CalzadaBusinessFields) {
+                openHoursEditor = CalzadaBusinessFields.renderOpenHoursEditor(openHoursEditorContainer, {
+                    initialHours: initialOpenHours,
+                    onChange: () => updateSaveButtonState()
+                });
+            }
             updateSaveButtonState();
             hideBanner();
         });
@@ -2762,20 +2887,23 @@
             resetChangesBtn.disabled = true;
             saveBtnText.textContent = 'Saving...';
             try {
-                let updatedPhotoUrl = initialPhotoUrl || null;
+                let updatedThumbnailUrl = initialThumbnailUrl || null;
                 if (selectedPhotoFile) {
                     const token = await getFirebaseIdToken();
                     const formData = new FormData();
                     formData.append('businessId', activeBusinessId);
-                    formData.append('photo', await compressImageFile(selectedPhotoFile));
-                    const uploadRes = await fetch('/api/businesses/upload-photo', {
+                    const compressed = (window.CalzadaBusinessFields && window.CalzadaBusinessFields.compressImageFile)
+                        ? await CalzadaBusinessFields.compressImageFile(selectedPhotoFile)
+                        : (typeof compressImageFile === 'function' ? await compressImageFile(selectedPhotoFile) : selectedPhotoFile);
+                    formData.append('photo', compressed);
+                    const uploadRes = await fetch('/api/businesses/upload-thumbnail', {
                         method: 'POST',
                         headers: { 'Authorization': `Bearer ${token}` },
                         body: formData
                     });
                     const uploadData = await readApiJson(uploadRes);
-                    if (!uploadRes.ok) throw new Error(uploadData.error);
-                    updatedPhotoUrl = uploadData.photoUrl;
+                    if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload photo.');
+                    updatedThumbnailUrl = uploadData.url || uploadData.photoUrl;
                 }
                 const busDocRef = doc(db, "businesses", activeBusinessId);
                 const newDescription = editDescription.value.trim() || null;
@@ -2784,20 +2912,76 @@
                     instagram: igRes.value,
                     tiktok: ttRes.value
                 };
+                const newOfferings = offeringsEditor ? offeringsEditor.getOfferings() : initialOfferings;
+                const newOpenHours = openHoursEditor ? openHoursEditor.getOpenHours() : initialOpenHours;
 
-                await updateDoc(busDocRef, {
-                    profilePhotoUrl: updatedPhotoUrl,
+                const updatePayload = {
+                    profilePhotoUrl: updatedThumbnailUrl,
+                    thumbnailUrl: updatedThumbnailUrl,
                     description: newDescription,
                     socialLinks: newSocialLinks,
+                    offerings: newOfferings,
+                    openHours: newOpenHours,
                     updatedAt: serverTimestamp()
-                });
-                activeBusiness.profilePhotoUrl = updatedPhotoUrl;
+                };
+
+                await updateDoc(busDocRef, updatePayload);
+                activeBusiness.profilePhotoUrl = updatedThumbnailUrl;
+                activeBusiness.thumbnailUrl = updatedThumbnailUrl;
                 activeBusiness.description = newDescription;
                 activeBusiness.socialLinks = newSocialLinks;
-                initialPhotoUrl = updatedPhotoUrl || '';
+                activeBusiness.offerings = newOfferings;
+                activeBusiness.openHours = newOpenHours;
+
+                initialPhotoUrl = updatedThumbnailUrl || '';
+                initialThumbnailUrl = updatedThumbnailUrl || '';
                 initialDescription = newDescription || '';
                 initialSocialLinks = { ...newSocialLinks };
+                initialOfferings = [...newOfferings];
+                initialOpenHours = newOpenHours ? JSON.parse(JSON.stringify(newOpenHours)) : null;
+
                 renderSocialLinksRow(approvedSocialLinks, approvedSocialRow, newSocialLinks);
+
+                // Update view mode thumbnail
+                if (approvedThumbnailRow && approvedThumbnailImg) {
+                    if (updatedThumbnailUrl) {
+                        approvedThumbnailImg.src = updatedThumbnailUrl;
+                        approvedThumbnailRow.style.display = 'flex';
+                    } else {
+                        approvedThumbnailRow.style.display = 'none';
+                    }
+                }
+
+                // Update view mode offerings
+                if (approvedOfferingsRow && approvedOfferings) {
+                    if (newOfferings.length > 0) {
+                        approvedOfferings.textContent = newOfferings.join(' · ');
+                        approvedOfferingsRow.style.display = 'flex';
+                    } else {
+                        approvedOfferingsRow.style.display = 'none';
+                    }
+                }
+
+                // Update view mode open hours
+                if (approvedHoursRow && approvedHoursStatus && approvedHoursList && window.CalzadaBusinessFields) {
+                    if (newOpenHours && Object.keys(newOpenHours).length > 0) {
+                        const status = CalzadaBusinessFields.getOpenStatus(newOpenHours);
+                        approvedHoursStatus.textContent = status.formattedText;
+                        approvedHoursStatus.style.color = status.isOpen ? '#16A34A' : '#64748B';
+
+                        const weekly = CalzadaBusinessFields.formatWeeklyHours(newOpenHours);
+                        approvedHoursList.innerHTML = weekly.map(w => `
+                            <div style="display: flex; justify-content: space-between; max-width: 320px; gap: 16px;">
+                                <span style="font-weight: 500; color: #042C53;">${escapeHtml(w.dayName)}</span>
+                                <span>${escapeHtml(w.hoursText)}</span>
+                            </div>
+                        `).join('');
+                        approvedHoursRow.style.display = 'flex';
+                    } else {
+                        approvedHoursRow.style.display = 'none';
+                    }
+                }
+
                 resetPhotoPreview();
                 updateSaveButtonState();
                 saveBtnText.textContent = 'Save Changes';

@@ -72,6 +72,12 @@ function initPlacePanelDOM() {
 
             <!-- Details Body -->
             <div class="panel-body" id="ppBody">
+                <!-- Owner Banner (shown when place.ownerId === currentUser.uid) -->
+                <div id="ppOwnerBanner" style="display:none; margin: 0 0 12px; padding: 10px 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; align-items: center; justify-content: space-between;">
+                    <span style="font-size: 13px; font-weight: 500; color: #334155;">This is your business</span>
+                    <a href="/pages/my-business.html" style="font-size: 13px; font-weight: 600; color: #378ADD; text-decoration: none;">Edit details →</a>
+                </div>
+
                 <!-- 1. Header Row: 18px semibold Name + Save & Close Actions side by side -->
                 <div class="panel-header-row">
                     <h3 class="panel-place-title" id="ppName">Place Name</h3>
@@ -125,6 +131,16 @@ function initPlacePanelDOM() {
                         </div>
                     </div>
 
+                    <!-- Offerings Row -->
+                    <div class="panel-info-row" id="ppRowOfferings" style="display:none;">
+                        <div class="panel-info-icon" title="Offerings">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                        </div>
+                        <div class="panel-info-text" id="ppOfferings" style="font-size: 13px; color: #475569; line-height: 1.4;">--</div>
+                    </div>
+
                     <!-- Website Row -->
                     <div class="panel-info-row" id="ppRowWebsite">
                         <div class="panel-info-icon" title="Website">
@@ -160,6 +176,19 @@ function initPlacePanelDOM() {
                         </div>
                         <div class="panel-info-text">
                             <a href="#" target="_blank" rel="noopener noreferrer" class="panel-info-link" id="ppSocial">--</a>
+                        </div>
+                    </div>
+
+                    <!-- Updates Row -->
+                    <div class="panel-info-row" id="ppRowUpdates" style="display:none;">
+                        <div class="panel-info-icon" title="Updates">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                        </div>
+                        <div class="panel-info-text">
+                            <a href="#" class="panel-info-link" id="ppSeeUpdatesLink">See updates →</a>
                         </div>
                     </div>
                 </div>
@@ -799,6 +828,67 @@ function showFirstTimeHint() {
     }
 }
 
+
+// The signed-in user, from firebase-init.js (modular SDK; there is no firebase.auth() global)
+function currentPanelUser() {
+    try { return window.CalzadaAuth && window.CalzadaAuth.getCurrentUser ? window.CalzadaAuth.getCurrentUser() : null; }
+    catch (_) { return null; }
+}
+
+// A business tour as Pannellum scenes. The admin publishes tour360.photos [{url, thumbUrl, label}];
+// older data may already be { scenes, defaultScene }.
+function tourScenesOf(place) {
+    const t = place && place.tour360;
+    if (!t) return null;
+    if (Array.isArray(t.photos) && t.photos.length) {
+        const scenes = {};
+        t.photos.forEach((p, i) => {
+            if (p && typeof p.url === 'string' && p.url) scenes['s' + i] = { title: p.label || '', panorama: p.url };
+        });
+        const keys = Object.keys(scenes);
+        return keys.length ? { scenes, defaultScene: keys[0] } : null;
+    }
+    if (t.scenes && typeof t.scenes === 'object' && Object.keys(t.scenes).length) {
+        return { scenes: t.scenes, defaultScene: t.defaultScene };
+    }
+    return null;
+}
+
+// Label of the current view, and tabs to move between views when there are several
+function addTourSceneTabs(container, viewer, scenes, firstKey) {
+    const keys = Object.keys(scenes);
+    if (!keys.length || !container) return;
+    const bar = document.createElement('div');
+    bar.className = 'pp-tour-tabs';
+    bar.style.cssText = 'position:absolute;left:10px;bottom:40px;z-index:5;display:flex;gap:6px;max-width:calc(100% - 20px);overflow-x:auto;scrollbar-width:none;';
+    const paint = (active) => {
+        bar.querySelectorAll('button').forEach((b) => {
+            const on = b.dataset.scene === active;
+            b.style.background = on ? '#378ADD' : '#FFFFFF';
+            b.style.color = on ? '#FFFFFF' : '#042C53';
+            b.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+    };
+    keys.forEach((k, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.scene = k;
+        b.textContent = scenes[k].title || ('View ' + (i + 1));
+        b.style.cssText = 'flex:0 0 auto;border:1px solid #E2E8F0;border-radius:8px;padding:5px 10px;font:600 12px Outfit,system-ui,sans-serif;cursor:' + (keys.length > 1 ? 'pointer' : 'default') + ';';
+        if (keys.length > 1) {
+            b.addEventListener('click', (e) => {
+                e.stopPropagation();
+                try { viewer.loadScene(k); } catch (_) {}
+                paint(k);
+            });
+        }
+        bar.appendChild(b);
+    });
+    paint(firstKey || keys[0]);
+    try { viewer.on('scenechange', (k) => paint(k)); } catch (_) {}
+    container.appendChild(bar);
+}
+
 async function initInline360Viewer(place) {
     if (!place) return;
     if (place.name && typeof window !== 'undefined' && window.placesData && window.placesData[place.name]) {
@@ -830,6 +920,68 @@ async function initInline360Viewer(place) {
     }
     container.innerHTML = '';
 
+    // Multi-scene business tour360 (published by the admin as tour360.photos)
+    const tour = tourScenesOf(place);
+    if (tour && window.pannellum) {
+        const scenesObj = {};
+        for (const [sKey, sVal] of Object.entries(tour.scenes)) {
+            scenesObj[sKey] = {
+                title: sVal.title || '',
+                type: 'equirectangular',
+                panorama: sVal.panorama,
+                hotSpots: sVal.hotSpots || []
+            };
+        }
+        const defaultScene = tour.defaultScene || Object.keys(scenesObj)[0];
+        try {
+            inline360Viewer = window.pannellum.viewer('ppInline360Container', {
+                default: {
+                    firstScene: defaultScene,
+                    sceneFadeDuration: 1000,
+                    autoLoad: true,
+                    showControls: false,
+                    showFullscreenCtrl: false,
+                    showZoomCtrl: false,
+                    mouseZoom: true,
+                    draggable: true,
+                    keyboardZoom: true,
+                    hfov: 100,
+                    minHfov: 50,
+                    maxHfov: 120,
+                    autoRotate: 0,
+                    compass: false,
+                    friction: 0.15
+                },
+                scenes: scenesObj
+            });
+            window._inline360Viewer = inline360Viewer;
+            window.inline360Viewer = inline360Viewer;
+
+            if (fsBtn) {
+                fsBtn.onclick = (e) => {
+                    if (e && e.stopPropagation) e.stopPropagation();
+                    try { inline360Viewer.toggleFullscreen(); } catch (_) {}
+                };
+            }
+
+            inline360Viewer.on('load', () => {
+                if (inline360LoadTimeout) clearTimeout(inline360LoadTimeout);
+                if (skeleton) skeleton.style.display = 'none';
+                waitForFirstRender(() => {
+                    if (skeleton) skeleton.style.display = 'none';
+                    showFirstTimeHint();
+                });
+            });
+            inline360Viewer.on('error', () => triggerInline360Error());
+            addTourSceneTabs(container, inline360Viewer, scenesObj, defaultScene);
+            return;
+        } catch (err) {
+            console.warn('[Inline360] tour360 init error:', err);
+            triggerInline360Error();
+            return;
+        }
+    }
+
     let panoUrl = null;
     let northOffsetVal = 0;
     const fallbackNodeId = place.fallbackNodeId;
@@ -846,6 +998,8 @@ async function initInline360Viewer(place) {
             const defaultFilename = `${fallbackNodeId.replace('_', ', ')}.jpg`;
             panoUrl = `../assets/360/${encodeURIComponent(defaultFilename)}`;
         }
+    } else if (place.tour360 && place.tour360.panorama) {
+        panoUrl = place.tour360.panorama;
     } else if (place.pano) {
         panoUrl = resolvePlaceImageUrl(place.pano);
     }
@@ -1010,7 +1164,12 @@ function setupCarousel(place) {
 
     // Check Street View fallback (e.g. STI College fallback from place-links.json)
     const fallbackNodeId = place?.fallbackNodeId || null;
-    const hasPano = Boolean(pano || fallbackNodeId);
+    const hasTour360 = Boolean(tourScenesOf(place) || place?.tour360?.panorama);
+    const isBusiness = Boolean(place?.source === 'business' || place?.businessId || (place?.id && String(place.id).startsWith('biz_')));
+    const has360Plan = Boolean(place?.has360 || place?.plan === 'plus360' || place?.plan === 'featured');
+    const hasPano = Boolean(pano || fallbackNodeId || hasTour360);
+    const show360ComingSoon = isBusiness && has360Plan && !hasTour360;
+    const hasSlide2 = hasPano || show360ComingSoon || (!isBusiness);
 
     // --- SLIDE 1: Establishment Photo ---
     if (!canKeepSlide1) {
@@ -1153,6 +1312,25 @@ function setupCarousel(place) {
             </div>
         `;
         slide2Wrap.appendChild(hint);
+    } else if (show360ComingSoon) {
+        const comingSoonSlide = document.createElement('div');
+        comingSoonSlide.className = 'hero-placeholder-slide';
+        comingSoonSlide.style.padding = '0';
+        comingSoonSlide.innerHTML = `
+            <div class="hero-360-coming-soon" style="position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; background: #0F172A; text-align: center; padding: 24px;">
+                ${resolvedPhotoUrl ? `<img src="${escapeHtml(resolvedPhotoUrl)}" alt="" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4;">` : ''}
+                <div style="position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                        <path d="M11.5 3a17 17 0 0 0 0 18M12.5 3a17 17 0 0 1 0 18"/>
+                    </svg>
+                    <span style="font-size: 16px; font-weight: 600; color: #FFFFFF;">360° tour coming soon</span>
+                    <span style="font-size: 13px; color: #CBD5E1;">Our team will visit to capture it</span>
+                </div>
+            </div>
+        `;
+        slide2Wrap.appendChild(comingSoonSlide);
     } else {
         const placeholderSlide = document.createElement('div');
         placeholderSlide.className = 'hero-placeholder-slide';
@@ -1167,10 +1345,16 @@ function setupCarousel(place) {
         slide2Wrap.appendChild(placeholderSlide);
     }
 
-    slidesContainer.appendChild(slide2Wrap);
+    if (hasSlide2) {
+        slidesContainer.appendChild(slide2Wrap);
+    }
 
-    // --- DOTS: Always exactly 2 dots ---
-    if (dotsContainer) {
+    // --- DOTS & NAV: Only if hasSlide2 ---
+    if (!hasSlide2) {
+        if (dotsContainer) dotsContainer.style.display = 'none';
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+    } else if (dotsContainer) {
         const dot1Aria = typeof window.t === 'function' ? window.t('places.popup.dot_photo') : 'Slide 1 of 2 – Photo';
         const dot2Aria = typeof window.t === 'function' ? window.t('places.popup.dot_360') : 'Slide 2 of 2 – 360°';
         dotsContainer.innerHTML = `
@@ -1313,7 +1497,7 @@ function goToCarouselSlide(index) {
         cancelViewerRenderWait();
         hideFirstTimeHint(true);
     } else if (index === 1 && inline360Place) {
-        const hasPano = Boolean(inline360Place.pano || inline360Place.fallbackNodeId);
+        const hasPano = Boolean(inline360Place.pano || inline360Place.fallbackNodeId || tourScenesOf(inline360Place) || inline360Place.tour360?.panorama);
         if (hasPano) {
             if (!inline360Initialized) {
                 inline360Initialized = true;
@@ -2420,7 +2604,10 @@ window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
 
     // 2. Open animations immediately for instant UI feedback
     if (backdrop) backdrop.classList.add('active');
-    if (panel) panel.classList.add('active');
+    if (panel) {
+        panel.classList.add('active');
+        panel.classList.add('open');
+    }
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
@@ -2615,6 +2802,17 @@ async function fillRest(data, placeName, optLat, optLng) {
         fallbackNodeId: upfrontFallbackNodeId
     });
 
+    // Owner banner
+    const ownerBanner = document.getElementById('ppOwnerBanner');
+    if (ownerBanner) {
+        let isOwner = false;
+        try {
+            const me = currentPanelUser();
+            isOwner = Boolean(data.ownerId && me && me.uid === data.ownerId);
+        } catch (_) {}
+        ownerBanner.style.display = isOwner ? 'flex' : 'none';
+    }
+
     // Populate Initial Address Row
     const rowAddress = document.getElementById('ppRowAddress');
     const addressEl = document.getElementById('ppAddress');
@@ -2635,20 +2833,61 @@ async function fillRest(data, placeName, optLat, optLng) {
     const hoursWrapper = document.getElementById('ppHoursWrapper');
     if (hoursWrapper) hoursWrapper.classList.remove('expanded');
 
-    const hoursData = formatOpeningHoursStatus(data.opening_hours);
-    if (rowHours && hoursStatusEl && hoursTableEl) {
-        if (hoursData && hoursData.statusText) {
-            hoursStatusEl.textContent = hoursData.statusText;
-            hoursStatusEl.className = `panel-hours-status ${hoursData.isOpen ? 'open' : 'closed'}`;
-
-            if (hoursData.hoursMap && typeof hoursData.hoursMap === 'object') {
-                renderOpeningHoursTable(hoursData, hoursTableEl);
-            } else {
-                hoursTableEl.innerHTML = `<tr><td colspan="2" style="padding:4px 6px;color:#64748b;">${hoursData.statusText}</td></tr>`;
-            }
+    if (data.openHours && typeof CalzadaBusinessFields !== 'undefined') {
+        const openStatus = CalzadaBusinessFields.getOpenStatus(data.openHours);
+        const weekly = CalzadaBusinessFields.formatWeeklyHours(data.openHours);
+        if (rowHours && hoursStatusEl && hoursTableEl) {
+            hoursStatusEl.textContent = openStatus.statusText;
+            hoursStatusEl.className = `panel-hours-status ${openStatus.isOpen ? 'open' : 'closed'}`;
+            hoursTableEl.innerHTML = weekly.map(w => `
+                <tr>
+                    <td style="padding:4px 8px;font-weight:500;color:#475569;">${w.dayName}</td>
+                    <td style="padding:4px 8px;color:#1E293B;text-align:right;">${w.hoursText}</td>
+                </tr>
+            `).join('');
             rowHours.style.display = 'flex';
+        }
+    } else {
+        const hoursData = formatOpeningHoursStatus(data.opening_hours);
+        if (rowHours && hoursStatusEl && hoursTableEl) {
+            if (hoursData && hoursData.statusText) {
+                hoursStatusEl.textContent = hoursData.statusText;
+                hoursStatusEl.className = `panel-hours-status ${hoursData.isOpen ? 'open' : 'closed'}`;
+
+                if (hoursData.hoursMap && typeof hoursData.hoursMap === 'object') {
+                    renderOpeningHoursTable(hoursData, hoursTableEl);
+                } else {
+                    hoursTableEl.innerHTML = `<tr><td colspan="2" style="padding:4px 6px;color:#64748b;">${hoursData.statusText}</td></tr>`;
+                }
+                rowHours.style.display = 'flex';
+            } else {
+                rowHours.style.display = 'none';
+            }
+        }
+    }
+
+    // Populate Offerings Row
+    const rowOfferings = document.getElementById('ppRowOfferings');
+    const offeringsEl = document.getElementById('ppOfferings');
+    if (rowOfferings && offeringsEl) {
+        if (Array.isArray(data.offerings) && data.offerings.length > 0) {
+            offeringsEl.textContent = data.offerings.join(' · ');
+            rowOfferings.style.display = 'flex';
         } else {
-            rowHours.style.display = 'none';
+            rowOfferings.style.display = 'none';
+        }
+    }
+
+    // Populate Updates Link
+    const rowUpdates = document.getElementById('ppRowUpdates');
+    const updatesLink = document.getElementById('ppSeeUpdatesLink');
+    if (rowUpdates && updatesLink) {
+        if (data.source === 'business' || data.businessId) {
+            const bId = data.businessId || String(data.id || '').replace(/^biz_/, '');
+            updatesLink.href = `/pages/my-business.html?id=${encodeURIComponent(bId)}`;
+            rowUpdates.style.display = 'flex';
+        } else {
+            rowUpdates.style.display = 'none';
         }
     }
 
@@ -2766,7 +3005,24 @@ async function fillRest(data, placeName, optLat, optLng) {
                 rowPhone.style.display = 'flex';
             }
             if (match.social) fillPanelSocial(match.social);
-            if (match.opening_hours) {
+            if (match.openHours && typeof CalzadaBusinessFields !== 'undefined') {
+                const openStatus = CalzadaBusinessFields.getOpenStatus(match.openHours);
+                const weekly = CalzadaBusinessFields.formatWeeklyHours(match.openHours);
+                const liveRow = document.getElementById('ppRowHours');
+                const liveStatus = document.getElementById('ppHoursStatus');
+                const liveTable = document.getElementById('ppHoursTable');
+                if (liveRow && liveStatus && liveTable) {
+                    liveStatus.textContent = openStatus.statusText;
+                    liveStatus.className = `panel-hours-status ${openStatus.isOpen ? 'open' : 'closed'}`;
+                    liveTable.innerHTML = weekly.map(w => `
+                        <tr>
+                            <td style="padding:4px 8px;font-weight:500;color:#475569;">${w.dayName}</td>
+                            <td style="padding:4px 8px;color:#1E293B;text-align:right;">${w.hoursText}</td>
+                        </tr>
+                    `).join('');
+                    liveRow.style.display = 'flex';
+                }
+            } else if (match.opening_hours) {
                 const liveHours = formatOpeningHoursStatus(match.opening_hours);
                 const liveRow = document.getElementById('ppRowHours');
                 const liveStatus = document.getElementById('ppHoursStatus');
@@ -2776,6 +3032,27 @@ async function fillRest(data, placeName, optLat, optLng) {
                     liveStatus.className = `panel-hours-status ${liveHours.isOpen ? 'open' : 'closed'}`;
                     if (liveHours.hoursMap) renderOpeningHoursTable(liveHours, liveTable);
                     liveRow.style.display = 'flex';
+                }
+            }
+
+            if (Array.isArray(match.offerings) && match.offerings.length > 0) {
+                const rOff = document.getElementById('ppRowOfferings');
+                const offEl = document.getElementById('ppOfferings');
+                if (rOff && offEl) {
+                    offEl.textContent = match.offerings.join(' · ');
+                    rOff.style.display = 'flex';
+                }
+            }
+
+            if (match.ownerId) {
+                const ob = document.getElementById('ppOwnerBanner');
+                if (ob) {
+                    try {
+                        const me = currentPanelUser();
+                        if (me) {
+                            ob.style.display = (me.uid === match.ownerId) ? 'flex' : 'none';
+                        }
+                    } catch (_) {}
                 }
             }
         }
@@ -2899,7 +3176,10 @@ function closePlacePanel(updateHistory = true) {
     const backdrop = document.getElementById('placePanelBackdrop');
     const panel = document.getElementById('placePanel');
     if (backdrop) backdrop.classList.remove('active');
-    if (panel) panel.classList.remove('active');
+    if (panel) {
+        panel.classList.remove('active');
+        panel.classList.remove('open');
+    }
     document.documentElement.style.overflow = '';
     document.body.style.overflow = ''; 
 
