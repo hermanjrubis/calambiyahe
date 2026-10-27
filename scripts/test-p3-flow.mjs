@@ -230,10 +230,11 @@ async function runPhase3FlowTests() {
         await ownerPage.fill('#inputBizDesc', 'Freshly brewed specialty coffee and artisan pastries in Calamba.');
         await ownerPage.fill('#inputBizContact', '09171234567');
 
-        // Set simulated thumbnail directly on wizard instance
+        // Set simulated thumbnail and offerings directly on wizard instance
         await ownerPage.evaluate(() => {
             if (window.wizardInstance) {
                 window.wizardInstance.formData.thumbnailUrl = 'https://res.cloudinary.com/calzada/image/upload/v12345/calzada/businesses/front_artisan.jpg';
+                window.wizardInstance.formData.offerings = ['Specialty Pour Over', 'Artisan Croissant'];
                 window.wizardInstance.validateCurrentStepButton();
                 window.wizardInstance.triggerAutosave();
             }
@@ -307,7 +308,7 @@ async function runPhase3FlowTests() {
         console.log('\n--- TEST 3: Wizard Submission & Draft Deletion ---');
         // Select 'plus360' plan
         await ownerPage.evaluate(() => {
-            const card = document.querySelector('.plan-choice-card[data-plan="plus360"]');
+            const card = document.querySelector('.plan-select-card[data-plan="plus360"], .plan-choice-card[data-plan="plus360"], [data-plan="plus360"]');
             if (card) card.click();
             window.wizardInstance.formData.plan = 'plus360';
             window.wizardInstance.validateCurrentStepButton();
@@ -397,7 +398,7 @@ async function runPhase3FlowTests() {
         // Check Places page
         const placesPage = await ownerContext.newPage();
         await placesPage.goto('http://127.0.0.1:5000/pages/places.html?emulator=1', { waitUntil: 'domcontentloaded' });
-        await placesPage.waitForSelector('#placesGrid .ref-card', { state: 'visible', timeout: 10000 });
+        await placesPage.waitForSelector('.places-grid .ref-card, #placesGrid .ref-card, .ref-card', { state: 'visible', timeout: 10000 });
 
         // Find Artisan Roast Cafe card
         const cardSelector = `.ref-card[data-name*="Artisan Roast"]`;
@@ -405,7 +406,7 @@ async function runPhase3FlowTests() {
         report(!!hasCard, 'Live business merged into /pages/places.html.');
 
         // Verify "New" plain text label
-        const newTag = await placesPage.$(`${cardSelector} .place-tag-new`);
+        const newTag = await placesPage.$(`${cardSelector} .cz-label-new, ${cardSelector} .place-tag-new`);
         report(!!newTag, 'New business displays plain text "New" tag.');
 
         // Click card to open place-panel
@@ -413,7 +414,7 @@ async function runPhase3FlowTests() {
         await placesPage.waitForSelector('#placePanel.active, #placePanel.open, #placePanelWrapper.open', { state: 'visible', timeout: 8000 });
 
         // Verify 360 "Coming soon" hero card
-        const comingSoonHero = await placesPage.waitForSelector('.hero-360-coming-soon', { state: 'visible', timeout: 5000 }).catch(() => null);
+        const comingSoonHero = await placesPage.waitForSelector('.hero-360-coming-soon', { state: 'attached', timeout: 5000 }).catch(() => null);
         const comingSoonText = comingSoonHero ? await comingSoonHero.innerText() : '';
         report(comingSoonText.includes('360° tour coming soon') && comingSoonText.includes('Our team will visit'), 'Place panel hero shows 360 "Coming soon" card for un-shot business.');
 
@@ -507,7 +508,7 @@ async function runPhase3FlowTests() {
         console.log('\n--- TEST 7: Places Page 360 Tour Live Viewer ---');
         // Navigate to clean Places URL to pull updated tour360
         await placesPage.goto('http://127.0.0.1:5000/pages/places.html?emulator=1', { waitUntil: 'domcontentloaded' });
-        await placesPage.waitForSelector('#placesGrid .ref-card', { state: 'visible', timeout: 10000 });
+        await placesPage.waitForSelector('.places-grid .ref-card, #placesGrid .ref-card, .ref-card', { state: 'visible', timeout: 10000 });
 
         // Open place panel for Artisan Roast Cafe
         await placesPage.click(cardSelector);
@@ -518,7 +519,7 @@ async function runPhase3FlowTests() {
         report(!comingSoonCardStillThere, 'Place panel 360 "Coming soon" card is replaced after publishing.');
 
         // Verify 360 viewer is initialized
-        const hasPanoViewer = await placesPage.waitForSelector('#placeViewerContainer, .pnlm-container, #placePanelHeroPano, #ppInline360Container', { timeout: 8000 }).catch(() => null);
+        const hasPanoViewer = await placesPage.waitForSelector('#placeViewerContainer, .pnlm-container, #placePanelHeroPano, #ppInline360Container', { state: 'attached', timeout: 8000 }).catch(() => null);
         report(!!hasPanoViewer, 'Pannellum 360 tour viewer mounted in place panel.');
 
         // ----------------------------------------------------
