@@ -251,8 +251,7 @@
             where,
             getDocs
         } from "../js/firebase-init.js";
-        import { signInWithCustomToken } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-        import { RegisterWizard } from "../js/register-wizard.js?v=3.0.3";
+        import { RegisterWizard } from "../js/register-wizard.js?v=3.0.4";
 
         const loadingOverlay = document.getElementById('loadingOverlay');
         const submitTopbar = document.getElementById('submitTopbar');
@@ -269,19 +268,7 @@
             });
         }
 
-        if (!auth.currentUser && typeof window !== 'undefined' && window.__AUTO_SIGNIN_TOKEN__) {
-            try {
-                await signInWithCustomToken(auth, window.__AUTO_SIGNIN_TOKEN__);
-            } catch (err) {
-                console.warn('Auto-sign in with token failed:', err);
-            }
-        }
-
         onAuthStateChanged(auth, async (user) => {
-            if (window.__MOCK_AUTH_USER__) {
-                user = window.__MOCK_AUTH_USER__;
-            }
-
             if (!user) {
                 window.location.href = "/login?redirect=/submit";
                 return;
@@ -294,7 +281,7 @@
             // Check if user already has an active business ('pending' or 'approved')
             // unless bypass flag is present for testing
             const urlParams = new URLSearchParams(window.location.search);
-            if (!window.__MOCK_AUTH_USER__ && !urlParams.has('new')) {
+            if (!urlParams.has('new')) {
                 try {
                     const q = query(collection(db, "businesses"), where("ownerId", "==", user.uid));
                     const snap = await getDocs(q);
@@ -359,7 +346,7 @@
 
         // Fallback timeout
         setTimeout(() => {
-            if (loadingOverlay && loadingOverlay.style.display !== 'none' && !auth.currentUser && !window.__MOCK_AUTH_USER__) {
+            if (loadingOverlay && loadingOverlay.style.display !== 'none' && !auth.currentUser) {
                 window.location.href = "/login?redirect=/submit";
             }
         }, 8000);

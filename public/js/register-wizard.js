@@ -100,7 +100,7 @@ export class RegisterWizard {
     }
 
     async init() {
-        this.currentUser = this.currentUser || this.auth.currentUser || (typeof window !== 'undefined' ? window.__MOCK_AUTH_USER__ : null);
+        this.currentUser = this.currentUser || this.auth.currentUser;
         this.renderLayout();
         this.wireHashRouting();
 

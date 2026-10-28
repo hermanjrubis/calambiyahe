@@ -1973,7 +1973,8 @@
 
         async function initPage() {
             const urlParams = new URLSearchParams(window.location.search);
-            businessId = urlParams.get('id');
+            const rawId = urlParams.get('id') || '';
+            businessId = rawId.replace(/^biz_/, '');
 
             if (!businessId) {
                 showError();

@@ -7144,7 +7144,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!window.CalzadaTicket) { cancelActiveJourney(); return; }
             window.CalzadaTicket.open(trip, { onClose: () => cancelActiveJourney() });
         };
-        window._calzadaTriggerArrival = triggerArrival;
 
         // =============================================
         // GET MY LOCATION (Initial)

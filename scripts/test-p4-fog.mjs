@@ -29,6 +29,7 @@
  *    - Takes screenshots at 1280x800 and 390x844 showing fog edge around the 3 barangays
  */
 
+import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -38,6 +39,110 @@ import { chromium } from 'playwright';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT_DIR = path.resolve(__dirname, '..');
+
+let authServer = null;
+
+function createEmulatorToken(uid = 'wiz_owner', email = 'wiz_owner@test.calzadaph.com') {
+    const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({
+        sub: uid,
+        user_id: uid,
+        aud: "calzada-web",
+        iss: "https://securetoken.google.com/calzada-web",
+        email: email,
+        exp: Math.floor(Date.now() / 1000) + 3600,
+        iat: Math.floor(Date.now() / 1000),
+        auth_time: Math.floor(Date.now() / 1000),
+        firebase: { sign_in_provider: "password" }
+    })).toString('base64url');
+    return `${header}.${payload}.`;
+}
+
+function startAuthEmulator() {
+    return new Promise((resolve) => {
+        authServer = http.createServer((req, res) => {
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+            res.setHeader('Access-Control-Allow-Headers', '*');
+
+            if (req.method === 'OPTIONS') {
+                res.writeHead(204);
+                res.end();
+                return;
+            }
+
+            let body = '';
+            req.on('data', chunk => { body += chunk; });
+            req.on('end', () => {
+                const url = req.url || '';
+                const uid = 'wiz_owner';
+                const email = 'wiz_owner@test.calzadaph.com';
+                const jwt = createEmulatorToken(uid, email);
+
+                if (url.includes('accounts:createAuthUri')) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        kind: 'identitytoolkit#CreateAuthUriResponse',
+                        allProviders: ['password'],
+                        registered: true,
+                        signinMethods: ['password']
+                    }));
+                } else if (url.includes('accounts:signInWithPassword') || url.includes('accounts:signUp') || url.includes('accounts:signInWithCustomToken')) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        kind: 'identitytoolkit#VerifyPasswordResponse',
+                        localId: uid,
+                        email: email,
+                        displayName: 'Wizard Owner',
+                        idToken: jwt,
+                        registered: true,
+                        refreshToken: `refresh-${uid}`,
+                        expiresIn: '7200'
+                    }));
+                } else if (url.includes('securetoken.googleapis.com/v1/token')) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        access_token: jwt,
+                        expires_in: "7200",
+                        token_type: "Bearer",
+                        refresh_token: `refresh-${uid}`,
+                        id_token: jwt,
+                        user_id: uid,
+                        project_id: "calzada-web"
+                    }));
+                } else if (url.includes('accounts:lookup')) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        kind: 'identitytoolkit#GetAccountInfoResponse',
+                        users: [{
+                            localId: uid,
+                            email: email,
+                            displayName: 'Wizard Owner',
+                            emailVerified: true,
+                            customAttributes: JSON.stringify({})
+                        }]
+                    }));
+                } else {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({}));
+                }
+            });
+        });
+
+        authServer.listen(9099, '127.0.0.1', () => {
+            resolve(authServer);
+        });
+    });
+}
+
+async function signInViaUI(page, email, password = 'password123') {
+    await page.waitForSelector('#emailInput', { state: 'visible', timeout: 10000 });
+    await page.fill('#emailInput', email);
+    await page.click('#btnEmailContinue');
+    await page.waitForSelector('#loginPass:not([disabled])', { state: 'visible', timeout: 10000 });
+    await page.fill('#loginPass', password);
+    await page.click('#loginSubmitBtn');
+}
 
 async function runFogTests() {
     console.log('========================================================');
@@ -95,6 +200,7 @@ async function runFogTests() {
 
     // --- TEST 3: Browser Verification via Playwright ---
     console.log('\n--- TEST 3: Planner Browser Integration ---');
+    await startAuthEmulator();
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
         viewport: { width: 1280, height: 800 },
@@ -229,6 +335,11 @@ async function runFogTests() {
             const outsideOrigin = [14.170, 121.100];
             const insideDest = [14.203928, 121.154516]; // SM City Calamba
 
+            // Stub user so executeRouteQuery doesn't trigger route gate redirect
+            if (window.CalzadaAuth) {
+                window.CalzadaAuth.getCurrentUser = () => ({ uid: 'fog-user', email: 'fog@calzada.ph', isAnonymous: false });
+            }
+
             if (typeof window._calzadaSetActiveSelectingField === 'function') {
                 window._calzadaSetActiveSelectingField('origin');
             }
@@ -292,23 +403,22 @@ async function runFogTests() {
             viewport: { width: 1280, height: 800 }
         });
         await wizContext.addInitScript(() => {
-            window.__MOCK_AUTH_USER__ = {
-                uid: 'test_wizard_p4_user',
-                email: 'test_biz@calzada.ph',
-                displayName: 'Test Biz Owner',
-                getIdToken: async () => 'test-id-token'
-            };
-            window.__BYPASS_BIZ_CHECK__ = true;
+            localStorage.setItem('calzada_use_emulator', '1');
+            sessionStorage.setItem('calzada_use_emulator', '1');
         });
         const wizPage = await wizContext.newPage();
-        await wizPage.goto('http://127.0.0.1:5000/submit', { waitUntil: 'domcontentloaded' });
-        await wizPage.waitForTimeout(2000);
+        await wizPage.goto('http://127.0.0.1:5000/login?redirect=%2Fsubmit%3Fnew%3D1', { waitUntil: 'domcontentloaded' });
+        await signInViaUI(wizPage, 'wiz_owner@test.calzadaph.com', 'password123');
+        await wizPage.waitForURL(url => url.pathname.includes('/submit'), { timeout: 10000 });
+        await wizPage.waitForSelector('#wizardMount .wizard-root', { state: 'visible', timeout: 15000 });
 
         await wizPage.waitForFunction(() => !!window.wizardInstance && typeof window.wizardInstance.goToStep === 'function');
+        await wizPage.fill('#inputBizName', 'Test Cafe');
+        await wizPage.selectOption('#selectBizCategory', 'coffee');
+        await wizPage.fill('#inputBizDesc', 'Specialty coffee in Calamba');
+        await wizPage.fill('#inputBizContact', '09171234567');
         await wizPage.evaluate(() => {
             window.wizardInstance.formData.thumbnailUrl = 'https://example.com/thumb.webp';
-            window.wizardInstance.formData.name = 'Test Cafe';
-            window.wizardInstance.formData.category = 'coffee';
             window.wizardInstance.formData.offerings = ['Brewed Coffee'];
             window.wizardInstance.goToStep('location');
         });
@@ -406,6 +516,9 @@ async function runFogTests() {
 
     } finally {
         await browser.close();
+        if (authServer) {
+            authServer.close();
+        }
     }
 
     console.log('\n========================================================');

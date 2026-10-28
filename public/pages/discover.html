@@ -1851,15 +1851,11 @@
 
         // Load Feed & Live Businesses
         async function loadUpdatesFeed() {
-            if (typeof window !== 'undefined' && window.__TEST_MOCK_FEED__) {
-                return;
-            }
             showSkeletons();
             try {
                 // 1. Fetch live businesses
                 const bQuery = query(collection(db, 'businesses'), where('status', '==', 'approved'));
                 const bSnap = await getDocs(bQuery);
-                if (typeof window !== 'undefined' && window.__TEST_MOCK_FEED__) return;
                 allLiveBusinesses = bSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
                 // 2. Fetch posts
@@ -1890,7 +1886,6 @@
                     }));
                 }
 
-                if (typeof window !== 'undefined' && window.__TEST_MOCK_FEED__) return;
                 postsData = loaded;
                 renderFeed();
                 renderSidebarNewBusinesses();
@@ -2303,11 +2298,6 @@
             post.isLiked = optimisticLiked;
             post.likeCount = optimisticCount;
             paintLike(card, optimisticLiked, optimisticCount, true);
-
-            if (typeof window !== 'undefined' && window.__TEST_MOCK_LIKE__) {
-                likeInFlight.delete(post.id);
-                return;
-            }
 
             try {
                 const postRef = doc(db, 'posts', post.id);
@@ -2750,27 +2740,8 @@
             if (e.key === 'Escape' && document.body.classList.contains('menu-open')) setMenuOpen(false);
         });
 
-        // Test Data Injection Hook for Playwright E2E
-        if (typeof window !== 'undefined') {
-            window.__TEST_DISCOVER_DATA__ = (mockPosts, mockLiveBusinesses, mockAuthUser, mockUserBusiness) => {
-                window.__TEST_MOCK_FEED__ = true;
-                if (mockAuthUser !== undefined) currentUser = mockAuthUser;
-                if (mockUserBusiness !== undefined) userLiveBusiness = mockUserBusiness;
-                if (mockLiveBusinesses !== undefined && mockLiveBusinesses !== null) allLiveBusinesses = mockLiveBusinesses;
-                if (mockPosts !== undefined && mockPosts !== null) postsData = mockPosts;
-
-                renderFeed();
-                renderSidebarNewBusinesses();
-            };
-            window.togglePostLike = togglePostLike;
-        }
-
         // Firebase Auth State
         onAuthStateChanged(auth, async (user) => {
-            if (typeof window !== 'undefined' && window.__MOCK_DISCOVER_USER__) {
-                currentUser = window.__MOCK_DISCOVER_USER__;
-                return;
-            }
 
             currentUser = user;
             if (user) {

@@ -407,14 +407,15 @@ async function runTests() {
         }
         report(navActiveAfterReload, '4c: Active journey resumed after page reload.');
 
-        // Wait until auth is fully initialized and triggerArrival is ready
+        // Wait until auth is fully initialized and simulate arrival via Playwright geolocation
         await page.waitForFunction(() => {
-            return typeof window._calzadaTriggerArrival === 'function' && !!window.CalzadaAuth?.getCurrentUser();
+            return !!window.CalzadaAuth?.getCurrentUser();
         }, { timeout: 10000 });
 
-        await page.evaluate(() => {
-            window._calzadaTriggerArrival();
-        });
+        const destCoords = await page.evaluate(() => window.selectedCoords?.destination);
+        if (destCoords) {
+            await context.setGeolocation({ latitude: destCoords[0], longitude: destCoords[1] });
+        }
 
         let arrivedDoc = null;
         for (let i = 0; i < 25; i++) {

@@ -2028,9 +2028,6 @@
         }
 
         onAuthStateChanged(auth, async (user) => {
-            if ((!user || user.isAnonymous) && window.__MOCK_AUTH_USER__) {
-                user = window.__MOCK_AUTH_USER__;
-            }
             if (!user || user.isAnonymous) {
                 window.location.href = "/login?redirect=/my-business";
                 return;
@@ -2568,8 +2565,8 @@
                 stepDateApproved.textContent = formatSimpleDate(activeBusiness.detailsApprovedAt || activeBusiness.updatedAt);
 
                 // Fetch latest payment
-                let activePayment = window.__TEST_MOCK_PAYMENT__ || null;
-                if (!activePayment && activeBusiness.lastPaymentId) {
+                let activePayment = null;
+                if (activeBusiness.lastPaymentId) {
                     try {
                         const pSnap = await getDoc(doc(db, "payments", activeBusiness.lastPaymentId));
                         if (pSnap.exists()) {
@@ -2707,35 +2704,6 @@
                 rejectionReasonText.textContent = activeBusiness.reviewNote || activeBusiness.rejectionReason || 'No specific reason provided.';
                 stateRejected.style.display = 'block';
             }
-        }
-
-        if (typeof window !== 'undefined') {
-            window.__TEST_RENDER_STATE__ = async (state, mockBus, mockPosts, mockPayment) => {
-                loadingOverlay.style.display = 'none';
-                mybusTopbar.style.display = 'flex';
-                mybusContainer.style.display = 'block';
-                activeBusiness = mockBus;
-                activeBusinessId = mockBus ? (mockBus.id || 'bus_test_123') : null;
-                if (mockPosts) {
-                    window.__TEST_MOCK_POSTS__ = mockPosts;
-                    businessPosts = mockPosts;
-                } else if (state === 'approved') {
-                    window.__TEST_MOCK_POSTS__ = [];
-                    businessPosts = [];
-                }
-                if (mockPayment && activeBusiness) {
-                    activeBusiness.lastPaymentId = 'pay_test_123';
-                }
-                await renderState(state);
-                if (mockPayment) {
-                    stepDatePaymentSent.textContent = `Sent ${formatSimpleDate(mockPayment.submittedAt)}. We'll email you once it's checked.`;
-                    sentReceiptThumb.src = mockPayment.receiptUrl || '';
-                    const last4 = mockPayment.referenceNo ? mockPayment.referenceNo.slice(-4) : '----';
-                    sentReceiptRef.textContent = `Ref. •••• ${last4}`;
-                    const pObj = window.CALZADA_PLANS?.[mockPayment.plan] || window.CALZADA_PLANS?.[activeBusiness?.plan];
-                    sentReceiptAmountPlan.textContent = `₱${mockPayment.amountDue} · ${pObj ? pObj.name : 'Listed + 360'} plan`;
-                }
-            };
         }
 
         function setPhotoThumbnail(url) {
@@ -3620,11 +3588,6 @@
 
         async function loadBusinessPosts(busId) {
             if (!postsListContainer) return;
-            if (window.__TEST_MOCK_POSTS__) {
-                businessPosts = window.__TEST_MOCK_POSTS__;
-                renderPostsList();
-                return;
-            }
             try {
                 const postsQuery = query(
                     collection(db, 'posts'),

@@ -35,18 +35,33 @@ const adminDb = getFirestore(app);
 let serverProcess = null;
 let authServer = null;
 
-function createEmulatorToken(uid, claims = {}) {
+const AUTH_USERS = {
+    'admin@test.calzadaph.com': {
+        uid: 'admin_flow_p3_user',
+        email: 'admin@test.calzadaph.com',
+        displayName: 'Admin User',
+        isAdmin: true
+    },
+    'owner@test.calzadaph.com': {
+        uid: 'owner_flow_p3_user',
+        email: 'owner@test.calzadaph.com',
+        displayName: 'Owner User',
+        isAdmin: false
+    }
+};
+
+function createEmulatorToken(uid, email = 'owner@test.calzadaph.com', claims = {}) {
     const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString('base64url');
     const payload = Buffer.from(JSON.stringify({
         sub: uid,
         user_id: uid,
         aud: "calzada-web",
         iss: "https://securetoken.google.com/calzada-web",
-        email: `${uid}@test.calzadaph.com`,
+        email: email,
         exp: Math.floor(Date.now() / 1000) + 7200,
         iat: Math.floor(Date.now() / 1000),
         auth_time: Math.floor(Date.now() / 1000),
-        firebase: { sign_in_provider: "custom" },
+        firebase: { sign_in_provider: "password" },
         ...claims
     })).toString('base64url');
     return `${header}.${payload}.`;
@@ -69,52 +84,76 @@ function startAuthEmulator() {
             req.on('data', chunk => { body += chunk; });
             req.on('end', () => {
                 const url = req.url || '';
-                let uid = 'owner_p3_tester';
-                let isAdmin = false;
+                let matchedUser = AUTH_USERS['owner@test.calzadaph.com'];
 
                 try {
                     if (body.startsWith('{')) {
                         const parsed = JSON.parse(body);
-                        const tokenStr = parsed.token || parsed.idToken;
-                        if (tokenStr) {
+                        if (parsed.email && AUTH_USERS[parsed.email]) {
+                            matchedUser = AUTH_USERS[parsed.email];
+                        } else if (parsed.email && parsed.email.includes('admin')) {
+                            matchedUser = AUTH_USERS['admin@test.calzadaph.com'];
+                        } else if (parsed.email && parsed.email.includes('owner')) {
+                            matchedUser = AUTH_USERS['owner@test.calzadaph.com'];
+                        } else if (parsed.idToken || parsed.token) {
+                            const tokenStr = parsed.idToken || parsed.token;
                             const parts = tokenStr.split('.');
-                            const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
-                            uid = payload.sub || uid;
-                            if (payload.admin === true || uid.includes('admin')) {
-                                isAdmin = true;
+                            if (parts[1]) {
+                                const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+                                const sub = payload.sub || payload.user_id;
+                                for (const key of Object.keys(AUTH_USERS)) {
+                                    if (AUTH_USERS[key].uid === sub) {
+                                        matchedUser = AUTH_USERS[key];
+                                        break;
+                                    }
+                                }
                             }
                         }
-                    } else if (body.includes('refresh_token')) {
-                        const match = body.match(/refresh_token=refresh-token-([^&]+)/);
-                        if (match) uid = match[1];
-                        if (body.includes('admin') || uid.includes('admin')) {
-                            isAdmin = true;
+                    } else if (body.includes('refresh_token=')) {
+                        for (const key of Object.keys(AUTH_USERS)) {
+                            if (body.includes(`refresh-token-${AUTH_USERS[key].uid}`) || body.includes(AUTH_USERS[key].uid)) {
+                                matchedUser = AUTH_USERS[key];
+                                break;
+                            }
                         }
                     }
                 } catch (_) {}
 
-                if (uid.includes('admin')) isAdmin = true;
+                const jwt = createEmulatorToken(
+                    matchedUser.uid,
+                    matchedUser.email,
+                    matchedUser.isAdmin ? { admin: true } : {}
+                );
 
-                if (url.includes('accounts:signInWithCustomToken')) {
-                    const customJwt = createEmulatorToken(uid, { admin: isAdmin });
+                if (url.includes('accounts:createAuthUri')) {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({
-                        kind: 'identitytoolkit#VerifyCustomTokenResponse',
-                        idToken: customJwt,
-                        refreshToken: `refresh-token-${uid}`,
-                        expiresIn: '7200',
-                        isNewUser: false
+                        kind: 'identitytoolkit#CreateAuthUriResponse',
+                        allProviders: ['password'],
+                        registered: true,
+                        signinMethods: ['password']
+                    }));
+                } else if (url.includes('accounts:signInWithPassword') || url.includes('accounts:signUp') || url.includes('accounts:signInWithCustomToken')) {
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({
+                        kind: 'identitytoolkit#VerifyPasswordResponse',
+                        localId: matchedUser.uid,
+                        email: matchedUser.email,
+                        displayName: matchedUser.displayName,
+                        idToken: jwt,
+                        registered: true,
+                        refreshToken: `refresh-token-${matchedUser.uid}`,
+                        expiresIn: '7200'
                     }));
                 } else if (url.includes('securetoken.googleapis.com/v1/token')) {
-                    const customJwt = createEmulatorToken(uid, { admin: isAdmin });
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({
-                        access_token: customJwt,
+                        access_token: jwt,
                         expires_in: "7200",
                         token_type: "Bearer",
-                        refresh_token: `refresh-token-${uid}`,
-                        id_token: customJwt,
-                        user_id: uid,
+                        refresh_token: `refresh-token-${matchedUser.uid}`,
+                        id_token: jwt,
+                        user_id: matchedUser.uid,
                         project_id: "calzada-web"
                     }));
                 } else if (url.includes('accounts:lookup')) {
@@ -122,11 +161,11 @@ function startAuthEmulator() {
                     res.end(JSON.stringify({
                         kind: 'identitytoolkit#GetAccountInfoResponse',
                         users: [{
-                            localId: uid,
-                            email: `${uid}@test.calzadaph.com`,
-                            displayName: `User ${uid}`,
+                            localId: matchedUser.uid,
+                            email: matchedUser.email,
+                            displayName: matchedUser.displayName,
                             emailVerified: true,
-                            customAttributes: JSON.stringify({ admin: isAdmin })
+                            customAttributes: JSON.stringify(matchedUser.isAdmin ? { admin: true } : {})
                         }]
                     }));
                 } else {
@@ -141,6 +180,33 @@ function startAuthEmulator() {
             resolve(authServer);
         });
     });
+}
+
+async function signInViaUI(page, email, password = 'password123') {
+    await page.waitForSelector('#emailInput', { state: 'visible', timeout: 10000 });
+    await page.fill('#emailInput', email);
+    await page.click('#btnEmailContinue');
+    await page.waitForSelector('#loginPass:not([disabled])', { state: 'visible', timeout: 10000 });
+    await page.fill('#loginPass', password);
+    await page.click('#loginSubmitBtn');
+}
+
+async function generateTestJpegBuffer(page, width, height, color = '#378ADD') {
+    const dataUrl = await page.evaluate(({ w, h, c }) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = c;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(10, 10, w - 20, 10);
+        ctx.fillStyle = '#042C53';
+        ctx.font = '20px sans-serif';
+        ctx.fillText('CALZADA TEST', 20, h / 2);
+        return canvas.toDataURL('image/jpeg', 0.85);
+    }, { w: width, h: height, c: color });
+    return Buffer.from(dataUrl.split(',')[1], 'base64');
 }
 
 function startAppServer() {
@@ -183,10 +249,10 @@ async function runPhase3FlowTests() {
 
     const browser = await chromium.launch({ headless: true });
 
-    const ownerUid = 'owner_flow_p3_user';
-    const adminUid = 'admin_flow_p3_user';
-    const ownerToken = createEmulatorToken(ownerUid, { admin: false });
-    const adminToken = createEmulatorToken(adminUid, { admin: true });
+    const ownerUid = AUTH_USERS['owner@test.calzadaph.com'].uid;
+    const adminUid = AUTH_USERS['admin@test.calzadaph.com'].uid;
+    const ownerToken = createEmulatorToken(ownerUid, 'owner@test.calzadaph.com', { admin: false });
+    const adminToken = createEmulatorToken(adminUid, 'admin@test.calzadaph.com', { admin: true });
 
     let createdBusinessId = null;
 
@@ -206,23 +272,20 @@ async function runPhase3FlowTests() {
         // ----------------------------------------------------
         console.log('\n--- TEST 1: Wizard Draft Autosave & Restoration ---');
         const ownerContext = await browser.newContext({ viewport: { width: 1280, height: 800 } });
-        const ownerPage = await ownerContext.newPage();
-
-        await ownerContext.addInitScript(({ uid, token }) => {
+        await ownerContext.addInitScript(() => {
             window.localStorage.setItem('calzada_use_emulator', '1');
-            window.__AUTO_SIGNIN_TOKEN__ = token;
-            window.__MOCK_AUTH_USER__ = {
-                uid: uid,
-                email: `${uid}@test.calzadaph.com`,
-                displayName: 'Owner Tester',
-                getIdToken: async () => token
-            };
-        }, { uid: ownerUid, token: ownerToken });
+            window.sessionStorage.setItem('calzada_use_emulator', '1');
+        });
+        const ownerPage = await ownerContext.newPage();
+        ownerPage.on('console', msg => console.log('[Owner Console]:', msg.text()));
+        ownerPage.on('pageerror', err => console.error('[Owner PageError]:', err.message));
 
-        await ownerPage.goto('http://127.0.0.1:5000/pages/submit.html?emulator=1&new=1#store', { waitUntil: 'domcontentloaded' });
+        await ownerPage.goto('http://127.0.0.1:5000/login?redirect=%2Fsubmit%3Fnew%3D1%23store', { waitUntil: 'domcontentloaded' });
+        await signInViaUI(ownerPage, 'owner@test.calzadaph.com', 'password123');
+        await ownerPage.waitForURL(url => url.pathname.includes('/submit'), { timeout: 10000 });
 
         // Wait for wizard container to load
-        await ownerPage.waitForSelector('#wizardMount .wizard-root', { state: 'visible', timeout: 10000 });
+        await ownerPage.waitForSelector('#wizardMount .wizard-root', { state: 'visible', timeout: 15000 });
 
         // Step 1: Fill store details
         await ownerPage.fill('#inputBizName', 'Artisan Roast Cafe');
@@ -230,15 +293,21 @@ async function runPhase3FlowTests() {
         await ownerPage.fill('#inputBizDesc', 'Freshly brewed specialty coffee and artisan pastries in Calamba.');
         await ownerPage.fill('#inputBizContact', '09171234567');
 
-        // Set simulated thumbnail and offerings directly on wizard instance
-        await ownerPage.evaluate(() => {
-            if (window.wizardInstance) {
-                window.wizardInstance.formData.thumbnailUrl = 'https://res.cloudinary.com/calzada/image/upload/v12345/calzada/businesses/front_artisan.jpg';
-                window.wizardInstance.formData.offerings = ['Specialty Pour Over', 'Artisan Croissant'];
-                window.wizardInstance.validateCurrentStepButton();
-                window.wizardInstance.triggerAutosave();
-            }
+        // Generate genuine JPEG and upload
+        const frontPhotoBuf = await generateTestJpegBuffer(ownerPage, 400, 300, '#378ADD');
+        await ownerPage.setInputFiles('#frontPhotoFileInput', {
+            name: 'front_artisan.jpg',
+            mimeType: 'image/jpeg',
+            buffer: frontPhotoBuf
         });
+        await ownerPage.waitForSelector('#btnSelectFrontPhoto:has-text("Change photo")', { state: 'visible', timeout: 10000 });
+        await ownerPage.waitForFunction(() => !!window.wizardInstance?.formData?.thumbnailUrl, { timeout: 5000 });
+
+        // Add offerings via UI
+        await ownerPage.fill('#offeringsTextInput', 'Specialty Pour-Over');
+        await ownerPage.keyboard.press('Enter');
+        await ownerPage.fill('#offeringsTextInput', 'Artisan Croissant');
+        await ownerPage.keyboard.press('Enter');
 
         // Click Next to advance to #location
         await ownerPage.click('#btnWizardNext');
@@ -295,10 +364,14 @@ async function runPhase3FlowTests() {
         const checkName = await ownerPage.$eval('#inputBizName', el => el.value);
         report(checkName === 'Artisan Roast Cafe', 'Back navigation to #store preserved business name input.');
 
-        // Advance to #hours, then to #plan
-        await ownerPage.click('#btnWizardNext'); // to #location
-        await ownerPage.click('#btnWizardNext'); // to #hours
-        await ownerPage.click('#btnWizardNext'); // to #plan
+        // Advance to #location
+        await ownerPage.click('#btnWizardNext');
+        await ownerPage.waitForFunction(() => window.location.hash === '#location', { timeout: 5000 });
+        // Advance to #hours
+        await ownerPage.click('#btnWizardNext');
+        await ownerPage.waitForFunction(() => window.location.hash === '#hours', { timeout: 5000 });
+        // Advance to #plan
+        await ownerPage.click('#btnWizardNext');
         await ownerPage.waitForFunction(() => window.location.hash === '#plan', { timeout: 5000 });
         report(true, 'Navigated forward to #plan step.');
 
@@ -327,9 +400,7 @@ async function runPhase3FlowTests() {
 
         // Submit registration
         await ownerPage.click('#btnWizardNext');
-
-        // Wait for redirect or Firestore write
-        await new Promise(r => setTimeout(r, 3000));
+        await ownerPage.waitForSelector('text=Registration submitted!', { state: 'visible', timeout: 15000 });
 
         // Query Firestore for created business
         const bizQuery = await adminDb.collection('businesses').where('ownerId', '==', ownerUid).get();
@@ -428,18 +499,16 @@ async function runPhase3FlowTests() {
         adminPage.on('console', msg => console.log(`[Admin Console ${msg.type()}]:`, msg.text()));
         adminPage.on('pageerror', err => console.error('[Admin PageError]:', err.message));
 
-        await adminPage.addInitScript(() => {
+        await adminContext.addInitScript(() => {
             window.localStorage.setItem('calzada_use_emulator', '1');
+            window.sessionStorage.setItem('calzada_use_emulator', '1');
         });
 
-        await adminPage.goto('http://127.0.0.1:5000/pages/admin.html?emulator=1#shoots', { waitUntil: 'domcontentloaded' });
-        await adminPage.evaluate(async (token) => {
-            const { signInWithCustomToken } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js");
-            const auth = window.CalzadaAuth.auth;
-            return await signInWithCustomToken(auth, token);
-        }, adminToken);
+        await adminPage.goto('http://127.0.0.1:5000/login?redirect=%2Fpages%2Fadmin.html%23shoots', { waitUntil: 'domcontentloaded' });
+        await signInViaUI(adminPage, `${adminUid}@test.calzadaph.com`, 'password123');
 
-        await adminPage.waitForSelector('#adminApp[data-realtime-ready="true"]', { state: 'visible', timeout: 10000 });
+        await adminPage.waitForSelector('#adminApp', { state: 'visible', timeout: 15000 });
+        await adminPage.click('.sidebar-nav .nav-item[data-section="shoots"]');
         await adminPage.waitForSelector('#panel-shoots', { state: 'visible', timeout: 8000 });
 
         // Verify business appears in Pending shoots table

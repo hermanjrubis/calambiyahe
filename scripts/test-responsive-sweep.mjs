@@ -42,6 +42,7 @@ const app = getApps().length > 0 ? getApps()[0] : initializeApp({ projectId: 'ca
 const adminDb = getFirestore(app);
 
 function createEmulatorToken(uid, claims = {}) {
+  const isAdmin = claims.admin === true || uid.includes('admin');
   const header = Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString('base64url');
   const payload = Buffer.from(JSON.stringify({
     sub: uid,
@@ -52,6 +53,7 @@ function createEmulatorToken(uid, claims = {}) {
     exp: Math.floor(Date.now() / 1000) + 3600,
     iat: Math.floor(Date.now() / 1000),
     auth_time: Math.floor(Date.now() / 1000),
+    admin: isAdmin,
     ...claims
   })).toString('base64url');
   return `${header}.${payload}.`;
@@ -77,17 +79,32 @@ function startAuthEmulator() {
         let uid = 'sweep_owner_1';
         let isAdmin = false;
 
+        if (body.includes('admin') || body.includes('sweep_admin_user')) {
+          isAdmin = true;
+          uid = 'sweep_admin_user';
+        }
+
         try {
           const parsed = JSON.parse(body || '{}');
-          if (parsed.token) {
-            const parts = parsed.token.split('.');
+          const tok = parsed.token || parsed.idToken;
+          if (tok) {
+            const parts = tok.split('.');
             if (parts[1]) {
               const pData = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
               if (pData.sub) uid = pData.sub;
+              if (pData.user_id) uid = pData.user_id;
               if (pData.admin) isAdmin = true;
             }
           }
         } catch (_) {}
+
+        if (body.includes('grant_type=refresh_token')) {
+          const m = body.match(/refresh_token=refresh-([a-zA-Z0-9_-]+)/);
+          if (m) {
+            uid = m[1];
+            if (uid.includes('admin')) isAdmin = true;
+          }
+        }
 
         if (url.includes('accounts:createAuthUri')) {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -104,7 +121,7 @@ function startAuthEmulator() {
             kind: 'identitytoolkit#VerifyPasswordResponse',
             localId: uid,
             email: `${uid}@test.calzadaph.com`,
-            displayName: 'Calamba Business Owner',
+            displayName: isAdmin ? 'Sweep Admin' : 'Calamba Business Owner',
             idToken: customJwt,
             registered: true,
             refreshToken: `refresh-${uid}`,
@@ -319,11 +336,11 @@ const PAGES = [
   { name: 'discover', path: '/discover' },
   { name: 'business-profile', path: '/business?id=1' },
   { name: 'plans', path: '/plans' },
-  { name: 'submit-step1-store', path: '/submit#store' },
-  { name: 'submit-step2-location', path: '/submit#location' },
-  { name: 'submit-step3-hours', path: '/submit#hours' },
-  { name: 'submit-step4-plan', path: '/submit#plan' },
-  { name: 'submit-step5-review', path: '/submit#review' },
+  { name: 'submit-step1-store', path: '/submit?new=1#store' },
+  { name: 'submit-step2-location', path: '/submit?new=1#location' },
+  { name: 'submit-step3-hours', path: '/submit?new=1#hours' },
+  { name: 'submit-step4-plan', path: '/submit?new=1#plan' },
+  { name: 'submit-step5-review', path: '/submit?new=1#review' },
   { name: 'my-business-draft', path: '/my-business?status=draft' },
   { name: 'my-business-pending', path: '/my-business?status=pending' },
   { name: 'my-business-approved', path: '/my-business?status=approved' },
@@ -398,21 +415,26 @@ async function runSweep() {
           await page.waitForTimeout(200);
         }
 
+        // Wait for submit wizard mount
+        if (pageDef.name.startsWith('submit')) {
+          await page.waitForSelector('#wizardMount .wizard-root', { state: 'visible', timeout: 10000 }).catch(() => {});
+          await page.waitForTimeout(200);
+        }
+
         // Authenticate admin pages through Firebase Auth emulator with admin claim
         if (pageDef.name.startsWith('admin')) {
           const adminToken = createEmulatorToken('sweep_admin_user', { admin: true });
           await page.evaluate(async (tok) => {
             try {
               const { signInWithCustomToken } = await import("https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js");
-              const auth = window.CalzadaAuth?.auth;
-              if (auth && (!auth.currentUser || auth.currentUser.uid !== 'sweep_admin_user')) {
-                await signInWithCustomToken(auth, tok);
-              }
+              const { auth } = await import("/js/firebase-init.js");
+              await signInWithCustomToken(auth, tok);
             } catch (e) {
               console.error('Admin emulator sign in error:', e);
             }
           }, adminToken);
-          await page.waitForSelector('#adminApp', { state: 'visible', timeout: 5000 }).catch(() => {});
+          await page.waitForSelector('#adminApp', { state: 'visible', timeout: 10000 }).catch(() => {});
+          await page.waitForTimeout(200);
         }
 
         // Wait for business profile real content (fail if error visible)

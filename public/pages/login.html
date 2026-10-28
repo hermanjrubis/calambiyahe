@@ -357,9 +357,6 @@
                     if (data?.dest?.name) dest = data.dest.name;
                 }
             } catch (_) {}
-            if (!dest && initParams.get('destName')) {
-                dest = initParams.get('destName');
-            }
 
             const noticeEl = document.getElementById('routeGateNotice');
             const lineEl = document.getElementById('routeGateLine');

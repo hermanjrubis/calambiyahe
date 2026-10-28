@@ -1222,9 +1222,6 @@
 
             // --- 1. FIREBASE AUTH GUARD & STATE SWAP ---
             onAuthStateChanged(auth, (user) => {
-                if (window.__MOCK_USER__) {
-                    user = window.__MOCK_USER__;
-                }
                 currentUser = user;
                 if (!user) {
                     // Not signed in: show clean two-column split gate
@@ -1247,25 +1244,6 @@
                     renderIdentity(user);
                 }
             });
-
-            // Mock user hook for automated verification without touching Firebase
-            window.__setMockUser = (user) => {
-                window.__MOCK_USER__ = user;
-                currentUser = user;
-                setAuthState(!!user);
-                if (user) {
-                    if (nameInput) nameInput.value = user.displayName || '';
-                    if (emailInput) {
-                        emailInput.value = user.email || '';
-                        emailInput.readOnly = true;
-                        emailInput.classList.add('is-readonly');
-                    }
-                    renderIdentity(user);
-                }
-            };
-            if (window.__MOCK_USER__) {
-                window.__setMockUser(window.__MOCK_USER__);
-            }
 
             // Review #23: with an account, show "Sending as <name> · <email>" and hide the two fields.
             // A user with no display name keeps the Name field so they can add one.

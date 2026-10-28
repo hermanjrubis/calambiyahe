@@ -192,8 +192,13 @@ async function resolveRecipients(eventName, entityId, toOverride, data, adminDb)
 
             // If event is review_posted, check if review's place matches a registered business
             if (eventName === 'review_posted') {
+                // Only a listed business has an owner to tell. Its place id is "biz_{businessId}";
+                // a static place (or anything else) has none, so no owner email.
+                businessId = null;
                 const placeId = data && (data.placeId || data.placeName);
-                if (placeId) {
+                if (typeof placeId === 'string' && placeId.startsWith('biz_')) {
+                    businessId = placeId.slice(4);
+                } else if (placeId) {
                     try {
                         const bSnap = await adminDb.collection('businesses')
                             .where('placeId', '==', String(placeId))

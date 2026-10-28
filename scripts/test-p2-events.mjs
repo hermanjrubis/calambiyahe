@@ -513,9 +513,17 @@ async function runEventsTests() {
 
         const noEmuProcess = spawn('node', ['server.js'], {
             env: noEmuEnv,
-            stdio: 'pipe'
+            stdio: 'pipe',
+            cwd: path.resolve(__dirname, '..')
         });
-        await new Promise(r => setTimeout(r, 2500));
+
+        for (let i = 0; i < 25; i++) {
+            await new Promise(r => setTimeout(r, 500));
+            try {
+                const probe = await fetch('http://127.0.0.1:5002/api/events', { method: 'POST' }).catch(() => null);
+                if (probe) break;
+            } catch (_) {}
+        }
 
         try {
             const unsignedToken = createEmulatorToken('unsigned_uid');

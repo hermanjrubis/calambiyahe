@@ -1422,7 +1422,7 @@ app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'calzada';
 
         // In test emulator mode, return mock Cloudinary URL without external network call
-        if (process.env.CALZADA_EMULATORS === '1' && !cloudinaryConfigured()) {
+        if (process.env.CALZADA_EMULATORS === '1') {
             return res.json({
                 success: true,
                 url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/front_${safeFileName}.jpg`
@@ -1503,6 +1503,16 @@ app.post('/api/payments/upload-receipt', requireAuth, (req, res) => {
         } catch (dbErr) {
             console.error('Error verifying business document with Admin SDK:', dbErr);
             return res.status(500).json({ error: 'Failed to verify business details.' });
+        }
+
+        if (process.env.CALZADA_EMULATORS === '1') {
+            const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'calzada';
+            const safeFileName = crypto.randomBytes(8).toString('hex');
+            return res.json({
+                success: true,
+                businessId,
+                receiptUrl: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/payments/${businessId}/receipt_${safeFileName}.jpg`
+            });
         }
 
         if (!cloudinaryConfigured()) {
@@ -1959,7 +1969,7 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
 });
 
 // =============================================
-// VERIFIED TRIGGER ENDPOINT: POST /api/events & NOTIFY-OWNER ALIAS
+// VERIFIED TRIGGER ENDPOINT: POST /api/events
 // =============================================
 async function handleTriggerEvent(req, res) {
     const rawBody = req.body || {};
@@ -2224,7 +2234,6 @@ async function handleTriggerEvent(req, res) {
 }
 
 app.post('/api/events', requireAuth, handleTriggerEvent);
-app.post('/api/admin/notify-owner', requireAuth, handleTriggerEvent);
 
 // =============================================
 // 360 VIRTUAL TOUR & CLOUDINARY SIGNING (ADMIN)
@@ -2289,9 +2298,10 @@ app.post('/api/admin/businesses/:id/tour360', requireAuth, async (req, res) => {
     }
 
     // Only our own cloud (the stub name is accepted in emulator mode only)
-    const allowedClouds = process.env.CLOUDINARY_CLOUD_NAME
-        ? [process.env.CLOUDINARY_CLOUD_NAME]
-        : (process.env.CALZADA_EMULATORS === '1' ? ['calzada'] : []);
+    const allowedClouds = [
+        ...(process.env.CLOUDINARY_CLOUD_NAME ? [process.env.CLOUDINARY_CLOUD_NAME] : []),
+        ...(process.env.CALZADA_EMULATORS === '1' ? ['calzada'] : [])
+    ];
     if (!allowedClouds.length) {
         return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
     }
