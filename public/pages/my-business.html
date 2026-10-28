@@ -2912,17 +2912,32 @@
                 const newOfferings = offeringsEditor ? offeringsEditor.getOfferings() : initialOfferings;
                 const newOpenHours = openHoursEditor ? (typeof openHoursEditor.getHours === 'function' ? openHoursEditor.getHours() : openHoursEditor.getOpenHours()) : initialOpenHours;
 
+                // Send only the fields that changed. The Firestore rules check every
+                // changed field, so sending thumbnailUrl: null (older businesses have no
+                // photo), an empty offerings list or null hours made the whole save fail.
+                const sameJson = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+                // description and profilePhotoUrl are always sent: the rules read both
+                // fields directly, so they must exist on the document (null is allowed).
                 const updatePayload = {
-                    profilePhotoUrl: updatedThumbnailUrl,
-                    thumbnailUrl: updatedThumbnailUrl,
                     description: newDescription,
-                    socialLinks: newSocialLinks,
-                    offerings: newOfferings,
-                    openHours: newOpenHours,
+                    profilePhotoUrl: activeBusiness.profilePhotoUrl || null,
                     updatedAt: serverTimestamp()
                 };
+                if (selectedPhotoFile && typeof updatedThumbnailUrl === 'string' && updatedThumbnailUrl.startsWith('https://res.cloudinary.com/')) {
+                    updatePayload.profilePhotoUrl = updatedThumbnailUrl;
+                    updatePayload.thumbnailUrl = updatedThumbnailUrl;
+                }
+                if (!sameJson(newSocialLinks, activeBusiness.socialLinks || null)) updatePayload.socialLinks = newSocialLinks;
+                if (!sameJson(newOfferings, initialOfferings)) {
+                    if (!Array.isArray(newOfferings) || newOfferings.length < 1) {
+                        throw Object.assign(new Error('Add at least one product or service before saving.'), { userFacing: true });
+                    }
+                    updatePayload.offerings = newOfferings;
+                }
+                if (newOpenHours && !sameJson(newOpenHours, initialOpenHours)) updatePayload.openHours = newOpenHours;
 
                 await updateDoc(busDocRef, updatePayload);
+                if (!updatePayload.thumbnailUrl) updatedThumbnailUrl = initialThumbnailUrl || null;
                 activeBusiness.profilePhotoUrl = updatedThumbnailUrl;
                 activeBusiness.thumbnailUrl = updatedThumbnailUrl;
                 activeBusiness.description = newDescription;
@@ -2987,7 +3002,12 @@
                 saveChangesBtn.disabled = false;
                 resetChangesBtn.disabled = false;
                 saveBtnText.textContent = 'Save Changes';
-                showBanner(`Failed to save: ${err.message}`, 'error');
+                console.error('[my-business] save failed', err);
+                let msg = err.message;
+                if (err.code === 'permission-denied') {
+                    msg = 'Some details could not be saved. Check your products or services (1 to 10), opening hours and social links, then try again.';
+                }
+                showBanner(err.userFacing ? msg : `Failed to save: ${msg}`, 'error');
             }
         });
 
