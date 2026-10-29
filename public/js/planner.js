@@ -1983,7 +1983,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentCorridor = 'unknown'; // FIX: was referenced but never declared
 
         // ── CONSTANTS ──────────────────────────────────────────────────────────
-        const WALK_SPEED_KPH = 4.6;   // realistic commute walk pace (~13 min/km or ~4.6 km/h)
+        // Door-to-door walking pace in town: crossings, waiting for a gap in traffic, heat and
+        // crowded sidewalks make it slower than a free walk. 4 km/h = 15 min per km.
+        const WALK_SPEED_KPH = 4.0;
         const JEEPNEY_SPEED_KPH = 20;    // avg jeepney speed (km/h)
         const BOARDING_BUFFER_SEC = 180;   // 3-min boarding buffer added to transit ETA
         const STORAGE_KEY = 'calzada_journey';
@@ -2142,6 +2144,14 @@ document.addEventListener('DOMContentLoaded', () => {
         function syncNavDisplays(timeSinceLastMove = 0) {
             updateDynamicBottomPill(timeSinceLastMove);
             updatePillFareUI();
+            // The route list's arrival time follows the live estimate during a journey
+            if (isTrackingArrival && cachedRemainingSeconds > 0) {
+                const arr = fmt24h(new Date(Date.now() + cachedRemainingSeconds * 1000));
+                document.querySelectorAll('.timeline-ring--dest').forEach((ring) => {
+                    const cell = ring.closest('.timeline-row')?.querySelector('.timeline-time');
+                    if (cell && cell.textContent !== arr) cell.textContent = arr;
+                });
+            }
         }
 
         const computeWalkDurationMin = (distKm) => {
@@ -2199,13 +2209,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 boardingWaitSec: BOARDING_BUFFER_SEC
             });
             const finalWalkCoords = (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates) || [];
+            // The routing server measures from the road points it snapped to. The preview counts the
+            // few metres from the origin to the route and from the route to the destination, so the
+            // journey does too (otherwise its first estimate is shorter than the preview's).
+            const withEnds = (coords, from, to) => {
+                const out = Array.isArray(coords) ? coords.slice() : [];
+                const far = (a, b) => a && b && getHaversineDist(a[0], a[1], b[0], b[1]) * 1000 > 5;
+                if (from && out.length && far(from, out[0])) out.unshift(from);
+                if (to && out.length && far(out[out.length - 1], to)) out.push(to);
+                return out;
+            };
+            const isWalkOnlyTrip = selectedMode === 'walking';
+            const walkLegCoords = withEnds(walkRouteGeojson?.coordinates || [], selectedCoords.origin,
+                isWalkOnlyTrip ? selectedCoords.destination : null);
+            const finalLegCoords = fw.finalWalkM > 0 ? withEnds(finalWalkCoords, null, selectedCoords.destination) : [];
             liveEta.setLegs({
-                walkOnly: selectedMode === 'walking',
-                walk: walkRouteGeojson?.coordinates || [],
+                walkOnly: isWalkOnlyTrip,
+                walk: walkLegCoords,
                 walkFallbackM: currentWalkDist * 1000,
                 jeep: transitRouteGeojson?.coordinates || [],
                 jeepFallbackM: currentTransitDist * 1000,
-                finalWalk: fw.finalWalkM > 0 ? finalWalkCoords : [],
+                finalWalk: finalLegCoords,
                 finalWalkFallbackM: fw.finalWalkM || 0,
                 extraSec: pendingTransfer ? pendingTransfer.extraMin * 60 : 0,
                 startLeg: activeLegIndex
@@ -2216,7 +2240,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // fix: { lat, lng, speed } from a GPS update, or nothing for the once-a-second refresh
+        let liveEtaPaused = false; // true while a mid-journey mode switch is planning the new route
+
         function liveEtaTick(fix) {
+            if (liveEtaPaused) return true; // keep showing the last estimate until the new route is ready
             const tracker = ensureLiveEta();
             if (!tracker) return false;
             const now = Date.now();
@@ -4532,6 +4559,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.mode) {
                 selectedMode = data.mode === 'walking' ? 'walking' : 'jeepney';
+                // The user picked this mode before signing in: keep it (no re-pick by distance)
+                userExplicitMode = true;
                 setModeUI(selectedMode);
             }
 
@@ -4667,7 +4696,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Jeepney speed correction: real jeepney avg (~20 km/h) + boarding buffer
             const jeepKphNow = window.CalzadaLiveEta ? window.CalzadaLiveEta.jeepDefaultMps(new Date(), JEEPNEY_SPEED_KPH) * 3.6 : JEEPNEY_SPEED_KPH;
             const correctedTransitDur = (currentTransitDist / jeepKphNow) * 3600 + BOARDING_BUFFER_SEC;
-            currentTransitDur = Math.ceil(correctedTransitDur / 60);
+            currentTransitDur = Math.max(1, Math.round(correctedTransitDur / 60));
 
             // Single centralized fare calculation based on actual transit distance (fare rates loaded
             // once; waits at most 2 s for them, then uses the built-in copy)
@@ -4891,7 +4920,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rt) {
                     const distM = rt.distance;
                     // Note: OSRM public demo server returns vehicle-speed durations (~22 km/h) for 'foot'.
-                    // For walking routes, compute realistic duration using WALK_SPEED_KPH (~4.6 km/h / ~13 min/km).
+                    // For walking routes, compute realistic duration using WALK_SPEED_KPH (4 km/h, 15 min per km).
                     const realisticDuration = profile === 'foot'
                         ? (distM / 1000 / WALK_SPEED_KPH) * 3600
                         : rt.duration;
@@ -5106,19 +5135,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (window.finalWalkRouteGeojson && window.finalWalkRouteGeojson.coordinates?.length >= 2) {
                 const finalWalkM = window.finalWalkRouteGeojson.distance || 0;
-                const finalWalkMin = Math.ceil((finalWalkM / 1000 / WALK_SPEED_KPH) * 60) || 1;
+                const finalWalkMin = Math.max(1, Math.round((finalWalkM / 1000 / WALK_SPEED_KPH) * 60));
                 return { finalWalkM, finalWalkMin, finalWalkCoordinates: window.finalWalkRouteGeojson.coordinates };
             }
             if (transitRouteGeojson?.finalWalk && transitRouteGeojson.finalWalk.distance > 0) {
                 const finalWalkM = transitRouteGeojson.finalWalk.distance;
-                const finalWalkMin = Math.ceil((finalWalkM / 1000 / WALK_SPEED_KPH) * 60) || 1;
+                const finalWalkMin = Math.max(1, Math.round((finalWalkM / 1000 / WALK_SPEED_KPH) * 60));
                 return { finalWalkM, finalWalkMin, finalWalkCoordinates: transitRouteGeojson.finalWalk.coordinates || (lastTransitCoord && destCoord ? [lastTransitCoord, destCoord] : null) };
             }
             if (lastTransitCoord && destCoord) {
                 const haversineDistM = getHaversineDist(lastTransitCoord[0], lastTransitCoord[1], destCoord[0], destCoord[1]) * 1000;
                 if (haversineDistM > 30) {
                     const finalWalkM = Math.round(haversineDistM * 1.3);
-                    const finalWalkMin = Math.max(1, Math.ceil((finalWalkM / 1000 / WALK_SPEED_KPH) * 60));
+                    const finalWalkMin = Math.max(1, Math.round((finalWalkM / 1000 / WALK_SPEED_KPH) * 60));
                     return { finalWalkM, finalWalkMin, finalWalkCoordinates: [lastTransitCoord, destCoord] };
                 }
             }
@@ -6993,7 +7022,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const remFare = computeLTFRBFare(currentTransitDist, selectedMode);
                 updatePillFareUI();
 
-                const walkRemainingSecs = (remainingDist / WALK_SPEED_KPH) * 3600;   // 4 km/h realistic walk
+                const walkRemainingSecs = (remainingDist / WALK_SPEED_KPH) * 3600;
                 const transitAheadSecs = currentTransitDur * 60;        // full transit duration
                 remainingTimeSecs = walkRemainingSecs + transitAheadSecs;
 
@@ -9316,8 +9345,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (awayM > 60) selectedCoords.origin = [currentLocation.lat, currentLocation.lng];
             }
 
-            // Trigger full route recalculation per mode
-            await executeRouteQuery();
+            // Trigger full route recalculation per mode. During a journey the estimate waits for the
+            // new route: the selected mode changes before the route does, and mixing the two gave a
+            // wrong time (and an arrival time equal to the start time in the route list).
+            if (journeyOn) { liveEtaPaused = true; activeLegIndex = 0; }
+            try {
+                await executeRouteQuery();
+            } finally {
+                liveEtaPaused = false;
+            }
 
             if (journeyOn && document.body.classList.contains('navigation-active')) {
                 activeLegIndex = 0;
@@ -9325,6 +9361,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (deviationTimer) { clearTimeout(deviationTimer); deviationTimer = null; }
                 resetLiveEta();
                 liveEtaTick(lastFixAt > 0 && currentLocation ? { lat: currentLocation.lat, lng: currentLocation.lng, speed: currentGpsSpeed } : undefined);
+                renderItinerary(); // arrival time from the new estimate
                 updatePillFareUI();
                 syncNavDisplays(Date.now() - lastMovementTimestamp);
                 const pillLegs = document.getElementById('pillItineraryLegs');

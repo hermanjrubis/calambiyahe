@@ -807,8 +807,9 @@
                 });
             }
 
-            // Wait for 'idle' and map.areTilesLoaded() (timeout 12s)
-            await waitForMapTilesLoaded(map, 12000);
+            // Wait for 'idle' and map.areTilesLoaded() (8 s on a slow phone connection; after that
+            // the PDF uses the offline route diagram instead of waiting longer)
+            await waitForMapTilesLoaded(map, 8000);
 
             // Verification loop: verify with map.project() that marker boxes have >= 12px clearance
             const checkPinsInsideCrop = () => {
@@ -835,12 +836,16 @@
                 return true;
             };
 
+            // Zoom out until the pins fit. Positions do not need tiles, so check first and wait for
+            // the tiles once at the end (waiting after every step could take 12 s on its own).
             let zoomTries = 0;
             while (zoomTries < 4 && !checkPinsInsideCrop()) {
                 zoomTries++;
                 const curZoom = map.getZoom();
                 map.jumpTo({ zoom: curZoom - 0.25 });
-                await waitForMapTilesLoaded(map, 3000);
+            }
+            if (zoomTries > 0) {
+                try { await waitForMapTilesLoaded(map, 5000); } catch (_) { /* use what has loaded */ }
             }
 
             try {
@@ -855,7 +860,7 @@
 
             // Fresh repaint right before cropping WebGL canvas
             map.triggerRepaint();
-            await new Promise(r => map.once('render', r));
+            await new Promise(r => { map.once('render', r); setTimeout(r, 1500); });
 
             const mapCanvas = map.getCanvas();
             const dpr = window.devicePixelRatio || 1;
@@ -1797,7 +1802,9 @@
                 const pageEl = pageElements[i];
                 if (i > 0) doc.addPage();
 
-                if (isWebKit) {
+                // Safari draws images only from the second render: warm up once (the first page loads
+                // the fonts and images for the rest), not on every page, which doubled the time.
+                if (isWebKit && i === 0) {
                     try { await htmlToImage.toCanvas(pageEl, opts); } catch (_) {}
                 }
 
@@ -1890,13 +1897,14 @@
         let blob = null;
 
         try {
-            // PDF generation with 20s timeout fallback
+            // PDF generation with a 60 s limit. 20 s was too short on phones: waiting for map tiles
+            // on mobile data plus drawing each page in Safari often took longer.
             const timeoutPromise = new Promise((_, reject) => {
                 timeoutId = setTimeout(() => {
                     const err = new Error('PDF generation timed out');
                     err.name = 'TimeoutError';
                     reject(err);
-                }, 20000);
+                }, 60000);
             });
 
             blob = await Promise.race([
@@ -1915,7 +1923,12 @@
                 prepToastHandle = null;
             }
             if (typeof window.showToast === 'function') {
-                const failMsg = (window.t ? window.t('planner.pdf_failed') : null) || "Couldn't create the PDF. Try again.";
+                const slow = err && err.name === 'TimeoutError';
+                const key = slow ? 'planner.pdf_slow' : 'planner.pdf_failed';
+                const tr = window.t ? window.t(key) : null;
+                const failMsg = (tr && tr !== key) ? tr : (slow
+                    ? 'The PDF is taking too long. Check your connection and try again.'
+                    : "Couldn't create the PDF. Try again.");
                 window.showToast(failMsg, 'error');
             }
             return;

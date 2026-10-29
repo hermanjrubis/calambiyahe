@@ -2,7 +2,7 @@
  * Calzada live ETA during a journey.
  *
  * Remaining time is rebuilt from where the commuter actually is on each leg, not from fixed totals:
- *   walk        remaining metres / walking pace learned from GPS (starts at 4.6 km/h)
+ *   walk        remaining metres / walking pace learned from GPS (starts at 4 km/h)
  *   wait        expected jeep wait at the boarding point; counts down while you wait, and once the
  *               expected wait has passed it keeps one minute in reserve, so the arrival time slides
  *               later in real time instead of freezing
@@ -71,7 +71,7 @@
 
     function createTracker(options) {
         const opt = Object.assign({
-            walkKph: 4.6,          // starting walking pace
+            walkKph: 4.0,          // starting walking pace (door to door in town)
             jeepKph: 20,           // normal jeep speed outside rush hour
             boardingWaitSec: 180,  // expected wait for a jeep at the stop
             minWaitReserveSec: 60, // once the expected wait is used up, still count 1 min

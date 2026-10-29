@@ -19,7 +19,7 @@
     'use strict';
 
     // Same speeds and buffer as the planner, so option cards and the itinerary agree
-    const WALK_SPEED_KPH = 4.6;
+    const WALK_SPEED_KPH = 4.0;      // door to door in town, 15 min per km
     const JEEP_SPEED_KPH = 20;
     const BOARDING_BUFFER_MIN = 3;   // per jeep ride (waiting + boarding)
     const TRANSFER_EXTRA_MIN = 2;    // finding the next jeep
@@ -153,8 +153,14 @@
         return fromPos <= toPos ? out : out.reverse();
     }
 
-    const walkMin = (m) => Math.max(1, Math.ceil((m / 1000 / WALK_SPEED_KPH) * 60));
-    const rideMin = (m) => Math.ceil((m / 1000 / JEEP_SPEED_KPH) * 60) + BOARDING_BUFFER_MIN;
+    // Rounded to the nearest minute, like the planner (rounding every leg up overstated trips).
+    // The jeep runs slower in rush hour; the planner's live-ETA module knows the hours.
+    const jeepKphNow = () => {
+        const L = root && root.CalzadaLiveEta;
+        return L && typeof L.jeepDefaultMps === 'function' ? L.jeepDefaultMps(new Date(), JEEP_SPEED_KPH) * 3.6 : JEEP_SPEED_KPH;
+    };
+    const walkMin = (m) => Math.max(1, Math.round((m / 1000 / WALK_SPEED_KPH) * 60));
+    const rideMin = (m) => Math.max(1, Math.round((m / 1000 / jeepKphNow()) * 60)) + BOARDING_BUFFER_MIN;
 
     function fareFor(m) {
         const F = root && root.CalzadaFare;
