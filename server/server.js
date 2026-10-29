@@ -2394,6 +2394,160 @@ app.post('/api/admin/businesses/:id/tour360', requireAuth, async (req, res) => {
     }
 });
 
+// POST /api/admin/businesses/:id/delete - Permanently delete a business (admin only)
+// Deletes the business (and its private subdocs), its posts (and likes), its reviews and its
+// hosted photos. Payment records and receipts are kept. The owner is emailed the reason.
+// Body: { reason: string (5-500), confirmName: string (must equal the business name) }
+app.post('/api/admin/businesses/:id/delete', requireAuth, async (req, res) => {
+    if (!req.user || req.user.admin !== true) {
+        return res.status(403).json({ error: 'Forbidden: Admin access required.' });
+    }
+    const { id } = req.params;
+    if (!id || !/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+        return res.status(400).json({ error: 'A valid business ID is required.' });
+    }
+    const reason = typeof (req.body && req.body.reason) === 'string'
+        ? req.body.reason.replace(/[\r\n]+/g, ' ').trim()
+        : '';
+    if (reason.length < 5 || reason.length > 500) {
+        return res.status(400).json({ error: 'Please give a reason (5 to 500 characters). The owner will receive it.' });
+    }
+    const confirmName = typeof (req.body && req.body.confirmName) === 'string' ? req.body.confirmName.trim() : '';
+
+    const adminDb = getFirestore();
+    if (!adminDb) {
+        return res.status(500).json({ error: 'Database service unavailable.' });
+    }
+
+    try {
+        const bizRef = adminDb.collection('businesses').doc(id);
+        const bizSnap = await bizRef.get();
+        if (!bizSnap.exists) {
+            return res.status(404).json({ error: 'Business not found. It may already be deleted.' });
+        }
+        const biz = bizSnap.data() || {};
+        const businessName = String(biz.name || '').trim();
+        if (!businessName || confirmName !== businessName) {
+            return res.status(400).json({ error: 'Type the business name exactly to confirm.' });
+        }
+
+        // Owner email first: it lives on the docs we are about to delete.
+        let ownerEmail = null;
+        try {
+            const priv = await bizRef.collection('private').doc('owner').get();
+            if (priv.exists && priv.data().ownerEmail) ownerEmail = String(priv.data().ownerEmail).trim();
+        } catch (_) { /* fall through */ }
+        if (!ownerEmail && biz.ownerEmail) ownerEmail = String(biz.ownerEmail).trim();
+        if (!ownerEmail && biz.ownerId) {
+            try {
+                const rec = await getAuth().getUser(biz.ownerId);
+                if (rec && rec.email) ownerEmail = rec.email.trim();
+            } catch (_) { /* owner account may be gone */ }
+        }
+
+        // Hosted photos to remove (best effort, after the data is gone)
+        const imageUrls = new Set();
+        ['thumbnailUrl', 'profilePhotoUrl', 'logoUrl'].forEach((k) => {
+            if (typeof biz[k] === 'string' && biz[k].startsWith('https://res.cloudinary.com/')) imageUrls.add(biz[k]);
+        });
+        if (biz.tour360 && Array.isArray(biz.tour360.photos)) {
+            biz.tour360.photos.forEach((p) => {
+                if (p && typeof p.url === 'string') imageUrls.add(p.url);
+            });
+        }
+
+        // 1. Reviews of this business (place id "biz_{id}")
+        const reviewSnap = await adminDb.collection('place_reviews').where('placeId', '==', `biz_${id}`).get();
+        for (let i = 0; i < reviewSnap.docs.length; i += 450) {
+            const batch = adminDb.batch();
+            reviewSnap.docs.slice(i, i + 450).forEach((d) => batch.delete(d.ref));
+            await batch.commit();
+        }
+
+        // 2. Posts (with their likes) and the posts' photos
+        const postSnap = await adminDb.collection('posts').where('businessId', '==', id).get();
+        for (const p of postSnap.docs) {
+            const urls = Array.isArray(p.data().photoUrls) ? p.data().photoUrls : [];
+            urls.forEach((u) => { if (typeof u === 'string' && u.startsWith('https://res.cloudinary.com/')) imageUrls.add(u); });
+            await adminDb.recursiveDelete(p.ref);
+        }
+
+        // 3. Payments are kept as records: stamp the business name on them (the business doc is
+        //    going away) and close any receipt still waiting for review.
+        const paySnap = await adminDb.collection('payments').where('businessId', '==', id).get();
+        for (let i = 0; i < paySnap.docs.length; i += 450) {
+            const batch = adminDb.batch();
+            paySnap.docs.slice(i, i + 450).forEach((d) => {
+                const upd = { businessName, businessDeleted: true };
+                if (d.data().status === 'submitted') {
+                    Object.assign(upd, {
+                        status: 'closed',
+                        reviewNote: 'Business deleted by an administrator.',
+                        reviewedAt: new Date(),
+                        reviewedBy: req.user.uid
+                    });
+                }
+                batch.update(d.ref, upd);
+            });
+            await batch.commit();
+        }
+
+        // 4. The business itself, with its private subcollection. Done last, so a failure above
+        //    leaves the business in place and the admin can simply try again.
+        await adminDb.recursiveDelete(bizRef);
+
+        // 5. Photos (never fails the request)
+        let imagesRemoved = 0;
+        for (const url of imageUrls) {
+            if (await destroyByUrl(url)) imagesRemoved++;
+        }
+
+        // 6. Activity log and the owner's email
+        const nowIso = new Date().toISOString();
+        try {
+            await adminDb.collection('adminActivity').add({
+                event: 'business_deleted',
+                entityId: id,
+                actorUid: req.user.uid,
+                actorRole: 'admin',
+                at: nowIso,
+                summary: `Business "${businessName}" permanently deleted (${postSnap.size} posts, ${reviewSnap.size} reviews). Reason: ${reason}`
+            });
+        } catch (actErr) {
+            console.warn('[DELETE BUSINESS] Could not write adminActivity:', actErr.message);
+        }
+
+        let emailed = false;
+        let emailError = null;
+        if (ownerEmail) {
+            try {
+                const result = await sendEvent('business_deleted', {
+                    entityId: id,
+                    version: 1,
+                    data: { ownerEmail, businessName, reason }
+                });
+                emailed = !!(result && result.success);
+                if (!emailed) emailError = (result && result.error) || 'Email was not sent.';
+            } catch (evErr) {
+                emailError = evErr.message;
+                console.error('[DELETE BUSINESS] sendEvent business_deleted error:', evErr.message);
+            }
+        } else {
+            emailError = 'No owner email on file.';
+        }
+
+        return res.json({
+            success: true,
+            deleted: { posts: postSnap.size, reviews: reviewSnap.size, images: imagesRemoved },
+            emailed,
+            emailError: emailError || undefined
+        });
+    } catch (err) {
+        console.error('[DELETE BUSINESS] Error:', err);
+        return res.status(500).json({ error: 'Could not finish deleting the business. Try again: anything already removed stays removed.' });
+    }
+});
+
 // =============================================
 // TRAVEL REMINDERS DISPATCH API (CRON PROTECTED)
 // =============================================

@@ -54,6 +54,10 @@ const EVENTS = {
         recipients: ['owner'],
         subject: 'Listing update: Business removed from Calzada'
     },
+    business_deleted: {
+        recipients: ['owner'],
+        subject: 'Your business was removed from Calzada'
+    },
     review_posted: {
         recipients: ['user', 'owner', 'admin'],
         subject: 'Review update — Calzada'

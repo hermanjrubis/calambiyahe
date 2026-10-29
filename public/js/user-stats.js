@@ -106,19 +106,21 @@ function addActivity(type, message) {
     const user = auth.currentUser;
     if (!user || user.isAnonymous) return; // Skip recording activity for guest/unauthenticated users
 
-    const item = { id: Date.now(), type, message, timestamp: Date.now(), read: false };
+    // Use the Firestore id from the start, so removing this item later removes the stored copy too.
+    let ref = null;
+    try { ref = doc(collection(db, `users/${user.uid}/activityFeed`)); } catch (_) { ref = null; }
+    const item = { id: ref ? ref.id : String(Date.now()), type, message, timestamp: Date.now(), read: false };
     activityFeed.unshift(item);
     if (activityFeed.length > 30) activityFeed = activityFeed.slice(0, 30);
-    
-    try {
-        const actCol = collection(db, `users/${user.uid}/activityFeed`);
-        addDoc(actCol, {
+
+    if (ref) {
+        setDoc(ref, {
             type,
             message,
             timestamp: serverTimestamp(),
             read: false
-        }).catch(() => {});
-    } catch (_) {}
+        }).catch((err) => console.error('[Calzada] Could not save activity:', err));
+    }
 
     unreadCount++;
     updateBellBadge();
@@ -208,20 +210,78 @@ function renderActivityFeed() {
     `).join('');
 }
 
+// Changes to the bell list are saved to users/{uid}/activityFeed, so a removed or read
+// notification stays removed/read on every page and after a reload.
+const activityCol = (uid) => collection(db, `users/${uid}/activityFeed`);
+
+function activityError(err) {
+    console.error('[Calzada] Activity update failed:', err);
+    const msg = (window.t && window.t('activity.update_failed') !== 'activity.update_failed')
+        ? window.t('activity.update_failed')
+        : "Couldn't update your notifications. Check your connection and try again.";
+    if (typeof window.showToast === 'function') { window.showToast(msg, 'error'); return; }
+    loadTicketLib().then((T) => T.notify(msg)).catch(() => {});
+}
+
+// Reload the list from Firestore (after a failed save, so the bell shows what is really stored)
+async function reloadActivityFeed(uid) {
+    try {
+        const snap = await getDocs(activityCol(uid));
+        const items = [];
+        snap.forEach((d) => {
+            const data = d.data();
+            items.push({
+                id: d.id,
+                type: data.type,
+                message: data.message,
+                timestamp: data.timestamp?.toMillis ? data.timestamp.toMillis() : Date.now(),
+                read: !!data.read
+            });
+        });
+        items.sort((a, b) => b.timestamp - a.timestamp);
+        activityFeed = items.slice(0, 30);
+        unreadCount = activityFeed.filter((a) => !a.read).length;
+    } catch (err) {
+        console.error('[Calzada] Could not reload activity:', err);
+    }
+    updateBellBadge();
+    renderActivityFeed();
+}
+
+// Firestore batches hold at most 500 writes
+async function commitInChunks(refs, apply) {
+    for (let i = 0; i < refs.length; i += 450) {
+        const batch = writeBatch(db);
+        refs.slice(i, i + 450).forEach((r) => apply(batch, r));
+        await batch.commit();
+    }
+}
+
 // Mark all notifications as read (clears badge count)
 window._calzadaMarkActivityAsRead = function () {
+    const unreadIds = activityFeed.filter((a) => !a.read).map((a) => String(a.id));
     activityFeed = activityFeed.map(a => ({ ...a, read: true }));
     unreadCount = 0;
     updateBellBadge();
     renderActivityFeed();
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous || !unreadIds.length) return;
+    const refs = unreadIds.map((id) => doc(db, `users/${user.uid}/activityFeed/${id}`));
+    commitInChunks(refs, (batch, r) => batch.update(r, { read: true }))
+        .catch((err) => { activityError(err); reloadActivityFeed(user.uid); });
 };
 
-// Completely wipe / clear the activity feed list
+// Completely wipe / clear the activity feed list (every stored item, not only the 30 shown)
 window._calzadaClearActivity = function () {
     activityFeed = [];
     unreadCount = 0;
     updateBellBadge();
     renderActivityFeed();
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous) return;
+    getDocs(activityCol(user.uid))
+        .then((snap) => commitInChunks(snap.docs.map((d) => d.ref), (batch, r) => batch.delete(r)))
+        .catch((err) => { activityError(err); reloadActivityFeed(user.uid); });
 };
 
 // Delete single activity item
@@ -230,6 +290,10 @@ window._calzadaDeleteActivityItem = function (id) {
     unreadCount = activityFeed.filter(a => !a.read).length;
     updateBellBadge();
     renderActivityFeed();
+    const user = auth.currentUser;
+    if (!user || user.isAnonymous || !id) return;
+    deleteDoc(doc(db, `users/${user.uid}/activityFeed/${String(id)}`))
+        .catch((err) => { activityError(err); reloadActivityFeed(user.uid); });
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1822,6 +1822,35 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Delete permanently, with in-page confirmation (type the name) -->
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
+                            <div id="busDeleteInitialGroup" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">
+                                    <i class="ti ti-trash"></i>
+                                    <span>Delete permanently</span>
+                                </button>
+                                <span style="font-size: 12px; color: var(--navy-subtle);">
+                                    Removes the business, its posts, reviews and photos. Payment records are kept. This cannot be undone.
+                                </span>
+                            </div>
+
+                            <div class="action-reason-box" id="busDeleteConfirmBox">
+                                <strong style="font-size: 13px; color: #991B1B;">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
+                                <p style="font-size: 13px; color: var(--navy-muted); margin: 6px 0 10px; line-height: 1.5;">
+                                    Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.
+                                </p>
+                                <label for="busDeleteReasonText" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Reason (sent to the owner)</label>
+                                <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
+                                <label for="busDeleteConfirmName" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin: 10px 0 4px;">Type the business name to confirm</label>
+                                <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
+                                <div class="action-inline-error" id="busDeleteInlineError"></div>
+                                <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                                    <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
+                                    <button type="button" class="btn-admin-secondary" id="btnCancelDeleteBusiness">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -3092,7 +3121,7 @@
             emptyState.style.display = 'none';
             container.innerHTML = list.map(p => {
                 const bus = allBusinesses.find(b => b.id === p.businessId);
-                const busName = bus ? bus.name : 'Unknown Business';
+                const busName = bus ? bus.name : (p.businessName ? `${p.businessName} (deleted)` : 'Unknown Business');
                 const planCfg = window.CALZADA_PLANS?.[p.plan] || window.CALZADA_PLANS?.listed;
                 const planName = planCfg ? planCfg.name : (p.plan || 'Listed');
                 const last4 = p.referenceNo ? p.referenceNo.slice(-4) : '----';
@@ -3157,7 +3186,7 @@
             content.style.display = 'block';
 
             const bus = allBusinesses.find(b => b.id === payment.businessId);
-            const busName = bus ? bus.name : 'Unknown Business';
+            const busName = bus ? bus.name : (payment.businessName ? `${payment.businessName} (deleted)` : 'Unknown Business');
 
             document.getElementById('paymentDetailBusName').textContent = busName;
             document.getElementById('paymentDetailMetaLine').textContent = 
@@ -3884,6 +3913,7 @@
             document.getElementById('busHideInitialGroup').style.display = 'block';
             document.getElementById('busHideConfirmBox').style.display = 'none';
             setInlineError('busHideInlineError', '');
+            resetDeleteBusinessBox();
 
             card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
@@ -3951,6 +3981,81 @@
                 }
             });
         }
+
+        // --- Delete business permanently ---
+        function resetDeleteBusinessBox() {
+            const initial = document.getElementById('busDeleteInitialGroup');
+            const box = document.getElementById('busDeleteConfirmBox');
+            if (!initial || !box) return;
+            initial.style.display = 'flex';
+            box.style.display = 'none';
+            document.getElementById('busDeleteReasonText').value = '';
+            document.getElementById('busDeleteConfirmName').value = '';
+            document.getElementById('btnConfirmDeleteBusiness').disabled = true;
+            setInlineError('busDeleteInlineError', '');
+        }
+
+        function updateDeleteBusinessReady() {
+            const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
+            const typed = document.getElementById('busDeleteConfirmName').value.trim();
+            const reason = document.getElementById('busDeleteReasonText').value.trim();
+            document.getElementById('btnConfirmDeleteBusiness').disabled =
+                !bus || typed !== String(bus.name || '').trim() || reason.length < 5;
+        }
+
+        document.getElementById('btnTriggerDeleteBusiness')?.addEventListener('click', () => {
+            const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
+            if (!bus) return;
+            resetDeleteBusinessBox();
+            document.getElementById('busDeleteNameLabel').textContent = `"${bus.name || 'this business'}"`;
+            document.getElementById('busDeleteInitialGroup').style.display = 'none';
+            document.getElementById('busDeleteConfirmBox').style.display = 'block';
+            document.getElementById('busDeleteReasonText').focus();
+        });
+        document.getElementById('btnCancelDeleteBusiness')?.addEventListener('click', resetDeleteBusinessBox);
+        document.getElementById('busDeleteReasonText')?.addEventListener('input', updateDeleteBusinessReady);
+        document.getElementById('busDeleteConfirmName')?.addEventListener('input', updateDeleteBusinessReady);
+
+        document.getElementById('btnConfirmDeleteBusiness')?.addEventListener('click', async () => {
+            const btn = document.getElementById('btnConfirmDeleteBusiness');
+            const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
+            if (!bus) return;
+            const reason = document.getElementById('busDeleteReasonText').value.trim();
+            const confirmName = document.getElementById('busDeleteConfirmName').value.trim();
+            if (reason.length < 5) {
+                setInlineError('busDeleteInlineError', 'Please give a reason (at least 5 characters). The owner will receive it.');
+                return;
+            }
+            if (confirmName !== String(bus.name || '').trim()) {
+                setInlineError('busDeleteInlineError', 'The name you typed does not match the business name.');
+                return;
+            }
+            setInlineError('busDeleteInlineError', '');
+            try {
+                setButtonLoading(btn, true, 'Deleting...');
+                const token = auth.currentUser ? await auth.currentUser.getIdToken() : '';
+                const res = await fetch(`/api/admin/businesses/${encodeURIComponent(bus.id)}/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ reason, confirmName })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data.error || `Delete failed (${res.status}).`);
+
+                const d = data.deleted || {};
+                const emailNote = data.emailed ? 'The owner was emailed.' : `The owner was NOT emailed (${data.emailError || 'unknown reason'}).`;
+                showAdminNotice(`"${bus.name}" was deleted permanently (${d.posts || 0} posts, ${d.reviews || 0} reviews removed). ${emailNote}`, data.emailed ? 'success' : 'error');
+                document.getElementById('businessRowDetailCard').style.display = 'none';
+                selectedDetailBusId = null;
+                // The live listeners drop the business, its posts and reviews from every list.
+            } catch (err) {
+                console.error('Error deleting business:', err);
+                setInlineError('busDeleteInlineError', `Could not delete: ${err.message}`);
+            } finally {
+                setButtonLoading(btn, false);
+                if (selectedDetailBusId) updateDeleteBusinessReady();
+            }
+        });
 
         // --- Posts Moderation View ---
         function renderPostsSection() {

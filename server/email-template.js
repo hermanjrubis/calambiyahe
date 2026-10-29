@@ -328,6 +328,24 @@ function renderEventEmail(eventName, payload = {}, recipientType = 'owner') {
             buttonUrl = myBusinessUrl;
             break;
 
+        case 'business_deleted':
+            subject = `${plainBusName} was removed from Calzada`;
+            headline = `${businessName} has been permanently removed`;
+            lines = [
+                `An administrator permanently removed your business from Calzada. Its listing, posts, reviews and photos are no longer on the site.`,
+                `Reason given:`
+            ];
+            extraBox = `
+              <div style="background-color: #F1F5F9; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 14px; color: #475569; line-height: 1.5;">
+                ${safeReason}
+              </div>
+              <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
+                Your payment records are kept. If you have questions, reply directly to this email.
+              </p>`;
+            buttonText = 'See Calzada plans';
+            buttonUrl = `${baseUrl}/plans`;
+            break;
+
         case 'review_posted':
             if (recipientType === 'user') {
                 subject = `Thank you for reviewing ${plainPlaceName}`;
