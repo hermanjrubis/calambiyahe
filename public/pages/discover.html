@@ -508,11 +508,12 @@
             margin-top: 2px;
         }
 
-        /* Photo Carousel: 4:3, swipe with scroll-snap */
+        /* Photo Carousel, swipe with scroll-snap. The frame follows the first photo:
+           portrait 4:5, square 1:1 or landscape 4:3 (set by script; square until it loads). */
         .post-media-wrap {
             position: relative;
             width: 100%;
-            aspect-ratio: 4 / 3;
+            aspect-ratio: var(--media-ratio, 1 / 1);
             max-width: 100%;
             background: #E9EEF5;
             overflow: hidden;
@@ -562,6 +563,7 @@
             display: block;
             opacity: 0;
             transform: scale(1.02);
+            background: #E9EEF5;
             transition: opacity 0.35s ease, transform 0.6s var(--ease-out);
             -webkit-user-drag: none;
         }
@@ -569,6 +571,8 @@
             opacity: 1;
             transform: none;
         }
+        /* A later photo with a different shape than the frame is shown whole, not cut */
+        .media-slide.is-fit .post-media-img { object-fit: contain; }
         .media-counter {
             position: absolute;
             top: 12px;
@@ -1311,7 +1315,7 @@
             animation: dropIn 0.3s var(--ease-out);
         }
         .post-card.is-skeleton .sk-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
-        .post-card.is-skeleton .sk-media { aspect-ratio: 4 / 3; border-radius: 0; }
+        .post-card.is-skeleton .sk-media { aspect-ratio: 1 / 1; border-radius: 0; }
         .post-card.is-skeleton .sk-lines { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
 
         /* Floating Bottom Navigation Bar (Phone ≤ 767px) */
@@ -2136,6 +2140,17 @@
         }
 
         // Swipeable photo carousel (native scroll-snap) + double-tap to like
+        // Photo shapes the feed supports: 4:5 portrait, 1:1 square, 4:3 landscape. Each photo
+        // snaps to the nearest one; remembered per URL so a re-render does not jump.
+        const photoRatioCache = new Map();
+        function snapPhotoRatio(w, h) {
+            const r = w / h;
+            if (!(r > 0)) return { css: '1 / 1', value: 1 };
+            if (r < 0.9) return { css: '4 / 5', value: 0.8 };
+            if (r <= 1.15) return { css: '1 / 1', value: 1 };
+            return { css: '4 / 3', value: 4 / 3 };
+        }
+
         function wireCarousel(card, post, photos, startIdx) {
             const wrap = card.querySelector('.post-media-wrap');
             const track = card.querySelector('.media-track');
@@ -2148,10 +2163,34 @@
             let current = startIdx;
             let counterTimer = null;
 
-            // Fade each photo in once it has loaded
-            slides.forEach(slide => {
+            // The frame takes the first photo's shape (known at once if we have seen it before)
+            let frameRatio = null;
+            const applyFrame = (ratio) => {
+                frameRatio = ratio;
+                wrap.style.setProperty('--media-ratio', ratio.css);
+                slides.forEach((s) => fitSlide(s));
+            };
+            const fitSlide = (slide) => {
                 const img = slide.querySelector('img');
-                const done = () => slide.classList.add('is-loaded');
+                if (!frameRatio || !img || !img.naturalWidth) return;
+                const r = img.naturalWidth / img.naturalHeight;
+                // Close to the frame's shape: fill it; otherwise show the whole photo
+                slide.classList.toggle('is-fit', Math.abs(r - frameRatio.value) / frameRatio.value > 0.12);
+            };
+            if (photoRatioCache.has(photos[0])) applyFrame(photoRatioCache.get(photos[0]));
+
+            // Fade each photo in once it has loaded
+            slides.forEach((slide, i) => {
+                const img = slide.querySelector('img');
+                const done = () => {
+                    if (img.naturalWidth > 0) {
+                        const ratio = snapPhotoRatio(img.naturalWidth, img.naturalHeight);
+                        photoRatioCache.set(photos[i], ratio);
+                        if (i === 0 && (!frameRatio || frameRatio.css !== ratio.css)) applyFrame(ratio);
+                        else fitSlide(slide);
+                    }
+                    slide.classList.add('is-loaded');
+                };
                 if (img.complete && img.naturalWidth > 0) done();
                 else {
                     img.addEventListener('load', done, { once: true });
