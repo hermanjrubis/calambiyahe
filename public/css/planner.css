@@ -1107,11 +1107,49 @@ body.navigation-active .calzada-map-card {
     border: 3px solid #fff;
     box-shadow: 0 1px 4px rgba(15, 23, 42, 0.35);
     pointer-events: none !important;
+    position: relative;
+}
+
+/* Wrapper for the dot and its direction beam (the marker element). */
+.calzada-user-loc {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    pointer-events: none !important;
+}
+
+/* Direction beam: a flat translucent wedge behind the dot, pointing where you face.
+   Rotated by JS (heading minus map bearing). Hidden when there is no heading. */
+.calzada-user-beam {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 140px;
+    height: 140px;
+    margin: -70px 0 0 -70px;
+    background: #2272C3;
+    opacity: 0.22;
+    clip-path: polygon(50% 50%, 28.9% 4.7%, 39.3% 1.2%, 50% 0%, 60.7% 1.2%, 71.1% 4.7%);
+    transform-origin: 50% 50%;
+    transition: transform 0.12s linear;
+    pointer-events: none;
+    display: none;
+}
+
+.calzada-user-beam.is-visible {
+    display: block;
+}
+
+/* Compass unsure (iOS reports poor accuracy): wider and lighter */
+.calzada-user-beam.is-unsure {
+    opacity: 0.13;
+    clip-path: polygon(50% 50%, 11.7% 17.9%, 28.9% 4.7%, 50% 0%, 71.1% 4.7%, 88.3% 17.9%);
 }
 
 @media (prefers-reduced-motion: reduce) {
     .calzada-locate-btn.is-loading .calzada-locate-icon { animation: none; opacity: 0.5; }
     .calzada-compass-needle { transition: none; }
+    .calzada-user-beam { transition: none; }
 }
 
 

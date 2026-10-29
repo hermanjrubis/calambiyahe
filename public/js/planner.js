@@ -316,9 +316,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const map = new maplibregl.Map({
             container: 'map',
             style: 'https://tiles.openfreemap.org/styles/liberty',
-            center: [121.1652, 14.2117], // Calamba coordinates [lng, lat]
+            center: [121.1618, 14.1981], // middle of Brgy. Uno, Real and Halang [lng, lat]; framed exactly on load
             zoom: 13,
-            minZoom: 13,
+            minZoom: 12,
             dragRotate: true,
             touchPitch: false,
             pitchWithRotate: false,
@@ -7654,17 +7654,137 @@ document.addEventListener('DOMContentLoaded', () => {
             const render = (f) => {
                 const hidden = navActive(); // the journey nav cursor takes over
                 if (!dotMarker) {
+                    // Wrapper holds the direction beam (behind) and the dot (in front).
                     const el = document.createElement('div');
-                    el.className = 'calzada-user-dot';
+                    el.className = 'calzada-user-loc';
                     el.setAttribute('aria-hidden', 'true');
+                    beamEl = document.createElement('div');
+                    beamEl.className = 'calzada-user-beam';
+                    const dot = document.createElement('div');
+                    dot.className = 'calzada-user-dot';
+                    el.append(beamEl, dot);
                     dotMarker = new maplibregl.Marker({ element: el, anchor: 'center' })
                         .setLngLat([f.lng, f.lat])
                         .addTo(map);
+                    renderBeam();
                 }
                 dotMarker.setLngLat([f.lng, f.lat]);
                 dotMarker.getElement().style.visibility = hidden ? 'hidden' : '';
                 scheduleLocateState();
             };
+
+            // ── Direction beam (which way you are facing, Google Maps style) ─────────
+            // Source: GPS heading while moving at 2 m/s or more (riding), else the phone's compass.
+            // No heading (laptop, permission denied, relative-only sensor): dot only, as before.
+            let beamEl = null;
+            let userHeading = null;          // degrees from north, smoothed
+            let headingSource = null;        // 'gps' | 'compass'
+            let compassUnsure = false;       // iOS reports poor accuracy: wider, lighter beam
+            let lastCompassAt = 0;
+            let headingListening = false;
+            let facingMode = false;          // 2nd locate tap: the map turns with you
+            let lastFacingCameraAt = 0;
+
+            const renderBeam = () => {
+                if (!beamEl) return;
+                const fresh = userHeading !== null && (headingSource === 'gps' || Date.now() - lastCompassAt < 5000);
+                beamEl.classList.toggle('is-visible', fresh);
+                beamEl.classList.toggle('is-unsure', fresh && headingSource === 'compass' && compassUnsure);
+                if (!fresh) return;
+                // Turn the short way round (359° → 1° is +2°, not −358°).
+                const target = userHeading - map.getBearing();
+                beamAngle = (beamAngle === null) ? target : beamAngle + getAngularDiff(target, beamAngle);
+                beamEl.style.transform = `rotate(${beamAngle}deg)`;
+            };
+            let beamAngle = null;
+            map.on('rotate', renderBeam);
+
+            // Facing mode: keep the map turned to your heading (at most 4 camera moves a second).
+            const applyFacingCamera = (force = false) => {
+                if (!facingMode || !fix || userHeading === null || navActive()) return;
+                const now = performance.now();
+                if (!force && now - lastFacingCameraAt < 250) return;
+                lastFacingCameraAt = now;
+                map.easeTo({
+                    center: [fix.lng, fix.lat],
+                    bearing: userHeading,
+                    offset: visibleMapCenter().offset,
+                    duration: reducedMotion() ? 0 : 200,
+                    easing: (k) => k,
+                    essential: true
+                });
+            };
+
+            const setHeading = (deg, source) => {
+                if (typeof deg !== 'number' || isNaN(deg)) return;
+                deg = ((deg % 360) + 360) % 360;
+                userHeading = (headingSource === source) ? smoothHeading(userHeading, deg, 4, 0.25) : deg;
+                headingSource = source;
+                renderBeam();
+                applyFacingCamera();
+            };
+
+            const onDotOrientation = (event) => {
+                let raw = null;
+                if (typeof event.webkitCompassHeading === 'number' && !isNaN(event.webkitCompassHeading)) {
+                    raw = event.webkitCompassHeading; // iOS: true compass
+                    const acc = event.webkitCompassAccuracy;
+                    compassUnsure = typeof acc !== 'number' || acc < 0 || acc > 25;
+                } else if ((event.type === 'deviceorientationabsolute' || event.absolute === true)
+                    && typeof event.alpha === 'number' && !isNaN(event.alpha)) {
+                    raw = (360 - event.alpha) % 360; // Android: absolute alpha
+                    compassUnsure = false;
+                }
+                if (raw === null) return; // relative-only sensor: not a compass
+                const screenAngle = (window.screen?.orientation?.angle !== undefined)
+                    ? window.screen.orientation.angle
+                    : (typeof window.orientation === 'number' ? window.orientation : 0);
+                lastCompassAt = Date.now();
+                // GPS heading wins while riding
+                if (headingSource === 'gps' && lastGpsHeadingAt && Date.now() - lastGpsHeadingAt < 3000) return;
+                setHeading(raw + screenAngle, 'compass');
+            };
+            let lastGpsHeadingAt = 0;
+
+            const startHeading = () => {
+                if (headingListening) return;
+                headingListening = true;
+                window.addEventListener('deviceorientationabsolute', onDotOrientation, { passive: true });
+                window.addEventListener('deviceorientation', onDotOrientation, { passive: true });
+            };
+
+            // iOS asks for motion access only from a tap; call before any await in the click handler.
+            let headingPermissionAsked = false;
+            const askHeadingPermission = () => {
+                if (headingPermissionAsked) return;
+                if (typeof DeviceOrientationEvent === 'undefined' || typeof DeviceOrientationEvent.requestPermission !== 'function') return;
+                headingPermissionAsked = true;
+                try {
+                    DeviceOrientationEvent.requestPermission()
+                        .then((res) => { if (res === 'granted') startHeading(); })
+                        .catch((e) => console.warn('[Calzada] Compass permission:', e));
+                } catch (e) { console.warn('[Calzada] Compass permission:', e); }
+            };
+
+            const setFacingMode = (on) => {
+                if (facingMode === on) return;
+                facingMode = on;
+                if (on) {
+                    applyFacingCamera(true);
+                } else {
+                    // Turn back to north around you, so you stay in the middle.
+                    const opts = { bearing: 0, duration: reducedMotion() ? 0 : 300, essential: true };
+                    if (fix && !navActive()) Object.assign(opts, { center: [fix.lng, fix.lat], offset: visibleMapCenter().offset });
+                    map.easeTo(opts);
+                }
+                scheduleLocateState();
+            };
+            // Panning the map yourself stops facing mode (the map stays where you put it).
+            const stopFacingOnGesture = (e) => {
+                if (facingMode && e && e.originalEvent) { facingMode = false; scheduleLocateState(); }
+            };
+            map.on('dragstart', stopFacingOnGesture);
+            map.on('rotatestart', stopFacingOnGesture);
 
             // Glide the dot to the new fix instead of jumping.
             const moveTo = (next) => {
@@ -7688,6 +7808,20 @@ document.addEventListener('DOMContentLoaded', () => {
             // Middle of the part of the map the user can see: below the top bar and above the
             // Directions sheet on phones, right of the sidebar on desktop. Uses the sheet's target
             // transform, so it is right even while the sheet is still sliding.
+            // Padding that keeps a fitBounds inside the visible part of the map (see visibleMapCenter).
+            const visiblePadding = (margin = 24) => {
+                const cont = map.getContainer();
+                const cr = cont.getBoundingClientRect();
+                const c = visibleMapCenter();
+                const r = c.rect;
+                return {
+                    top: Math.max(0, r.top - cr.top) + margin,
+                    bottom: Math.max(0, cr.bottom - r.bottom) + margin,
+                    left: Math.max(0, r.left - cr.left) + margin,
+                    right: Math.max(0, cr.right - r.right) + margin
+                };
+            };
+
             const visibleMapCenter = () => {
                 const cont = map.getContainer();
                 const cr = cont.getBoundingClientRect();
@@ -7715,7 +7849,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return {
                     x: x - cr.left,
                     y: y - cr.top,
-                    offset: [Math.round(x - (cr.left + cr.right) / 2), Math.round(y - (cr.top + cr.bottom) / 2)]
+                    offset: [Math.round(x - (cr.left + cr.right) / 2), Math.round(y - (cr.top + cr.bottom) / 2)],
+                    rect: { top, bottom, left, right }
                 };
             };
 
@@ -7729,6 +7864,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     essential: true
                 });
             };
+
+            // Frame Brgy. Uno, Real and Halang in the visible part of the map.
+            const frameCoverage = ({ animate = false } = {}) => {
+                if (!window.CalzadaScope || typeof window.CalzadaScope.bbox !== 'function') return;
+                const b = window.CalzadaScope.bbox();
+                map.fitBounds([[b[0], b[1]], [b[2], b[3]]], {
+                    padding: visiblePadding(16),
+                    duration: (animate && !reducedMotion()) ? 600 : 0,
+                    essential: true
+                });
+            };
+
+            // On open the map shows the 3 barangays, unless something else already moved it
+            // (your live location, a route being restored, a place link).
+            const START_CENTER = map.getCenter();
+            const START_ZOOM = map.getZoom();
+            const frameCoverageOnOpen = () => {
+                if (hasCentered || routeOnMap() || (selectedCoords.origin && selectedCoords.destination)) return;
+                const c = map.getCenter();
+                if (Math.abs(c.lng - START_CENTER.lng) > 1e-6 || Math.abs(c.lat - START_CENTER.lat) > 1e-6
+                    || Math.abs(map.getZoom() - START_ZOOM) > 1e-6) return;
+                frameCoverage();
+            };
+            {
+                const mapReady = new Promise((res) => { if (map.loaded()) res(); else map.once('load', res); });
+                const areaReady = (window.CalzadaScope && typeof window.CalzadaScope.load === 'function')
+                    ? window.CalzadaScope.load().catch(() => null)
+                    : Promise.resolve();
+                Promise.all([mapReady, areaReady]).then(() => requestAnimationFrame(frameCoverageOnOpen));
+            }
 
             const setLoading = (on) => {
                 requesting = on;
@@ -7754,13 +7919,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast(outMsg, 'warning');
                 }
                 lastFixInfo = { lat: next.lat, lng: next.lng, acc: pos.coords.accuracy, ts: Date.now() };
+                // Outside the 3 barangays: widen the map's limits so the dot can still be shown.
+                const reachable = (window.CalzadaScope && typeof window.CalzadaScope.includeUser === 'function')
+                    ? window.CalzadaScope.includeUser(map, next.lat, next.lng)
+                    : true;
+                const insideArea = !(window.CalzadaScope && typeof window.CalzadaScope.contains === 'function')
+                    || window.CalzadaScope.contains(next.lat, next.lng);
+                // Riding (2 m/s or more): the GPS heading points the beam.
+                const spd = pos.coords.speed, hdg = pos.coords.heading;
+                if (typeof spd === 'number' && spd >= 2 && typeof hdg === 'number' && !isNaN(hdg)) {
+                    lastGpsHeadingAt = Date.now();
+                    setHeading(hdg, 'gps');
+                } else if (headingSource === 'gps' && Date.now() - lastGpsHeadingAt > 3000) {
+                    headingSource = null; // stopped: the compass takes over on its next reading
+                    if (Date.now() - lastCompassAt > 5000) userHeading = null;
+                }
+                startHeading();
                 moveTo(next);
+                renderBeam();
                 setActive(true);
                 const inPreview = () => !!(selectedCoords.origin && selectedCoords.destination);
-                if (recenter) {
+                const showUser = () => {
+                    if (!reachable) { frameCoverage(); return; } // too far away: keep the area in view
+                    if (insideArea) { centerOn(next); return; }
+                    // Outside the area: frame both the user and the 3 barangays.
+                    const b = window.CalzadaScope.bbox();
+                    map.fitBounds([
+                        [Math.min(b[0], next.lng), Math.min(b[1], next.lat)],
+                        [Math.max(b[2], next.lng), Math.max(b[3], next.lat)]
+                    ], { padding: visiblePadding(32), maxZoom: 16, duration: reducedMotion() ? 0 : 700, essential: true });
+                };
+                if (facingMode) {
+                    applyFacingCamera();
+                } else if (recenter) {
                     centerOn(next);
                 } else if (!hasCentered && !inPreview() && !routeOnMap()) {
-                    centerOn(next);
+                    showUser();
                 }
                 hasCentered = true;
 
@@ -7809,7 +8003,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (watchHandle !== null) { navigator.geolocation.clearWatch(watchHandle); watchHandle = null; }
                 if (animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
                 if (dotMarker) { dotMarker.remove(); dotMarker = null; }
+                beamEl = null;
                 fix = null;
+                if (facingMode) setFacingMode(false);
+                if (window.CalzadaScope && typeof window.CalzadaScope.includeUser === 'function') {
+                    window.CalzadaScope.includeUser(map, null, null);
+                }
                 setActive(false);
                 scheduleLocateState();
             };
@@ -7876,7 +8075,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const updateLocateState = () => {
                 if (!locateBtn) return;
                 let state = 'idle';
-                if (navActive()) {
+                if (navActive() || facingMode) {
                     state = 'heading';
                 } else if (fix) {
                     const c = visibleMapCenter();
@@ -7909,14 +8108,25 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             map.on('rotate', syncCompass);
             const onCompassClick = () => {
+                if (facingMode) { facingMode = false; scheduleLocateState(); }
                 map.easeTo({ bearing: 0, pitch: 0, duration: reducedMotion() ? 0 : 300, essential: true });
             };
 
             const onLocateClick = async () => {
+                // iOS: the compass needs a tap to ask permission (must happen before any await).
+                askHeadingPermission();
                 if (requesting) return;
                 if (fix) {
-                    centerOn(fix);
                     startWatch();
+                    startHeading();
+                    // Tap by tap, like Google Maps: centre on you → turn the map with you → back to north up.
+                    if (facingMode) { setFacingMode(false); return; }
+                    if (locateState === 'centred' && !navActive()) {
+                        if (userHeading !== null) { setFacingMode(true); return; }
+                        showToast(t('planner.no_compass'), 'location');
+                        return;
+                    }
+                    centerOn(fix);
                     return;
                 }
                 if (!geoSupported()) { showToast(t('planner.geo_unavailable'), 'error'); return; }
@@ -7989,7 +8199,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Journey start/stop toggles body.navigation-active; re-render so the dot
             // hides under the nav cursor and comes back afterwards.
-            new MutationObserver(() => { if (fix) render(fix); updateLocateState(); })
+            new MutationObserver(() => {
+                if (navActive() && facingMode) facingMode = false; // the journey camera takes over
+                if (fix) render(fix);
+                updateLocateState();
+            })
                 .observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
             // ── Auto-request once on Planner open ──────────────────────────────────

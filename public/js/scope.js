@@ -23,9 +23,12 @@
     const FALLBACK_BBOX = [121.140019, 14.186221, 121.183502, 14.209973];
     const PRIMARY_BARANGAYS = ['Uno', 'Real', 'Halang'];
 
-    // 1.5 km padding (~0.0136 lat, ~0.0140 lng at 14.2° N)
-    const PAD_1_5KM_LAT = 0.0136;
-    const PAD_1_5KM_LNG = 0.0140;
+    // Room around the area the map may show: about 7.8 km north/south (0.070 lat) and 5.4 km
+    // east/west (0.050 lng). The limits apply to the whole screen, including the part under the
+    // bottom sheet, so on a tall phone they must be much taller than the area itself, or the map
+    // cannot show all 3 barangays above the sheet (the old 1.5 km was too tight).
+    const PAD_1_5KM_LAT = 0.070;
+    const PAD_1_5KM_LNG = 0.050;
     // 500 m padding (~0.0045 lat, ~0.0046 lng at 14.2° N)
     const PAD_500M_LAT = 0.0045;
     const PAD_500M_LNG = 0.0046;
@@ -171,13 +174,37 @@
         ];
     }
 
+    // Points outside the area the map must still reach: the trip's start ('start') and the
+    // user's live location ('user'). Kept separately so clearing a trip keeps the user reachable.
+    const extraPoints = {};
+    // A live location farther than this from the area is not pulled into view (zooming out
+    // that far would lose the 3 barangays); the area stays framed instead.
+    const USER_MAX_DIST_DEG = 0.25; // about 25 km
+
+    function applyBounds(map) {
+        if (!map) return;
+        const base = getBaseBounds();
+        let minLng = base[0][0], minLat = base[0][1], maxLng = base[1][0], maxLat = base[1][1];
+        Object.values(extraPoints).forEach((p) => {
+            minLng = Math.min(minLng, p.lng - PAD_500M_LNG);
+            minLat = Math.min(minLat, p.lat - PAD_500M_LAT);
+            maxLng = Math.max(maxLng, p.lng + PAD_500M_LNG);
+            maxLat = Math.max(maxLat, p.lat + PAD_500M_LAT);
+        });
+        try {
+            // A user outside the area may need a wider view than zoom 13 to see both.
+            map.setMinZoom(extraPoints.user ? 11 : 12);
+            map.setMaxBounds([
+                [minLng, minLat],
+                [maxLng, maxLat]
+            ]);
+        } catch (_) {}
+    }
+
     function resetBounds(map) {
         if (!map) return;
-        const bounds = getBaseBounds();
-        try {
-            map.setMaxBounds(bounds);
-            map.setMinZoom(13);
-        } catch (_) {}
+        delete extraPoints.start;
+        applyBounds(map);
     }
 
     function expandBoundsForStart(map, startLat, startLng) {
@@ -185,19 +212,37 @@
         const lat = Number(startLat);
         const lng = Number(startLng);
         if (isNaN(lat) || isNaN(lng)) return;
+        extraPoints.start = { lat, lng };
+        applyBounds(map);
+    }
 
-        const base = getBaseBounds();
-        const minLng = Math.min(base[0][0], lng - PAD_500M_LNG);
-        const minLat = Math.min(base[0][1], lat - PAD_500M_LAT);
-        const maxLng = Math.max(base[1][0], lng + PAD_500M_LNG);
-        const maxLat = Math.max(base[1][1], lat + PAD_500M_LAT);
-
-        try {
-            map.setMaxBounds([
-                [minLng, minLat],
-                [maxLng, maxLat]
-            ]);
-        } catch (_) {}
+    /**
+     * Keep the user's live location reachable when it is outside the area (and not too far).
+     * Returns true when the location is now inside the allowed bounds.
+     */
+    function includeUser(map, userLat, userLng) {
+        if (!map) return false;
+        const lat = Number(userLat);
+        const lng = Number(userLng);
+        const had = !!extraPoints.user;
+        if (userLat == null || userLng == null || isNaN(lat) || isNaN(lng) || checkPointInCoverage(lat, lng)) {
+            delete extraPoints.user;
+            if (had) applyBounds(map);
+            return !isNaN(lat) && !isNaN(lng) && userLat != null;
+        }
+        const b = (coverageData && coverageData.bbox) ? coverageData.bbox : FALLBACK_BBOX;
+        const dLng = Math.max(b[0] - lng, 0, lng - b[2]);
+        const dLat = Math.max(b[1] - lat, 0, lat - b[3]);
+        if (Math.hypot(dLng, dLat) > USER_MAX_DIST_DEG) {
+            delete extraPoints.user;
+            if (had) applyBounds(map);
+            return false;
+        }
+        const prev = extraPoints.user;
+        extraPoints.user = { lat, lng };
+        // Re-apply only when the user moved enough to matter (bounds carry 500 m of room).
+        if (!prev || Math.abs(prev.lat - lat) > 0.001 || Math.abs(prev.lng - lng) > 0.001) applyBounds(map);
+        return true;
     }
 
     /**
@@ -479,6 +524,7 @@
         getBaseBounds,
         resetBounds,
         expandBoundsForStart,
+        includeUser,
         addFog
     };
 })();
