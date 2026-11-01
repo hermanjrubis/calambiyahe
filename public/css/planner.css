@@ -7950,3 +7950,40 @@ body.cz-route-busy .segment-btn[data-mode] {
 .map-segment-btn .cat-ico-fill { display: none; }
 .map-segment-btn.active .cat-ico-line { display: none; }
 .map-segment-btn.active .cat-ico-fill { display: block; }
+
+/* Map buttons on desktop (Nov 1, 2026): the +/- box now matches the compass and
+   locate card above it: same 48px width, same right edge, white, 16px corners,
+   the same shadow and the same short divider. */
+@media (min-width: 768px) {
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+        width: 48px;
+        border: none !important;
+        border-radius: 16px !important;
+        background: #FFFFFF !important;
+        box-shadow: 0 4px 14px rgba(14, 42, 71, 0.16) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button {
+        width: 48px !important;
+        height: 48px !important;
+        border-bottom: none !important;
+        border-top: none !important;
+        position: relative;
+        background-color: transparent;
+    }
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button + button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 12px;
+        right: 12px;
+        height: 1px;
+        background: #E2E8F0;
+    }
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover { background-color: #F1F5F9 !important; }
+    .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:focus-visible { outline: 2px solid #378ADD; outline-offset: -3px; border-radius: 14px; }
+}
