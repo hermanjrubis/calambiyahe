@@ -14369,3 +14369,28 @@ button.feature-link-btn {
     cursor: pointer;
 }
 
+
+/* Header fit (Nov 1, 2026): once you scroll, the header becomes a 1200px pill. Signed in,
+   the search pill + language + bell + your name ran past its right edge. In the scrolled
+   pill (and on screens under 1440px) the search shrinks to its icon, the name is shorter
+   and the gaps are a little tighter, so everything stays inside. */
+.nav-container, .nav-center { min-width: 0; }
+@media (min-width: 1200px) {
+    .navbar.scrolled .header-search-pill-btn,
+    .navbar.navbar-scrolled .header-search-pill-btn { width: 40px; padding: 0; justify-content: center; margin-right: 0; }
+    .navbar.scrolled .header-search-pill-btn .header-search-text,
+    .navbar.navbar-scrolled .header-search-pill-btn .header-search-text { display: none; }
+    .navbar.scrolled .nav-right,
+    .navbar.navbar-scrolled .nav-right { gap: 0.6rem; }
+    .navbar.scrolled .nav-center,
+    .navbar.navbar-scrolled .nav-center { gap: clamp(0.9rem, 1.5vw, 1.6rem); }
+    .navbar.scrolled .user-display-name,
+    .navbar.navbar-scrolled .user-display-name { max-width: 100px; }
+    .navbar.scrolled .nav-container,
+    .navbar.navbar-scrolled .nav-container { gap: 1rem; }
+}
+@media (min-width: 1200px) and (max-width: 1439.98px) {
+    .header-search-pill-btn { width: 40px; padding: 0; justify-content: center; margin-right: 0; }
+    .header-search-pill-btn .header-search-text { display: none; }
+    .user-display-name { max-width: 110px; }
+}
