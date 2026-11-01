@@ -7944,3 +7944,9 @@ body.cz-route-busy .segment-btn[data-mode] {
         text-align: center;
     }
 }
+
+/* Category chips (Nov 1, 2026): outline icon normally, the filled version on the
+   chip you picked (same shape, Phosphor regular / fill). */
+.map-segment-btn .cat-ico-fill { display: none; }
+.map-segment-btn.active .cat-ico-line { display: none; }
+.map-segment-btn.active .cat-ico-fill { display: block; }
