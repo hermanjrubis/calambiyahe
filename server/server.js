@@ -624,12 +624,50 @@ async function getLiveBusinesses() {
     }
 }
 
+// Merge a registered business into the static place it duplicates (same name,
+// pins within 200 m). The business record wins (owner, plan, hours, offerings,
+// pin); blanks are filled from the static place (barangay, 360, address...).
+const MERGE_RADIUS_M = 200;
+const MERGE_FILL_FIELDS = ['barangay', 'municipality', 'slug', 'description', 'full_address',
+    'phone', 'website', 'image_path', 'photo', 'pano', 'pano_thumb', 'opening_hours'];
+
+function normPlaceName(name) {
+    return String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function mergeBusinessesIntoPlaces(staticPlaces, businesses) {
+    const merged = [...staticPlaces];
+    const extra = [];
+    for (const biz of businesses) {
+        const key = normPlaceName(biz.name);
+        const idx = key ? merged.findIndex(p =>
+            p.source !== 'business' &&
+            normPlaceName(p.name) === key &&
+            p.lat != null && p.lng != null && biz.lat != null && biz.lng != null &&
+            haversineDistanceMeters(p.lat, p.lng, biz.lat, biz.lng) <= MERGE_RADIUS_M
+        ) : -1;
+        if (idx === -1) {
+            extra.push(biz);
+            continue;
+        }
+        const base = merged[idx];
+        const out = { ...biz, staticId: base.id };
+        for (const f of MERGE_FILL_FIELDS) {
+            if ((out[f] == null || out[f] === '') && base[f] != null && base[f] !== '') out[f] = base[f];
+        }
+        // The owner's uploaded photo beats the static one wherever the UI reads image_path
+        if (biz.photo) out.image_path = biz.photo;
+        merged[idx] = out;
+    }
+    return [...merged, ...extra];
+}
+
 // GET /api/places - Query active places with optional category and proximity filters
 app.get('/api/places', async (req, res) => {
     try {
         const { category, lat, lng, radius, q } = req.query;
         const liveBusinesses = await getLiveBusinesses();
-        let places = [...getPlacesData(), ...liveBusinesses];
+        let places = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
 
         if (category && category.trim() !== '' && category.trim().toLowerCase() !== 'all') {
             const catNorm = category.trim().toLowerCase();
@@ -672,7 +710,7 @@ app.get('/api/places', async (req, res) => {
 app.get('/api/places/search', async (req, res) => {
     const q = (req.query.q || '').trim().toLowerCase();
     const liveBusinesses = await getLiveBusinesses();
-    let places = [...getPlacesData(), ...liveBusinesses];
+    let places = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
     if (q) {
         places = places.filter(p => 
             (p.name || '').toLowerCase().includes(q) ||
