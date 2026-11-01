@@ -1,6 +1,11 @@
 {
   "version": 2,
   "framework": null,
+  "functions": {
+    "api/index.js": {
+      "excludeFiles": "{public/**,scripts/**,scratch/**}"
+    }
+  },
   "trailingSlash": false,
   "redirects": [
     { "source": "/index.html", "destination": "/", "statusCode": 301 },
