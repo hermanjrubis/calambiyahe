@@ -14394,3 +14394,31 @@ button.feature-link-btn {
     .header-search-pill-btn .header-search-text { display: none; }
     .user-display-name { max-width: 110px; }
 }
+
+/* Planner card on phones (Nov 1, 2026): same frame as the other feature cards
+   (Routie, Street View, Save, Updates): 350px tall, the white panel 8px in from
+   the blue edge on small phones (12px on bigger ones), 16px corners, thin white line.
+   The screenshot fills the panel and keeps the route and the stops in view. */
+@media (max-width: 768px) {
+    .feature-visual-block.planner-visual {
+        width: 100% !important;
+        height: 350px !important;
+        flex: none !important;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+    }
+    .planner-mascot-card { padding: 0; height: 100%; }
+    .planner-shot {
+        width: calc(100% - 24px);
+        height: calc(100% - 24px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: #FFFFFF;
+        box-sizing: border-box;
+    }
+    .planner-shot img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; object-position: 100% 50%; }
+}
+@media (max-width: 480px) {
+    .planner-shot { width: calc(100% - 16px); height: calc(100% - 16px); }
+}
