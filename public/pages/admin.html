@@ -1090,8 +1090,219 @@
             }
         }
 
+
+        /* ===== Admin navigation and layout refresh ===== */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+        .nav-group-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--navy-muted);
+            padding: 14px 14px 4px;
+        }
+        .admin-app.collapsed .nav-group-label { display: none; }
+        .nav-count.is-zero { color: #64748B; font-weight: 500; }
+        .flow-steps {
+            list-style: none;
+            margin: 10px 0 0;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--navy-muted);
+        }
+        .flow-steps .is-current { color: var(--navy-dark); font-weight: 600; }
+        .detail-action-bar {
+            margin: 18px -20px -20px;
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background: #F8FAFC;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+        }
+        .detail-action-bar > div[id$="ActionButtonsGroup"],
+        .detail-action-bar > div:first-child { margin-top: 0 !important; }
+        .ref-copy-row { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .btn-copy-ref {
+            height: 30px;
+            padding: 0 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #FFFFFF;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--brand-blue-dark);
+            cursor: pointer;
+        }
+
+        /* Businesses: search, table and the details panel beside it */
+        .bus-toolbar { margin: -6px 0 16px; }
+        .bus-search {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 420px;
+            height: 40px;
+            padding: 0 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #FFFFFF;
+            color: var(--navy-muted);
+        }
+        .bus-search input {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            outline: none;
+            background: transparent;
+            font: inherit;
+            font-size: 14px;
+            color: var(--navy-dark);
+        }
+        .bus-search:focus-within { border-color: var(--brand-blue); }
+        .bus-layout { display: flex; flex-direction: column; gap: 20px; align-items: stretch; }
+        .bus-table-wrap { min-width: 0; }
+        .bus-table-empty { padding: 28px 16px; text-align: center; color: var(--navy-muted); font-size: 14px; }
+        .bus-table .bus-name { font-weight: 700; color: var(--navy-dark); }
+        .bus-table .bus-plan { font-size: 12px; color: var(--navy-muted); margin-top: 2px; }
+        .bus-table tbody tr.is-selected { background: var(--brand-blue-light); }
+        .bus-table tbody tr.is-selected td:first-child { box-shadow: inset 3px 0 0 var(--brand-blue); }
+        .bus-table td.bus-manage-cell { width: 52px; padding: 8px 12px; text-align: right; }
+        .bus-icon-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: #FFFFFF;
+            color: var(--navy-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+        .bus-icon-btn:hover { color: var(--navy-dark); border-color: #CBD5E1; }
+        tr.is-selected .bus-icon-btn { border-color: var(--brand-blue); color: var(--brand-blue-dark); }
+        .bus-detail-card { padding: 0 !important; overflow: hidden; }
+        .bus-detail-head {
+            padding: 18px 20px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .bus-detail-status { margin-top: 4px; font-size: 13px; color: #475569; }
+        .bus-detail-fields {
+            margin: 0;
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: 88px minmax(0, 1fr);
+            gap: 10px 12px;
+            font-size: 13px;
+        }
+        .bus-detail-fields dt { color: var(--navy-muted); }
+        .bus-detail-fields dd { margin: 0; color: var(--navy-dark); overflow-wrap: anywhere; }
+        .bus-detail-links { padding: 0 20px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .bus-detail-links .btn-admin-secondary { text-decoration: none; }
+        .bus-detail-section { padding: 16px 20px; border-top: 1px solid var(--border-color); }
+        .bus-action-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .bus-action-text { flex: 1 1 180px; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .bus-action-text strong { font-size: 14px; color: var(--navy-dark); }
+        .bus-action-text span { font-size: 12px; color: var(--navy-muted); line-height: 1.45; }
+        .bus-danger-zone {
+            padding: 16px 20px 20px;
+            border-top: 1px solid #FECACA;
+            background: #FEF6F6;
+        }
+        .bus-danger-zone .bus-action-text span { color: #7F1D1D; }
+        .text-danger-strong { color: #991B1B !important; font-size: 14px; }
+        .bus-delete-note { font-size: 13px; color: #7F1D1D; margin: 6px 0 10px; line-height: 1.5; }
+        .bus-field-label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin: 10px 0 4px; }
+        @media (min-width: 1200px) {
+            .bus-layout { flex-direction: row; align-items: flex-start; }
+            .bus-table-wrap { flex: 1 1 auto; }
+            .bus-detail-card {
+                flex: 0 0 380px;
+                position: sticky;
+                top: 76px;
+                max-height: calc(100vh - 92px);
+                overflow-y: auto;
+            }
+        }
+        @media (min-width: 768px) and (max-width: 1199px) {
+            .nav-group-label { display: none !important; }
+        }
+
+        /* Phone: bottom navigation and list-style table */
+        .admin-bottom-nav { display: none; }
+        @media (max-width: 767px) {
+            .admin-bottom-nav {
+                display: grid;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 105;
+                height: calc(64px + env(safe-area-inset-bottom, 0px));
+                padding: 4px max(6px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(6px, env(safe-area-inset-left, 0px));
+                background: #FFFFFF;
+                border-top: 1px solid var(--border-color);
+                box-sizing: border-box;
+            }
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 2px;
+                border: 0;
+                background: none;
+                font: inherit;
+                font-size: 11px;
+                color: #475569;
+                text-decoration: none;
+                cursor: pointer;
+                min-height: 52px;
+            }
+            .bottom-nav-item.active { color: var(--brand-blue-dark); font-weight: 600; }
+            .bottom-nav-icon { display: inline-flex; align-items: center; gap: 3px; font-size: 22px; line-height: 1; }
+            .bottom-nav-count { font-size: 12px; font-weight: 700; color: var(--dot-amber); }
+            .admin-main-content { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important; }
+            .admin-toast-container { bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+
+            #panel-applications .detail-action-bar {
+                position: sticky;
+                bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+                z-index: 5;
+            }
+
+            .bus-table thead { display: none; }
+            .bus-table, .bus-table tbody { display: block; }
+            .bus-table tbody tr {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 6px 12px;
+                padding: 12px 14px;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .bus-table tbody tr:last-child { border-bottom: 0; }
+            .bus-table td { display: block; padding: 0 !important; border: 0 !important; }
+            .bus-table td.bus-name-cell { grid-column: 1; grid-row: 1; }
+            .bus-table td.bus-manage-cell { grid-column: 2; grid-row: 1 / span 2; align-self: center; width: auto; }
+            .bus-table td.bus-status-cell { grid-column: 1; grid-row: 2; font-size: 12px; }
+            .bus-table td.bus-extra-cell { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+            .bus-table td.bus-extra-cell::before { content: attr(data-label); color: var(--navy-muted); font-size: 12px; }
+            .bus-table td.bus-extra-cell.is-empty { display: none; }
+            .bus-search { max-width: none; }
+        }
+
         /* Phones: keep the admin inside the screen */
-        html, body { max-width: 100%; overflow-x: hidden; }
+        html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
         .admin-content-wrapper { min-width: 0; }
         @media (max-width: 480px) {
             .admin-topbar { padding: 0 12px; gap: 8px; }
@@ -1259,6 +1470,7 @@
                     <span class="nav-text">Overview</span>
                 </a>
 
+                <div class="nav-group-label">To review</div>
                 <!-- Applications (count of pending, amber text, right-aligned, not a badge) -->
                 <a href="#applications" class="nav-item" data-section="applications" title="Applications">
                     <i class="ti ti-clipboard-list nav-icon"></i>
@@ -1280,10 +1492,12 @@
                     <span class="nav-count text-amber" id="navCountShoots">0</span>
                 </a>
 
+                <div class="nav-group-label">Listings</div>
                 <!-- Businesses -->
                 <a href="#businesses" class="nav-item" data-section="businesses" title="Businesses">
                     <i class="ti ti-building-store nav-icon"></i>
                     <span class="nav-text">Businesses</span>
+                    <span class="nav-count is-zero" id="navCountBusinesses"></span>
                 </a>
 
                 <!-- Posts -->
@@ -1298,6 +1512,7 @@
                     <span class="nav-text">Reviews</span>
                 </a>
 
+                <div class="nav-group-label">System</div>
                 <!-- Activity -->
                 <a href="#activity" class="nav-item" data-section="activity" title="Activity">
                     <i class="ti ti-activity nav-icon"></i>
@@ -1318,6 +1533,26 @@
                 </a>
             </div>
         </aside>
+
+        <!-- Phone: bottom navigation (the sidebar opens from "More") -->
+        <nav class="admin-bottom-nav" aria-label="Admin sections">
+            <a href="#overview" class="bottom-nav-item" data-bottom-group="review">
+                <span class="bottom-nav-icon"><i class="ti ti-inbox" aria-hidden="true"></i><span class="bottom-nav-count" id="navCountToReview"></span></span>
+                <span>To review</span>
+            </a>
+            <a href="#businesses" class="bottom-nav-item" data-bottom-group="businesses">
+                <span class="bottom-nav-icon"><i class="ti ti-building-store" aria-hidden="true"></i></span>
+                <span>Businesses</span>
+            </a>
+            <a href="#posts" class="bottom-nav-item" data-bottom-group="posts">
+                <span class="bottom-nav-icon"><i class="ti ti-news" aria-hidden="true"></i></span>
+                <span>Posts &amp; reviews</span>
+            </a>
+            <button type="button" class="bottom-nav-item" id="bottomNavMore" data-bottom-group="more" aria-controls="adminSidebar">
+                <span class="bottom-nav-icon"><i class="ti ti-menu-2" aria-hidden="true"></i></span>
+                <span>More</span>
+            </button>
+        </nav>
 
         <!-- Content Area Wrapper -->
         <div class="admin-content-wrapper">
@@ -1419,6 +1654,15 @@
                     <div class="section-header">
                         <h1 class="section-title">Applications</h1>
                         <p class="section-subtitle">Review business details, verify locations, and send GCash QR for payment.</p>
+                        <ol class="flow-steps" aria-label="How a listing goes live">
+                            <li class="is-current">1 Review details</li>
+                            <li aria-hidden="true">›</li>
+                            <li>2 Owner pays by GCash</li>
+                            <li aria-hidden="true">›</li>
+                            <li>3 Verify in Payments</li>
+                            <li aria-hidden="true">›</li>
+                            <li>4 Live on the map</li>
+                        </ol>
                     </div>
 
                     <div id="applicationsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
@@ -1512,6 +1756,7 @@
                                         </div>
                                     </div>
 
+                                    <div class="detail-action-bar">
                                     <!-- Action Buttons -->
                                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px;" id="appActionButtonsGroup">
                                         <button type="button" class="btn-admin-primary" id="btnApproveApplication">
@@ -1542,6 +1787,7 @@
                                             <button type="button" class="btn-admin-primary" id="btnSubmitAppReason">Submit & Email Owner</button>
                                             <button type="button" class="btn-admin-secondary" id="btnCancelAppReason">Cancel</button>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -1616,7 +1862,7 @@
                                         </div>
                                         <div class="field-group">
                                             <span class="field-label">Reference No. (Full)</span>
-                                            <span class="field-val" id="paymentDetailRef" style="font-family: monospace; font-size: 14px; font-weight: 700; color: var(--navy-dark); user-select: all;">--</span>
+                                            <span class="ref-copy-row"><span class="field-val" id="paymentDetailRef" style="font-family: monospace; font-size: 14px; font-weight: 700; color: var(--navy-dark); user-select: all;">--</span><button type="button" class="btn-copy-ref" id="btnCopyPaymentRef">Copy</button></span>
                                         </div>
                                         <div class="field-group">
                                             <span class="field-label">Sent At</span>
@@ -1644,6 +1890,7 @@
                                         </label>
                                     </div>
 
+                                    <div class="detail-action-bar">
                                     <!-- Action Buttons -->
                                     <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                         <button type="button" class="btn-admin-success" id="btnMarkPaidAndLive" disabled>
@@ -1687,6 +1934,7 @@
                                             <button type="button" class="btn-admin-primary" id="btnSendBackToOwner" style="background: var(--dot-red); border-color: var(--dot-red);">Send back to owner</button>
                                             <button type="button" class="btn-admin-secondary" id="btnCancelDoesntMatch">Cancel</button>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -1753,104 +2001,115 @@
                         <button type="button" class="admin-underline-tab" data-bus-filter="rejected">Rejected</button>
                     </div>
 
-                    <!-- Businesses Table -->
-                    <div class="admin-table-container">
-                        <table class="admin-table">
-                            <thead>
-                                <tr>
-                                    <th>Business Name</th>
-                                    <th>Status</th>
-                                    <th>Plan</th>
-                                    <th>Paid Date</th>
-                                    <th>360 Shoot</th>
-                                    <th>Featured Until</th>
-                                </tr>
-                            </thead>
-                            <tbody id="businessesTableBody">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
+                    <div class="bus-toolbar">
+                        <label class="bus-search">
+                            <i class="ti ti-search" aria-hidden="true"></i>
+                            <span class="sr-only">Search businesses</span>
+                            <input type="search" id="busSearchInput" placeholder="Search by name, owner or address" autocomplete="off">
+                        </label>
                     </div>
 
-                    <!-- Business Detail Modal / In-Page Drawer -->
-                    <div class="flat-card" id="businessRowDetailCard" style="display: none; margin-top: 20px;">
-                        <div class="detail-header-row">
-                            <div>
-                                <h2 class="detail-title" id="busDetailName">--</h2>
-                                <div class="detail-subtitle" id="busDetailSub">--</div>
-                            </div>
-                            <button type="button" class="btn-admin-secondary" id="btnCloseBusDetail">
-                                <i class="ti ti-x"></i>
-                                <span>Close</span>
-                            </button>
+                    <div class="bus-layout">
+                        <!-- Businesses Table -->
+                        <div class="admin-table-container bus-table-wrap">
+                            <table class="admin-table bus-table">
+                                <thead>
+                                    <tr>
+                                        <th>Business</th>
+                                        <th>Status</th>
+                                        <th>Paid</th>
+                                        <th>360 shoot</th>
+                                        <th>Featured until</th>
+                                        <th><span class="sr-only">Manage</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="businessesTableBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                            <div id="busTableEmpty" class="bus-table-empty" hidden>No businesses match.</div>
                         </div>
 
-                        <div class="detail-fields-grid">
-                            <div class="field-group">
-                                <span class="field-label">Address</span>
-                                <span class="field-val" id="busDetailAddress">--</span>
-                            </div>
-                            <div class="field-group">
-                                <span class="field-label">Contact</span>
-                                <span class="field-val" id="busDetailContact">--</span>
-                            </div>
-                            <div class="field-group" style="grid-column: span 2;">
-                                <span class="field-label">Description</span>
-                                <span class="field-val" id="busDetailDesc">--</span>
-                            </div>
-                        </div>
-
-                        <!-- Hide from map section with in-page confirmation (NO confirm()) -->
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
-                            <div id="busHideInitialGroup">
-                                <button type="button" class="btn-admin-danger" id="btnTriggerHideFromMap">
-                                    <i class="ti ti-eye-off"></i>
-                                    <span>Hide from map</span>
+                        <!-- Details, right beside the table -->
+                        <aside class="flat-card bus-detail-card" id="businessRowDetailCard" style="display: none;" aria-label="Business details">
+                            <div class="bus-detail-head">
+                                <div style="min-width: 0;">
+                                    <h2 class="detail-title" id="busDetailName">--</h2>
+                                    <div class="status-line bus-detail-status">
+                                        <span class="status-dot green" id="busDetailDot"></span>
+                                        <span id="busDetailSub">--</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="bus-icon-btn" id="btnCloseBusDetail" aria-label="Close details">
+                                    <i class="ti ti-x"></i>
                                 </button>
-                                <span style="font-size: 12px; color: var(--navy-subtle); margin-left: 10px;">
-                                    Sets business back to pending with an admin note.
-                                </span>
                             </div>
 
-                            <div class="action-reason-box" id="busHideConfirmBox">
-                                <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
-                                <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Enter reason (visible to owner)..."></textarea>
-                                <div class="action-inline-error" id="busHideInlineError"></div>
-                                <div style="display: flex; gap: 8px;">
-                                    <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide from Map</button>
-                                    <button type="button" class="btn-admin-secondary" id="btnCancelHideFromMap">Cancel</button>
+                            <dl class="bus-detail-fields">
+                                <dt>Owner</dt><dd id="busDetailOwner">--</dd>
+                                <dt>Address</dt><dd id="busDetailAddress">--</dd>
+                                <dt>Contact</dt><dd id="busDetailContact">--</dd>
+                                <dt>360 shoot</dt><dd id="busDetailShoot">--</dd>
+                                <dt>About</dt><dd id="busDetailDesc">--</dd>
+                            </dl>
+
+                            <div class="bus-detail-links">
+                                <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">View on map</a>
+                                <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">360 shoots</a>
+                            </div>
+
+                            <!-- Hide from map (in-page confirmation, no confirm()) -->
+                            <div class="bus-detail-section">
+                                <div id="busHideInitialGroup">
+                                    <div class="bus-action-row">
+                                        <div class="bus-action-text">
+                                            <strong>Hide from map</strong>
+                                            <span>Back to pending with a note to the owner. Can be undone.</span>
+                                        </div>
+                                        <button type="button" class="btn-admin-secondary" id="btnTriggerHideFromMap">
+                                            <i class="ti ti-eye-off"></i>
+                                            <span>Hide</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="action-reason-box" id="busHideConfirmBox">
+                                    <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
+                                    <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Visible to the owner"></textarea>
+                                    <div class="action-inline-error" id="busHideInlineError"></div>
+                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                        <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide from Map</button>
+                                        <button type="button" class="btn-admin-secondary" id="btnCancelHideFromMap">Cancel</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Delete permanently, with in-page confirmation (type the name) -->
-                        <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
-                            <div id="busDeleteInitialGroup" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">
-                                    <i class="ti ti-trash"></i>
-                                    <span>Delete permanently</span>
-                                </button>
-                                <span style="font-size: 12px; color: var(--navy-subtle);">
-                                    Removes the business, its posts, reviews and photos. Payment records are kept. This cannot be undone.
-                                </span>
-                            </div>
-
-                            <div class="action-reason-box" id="busDeleteConfirmBox">
-                                <strong style="font-size: 13px; color: #991B1B;">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
-                                <p style="font-size: 13px; color: var(--navy-muted); margin: 6px 0 10px; line-height: 1.5;">
-                                    Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.
-                                </p>
-                                <label for="busDeleteReasonText" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Reason (sent to the owner)</label>
-                                <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
-                                <label for="busDeleteConfirmName" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin: 10px 0 4px;">Type the business name to confirm</label>
-                                <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
-                                <div class="action-inline-error" id="busDeleteInlineError"></div>
-                                <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
-                                    <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
-                                    <button type="button" class="btn-admin-secondary" id="btnCancelDeleteBusiness">Cancel</button>
+                            <!-- Delete permanently (type the name to confirm) -->
+                            <div class="bus-danger-zone">
+                                <div id="busDeleteInitialGroup" class="bus-action-row">
+                                    <div class="bus-action-text">
+                                        <strong class="text-danger-strong">Delete permanently</strong>
+                                        <span>Removes the listing, posts, reviews, 360 photos and uploaded images. Payment records stay, marked "(deleted)". This cannot be undone.</span>
+                                    </div>
+                                    <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">
+                                        <i class="ti ti-trash"></i>
+                                        <span>Delete</span>
+                                    </button>
+                                </div>
+                                <div class="bus-delete-confirm" id="busDeleteConfirmBox" style="display: none;">
+                                    <strong class="text-danger-strong">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
+                                    <p class="bus-delete-note">Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.</p>
+                                    <label for="busDeleteReasonText" class="bus-field-label">Reason, emailed to the owner</label>
+                                    <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
+                                    <label for="busDeleteConfirmName" class="bus-field-label">Type the business name to confirm</label>
+                                    <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
+                                    <div class="action-inline-error" id="busDeleteInlineError"></div>
+                                    <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                                        <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
+                                        <button type="button" class="btn-admin-secondary" id="btnCancelDeleteBusiness">Cancel</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </aside>
                     </div>
                 </section>
 
@@ -2427,6 +2686,18 @@
                 panel.classList.toggle('active', panelId === `panel-${section}`);
             });
 
+            const bottomGroup = ['overview', 'applications', 'payments', 'shoots'].includes(section) ? 'review'
+                : section === 'businesses' ? 'businesses'
+                : ['posts', 'reviews'].includes(section) ? 'posts' : 'more';
+            document.querySelectorAll('.admin-bottom-nav .bottom-nav-item').forEach(item => {
+                const on = item.getAttribute('data-bottom-group') === bottomGroup;
+                item.classList.toggle('active', on);
+                if (item.tagName === 'A') {
+                    if (on) item.setAttribute('aria-current', 'page');
+                    else item.removeAttribute('aria-current');
+                }
+            });
+
             if (adminApp) adminApp.classList.remove('drawer-open');
 
             if (section === 'shoots') renderShootsSection();
@@ -2466,6 +2737,9 @@
         if (sidebarBackdrop && adminApp) {
             sidebarBackdrop.addEventListener('click', () => adminApp.classList.remove('drawer-open'));
         }
+        document.getElementById('bottomNavMore')?.addEventListener('click', () => {
+            if (adminApp) adminApp.classList.add('drawer-open');
+        });
         if (sidebarCloseBtn && adminApp) {
             sidebarCloseBtn.addEventListener('click', () => adminApp.classList.remove('drawer-open'));
         }
@@ -2539,6 +2813,16 @@
             const pendingShoots = allBusinesses.filter(b => (b.plan === 'plus360' || b.plan === 'featured') && b.status === 'approved' && (!b.shoot360 || b.shoot360 === 'to_schedule'));
             const navShoots = document.getElementById('navCountShoots');
             if (navShoots) navShoots.textContent = pendingShoots.length;
+
+            // Zero counts turn grey; the phone's "To review" adds all three up
+            [[navApps, pendingApps.length], [navPay, reviewPayments.length], [navShoots, pendingShoots.length]].forEach(([el, n]) => {
+                if (el) el.classList.toggle('is-zero', n === 0);
+            });
+            const toReview = pendingApps.length + reviewPayments.length + pendingShoots.length;
+            const navToReview = document.getElementById('navCountToReview');
+            if (navToReview) navToReview.textContent = toReview > 0 ? String(toReview) : '';
+            const navBus = document.getElementById('navCountBusinesses');
+            if (navBus) navBus.textContent = allBusinesses.length ? String(allBusinesses.length) : '';
 
             const statApps = document.getElementById('statAppsToReview');
             if (statApps) statApps.textContent = pendingApps.length;
@@ -3811,51 +4095,72 @@
         });
 
         // --- Businesses Table View ---
+        // Status, plan and paid date shown for a business, in one place
+        function busStatusInfo(bus) {
+            const planCfg = window.CALZADA_PLANS?.[bus.plan];
+            const planName = planCfg ? planCfg.name : (bus.legacyPlan || !bus.plan ? 'Listed (legacy)' : 'Listed');
+            let dotColor = 'amber';
+            let statusLabel = 'Pending';
+            if (bus.status === 'approved') { dotColor = 'green'; statusLabel = 'Live'; }
+            else if (bus.status === 'awaiting_payment') { dotColor = 'blue'; statusLabel = 'Awaiting payment'; }
+            else if (bus.status === 'payment_review') { dotColor = 'amber'; statusLabel = 'Payment review'; }
+            else if (bus.status === 'needs_changes') { dotColor = 'red'; statusLabel = 'Needs changes'; }
+            else if (bus.status === 'rejected') { dotColor = 'red'; statusLabel = 'Rejected'; }
+            return { planName, dotColor, statusLabel };
+        }
+        const SHOOT_LABELS = { none: 'None', to_schedule: 'To schedule', scheduled: 'Scheduled', done: 'Done' };
+        let busSearchQuery = '';
+
         function renderBusinessesTable() {
             let list = allBusinesses.slice();
             if (currentBusFilter !== 'all') {
                 list = list.filter(b => b.status === currentBusFilter);
             }
+            const q = busSearchQuery.trim().toLowerCase();
+            if (q) {
+                list = list.filter(b => [b.name, b.ownerEmail, b.address, b.barangay, b.contactNumber]
+                    .some(v => String(v || '').toLowerCase().includes(q)));
+            }
 
             const tbody = document.getElementById('businessesTableBody');
             if (!tbody) return;
+            const emptyEl = document.getElementById('busTableEmpty');
+            if (emptyEl) emptyEl.hidden = list.length > 0;
 
             tbody.innerHTML = list.map(bus => {
-                const planCfg = window.CALZADA_PLANS?.[bus.plan];
-                const planName = planCfg ? planCfg.name : (bus.legacyPlan || !bus.plan ? 'Listed (legacy)' : 'Listed');
-                const paidDate = bus.paidAt ? formatAdminDate(bus.paidAt) : '--';
-                const featUntil = bus.featuredUntil ? formatAdminDate(bus.featuredUntil) : '--';
-
-                let dotColor = 'amber';
-                let statusLabel = 'Pending';
-                if (bus.status === 'approved') { dotColor = 'green'; statusLabel = 'Live'; }
-                else if (bus.status === 'awaiting_payment') { dotColor = 'blue'; statusLabel = 'Awaiting payment'; }
-                else if (bus.status === 'payment_review') { dotColor = 'amber'; statusLabel = 'Payment review'; }
-                else if (bus.status === 'needs_changes') { dotColor = 'red'; statusLabel = 'Needs changes'; }
-                else if (bus.status === 'rejected') { dotColor = 'red'; statusLabel = 'Rejected'; }
-
+                const { planName, dotColor, statusLabel } = busStatusInfo(bus);
+                const paidDate = bus.paidAt ? formatAdminDate(bus.paidAt) : '';
+                const featUntil = bus.featuredUntil ? formatAdminDate(bus.featuredUntil) : '';
                 const shootVal = bus.shoot360 || 'none';
+                const selected = bus.id === selectedDetailBusId;
 
                 return `
-                    <tr data-bus-row-id="${bus.id}">
-                        <td><strong>${escapeHtml(bus.name || 'Unnamed')}</strong></td>
-                        <td>
+                    <tr data-bus-row-id="${bus.id}" class="${selected ? 'is-selected' : ''}">
+                        <td class="bus-name-cell">
+                            <div class="bus-name">${escapeHtml(bus.name || 'Unnamed')}</div>
+                            <div class="bus-plan">${escapeHtml(planName)}</div>
+                        </td>
+                        <td class="bus-status-cell">
                             <div class="status-line">
                                 <span class="status-dot ${dotColor}"></span>
                                 <span>${statusLabel}</span>
                             </div>
                         </td>
-                        <td>${escapeHtml(planName)}</td>
-                        <td>${paidDate}</td>
-                        <td onclick="event.stopPropagation()">
-                            <select class="admin-select select-shoot360" data-bus-id="${bus.id}">
+                        <td class="bus-extra-cell ${paidDate ? '' : 'is-empty'}" data-label="Paid">${paidDate || '--'}</td>
+                        <td class="bus-extra-cell" data-label="360 shoot" onclick="event.stopPropagation()">
+                            <select class="admin-select select-shoot360" data-bus-id="${bus.id}" aria-label="360 shoot for ${escapeHtml(bus.name || 'business')}">
                                 <option value="none" ${shootVal === 'none' ? 'selected' : ''}>None</option>
                                 <option value="to_schedule" ${shootVal === 'to_schedule' ? 'selected' : ''}>To schedule</option>
                                 <option value="scheduled" ${shootVal === 'scheduled' ? 'selected' : ''}>Scheduled</option>
                                 <option value="done" ${shootVal === 'done' ? 'selected' : ''}>Done</option>
                             </select>
                         </td>
-                        <td>${featUntil}</td>
+                        <td class="bus-extra-cell ${featUntil ? '' : 'is-empty'}" data-label="Featured until">${featUntil || '--'}</td>
+                        <td class="bus-manage-cell">
+                            <button type="button" class="bus-icon-btn bus-manage-btn" aria-label="Manage ${escapeHtml(bus.name || 'business')}">
+                                <i class="ti ti-dots"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
@@ -3898,31 +4203,78 @@
             });
         });
 
+        function markSelectedBusRow() {
+            document.querySelectorAll('#businessesTableBody tr[data-bus-row-id]').forEach(tr => {
+                tr.classList.toggle('is-selected', tr.getAttribute('data-bus-row-id') === selectedDetailBusId);
+            });
+        }
+
         function showBusinessRowDetail(bus) {
             const card = document.getElementById('businessRowDetailCard');
             if (!card || !bus) return;
             selectedDetailBusId = bus.id;
+            markSelectedBusRow();
 
+            const { planName, dotColor, statusLabel } = busStatusInfo(bus);
             card.style.display = 'block';
             document.getElementById('busDetailName').textContent = bus.name || 'Unnamed';
-            document.getElementById('busDetailSub').textContent = `${bus.serviceType || bus.category || 'General'} · ID: ${bus.id}`;
-            document.getElementById('busDetailAddress').textContent = bus.address || '--';
+            document.getElementById('busDetailDot').className = `status-dot ${dotColor}`;
+            document.getElementById('busDetailSub').textContent =
+                [statusLabel, planName, bus.paidAt ? `Paid ${formatAdminDate(bus.paidAt)}` : ''].filter(Boolean).join(' · ');
+            document.getElementById('busDetailOwner').textContent = bus.ownerEmail || '--';
+            document.getElementById('busDetailAddress').textContent =
+                [bus.address, bus.barangay ? `Brgy. ${bus.barangay}` : ''].filter(Boolean).join(', ') || '--';
             document.getElementById('busDetailContact').textContent = bus.contactNumber || '--';
+            document.getElementById('busDetailShoot').textContent = SHOOT_LABELS[bus.shoot360 || 'none'] || 'None';
             document.getElementById('busDetailDesc').textContent = bus.description || 'No description';
+            const viewLink = document.getElementById('busDetailViewLink');
+            if (viewLink) {
+                viewLink.hidden = bus.status !== 'approved';
+                viewLink.href = `/business?id=${encodeURIComponent(bus.id)}`;
+            }
 
             document.getElementById('busHideInitialGroup').style.display = 'block';
             document.getElementById('busHideConfirmBox').style.display = 'none';
             setInlineError('busHideInlineError', '');
             resetDeleteBusinessBox();
 
-            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            // Beside the table on wide screens; below it otherwise, so bring it into view
+            if (window.innerWidth < 1200) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                card.scrollTop = 0;
+            }
         }
+
+        document.getElementById('busSearchInput')?.addEventListener('input', (e) => {
+            busSearchQuery = e.target.value || '';
+            renderBusinessesTable();
+        });
+
+        document.getElementById('btnCopyPaymentRef')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const ref = (document.getElementById('paymentDetailRef')?.textContent || '').trim();
+            if (!ref || ref === '--') return;
+            try {
+                await navigator.clipboard.writeText(ref);
+                btn.textContent = 'Copied';
+            } catch (_) {
+                const range = document.createRange();
+                range.selectNodeContents(document.getElementById('paymentDetailRef'));
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                btn.textContent = 'Selected';
+            }
+            setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+        });
 
         const btnCloseBusDetail = document.getElementById('btnCloseBusDetail');
         if (btnCloseBusDetail) {
             btnCloseBusDetail.addEventListener('click', () => {
                 document.getElementById('businessRowDetailCard').style.display = 'none';
                 selectedDetailBusId = null;
+                markSelectedBusRow();
             });
         }
 
