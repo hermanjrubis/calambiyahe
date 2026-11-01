@@ -46,6 +46,7 @@ let panelDOMInitialized = false;
 function initPlacePanelDOM() {
     if (panelDOMInitialized || document.getElementById('placePanel')) {
         panelDOMInitialized = true;
+        ensurePhotoViewerDOM();
         return;
     }
 
@@ -209,6 +210,7 @@ function initPlacePanelDOM() {
 
     document.body.insertAdjacentHTML('beforeend', panelHTML);
     panelDOMInitialized = true;
+    ensurePhotoViewerDOM();
 
     const backdrop = document.getElementById('placePanelBackdrop');
     const closeBtn = document.getElementById('closePanelBtn');
@@ -1065,6 +1067,198 @@ async function initInline360Viewer(place) {
     }
 }
 
+let photoViewerActive = false;
+let photoViewerTriggerEl = null;
+
+function ensurePhotoViewerDOM() {
+    if (document.getElementById('ppPhotoViewer')) return;
+    const viewer = document.createElement('div');
+    viewer.className = 'photo-viewer-overlay';
+    viewer.id = 'ppPhotoViewer';
+    viewer.setAttribute('role', 'dialog');
+    viewer.setAttribute('aria-modal', 'true');
+    viewer.setAttribute('aria-label', 'Photo viewer');
+    viewer.setAttribute('tabindex', '-1');
+    viewer.innerHTML = `
+        <button class="photo-viewer-close-btn" id="ppPhotoViewerClose" type="button" aria-label="Close photo" title="Close photo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+        <img class="photo-viewer-img" id="ppPhotoViewerImg" alt="" src="" decoding="async">
+    `;
+    viewer.addEventListener('click', (e) => {
+        if (e.target === viewer || e.target.closest('#ppPhotoViewerClose')) {
+            closePhotoViewer();
+        }
+    });
+    document.body.appendChild(viewer);
+}
+
+function handlePhotoViewerKeyDown(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') {
+            e.stopImmediatePropagation();
+        }
+        closePhotoViewer();
+    }
+}
+
+function openPhotoViewer(src, alt, triggerEl) {
+    if (!src) return;
+    ensurePhotoViewerDOM();
+    const viewer = document.getElementById('ppPhotoViewer');
+    const viewerImg = document.getElementById('ppPhotoViewerImg');
+    const closeBtn = document.getElementById('ppPhotoViewerClose');
+    if (!viewer || !viewerImg) return;
+
+    photoViewerTriggerEl = triggerEl || null;
+    viewerImg.src = src;
+    viewerImg.alt = alt || '';
+    viewer.classList.add('active');
+    photoViewerActive = true;
+
+    if (closeBtn) {
+        try { closeBtn.focus(); } catch (_) {}
+    }
+
+    window.addEventListener('keydown', handlePhotoViewerKeyDown, true);
+}
+
+function closePhotoViewer() {
+    if (!photoViewerActive) return;
+    const viewer = document.getElementById('ppPhotoViewer');
+    const viewerImg = document.getElementById('ppPhotoViewerImg');
+    if (viewer) {
+        viewer.classList.remove('active');
+    }
+    if (viewerImg) {
+        viewerImg.src = '';
+    }
+    photoViewerActive = false;
+    window.removeEventListener('keydown', handlePhotoViewerKeyDown, true);
+
+    if (photoViewerTriggerEl && typeof photoViewerTriggerEl.focus === 'function') {
+        try {
+            photoViewerTriggerEl.focus();
+        } catch (_) {}
+    }
+    photoViewerTriggerEl = null;
+}
+
+function buildPhotoSlide(container, resolvedPhotoUrl, placeName, heroSkeleton) {
+    const slide1Wrap = document.createElement('div');
+    slide1Wrap.className = 'carousel-slide-wrap is-photo';
+
+    const chip1 = document.createElement('span');
+    chip1.className = 'hero-slide-chip';
+    chip1.id = 'ppHeroChipPhoto';
+    chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
+    slide1Wrap.appendChild(chip1);
+
+    if (resolvedPhotoUrl) {
+        if (heroSkeleton) heroSkeleton.style.display = 'block';
+
+        const backdropEl = document.createElement('div');
+        backdropEl.className = 'carousel-slide-backdrop';
+        backdropEl.style.backgroundImage = `url("${resolvedPhotoUrl}")`;
+        backdropEl.setAttribute('aria-hidden', 'true');
+        slide1Wrap.appendChild(backdropEl);
+
+        const imgEl = document.createElement('img');
+        imgEl.className = 'carousel-slide is-photo';
+        imgEl.alt = `${placeName} photo`;
+        imgEl.src = resolvedPhotoUrl;
+        imgEl.decoding = 'async';
+        imgEl.setAttribute('role', 'button');
+        imgEl.setAttribute('tabindex', '0');
+        imgEl.setAttribute('aria-label', `${placeName} photo`);
+
+        function revealPhoto() {
+            imgEl.classList.add('photo-fade-in');
+            if (heroSkeleton) heroSkeleton.style.display = 'none';
+        }
+
+        if (imgEl.complete && imgEl.naturalWidth > 0) {
+            revealPhoto();
+        } else {
+            imgEl.addEventListener('load', revealPhoto, { once: true });
+            imgEl.addEventListener('error', () => {
+                if (heroSkeleton) heroSkeleton.style.display = 'none';
+                backdropEl.style.display = 'none';
+                renderPhotoPlaceholder(slide1Wrap);
+            }, { once: true });
+        }
+
+        let pointerStartX = 0;
+        let pointerStartY = 0;
+        let pointerMoved = false;
+
+        imgEl.addEventListener('pointerdown', (e) => {
+            pointerStartX = e.clientX;
+            pointerStartY = e.clientY;
+            pointerMoved = false;
+        });
+
+        imgEl.addEventListener('pointermove', (e) => {
+            if (!pointerMoved) {
+                const dist = Math.hypot(e.clientX - pointerStartX, e.clientY - pointerStartY);
+                if (dist > 8) {
+                    pointerMoved = true;
+                }
+            }
+        });
+
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchMoved = false;
+
+        imgEl.addEventListener('touchstart', (e) => {
+            if (e.touches && e.touches[0]) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+                touchMoved = false;
+            }
+        }, { passive: true });
+
+        imgEl.addEventListener('touchmove', (e) => {
+            if (e.touches && e.touches[0]) {
+                const dist = Math.hypot(e.touches[0].clientX - touchStartX, e.touches[0].clientY - touchStartY);
+                if (dist > 8) {
+                    touchMoved = true;
+                }
+            }
+        }, { passive: true });
+
+        imgEl.addEventListener('click', () => {
+            if (pointerMoved || touchMoved) {
+                pointerMoved = false;
+                touchMoved = false;
+                return;
+            }
+            openPhotoViewer(imgEl.src, imgEl.alt, imgEl);
+        });
+
+        imgEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openPhotoViewer(imgEl.src, imgEl.alt, imgEl);
+            }
+        });
+
+        slide1Wrap.appendChild(imgEl);
+    } else {
+        if (heroSkeleton) heroSkeleton.style.display = 'none';
+        renderPhotoPlaceholder(slide1Wrap);
+    }
+
+    container.appendChild(slide1Wrap);
+    return slide1Wrap;
+}
+
 function setupCarousel(place) {
     const slidesContainer = document.getElementById('ppCarouselSlides');
     const dotsContainer = document.getElementById('ppCarouselDots');
@@ -1102,6 +1296,16 @@ function setupCarousel(place) {
         while (slidesContainer.children.length > 1) {
             slidesContainer.removeChild(slidesContainer.lastChild);
         }
+        if (!existingSlide1.classList.contains('is-photo')) {
+            existingSlide1.classList.add('is-photo');
+        }
+        if (resolvedPhotoUrl && !existingSlide1.querySelector('.carousel-slide-backdrop')) {
+            const backdropEl = document.createElement('div');
+            backdropEl.className = 'carousel-slide-backdrop';
+            backdropEl.style.backgroundImage = `url("${resolvedPhotoUrl}")`;
+            backdropEl.setAttribute('aria-hidden', 'true');
+            existingSlide1.insertBefore(backdropEl, existingSlide1.firstChild.nextSibling);
+        }
     } else {
         slidesContainer.innerHTML = '';
     }
@@ -1125,43 +1329,7 @@ function setupCarousel(place) {
 
     // --- SLIDE 1: Establishment Photo ---
     if (!canKeepSlide1) {
-        const slide1Wrap = document.createElement('div');
-        slide1Wrap.className = 'carousel-slide-wrap';
-
-        const chip1 = document.createElement('span');
-        chip1.className = 'hero-slide-chip';
-        chip1.id = 'ppHeroChipPhoto';
-        chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
-        slide1Wrap.appendChild(chip1);
-
-        if (photo) {
-            if (heroSkeleton) heroSkeleton.style.display = 'block';
-            const imgEl = document.createElement('img');
-            imgEl.className = 'carousel-slide';
-            imgEl.alt = `${placeName} photo`;
-            imgEl.src = resolvedPhotoUrl;
-
-            function revealPhoto() {
-                imgEl.classList.add('photo-fade-in');
-                if (heroSkeleton) heroSkeleton.style.display = 'none';
-            }
-
-            if (imgEl.complete && imgEl.naturalWidth > 0) {
-                revealPhoto();
-            } else {
-                imgEl.addEventListener('load', revealPhoto, { once: true });
-                imgEl.addEventListener('error', () => {
-                    if (heroSkeleton) heroSkeleton.style.display = 'none';
-                    renderPhotoPlaceholder(slide1Wrap);
-                }, { once: true });
-            }
-            slide1Wrap.appendChild(imgEl);
-        } else {
-            if (heroSkeleton) heroSkeleton.style.display = 'none';
-            renderPhotoPlaceholder(slide1Wrap);
-        }
-
-        slidesContainer.appendChild(slide1Wrap);
+        buildPhotoSlide(slidesContainer, resolvedPhotoUrl, placeName, heroSkeleton);
     }
 
     // --- SLIDE 2: 360° of the Establishment ---
@@ -1493,6 +1661,7 @@ window.addEventListener('orientationchange', () => {
 window.addEventListener('keydown', (e) => {
     const panel = document.getElementById('placePanel');
     if (!panel || !panel.classList.contains('active')) return;
+    if (photoViewerActive) return;
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
 
     // Do NOT navigate slides if focus is inside the 360 container (allow keys to pan the 360)
@@ -2148,41 +2317,7 @@ window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     const slidesContainer = document.getElementById('ppCarouselSlides');
     if (slidesContainer) {
         slidesContainer.innerHTML = '';
-        const slide1Wrap = document.createElement('div');
-        slide1Wrap.className = 'carousel-slide-wrap';
-        const chip1 = document.createElement('span');
-        chip1.className = 'hero-slide-chip';
-        chip1.id = 'ppHeroChipPhoto';
-        chip1.textContent = typeof window.t === 'function' ? window.t('places.popup.chip_photo') : 'Photo';
-        slide1Wrap.appendChild(chip1);
-
-        if (photoSrc) {
-            const imgEl = document.createElement('img');
-            imgEl.className = 'carousel-slide';
-            imgEl.alt = `${data.name} photo`;
-            imgEl.src = photoSrc;
-
-            function revealPhotoSync() {
-                imgEl.classList.add('photo-fade-in');
-                if (heroSkeleton) heroSkeleton.style.display = 'none';
-            }
-
-            if (imgEl.complete && imgEl.naturalWidth > 0) {
-                revealPhotoSync();
-            } else {
-                if (heroSkeleton) heroSkeleton.style.display = 'block';
-                imgEl.addEventListener('load', revealPhotoSync, { once: true });
-                imgEl.addEventListener('error', () => {
-                    if (heroSkeleton) heroSkeleton.style.display = 'none';
-                    renderPhotoPlaceholder(slide1Wrap);
-                }, { once: true });
-            }
-            slide1Wrap.appendChild(imgEl);
-        } else {
-            if (heroSkeleton) heroSkeleton.style.display = 'none';
-            renderPhotoPlaceholder(slide1Wrap);
-        }
-        slidesContainer.appendChild(slide1Wrap);
+        buildPhotoSlide(slidesContainer, photoSrc, data.name, heroSkeleton);
     }
 
     // 6. Defer full details population to after the first frame
@@ -2604,6 +2739,7 @@ if (!window._open360Viewer) {
 }
 
 function closePlacePanel(updateHistory = true) {
+    closePhotoViewer();
     const backdrop = document.getElementById('placePanelBackdrop');
     const panel = document.getElementById('placePanel');
     if (backdrop) backdrop.classList.remove('active');
