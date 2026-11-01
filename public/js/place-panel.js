@@ -2339,7 +2339,7 @@ async function fillRest(data, placeName, optLat, optLng) {
         if (data.phone && data.phone.trim()) {
             const phoneClean = data.phone.trim();
             phoneEl.textContent = phoneClean;
-            phoneEl.href = `tel:${phoneClean.replace(/[^0-9+]/g, '')}`;
+            phoneEl.href = `tel:${phoneClean.split('/')[0].replace(/[^0-9+]/g, '')}`; // several numbers "a / b": dial the first
             rowPhone.style.display = 'flex';
         } else {
             rowPhone.style.display = 'none';
@@ -2432,7 +2432,7 @@ async function fillRest(data, placeName, optLat, optLng) {
             }
             if (match.phone && phoneEl && rowPhone) {
                 phoneEl.textContent = match.phone.trim();
-                phoneEl.href = `tel:${match.phone.trim().replace(/[^0-9+]/g, '')}`;
+                phoneEl.href = `tel:${match.phone.trim().split('/')[0].replace(/[^0-9+]/g, '')}`;
                 rowPhone.style.display = 'flex';
             }
             if (match.social) fillPanelSocial(match.social);
