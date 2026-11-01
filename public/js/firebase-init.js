@@ -367,6 +367,22 @@ window.CalzadaAuth = {
     writeBatch
 };
 
+// Remember (or forget) that this browser is signed in, so the next page can show your
+// profile in the header straight away instead of flashing "Sign In" first.
+// Only a display name and a photo link are kept; nothing that signs you in.
+onAuthStateChanged(auth, (u) => {
+    try {
+        if (u && !u.isAnonymous) {
+            const name = localStorage.getItem('calzada_pref_name') || u.displayName || (u.email ? u.email.split('@')[0] : 'Commuter');
+            const photo = (typeof u.photoURL === 'string' && u.photoURL.startsWith('https://')) ? u.photoURL : '';
+            localStorage.setItem('calzada_auth_hint', JSON.stringify({ name: String(name).slice(0, 60), photo, at: Date.now() }));
+        } else {
+            localStorage.removeItem('calzada_auth_hint');
+            document.documentElement.classList.remove('auth-hint');
+        }
+    } catch (_) { /* storage blocked: the header just waits for Firebase as before */ }
+});
+
 export { 
     auth, 
     db, 

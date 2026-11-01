@@ -3,6 +3,42 @@
 
 <head>
     <meta charset="UTF-8">
+    <script>
+    /* Signed in last time? Show the profile in the header while the page loads,
+       instead of "Sign In" first. Firebase confirms it a moment later (or switches back). */
+    (function () {
+        try {
+            var h = JSON.parse(localStorage.getItem('calzada_auth_hint') || 'null');
+            if (!h || !h.name || Date.now() - (h.at || 0) > 30 * 864e5) return;
+            document.documentElement.classList.add('auth-hint');
+            var name = localStorage.getItem('calzada_pref_name') || h.name;
+            var photo = localStorage.getItem('calzada_pref_photo') || h.photo || '';
+            var initial = String(name).charAt(0).toUpperCase() || 'U';
+            var done = {};
+            var show = function (id, display) { var el = document.getElementById(id); if (el && !done[id]) { el.style.display = display; done[id] = 1; } };
+            var fill = function () {
+                show('authNavBtn', 'none');
+                show('userAvatarPill', 'flex');
+                show('mobileSignInBtn', 'none');
+                show('mobileAvatarBtn', 'flex');
+                var n = document.getElementById('userDisplayName');
+                if (n && !done.n) { n.textContent = name; done.n = 1; }
+                ['userAvatar', 'mobileAvatar'].forEach(function (k) {
+                    var ini = document.getElementById(k + 'Initials'), img = document.getElementById(k + 'Img');
+                    if (ini && !done[k + 'I']) { ini.textContent = initial; ini.style.display = 'block'; done[k + 'I'] = 1; }
+                    if (img && photo && !done[k + 'P']) {
+                        done[k + 'P'] = 1;
+                        img.onload = function () { if (img.naturalWidth) { img.style.display = 'block'; if (ini) ini.style.display = 'none'; } };
+                        img.src = photo;
+                    }
+                });
+            };
+            var mo = new MutationObserver(fill);
+            mo.observe(document.documentElement, { childList: true, subtree: true });
+            document.addEventListener('DOMContentLoaded', function () { fill(); mo.disconnect(); });
+        } catch (e) { /* no storage: wait for Firebase as before */ }
+    })();
+    </script>
     <meta name="viewport"
         content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Planner – Calzada</title>
@@ -1015,7 +1051,7 @@
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>
-    <script type="module" src="../js/user-stats.js?v=2.6.12"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.13"></script>
 </body>
 
 </html>

@@ -345,6 +345,8 @@ export function clearUserState() {
     const dropdownMenu = document.getElementById('userProfileMenu');
     const alertsMenu = document.getElementById('alertsDropdownMenu');
 
+    try { localStorage.removeItem('calzada_auth_hint'); } catch (_) {}
+    document.documentElement.classList.remove('auth-hint');
     if (authNavBtn) authNavBtn.style.display = 'inline-flex';
     if (avatarBtn) avatarBtn.style.display = 'none';
     if (mobileSignInBtn) mobileSignInBtn.style.display = 'flex';
@@ -1517,6 +1519,32 @@ async function runOneTimeMigration(user) {
 /**
  * Modal Renderers & UI Handlers
  */
+// Swap "Sign In" for the profile in the header right away, before the slower
+// Firestore reads below (activity feed, stats), so it never waits on the network.
+function paintSignedInHeader(user) {
+    const authNavBtn = document.getElementById('authNavBtn');
+    const avatarBtn = document.getElementById('userAvatarPill');
+    const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+    const mobileAvatarBtn = document.getElementById('mobileAvatarBtn');
+    if (authNavBtn) authNavBtn.style.display = 'none';
+    if (avatarBtn) avatarBtn.style.display = 'flex';
+    if (mobileSignInBtn) mobileSignInBtn.style.display = 'none';
+    if (mobileAvatarBtn) mobileAvatarBtn.style.display = 'flex';
+    let customName = null;
+    let customPhoto = '';
+    try {
+        customName = localStorage.getItem('calzada_pref_name');
+        customPhoto = localStorage.getItem('calzada_pref_photo') || '';
+    } catch (_) {}
+    const name = customName || user.displayName || (user.email ? user.email.split('@')[0] : 'Commuter');
+    const photo = customPhoto || user.photoURL || '';
+    const initial = name.charAt(0).toUpperCase();
+    const userDisplayName = document.getElementById('userDisplayName');
+    if (userDisplayName) userDisplayName.textContent = name;
+    showAvatar(document.getElementById('userAvatarImg'), document.getElementById('userAvatarInitials'), photo, initial);
+    showAvatar(document.getElementById('mobileAvatarImg'), document.getElementById('mobileAvatarInitials'), photo, initial);
+}
+
 export function setupProfileUI() {
     createProfileModals();
 
@@ -1530,6 +1558,7 @@ export function setupProfileUI() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             activeUser = user;
+            paintSignedInHeader(user);
             await runOneTimeMigration(user);
 
             // Load user-specific activity feed from Firestore
