@@ -2151,8 +2151,9 @@
                 : '';
 
             // Avatar photo or initials
-            const avatarHtml = bus?.profilePhotoUrl
-                ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="" loading="lazy">`
+            const avatarSrc = bus?.logoUrl || bus?.profilePhotoUrl;
+            const avatarHtml = avatarSrc
+                ? `<img src="${escapeHtml(avatarSrc)}" alt="" loading="lazy">`
                 : escapeHtml(busName.slice(0, 2).toUpperCase());
 
             const slidesHtml = photos.map((url, i) => `
@@ -2603,8 +2604,8 @@
                 return;
             }
             container.innerHTML = top5.map(bus => {
-                const photoHtml = bus.profilePhotoUrl
-                    ? `<img src="${escapeHtml(bus.profilePhotoUrl)}" alt="" loading="lazy">`
+                const photoHtml = (bus.logoUrl || bus.profilePhotoUrl)
+                    ? `<img src="${escapeHtml(bus.logoUrl || bus.profilePhotoUrl)}" alt="" loading="lazy">`
                     : escapeHtml((bus.name || 'PL').slice(0, 2).toUpperCase());
 
                 return `

@@ -352,8 +352,9 @@ service cloud.firestore {
             'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt',
             'serviceType', 'socialLinks', 'location',
             'plan', 'amountDue', 'detailsApprovedAt', 'paidAt', 'featuredUntil', 'shoot360', 'legacyPlan', 'lastPaymentId',
-            'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark', 'tour360', 'shoot360Date'
+            'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark', 'tour360', 'shoot360Date', 'logoUrl'
           ])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['logoUrl']) || request.resource.data.logoUrl == null || isValidCloudinaryUrl(request.resource.data.logoUrl))
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
           && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
@@ -375,8 +376,10 @@ service cloud.firestore {
           && resource.data.status == 'approved'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'profilePhotoUrl', 'description', 'updatedAt', 'socialLinks',
-            'thumbnailUrl', 'offerings', 'openHours'
+            'thumbnailUrl', 'offerings', 'openHours', 'logoUrl'
           ])
+          // Logo: removed (null) or a Cloudinary image
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['logoUrl']) || request.resource.data.logoUrl == null || (isValidCloudinaryUrl(request.resource.data.logoUrl) && request.resource.data.logoUrl.size() <= 500))
           // FIX 3: Owner update description null or string <= 500
           && (request.resource.data.description == null || (request.resource.data.description is string && request.resource.data.description.size() <= 500))
           // FIX 4: profilePhotoUrl (when not null) must match cloudinary URL regex

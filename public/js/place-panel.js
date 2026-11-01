@@ -80,6 +80,7 @@ function initPlacePanelDOM() {
 
                 <!-- 1. Header Row: 18px semibold Name + Save & Close Actions side by side -->
                 <div class="panel-header-row">
+                    <img class="panel-place-logo" id="ppLogo" alt="" hidden>
                     <h3 class="panel-place-title" id="ppName">Place Name</h3>
                     <div class="panel-header-actions">
                         <button class="panel-save-btn" id="ppSaveBtn" type="button" aria-label="Save place" title="Save place" aria-pressed="false">
@@ -1993,6 +1994,19 @@ function getPlacePanel360Link(placeId, placeName) {
 /**
  * Open Place Detail Panel
  */
+// A business logo next to the name (Cloudinary only)
+function setPanelLogo(url) {
+    const logoEl = document.getElementById('ppLogo');
+    if (!logoEl) return;
+    if (typeof url === 'string' && url.startsWith('https://res.cloudinary.com/')) {
+        logoEl.src = url;
+        logoEl.hidden = false;
+    } else {
+        logoEl.hidden = true;
+        logoEl.removeAttribute('src');
+    }
+}
+
 window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     if (!placeName) return;
     currentPlaceName = placeName;
@@ -2114,6 +2128,7 @@ window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     // 4. Set Place Name immediately
     const nameEl = document.getElementById('ppName');
     if (nameEl) nameEl.textContent = data.name;
+    setPanelLogo(data.logo);
 
     // 5. Reuse the card's already-loaded image for the hero (same URL -> cached)
     let photoSrc = null;
@@ -2396,6 +2411,7 @@ async function fillRest(data, placeName, optLat, optLng) {
 
             const nameEl = document.getElementById('ppName');
             if (nameEl && match.name) nameEl.textContent = match.name;
+            setPanelLogo(match.logo);
 
             if (planBtn && match.lat != null && (match.lng != null || match.lon != null)) {
                 planBtn.setAttribute('data-lat', match.lat);

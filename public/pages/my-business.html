@@ -1103,6 +1103,188 @@
             font-size: 14px;
             line-height: 1.5;
         }
+
+        /* ===== My Business (approved): side tabs, cards, logo, live preview ===== */
+        .mybus-container.is-approved { max-width: 1160px; }
+        .mb-shell { display: flex; flex-direction: column; gap: 16px; }
+        .mb-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+        .mb-main { min-width: 0; }
+        .mb-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+        }
+        .mb-panel { display: flex; flex-direction: column; gap: 16px; }
+        .mb-panel[hidden] { display: none; }
+        .mb-card-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin: 0;
+        }
+        .mb-card-sub { font-size: 13px; color: var(--navy-muted); margin: 4px 0 14px; line-height: 1.5; }
+        .mb-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+        .mb-card-head .mb-card-title { margin: 0; }
+        .mb-card-meta { font-size: 13px; color: var(--navy-muted); }
+        .mb-link-btn {
+            border: 0;
+            background: none;
+            padding: 0;
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            color: #185FA5;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .mb-link-btn:hover { text-decoration: underline; }
+
+        .mb-hero-top { display: flex; align-items: center; gap: 14px; }
+        .mb-hero-text { min-width: 0; }
+        .mb-hero .business-name { font-size: 22px; overflow-wrap: anywhere; }
+        .mb-hero .status-line { margin-top: 4px; flex-wrap: wrap; }
+        .mb-hero-plan { color: var(--navy-muted); }
+        .mb-plan-meta { display: none; }
+        .mb-card > .mb-card-title + .details-list { margin-top: 12px; }
+        .mb-hero-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+        .mb-btn { flex: 1 1 auto; justify-content: center; text-decoration: none; }
+
+        .mb-logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: #EAF3FC;
+            color: #185FA5;
+            font-family: 'Sora', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .mb-logo img { width: 100%; height: 100%; object-fit: cover; display: block; background: #FFFFFF; }
+        .mb-logo img[hidden] { display: none; }
+        .mb-logo-lg { width: 88px; height: 88px; background: #F8FAFC; border-radius: 50%; }
+        .mb-logo-empty { font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 500; color: var(--navy-muted); text-align: center; padding: 6px; }
+
+        .mb-tabs {
+            display: flex;
+            gap: 22px;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .mb-tabs::-webkit-scrollbar { display: none; }
+        .mb-tab {
+            height: 44px;
+            padding: 0;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: none;
+            font: inherit;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .mb-tab[aria-selected="true"] { color: var(--navy-dark); font-weight: 600; border-bottom-color: #378ADD; }
+        .mb-tab-count { color: var(--navy-muted); font-weight: 500; }
+
+        .mb-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; }
+        .mb-stat { border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+        .mb-stat-label { font-size: 12px; color: var(--navy-muted); }
+        .mb-stat-val { font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--navy-dark); }
+        .mb-stat-val small { font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 500; color: var(--navy-muted); }
+        .mb-stat-sub { font-size: 12px; color: var(--navy-muted); }
+
+        .mb-progress { height: 6px; border-radius: 3px; background: #EEF2F7; overflow: hidden; margin-bottom: 8px; }
+        .mb-progress-bar { height: 100%; width: 0; background: #378ADD; border-radius: 3px; transition: width 0.3s ease; }
+        .mb-checklist { list-style: none; margin: 0; padding: 0; }
+        .mb-checklist li { display: flex; align-items: center; gap: 10px; min-height: 44px; border-bottom: 1px solid #F1F5F9; font-size: 14px; color: var(--navy-dark); }
+        .mb-checklist li:last-child { border-bottom: 0; }
+        .mb-checklist li.is-done { color: var(--navy-muted); }
+        .mb-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1.5px solid #CBD5E1;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #FFFFFF;
+        }
+        .mb-checklist li.is-done .mb-check { background: #16A34A; border-color: #16A34A; }
+        .mb-checklist li span.mb-check-label { flex: 1; }
+
+        .mb-preview { border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
+        .mb-preview-photo { aspect-ratio: 16 / 9; width: 100%; background: #EEF2F7; object-fit: cover; display: block; }
+        .mb-preview-photo-empty { aspect-ratio: 16 / 9; background: #EEF2F7; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--navy-muted); }
+        .mb-preview-body { padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+        .mb-preview-name { display: flex; align-items: center; gap: 10px; }
+        .mb-preview-name .mb-logo { width: 36px; height: 36px; font-size: 14px; }
+        .mb-preview-name strong { display: block; font-size: 15px; color: var(--navy-dark); }
+        .mb-preview-name span { display: block; font-size: 12px; color: var(--navy-muted); }
+        .mb-preview-hours { font-size: 13px; font-weight: 600; }
+        .mb-preview-desc { font-size: 13px; color: #334155; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+        .mb-preview-offers { font-size: 12px; color: var(--navy-muted); }
+
+        .mb-media-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .mb-front-thumb { width: 128px; height: 88px; border-radius: 10px; }
+        .mb-btn-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .mb-btn-quiet { min-height: 38px; padding: 0 8px; font-size: 13px; }
+        .mb-divider { height: 1px; background: var(--border-color); margin: 18px 0; }
+        #mbEditSocial .social-inputs-list { margin-top: 2px; }
+        .mb-edit-form { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+        .mb-edit-layout { display: flex; flex-direction: column; gap: 16px; }
+        .mb-edit-aside { min-width: 0; }
+
+        .mb-save-bar {
+            position: sticky;
+            bottom: 0;
+            z-index: 20;
+            margin: 0;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .mb-unsaved { flex: 1 1 auto; font-size: 13px; color: var(--navy-muted); }
+        .mb-save-bar.is-dirty .mb-unsaved { color: #B45309; font-weight: 600; }
+        .mb-save-bar .btn-primary { width: auto !important; }
+
+        .photo-selected-status:not(.visible) { display: none; }
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+        /* Fields shown in the preview instead of the details list */
+        #approvedThumbnailRow, #approvedOfferingsRow, #approvedHoursRow, #approvedSocialRow { display: none !important; }
+
+        @media (min-width: 1024px) {
+            .mb-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; align-items: start; }
+            .mb-side { position: sticky; top: 88px; }
+            .mb-tabs { flex-direction: column; gap: 2px; border-bottom: 0; }
+            .mb-tab { height: 42px; padding: 0 12px; border-bottom: 0; border-radius: 8px; text-align: left; }
+            .mb-tab[aria-selected="true"] { background: #EAF3FC; }
+            .mb-edit-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+            .mb-edit-aside { position: sticky; top: 88px; }
+        }
+        @media (max-width: 1023px) {
+            .mb-edit-aside { display: none; }
+        }
+        @media (max-width: 640px) {
+            .mb-card { padding: 16px; }
+            .mb-stats { gap: 8px; }
+            .mb-save-bar { margin: 0 -20px; border-radius: 0; border-left: 0; border-right: 0; }
+        }
     </style>
 </head>
 
@@ -1522,22 +1704,75 @@
              STATE C: STATUS APPROVED
              ==================================================== -->
         <div id="stateApproved" style="display: none;">
-            <!-- Header Block -->
-            <div class="section-block">
-                <h1 class="business-name" id="approvedBusinessName">--</h1>
-                <div class="status-line">
-                    <span class="status-dot status-dot-approved" aria-hidden="true"></span>
-                    <span class="status-text" data-i18n="mybus.status.approved">Live</span>
-                </div>
-                <!-- Plan, shoot, and feature meta -->
-                <div id="approvedPlanMeta" style="font-size: 13px; color: #64748B; margin-top: 8px;">--</div>
-                <div style="margin-top: 10px;">
-                    <a href="#" id="btnViewPublicProfile" class="public-profile-link">View public profile</a>
-                </div>
-            </div>
+            <div class="mb-shell">
+                <!-- Side: name, status and the section tabs -->
+                <aside class="mb-side">
+                    <section class="mb-card mb-hero">
+                        <div class="mb-hero-top">
+                            <div class="mb-logo" id="mbHeroLogo" aria-hidden="true">
+                                <span id="mbHeroInitial">B</span>
+                                <img id="mbHeroLogoImg" alt="" hidden>
+                            </div>
+                            <div class="mb-hero-text">
+                                <h1 class="business-name" id="approvedBusinessName">--</h1>
+                                <div class="status-line">
+                                    <span class="status-dot status-dot-approved" aria-hidden="true"></span>
+                                    <span class="status-text" data-i18n="mybus.status.approved">Live</span>
+                                    <span class="mb-hero-plan" id="mbHeroPlan"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="approvedPlanMeta" class="mb-plan-meta">--</div>
+                        <div class="mb-hero-actions">
+                            <button type="button" class="btn-secondary mb-btn" data-mb-go="edit">Edit profile</button>
+                            <a href="#" id="btnViewPublicProfile" class="btn-secondary mb-btn" target="_blank" rel="noopener">Public page</a>
+                        </div>
+                    </section>
+                    <nav class="mb-tabs" role="tablist" aria-label="My Business sections">
+                        <button type="button" role="tab" class="mb-tab" id="mbTabOverview" data-mb-tab="overview" aria-selected="true" aria-controls="mbPanelOverview">Overview</button>
+                        <button type="button" role="tab" class="mb-tab" id="mbTabEdit" data-mb-tab="edit" aria-selected="false" aria-controls="mbPanelEdit">Edit profile</button>
+                        <button type="button" role="tab" class="mb-tab" id="mbTabPosts" data-mb-tab="posts" aria-selected="false" aria-controls="mbPanelPosts">Posts <span class="mb-tab-count" id="mbTabPostsCount"></span></button>
+                    </nav>
+                </aside>
 
-            <!-- Details Block -->
-            <div class="section-block">
+                <div class="mb-main">
+                    <!-- OVERVIEW -->
+                    <div class="mb-panel" id="mbPanelOverview" role="tabpanel" aria-labelledby="mbTabOverview">
+                        <section class="mb-card">
+                            <h2 class="mb-card-title">This month</h2>
+                            <div class="mb-stats">
+                                <div class="mb-stat">
+                                    <span class="mb-stat-label">Posts</span>
+                                    <span class="mb-stat-val" id="mbStatPosts">0</span>
+                                    <button type="button" class="mb-link-btn" data-mb-go="posts">Write a post</button>
+                                </div>
+                                <div class="mb-stat">
+                                    <span class="mb-stat-label" id="mbStatSecondLabel">360° shoot</span>
+                                    <span class="mb-stat-val" id="mbStatSecond">--</span>
+                                    <span class="mb-stat-sub" id="mbStatSecondSub"></span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="mb-card" id="mbChecklistCard">
+                            <div class="mb-card-head">
+                                <h2 class="mb-card-title">Finish your profile</h2>
+                                <span class="mb-card-meta" id="mbChecklistCount">--</span>
+                            </div>
+                            <div class="mb-progress" aria-hidden="true"><div class="mb-progress-bar" id="mbChecklistBar"></div></div>
+                            <ul class="mb-checklist" id="mbChecklist"></ul>
+                        </section>
+
+                        <section class="mb-card">
+                            <div class="mb-card-head">
+                                <h2 class="mb-card-title">How commuters see you</h2>
+                                <a href="#" class="mb-link-btn" id="mbPreviewOpenLink" target="_blank" rel="noopener">Open</a>
+                            </div>
+                            <div class="mb-preview" id="mbPreviewOverview"></div>
+                        </section>
+
+                        <section class="mb-card">
+                            <h2 class="mb-card-title">Registered details</h2>
                 <dl class="details-list">
                     <div class="details-row" id="approvedThumbnailRow" style="display: none;">
                         <dt class="details-label">Front photo</dt>
@@ -1584,66 +1819,74 @@
                 <p class="details-note">
                     Registered name, category, and address are verified by Calzada and cannot be changed here.
                 </p>
-            </div>
-
-            <!-- Edit Profile Form -->
-            <form class="section-block" id="profileEditorForm" novalidate style="display: none;">
-                <h2 class="section-title">Edit profile</h2>
-
-                <!-- Photo Control -->
-                <div class="form-group">
-                    <label class="form-label">
-                        Front photo / Thumbnail <span class="opt">(Optional)</span>
-                    </label>
-                    <div class="photo-control-wrap">
-                        <div class="photo-thumbnail" id="photoThumbnail">
-                            <span class="photo-thumbnail-placeholder" id="photoPlaceholder">No photo</span>
-                            <img alt="Profile preview" class="photo-thumbnail-img" id="photoImg" style="display: none;">
-                        </div>
-                        <div class="photo-action-col">
-                            <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
-                            <button type="button" class="btn-change-photo" id="btnChangePhoto">
-                                Change photo
-                            </button>
-                            <span class="photo-hint">JPEG, PNG, or WebP. Max 10MB.</span>
-                            <span class="photo-selected-status" id="photoSelectedStatus" style="display: none;">New photo selected</span>
-                        </div>
+                        </section>
                     </div>
-                </div>
 
-                <!-- Description Field -->
-                <div class="form-group">
-                    <label class="form-label" for="editDescription">
-                        Description <span class="opt">(Optional)</span>
-                    </label>
-                    <textarea id="editDescription" class="form-textarea" rows="4" placeholder="Tell commuters what this place offers..." maxlength="500"></textarea>
-                </div>
+                    <!-- EDIT PROFILE -->
+                    <div class="mb-panel" id="mbPanelEdit" role="tabpanel" aria-labelledby="mbTabEdit" hidden>
+                        <div class="mb-edit-layout">
+                            <form id="profileEditorForm" class="mb-edit-form" novalidate style="display: none;">
+                                <section class="mb-card" id="mbEditPhotos">
+                                    <h2 class="mb-card-title">Logo and front photo</h2>
+                                    <p class="mb-card-sub">Your logo shows next to your name. The front photo helps commuters find your door.</p>
 
-                <!-- Offerings Field -->
-                <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label" style="margin-bottom: 2px;">
-                        Offerings <span class="opt">(Optional, up to 10)</span>
-                    </label>
-                    <div class="field-hint" style="font-size: 13px; color: #64748B; margin-top: 0; margin-bottom: 12px;">Top items, specialties, or services commuters can get at your place.</div>
-                    <div id="offeringsEditorContainer"></div>
-                </div>
+                                    <div class="mb-media-row">
+                                        <div class="mb-logo mb-logo-lg" id="logoPreviewBox">
+                                            <span class="mb-logo-empty" id="logoPreviewEmpty">No logo yet</span>
+                                            <img id="logoPreviewImg" alt="Logo preview" hidden>
+                                        </div>
+                                        <div class="photo-action-col">
+                                            <span class="form-label" style="margin: 0;">Logo</span>
+                                            <input type="file" id="logoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                                            <div class="mb-btn-row">
+                                                <button type="button" class="btn-change-photo" id="btnUploadLogo">Upload logo</button>
+                                                <button type="button" class="btn-cancel mb-btn-quiet" id="btnRemoveLogo" hidden>Remove</button>
+                                            </div>
+                                            <span class="photo-hint">Square works best. PNG, JPG or WebP, up to 5 MB.</span>
+                                            <span class="photo-selected-status" id="logoSelectedStatus"></span>
+                                        </div>
+                                    </div>
 
-                <!-- Opening Hours Field -->
-                <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label" style="margin-bottom: 2px;">
-                        Opening hours <span class="opt">(Optional)</span>
-                    </label>
-                    <div class="field-hint" style="font-size: 13px; color: #64748B; margin-top: 0; margin-bottom: 12px;">Set your regular opening hours for each day of the week.</div>
-                    <div id="openHoursEditorContainer"></div>
-                </div>
+                                    <div class="mb-divider"></div>
 
-                <!-- Social links (C1) -->
-                <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label" style="margin-bottom: 2px;">
-                        Social links <span class="opt">(Optional)</span>
-                    </label>
-                    <div class="field-hint" style="font-size: 13px; color: #6B7785; margin-top: 0; margin-bottom: 12px;">Add only the ones you use.</div>
+                                    <div class="mb-media-row">
+                                        <div class="photo-thumbnail mb-front-thumb" id="photoThumbnail">
+                                            <span class="photo-thumbnail-placeholder" id="photoPlaceholder">No photo</span>
+                                            <img alt="Front photo preview" class="photo-thumbnail-img" id="photoImg" style="display: none;">
+                                        </div>
+                                        <div class="photo-action-col">
+                                            <span class="form-label" style="margin: 0;">Front photo</span>
+                                            <input type="file" id="profilePhotoInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                                            <button type="button" class="btn-change-photo" id="btnChangePhoto">Change photo</button>
+                                            <span class="photo-hint">JPEG, PNG, or WebP. Max 10MB.</span>
+                                            <span class="photo-selected-status" id="photoSelectedStatus"></span>
+                                        </div>
+                                    </div>
+                                </section>
 
+                                <section class="mb-card">
+                                    <div class="mb-card-head">
+                                        <label class="mb-card-title" for="editDescription">About your place</label>
+                                        <span class="mb-card-meta" id="descCount">0 / 500</span>
+                                    </div>
+                                    <textarea id="editDescription" class="form-textarea" rows="4" placeholder="Tell commuters what this place offers..." maxlength="500"></textarea>
+                                </section>
+
+                                <section class="mb-card" id="mbEditOfferings">
+                                    <h2 class="mb-card-title">What you offer</h2>
+                                    <p class="mb-card-sub">Up to 10. Commuters can search for these.</p>
+                                    <div id="offeringsEditorContainer"></div>
+                                </section>
+
+                                <section class="mb-card" id="mbEditHours">
+                                    <h2 class="mb-card-title">Opening hours</h2>
+                                    <p class="mb-card-sub">Your regular hours for each day of the week.</p>
+                                    <div id="openHoursEditorContainer"></div>
+                                </section>
+
+                                <section class="mb-card" id="mbEditSocial">
+                                    <h2 class="mb-card-title">Social links</h2>
+                                    <p class="mb-card-sub">Add only the ones you use. Paste the link or type the name.</p>
                     <div class="social-inputs-list">
                         <div>
                             <div class="social-input-row" id="editRowFacebook">
@@ -1684,21 +1927,32 @@
                             <div class="field-error-msg" id="errEditTiktok">Please enter a valid TikTok handle or URL.</div>
                         </div>
                     </div>
-                </div>
+                                </section>
 
-                <!-- Form Actions -->
-                <div class="profile-actions">
-                    <button type="submit" class="btn-primary" id="saveChangesBtn" disabled>
-                        <span id="saveBtnText">Save changes</span>
-                    </button>
-                    <button type="button" class="btn-cancel" id="resetChangesBtn" style="display: none;">
-                        Discard
-                    </button>
-                </div>
-            </form>
+                                <!-- Save bar: stays at the bottom of the screen while editing -->
+                                <div class="profile-actions mb-save-bar">
+                                    <span class="mb-unsaved" id="mbUnsavedText">No changes yet</span>
+                                    <button type="button" class="btn-cancel" id="resetChangesBtn" style="display: none;">Discard</button>
+                                    <button type="submit" class="btn-primary" id="saveChangesBtn" disabled>
+                                        <span id="saveBtnText">Save changes</span>
+                                    </button>
+                                </div>
+                            </form>
 
+                            <aside class="mb-edit-aside">
+                                <section class="mb-card">
+                                    <h2 class="mb-card-title">Live preview</h2>
+                                    <p class="mb-card-sub">How commuters see you on Places</p>
+                                    <div class="mb-preview" id="mbPreviewEdit"></div>
+                                </section>
+                            </aside>
+                        </div>
+                    </div>
+
+                    <!-- POSTS -->
+                    <div class="mb-panel" id="mbPanelPosts" role="tabpanel" aria-labelledby="mbTabPosts" hidden>
             <!-- Your Posts Section -->
-            <div class="section-block" id="postsCard" style="display: none;">
+            <div class="mb-card" id="postsCard" style="display: none;">
                 <h2 class="section-title">Your posts <span id="postsCountLabel" class="section-count"></span></h2>
 
                 <!-- New Post Form -->
@@ -1733,6 +1987,9 @@
 
                 <!-- Posts Feed Container -->
                 <div id="postsListContainer" class="posts-feed"></div>
+            </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1968,6 +2225,12 @@
         let initialSocialLinks = { facebook: '', instagram: '', tiktok: '' };
         let selectedPhotoFile = null;
         let localPreviewUrl = null;
+        // Logo: saved value, a newly picked file, or a request to remove it
+        let initialLogoUrl = '';
+        let selectedLogoFile = null;
+        let logoRemoved = false;
+        let localLogoUrl = null;
+        let mbActiveTab = 'overview';
 
         const postsCard = document.getElementById('postsCard');
         const createPostForm = document.getElementById('createPostForm');
@@ -2405,6 +2668,231 @@
             if (approvedPlanMeta) {
                 approvedPlanMeta.textContent = planLine;
             }
+
+            // Header plan and the "This month" numbers
+            const heroPlan = document.getElementById('mbHeroPlan');
+            let heroPlanText = `· ${planDisplayName}`;
+            if (planId === 'featured' && activeBusiness.featuredUntil) {
+                const fd = activeBusiness.featuredUntil.toDate ? activeBusiness.featuredUntil.toDate() : new Date(activeBusiness.featuredUntil);
+                if (!isNaN(fd.getTime())) heroPlanText += ` · Featured until ${fd.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })}`;
+            }
+            if (heroPlan) heroPlan.textContent = heroPlanText;
+            const statPosts = document.getElementById('mbStatPosts');
+            if (statPosts) {
+                statPosts.innerHTML = limit === null
+                    ? `${curMonthCount} <small>posts</small>`
+                    : `${curMonthCount} <small>of ${limit}</small>`;
+            }
+            const secondLabel = document.getElementById('mbStatSecondLabel');
+            const secondVal = document.getElementById('mbStatSecond');
+            const secondSub = document.getElementById('mbStatSecondSub');
+            if (secondLabel && secondVal && secondSub) {
+                if (planCfg && planCfg.has360) {
+                    const shootNames = { to_schedule: 'To schedule', scheduled: 'Scheduled', done: 'Done', none: 'Not set' };
+                    const sv = activeBusiness.shoot360 || 'to_schedule';
+                    secondLabel.textContent = '360° shoot';
+                    secondVal.textContent = shootNames[sv] || 'To schedule';
+                    let sub = '';
+                    if (sv === 'to_schedule') sub = "We'll email the date";
+                    else if (sv === 'scheduled' && activeBusiness.shoot360Date) {
+                        const sd = activeBusiness.shoot360Date.toDate ? activeBusiness.shoot360Date.toDate() : new Date(activeBusiness.shoot360Date);
+                        sub = isNaN(sd.getTime()) ? String(activeBusiness.shoot360Date) : sd.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' });
+                    } else if (sv === 'done') sub = 'Your 360 view is live';
+                    secondSub.textContent = sub;
+                } else {
+                    secondLabel.textContent = 'Plan';
+                    secondVal.textContent = planDisplayName;
+                    secondSub.innerHTML = '<a class="mb-link-btn" href="/plans">See plans</a>';
+                }
+            }
+        }
+
+        // ---- My Business tabs (Overview / Edit profile / Posts) ----
+        function setMbTab(name, { focus = true } = {}) {
+            if (!['overview', 'edit', 'posts'].includes(name)) name = 'overview';
+            mbActiveTab = name;
+            const map = { overview: 'mbPanelOverview', edit: 'mbPanelEdit', posts: 'mbPanelPosts' };
+            Object.entries(map).forEach(([key, id]) => {
+                const panel = document.getElementById(id);
+                if (panel) panel.hidden = key !== name;
+            });
+            document.querySelectorAll('.mb-tab[data-mb-tab]').forEach(tab => {
+                const on = tab.getAttribute('data-mb-tab') === name;
+                tab.setAttribute('aria-selected', on ? 'true' : 'false');
+                tab.tabIndex = on ? 0 : -1;
+            });
+            if (focus) {
+                const shell = document.querySelector('.mb-main');
+                if (shell && shell.getBoundingClientRect().top < 0) shell.scrollIntoView({ block: 'start' });
+            }
+        }
+        document.querySelectorAll('.mb-tab[data-mb-tab]').forEach(tab => {
+            tab.addEventListener('click', () => setMbTab(tab.getAttribute('data-mb-tab')));
+        });
+        document.addEventListener('click', (e) => {
+            const go = e.target.closest('[data-mb-go]');
+            if (!go) return;
+            e.preventDefault();
+            setMbTab(go.getAttribute('data-mb-go'));
+            const target = go.getAttribute('data-mb-target');
+            if (target) document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // ---- Logo ----
+        function currentLogoSrc() {
+            if (localLogoUrl) return localLogoUrl;
+            if (logoRemoved) return '';
+            return initialLogoUrl || '';
+        }
+        function paintLogoSlots() {
+            const src = currentLogoSrc();
+            const name = (activeBusiness && activeBusiness.name) || '';
+            const initial = name.trim().charAt(0).toUpperCase() || 'B';
+            const heroImg = document.getElementById('mbHeroLogoImg');
+            const heroInitial = document.getElementById('mbHeroInitial');
+            // The header shows the saved logo only
+            if (heroImg && heroInitial) {
+                if (initialLogoUrl) { heroImg.src = initialLogoUrl; heroImg.hidden = false; heroInitial.hidden = true; }
+                else { heroImg.hidden = true; heroImg.removeAttribute('src'); heroInitial.hidden = false; heroInitial.textContent = initial; }
+            }
+            const pImg = document.getElementById('logoPreviewImg');
+            const pEmpty = document.getElementById('logoPreviewEmpty');
+            if (pImg && pEmpty) {
+                if (src) { pImg.src = src; pImg.hidden = false; pEmpty.hidden = true; }
+                else { pImg.hidden = true; pImg.removeAttribute('src'); pEmpty.hidden = false; }
+            }
+            const removeBtn = document.getElementById('btnRemoveLogo');
+            if (removeBtn) removeBtn.hidden = !src;
+            const uploadBtn = document.getElementById('btnUploadLogo');
+            if (uploadBtn) uploadBtn.textContent = src ? 'Change logo' : 'Upload logo';
+        }
+        function resetLogoPick() {
+            if (localLogoUrl) { URL.revokeObjectURL(localLogoUrl); localLogoUrl = null; }
+            selectedLogoFile = null;
+            logoRemoved = false;
+            const input = document.getElementById('logoInput');
+            if (input) input.value = '';
+            const st = document.getElementById('logoSelectedStatus');
+            if (st) { st.textContent = ''; st.classList.remove('visible'); }
+            paintLogoSlots();
+        }
+        document.getElementById('btnUploadLogo')?.addEventListener('click', () => document.getElementById('logoInput')?.click());
+        document.getElementById('logoInput')?.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (!/^image\/(jpeg|png|webp)$/i.test(file.type || '')) {
+                showBanner('Use a PNG, JPG or WebP picture for your logo.', 'error');
+                e.target.value = '';
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                showBanner('That logo is over 5 MB. Try a smaller picture.', 'error');
+                e.target.value = '';
+                return;
+            }
+            hideBanner();
+            if (localLogoUrl) URL.revokeObjectURL(localLogoUrl);
+            selectedLogoFile = file;
+            logoRemoved = false;
+            localLogoUrl = URL.createObjectURL(file);
+            const st = document.getElementById('logoSelectedStatus');
+            if (st) { st.textContent = `Ready: ${file.name}`; st.classList.add('visible'); }
+            paintLogoSlots();
+            updateSaveButtonState();
+        });
+        document.getElementById('btnRemoveLogo')?.addEventListener('click', () => {
+            if (localLogoUrl) { URL.revokeObjectURL(localLogoUrl); localLogoUrl = null; }
+            selectedLogoFile = null;
+            logoRemoved = !!initialLogoUrl;
+            const input = document.getElementById('logoInput');
+            if (input) input.value = '';
+            const st = document.getElementById('logoSelectedStatus');
+            if (st) { st.textContent = logoRemoved ? 'Logo will be removed when you save' : ''; st.classList.toggle('visible', logoRemoved); }
+            paintLogoSlots();
+            updateSaveButtonState();
+        });
+
+        // Shrink a big logo to 512 px; PNG stays PNG so a clear background stays clear
+        async function prepareLogoFile(file) {
+            if (!file || file.size <= 400 * 1024) return file;
+            try {
+                const bmp = await createImageBitmap(file);
+                const scale = Math.min(1, 512 / Math.max(bmp.width, bmp.height));
+                const c = document.createElement('canvas');
+                c.width = Math.max(1, Math.round(bmp.width * scale));
+                c.height = Math.max(1, Math.round(bmp.height * scale));
+                c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+                const type = /png/i.test(file.type) ? 'image/png' : 'image/jpeg';
+                const blob = await new Promise(res => c.toBlob(res, type, 0.9));
+                if (!blob) return file;
+                return new File([blob], type === 'image/png' ? 'logo.png' : 'logo.jpg', { type });
+            } catch (_) {
+                return file;
+            }
+        }
+
+        // ---- Overview: checklist and the commuter preview ----
+        function refreshMbOverview() {
+            if (!activeBusiness) return;
+            const links = activeBusiness.socialLinks || {};
+            const items = [
+                { label: 'Add your logo', done: !!initialLogoUrl, target: 'mbEditPhotos' },
+                { label: 'Front photo', done: !!(activeBusiness.thumbnailUrl || activeBusiness.profilePhotoUrl), target: 'mbEditPhotos' },
+                { label: 'What you offer', done: Array.isArray(activeBusiness.offerings) && activeBusiness.offerings.length > 0, target: 'mbEditOfferings' },
+                { label: 'Opening hours', done: !!(activeBusiness.openHours && Object.keys(activeBusiness.openHours).length), target: 'mbEditHours' },
+                { label: 'Add a social link', done: !!(links.facebook || links.instagram || links.tiktok), target: 'mbEditSocial' }
+            ];
+            const doneCount = items.filter(i => i.done).length;
+            const countEl = document.getElementById('mbChecklistCount');
+            if (countEl) countEl.textContent = doneCount === items.length ? 'All done' : `${doneCount} of ${items.length} done`;
+            const bar = document.getElementById('mbChecklistBar');
+            if (bar) bar.style.width = `${Math.round((doneCount / items.length) * 100)}%`;
+            const list = document.getElementById('mbChecklist');
+            if (list) {
+                list.innerHTML = items
+                    .slice().sort((a, b) => Number(a.done) - Number(b.done))
+                    .map(i => `<li class="${i.done ? 'is-done' : ''}">
+                        <span class="mb-check" aria-hidden="true">${i.done ? '<i class="ti ti-check"></i>' : ''}</span>
+                        <span class="mb-check-label">${escapeHtml(i.label)}${i.done ? '<span class="sr-only"> (done)</span>' : ''}</span>
+                        ${i.done ? '' : `<button type="button" class="mb-link-btn" data-mb-go="edit" data-mb-target="${i.target}">Add</button>`}
+                    </li>`).join('');
+            }
+            paintLogoSlots();
+            renderMbPreviews();
+        }
+
+        function renderMbPreviews() {
+            if (!activeBusiness) return;
+            const editing = !!document.getElementById('editDescription');
+            const desc = editing ? editDescription.value.trim() : (activeBusiness.description || '');
+            const offers = offeringsEditor ? offeringsEditor.getOfferings() : (activeBusiness.offerings || []);
+            const hours = openHoursEditor ? (typeof openHoursEditor.getHours === 'function' ? openHoursEditor.getHours() : openHoursEditor.getOpenHours()) : activeBusiness.openHours;
+            const photo = localPreviewUrl || initialThumbnailUrl || '';
+            const logo = currentLogoSrc();
+            const name = activeBusiness.name || 'Your business';
+            const cat = activeBusiness.serviceType || CATEGORY_NAMES[activeBusiness.category] || activeBusiness.category || '';
+            let hoursHtml = '';
+            if (hours && Object.keys(hours).length && window.CalzadaBusinessFields) {
+                try {
+                    const st = CalzadaBusinessFields.getOpenStatus(hours);
+                    hoursHtml = `<span class="mb-preview-hours" style="color: ${st.isOpen ? '#15803D' : '#64748B'};">${escapeHtml(st.formattedText)}</span>`;
+                } catch (_) { hoursHtml = ''; }
+            }
+            const html = `
+                ${photo ? `<img class="mb-preview-photo" src="${escapeHtml(photo)}" alt="Front photo of ${escapeHtml(name)}">` : '<div class="mb-preview-photo-empty">No front photo yet</div>'}
+                <div class="mb-preview-body">
+                    <div class="mb-preview-name">
+                        <div class="mb-logo" aria-hidden="true">${logo ? `<img src="${escapeHtml(logo)}" alt="">` : escapeHtml(name.trim().charAt(0).toUpperCase() || 'B')}</div>
+                        <div><strong>${escapeHtml(name)}</strong><span>${escapeHtml(cat)}</span></div>
+                    </div>
+                    ${hoursHtml}
+                    ${desc ? `<p class="mb-preview-desc">${escapeHtml(desc)}</p>` : ''}
+                    ${Array.isArray(offers) && offers.length ? `<span class="mb-preview-offers">Offers: ${escapeHtml(offers.join(', '))}</span>` : ''}
+                </div>`;
+            ['mbPreviewOverview', 'mbPreviewEdit'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = html;
+            });
         }
 
         function renderPlanOptionCards(containerEl, currentPlanId, onSelectCallback) {
@@ -2448,7 +2936,8 @@
             statePaymentReview.style.display = 'none';
             stateApproved.style.display = 'none';
             stateRejected.style.display = 'none';
-            profileEditorForm.style.display = (stateKey === 'approved') ? 'block' : 'none';
+            profileEditorForm.style.display = (stateKey === 'approved') ? 'flex' : 'none';
+            document.getElementById('mybusContainer')?.classList.toggle('is-approved', stateKey === 'approved');
             if (postsCard) postsCard.style.display = (stateKey === 'approved') ? 'block' : 'none';
             hideBanner();
 
@@ -2648,6 +3137,10 @@
                 }
 
                 initialDescription = activeBusiness.description || '';
+                initialLogoUrl = activeBusiness.logoUrl || '';
+                resetLogoPick();
+                const previewLink = document.getElementById('mbPreviewOpenLink');
+                if (previewLink) previewLink.href = `/business?id=${encodeURIComponent(activeBusinessId)}`;
                 initialThumbnailUrl = activeBusiness.thumbnailUrl || activeBusiness.profilePhotoUrl || '';
                 initialPhotoUrl = initialThumbnailUrl;
                 editDescription.value = initialDescription;
@@ -2693,6 +3186,8 @@
                 resetPostForm();
                 await loadBusinessPosts(activeBusinessId);
                 updatePlanMetaDisplay();
+                refreshMbOverview();
+                setMbTab(mbActiveTab, { focus: false });
 
                 stateApproved.style.display = 'block';
 
@@ -2748,10 +3243,18 @@
             const currentHours = openHoursEditor ? (typeof openHoursEditor.getHours === 'function' ? openHoursEditor.getHours() : openHoursEditor.getOpenHours()) : initialOpenHours;
             const hoursChanged = JSON.stringify(currentHours) !== JSON.stringify(initialOpenHours);
 
-            const hasChanges = descChanged || photoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged;
+            const logoChanged = selectedLogoFile !== null || logoRemoved;
+            const hasChanges = descChanged || photoChanged || logoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged;
             saveChangesBtn.disabled = !hasChanges || hasSocialErrors;
             resetChangesBtn.style.display = hasChanges ? 'inline-flex' : 'none';
             resetChangesBtn.disabled = !hasChanges;
+
+            const descCount = document.getElementById('descCount');
+            if (descCount) descCount.textContent = `${editDescription.value.length} / 500`;
+            const unsaved = document.getElementById('mbUnsavedText');
+            if (unsaved) unsaved.textContent = hasChanges ? 'Unsaved changes' : 'No changes yet';
+            document.querySelector('.mb-save-bar')?.classList.toggle('is-dirty', hasChanges);
+            renderMbPreviews();
         }
 
         editDescription.addEventListener('input', updateSaveButtonState);
@@ -2839,6 +3342,7 @@
             document.getElementById('editRowTiktok')?.classList.toggle('has-value', Boolean(editTiktok?.value.trim()));
             clearSocialErrors();
             resetPhotoPreview();
+            resetLogoPick();
             if (offeringsEditor) offeringsEditor.setOfferings(initialOfferings);
             if (openHoursEditor && openHoursEditorContainer && window.CalzadaBusinessFields) {
                 openHoursEditor = CalzadaBusinessFields.renderOpenHoursEditor(openHoursEditorContainer, {
@@ -2902,6 +3406,24 @@
                     if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to upload photo.');
                     updatedThumbnailUrl = uploadData.url || uploadData.photoUrl;
                 }
+                let newLogoUrl = initialLogoUrl || null;
+                if (selectedLogoFile) {
+                    const token = await getFirebaseIdToken();
+                    const logoForm = new FormData();
+                    logoForm.append('businessId', activeBusinessId);
+                    logoForm.append('kind', 'logo');
+                    logoForm.append('photo', await prepareLogoFile(selectedLogoFile));
+                    const logoRes = await fetch('/api/businesses/upload-thumbnail', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: logoForm
+                    });
+                    const logoData = await readApiJson(logoRes);
+                    if (!logoRes.ok) throw new Error(logoData.error || 'Failed to upload logo.');
+                    newLogoUrl = logoData.url || logoData.photoUrl || null;
+                } else if (logoRemoved) {
+                    newLogoUrl = null;
+                }
                 const busDocRef = doc(db, "businesses", activeBusinessId);
                 const newDescription = editDescription.value.trim() || null;
                 const newSocialLinks = {
@@ -2935,8 +3457,17 @@
                     updatePayload.offerings = newOfferings;
                 }
                 if (newOpenHours && !sameJson(newOpenHours, initialOpenHours)) updatePayload.openHours = newOpenHours;
+                if (selectedLogoFile && typeof newLogoUrl === 'string' && newLogoUrl.startsWith('https://res.cloudinary.com/')) {
+                    updatePayload.logoUrl = newLogoUrl;
+                } else if (logoRemoved) {
+                    updatePayload.logoUrl = null;
+                }
 
                 await updateDoc(busDocRef, updatePayload);
+                if ('logoUrl' in updatePayload) {
+                    activeBusiness.logoUrl = updatePayload.logoUrl;
+                    initialLogoUrl = updatePayload.logoUrl || '';
+                }
                 if (!updatePayload.thumbnailUrl) updatedThumbnailUrl = initialThumbnailUrl || null;
                 activeBusiness.profilePhotoUrl = updatedThumbnailUrl;
                 activeBusiness.thumbnailUrl = updatedThumbnailUrl;
@@ -2995,13 +3526,15 @@
                 }
 
                 resetPhotoPreview();
+                resetLogoPick();
                 updateSaveButtonState();
-                saveBtnText.textContent = 'Save Changes';
+                refreshMbOverview();
+                saveBtnText.textContent = 'Save changes';
                 showBanner('Business profile updated successfully.', 'success');
             } catch (err) {
                 saveChangesBtn.disabled = false;
                 resetChangesBtn.disabled = false;
-                saveBtnText.textContent = 'Save Changes';
+                saveBtnText.textContent = 'Save changes';
                 console.error('[my-business] save failed', err);
                 let msg = err.message;
                 if (err.code === 'permission-denied') {
@@ -3678,6 +4211,8 @@
 
             if (postsCountLabel) {
                 postsCountLabel.textContent = businessPosts.length === 0 ? '' : `(${businessPosts.length})`;
+                const tabCount = document.getElementById('mbTabPostsCount');
+                if (tabCount) tabCount.textContent = businessPosts.length ? String(businessPosts.length) : '';
             }
 
             if (businessPosts.length === 0) {

@@ -294,7 +294,9 @@
         const icon = o.type === 'recent' ? 'ti-clock' : (KIND_ICONS[o.kind] || KIND_ICONS.pin);
         const dist = o.distM != null ? `<span class="cps-row-dist">${fmtDist(o.distM)}</span>` : '';
         return `<div class="cps-row" role="option" id="${id}" aria-selected="false" data-idx="${o.idx}">
-            <span class="cps-tile${o.type === 'recent' ? ' cps-tile--muted' : ''}"><i class="ti ${icon}" aria-hidden="true"></i></span>
+            ${typeof o.logo === 'string' && o.logo.startsWith('https://res.cloudinary.com/')
+                ? `<span class="cps-tile cps-tile--logo"><img src="${esc(o.logo)}" alt="" loading="lazy"></span>`
+                : `<span class="cps-tile${o.type === 'recent' ? ' cps-tile--muted' : ''}"><i class="ti ${icon}" aria-hidden="true"></i></span>`}
             <span class="cps-row-text"><span class="cps-row-name">${o.nameHtml || esc(o.name)}</span>${o.location ? `<span class="cps-row-loc">${esc(o.location)}</span>` : ''}</span>${dist}</div>`;
     };
 
@@ -332,7 +334,7 @@
         if (activeCategory) {
             const cat = CATEGORIES.find(c => c.id === activeCategory);
             const places = calzadaPlaces().filter(p => String(p.category || '').toLowerCase() === activeCategory)
-                .map(p => withDistance({ type: 'calzada', name: p.name, location: calzadaLocation(p), lat: +p.lat, lng: +p.lng, kind: CATEGORY_KIND[activeCategory] }))
+                .map(p => withDistance({ type: 'calzada', name: p.name, location: calzadaLocation(p), lat: +p.lat, lng: +p.lng, kind: CATEGORY_KIND[activeCategory], logo: p.logo || null }))
                 .sort((a, b) => (a.distM != null && b.distM != null) ? a.distM - b.distM : a.name.localeCompare(b.name));
             html += section(tr(cat.key, cat.fallback), `<span class="cps-verified"><i class="ti ti-circle-check" aria-hidden="true"></i>${esc(tr('search.verified', 'Verified'))}</span>`);
             html += places.length ? places.map(add).join('') : `<div class="cps-empty" role="presentation">${esc(tr('search.no_category', 'No places in this category yet.'))}</div>`;
@@ -412,7 +414,7 @@
     const searchCalzada = (query) => calzadaPlaces()
         .map(p => ({ p, score: nameScore(query, p.name) }))
         .filter(x => x.score > 0)
-        .map(x => withDistance({ type: 'calzada', name: x.p.name, nameHtml: highlight(x.p.name, query), location: calzadaLocation(x.p), lat: +x.p.lat, lng: +x.p.lng, kind: CATEGORY_KIND[String(x.p.category || '').toLowerCase()] || 'pin', score: x.score,
+        .map(x => withDistance({ type: 'calzada', name: x.p.name, nameHtml: highlight(x.p.name, query), location: calzadaLocation(x.p), lat: +x.p.lat, lng: +x.p.lng, kind: CATEGORY_KIND[String(x.p.category || '').toLowerCase()] || 'pin', score: x.score, logo: x.p.logo || null,
             // kept for the visibility lift of listed businesses
             id: x.p.id, plan: x.p.source === 'business' ? x.p.plan : undefined, paidAt: x.p.source === 'business' ? x.p.paidAt : undefined }))
         .sort((a, b) => b.score - a.score || ((a.distM != null && b.distM != null) ? a.distM - b.distM : 0))

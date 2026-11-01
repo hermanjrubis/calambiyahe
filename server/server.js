@@ -605,6 +605,7 @@ async function getLiveBusinesses() {
                 lng,
                 barangay: d.barangay || '',
                 photo: d.thumbnailUrl || d.profilePhotoUrl || null,
+                logo: typeof d.logoUrl === 'string' && d.logoUrl.startsWith('https://res.cloudinary.com/') ? d.logoUrl : null,
                 offerings: Array.isArray(d.offerings) ? d.offerings : [],
                 openHours: d.openHours || null,
                 plan: d.plan || 'listed',
@@ -1419,13 +1420,15 @@ app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
 
         const uid = req.user.uid;
         const safeFileName = crypto.randomBytes(8).toString('hex');
+        // My Business sends kind=logo for the business logo; everything else is the front photo
+        const prefix = req.body && req.body.kind === 'logo' ? 'logo' : 'front';
         const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'calzada';
 
         // In test emulator mode, return mock Cloudinary URL without external network call
         if (process.env.CALZADA_EMULATORS === '1') {
             return res.json({
                 success: true,
-                url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/front_${safeFileName}.jpg`
+                url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/${prefix}_${safeFileName}.jpg`
             });
         }
 
@@ -1437,7 +1440,7 @@ app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
             const { url: fileUrl } = await uploadBuffer(
                 file.buffer,
                 `calzada/businesses/${uid}`,
-                `front_${safeFileName}`
+                `${prefix}_${safeFileName}`
             );
             return res.json({
                 success: true,
@@ -1447,7 +1450,7 @@ app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
             if (process.env.CALZADA_EMULATORS === '1') {
                 return res.json({
                     success: true,
-                    url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/front_${safeFileName}.jpg`
+                    url: `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/businesses/${uid}/${prefix}_${safeFileName}.jpg`
                 });
             }
             console.error('Error uploading front photo to Cloudinary:', uploadErr);

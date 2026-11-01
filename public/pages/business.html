@@ -24,7 +24,7 @@
     <!-- Global Calzada Stylesheet for Shared Navbar, Profile Dropdown & Design System -->
     <link rel="stylesheet" href="../css/style.css?v=2.8.5">
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
-    <link rel="stylesheet" href="../css/place-panel.css?v=2.9.0">
+    <link rel="stylesheet" href="../css/place-panel.css?v=23">
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
 
     <!-- Ionicons -->
@@ -2202,8 +2202,9 @@
             }
 
             // Avatar
-            if (bus.profilePhotoUrl && avatarImg && avatarPlaceholder) {
-                avatarImg.src = bus.profilePhotoUrl;
+            const avatarSrc = (typeof bus.logoUrl === 'string' && bus.logoUrl.startsWith('https://res.cloudinary.com/')) ? bus.logoUrl : bus.profilePhotoUrl;
+            if (avatarSrc && avatarImg && avatarPlaceholder) {
+                avatarImg.src = avatarSrc;
                 avatarImg.style.display = 'block';
                 avatarPlaceholder.style.display = 'none';
             }
