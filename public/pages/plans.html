@@ -3,6 +3,42 @@
 
 <head>
     <meta charset="UTF-8">
+    <script>
+    /* Signed in last time? Show the profile in the header while the page loads,
+       instead of "Sign In" first. Firebase confirms it a moment later (or switches back). */
+    (function () {
+        try {
+            var h = JSON.parse(localStorage.getItem('calzada_auth_hint') || 'null');
+            if (!h || !h.name || Date.now() - (h.at || 0) > 30 * 864e5) return;
+            document.documentElement.classList.add('auth-hint');
+            var name = localStorage.getItem('calzada_pref_name') || h.name;
+            var photo = localStorage.getItem('calzada_pref_photo') || h.photo || '';
+            var initial = String(name).charAt(0).toUpperCase() || 'U';
+            var done = {};
+            var show = function (id, display) { var el = document.getElementById(id); if (el && !done[id]) { el.style.display = display; done[id] = 1; } };
+            var fill = function () {
+                show('authNavBtn', 'none');
+                show('userAvatarPill', 'flex');
+                show('mobileSignInBtn', 'none');
+                show('mobileAvatarBtn', 'flex');
+                var n = document.getElementById('userDisplayName');
+                if (n && !done.n) { n.textContent = name; done.n = 1; }
+                ['userAvatar', 'mobileAvatar'].forEach(function (k) {
+                    var ini = document.getElementById(k + 'Initials'), img = document.getElementById(k + 'Img');
+                    if (ini && !done[k + 'I']) { ini.textContent = initial; ini.style.display = 'block'; done[k + 'I'] = 1; }
+                    if (img && photo && !done[k + 'P']) {
+                        done[k + 'P'] = 1;
+                        img.onload = function () { if (img.naturalWidth) { img.style.display = 'block'; if (ini) ini.style.display = 'none'; } };
+                        img.src = photo;
+                    }
+                });
+            };
+            var mo = new MutationObserver(fill);
+            mo.observe(document.documentElement, { childList: true, subtree: true });
+            document.addEventListener('DOMContentLoaded', function () { fill(); mo.disconnect(); });
+        } catch (e) { /* no storage: wait for Firebase as before */ }
+    })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Business Plans – Calzada</title>
     <link rel="canonical" href="https://calzadaph.com/plans">
@@ -574,27 +610,73 @@
                 <a href="/plans" class="nav-link active" data-i18n="nav.for_businesses">For businesses</a>
             </nav>
 
+            <!-- [Right Side]: Language, Activity Feed Bell, User Profile / Sign In -->
             <div class="nav-right">
                 <div class="lang-dropdown-container">
                     <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
                         <i class="ti ti-language lang-icon" aria-hidden="true"></i>
                         <span class="lang-active">EN</span>
-                        <i class="ti ti-chevron-down" style="font-size: 14px;" aria-hidden="true"></i>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
                     </button>
                     <div class="lang-dropdown-menu" role="menu">
                         <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
                             <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
                         <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
                             <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="nav-auth-wrap" id="navAuthWrap">
-                    <a href="/login?redirect=/plans" class="nav-login-btn" id="navLoginBtn">Sign In</a>
+                <div class="alerts-dropdown-container">
+                    <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed" title="Your recent activity">
+                        <ion-icon name="notifications-outline"></ion-icon>
+                        <span class="badge" id="bellBadge" style="display:none;">0</span>
+                    </button>
+                </div>
+
+                <div class="user-profile-nav" id="userProfileNav">
+                    <a href="/login?redirect=/plans" id="authNavBtn" class="btn-nav-signin">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <span data-i18n="nav.signin">Sign In</span>
+                    </a>
+
+                    <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
+                        <div class="user-avatar-wrap">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" width="34" height="34" style="display:none;">
+                            <div class="user-avatar-initials" id="userAvatarInitials">U</div>
+                            <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
+                        </div>
+                        <div class="user-name-wrap">
+                            <span class="user-display-name" id="userDisplayName">Commuter</span>
+                        </div>
+                        <ion-icon name="chevron-down-outline" class="user-dropdown-arrow"></ion-icon>
+                    </div>
                 </div>
             </div>
+
+            <!-- Mobile-only icon cluster -->
+            <div class="mobile-nav-icons" id="mobileNavIcons">
+                <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
+                    <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
+                    <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
+                </button>
+                <a href="/login?redirect=/plans" class="mobile-signin-pill" id="mobileSignInBtn" aria-label="Sign in" data-i18n-aria-label="login.signin">
+                    <svg class="mobile-signin-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+                    <span class="mobile-signin-text" data-i18n="login.signin">Sign in</span>
+                </a>
+                <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
+                    <div class="mobile-avatar-wrap">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" width="34" height="34" style="display:none;">
+                        <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
+                    </div>
+                </button>
+            </div>
+
 
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
                 <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
@@ -602,6 +684,140 @@
                     <path class="menu-toggle-line" d="M7 16 27 16" />
                 </svg>
             </button>
+
+            <!-- Activity Feed Dropdown Menu -->
+            <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
+                <div class="alerts-header">
+                    <div class="alerts-header-title">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span data-i18n="nav.activity.title">Activity Feed</span>
+                    </div>
+                    <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <span data-i18n="nav.activity.clear">Clear</span>
+                    </button>
+                </div>
+                <div class="alerts-list" id="activityFeedList">
+                    <!-- Filled dynamically by JS -->
+                </div>
+            </div>
+
+            <!-- Establishment Focus Profile Dropdown Menu (Top level nav-container child for Desktop + Mobile) -->
+            <div class="user-profile-menu establishment-profile-menu" id="userProfileMenu">
+                <!-- User Info Header -->
+                <div class="profile-header-card">
+                    <div class="profile-header-avatar">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" width="48" height="48" style="display:none;">
+                        <div class="profile-header-initials" id="profileHeaderInitials">U</div>
+                    </div>
+                    <div class="profile-header-details">
+                        <div class="profile-name" id="profileDisplayName">User</div>
+                        <div class="profile-email" id="profileEmail">user@gmail.com</div>
+                    </div>
+                </div>
+
+                <!-- 📊 Your Exploration Stats Row (100% SVG Icons) -->
+                <div class="exploration-stats-section" id="explorationStatsSection">
+                    <div class="stats-section-label" data-i18n="nav.user.stats_label">Your Exploration Stats</div>
+                    <div class="exploration-stats-row">
+                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" data-i18n="nav.user.title_visits" data-i18n-attr="title" title="View Visited Establishments">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+                            </span>
+                            <span class="stat-value" id="statVisitsCount">0</span>
+                            <span class="stat-name" data-i18n="nav.user.visits">Visits</span>
+                        </button>
+                        <div class="stat-divider"></div>
+                        <button type="button" class="stat-pill-btn" id="statSavesBtn" data-i18n="nav.user.title_saves" data-i18n-attr="title" title="View Saved Places">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
+                            </span>
+                            <span class="stat-value" id="statSavesCount">0</span>
+                            <span class="stat-name" data-i18n="nav.user.saves">Saves</span>
+                        </button>
+                        <div class="stat-divider"></div>
+                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" data-i18n="nav.user.title_badges" data-i18n-attr="title" title="View Badges">
+                            <span class="stat-icon">
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+                            </span>
+                            <span class="stat-value" id="statBadgesCount">0</span>
+                            <span class="stat-name" data-i18n="nav.user.badges">Badges</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+
+                <!-- Menu Items with Outline Tabler SVGs (Strictly No Emojis) -->
+                <div class="profile-nav-list">
+                    <!-- 1. My Visits -->
+                    <button type="button" class="profile-nav-btn" id="menuMyVisits">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.my_visits">My Visits</span>
+                    </button>
+
+                    <!-- My Trips -->
+                    <button type="button" class="profile-nav-btn" id="menuMyTrips">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" /><path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.my_trips">My Trips</span>
+                    </button>
+
+                    <!-- Route History -->
+                    <button type="button" class="profile-nav-btn" id="menuRouteHistory">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.route_history">Route history</span>
+                    </button>
+
+                    <!-- 2. Saved Places -->
+                    <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.saved_places">Saved Places</span>
+                        <span class="saved-count-pill" id="menuSavedCount" style="display: none;">0</span>
+                    </button>
+
+                    <!-- 3. My Badges -->
+                    <button type="button" class="profile-nav-btn" id="menuMyAchievements">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.my_achievements">My Badges</span>
+                    </button>
+
+                    <!-- 4. Account Settings -->
+                    <button type="button" class="profile-nav-btn" id="menuAccountSettings">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.account_settings">Account Settings</span>
+                    </button>
+
+                    <!-- 5. Register your business -->
+                    <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
+                        <span class="nav-btn-icon">
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21v-10.15" /><path d="M19 21v-10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg>
+                        </span>
+                        <span class="nav-btn-title" data-i18n="nav.user.register_business">Register your business</span>
+                    </a>
+                </div>
+
+                <div class="profile-menu-divider"></div>
+
+                <!-- 6. Log Out -->
+                <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
+                    <span class="nav-btn-icon">
+                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></svg>
+                    </span>
+                    <span class="nav-btn-title" data-i18n="nav.user.logout">Log Out</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -679,6 +895,8 @@
     <script src="../js/i18n.js?v=2.9.5"></script>
     <script src="../js/plans.js?v=2.9.1"></script>
     <script src="../js/script.js?v=2.6.7"></script>
+    <script type="module" src="../js/firebase-init.js"></script>
+    <script type="module" src="../js/user-stats.js?v=2.6.13"></script>
 
     <div class="drawer-overlay" id="sideDrawerOverlay"></div>
     <div class="side-drawer" id="sideDrawer">
