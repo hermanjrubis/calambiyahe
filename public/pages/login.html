@@ -47,6 +47,9 @@
     <style>
         body { opacity: 0; }
         body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+        .auth-switch { font-family: 'Outfit', sans-serif; font-size: 0.85rem; color: var(--text-muted); text-align: center; margin: 14px 0 0; }
+        .auth-switch .auth-legal-link { font-weight: 600; }
+        .auth-notice-text { display: none; font-size: 0.85rem; line-height: 1.45; color: var(--navy-dark, #042C53); background: #EAF2FB; border-radius: 8px; padding: 10px 12px; margin: 0 0 14px; }
     </style>
     <noscript>
         <style>body { opacity: 1 !important; }</style>
@@ -126,11 +129,12 @@
 
                     <!-- STEP 2: PASSWORD STEP (EXISTING USER) -->
                     <div id="stepPassword" class="auth-step">
-                        <h2 class="auth-title">Welcome Back!</h2>
+                        <h2 class="auth-title" id="passTitle">Welcome Back!</h2>
                         <div class="auth-email-row">
                             <span id="passEmailDisplay" class="auth-email-text"></span>
                             <button type="button" id="changeEmailFromPass" class="btn-change-email">Change</button>
                         </div>
+                        <p id="passNotice" class="auth-notice-text" role="status"></p>
                         <form id="formPassword" novalidate>
                             <label for="loginPass" class="auth-input-label">Password</label>
                             <div class="input-group">
@@ -150,6 +154,7 @@
 
                             <button type="submit" id="loginSubmitBtn" class="btn-auth-primary">Sign in</button>
                         </form>
+                        <p class="auth-switch">New to Calzada? <button type="button" id="toRegisterFromPass" class="auth-legal-link">Create an account</button></p>
                     </div>
 
                     <!-- STEP 3: CREATE ACCOUNT STEP (NEW USER) -->
@@ -193,6 +198,7 @@
 
                             <button type="submit" id="regSubmitBtn" class="btn-auth-primary">Create account</button>
                         </form>
+                        <p class="auth-switch">Already have an account? <button type="button" id="toPassFromReg" class="auth-legal-link">Sign in</button></p>
                     </div>
                 </div>
 
@@ -319,6 +325,8 @@
             if (regEmailInputWrap) regEmailInputWrap.style.display = 'none';
             if (regEmailInput) regEmailInput.value = '';
             if (regTerms) regTerms.checked = false;
+            const passNoticeEl = document.getElementById('passNotice');
+            if (passNoticeEl) { passNoticeEl.innerText = ''; passNoticeEl.style.display = 'none'; }
             hideAllErrors();
             showStep('email');
             setTimeout(() => {
@@ -329,6 +337,56 @@
 
         changeEmailFromPass.addEventListener('click', backToEmail);
         changeEmailFromReg.addEventListener('click', backToEmail);
+
+        // Firebase Email Enumeration Protection makes fetchSignInMethodsForEmail return []
+        // for every email, so the page can't tell an existing account from a new one.
+        // Unknown emails go to the sign-in step (with a "Create an account" link), and the
+        // two steps can switch to each other.
+        const passTitle = document.getElementById('passTitle');
+        const passNotice = document.getElementById('passNotice');
+
+        const setPassNotice = (message) => {
+            if (!passNotice) return;
+            passNotice.innerText = message || '';
+            passNotice.style.display = message ? 'block' : 'none';
+        };
+
+        const goToPassword = (email, { known = false, notice = '' } = {}) => {
+            currentEmail = email;
+            passEmailDisplay.innerText = email;
+            if (passTitle) passTitle.innerText = known ? 'Welcome Back!' : 'Sign in';
+            loginPass.value = '';
+            hideAllErrors();
+            setPassNotice(notice);
+            showStep('password');
+            setTimeout(() => loginPass.focus(), 50);
+        };
+
+        const goToRegister = (email) => {
+            currentEmail = email;
+            regEmailDisplay.innerText = email;
+            const regEmailRow = document.getElementById('regEmailRow');
+            const regEmailInputWrap = document.getElementById('regEmailInputWrap');
+            if (regEmailRow) regEmailRow.style.display = '';
+            if (regEmailInputWrap) regEmailInputWrap.style.display = 'none';
+            regName.value = '';
+            regPass.value = '';
+            hideAllErrors();
+            showStep('register');
+            setTimeout(() => regName.focus(), 50);
+        };
+
+        document.getElementById('toRegisterFromPass').addEventListener('click', () => {
+            if (currentEmail) goToRegister(currentEmail);
+            else backToEmail();
+        });
+
+        document.getElementById('toPassFromReg').addEventListener('click', () => {
+            const regEmailInput = document.getElementById('regEmailInput');
+            const typed = currentEmail || (regEmailInput ? regEmailInput.value.trim() : '');
+            if (typed && emailRegex.test(typed)) goToPassword(typed);
+            else backToEmail();
+        });
 
         // Check if opened directly in register mode
         const initParams = new URLSearchParams(window.location.search);
@@ -440,25 +498,22 @@
             btnEmailContinue.disabled = true;
 
             try {
-                const methods = await fetchSignInMethodsForEmail(auth, email);
-                currentEmail = email;
+                let methods = [];
+                try {
+                    methods = await fetchSignInMethodsForEmail(auth, email) || [];
+                } catch (lookupErr) {
+                    if (lookupErr.code === 'auth/invalid-email' || lookupErr.code === 'auth/network-request-failed') throw lookupErr;
+                    methods = [];
+                }
 
-                if (methods && methods.length > 0) {
-                    // Registered user -> Password step ("Welcome back")
-                    passEmailDisplay.innerText = currentEmail;
-                    loginPass.value = '';
-                    hideError(loginError);
-                    showStep('password');
-                    setTimeout(() => loginPass.focus(), 50);
+                if (methods.length > 0 && !methods.includes('password') && methods.includes('google.com')) {
+                    // Known Google-only account: a password won't work
+                    currentEmail = email;
+                    showError(emailError, "This email signs in with Google. Tap \"Sign in with Google\" below.");
                 } else {
-                    // New user -> Create Account step ("Let's create your account")
-                    regEmailDisplay.innerText = currentEmail;
-                    regName.value = '';
-                    regPass.value = '';
-                    hideError(regNameError);
-                    hideError(regError);
-                    showStep('register');
-                    setTimeout(() => regName.focus(), 50);
+                    // Known account -> "Welcome Back!"; unknown (lookup hidden by Firebase) -> "Sign in"
+                    // with a "Create an account" link right under the button.
+                    goToPassword(email, { known: methods.length > 0 });
                 }
             } catch (err) {
                 let msg = err.message || "Failed to check email. Please try again.";
@@ -497,8 +552,8 @@
                 window.location.href = getSafeRedirectUrl();
             } catch (err) {
                 let msg = err.message;
-                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                    msg = "Incorrect password. Please try again.";
+                if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-login-credentials') {
+                    msg = "Incorrect email or password. New to Calzada? Create an account below. If you signed up with Google, use \"Sign in with Google\" instead.";
                 } else if (err.code === 'auth/user-disabled') {
                     msg = "This account has been disabled. Please contact support.";
                 } else if (err.code === 'auth/too-many-requests') {
@@ -572,10 +627,25 @@
                 logActivity(userCredential.user.uid, "register", "email"); // fire-and-forget
                 window.location.href = getSafeRedirectUrl();
             } catch (err) {
-                let msg = err.message;
                 if (err.code === 'auth/email-already-in-use') {
-                    msg = "An account with this email already exists. Please sign in.";
-                } else if (err.code === 'auth/weak-password') {
+                    // Existing account: try signing in with the password they just typed
+                    try {
+                        const existing = await signInWithEmailAndPassword(auth, emailToUse, pass);
+                        logActivity(existing.user.uid, "login", "email"); // fire-and-forget
+                        window.location.href = getSafeRedirectUrl();
+                        return;
+                    } catch (_) {
+                        regSubmitBtn.innerText = originalText;
+                        regSubmitBtn.disabled = false;
+                        goToPassword(emailToUse, {
+                            known: true,
+                            notice: "You already have a Calzada account with this email. Enter your password to sign in, or use \"Sign in with Google\" if that's how you signed up."
+                        });
+                        return;
+                    }
+                }
+                let msg = err.message;
+                if (err.code === 'auth/weak-password') {
                     msg = "Password is too weak. Please use at least 6 characters.";
                 }
                 showError(regError, msg);
