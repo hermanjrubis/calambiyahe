@@ -1551,6 +1551,104 @@
             .segmented-item { font-size: 12px; }
         }
 
+
+        /* Instagram-style post (header, icon row, likes, caption, time) */
+        .post-card { scroll-margin-top: 84px; }
+        .post-header { padding: 12px 14px; gap: 10px; }
+        .post-avatar { width: 36px; height: 36px; font-size: 12px; }
+        .post-business-name { font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600; }
+        .post-sub-line { margin-top: 1px; }
+        .btn-plan-route-outline.btn-plan-route-sm {
+            flex-shrink: 0;
+            height: 32px;
+            padding: 0 12px;
+            border-color: var(--border-color);
+            color: var(--brand-blue-dark);
+        }
+        .post-actions-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 0;
+            height: 48px;
+            padding: 0 6px;
+            border-top: 0;
+        }
+        .post-actions-left { display: flex; align-items: center; gap: 0; }
+        .post-actions-mid { display: flex; justify-content: center; }
+        .post-actions-right { display: flex; justify-content: flex-end; }
+        .post-actions-mid .media-dots { margin: 0; }
+        .btn-post-icon {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--navy-dark);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.15s var(--ease-out), color 0.15s ease;
+        }
+        .btn-post-icon i { font-size: 25px; color: inherit; }
+        .btn-post-icon:active { transform: scale(0.88); }
+        @media (hover: hover) { .btn-post-icon:hover { color: var(--brand-blue-dark); } }
+        .btn-post-heart.btn-post-icon i { font-size: 26px; color: var(--navy-dark); }
+        .btn-post-heart.btn-post-icon.liked i { color: var(--like-heart); }
+        .post-content { padding: 0 14px 16px; display: flex; flex-direction: column; gap: 5px; }
+        .post-likes-line { font-size: 14px; font-weight: 600; color: var(--navy-dark); }
+        .post-label-line { margin: 0; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .post-label-line i { font-size: 13px; }
+        .post-caption { margin: 0; font-size: 14px; line-height: 1.45; color: #0F172A; white-space: pre-line; overflow-wrap: anywhere; }
+        .post-caption.is-clamped {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .post-caption-name { font-weight: 600; color: var(--navy-dark); text-decoration: none; }
+        .post-caption-more {
+            align-self: flex-start;
+            margin-top: -3px;
+            padding: 2px 0;
+            border: 0;
+            background: none;
+            font: inherit;
+            font-size: 14px;
+            color: var(--navy-muted);
+            cursor: pointer;
+        }
+        .post-caption-more[hidden] { display: none; }
+        .post-time { font-size: 12px; color: var(--navy-muted); }
+
+        /* Desktop and tablet: an Instagram-width column */
+        @media (min-width: 1024px) {
+            .updates-page-wrapper { max-width: 882px; }
+            .updates-feed-col { max-width: 470px; }
+        }
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .updates-feed-col, .updates-sidebar-col { max-width: 470px; }
+        }
+
+        /* Phone: posts run edge to edge like Instagram */
+        @media (max-width: 767px) {
+            .updates-feed-col { gap: 12px; }
+            .post-card:not(.is-skeleton) {
+                margin: 0 -16px;
+                border-radius: 0;
+                border-left: 0;
+                border-right: 0;
+            }
+            .post-header { padding: 10px 12px; }
+            .post-content { padding: 0 14px 14px; }
+        }
+        @media (max-width: 360px) {
+            .post-card:not(.is-skeleton) { margin: 0 -12px; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: 0.01ms !important;
@@ -1993,6 +2091,7 @@
                     }, { once: true });
                 }
                 feedContainer.appendChild(cardEl);
+                fitCaption(cardEl);
 
                 // Phone (≤ 767px): The "Own a business" card sits after the first post
                 if (index === 0 && isPhone() && !userLiveBusiness) {
@@ -2008,7 +2107,17 @@
                     feedContainer.appendChild(mobileOwnBusCard);
                 }
             });
+
+            // A shared link (/discover#post-<id>) scrolls to that post once
+            if (!sharedPostOpened && /^#post-/.test(location.hash)) {
+                const target = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+                if (target) {
+                    sharedPostOpened = true;
+                    requestAnimationFrame(() => target.scrollIntoView({ block: 'start' }));
+                }
+            }
         }
+        let sharedPostOpened = false;
 
         // Create Individual Post Card
         function createPostCardElement(post) {
@@ -2020,8 +2129,7 @@
             const busName = bus ? bus.name : (post.businessName || 'Local business');
             const category = formatCategoryLabel(bus ? bus.category : post.businessCategory);
             const barangay = bus?.barangay ? `Brgy. ${bus.barangay}` : '';
-            const dateStr = formatRelativeDate(post.createdAt);
-            const subParts = [category, barangay, dateStr].filter(Boolean).map(escapeHtml);
+            const subParts = [barangay, category].filter(Boolean).map(escapeHtml);
             const busHref = `/business?id=${encodeURIComponent(post.businessId)}`;
 
             const now = Date.now();
@@ -2033,17 +2141,6 @@
             const hasMedia = photos.length > 0;
             const isMulti = photos.length > 1;
             const startIdx = Math.min(postCarouselIndices.get(post.id) || 0, Math.max(0, photos.length - 1));
-
-            // Label line
-            let labelHtml = '';
-            if (post.label === 'promo') {
-                const promoDate = formatPromoUntil(post.promoUntil);
-                labelHtml = `<div class="post-label-line label-promo">Promo${promoDate ? ` · until ${escapeHtml(promoDate)}` : ''}</div>`;
-            } else if (post.label === 'new_item') {
-                labelHtml = `<div class="post-label-line label-new-item">New item</div>`;
-            } else {
-                labelHtml = `<div class="post-label-line label-announcement">Announcement</div>`;
-            }
 
             // Plan route only when the business has a real pin
             const lat = Number(bus?.location?.lat);
@@ -2063,6 +2160,17 @@
                     <img src="${escapeHtml(url)}" alt="${escapeHtml(busName)} photo ${i + 1} of ${photos.length}" class="post-media-img" draggable="false" ${i === 0 ? 'fetchpriority="auto"' : 'loading="lazy"'} decoding="async">
                 </div>`).join('');
 
+            // Label line: "Pinned · Promo · until Nov 15"
+            let labelText = 'Announcement';
+            if (post.label === 'promo') {
+                const promoDate = formatPromoUntil(post.promoUntil);
+                labelText = `Promo${promoDate ? ` · until ${escapeHtml(promoDate)}` : ''}`;
+            } else if (post.label === 'new_item') {
+                labelText = 'New item';
+            }
+            const labelClass = post.label === 'promo' ? 'label-promo' : (post.label === 'new_item' ? 'label-new-item' : 'label-announcement');
+            const labelLineHtml = `<div class="post-label-line ${labelClass}">${isPinned ? '<i class="ti ti-pin" aria-hidden="true"></i> Pinned · ' : ''}${labelText}</div>`;
+
             card.innerHTML = `
                 <div class="post-header">
                     <a href="${busHref}" class="post-avatar" aria-label="View ${escapeHtml(busName)}">
@@ -2072,6 +2180,7 @@
                         <a href="${busHref}" class="post-business-name">${escapeHtml(busName)}</a>
                         <div class="post-sub-line">${subParts.join(' · ')}</div>
                     </div>
+                    ${hasPin ? `<a href="${plannerUrl}" class="btn-plan-route-outline btn-plan-route-sm">Plan route</a>` : ''}
                 </div>
 
                 ${hasMedia ? `
@@ -2088,33 +2197,44 @@
                     ` : ''}
                 </div>` : ''}
 
-                <div class="post-content">
-                    ${isMulti ? `<div class="media-dots" aria-hidden="true">${photos.map((_, i) => `<span class="media-dot${i === startIdx ? ' active' : ''}"></span>`).join('')}</div>` : ''}
-                    <div class="post-text-block">
-                        ${isPinned ? `<div class="post-label-line label-pinned"><i class="ti ti-pin"></i> Pinned</div>` : ''}
-                        ${labelHtml}
-                        ${post.caption ? `<p class="post-caption">${escapeHtml(post.caption)}</p>` : ''}
+                <div class="post-actions-row">
+                    <div class="post-actions-left">
+                        <button type="button" class="btn-post-heart btn-post-icon ${post.isLiked ? 'liked' : ''}" aria-pressed="${post.isLiked ? 'true' : 'false'}" aria-label="${post.isLiked ? 'Unlike post' : 'Like post'}">
+                            <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
+                        </button>
+                        ${hasPin ? `<a href="${plannerUrl}" class="btn-post-icon" aria-label="Plan route"><i class="ti ti-route"></i></a>` : ''}
+                        <button type="button" class="btn-post-icon btn-post-share" aria-label="Share post"><i class="ti ti-send"></i></button>
                     </div>
-
-                    <div class="post-actions-row">
-                        <div class="post-actions-left">
-                            <button type="button" class="btn-post-heart ${post.isLiked ? 'liked' : ''}" aria-pressed="${post.isLiked ? 'true' : 'false'}" aria-label="Like post">
-                                <i class="ti ${post.isLiked ? 'ti-heart-filled' : 'ti-heart'}"></i>
-                                <span class="like-count">${post.likeCount || 0}</span>
-                            </button>
-                            <a href="${busHref}" class="btn-post-action" aria-label="View place">
-                                <i class="ti ti-map-pin"></i>
-                                <span>View place</span>
-                            </a>
-                        </div>
-                        ${hasPin ? `
-                        <a href="${plannerUrl}" class="btn-plan-route-outline">
-                            <i class="ti ti-route"></i>
-                            <span>Plan route</span>
-                        </a>` : ''}
+                    <div class="post-actions-mid">
+                        ${isMulti ? `<div class="media-dots" aria-hidden="true">${photos.map((_, i) => `<span class="media-dot${i === startIdx ? ' active' : ''}"></span>`).join('')}</div>` : ''}
+                    </div>
+                    <div class="post-actions-right">
+                        <a href="${busHref}" class="btn-post-icon" aria-label="View place"><i class="ti ti-building-store"></i></a>
                     </div>
                 </div>
+
+                <div class="post-content">
+                    <div class="post-likes-line">${likesLineHtml(post.likeCount || 0)}</div>
+                    ${labelLineHtml}
+                    ${post.caption ? `
+                    <p class="post-caption is-clamped"><a href="${busHref}" class="post-caption-name">${escapeHtml(busName)}</a> ${escapeHtml(post.caption)}</p>
+                    <button type="button" class="post-caption-more" hidden>more</button>` : ''}
+                    <div class="post-time">${escapeHtml(formatPostTime(post.createdAt))}</div>
+                </div>
             `;
+
+            // Share: the phone's share sheet when there is one, else copy the link
+            card.querySelector('.btn-post-share')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sharePost(post, busName);
+            });
+
+            // "more" opens the whole caption
+            const moreBtn = card.querySelector('.post-caption-more');
+            moreBtn?.addEventListener('click', () => {
+                card.querySelector('.post-caption')?.classList.remove('is-clamped');
+                moreBtn.hidden = true;
+            });
 
             if (hasMedia) wireCarousel(card, post, photos, startIdx);
 
@@ -2126,6 +2246,62 @@
             });
 
             return card;
+        }
+
+        // "Be the first to like this" / "1 like" / "12 likes"
+        function likesLineHtml(count) {
+            const n = Number(count) || 0;
+            if (n <= 0) return 'Be the first to like this';
+            return `<span class="like-count">${n}</span> ${n === 1 ? 'like' : 'likes'}`;
+        }
+
+        // Instagram-style time under the caption: "5 minutes ago", "2 days ago", "Oct 29"
+        function formatPostTime(val) {
+            if (!val) return 'Recently';
+            try {
+                const d = val.toDate ? val.toDate() : (val instanceof Date ? val : new Date(val));
+                if (isNaN(d.getTime())) return 'Recently';
+                const sec = Math.floor((Date.now() - d.getTime()) / 1000);
+                const ago = (n, w) => `${n} ${w}${n === 1 ? '' : 's'} ago`;
+                if (sec < 60) return 'Just now';
+                const min = Math.floor(sec / 60);
+                if (min < 60) return ago(min, 'minute');
+                const hrs = Math.floor(min / 60);
+                if (hrs < 24) return ago(hrs, 'hour');
+                const days = Math.floor(hrs / 24);
+                if (days < 7) return ago(days, 'day');
+                return d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', timeZone: 'Asia/Manila' });
+            } catch (_) {
+                return 'Recently';
+            }
+        }
+
+        // Share a post: the phone's share sheet when there is one, else copy the link
+        async function sharePost(post, busName) {
+            const url = `${location.origin}/discover#post-${encodeURIComponent(post.id)}`;
+            const text = post.caption ? String(post.caption).slice(0, 120) : `Update from ${busName} on Calzada`;
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: busName, text, url });
+                    return;
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                }
+            }
+            try {
+                await navigator.clipboard.writeText(url);
+                showToast('Link copied. Paste it anywhere.');
+            } catch (_) {
+                showToast(url);
+            }
+        }
+
+        // Show "more" only when the caption runs past 2 lines
+        function fitCaption(cardEl) {
+            const cap = cardEl.querySelector('.post-caption.is-clamped');
+            const more = cardEl.querySelector('.post-caption-more');
+            if (!cap || !more) return;
+            more.hidden = !(cap.scrollHeight > cap.clientHeight + 2);
         }
 
         function formatPromoUntil(val) {
@@ -2301,13 +2477,16 @@
             const heartBtn = card.querySelector('.btn-post-heart');
             if (!heartBtn) return;
             const heartIcon = heartBtn.querySelector('i');
-            const countEl = heartBtn.querySelector('.like-count');
             heartBtn.classList.toggle('liked', liked);
             heartBtn.setAttribute('aria-pressed', liked ? 'true' : 'false');
+            heartBtn.setAttribute('aria-label', liked ? 'Unlike post' : 'Like post');
             heartIcon.className = `ti ${liked ? 'ti-heart-filled' : 'ti-heart'}`;
-            if (countEl && countEl.textContent !== String(count)) {
-                countEl.textContent = count;
-                if (animate) {
+            const line = card.querySelector('.post-likes-line');
+            const shown = line?.querySelector('.like-count')?.textContent || '0';
+            if (line && shown !== String(count)) {
+                line.innerHTML = likesLineHtml(count);
+                const countEl = line.querySelector('.like-count');
+                if (animate && countEl) {
                     countEl.classList.remove('bump');
                     void countEl.offsetWidth;
                     countEl.classList.add('bump');
