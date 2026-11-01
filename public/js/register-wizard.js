@@ -34,12 +34,62 @@ const STEP_TITLES = {
     review: { title: 'Review and submit', benefit: 'Check how your business looks on Places before submitting.' }
 };
 
-// Barangays center coordinates for nearest distance calculation
+// Barangay detection from the pin.
+// Centers are the label points in scope.js. Samples are the verified places in
+// places-shared.js (lat, lng, U/R/H). The 3 nearest samples vote, weighted by
+// distance; far from every sample, the nearest center decides.
 const BARANGAY_CENTERS = [
-    { name: 'Uno', lat: 14.2140, lng: 121.1620 },
-    { name: 'Real', lat: 14.2080, lng: 121.1550 },
-    { name: 'Halang', lat: 14.1950, lng: 121.1630 }
+    { name: 'Uno', lat: 14.20415, lng: 121.15691 },
+    { name: 'Real', lat: 14.19625, lng: 121.14964 },
+    { name: 'Halang', lat: 14.19505, lng: 121.16341 }
 ];
+const BARANGAY_CODES = { U: 'Uno', R: 'Real', H: 'Halang' };
+const BARANGAY_SAMPLES = [
+    [14.19459,121.16488,"H"],[14.20251,121.15840,"U"],[14.19880,121.15235,"R"],[14.19776,121.16026,"H"],[14.20295,121.15715,"U"],[14.19549,121.14353,"R"],
+    [14.20562,121.15623,"U"],[14.20270,121.15755,"U"],[14.20404,121.15594,"U"],[14.20391,121.15607,"U"],[14.20370,121.15616,"U"],[14.19465,121.16522,"H"],
+    [14.19301,121.16575,"H"],[14.19596,121.16369,"H"],[14.19748,121.16186,"H"],[14.19491,121.14354,"R"],[14.19593,121.16371,"H"],[14.20218,121.15862,"U"],
+    [14.19582,121.16414,"H"],[14.20447,121.15559,"U"],[14.20247,121.15838,"U"],[14.20548,121.15647,"U"],[14.20385,121.15658,"U"],[14.20351,121.15739,"U"],
+    [14.20555,121.15578,"U"],[14.20265,121.15823,"U"],[14.20275,121.15817,"U"],[14.20483,121.15671,"U"],[14.20366,121.15629,"U"],[14.20457,121.15664,"U"],
+    [14.20509,121.15634,"U"],[14.20538,121.15578,"U"],[14.20362,121.15756,"U"],[14.20428,121.15670,"U"],[14.20380,121.15619,"U"],[14.20483,121.15842,"U"],
+    [14.20368,121.15753,"U"],[14.20322,121.15789,"U"],[14.20578,121.15758,"U"],[14.20488,121.15651,"U"],[14.20554,121.15574,"U"],[14.20457,121.15665,"U"],
+    [14.20456,121.15683,"U"],[14.20468,121.15652,"U"],[14.20529,121.15611,"U"],[14.20260,121.15823,"U"],[14.20484,121.15640,"U"],[14.20421,121.15702,"U"],
+    [14.20444,121.15654,"U"],[14.20227,121.15841,"U"],[14.20507,121.15652,"U"],[14.20335,121.15773,"U"],[14.20530,121.15667,"U"],[14.20457,121.15812,"U"],
+    [14.20431,121.15702,"U"],[14.20435,121.15773,"U"],[14.20375,121.15710,"U"],[14.20397,121.15689,"U"],[14.20562,121.15627,"U"],[14.20582,121.15762,"U"],
+    [14.20299,121.15804,"U"],[14.20442,121.15695,"U"],[14.20431,121.15562,"U"],[14.19651,121.16259,"H"],[14.19400,121.16536,"H"],[14.19662,121.16196,"H"],
+    [14.19313,121.16554,"H"],[14.19390,121.16488,"H"],[14.19338,121.16538,"H"],[14.19742,121.16249,"H"],[14.19369,121.16578,"H"],[14.19675,121.16211,"H"],
+    [14.19835,121.16173,"H"],[14.19840,121.16225,"H"],[14.19520,121.16360,"H"],[14.19667,121.16244,"H"],[14.19607,121.14363,"R"],[14.19405,121.15969,"R"],
+    [14.19704,121.14638,"R"],[14.19720,121.14583,"R"],[14.19587,121.15979,"R"],[14.19674,121.15920,"R"],[14.19784,121.14971,"R"],[14.19681,121.16106,"H"],
+    [14.20402,121.15664,"U"],[14.20397,121.15667,"U"],[14.20395,121.15668,"U"],[14.20388,121.15677,"U"],[14.20393,121.15599,"U"],[14.20385,121.15606,"U"],
+    [14.19552,121.16352,"H"],[14.18861,121.16271,"H"],[14.19557,121.16113,"H"],[14.19578,121.16095,"H"],[14.19612,121.16141,"H"],[14.19303,121.16571,"H"],
+    [14.19141,121.16621,"H"],[14.19680,121.16230,"H"],[14.19438,121.16455,"H"],[14.19801,121.16143,"H"],[14.19610,121.16182,"H"],[14.19307,121.16569,"H"],
+    [14.19267,121.16646,"H"],[14.19097,121.16536,"H"],[14.19573,121.16130,"H"],[14.19139,121.16587,"H"],[14.19631,121.16165,"H"],[14.19436,121.16454,"H"],
+    [14.19102,121.16532,"H"],[14.19106,121.16532,"H"],[14.19770,121.16158,"H"],[14.19784,121.16151,"H"],[14.18977,121.16398,"H"],[14.19350,121.16578,"H"],
+    [14.19413,121.15757,"R"],[14.19727,121.14655,"R"],[14.19706,121.16279,"H"],[14.20449,121.15578,"U"]
+];
+
+function brgyDistanceM(lat1, lng1, lat2, lng2) {
+    const kx = 111320 * Math.cos(lat1 * Math.PI / 180);
+    return Math.hypot((lat2 - lat1) * 110540, (lng2 - lng1) * kx);
+}
+
+function detectBarangay(lat, lng) {
+    const near = BARANGAY_SAMPLES
+        .map(([sLat, sLng, code]) => ({ d: brgyDistanceM(lat, lng, sLat, sLng), name: BARANGAY_CODES[code] }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, 3);
+    if (near.length && near[0].d <= 600) {
+        const votes = {};
+        near.forEach(n => { votes[n.name] = (votes[n.name] || 0) + 1 / Math.max(n.d, 5); });
+        return Object.keys(votes).sort((a, b) => votes[b] - votes[a])[0];
+    }
+    let best = BARANGAY_CENTERS[0];
+    let bestD = Infinity;
+    BARANGAY_CENTERS.forEach(b => {
+        const d = brgyDistanceM(lat, lng, b.lat, b.lng);
+        if (d < bestD) { bestD = d; best = b; }
+    });
+    return best.name;
+}
 
 // Coverage bounding box around Uno, Real, Halang
 const COVERAGE_BBOX = {
@@ -67,7 +117,7 @@ export class RegisterWizard {
             contactNumber: '',
             offerings: [],
             location: { lat: 14.2117, lng: 121.1652 },
-            barangay: 'Real',
+            barangay: '',
             address: '',
             landmark: '',
             openHours: window.CalzadaBusinessFields?.getDefaultHours() || {
@@ -645,10 +695,12 @@ export class RegisterWizard {
                         Barangay <span style="color: #DC2626;">*</span>
                     </label>
                     <select id="selectBarangay" style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
+                        <option value="" disabled ${this.formData.barangay ? '' : 'selected'}>Drop your pin first</option>
                         <option value="Uno" ${this.formData.barangay === 'Uno' ? 'selected' : ''}>Brgy. Uno</option>
                         <option value="Real" ${this.formData.barangay === 'Real' ? 'selected' : ''}>Brgy. Real</option>
                         <option value="Halang" ${this.formData.barangay === 'Halang' ? 'selected' : ''}>Brgy. Halang</option>
                     </select>
+                    <div id="barangayHint" style="font-size: 12px; color: #64748B; margin-top: 4px;"></div>
                 </div>
 
                 <div>
@@ -675,6 +727,8 @@ export class RegisterWizard {
         const brgySelect = area.querySelector('#selectBarangay');
         brgySelect.addEventListener('change', (e) => {
             this.formData.barangay = e.target.value;
+            this.barangaySource = 'manual';
+            this.paintBarangayHint(area);
             this.updateLivePreview();
             this.validateCurrentStepButton();
             this.triggerAutosave();
@@ -693,8 +747,25 @@ export class RegisterWizard {
             this.triggerAutosave();
         });
 
+        this.paintBarangayHint(area);
+
         // Initialize MapLibre
         setTimeout(() => this.initMapLibre(area), 50);
+    }
+
+    // The line under the barangay box: says where the value came from
+    paintBarangayHint(area) {
+        const hint = area.querySelector('#barangayHint');
+        if (!hint) return;
+        if (!this.formData.barangay) {
+            hint.textContent = 'Drop your pin and we will fill this in. You can still change it.';
+        } else if (this.barangaySource === 'auto') {
+            hint.textContent = 'Filled in from your pin. Change it if it is wrong.';
+        } else if (this.barangaySource === 'manual') {
+            hint.textContent = 'You picked this. Moving the pin fills it in again.';
+        } else {
+            hint.textContent = '';
+        }
     }
 
     initMapLibre(area) {
@@ -718,6 +789,18 @@ export class RegisterWizard {
             .setLngLat(defaultCenter)
             .addTo(this.map);
 
+        // A restored pin with no barangay yet gets one right away
+        if (!this.formData.barangay && window.CalzadaScope && typeof window.CalzadaScope.contains === 'function'
+            && window.CalzadaScope.contains(defaultCenter[1], defaultCenter[0])) {
+            this.formData.barangay = detectBarangay(defaultCenter[1], defaultCenter[0]);
+            this.barangaySource = 'auto';
+            const brgySel = area.querySelector('#selectBarangay');
+            if (brgySel) brgySel.value = this.formData.barangay;
+            this.paintBarangayHint(area);
+            this.updateLivePreview();
+            this.validateCurrentStepButton();
+        }
+
         const onPinMoved = (lngLat) => {
             const lat = Number(lngLat.lat.toFixed(6));
             const lng = Number(lngLat.lng.toFixed(6));
@@ -739,20 +822,13 @@ export class RegisterWizard {
             const errEl = area.querySelector('#mapCoverageError');
             if (errEl) errEl.style.display = 'none';
 
-            // Auto-preselect nearest barangay
-            let nearest = BARANGAY_CENTERS[0];
-            let minDist = Infinity;
-            BARANGAY_CENTERS.forEach(b => {
-                const dist = Math.hypot(b.lat - lat, b.lng - lng);
-                if (dist < minDist) {
-                    minDist = dist;
-                    nearest = b;
-                }
-            });
-
-            this.formData.barangay = nearest.name;
+            // Fill in the barangay from where the pin is; the owner can still change it
+            const detected = detectBarangay(lat, lng);
+            this.formData.barangay = detected;
+            this.barangaySource = 'auto';
             const brgySel = area.querySelector('#selectBarangay');
-            if (brgySel) brgySel.value = nearest.name;
+            if (brgySel) brgySel.value = detected;
+            this.paintBarangayHint(area);
 
             this.updateLivePreview();
             this.validateCurrentStepButton();
