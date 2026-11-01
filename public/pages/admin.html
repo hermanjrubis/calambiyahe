@@ -1301,6 +1301,33 @@
             .bus-search { max-width: none; }
         }
 
+        /* Sidebar items: quiet by default, a plain grey fill for the current one.
+           No coloured side bar, no blue tint, icons follow the text colour. */
+        .sidebar-nav { padding: 12px 10px; gap: 1px; }
+        .nav-item {
+            gap: 12px;
+            padding: 9px 12px;
+            color: #475569;
+            font-weight: 500;
+            border-left: 0;
+            border-radius: 8px;
+            transition: background 0.12s ease, color 0.12s ease;
+        }
+        .nav-item .nav-icon { color: #64748B; font-size: 18px; transition: color 0.12s ease; }
+        .nav-item:hover { background: #F6F8FA; color: var(--navy-dark); }
+        .nav-item:hover .nav-icon { color: var(--navy-dark); }
+        .nav-item.active {
+            background: #E8EDF3;
+            color: var(--navy-dark);
+            font-weight: 600;
+            border-left: 0;
+        }
+        .nav-item.active .nav-icon { color: var(--navy-dark); }
+        .nav-item:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
+        .nav-count { font-size: 12px; font-variant-numeric: tabular-nums; }
+        .nav-group-label { padding: 16px 12px 6px; font-size: 11px; letter-spacing: 0.07em; color: #64748B; }
+        .sidebar-view-site { color: #64748B; }
+
         /* Phones: keep the admin inside the screen */
         html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
         .admin-content-wrapper { min-width: 0; }
