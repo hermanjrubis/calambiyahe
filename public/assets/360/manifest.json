@@ -1767,14 +1767,14 @@
    "source": "IMG_20261024_134603_00_463",
    "connections": [
     {
-     "targetId": "14.196913_121.162656",
-     "bearing": 319.4,
-     "distance": 24.3
-    },
-    {
      "targetId": "14.196231_121.163082",
      "bearing": 139.4,
      "distance": 66.1
+    },
+    {
+     "targetId": "14.196861_121.162528",
+     "bearing": 314.5,
+     "distance": 25.9
     }
    ],
    "street": "National Highway",
@@ -2411,34 +2411,6 @@
    "heading": -30.6
   },
   {
-   "id": "14.196913_121.162656",
-   "lat": 14.196913,
-   "lng": 121.162656,
-   "file": "14.196913, 121.162656.jpg",
-   "northOffset": 337.4,
-   "source": "IMG_20261024_140225_00_492",
-   "connections": [
-    {
-     "targetId": "14.196697_121.162699",
-     "bearing": 139.4,
-     "distance": 24.3
-    },
-    {
-     "targetId": "14.197540_121.162125",
-     "bearing": 319.4,
-     "distance": 89.9
-    },
-    {
-     "targetId": "14.196861_121.162528",
-     "bearing": 247.4,
-     "distance": 15.0
-    }
-   ],
-   "street": "National Highway",
-   "area": "Halang",
-   "heading": -18.0
-  },
-  {
    "id": "14.197540_121.162125",
    "lat": 14.19754,
    "lng": 121.162125,
@@ -2452,9 +2424,9 @@
      "distance": 62.2
     },
     {
-     "targetId": "14.196913_121.162656",
-     "bearing": 141.3,
-     "distance": 89.9
+     "targetId": "14.196861_121.162528",
+     "bearing": 149.9,
+     "distance": 86.8
     }
    ],
    "street": "National Highway",
@@ -5429,19 +5401,29 @@
    "source": "IMG_20261029_140453_00_628",
    "connections": [
     {
-     "targetId": "14.196913_121.162656",
-     "bearing": 67.4,
-     "distance": 15.0
-    },
-    {
      "targetId": "14.196584_121.162267",
      "bearing": 222.6,
      "distance": 41.6
+    },
+    {
+     "targetId": "14.196697_121.162699",
+     "bearing": 134.5,
+     "distance": 25.9
+    },
+    {
+     "targetId": "14.197540_121.162125",
+     "bearing": 329.9,
+     "distance": 86.8
+    },
+    {
+     "targetId": "14.197083_121.162694",
+     "bearing": 36.1,
+     "distance": 30.4
     }
    ],
    "street": "Chipeco Avenue Extension",
    "area": "Halang",
-   "heading": 174.4
+   "heading": 143.1
   },
   {
    "id": "14.207222_121.154139",
@@ -5667,6 +5649,24 @@
    "street": "CMC Avenue",
    "area": "Barangay 1",
    "heading": -153.1
+  },
+  {
+   "id": "14.197083_121.162694",
+   "lat": 14.197083,
+   "lng": 121.162694,
+   "file": "14.197083, 121.162694.jpg",
+   "northOffset": 151.5,
+   "source": "IMG_20261029_140726_00_630",
+   "connections": [
+    {
+     "targetId": "14.196861_121.162528",
+     "bearing": 216.1,
+     "distance": 30.4
+    }
+   ],
+   "street": "Chipeco Avenue",
+   "area": "Halang",
+   "heading": 0.0
   }
  ]
 }
