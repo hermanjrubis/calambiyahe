@@ -1094,6 +1094,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (transitRouteGeojson && Array.isArray(transitRouteGeojson.coordinates)) {
                 transitRouteGeojson.coordinates.forEach(c => bounds.extend([c[1], c[0]]));
             }
+            // Terminal choice on tablet / desktop: every terminal pin stays in view
+            try {
+                if (terminalTC && window.innerWidth >= 768) terminalTC.choices.forEach(c => bounds.extend([c.pt[1], c.pt[0]]));
+            } catch (_) { /* not set up yet */ }
             if (bounds.isEmpty()) return;
 
             window._calzadaLastPreviewBounds = bounds;
@@ -4040,6 +4044,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const total = currentWalkDur + currentTransitDur + (fw.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
             const walkM = currentWalkDist * 1000 + (fw.finalWalkM || 0) + (pendingTransfer ? pendingTransfer.finalWalkM : 0);
             if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionActual(transitSelected, total, walkM);
+            // Terminal choice: the map pin of the picked terminal shows the same time as its card
+            if (terminalTC && transitOptions[transitSelected] === opt && Number.isFinite(total)) opt.totalMin = total;
         }
 
         // ── Labelled stops on the map: where to get on, off, and on the next jeep ──

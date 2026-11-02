@@ -1,5 +1,5 @@
 /**
- * Calzada planner: route options + terminal choice + transfer prompt (v1.2.1)
+ * Calzada planner: route options + terminal choice + transfer prompt (v1.3.0)
  *
  * UI only. planner.js plans with window.CalzadaTransit and calls:
  *   CalzadaTransitUI.renderOptions(options, selectedIndex, onSelect)
@@ -40,11 +40,11 @@
             later: 'Later',
             arrivedShort: "I'm here",
             whereBoard: 'Where will you board?',
-            termSub: (n, area) => `${n} terminals to ${area}. Recommended: the best mix of fare and time from where you are.`,
+            termCount: (n, area) => `${n} terminals to ${area}`,
+            changeHere: 'change jeeps here',
             termAria: 'Terminal to board at',
             youreHere: "You're here",
             longWalk: 'Long walk',
-            walkTo: (min, dist) => `${min} min walk · ${dist}`,
             autoTitle: (n) => `You're at ${n}`,
             autoBody: "You'll board here, so your route now starts here.",
             autoRideTitle: (n) => `You're on a jeep from ${n}`,
@@ -74,11 +74,11 @@
             later: 'Mamaya na',
             arrivedShort: 'Nandito na ako',
             whereBoard: 'Saan ka sasakay?',
-            termSub: (n, area) => `${n} terminal papuntang ${area}. Naka-recommend ang pinakasulit sa pamasahe at oras mula sa kinaroroonan mo.`,
+            termCount: (n, area) => `${n} terminal papuntang ${area}`,
+            changeHere: 'dito lilipat',
             termAria: 'Terminal na sasakyan',
             youreHere: 'Nandito ka',
             longWalk: 'Malayong lakad',
-            walkTo: (min, dist) => `${min} min lakad · ${dist}`,
             autoTitle: (n) => `Nasa ${n} ka na`,
             autoBody: 'Dito ka na sasakay, kaya inilipat na namin ang ruta mo.',
             autoRideTitle: (n) => `Nakasakay ka na mula sa ${n}`,
@@ -315,62 +315,49 @@
         return area === 'Real' || area === 'Halang' ? area : String(area || '');
     }
 
+    // Compact row: name, door-to-door time and fare; one short line under it. The legs below show
+    // the walks and jeeps in full, so the row does not repeat them.
     function buildTermCard(c, i, selected, hereId) {
         const t = L();
         const opt = c.option;
-        const card = el('button', 'czt-opt czt-term' + (selected ? ' is-selected' : ''));
+        const card = el('button', 'czt-term' + (selected ? ' is-selected' : ''));
         card.type = 'button';
         card.dataset.index = String(i);
         card.setAttribute('role', 'radio');
         card.setAttribute('aria-checked', selected ? 'true' : 'false');
         card.tabIndex = selected ? 0 : -1;
 
-        const row = el('div', 'czt-term-row');
         const radio = el('span', 'czt-radio');
         radio.setAttribute('aria-hidden', 'true');
-        row.appendChild(radio);
-        const body = el('div', 'czt-term-body');
+        card.appendChild(radio);
 
-        const top = el('div', 'czt-term-top');
+        const body = el('span', 'czt-term-body');
+        const top = el('span', 'czt-term-top');
         const name = (lang() === 'tl' && c.name_tl) ? c.name_tl : c.name;
         top.appendChild(el('span', 'czt-term-name', name));
         const time = el('span', 'czt-term-time', fmtDur(opt.totalMin));
         time.dataset.role = 'time';
         top.appendChild(time);
+        top.appendChild(el('span', 'czt-term-fare', peso(opt.fare)));
         body.appendChild(top);
 
-        if (c.recommended || c.stopId === hereId) {
-            const tags = el('div', 'czt-tags czt-term-tags');
-            if (c.recommended) tags.appendChild(el('span', 'czt-tag czt-tag--rec', t.recommended));
-            if (c.stopId === hereId) tags.appendChild(el('span', 'czt-here', t.youreHere));
-            body.appendChild(tags);
-        }
-
-        const line = el('div', 'czt-term-line');
-        // Walk to the first jeep, the jeeps, and the walk between them (coming from farther away)
-        const strip = el('div', 'czt-strip czt-term-strip');
-        const add = (node) => {
-            if (strip.childNodes.length) strip.appendChild(el('span', 'czt-chev', '›'));
-            strip.appendChild(node);
-        };
-        opt.legs.forEach((leg, idx) => {
-            if (leg.type === 'jeep') add(pill('jeep', headsignText(leg)));
-            else if (idx === 0 && leg.distM > 0) add(walkNote(t.walkTo(Math.max(1, leg.min), fmtM(leg.distM))));
-            else if (leg.transfer && leg.distM > 0) add(walkNote(t.walkMin(leg.min)));
+        // e.g. "Recommended · 3 min lakad · Tagaytay / Tanauan", or "lipat dito · Real" from farther away
+        const sub = el('span', 'czt-term-sub');
+        const bits = [];
+        if (c.recommended) bits.push(el('b', 'czt-term-rec', t.recommended));
+        if (c.stopId === hereId) bits.push(el('b', 'czt-term-rec', t.youreHere));
+        const jeeps = opt.legs.filter((l) => l.type === 'jeep');
+        const last = jeeps[jeeps.length - 1];
+        if (opt.transfers) bits.push(document.createTextNode(t.changeHere));
+        else if (c.walkM > 0) bits.push(document.createTextNode(t.walkMin(Math.max(1, c.walkMin))));
+        if (last) bits.push(document.createTextNode(headsignText(last)));
+        if (c.farWalk) bits.push(document.createTextNode(t.longWalk));
+        bits.forEach((b, k) => {
+            if (k) sub.appendChild(document.createTextNode(' · '));
+            sub.appendChild(b);
         });
-        line.appendChild(strip);
-        line.appendChild(el('span', 'czt-term-fare', peso(opt.fare)));
-        body.appendChild(line);
-
-        if (opt.transfers) {
-            const meta = el('div', 'czt-meta czt-term-meta');
-            meta.appendChild(document.createTextNode(t.transfers(opt.transfers) + ' · ' + t.changeAt + ' '));
-            meta.appendChild(el('b', null, name));
-            if (c.farWalk) meta.appendChild(document.createTextNode(' · ' + t.longWalk));
-            body.appendChild(meta);
-        } else if (c.farWalk) body.appendChild(el('div', 'czt-meta czt-term-meta', t.longWalk));
-        row.appendChild(body);
-        card.appendChild(row);
+        body.appendChild(sub);
+        card.appendChild(body);
         return card;
     }
 
@@ -389,7 +376,7 @@
 
         const hd = el('div', 'czt-term-hd');
         hd.appendChild(el('h3', 'czt-term-title', t.whereBoard));
-        hd.appendChild(el('p', 'czt-term-sub', t.termSub(tc.choices.length, areaLabel(tc.area))));
+        hd.appendChild(el('span', 'czt-term-count', t.termCount(tc.choices.length, areaLabel(tc.area))));
         box.appendChild(hd);
 
         const list = el('div', 'czt-list');
@@ -397,7 +384,6 @@
         list.setAttribute('aria-label', t.termAria);
         tc.choices.forEach((c, i) => list.appendChild(buildTermCard(c, i, i === currentTerm.selected, currentTerm.opts.hereId)));
         box.appendChild(list);
-        box.appendChild(el('div', 'czt-note', t.estimate));
 
         if (!box._cztBound) {
             box.addEventListener('click', (e) => {

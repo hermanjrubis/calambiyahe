@@ -1,4 +1,4 @@
-/* Calzada planner: route options, terminal choice, transfer prompt, stop labels (v1.3.0). Flat: no gradients, no shadows. */
+/* Calzada planner: route options, terminal choice, transfer prompt, stop labels (v1.4.0). Flat: no gradients, no shadows. */
 
 .czt-options { margin: 4px 0 16px; }
 .czt-options[hidden] { display: none !important; }
@@ -104,29 +104,41 @@
 .czt-stop-chip b { font-weight: 700; color: #0E2A47; }
 @media (max-width: 768px) { .czt-stop-chip { max-width: 170px; font-size: 12px; } }
 
-/* Terminal choice: "Saan ka sasakay?" (destinations in Real / Halang) */
+/* Terminal choice: "Saan ka sasakay?" (destinations in Real / Halang). Compact rows, so the
+   choice, the summary and the start of the legs fit in one view of the sheet. */
+.czt-terms { margin: 2px 0 14px; }
 .czt-terms[hidden] { display: none !important; }
-.czt-term-hd { margin: 0 2px 12px; }
-.czt-term-title { margin: 0; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 17px; color: #0E2A47; line-height: 1.3; }
-.czt-term-sub { margin: 3px 0 0; font-family: 'Outfit', sans-serif; font-size: 13.5px; color: #5A6A7F; line-height: 1.45; }
-.czt-term { min-height: 44px; border-radius: 12px; }
-.czt-term-row { display: flex; align-items: flex-start; gap: 10px; }
+.czt-term-hd { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 2px 8px; }
+.czt-term-title { margin: 0; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; color: #0E2A47; line-height: 1.3; }
+.czt-term-count { font-family: 'Outfit', sans-serif; font-size: 12.5px; color: #5A6A7F; white-space: nowrap; }
+.czt-terms .czt-list { gap: 6px; }
+.czt-term {
+    display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; text-align: left; cursor: pointer;
+    font: inherit; color: #0E2A47; border: 1px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; padding: 8px 12px;
+    -webkit-tap-highlight-color: transparent; transition: border-color .15s ease;
+}
+.czt-term:hover { border-color: #B9D3F0; }
+.czt-term.is-selected { border: 1.5px solid #2272C3; background: #FAFCFF; padding: 7.5px 11.5px; }
+.czt-term:focus-visible { outline: 2px solid #2272C3; outline-offset: 2px; }
 .czt-radio {
-    width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; flex-shrink: 0; margin-top: 1px;
+    width: 18px; height: 18px; border-radius: 50%; box-sizing: border-box; flex-shrink: 0;
     border: 2px solid #94A3B8; display: flex; align-items: center; justify-content: center;
 }
 .czt-term.is-selected .czt-radio { border-color: #2272C3; }
-.czt-term.is-selected .czt-radio::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #2272C3; }
-.czt-term-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
-.czt-term-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-.czt-term-name { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 15px; line-height: 1.3; color: #0E2A47; min-width: 0; overflow-wrap: anywhere; }
-.czt-term-time { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 17px; white-space: nowrap; color: #0E2A47; }
-.czt-term-tags { margin: 0; align-items: center; }
-.czt-here { font-family: 'Outfit', sans-serif; font-size: 12.5px; font-weight: 600; color: #2272C3; }
-.czt-term-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.czt-term-strip { margin-top: 0; min-width: 0; }
-.czt-term-fare { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; color: #2272C3; white-space: nowrap; }
-.czt-term-meta { margin-top: 0; }
+.czt-term.is-selected .czt-radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #2272C3; }
+.czt-term-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.czt-term-top { display: flex; align-items: baseline; gap: 8px; }
+.czt-term-name {
+    flex: 1; min-width: 0; font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13.5px; line-height: 1.3; color: #0E2A47;
+    overflow-wrap: anywhere;
+}
+.czt-term-time { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 14px; white-space: nowrap; color: #0E2A47; }
+.czt-term-fare { font-family: 'Sora', sans-serif; font-weight: 700; font-size: 13.5px; color: #2272C3; white-space: nowrap; min-width: 34px; text-align: right; }
+.czt-term-sub {
+    font-family: 'Outfit', sans-serif; font-size: 12.5px; color: #5A6A7F; line-height: 1.35;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.czt-term-rec { color: #2272C3; font-weight: 600; }
 
 /* Switched terminal: status card, no buttons */
 .czt-auto-row { align-items: flex-start; }
