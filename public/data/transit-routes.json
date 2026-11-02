@@ -1,13 +1,13 @@
 {
-  "version": 1,
-  "updated": "2026-10-21",
-  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 1.5 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 6 (polylinePrecision), lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads. closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba. A transfer's path is the walking line from stop a to stop b (OpenStreetMap foot route), drawn on the map instead of a straight line.",
+  "version": 2,
+  "updated": "2026-11-02",
+  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 1.5 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 6 (polylinePrecision), lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads; a route stop with \"transfer\": false is a boarding point for trips that start there, not for transfers. A route with \"terminalOnly\": true is offered only when the user picks its terminal in the planner's terminal choice (Real / Halang destinations). closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba. A transfer's path is the walking line from stop a to stop b (OpenStreetMap foot route), drawn on the map instead of a straight line.",
   "stops": {
     "crossing-grand-terminal": {
       "name": "Crossing Grand Terminal",
       "lat": 14.2061875,
       "lng": 121.1545625,
-      "note": "West side of National Highway 1, north of the Crossing triangle (Google plus code 6543+FR). Jeeps coming into Calamba pass here and let passengers off, then go on to SM Calamba. Not a transfer point."
+      "note": "West side of National Highway 1, north of the Crossing triangle (Google plus code 6543+FR). Jeeps coming into Calamba pass here and let passengers off, then go on to SM Calamba; that is not a transfer point. Since Nov 2026 it is also a boarding terminal for jeeps to Real and Halang (Drei)."
     },
     "sm-calamba-west": {
       "name": "SM Calamba (Cinema side)",
@@ -27,6 +27,13 @@
       "lat": 14.202953,
       "lng": 121.15715,
       "note": "SM City Calamba Transport Terminal, east side of SM City Calamba (same coordinates as the place in places.json, OSM). Jeeps to Halang and Los Baños (UPLB) load here."
+    },
+    "new-calamba-transport-terminal": {
+      "name": "New Calamba Transport Terminal",
+      "name_tl": "New Calamba Transport Terminal",
+      "lat": 14.207417,
+      "lng": 121.154333,
+      "note": "New Calamba Transport Management Phil's Corporation terminal near Calamba Medical Center (CMC Avenue / National Highway 1). Jeeps to Real load here (Drei, Nov 2026)."
     }
   },
   "transfers": [
@@ -342,7 +349,106 @@
           625
         ]
       ]
+    },
+    {
+      "id": "crossing-real",
+      "mode": "jeepney",
+      "terminalOnly": true,
+      "name": "Crossing Grand Terminal – Real",
+      "from": "Crossing Grand Terminal",
+      "to": "Real",
+      "polyline": "cvabZ_auafF~i@mCxQFrd@pJfeAvx@daAh|@~\\zUntAfy@|_@bWfJvJfK`PrqC~lFdg@pz@txBl_DtmAh}A",
+      "stops": [
+        {
+          "id": "crossing-grand-terminal",
+          "forward": "board",
+          "reverse": null,
+          "transfer": false
+        }
+      ],
+      "forward": {
+        "headsign": "Real",
+        "signboard": null
+      },
+      "reverse": false,
+      "notes": "Loads at Crossing Grand Terminal and goes south on National Highway 1 (Real Road) through Real (Drei, Nov 2026). Signboard not recorded yet. Path: OpenStreetMap road network from the terminal to where the highway leaves Brgy. Real.",
+      "verified": {
+        "flow": true,
+        "signboard": false,
+        "path": "estimate"
+      }
+    },
+    {
+      "id": "newtranspo-real",
+      "mode": "jeepney",
+      "terminalOnly": true,
+      "name": "New Calamba Transport Terminal – Real",
+      "from": "New Calamba Transport Terminal",
+      "to": "Real",
+      "polyline": "uwcbZgntafFoAuI`nBoKxQFrd@pJfeAvx@daAh|@~\\zUntAfy@|_@bWfJvJfK`PrqC~lFdg@pz@txBl_DtmAh}A",
+      "stops": [
+        {
+          "id": "new-calamba-transport-terminal",
+          "forward": "board",
+          "reverse": null,
+          "transfer": false
+        }
+      ],
+      "forward": {
+        "headsign": "Real",
+        "signboard": null
+      },
+      "reverse": false,
+      "notes": "Loads at the New Calamba Transport Management Phil's Corporation terminal near CMC and goes south on National Highway 1 (Real Road) through Real (Drei, Nov 2026). Signboard and exact loading spot not recorded yet. Path: OpenStreetMap road network to where the highway leaves Brgy. Real.",
+      "verified": {
+        "flow": true,
+        "signboard": false,
+        "path": "estimate"
+      }
+    },
+    {
+      "id": "crossing-halang",
+      "mode": "jeepney",
+      "terminalOnly": true,
+      "name": "Crossing Grand Terminal – Halang",
+      "from": "Crossing Grand Terminal",
+      "to": "Halang",
+      "polyline": "cvabZ_auafF~i@mCxQF`JqCr@uAJiEgt@mr@p_Ca}A|iDkbCffAes@f}Bi_BzcAiw@~qFqpE",
+      "stops": [
+        {
+          "id": "crossing-grand-terminal",
+          "forward": "board",
+          "reverse": null,
+          "transfer": false
+        }
+      ],
+      "forward": {
+        "headsign": "Halang",
+        "signboard": null
+      },
+      "reverse": false,
+      "notes": "Loads at Crossing Grand Terminal and goes down the National Highway to Halang (Drei, Nov 2026). Signboard not recorded yet. Path: OpenStreetMap road network to where the highway leaves Brgy. Halang.",
+      "verified": {
+        "flow": true,
+        "signboard": false,
+        "path": "estimate"
+      }
     }
   ],
-  "polylinePrecision": 6
+  "polylinePrecision": 6,
+  "terminalChoices": {
+    "about": "Destinations in these barangays get a 'where will you board' choice in the planner: one option per terminal, the cheapest-balanced one recommended. radiusM: within this distance of a terminal the planner takes it as 'you are at this terminal' and switches to it without asking.",
+    "radiusM": 60,
+    "areas": {
+      "Real": [
+        "calamba-tagaytay-terminal",
+        "crossing-grand-terminal",
+        "new-calamba-transport-terminal"
+      ],
+      "Halang": [
+        "sm-transport-terminal",
+        "crossing-grand-terminal"
+      ]
+    }
+  }
 }

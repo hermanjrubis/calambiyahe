@@ -1969,6 +1969,15 @@ document.addEventListener('DOMContentLoaded', () => {
         let priorTrip = null;
         let transferPreferred = null;
         let transferRecomputing = false;
+        // Terminal choice (destination in Real / Halang): the engine's choices (terminalTC), what a
+        // journey needs to switch terminals (terminalTrip), the terminal the user picked for this
+        // destination (terminalPinned), the map pins, and the auto-switch state during a journey
+        let terminalTC = null;         // { area, radiusM, choices: [{ stopId, name, name_tl, pt, routeIds, option, recommended }] }
+        let terminalTrip = null;       // { area, chosenId, hereId, choices: [{ stopId, name, name_tl, pt, routeIds }] }
+        let terminalPinned = null;     // { stopId, destKey }
+        let terminalPins = [];
+        let terminalOldPin = null;
+        const terminalAuto = { at: null, hits: 0, rideRoute: null, rideFixes: 0, lastPos: null, lastNear: null, lastSwitchAt: 0, switching: false, lastFix: null };
         let routeLoading = false;    // a route is being computed (the panel shows a skeleton)
         let lastPeekTripKey = null;  // phones: the trip the sheet last opened at half height for
         let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
@@ -3512,6 +3521,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             try { updateRouteSource('next-transit-route', []); } catch (_) { /* map not ready */ }
             clearTransitMarkers();
+            clearTerminalChoice();
         }
 
         // Name of a known place near a point (stop and alighting labels), or null
@@ -3539,6 +3549,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function renderTransitOptionsUI() {
             if (!window.CalzadaTransitUI) return;
+            if (terminalTC && window.CalzadaTransitUI.renderTerminalChoices) {
+                window.CalzadaTransitUI.renderTerminalChoices(terminalTC, transitSelected, (i) => pickTerminal(i), { hereId: terminalTrip ? terminalTrip.hereId : null });
+                return;
+            }
             window.CalzadaTransitUI.renderOptions(transitOptions, transitSelected, (i) => {
                 if (isTrackingArrival || !transitOptions[i]) return;
                 transitSelected = i;
@@ -3563,6 +3577,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 await Promise.race([T.load(), new Promise(r => setTimeout(r, 2500))]);
                 if (window.CalzadaFare) await Promise.race([window.CalzadaFare.load(), new Promise(r => setTimeout(r, 2000))]);
                 if (!T.isReady()) { clearTransitPlan(); return false; }
+                // Destination in Real / Halang, user near the terminals: "Saan ka sasakay?"
+                const tc = T.terminalChoices ? T.terminalChoices(oPt, dPt, destKnownBarangay()) : null;
+                if (tc) return await planWithTerminalChoice(T, tc, oPt, dPt, straightDistM);
+                clearTerminalChoice();
+                terminalTrip = null;
                 const opts = T.plan(oPt, dPt);
                 if (!opts.length) { clearTransitPlan(); return false; }
 
@@ -3591,6 +3610,254 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Curated routes failed; using the highway route:', e);
                 clearTransitPlan();
                 return false;
+            }
+        }
+
+        // ── Terminal choice: one option per terminal (destination in Real / Halang) ──
+        const destKeyOf = (d) => (Array.isArray(d) ? `${Number(d[0]).toFixed(4)},${Number(d[1]).toFixed(4)}` : '');
+
+        // Barangay of the destination when it is a listed place (places data), else null (the boundaries decide)
+        function destKnownBarangay() {
+            const d = selectedCoords.destination;
+            const name = String(destPlaceName || '').trim().toLowerCase();
+            if (!d || !name) return null;
+            const lists = [window.FALLBACK_PLACES || [], typeof CALAMBA_PLACES_FALLBACK !== 'undefined' ? CALAMBA_PLACES_FALLBACK : []];
+            for (const list of lists) {
+                for (const p of list) {
+                    if (!p || !p.name || !p.barangay) continue;
+                    const lat = Number(p.lat), lng = Number(p.lng);
+                    if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+                    if (String(p.name).trim().toLowerCase() === name && getHaversineDist(d[0], d[1], lat, lng) * 1000 <= 150) return String(p.barangay);
+                }
+            }
+            return null;
+        }
+
+        function terminalName(c) {
+            if (!c) return '';
+            return (transitLang() === 'tl' && c.name_tl) ? c.name_tl : c.name;
+        }
+
+        async function planWithTerminalChoice(T, tc, oPt, dPt, straightDistM) {
+            const ids = tc.choices.map(c => c.stopId);
+            if (terminalPinned && terminalPinned.destKey !== destKeyOf(dPt)) terminalPinned = null;
+            const hereId = T.terminalAt(oPt, tc.area);
+            // The user's pick for this destination, else the terminal they are standing at, else the
+            // terminal of the jeep a transfer was heading for, else the recommended one
+            let stopId = null;
+            if (terminalPinned && ids.includes(terminalPinned.stopId)) stopId = terminalPinned.stopId;
+            else if (hereId && ids.includes(hereId)) stopId = hereId;
+            else if (transferPreferred) {
+                const c = tc.choices.find(x => x.routeIds.includes(transferPreferred));
+                if (c) stopId = c.stopId;
+            }
+            if (!stopId) stopId = tc.choices[0].stopId;
+            transferPreferred = null;
+            terminalTC = tc;
+            terminalTrip = {
+                area: tc.area,
+                chosenId: stopId,
+                hereId: hereId && ids.includes(hereId) ? hereId : null,
+                choices: tc.choices.map(c => ({ stopId: c.stopId, name: c.name, name_tl: c.name_tl, pt: c.pt, routeIds: c.routeIds }))
+            };
+            transitOptions = tc.choices.map(c => c.option);
+            transitSelected = Math.max(0, ids.indexOf(stopId));
+            transitODKey = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
+            renderTransitOptionsUI();
+            await applyTransitOption(transitOptions[transitSelected], straightDistM);
+            drawTerminalPins();
+            return true;
+        }
+
+        // The user picked a terminal (card or map pin)
+        function pickTerminal(i) {
+            if (isTrackingArrival || !terminalTC || !terminalTC.choices[i] || !transitOptions[i]) return;
+            const c = terminalTC.choices[i];
+            terminalPinned = { stopId: c.stopId, destKey: destKeyOf(selectedCoords.destination) };
+            if (terminalTrip) terminalTrip.chosenId = c.stopId;
+            transitSelected = i;
+            renderTransitOptionsUI();
+            drawTerminalPins();
+            const o = selectedCoords.origin, d = selectedCoords.destination;
+            const straight = (o && d) ? getHaversineDist(o[0], o[1], d[0], d[1]) * 1000 : 0;
+            setRouteLoading(true);
+            applyTransitOption(transitOptions[i], straight)
+                .catch((e) => console.error('Terminal choice failed:', e))
+                .finally(() => {
+                    setRouteLoading(false);
+                    renderPlannerState();
+                    drawTerminalPins();
+                    saveJourneyState();
+                });
+        }
+
+        function clearTerminalPins() {
+            terminalPins.forEach(m => { try { m.remove(); } catch (_) { /* gone */ } });
+            terminalPins = [];
+        }
+
+        function clearTerminalChoice() {
+            terminalTC = null;
+            if (!isTrackingArrival) terminalTrip = null;
+            if (window.CalzadaTransitUI && window.CalzadaTransitUI.hideTerminalChoices) window.CalzadaTransitUI.hideTerminalChoices();
+            clearTerminalPins();
+        }
+
+        // Tablet / desktop: one pin per terminal on the map, the picked one filled; a click picks it
+        const terminalPinsShown = () => !!terminalTC && !isTrackingArrival && window.innerWidth >= 768;
+        function drawTerminalPins() {
+            clearTerminalPins();
+            if (!terminalPinsShown() || typeof maplibregl === 'undefined' || !map) return;
+            const fmt = (window.CalzadaTransitUI && window.CalzadaTransitUI.fmtDur) || ((m) => `${m} min`);
+            terminalTC.choices.forEach((c, i) => {
+                const on = i === transitSelected;
+                const name = terminalName(c);
+                const mins = fmt(transitOptions[i] ? transitOptions[i].totalMin : c.option.totalMin);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'czt-tpin' + (on ? ' is-on' : '');
+                btn.setAttribute('aria-label', `${name}, ${mins}`);
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                const chip = document.createElement('span');
+                chip.className = 'czt-tpin-chip';
+                const b = document.createElement('b');
+                b.textContent = name;
+                chip.appendChild(b);
+                chip.appendChild(document.createTextNode(` · ${mins}`));
+                if (c.recommended) {
+                    const r = document.createElement('span');
+                    r.className = 'czt-tpin-rec';
+                    r.textContent = 'Recommended';
+                    chip.appendChild(r);
+                }
+                const dot = document.createElement('span');
+                dot.className = 'czt-tpin-dot';
+                btn.appendChild(chip);
+                btn.appendChild(dot);
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (i !== transitSelected) pickTerminal(i);
+                });
+                const m = new maplibregl.Marker({ element: btn, anchor: 'center' }).setLngLat([c.pt[1], c.pt[0]]).addTo(map);
+                // MapLibre labels every marker "Map marker": keep the terminal's name for screen readers
+                btn.setAttribute('aria-label', `${name}, ${mins}`);
+                if (on) btn.style.zIndex = '3';
+                terminalPins.push(m);
+            });
+        }
+
+        // The terminal the user left, greyed on the map for a few seconds after a switch (tablet / desktop)
+        function showOldTerminalPin(c) {
+            if (terminalOldPin) { try { terminalOldPin.remove(); } catch (_) { /* gone */ } terminalOldPin = null; }
+            if (!c || window.innerWidth < 768 || typeof maplibregl === 'undefined' || !map) return;
+            const el = document.createElement('div');
+            el.className = 'czt-tpin is-old';
+            el.setAttribute('aria-hidden', 'true');
+            const chip = document.createElement('span');
+            chip.className = 'czt-tpin-chip';
+            chip.textContent = terminalName(c);
+            const dot = document.createElement('span');
+            dot.className = 'czt-tpin-dot';
+            el.appendChild(chip);
+            el.appendChild(dot);
+            const m = new maplibregl.Marker({ element: el, anchor: 'center' }).setLngLat([c.pt[1], c.pt[0]]).addTo(map);
+            terminalOldPin = m;
+            setTimeout(() => { if (terminalOldPin === m) { try { m.remove(); } catch (_) { /* gone */ } terminalOldPin = null; } }, 8000);
+        }
+
+        // During a journey, before the first jeep: at another terminal (two fixes in a row), or
+        // already riding a jeep that left another terminal → switch to it. No question asked.
+        function checkTerminalAutoSwitch(lat, lng, speed) {
+            const T = window.CalzadaTransit;
+            if (!terminalTrip || !isTrackingArrival || terminalAuto.switching || !T) return;
+            if (!T.isReady()) { if (T.load) T.load(); return; }
+            // On the chosen jeep already: from here on the transfer logic owns the trip
+            if (activeLegIndex !== 0) return;
+            if (Date.now() - terminalAuto.lastSwitchAt < 60000) return;
+            const p = [lat, lng];
+            const nowMs = Date.now();
+            // Speed from the fix, else from the last two fixes
+            let v = Number.isFinite(speed) && speed >= 0 ? speed : NaN;
+            const lf = terminalAuto.lastFix;
+            if (!Number.isFinite(v) && lf && nowMs - lf.t > 500) v = (getHaversineDist(lf.lat, lf.lng, lat, lng) * 1000) / ((nowMs - lf.t) / 1000);
+            terminalAuto.lastFix = { lat, lng, t: nowMs };
+            const chosen = terminalTrip.chosenId;
+            const nearC = terminalTrip.choices.find(c => getHaversineDist(lat, lng, c.pt[0], c.pt[1]) * 1000 <= 120);
+            if (nearC) terminalAuto.lastNear = nearC.stopId;
+
+            const at = T.terminalAt(p, terminalTrip.area);
+            if (at && at !== chosen && terminalTrip.choices.some(c => c.stopId === at)) {
+                terminalAuto.hits = terminalAuto.at === at ? terminalAuto.hits + 1 : 1;
+                terminalAuto.at = at;
+                if (terminalAuto.hits >= 2) switchTerminal(at, p, false);
+                return;
+            }
+            terminalAuto.at = null;
+            terminalAuto.hits = 0;
+
+            if (!(v >= 12 / 3.6)) { terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0; return; }
+            // Moving at jeep speed on the path of a jeep from another terminal, away from it. The roads out
+            // of the terminals soon join, so the terminal is the one the user came close to on this trip,
+            // else the nearest one behind them along that path.
+            const cands = [];
+            for (const c of terminalTrip.choices) {
+                if (c.stopId === chosen) continue;
+                for (const rn of T.routeNear(p, 25, c.routeIds)) {
+                    const sp = T.stopPosOn(rn.routeId, c.stopId);
+                    if (sp == null) continue;
+                    const fromStop = rn.pos - sp;
+                    if (fromStop >= 20 && fromStop <= 1500) cands.push({ stopId: c.stopId, routeId: rn.routeId, pos: rn.pos, fromStop });
+                }
+            }
+            if (!cands.length) { terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0; return; }
+            const hit = cands.find(x => x.stopId === terminalAuto.lastNear) || cands.sort((a, b) => a.fromStop - b.fromStop)[0];
+            if (terminalAuto.rideRoute === hit.routeId && hit.pos > terminalAuto.lastPos) terminalAuto.rideFixes++;
+            else terminalAuto.rideFixes = 1;
+            terminalAuto.rideRoute = hit.routeId;
+            terminalAuto.lastPos = hit.pos;
+            if (terminalAuto.rideFixes >= 3) switchTerminal(hit.stopId, p, true);
+        }
+
+        // Re-plan the journey from the terminal the user is at (or rode away from)
+        async function switchTerminal(stopId, herePt, riding) {
+            if (!terminalTrip || terminalAuto.switching) return;
+            const c = terminalTrip.choices.find(x => x.stopId === stopId);
+            if (!c) return;
+            const prev = terminalTrip.choices.find(x => x.stopId === terminalTrip.chosenId) || null;
+            terminalAuto.switching = true;
+            terminalAuto.lastSwitchAt = Date.now();
+            terminalAuto.at = null; terminalAuto.hits = 0; terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0;
+            try {
+                terminalPinned = { stopId, destKey: destKeyOf(selectedCoords.destination) };
+                // The saved trip keeps the first origin label, like a re-compute at a transfer stop
+                priorTrip = {
+                    originName: (priorTrip && priorTrip.originName) || originPlaceName,
+                    legs: (priorTrip && Array.isArray(priorTrip.legs)) ? priorTrip.legs : [],
+                    estimatedMin: (priorTrip && priorTrip.estimatedMin) || 0
+                };
+                // Riding already: plan from the terminal itself (the walk there is done)
+                selectedCoords.origin = riding ? c.pt.slice() : herePt.slice();
+                originPlaceName = c.name;
+                userExplicitMode = true;
+                selectedMode = 'jeepney';
+                updateRouteSource('completed-route', []);
+                ensureOriginMarker();
+                updateODDisplay();
+
+                await executeRouteQuery();
+
+                lastMatchedSegmentIndex = 0;
+                startActiveJourneyUI();
+                activeLegIndex = riding ? 1 : 0;
+                saveJourneyState();
+                if (window.CalzadaTransitUI && window.CalzadaTransitUI.showAutoSwitch) {
+                    window.CalzadaTransitUI.showAutoSwitch({ terminalName: terminalName(c), previousName: terminalName(prev), riding: !!riding });
+                }
+                showOldTerminalPin(prev);
+            } catch (e) {
+                console.error('Terminal switch failed:', e);
+            } finally {
+                terminalAuto.switching = false;
             }
         }
 
@@ -3759,7 +4026,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
             const c = tr.coordinates;
             const boardPt = c[0], alightPt = c[c.length - 1];
-            add(boardPt, 'board', L.board, tr.boardName);
+            // While choosing a terminal on tablet / desktop, its pin marks the boarding point
+            if (!terminalPinsShown()) add(boardPt, 'board', L.board, tr.boardName);
             const x = pendingTransfer;
             if (x) {
                 const together = getHaversineDist(alightPt[0], alightPt[1], x.boardPt[0], x.boardPt[1]) * 1000 <= 40;
@@ -4786,7 +5054,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     // Trip with a transfer: the next jeep, and the legs done before a re-compute
                     transfer: pendingTransfer || null,
-                    prior: priorTrip || null
+                    prior: priorTrip || null,
+                    // Terminal choice: the terminals of this trip (names and points only) and the user's pick
+                    terminal: terminalTrip || null,
+                    terminalPinned: terminalPinned || null
                 });
                 sessionStorage.setItem(STORAGE_KEY, `${state.slice(0, -1)},"route":${routeJsonForSave()}}`);
             } catch (e) { /* sessionStorage unavailable or full */ }
@@ -6043,6 +6314,11 @@ document.addEventListener('DOMContentLoaded', () => {
         function startActiveJourneyUI() {
             isTrackingArrival = true;
             document.body.classList.add('navigation-active');
+            // Terminal pins are for choosing; in the journey the labelled boarding stop takes over
+            if (terminalPins.length) {
+                clearTerminalPins();
+                try { drawTransitMarkers(); } catch (err) { console.error('[startActiveJourneyUI] stop labels failed:', err); }
+            }
 
             // Everything below this point renders route-dependent content (legs,
             // steps, stats). If any of it throws — e.g. a step from the routing
@@ -6957,6 +7233,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 triggerArrival();
                 return;
             }
+
+            // Terminal choice trip: at another terminal (or riding away from one), switch to it without asking
+            if (terminalTrip) checkTerminalAutoSwitch(latitude, longitude, speed);
 
             // Trip with a transfer: prompt near the stop; at the next jeep's stop the route is re-computed
             if (pendingTransfer) {
@@ -9437,6 +9716,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentFare = stats.fare;
                 pendingTransfer = (state.transfer && state.transfer.jeep && Array.isArray(state.transfer.jeep.coords)) ? state.transfer : null;
                 priorTrip = (state.prior && Array.isArray(state.prior.legs)) ? state.prior : null;
+                terminalTrip = (state.terminal && Array.isArray(state.terminal.choices)) ? state.terminal : null;
+                terminalPinned = (state.terminalPinned && state.terminalPinned.stopId) ? state.terminalPinned : null;
                 window.finalWalkRouteGeojson = transitRouteGeojson.finalWalk || null;
                 updateRouteSource('next-transit-route', pendingTransfer ? pendingTransfer.jeep.coords.map(c => [c[1], c[0]]) : []);
                 ensureOriginMarker();

@@ -1,5 +1,5 @@
 /**
- * Calzada planner: route options + transfer prompt (v1.1.0)
+ * Calzada planner: route options + terminal choice + transfer prompt (v1.2.0)
  *
  * UI only. planner.js plans with window.CalzadaTransit and calls:
  *   CalzadaTransitUI.renderOptions(options, selectedIndex, onSelect)
@@ -7,6 +7,10 @@
  *   CalzadaTransitUI.hideOptions()
  *   CalzadaTransitUI.showTransfer({ hubName, nextName, boardName, near }, onArrived, onLater)
  *   CalzadaTransitUI.hideTransfer()
+ *   CalzadaTransitUI.renderTerminalChoices(tc, selectedIndex, onPick, { hereId })   (Real / Halang trips)
+ *   CalzadaTransitUI.hideTerminalChoices()
+ *   CalzadaTransitUI.showAutoSwitch({ terminalName, previousName, riding })   (switched terminal, no question)
+ *   CalzadaTransitUI.hideAutoSwitch()
  * DOM is built with createElement/textContent (route data never goes through innerHTML).
  */
 (function () {
@@ -34,7 +38,18 @@
             next: (j, b) => `Next: jeep to ${j}${b ? ` at ${b}` : ''}`,
             arrived: "I'm here · Recompute",
             later: 'Later',
-            arrivedShort: "I'm here"
+            arrivedShort: "I'm here",
+            whereBoard: 'Where will you board?',
+            termSub: (n, area) => `${n} terminals to ${area}. The fastest from where you are is recommended.`,
+            termAria: 'Terminal to board at',
+            youreHere: "You're here",
+            longWalk: 'Long walk',
+            walkTo: (min, dist) => `${min} min walk · ${dist}`,
+            autoTitle: (n) => `You're at ${n}`,
+            autoBody: "You'll board here, so your route now starts here.",
+            autoRideTitle: (n) => `You're on a jeep from ${n}`,
+            autoRideBody: 'Your route now follows this jeep.',
+            autoBefore: (n) => `Before: ${n}`
         },
         tl: {
             ways: (n) => `${n} paraan`,
@@ -57,7 +72,18 @@
             next: (j, b) => `Susunod: jeep na ${j}${b ? ` sa ${b}` : ''}`,
             arrived: 'Nandito na ako · I-recompute',
             later: 'Mamaya na',
-            arrivedShort: 'Nandito na ako'
+            arrivedShort: 'Nandito na ako',
+            whereBoard: 'Saan ka sasakay?',
+            termSub: (n, area) => `${n} terminal papuntang ${area}. Naka-recommend ang pinakamabilis mula sa kinaroroonan mo.`,
+            termAria: 'Terminal na sasakyan',
+            youreHere: 'Nandito ka',
+            longWalk: 'Malayong lakad',
+            walkTo: (min, dist) => `${min} min lakad · ${dist}`,
+            autoTitle: (n) => `Nasa ${n} ka na`,
+            autoBody: 'Dito ka na sasakay, kaya inilipat na namin ang ruta mo.',
+            autoRideTitle: (n) => `Nakasakay ka na mula sa ${n}`,
+            autoRideBody: 'Inilipat na namin ang ruta mo sa jeep na ito.',
+            autoBefore: (n) => `Dati: ${n}`
         }
     };
     const lang = () => {
@@ -251,6 +277,10 @@
         }
         const time = box.querySelector(`.czt-opt[data-index="${index}"] [data-role="time"]`);
         if (time && Number.isFinite(totalMin)) time.textContent = fmtDur(totalMin);
+        // The terminal card of the same option (its walk line is the walk to the terminal: unchanged)
+        const tbox = document.getElementById('transitTerminalChoices');
+        const ttime = tbox && !tbox.hidden ? tbox.querySelector(`.czt-term[data-index="${index}"] [data-role="time"]`) : null;
+        if (ttime && Number.isFinite(totalMin)) ttime.textContent = fmtDur(totalMin);
         const walk = box.querySelector(`.czt-opt[data-index="${index}"] [data-role="walk"]`);
         if (walk && Number.isFinite(walkM)) walk.textContent = L().walk(fmtM(walkM));
     }
@@ -259,6 +289,173 @@
         const box = document.getElementById('transitOptions');
         if (box) { box.textContent = ''; box.hidden = true; }
         current = { options: [], selected: 0, onSelect: null };
+    }
+
+
+    // ── Terminal choice (destination in Real / Halang) ─────────────────────────
+    // One radio card per terminal; the option of the picked card is the one routed. The usual
+    // options list is hidden while this shows.
+    let termBox = null;
+    let currentTerm = { tc: null, selected: 0, onPick: null, opts: {} };
+
+    function ensureTermBox() {
+        if (termBox && document.body.contains(termBox)) return termBox;
+        termBox = document.getElementById('transitTerminalChoices');
+        if (!termBox) {
+            termBox = el('div', 'czt-options czt-terms');
+            termBox.id = 'transitTerminalChoices';
+            termBox.hidden = true;
+            const opts = ensureContainer();
+            if (opts && opts.parentNode) opts.parentNode.insertBefore(termBox, opts);
+        }
+        return termBox;
+    }
+
+    function areaLabel(area) {
+        return area === 'Real' || area === 'Halang' ? area : String(area || '');
+    }
+
+    function buildTermCard(c, i, selected, hereId) {
+        const t = L();
+        const opt = c.option;
+        const card = el('button', 'czt-opt czt-term' + (selected ? ' is-selected' : ''));
+        card.type = 'button';
+        card.dataset.index = String(i);
+        card.setAttribute('role', 'radio');
+        card.setAttribute('aria-checked', selected ? 'true' : 'false');
+        card.tabIndex = selected ? 0 : -1;
+
+        const row = el('div', 'czt-term-row');
+        const radio = el('span', 'czt-radio');
+        radio.setAttribute('aria-hidden', 'true');
+        row.appendChild(radio);
+        const body = el('div', 'czt-term-body');
+
+        const top = el('div', 'czt-term-top');
+        const name = (lang() === 'tl' && c.name_tl) ? c.name_tl : c.name;
+        top.appendChild(el('span', 'czt-term-name', name));
+        const time = el('span', 'czt-term-time', fmtDur(opt.totalMin));
+        time.dataset.role = 'time';
+        top.appendChild(time);
+        body.appendChild(top);
+
+        if (c.recommended || c.stopId === hereId) {
+            const tags = el('div', 'czt-tags czt-term-tags');
+            if (c.recommended) tags.appendChild(el('span', 'czt-tag czt-tag--rec', t.recommended));
+            if (c.stopId === hereId) tags.appendChild(el('span', 'czt-here', t.youreHere));
+            body.appendChild(tags);
+        }
+
+        const line = el('div', 'czt-term-line');
+        const strip = el('div', 'czt-strip czt-term-strip');
+        if (c.walkM > 0) {
+            strip.appendChild(walkNote(t.walkTo(Math.max(1, c.walkMin), fmtM(c.walkM))));
+            strip.appendChild(el('span', 'czt-chev', '›'));
+        }
+        opt.legs.filter((l) => l.type === 'jeep').forEach((leg, k) => {
+            if (k) strip.appendChild(el('span', 'czt-chev', '›'));
+            strip.appendChild(pill('jeep', headsignText(leg)));
+        });
+        line.appendChild(strip);
+        line.appendChild(el('span', 'czt-term-fare', peso(opt.fare)));
+        body.appendChild(line);
+
+        if (c.farWalk) body.appendChild(el('div', 'czt-meta czt-term-meta', t.longWalk));
+        row.appendChild(body);
+        card.appendChild(row);
+        return card;
+    }
+
+    function renderTerminalChoices(tc, selectedIndex, onPick, opts) {
+        const box = ensureTermBox();
+        if (!box) return;
+        currentTerm = { tc, selected: selectedIndex || 0, onPick, opts: opts || {} };
+        box.textContent = '';
+        if (!tc || !tc.choices || tc.choices.length < 2) { box.hidden = true; return; }
+        // The usual options list stays empty while the terminal choice shows
+        const optBox = ensureContainer();
+        if (optBox) { optBox.textContent = ''; optBox.hidden = true; }
+        current = { options: [], selected: 0, onSelect: null };
+        box.hidden = false;
+        const t = L();
+
+        const hd = el('div', 'czt-term-hd');
+        hd.appendChild(el('h3', 'czt-term-title', t.whereBoard));
+        hd.appendChild(el('p', 'czt-term-sub', t.termSub(tc.choices.length, areaLabel(tc.area))));
+        box.appendChild(hd);
+
+        const list = el('div', 'czt-list');
+        list.setAttribute('role', 'radiogroup');
+        list.setAttribute('aria-label', t.termAria);
+        tc.choices.forEach((c, i) => list.appendChild(buildTermCard(c, i, i === currentTerm.selected, currentTerm.opts.hereId)));
+        box.appendChild(list);
+        box.appendChild(el('div', 'czt-note', t.estimate));
+
+        if (!box._cztBound) {
+            box.addEventListener('click', (e) => {
+                const target = e.target.closest('[data-index]');
+                if (!target || !box.contains(target)) return;
+                const i = Number(target.dataset.index);
+                if (!Number.isFinite(i) || i === currentTerm.selected) return;
+                if (typeof currentTerm.onPick === 'function') currentTerm.onPick(i);
+            });
+            // Radio group keys: arrows move the choice
+            box.addEventListener('keydown', (e) => {
+                if (!['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(e.key)) return;
+                const n = currentTerm.tc ? currentTerm.tc.choices.length : 0;
+                if (!n) return;
+                e.preventDefault();
+                const step = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1;
+                const i = (currentTerm.selected + step + n) % n;
+                if (typeof currentTerm.onPick === 'function') currentTerm.onPick(i);
+                setTimeout(() => {
+                    const b = box.querySelector(`.czt-term[data-index="${i}"]`);
+                    if (b) b.focus();
+                }, 0);
+            });
+            box._cztBound = true;
+        }
+    }
+
+    function hideTerminalChoices() {
+        const box = document.getElementById('transitTerminalChoices');
+        if (box) { box.textContent = ''; box.hidden = true; }
+        currentTerm = { tc: null, selected: 0, onPick: null, opts: {} };
+    }
+
+    // ── Switched terminal (the user is at another terminal): status only, no question ──
+    let autoCard = null;
+    let autoTimer = null;
+    function showAutoSwitch(state) {
+        if (!autoCard || !document.body.contains(autoCard)) {
+            autoCard = el('div', 'czt-xfer czt-auto');
+            autoCard.id = 'transitAutoSwitch';
+            autoCard.setAttribute('role', 'status');
+            autoCard.setAttribute('aria-live', 'polite');
+            autoCard.hidden = true;
+            document.body.appendChild(autoCard);
+            window.addEventListener('resize', () => placeEl(autoCard, true));
+        }
+        const t = L();
+        autoCard.textContent = '';
+        const row = el('div', 'czt-xfer-row czt-auto-row');
+        const ic = el('div', 'czt-auto-ic');
+        ic.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.66 16.66l-4.24 4.24a2 2 0 0 1 -2.83 0l-4.25 -4.24a8 8 0 1 1 11.32 0z"/></svg>';
+        row.appendChild(ic);
+        const txt = el('div', 'czt-xfer-txt');
+        txt.appendChild(el('div', 'czt-xfer-title', state.riding ? t.autoRideTitle(state.terminalName) : t.autoTitle(state.terminalName)));
+        txt.appendChild(el('div', 'czt-xfer-sub czt-auto-body', state.riding ? t.autoRideBody : t.autoBody));
+        if (state.previousName && state.previousName !== state.terminalName) txt.appendChild(el('div', 'czt-auto-before', t.autoBefore(state.previousName)));
+        row.appendChild(txt);
+        autoCard.appendChild(row);
+        autoCard.hidden = false;
+        placeEl(autoCard, true);
+        clearTimeout(autoTimer);
+        autoTimer = setTimeout(hideAutoSwitch, 8000);
+    }
+    function hideAutoSwitch() {
+        clearTimeout(autoTimer);
+        if (autoCard) autoCard.hidden = true;
     }
 
     // ── Transfer prompt (during a journey) ─────────────────────────────────────
@@ -289,13 +486,20 @@
 
     // Phone: above the bottom navigation sheet; desktop: inside the navigation panel's column
     function place() {
+        placeEl(card, false);
+        if (autoCard && !autoCard.hidden) placeEl(autoCard, true);
+    }
+    // stackOnTransfer: keep clear of the transfer card when both show
+    function placeEl(card, stackOnTransfer) {
         if (!card || card.hidden) return;
         const isPhone = window.innerWidth <= 768;
         card.classList.toggle('is-phone', isPhone);
+        const xfer = stackOnTransfer ? document.getElementById('transitTransferCard') : null;
+        const xferH = xfer && !xfer.hidden ? xfer.offsetHeight + 10 : 0;
         if (isPhone) {
             const pillEl = document.getElementById('bottomStatusPill');
             const top = pillEl && getComputedStyle(pillEl).display !== 'none' ? pillEl.getBoundingClientRect().top : window.innerHeight - 110;
-            card.style.bottom = `${Math.max(12, window.innerHeight - top + 10)}px`;
+            card.style.bottom = `${Math.max(12, window.innerHeight - top + 10) + xferH}px`;
             card.style.top = '';
             card.style.left = '';
             card.style.width = '';
@@ -304,7 +508,7 @@
             const panel = document.getElementById('activeNavPanel');
             const r = panel && getComputedStyle(panel).display !== 'none' ? panel.getBoundingClientRect() : null;
             if (r && r.bottom + 12 + card.offsetHeight < window.innerHeight - 12) {
-                card.style.top = `${Math.round(r.bottom + 12)}px`;
+                card.style.top = `${Math.round(r.bottom + 12 + xferH)}px`;
                 card.style.bottom = '';
                 card.style.left = `${Math.round(r.left)}px`;
                 card.style.width = `${Math.round(r.width)}px`;
@@ -367,8 +571,12 @@
     // Language switch: redraw what is on screen in the new language
     window.addEventListener('calzada_lang_changed', () => {
         if (current.options.length) renderOptions(current.options, current.selected, current.onSelect);
+        if (currentTerm.tc) renderTerminalChoices(currentTerm.tc, currentTerm.selected, currentTerm.onPick, currentTerm.opts);
         if (card && !card.hidden) lastState = null;
     });
 
-    window.CalzadaTransitUI = { renderOptions, setOptionActual, hideOptions, showTransfer, hideTransfer, fmtDur, headsignText, stopLabel };
+    window.CalzadaTransitUI = {
+        renderOptions, setOptionActual, hideOptions, showTransfer, hideTransfer, fmtDur, headsignText, stopLabel,
+        renderTerminalChoices, hideTerminalChoices, showAutoSwitch, hideAutoSwitch
+    };
 })();

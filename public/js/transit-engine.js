@@ -1,10 +1,14 @@
 /**
- * Calzada transit engine (v1.3.2)
+ * Calzada transit engine (v1.4.0)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
  * Each trip option is a list of legs (walk / jeep) with distance, minutes and fare, plus the
  * tags Recommended (balanced), Pinakamura (cheapest) and Pinakamabilis (fastest).
+ *
+ * Terminal choice (1.4.0): for a destination in a barangay listed under terminalChoices
+ * (Real, Halang), terminalChoices() gives one option per terminal the user can board at,
+ * the balanced-best one marked recommended. Barangay boundaries: /data/barangays.json.
  *
  * Distances here are estimates (straight line x 1.25 for walks, along the route path for rides);
  * the planner replaces the walks of the option it shows with real foot routes.
@@ -29,6 +33,10 @@
     const MIN_RIDE_M = 400;          // shorter rides are not worth a jeep
     const STOP_SNAP_M = 250;         // board/get off at a listed stop when it is this close along the path
     const MAX_OPTIONS = 3;
+    const MAX_TERMINAL_WALK_M = 2500; // walk to a terminal the user picked (longer than a normal access walk)
+    const TERMINAL_RADIUS_M = 60;     // default "you are at this terminal" distance (data can override)
+    const NEAR_TERMINAL_DEST_M = 700; // destinations closer than this to a terminal get no terminal choice
+    const MUCH_FASTER_MIN = 5;        // the usual plan wins when it is this much faster than every terminal
 
     // Balanced score for "Recommended": fare first, but time and transfers count
     const COST_PER_MIN = 0.5;        // pesos per minute
@@ -90,7 +98,9 @@
             const pr = project(r, [s.lat, s.lng]);
             r.stopPos.push({
                 id: e.id, name: s.name, name_tl: s.name_tl, pos: pr.pos, pt: pr.pt, offM: pr.off, stopPt: [s.lat, s.lng],
-                roles: { 1: e.forward || null, '-1': e.reverse || null }
+                roles: { 1: e.forward || null, '-1': e.reverse || null },
+                // false: a boarding point for trips that start there, never a transfer stop
+                noTransfer: e.transfer === false
             });
         });
         return r;
@@ -260,7 +270,8 @@
     const stopRef = (s, pt) => ({ pt: s ? s.stopPt : pt, stopId: s ? s.id : null, name: s ? s.name : null, name_tl: s ? s.name_tl || null : null });
 
     // ── Planner ─────────────────────────────────────────────────────────────────
-    function createPlanner(data) {
+    // areas: GeoJSON FeatureCollection of barangay polygons (properties.name), optional
+    function createPlanner(data, areas) {
         const stops = data.stops || {};
         const routes = (data.routes || []).map((r) => prepareRoute(r, stops, data.polylinePrecision || 5)).filter(Boolean);
         const transfers = data.transfers || [];
@@ -278,9 +289,18 @@
             return out.filter((x) => x.walkM <= MAX_TRANSFER_WALK_M);
         }
 
-        function plan(origin, dest) {
+        // boardStopId: the first jeep must load at this stop (the user picked that terminal)
+        function plan(origin, dest, boardStopId) {
             if (!origin || !dest) return [];
             const found = [];
+            const force = boardStopId || null;
+
+            // The picked terminal on route r in direction dir, as a board point, or null
+            const forcedBoard = (r, dir) => {
+                const st = r.stopPos.find((s) => s.id === force && stopAllows(s, dir, 'board'));
+                if (!st) return null;
+                return { pos: st.pos, pt: st.stopPt, walkM: haversineM(origin, st.stopPt) * WALK_FACTOR, stop: st };
+            };
 
             // Destination side of route r, dir: alight point after fromPos
             const alightFor = (r, dir, fromPos) => {
@@ -302,9 +322,11 @@
             };
 
             routes.forEach((A) => {
+                // Terminal-only routes (data: terminalOnly) are offered only when the user picks their terminal
+                if (A.terminalOnly && !force) return;
                 A.dirs.forEach((dirA) => {
-                    const b = boardNear(A, origin, dirA);
-                    if (b.walkM > MAX_ACCESS_WALK_M) return;
+                    const b = force ? forcedBoard(A, dirA) : boardNear(A, origin, dirA);
+                    if (!b || b.walkM > (force ? MAX_TERMINAL_WALK_M : MAX_ACCESS_WALK_M)) return;
                     // Direct
                     const a = alightFor(A, dirA, b.pos);
                     if (a) {
@@ -321,9 +343,9 @@
                         if (rideA < MIN_RIDE_M) return;
                         linkedStops(sA.id).forEach((link) => {
                             routes.forEach((B) => {
-                                if (B.id === A.id) return;
+                                if (B.id === A.id || B.terminalOnly) return;
                                 const sB = B.stopPos.find((s) => s.id === link.id);
-                                if (!sB) return;
+                                if (!sB || sB.noTransfer) return;
                                 B.dirs.forEach((dirB) => {
                                     if (!stopAllows(sB, dirB, 'board')) return;
                                     const a2 = alightFor(B, dirB, sB.pos);
@@ -347,10 +369,119 @@
             // planner's own highway route is better): total walk at most 60% of the straight distance
             const straight = haversineM(origin, dest);
             const maxWalk = Math.max(400, straight * 0.6);
+            // A picked terminal: its options, best first (the walk there is the user's choice)
+            if (force) return mergeTwins(found.sort((a, b) => a.cost - b.cost || a.totalMin - b.totalMin));
             return rank(found.filter((o) => o.walkM <= maxWalk));
         }
 
-        return { plan, routes, stops };
+        // ── Terminal choice (destinations in Real / Halang) ──
+        const tc = data.terminalChoices || null;
+        const radiusM = (tc && Number.isFinite(tc.radiusM)) ? tc.radiusM : TERMINAL_RADIUS_M;
+        const areaPolys = (areas && Array.isArray(areas.features) ? areas.features : [])
+            .filter((f) => f && f.properties && f.properties.name && f.geometry && f.geometry.type === 'Polygon')
+            .map((f) => ({ name: f.properties.name, rings: f.geometry.coordinates }));
+
+        // Ray casting on [lng, lat] rings; holes (rings after the first) are excluded
+        function inRing(p, ring) {
+            const x = p[1], y = p[0];
+            let c = false;
+            for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+                const xi = ring[i][0], yi = ring[i][1], xj = ring[j][0], yj = ring[j][1];
+                if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+            }
+            return c;
+        }
+        function areaOf(p) {
+            if (!p || !areaPolys.length) return null;
+            const hit = areaPolys.find((a) => inRing(p, a.rings[0]) && !a.rings.slice(1).some((h) => inRing(p, h)));
+            return hit ? hit.name : null;
+        }
+
+        const candidateIds = (area) => (tc && tc.areas && Array.isArray(tc.areas[area]) ? tc.areas[area].filter((id) => stops[id]) : []);
+        const stopPt = (id) => [stops[id].lat, stops[id].lng];
+
+        // One option per terminal of the destination's barangay, or null when there is no choice to make.
+        // destArea: the destination's barangay when the caller knows it (a listed place); else the boundaries decide.
+        function terminalChoices(origin, dest, destArea) {
+            if (!origin || !dest || !tc) return null;
+            const area = destArea || areaOf(dest);
+            const ids = candidateIds(area);
+            if (ids.length < 2) return null;
+            const fromOrigin = ids.map((id) => haversineM(origin, stopPt(id)));
+            // The user starts near the terminals (a short walk to at least one of them) ...
+            if (Math.min(...fromOrigin) * WALK_FACTOR > MAX_ACCESS_WALK_M) return null;
+            // ... is not already closer to the destination than to every terminal ...
+            if (haversineM(origin, dest) <= Math.min(...fromOrigin)) return null;
+            // ... and the destination is not right by the terminals (a jeep from there is no real choice)
+            if (Math.min(...ids.map((id) => haversineM(dest, stopPt(id)))) < NEAR_TERMINAL_DEST_M) return null;
+            const choices = [];
+            ids.forEach((id) => {
+                const opt = plan(origin, dest, id)[0];
+                if (!opt) return;
+                const first = opt.legs.find((l) => l.type === 'jeep');
+                const walk = opt.legs[0] && opt.legs[0].type === 'walk' ? opt.legs[0] : { distM: 0, min: 0 };
+                const routeIds = first ? [first.routeId] : [];
+                // Every route that loads at this terminal (for "already riding" detection)
+                routes.forEach((r) => {
+                    if (r.stopPos.some((s) => s.id === id && r.dirs.some((d) => stopAllows(s, d, 'board'))) && !routeIds.includes(r.id)) routeIds.push(r.id);
+                });
+                choices.push({
+                    stopId: id,
+                    name: stops[id].name,
+                    name_tl: stops[id].name_tl || null,
+                    pt: stopPt(id),
+                    walkM: walk.distM,
+                    walkMin: walk.min,
+                    farWalk: walk.distM > MAX_ACCESS_WALK_M,
+                    routeIds,
+                    option: { ...opt, tags: [] }
+                });
+            });
+            if (choices.length < 2) return null;
+            choices.sort((a, b) => a.option.cost - b.option.cost || a.option.totalMin - b.option.totalMin);
+            // A jeep on the road right by the user beats every terminal (e.g. already on Real Road): no choice
+            const usual = plan(origin, dest)[0];
+            if (usual && usual.totalMin + MUCH_FASTER_MIN < choices[0].option.totalMin) return null;
+            choices.forEach((c, i) => {
+                c.recommended = i === 0;
+                c.option.tags = i === 0 ? ['recommended'] : [];
+                c.option.index = i;
+            });
+            return { area, radiusM, choices };
+        }
+
+        // The candidate terminal of an area (or of any area) the point is at, or null
+        function terminalAt(p, area) {
+            if (!p || !tc || !tc.areas) return null;
+            const ids = area ? candidateIds(area) : [...new Set(Object.keys(tc.areas).flatMap(candidateIds))];
+            let best = null;
+            ids.forEach((id) => {
+                const d = haversineM(p, stopPt(id));
+                if (d <= radiusM && (!best || d < best.d)) best = { id, d };
+            });
+            return best ? best.id : null;
+        }
+
+        // Routes whose path passes within maxM of p: [{ routeId, pos, off }] (pos: metres from the start)
+        function routeNear(p, maxM, onlyIds) {
+            if (!p) return [];
+            const out = [];
+            routes.forEach((r) => {
+                if (onlyIds && !onlyIds.includes(r.id)) return;
+                const pr = project(r, p);
+                if (pr.off <= maxM) out.push({ routeId: r.id, pos: pr.pos, off: pr.off });
+            });
+            return out;
+        }
+
+        // Metres from the start of route routeId to stop stopId along its path, or null
+        function stopPosOn(routeId, stopId) {
+            const r = routes.find((x) => x.id === routeId);
+            const s = r && r.stopPos.find((x) => x.id === stopId);
+            return s ? s.pos : null;
+        }
+
+        return { plan, routes, stops, areaOf, terminalChoices, terminalAt, routeNear, stopPosOn };
     }
 
     // Same trip on different routes (e.g. Tagaytay or Tanauan jeep from SM to Real): one card
@@ -414,28 +545,41 @@
     function load() {
         if (loadPromise) return loadPromise;
         if (typeof fetch !== 'function') { loadPromise = Promise.resolve(null); return loadPromise; }
-        const paths = ['/data/transit-routes.json', '../data/transit-routes.json'];
-        loadPromise = (async () => {
+        // First path that answers (site root, then relative to /pages/)
+        const getJson = async (paths) => {
             for (const p of paths) {
                 try {
                     const res = await fetch(p, { cache: 'no-cache' });
-                    if (res.ok) {
-                        planner = createPlanner(await res.json());
-                        return planner;
-                    }
+                    if (res.ok) return await res.json();
                 } catch (_) { /* next path */ }
             }
             return null;
+        };
+        loadPromise = (async () => {
+            const [data, areas] = await Promise.all([
+                getJson(['/data/transit-routes.json', '../data/transit-routes.json']),
+                getJson(['/data/barangays.json', '../data/barangays.json'])
+            ]);
+            if (!data) return null;
+            // Without the boundaries the routes still work; only the terminal choice is off
+            if (!areas) console.warn('[CalzadaTransit] barangays.json did not load: no terminal choice for this session.');
+            planner = createPlanner(data, areas);
+            return planner;
         })();
         return loadPromise;
     }
 
     return {
-        VERSION: '1.3.2',
+        VERSION: '1.4.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
         stops: () => (planner ? planner.stops : {}),
+        areaOf: (p) => (planner ? planner.areaOf(p) : null),
+        terminalChoices: (o, d, destArea) => (planner ? planner.terminalChoices(o, d, destArea) : null),
+        terminalAt: (p, area) => (planner ? planner.terminalAt(p, area) : null),
+        routeNear: (p, maxM, onlyIds) => (planner ? planner.routeNear(p, maxM, onlyIds) : []),
+        stopPosOn: (routeId, stopId) => (planner ? planner.stopPosOn(routeId, stopId) : null),
         createPlanner,
         decodePolyline,
         haversineM,
