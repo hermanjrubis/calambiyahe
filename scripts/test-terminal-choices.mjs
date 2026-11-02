@@ -56,12 +56,25 @@ const cgt = [stops['crossing-grand-terminal'].lat, stops['crossing-grand-termina
 check('terminalAt 70 m west of Crossing GT = null', P.terminalAt([cgt[0], cgt[1] - 70 / 107900], 'Real') === null);
 
 // Crossing Grand Terminal stays a drop-off, not a transfer point, for jeeps coming into Calamba
+// (in the usual options; only a terminal the user picks makes it the place to change jeeps)
 const cabuyao = [14.2765, 121.1250];
 const fromNorth = P.plan(cabuyao, JOLLIBEE_REAL);
-check('Cabuyao -> Real: no transfer at Crossing Grand Terminal', fromNorth.every((o) => {
+check('Cabuyao -> Real: usual options have no transfer at Crossing Grand Terminal', fromNorth.every((o) => {
     const j = o.legs.filter((l) => l.type === 'jeep');
     return j.length < 2 || j[1].board.stopId !== 'crossing-grand-terminal';
 }), fromNorth.map((o) => o.legs.filter((l) => l.type === 'jeep').map((l) => `${l.routeId}@${l.board.stopId || 'road'}`).join('>')).join(' | '));
+
+// Coming from farther away (Cabuyao): the terminal is where the user changes jeeps
+const far = P.terminalChoices(cabuyao, JOLLIBEE_REAL);
+check('Cabuyao -> Jollibee Real: 3 terminals to change at', far && far.choices.length === 3, names(far));
+check('Cabuyao -> Jollibee Real: each option changes to a jeep loading at its terminal', far && far.choices.every((c) => {
+    const j = c.option.legs.filter((l) => l.type === 'jeep');
+    return j.length === 2 && j[1].board.stopId === c.stopId;
+}), far && far.choices.map((c) => c.option.legs.filter((l) => l.type === 'jeep').map((l) => `${l.routeId}@${l.board.stopId || 'road'}`).join('>')).join(' | '));
+const farH = P.terminalChoices(cabuyao, CHICKEN_JOO);
+check('Cabuyao -> Chicken Joo: 2 terminals to change at', farH && farH.choices.length === 2, names(farH));
+// One jeep straight there, cheaper and about as fast: no terminal choice
+check('Cabuyao -> Lynville (Sta. Rosa jeep passes it): no choice', P.terminalChoices(cabuyao, [14.1997, 121.1492]) === null);
 
 // routeNear: a point on the new Crossing -> Real path finds it
 const rn = P.routeNear([14.20207, 121.15222], 40).map((r) => r.routeId);

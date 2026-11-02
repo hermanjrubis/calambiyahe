@@ -163,6 +163,13 @@
           121.157123
         ]
       ]
+    },
+    {
+      "a": "crossing-grand-terminal",
+      "b": "new-calamba-transport-terminal",
+      "walkM": 180,
+      "via": "North along the National Highway to the CMC Avenue corner",
+      "via_tl": "Pahilaga sa National Highway hanggang kanto ng CMC Avenue"
     }
   ],
   "routes": [

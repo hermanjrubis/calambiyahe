@@ -1,5 +1,5 @@
 /**
- * Calzada planner: route options + terminal choice + transfer prompt (v1.2.0)
+ * Calzada planner: route options + terminal choice + transfer prompt (v1.2.1)
  *
  * UI only. planner.js plans with window.CalzadaTransit and calls:
  *   CalzadaTransitUI.renderOptions(options, selectedIndex, onSelect)
@@ -40,7 +40,7 @@
             later: 'Later',
             arrivedShort: "I'm here",
             whereBoard: 'Where will you board?',
-            termSub: (n, area) => `${n} terminals to ${area}. The fastest from where you are is recommended.`,
+            termSub: (n, area) => `${n} terminals to ${area}. Recommended: the best mix of fare and time from where you are.`,
             termAria: 'Terminal to board at',
             youreHere: "You're here",
             longWalk: 'Long walk',
@@ -74,7 +74,7 @@
             later: 'Mamaya na',
             arrivedShort: 'Nandito na ako',
             whereBoard: 'Saan ka sasakay?',
-            termSub: (n, area) => `${n} terminal papuntang ${area}. Naka-recommend ang pinakamabilis mula sa kinaroroonan mo.`,
+            termSub: (n, area) => `${n} terminal papuntang ${area}. Naka-recommend ang pinakasulit sa pamasahe at oras mula sa kinaroroonan mo.`,
             termAria: 'Terminal na sasakyan',
             youreHere: 'Nandito ka',
             longWalk: 'Malayong lakad',
@@ -347,20 +347,28 @@
         }
 
         const line = el('div', 'czt-term-line');
+        // Walk to the first jeep, the jeeps, and the walk between them (coming from farther away)
         const strip = el('div', 'czt-strip czt-term-strip');
-        if (c.walkM > 0) {
-            strip.appendChild(walkNote(t.walkTo(Math.max(1, c.walkMin), fmtM(c.walkM))));
-            strip.appendChild(el('span', 'czt-chev', '›'));
-        }
-        opt.legs.filter((l) => l.type === 'jeep').forEach((leg, k) => {
-            if (k) strip.appendChild(el('span', 'czt-chev', '›'));
-            strip.appendChild(pill('jeep', headsignText(leg)));
+        const add = (node) => {
+            if (strip.childNodes.length) strip.appendChild(el('span', 'czt-chev', '›'));
+            strip.appendChild(node);
+        };
+        opt.legs.forEach((leg, idx) => {
+            if (leg.type === 'jeep') add(pill('jeep', headsignText(leg)));
+            else if (idx === 0 && leg.distM > 0) add(walkNote(t.walkTo(Math.max(1, leg.min), fmtM(leg.distM))));
+            else if (leg.transfer && leg.distM > 0) add(walkNote(t.walkMin(leg.min)));
         });
         line.appendChild(strip);
         line.appendChild(el('span', 'czt-term-fare', peso(opt.fare)));
         body.appendChild(line);
 
-        if (c.farWalk) body.appendChild(el('div', 'czt-meta czt-term-meta', t.longWalk));
+        if (opt.transfers) {
+            const meta = el('div', 'czt-meta czt-term-meta');
+            meta.appendChild(document.createTextNode(t.transfers(opt.transfers) + ' · ' + t.changeAt + ' '));
+            meta.appendChild(el('b', null, name));
+            if (c.farWalk) meta.appendChild(document.createTextNode(' · ' + t.longWalk));
+            body.appendChild(meta);
+        } else if (c.farWalk) body.appendChild(el('div', 'czt-meta czt-term-meta', t.longWalk));
         row.appendChild(body);
         card.appendChild(row);
         return card;

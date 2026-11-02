@@ -1977,7 +1977,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let terminalPinned = null;     // { stopId, destKey }
         let terminalPins = [];
         let terminalOldPin = null;
-        const terminalAuto = { at: null, hits: 0, rideRoute: null, rideFixes: 0, lastPos: null, lastNear: null, lastSwitchAt: 0, switching: false, lastFix: null };
+        const terminalAuto = { at: null, hits: 0, atSince: 0, timer: null, rideRoute: null, rideFixes: 0, lastPos: null, lastNear: null, lastSwitchAt: 0, switching: false, lastFix: null };
         let routeLoading = false;    // a route is being computed (the panel shows a skeleton)
         let lastPeekTripKey = null;  // phones: the trip the sheet last opened at half height for
         let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
@@ -3771,8 +3771,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const T = window.CalzadaTransit;
             if (!terminalTrip || !isTrackingArrival || terminalAuto.switching || !T) return;
             if (!T.isReady()) { if (T.load) T.load(); return; }
-            // On the chosen jeep already: from here on the transfer logic owns the trip
-            if (activeLegIndex !== 0) return;
+            // Before the first jeep (walking to it), or riding the first jeep of a trip that changes
+            // jeeps at a terminal (coming from farther away). On the last jeep there is nothing to switch.
+            const onFirstJeep = !!pendingTransfer && activeLegIndex === 1;
+            if (activeLegIndex !== 0 && !onFirstJeep) return;
             if (Date.now() - terminalAuto.lastSwitchAt < 60000) return;
             const p = [lat, lng];
             const nowMs = Date.now();
@@ -3787,13 +3789,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const at = T.terminalAt(p, terminalTrip.area);
             if (at && at !== chosen && terminalTrip.choices.some(c => c.stopId === at)) {
-                terminalAuto.hits = terminalAuto.at === at ? terminalAuto.hits + 1 : 1;
-                terminalAuto.at = at;
-                if (terminalAuto.hits >= 2) switchTerminal(at, p, false);
+                if (terminalAuto.at !== at) { terminalAuto.at = at; terminalAuto.hits = 0; terminalAuto.atSince = nowMs; }
+                terminalAuto.hits++;
+                // Walking to the jeep: two fixes there. On a jeep: it may only be stopping to let people
+                // off, so the user must have stayed there, not moving, for a while (got off).
+                const still = !(v > 1.5);
+                const ready = onFirstJeep ? (still && nowMs - terminalAuto.atSince >= 45000) : terminalAuto.hits >= 2;
+                if (ready) { switchTerminal(at, p, false); return; }
+                // A phone standing still may send no new fix: look again when the wait is over
+                if (onFirstJeep && !terminalAuto.timer) {
+                    terminalAuto.timer = setTimeout(() => {
+                        terminalAuto.timer = null;
+                        const here = currentLocation && Number.isFinite(currentLocation.lat) ? [currentLocation.lat, currentLocation.lng] : null;
+                        if (here && terminalAuto.at === at && T.terminalAt(here, terminalTrip ? terminalTrip.area : null) === at) {
+                            checkTerminalAutoSwitch(here[0], here[1], 0);
+                        }
+                    }, 46000);
+                }
                 return;
             }
             terminalAuto.at = null;
             terminalAuto.hits = 0;
+            if (terminalAuto.timer) { clearTimeout(terminalAuto.timer); terminalAuto.timer = null; }
 
             if (!(v >= 12 / 3.6)) { terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0; return; }
             // Moving at jeep speed on the path of a jeep from another terminal, away from it. The roads out
@@ -3810,12 +3827,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             if (!cands.length) { terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0; return; }
+            // On the first jeep: only a road the current jeep does not take tells that the user changed jeeps
+            if (onFirstJeep && distToPathM(lat, lng, (transitRouteGeojson && transitRouteGeojson.coordinates) || []) <= 40) {
+                terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0; return;
+            }
             const hit = cands.find(x => x.stopId === terminalAuto.lastNear) || cands.sort((a, b) => a.fromStop - b.fromStop)[0];
             if (terminalAuto.rideRoute === hit.routeId && hit.pos > terminalAuto.lastPos) terminalAuto.rideFixes++;
             else terminalAuto.rideFixes = 1;
             terminalAuto.rideRoute = hit.routeId;
             terminalAuto.lastPos = hit.pos;
             if (terminalAuto.rideFixes >= 3) switchTerminal(hit.stopId, p, true);
+        }
+
+        // Metres from a point to a [lat, lng] polyline (flat projection, fine at this scale)
+        function distToPathM(lat, lng, coords) {
+            if (!Array.isArray(coords) || coords.length < 2) return Infinity;
+            const kx = 111320 * Math.cos(lat * Math.PI / 180), ky = 110574;
+            let best = Infinity;
+            for (let i = 1; i < coords.length; i++) {
+                const ax = (coords[i - 1][1] - lng) * kx, ay = (coords[i - 1][0] - lat) * ky;
+                const bx = (coords[i][1] - lng) * kx, by = (coords[i][0] - lat) * ky;
+                const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+                const t = L ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / L)) : 0;
+                best = Math.min(best, Math.hypot(ax + t * dx, ay + t * dy));
+            }
+            return best;
         }
 
         // Re-plan the journey from the terminal the user is at (or rode away from)
@@ -3829,11 +3865,29 @@ document.addEventListener('DOMContentLoaded', () => {
             terminalAuto.at = null; terminalAuto.hits = 0; terminalAuto.rideRoute = null; terminalAuto.rideFixes = 0;
             try {
                 terminalPinned = { stopId, destKey: destKeyOf(selectedCoords.destination) };
+                // Got off the first jeep at this terminal: that jeep (and the walk to it) is done
+                const doneLegs = [];
+                let doneMin = 0;
+                if (pendingTransfer && activeLegIndex === 1) {
+                    const stops = lastItineraryStops || {};
+                    if (currentWalkDist * 1000 >= 10) doneLegs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: Math.round(currentWalkDist * 100) / 100, fare: 0, boardStop: null, alightStop: null });
+                    doneLegs.push({
+                        type: 'jeepney',
+                        durationMin: Math.round(currentTransitDur),
+                        distanceKm: Math.round(currentTransitDist * 100) / 100,
+                        fare: Math.round(currentFare * 100) / 100,
+                        boardStop: String(stops.boardAt || transitRouteGeojson?.boardName || 'National Highway').slice(0, 120),
+                        alightStop: String(c.name).slice(0, 120)
+                    });
+                    doneMin = currentWalkDur + currentTransitDur;
+                    pendingTransfer = null;
+                    if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
+                }
                 // The saved trip keeps the first origin label, like a re-compute at a transfer stop
                 priorTrip = {
                     originName: (priorTrip && priorTrip.originName) || originPlaceName,
-                    legs: (priorTrip && Array.isArray(priorTrip.legs)) ? priorTrip.legs : [],
-                    estimatedMin: (priorTrip && priorTrip.estimatedMin) || 0
+                    legs: [...((priorTrip && Array.isArray(priorTrip.legs)) ? priorTrip.legs : []), ...doneLegs],
+                    estimatedMin: ((priorTrip && priorTrip.estimatedMin) || 0) + doneMin
                 };
                 // Riding already: plan from the terminal itself (the walk there is done)
                 selectedCoords.origin = riding ? c.pt.slice() : herePt.slice();

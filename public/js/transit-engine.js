@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.4.0)
+ * Calzada transit engine (v1.4.1)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -325,27 +325,34 @@
                 // Terminal-only routes (data: terminalOnly) are offered only when the user picks their terminal
                 if (A.terminalOnly && !force) return;
                 A.dirs.forEach((dirA) => {
-                    const b = force ? forcedBoard(A, dirA) : boardNear(A, origin, dirA);
-                    if (!b || b.walkM > (force ? MAX_TERMINAL_WALK_M : MAX_ACCESS_WALK_M)) return;
-                    // Direct
-                    const a = alightFor(A, dirA, b.pos);
-                    if (a) {
-                        found.push(summarize([
-                            walkLeg(origin, b.pt, b.walkM),
-                            jeepLeg(A, dirA, b.pos, a.pos, stopRef(b.stop, b.pt), stopRef(a.stop, a.pt)),
-                            walkLeg(a.pt, dest, a.walkM)
-                        ]));
+                    // Direct. With a picked terminal: the jeep loads there and the user walks to it
+                    const bd = force ? forcedBoard(A, dirA) : boardNear(A, origin, dirA);
+                    if (bd && bd.walkM <= (force ? MAX_TERMINAL_WALK_M : MAX_ACCESS_WALK_M)) {
+                        const a = alightFor(A, dirA, bd.pos);
+                        if (a) {
+                            found.push(summarize([
+                                walkLeg(origin, bd.pt, bd.walkM),
+                                jeepLeg(A, dirA, bd.pos, a.pos, stopRef(bd.stop, bd.pt), stopRef(a.stop, a.pt)),
+                                walkLeg(a.pt, dest, a.walkM)
+                            ]));
+                        }
                     }
-                    // One transfer: get off A at a stop where it lets passengers off, take B where it loads
+                    // One transfer: get off A at a stop where it lets passengers off, take B where it loads.
+                    // With a picked terminal (a user coming from farther away): B loads at that terminal,
+                    // and getting off there is allowed for this trip even where it is no transfer stop.
+                    if (A.terminalOnly) return;
+                    const b = boardNear(A, origin, dirA);
+                    if (b.walkM > MAX_ACCESS_WALK_M) return;
                     A.stopPos.forEach((sA) => {
                         if (!stopAllows(sA, dirA, 'alight')) return;
                         const rideA = dirA === 1 ? sA.pos - b.pos : b.pos - sA.pos;
                         if (rideA < MIN_RIDE_M) return;
                         linkedStops(sA.id).forEach((link) => {
+                            if (force && link.id !== force) return;
                             routes.forEach((B) => {
-                                if (B.id === A.id || B.terminalOnly) return;
+                                if (B.id === A.id || (B.terminalOnly && !force)) return;
                                 const sB = B.stopPos.find((s) => s.id === link.id);
-                                if (!sB || sB.noTransfer) return;
+                                if (!sB || (sB.noTransfer && !force)) return;
                                 B.dirs.forEach((dirB) => {
                                     if (!stopAllows(sB, dirB, 'board')) return;
                                     const a2 = alightFor(B, dirB, sB.pos);
@@ -408,9 +415,8 @@
             const ids = candidateIds(area);
             if (ids.length < 2) return null;
             const fromOrigin = ids.map((id) => haversineM(origin, stopPt(id)));
-            // The user starts near the terminals (a short walk to at least one of them) ...
-            if (Math.min(...fromOrigin) * WALK_FACTOR > MAX_ACCESS_WALK_M) return null;
-            // ... is not already closer to the destination than to every terminal ...
+            // The user (near the terminals, or coming from farther away by jeep) is not already closer
+            // to the destination than to every terminal ...
             if (haversineM(origin, dest) <= Math.min(...fromOrigin)) return null;
             // ... and the destination is not right by the terminals (a jeep from there is no real choice)
             if (Math.min(...ids.map((id) => haversineM(dest, stopPt(id)))) < NEAR_TERMINAL_DEST_M) return null;
@@ -442,6 +448,8 @@
             // A jeep on the road right by the user beats every terminal (e.g. already on Real Road): no choice
             const usual = plan(origin, dest)[0];
             if (usual && usual.totalMin + MUCH_FASTER_MIN < choices[0].option.totalMin) return null;
+            // ... or cheaper and about as fast (e.g. one jeep straight there, no terminal at all): no choice
+            if (usual && usual.fare < choices[0].option.fare && usual.totalMin <= choices[0].option.totalMin + 10) return null;
             choices.forEach((c, i) => {
                 c.recommended = i === 0;
                 c.option.tags = i === 0 ? ['recommended'] : [];
@@ -570,7 +578,7 @@
     }
 
     return {
-        VERSION: '1.4.0',
+        VERSION: '1.4.1',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
