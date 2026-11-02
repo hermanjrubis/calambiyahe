@@ -1744,14 +1744,14 @@
    "source": "IMG_20261024_134548_00_462",
    "connections": [
     {
-     "targetId": "14.196697_121.162699",
-     "bearing": 52.4,
-     "distance": 48.3
-    },
-    {
      "targetId": "14.196221_121.161798",
      "bearing": 232.4,
      "distance": 64.6
+    },
+    {
+     "targetId": "14.196861_121.162528",
+     "bearing": 42.6,
+     "distance": 41.6
     }
    ],
    "street": "Chipeco Avenue Extension",
@@ -1770,11 +1770,6 @@
      "targetId": "14.196913_121.162656",
      "bearing": 319.4,
      "distance": 24.3
-    },
-    {
-     "targetId": "14.196584_121.162267",
-     "bearing": 232.4,
-     "distance": 48.3
     },
     {
      "targetId": "14.196231_121.163082",
@@ -2432,6 +2427,11 @@
      "targetId": "14.197540_121.162125",
      "bearing": 319.4,
      "distance": 89.9
+    },
+    {
+     "targetId": "14.196861_121.162528",
+     "bearing": 247.4,
+     "distance": 15.0
     }
    ],
    "street": "National Highway",
@@ -2884,6 +2884,11 @@
      "targetId": "14.206326_121.155391",
      "bearing": 134.8,
      "distance": 84.6
+    },
+    {
+     "targetId": "14.207222_121.154139",
+     "bearing": 302.6,
+     "distance": 83.3
     }
    ],
    "street": "National Highway",
@@ -5414,6 +5419,254 @@
    "street": "National Highway",
    "area": "Barangay 1",
    "heading": 176.6
+  },
+  {
+   "id": "14.196861_121.162528",
+   "lat": 14.196861,
+   "lng": 121.162528,
+   "file": "14.196861, 121.162528.jpg",
+   "northOffset": 253.0,
+   "source": "IMG_20261029_140453_00_628",
+   "connections": [
+    {
+     "targetId": "14.196913_121.162656",
+     "bearing": 67.4,
+     "distance": 15.0
+    },
+    {
+     "targetId": "14.196584_121.162267",
+     "bearing": 222.6,
+     "distance": 41.6
+    }
+   ],
+   "street": "Chipeco Avenue Extension",
+   "area": "Halang",
+   "heading": 174.4
+  },
+  {
+   "id": "14.207222_121.154139",
+   "lat": 14.207222,
+   "lng": 121.154139,
+   "file": "14.207222, 121.154139.jpg",
+   "northOffset": 274.1,
+   "source": "IMG_20261029_160306_00_644",
+   "connections": [
+    {
+     "targetId": "14.206816_121.154789",
+     "bearing": 122.6,
+     "distance": 83.3
+    },
+    {
+     "targetId": "14.207083_121.153778",
+     "bearing": 248.5,
+     "distance": 41.9
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -25.6
+  },
+  {
+   "id": "14.207083_121.153778",
+   "lat": 14.207083,
+   "lng": 121.153778,
+   "file": "14.207083, 121.153778.jpg",
+   "northOffset": 276.5,
+   "source": "IMG_20261029_160322_00_645",
+   "connections": [
+    {
+     "targetId": "14.207222_121.154139",
+     "bearing": 68.5,
+     "distance": 41.9
+    },
+    {
+     "targetId": "14.206944_121.153361",
+     "bearing": 251.1,
+     "distance": 47.6
+    },
+    {
+     "targetId": "14.207111_121.153694",
+     "bearing": 288.9,
+     "distance": 9.6
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -25.4
+  },
+  {
+   "id": "14.206944_121.153361",
+   "lat": 14.206944,
+   "lng": 121.153361,
+   "file": "14.206944, 121.153361.jpg",
+   "northOffset": 272.5,
+   "source": "IMG_20261029_160338_00_646",
+   "connections": [
+    {
+     "targetId": "14.207083_121.153778",
+     "bearing": 71.1,
+     "distance": 47.6
+    },
+    {
+     "targetId": "14.206806_121.152889",
+     "bearing": 253.3,
+     "distance": 53.2
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -19.1
+  },
+  {
+   "id": "14.206806_121.152889",
+   "lat": 14.206806,
+   "lng": 121.152889,
+   "file": "14.206806, 121.152889.jpg",
+   "northOffset": 271.8,
+   "source": "IMG_20261029_160353_00_647",
+   "connections": [
+    {
+     "targetId": "14.206944_121.153361",
+     "bearing": 73.3,
+     "distance": 53.2
+    },
+    {
+     "targetId": "14.206694_121.152472",
+     "bearing": 254.6,
+     "distance": 46.7
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -17.2
+  },
+  {
+   "id": "14.206694_121.152472",
+   "lat": 14.206694,
+   "lng": 121.152472,
+   "file": "14.206694, 121.152472.jpg",
+   "northOffset": 271.0,
+   "source": "IMG_20261029_160409_00_648",
+   "connections": [
+    {
+     "targetId": "14.206806_121.152889",
+     "bearing": 74.6,
+     "distance": 46.7
+    },
+    {
+     "targetId": "14.206556_121.152139",
+     "bearing": 247.0,
+     "distance": 39.0
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -24.0
+  },
+  {
+   "id": "14.206556_121.152139",
+   "lat": 14.206556,
+   "lng": 121.152139,
+   "file": "14.206556, 121.152139.jpg",
+   "northOffset": 272.8,
+   "source": "IMG_20261029_160424_00_649",
+   "connections": [
+    {
+     "targetId": "14.206694_121.152472",
+     "bearing": 67.0,
+     "distance": 39.0
+    },
+    {
+     "targetId": "14.206500_121.151944",
+     "bearing": 253.6,
+     "distance": 21.9
+    },
+    {
+     "targetId": "14.206611_121.152194",
+     "bearing": 44.3,
+     "distance": 8.5
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -19.2
+  },
+  {
+   "id": "14.206500_121.151944",
+   "lat": 14.2065,
+   "lng": 121.151944,
+   "file": "14.206500, 121.151944.jpg",
+   "northOffset": 251.9,
+   "source": "IMG_20261029_160447_00_650",
+   "connections": [
+    {
+     "targetId": "14.206556_121.152139",
+     "bearing": 73.6,
+     "distance": 21.9
+    },
+    {
+     "targetId": "14.206417_121.151944",
+     "bearing": 180.0,
+     "distance": 9.2
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": 1.7
+  },
+  {
+   "id": "14.207111_121.153694",
+   "lat": 14.207111,
+   "lng": 121.153694,
+   "file": "14.207111, 121.153694.jpg",
+   "northOffset": 301.6,
+   "source": "IMG_20261029_161023_00_652",
+   "connections": [
+    {
+     "targetId": "14.207083_121.153778",
+     "bearing": 108.9,
+     "distance": 9.6
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": 167.3
+  },
+  {
+   "id": "14.206611_121.152194",
+   "lat": 14.206611,
+   "lng": 121.152194,
+   "file": "14.206611, 121.152194.jpg",
+   "northOffset": 330.7,
+   "source": "IMG_20261029_164231_00_670",
+   "connections": [
+    {
+     "targetId": "14.206556_121.152139",
+     "bearing": 224.3,
+     "distance": 8.5
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -106.4
+  },
+  {
+   "id": "14.206417_121.151944",
+   "lat": 14.206417,
+   "lng": 121.151944,
+   "file": "14.206417, 121.151944.jpg",
+   "northOffset": 153.1,
+   "source": "IMG_20261029_164353_00_671",
+   "connections": [
+    {
+     "targetId": "14.206500_121.151944",
+     "bearing": 0.0,
+     "distance": 9.2
+    }
+   ],
+   "street": "CMC Avenue",
+   "area": "Barangay 1",
+   "heading": -153.1
   }
  ]
 }
