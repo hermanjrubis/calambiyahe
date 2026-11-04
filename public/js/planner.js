@@ -1155,6 +1155,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let selectedMode = 'jeepney';
         let userExplicitMode = false;
+        // The user picked Jeepney, but the last trip had no jeepney (no-jeepney barangay) and was shown
+        // as a walk: the next trip goes back to Jeepney
+        let noJeepOverride = false;
 
         // Map objects
         let originMarker = null, destMarker = null, userMarker = null, gpsCircle = null;
@@ -3489,13 +3492,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         document.getElementById('modeWalking').addEventListener('click', () => {
-            userExplicitMode = true;
+            userExplicitMode = true; noJeepOverride = false;
             selectedMode = 'walking';
             setModeUI('walking');
             executeRouteQuery();
         });
         document.getElementById('modeJeepney').addEventListener('click', () => {
-            userExplicitMode = true;
+            userExplicitMode = true; noJeepOverride = false;
             selectedMode = 'jeepney';
             setModeUI('jeepney');
             executeRouteQuery();
@@ -3917,7 +3920,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Riding already: plan from the terminal itself (the walk there is done)
                 selectedCoords.origin = riding ? c.pt.slice() : herePt.slice();
                 originPlaceName = c.name;
-                userExplicitMode = true;
+                userExplicitMode = true; noJeepOverride = false;
                 selectedMode = 'jeepney';
                 updateRouteSource('completed-route', []);
                 ensureOriginMarker();
@@ -4191,7 +4194,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 transferPreferred = xfer.jeep.routeId;
                 pendingTransfer = null;
                 // A short last part must stay a jeep ride, not switch to walking
-                userExplicitMode = true;
+                userExplicitMode = true; noJeepOverride = false;
                 selectedMode = 'jeepney';
                 if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
                 updateRouteSource('completed-route', []);
@@ -4247,10 +4250,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 || (!T0.plan(oPt, dPt).length && !(T0.terminalChoices && T0.terminalChoices(oPt, dPt, destKnownBarangay()))));
 
             // Intelligent default: for very short trips under ~800m, default to walking unless user explicitly chose a mode
+            if (noJeepOverride && userExplicitMode) selectedMode = 'jeepney';
+            noJeepOverride = false;
             if (!userExplicitMode) {
                 selectedMode = (straightDistM < 800 || noJeepTrip) ? 'walking' : 'jeepney';
             }
-            if (noJeepTrip) selectedMode = 'walking';
+            if (noJeepTrip && selectedMode !== 'walking') {
+                // Shown as a walk this time only; the user's Jeepney choice stays for the next trip
+                noJeepOverride = userExplicitMode;
+                selectedMode = 'walking';
+            }
             setModeUI(selectedMode);
 
             // Always show mode buttons
@@ -4929,7 +4938,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.mode) {
                 selectedMode = data.mode === 'walking' ? 'walking' : 'jeepney';
                 // The user picked this mode before signing in: keep it (no re-pick by distance)
-                userExplicitMode = true;
+                userExplicitMode = true; noJeepOverride = false;
                 setModeUI(selectedMode);
             }
 
@@ -6743,7 +6752,7 @@ document.addEventListener('DOMContentLoaded', () => {
             destPlaceName = destName;
             selectedCoords.destination = destCoords;
             selectedMode = mode;
-            userExplicitMode = true;
+            userExplicitMode = true; noJeepOverride = false;
             setModeUI(mode);
             renderPlannerState();
         };
@@ -9740,7 +9749,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const switchActiveMode = async (newMode) => {
             if (selectedMode === newMode) return;
-            userExplicitMode = true;
+            userExplicitMode = true; noJeepOverride = false;
             selectedMode = newMode;
             setModeUI(newMode);
 
@@ -9805,7 +9814,7 @@ document.addEventListener('DOMContentLoaded', () => {
             originPlaceName = state.originName || '';
             destPlaceName = state.destName || '';
             selectedMode = state.selectedMode === 'walking' ? 'walking' : 'jeepney';
-            userExplicitMode = true; // no distance-based mode switch, also if the route is fetched again
+            userExplicitMode = true; noJeepOverride = false; // no distance-based mode switch, also if the route is fetched again
             journeyStartedAt = Number.isFinite(state.startedAt) ? state.startedAt : null;
             journeyId = typeof state.journeyId === 'string' && /^[A-Za-z0-9]{20}$/.test(state.journeyId) ? state.journeyId : null;
             isTrackingArrival = true; // from here on the preview replan never moves the origin
@@ -9929,7 +9938,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Keep the mode saved with the preview (no re-pick by distance), as the journey restore does.
             // Previews saved without a mode keep the distance-based choice.
             if (state.selectedMode === 'walking' || state.selectedMode === 'jeepney') {
-                userExplicitMode = true;
+                userExplicitMode = true; noJeepOverride = false;
                 setModeUI(selectedMode);
             }
             updateODDisplay();
