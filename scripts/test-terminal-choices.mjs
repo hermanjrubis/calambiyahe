@@ -1,4 +1,4 @@
-// Terminal choice (transit-engine 1.4.0): node scripts/test-terminal-choices.mjs
+// Terminal choice and no-jeepney barangays (transit-engine 1.5.0): node scripts/test-terminal-choices.mjs
 import { createRequire } from 'module';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -79,6 +79,25 @@ check('Cabuyao -> Lynville (Sta. Rosa jeep passes it): no choice', P.terminalCho
 // routeNear: a point on the new Crossing -> Real path finds it
 const rn = P.routeNear([14.20207, 121.15222], 40).map((r) => r.routeId);
 check('routeNear on Real Road finds crossing-real', rn.includes('crossing-real'), rn.join(','));
+
+// No jeepney leaves the poblacion (Barangay 2–7, San Jose, San Juan) toward Uno / Real / Halang
+const BRGY3 = [14.2082, 121.1628], BRGY5 = [14.2096, 121.1665], SAN_JUAN = [14.2165, 121.1744];
+check('noJeepAreaOf Barangay 3', P.noJeepAreaOf(BRGY3) === 'Barangay 3');
+check('noJeepAreaOf Barangay 5', P.noJeepAreaOf(BRGY5) === 'Barangay 5');
+check('noJeepAreaOf SM City Calamba (Uno) = null', P.noJeepAreaOf(SM) === null);
+check('noJeepAreaOf Lecheria (jeeps on Chipeco Ave) = null', P.noJeepAreaOf([14.2018, 121.1707]) === null);
+check('Barangay 3 -> SM City Calamba (Uno): no jeep option', P.plan(BRGY3, SM).length === 0 && P.terminalChoices(BRGY3, SM) === null);
+check('Barangay 5 -> Jollibee Crossing (Uno): no jeep option', P.plan(BRGY5, JOLLIBEE_CROSSING).length === 0 && P.terminalChoices(BRGY5, JOLLIBEE_CROSSING) === null);
+[[BRGY3, JOLLIBEE_REAL, 'Barangay 3 -> Jollibee Real'], [BRGY5, CHICKEN_JOO, 'Barangay 5 -> Chicken Joo'], [SAN_JUAN, JOLLIBEE_REAL, 'San Juan -> Jollibee Real']].forEach(([o, d, label]) => {
+    const tcx = P.terminalChoices(o, d);
+    const all = [...P.plan(o, d), ...(tcx ? tcx.choices.map((c) => c.option) : [])];
+    check(`${label}: every jeep option starts with a walk to a terminal inside the area`, all.every((opt) => {
+        const j = opt.legs.find((l) => l.type === 'jeep');
+        return j && j.board.stopId && P.areaOf(j.board.pt) && opt.legs[0].type === 'walk';
+    }), names(tcx));
+});
+// Not from there: unchanged
+check('Cabuyao -> SM City Calamba still has jeep options', P.plan(cabuyao, SM).length > 0);
 
 console.log(fails ? `\n${fails} failed` : '\nall passed');
 process.exit(fails ? 1 : 0);

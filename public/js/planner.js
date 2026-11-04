@@ -4214,7 +4214,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const executeRouteQueryCore = async () => {
+        // opts.noJeep: the curated routes have no trip from a no-jeepney barangay (set by the retry below)
+        const executeRouteQueryCore = async (opts = {}) => {
             if (!selectedCoords.origin || !selectedCoords.destination) {
                 renderPlannerState();
                 return;
@@ -4234,10 +4235,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const dPt = selectedCoords.destination;
             const straightDistM = getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000;
 
+            // No jeepney leaves the poblacion barangays (Barangay 2–7, San Jose, San Juan: noJeepFrom in
+            // /data/barangays.json) toward Uno, Real or Halang. From there the transit engine gives no jeep
+            // to Uno, and to Real / Halang only jeeps from a terminal the user walks to. When it has
+            // nothing, the trip is a walk, also when Jeepney is picked: never the guessed highway ride below.
+            const T0 = window.CalzadaTransit;
+            if (T0 && typeof T0.load === 'function') {
+                try { await Promise.race([T0.load(), new Promise(r => setTimeout(r, 2500))]); } catch (_) { /* engine unavailable */ }
+            }
+            const noJeepArea = (T0 && T0.isReady && T0.isReady() && T0.noJeepAreaOf) ? T0.noJeepAreaOf(oPt) : null;
+            const noJeepTrip = !!noJeepArea && (opts.noJeep
+                || (!T0.plan(oPt, dPt).length && !(T0.terminalChoices && T0.terminalChoices(oPt, dPt, destKnownBarangay()))));
+
             // Intelligent default: for very short trips under ~800m, default to walking unless user explicitly chose a mode
             if (!userExplicitMode) {
-                selectedMode = (straightDistM < 800) ? 'walking' : 'jeepney';
+                selectedMode = (straightDistM < 800 || noJeepTrip) ? 'walking' : 'jeepney';
             }
+            if (noJeepTrip) selectedMode = 'walking';
             setModeUI(selectedMode);
 
             // Always show mode buttons
@@ -4295,7 +4309,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (walkHintEl) {
                     // Same walk distance as the leg and the summary
                     const totalWalkM = Math.round(currentWalkDist * 1000 || straightDistM);
-                    if (totalWalkM < 800) {
+                    if (noJeepTrip) {
+                        walkHintEl.innerHTML = '<ion-icon name="information-circle-outline"></ion-icon><span></span>';
+                        walkHintEl.querySelector('span').textContent = t('planner.no_jeep_from', { area: noJeepArea });
+                        walkHintEl.style.display = 'inline-flex';
+                    } else if (totalWalkM < 800) {
                         walkHintEl.innerHTML = `<ion-icon name="walk-outline"></ion-icon><span>This distance is walkable (${formatDistanceM(totalWalkM)})</span>`;
                         walkHintEl.style.display = 'inline-flex';
                     } else {
@@ -4310,6 +4328,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ── JEEPNEY MODE: curated routes first (options, transfers), else the highway heuristic ──
             if (await planWithTransitRoutes(oPt, dPt, straightDistM)) return;
+
+            // From a no-jeepney barangay with no curated trip: walk, never the guessed highway ride below
+            if (noJeepArea) return executeRouteQueryCore({ noJeep: true });
 
             // ── JEEPNEY MODE: walk to boarding point + transit on highway ───────────
             let fullCarRes = null;
