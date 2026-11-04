@@ -300,6 +300,13 @@
             <span class="cps-row-text"><span class="cps-row-name">${o.nameHtml || esc(o.name)}</span>${o.location ? `<span class="cps-row-loc">${esc(o.location)}</span>` : ''}</span>${dist}</div>`;
     };
 
+    // Nothing to show: Routie, the Calzada mascot, with what happened and what to do next
+    // (the "Pin it on the map" row follows right under it)
+    const ROUTIE_SAD = '../assets/routie-sad-search.webp';
+    const emptyState = (title, hint) => `<div class="cps-empty cps-empty--routie" role="presentation">
+        <img class="cps-empty-img" src="${ROUTIE_SAD}" alt="" width="104" height="70" decoding="async">
+        <span class="cps-empty-title">${esc(title)}</span>${hint ? `<span class="cps-empty-hint">${esc(hint)}</span>` : ''}</div>`;
+
     let options = [];           // selectable items in the current view, in order
     const pinOption = () => ({ type: 'pin', label: tr('search.cant_find', "Can't find it? Pin it on the map") });
 
@@ -337,7 +344,7 @@
                 .map(p => withDistance({ type: 'calzada', name: p.name, location: calzadaLocation(p), lat: +p.lat, lng: +p.lng, kind: CATEGORY_KIND[activeCategory], logo: p.logo || null }))
                 .sort((a, b) => (a.distM != null && b.distM != null) ? a.distM - b.distM : a.name.localeCompare(b.name));
             html += section(tr(cat.key, cat.fallback), `<span class="cps-verified"><i class="ti ti-circle-check" aria-hidden="true"></i>${esc(tr('search.verified', 'Verified'))}</span>`);
-            html += places.length ? places.map(add).join('') : `<div class="cps-empty" role="presentation">${esc(tr('search.no_category', 'No places in this category yet.'))}</div>`;
+            html += places.length ? places.map(add).join('') : emptyState(tr('search.no_category', 'No places in this category yet.'), tr('search.no_category_hint', 'Pin the place on the map, or pick another category.'));
             html += add(pinOption());
             setList(html);
             setFooter('calzada');
@@ -391,10 +398,12 @@
         } else if (external.length) {
             html += section(tr('search.more_places', 'More places')) + external.map(add).join('');
         }
-        if (state === 'offline') {
+        if (state === 'offline' && !local.length) {
+            html += emptyState(tr('search.no_results', 'No places found for "{q}"', { q: query }), tr('search.offline_search', "You're offline, so only Calzada places are shown. Recent places still work."));
+        } else if (state === 'offline') {
             html += `<div class="cps-note" role="presentation">${esc(tr('search.offline_search', "You're offline, so only Calzada places are shown. Recent places still work."))}</div>`;
         } else if (state !== 'loading' && !local.length && !external.length) {
-            html += `<div class="cps-empty" role="presentation">${esc(tr('search.no_results', 'No places found for "{q}"', { q: query }))}</div>`;
+            html += emptyState(tr('search.no_results', 'No places found for "{q}"', { q: query }), tr('search.no_results_hint', 'Check the spelling or try a nearby landmark. You can also pin it on the map.'));
         }
         if (state !== 'loading') html += add(pinOption());
         setList(html);
