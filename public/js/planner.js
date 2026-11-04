@@ -23,6 +23,16 @@ function formatStepInstruction(step, mode, extra) {
     const maneuverType = step.maneuver?.type || '';
     const mod = step.maneuver?.modifier || '';
 
+    // Steps from the Calzada walk graph (js/walk-router.js): footbridge and road crossing
+    if (step.walk === 'footbridge') {
+        return hasName ? t('planner.step.footbridge_name', { name: rawName }) : t('planner.step.footbridge');
+    }
+    if (step.walk === 'cross') {
+        const where = step.crossing === 's' ? 'signal' : (step.crossing === 'z' ? 'lane' : '');
+        const key = `planner.step.cross${where ? '_' + where : ''}${hasName ? '_name' : ''}`;
+        return t(key, { name: rawName });
+    }
+
     let isLastStep = undefined;
     let nextMode = undefined;
     let stopName = '';
@@ -422,6 +432,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         let routeLayersInitialized = false;
+        // Walk line: dots 6 px across every 14.4 px (dash lengths are in line widths), on white dots
+        // 9 px across at the same spacing, so each dot has a white edge on any map background.
+        const WALK_DOTS_PAINT = { 'line-color': '#475569', 'line-width': 6, 'line-dasharray': [0, 2.4], 'line-opacity': 1 };
+        const WALK_DOTS_CASING_PAINT = { 'line-color': '#FFFFFF', 'line-width': 9, 'line-dasharray': [0, 1.6], 'line-opacity': 0.95 };
         const initRouteLayers = () => {
             if (routeLayersInitialized || !map || !map.isStyleLoaded()) return;
 
@@ -445,7 +459,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, beforeId);
             }
 
-            // The next jeep of a trip with a transfer: solid, lighter blue (walks are the dashed lines)
+            // The next jeep of a trip with a transfer: solid, lighter blue (walks are the dotted lines)
             if (!map.getSource('next-transit-route')) {
                 map.addSource('next-transit-route', {
                     type: 'geojson',
@@ -499,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     source: 'transit-route',
                     layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
                     paint: {
-                        'line-color': '#1a8fff',
+                        'line-color': '#378ADD',
                         'line-width': ['interpolate', ['linear'], ['zoom'], 11, 4, 14, 6, 17, 9, 19, 12],
                         'line-opacity': 1
                     }
@@ -511,17 +525,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
+                // Walking is always drawn the same way, in walking and jeepney trips alike: round dots with a
+                // white edge (the itinerary's walk legs are dotted too). Jeepney rides are the solid lines.
+                map.addLayer({
+                    id: 'walk-route-casing',
+                    type: 'line',
+                    source: 'walk-route',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+                    paint: WALK_DOTS_CASING_PAINT
+                }, beforeId);
                 map.addLayer({
                     id: 'walk-route-layer',
                     type: 'line',
                     source: 'walk-route',
                     layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
-                    paint: {
-                        'line-color': '#3b82f6',
-                        'line-width': 6,
-                        'line-dasharray': [2, 2],
-                        'line-opacity': 1
-                    }
+                    paint: WALK_DOTS_PAINT
                 }, beforeId);
             }
 
@@ -530,17 +548,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     type: 'geojson',
                     data: { type: 'FeatureCollection', features: [] }
                 });
+                // The few metres between a place and the road are part of the walk: same dots
+                map.addLayer({
+                    id: 'route-connector-casing',
+                    type: 'line',
+                    source: 'route-connector',
+                    layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
+                    paint: WALK_DOTS_CASING_PAINT
+                }, beforeId);
                 map.addLayer({
                     id: 'route-connector-layer',
                     type: 'line',
                     source: 'route-connector',
                     layout: { 'line-join': 'round', 'line-cap': 'round', 'visibility': 'visible' },
-                    paint: {
-                        'line-color': '#94A3B8',
-                        'line-width': 3,
-                        'line-dasharray': [0, 2],
-                        'line-opacity': 1
-                    }
+                    paint: WALK_DOTS_PAINT
                 }, beforeId);
             }
 
@@ -4530,7 +4551,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Route loading on the map: the current route lines fade and a small "Finding routes" chip
         // shows at the top of the map. No guessed line is drawn (it read as a real route, and in the
         // tilted journey view it looped across the map).
-        const ROUTE_LINE_LAYERS = ['walk-route-layer', 'transit-route-layer', 'transit-route-casing', 'route-connector-layer', 'completed-route-layer', 'next-transit-route-layer', 'next-transit-route-casing'];
+        const ROUTE_LINE_LAYERS = ['walk-route-layer', 'walk-route-casing', 'transit-route-layer', 'transit-route-casing', 'route-connector-layer', 'route-connector-casing', 'completed-route-layer', 'next-transit-route-layer', 'next-transit-route-casing'];
         const routeLineOpacity = {};
         function showRouteSearchLine(on) {
             if (!map || !map.getStyle) return;
@@ -5223,9 +5244,34 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // Walks inside the coverage area (Uno, Real, Halang) use Calzada's own walk graph first
+        // (js/walk-router.js + /data/walk-graph.json). It knows which side of the road the walker is on,
+        // crosses big roads only at traffic lights and pedestrian lanes, and uses the footbridges at
+        // Calamba Crossing / SM, where crossing at street level is not done. Walks that start or end
+        // outside it, or if the graph has not loaded, use the foot servers below as before.
+        const WALK_GRAPH_WAIT_MS = 4000;
+        const walkGraphReady = window.CalzadaWalk ? window.CalzadaWalk.load() : Promise.resolve(null);
+        const walkOnGraph = async (start, end) => {
+            try {
+                const router = await Promise.race([walkGraphReady, new Promise(r => setTimeout(() => r(null), WALK_GRAPH_WAIT_MS))]);
+                if (!router || !router.covers(start) || !router.covers(end)) return null;
+                const w = router.route(start, end);
+                if (!w || !w.coordinates || w.coordinates.length < 2) return null;
+                console.info(`Walk route: Calzada walk graph (${Math.round(w.distance)} m${w.footbridges.length ? `, footbridge: ${w.footbridges.join(', ')}` : ''}${w.crossings.length ? `, crossings: ${w.crossings.map(c => `${c.name || 'road'} (${c.code})`).join(', ')}` : ''})`);
+                return { coordinates: w.coordinates, distance: w.distance, duration: w.duration, steps: w.steps, crossings: w.crossings, footbridges: w.footbridges };
+            } catch (e) {
+                console.warn('Walk graph error:', e);
+                return null;
+            }
+        };
+
         const fetchOSRMRouteCoords = async (start, end, profile) => {
             const coords = `${start[1]},${start[0]};${end[1]},${end[0]}`;
             const query = 'overview=full&geometries=geojson&steps=true&alternatives=false';
+            if (profile === 'foot') {
+                const graphWalk = await walkOnGraph(start, end);
+                if (graphWalk) return graphWalk;
+            }
             try {
                 let rt = null;
                 let walkSource = null;
@@ -5324,16 +5370,17 @@ document.addEventListener('DOMContentLoaded', () => {
             return F.fareFor(distKm, 'regular', F.current());
         };
 
-        // Walking routes: solid green line; jeepney routes: dashed blue walk legs and an accent jeepney line.
+        // Route lines look the same in every mode: walks dotted (no separate green walk-only line), jeepney
+        // rides solid blue. The styles are set in initRouteLayers; this keeps the walk lines on that style.
         const applyRouteLineColors = () => {
-            const isWalkOnly = selectedMode === 'walking';
-            if (map.getLayer('walk-route-layer')) {
-                map.setPaintProperty('walk-route-layer', 'line-color', isWalkOnly ? '#10b981' : '#3b82f6');
-                map.setPaintProperty('walk-route-layer', 'line-dasharray', isWalkOnly ? [1, 0] : [2, 2]);
-            }
-            if (map.getLayer('transit-route-layer')) {
-                map.setPaintProperty('transit-route-layer', 'line-color', isWalkOnly ? '#10b981' : '#378ADD');
-            }
+            ['walk-route-layer', 'route-connector-layer'].forEach(id => {
+                if (!map.getLayer(id)) return;
+                map.setPaintProperty(id, 'line-color', WALK_DOTS_PAINT['line-color']);
+                map.setPaintProperty(id, 'line-dasharray', WALK_DOTS_PAINT['line-dasharray']);
+            });
+            // On this map blue means a jeepney ride. The coverage outline (scope.js) is a blue dashed line,
+            // which read like a route, so here it is drawn in a quiet grey.
+            if (map.getLayer('scope-outline')) map.setPaintProperty('scope-outline', 'line-color', '#A3AEBD');
         };
         // The route layers are created on load, after a route that arrived early was drawn
         map.on('load', applyRouteLineColors);
