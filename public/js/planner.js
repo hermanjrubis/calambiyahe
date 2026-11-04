@@ -4236,9 +4236,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const straightDistM = getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000;
 
             // No jeepney leaves the poblacion barangays (Barangay 2–7, San Jose, San Juan: noJeepFrom in
-            // /data/barangays.json) toward Uno, Real or Halang. From there the transit engine gives no jeep
-            // to Uno, and to Real / Halang only jeeps from a terminal the user walks to. When it has
-            // nothing, the trip is a walk, also when Jeepney is picked: never the guessed highway ride below.
+            // /data/barangays.json) toward Uno, Real or Halang, so the transit engine has no trip from there
+            // and the trip is a walk, also when Jeepney is picked: never the guessed highway ride below.
             const T0 = window.CalzadaTransit;
             if (T0 && typeof T0.load === 'function') {
                 try { await Promise.race([T0.load(), new Promise(r => setTimeout(r, 2500))]); } catch (_) { /* engine unavailable */ }

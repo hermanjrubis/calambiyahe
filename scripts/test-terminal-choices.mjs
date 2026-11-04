@@ -89,12 +89,7 @@ check('noJeepAreaOf Lecheria (jeeps on Chipeco Ave) = null', P.noJeepAreaOf([14.
 check('Barangay 3 -> SM City Calamba (Uno): no jeep option', P.plan(BRGY3, SM).length === 0 && P.terminalChoices(BRGY3, SM) === null);
 check('Barangay 5 -> Jollibee Crossing (Uno): no jeep option', P.plan(BRGY5, JOLLIBEE_CROSSING).length === 0 && P.terminalChoices(BRGY5, JOLLIBEE_CROSSING) === null);
 [[BRGY3, JOLLIBEE_REAL, 'Barangay 3 -> Jollibee Real'], [BRGY5, CHICKEN_JOO, 'Barangay 5 -> Chicken Joo'], [SAN_JUAN, JOLLIBEE_REAL, 'San Juan -> Jollibee Real']].forEach(([o, d, label]) => {
-    const tcx = P.terminalChoices(o, d);
-    const all = [...P.plan(o, d), ...(tcx ? tcx.choices.map((c) => c.option) : [])];
-    check(`${label}: every jeep option starts with a walk to a terminal inside the area`, all.every((opt) => {
-        const j = opt.legs.find((l) => l.type === 'jeep');
-        return j && j.board.stopId && P.areaOf(j.board.pt) && opt.legs[0].type === 'walk';
-    }), names(tcx));
+    check(`${label}: no jeep option (walk)`, P.plan(o, d).length === 0 && P.terminalChoices(o, d) === null);
 });
 // Not from there: unchanged
 check('Cabuyao -> SM City Calamba still has jeep options', P.plan(cabuyao, SM).length > 0);

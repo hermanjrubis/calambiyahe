@@ -11,8 +11,8 @@
  * the balanced-best one marked recommended. Barangay boundaries: /data/barangays.json.
  *
  * No jeepney from the poblacion (1.5.0): barangays listed under noJeepFrom in /data/barangays.json
- * (Barangay 2–7, San Jose, San Juan) have no jeepney into the coverage area. From there: no jeep to Uno
- * (the planner walks), and to Real / Halang the first jeep loads at a terminal inside the area.
+ * (Barangay 2–7, San Jose, San Juan) have no jeepney into the coverage area. From there plan() and
+ * terminalChoices() give nothing and the planner shows the walk.
  *
  * Distances here are estimates (straight line x 1.25 for walks, along the route path for rides);
  * the planner replaces the walks of the option it shows with real foot routes.
@@ -38,7 +38,6 @@
     const STOP_SNAP_M = 250;         // board/get off at a listed stop when it is this close along the path
     const MAX_OPTIONS = 3;
     const MAX_TERMINAL_WALK_M = 2500; // walk to a terminal the user picked (longer than a normal access walk)
-    const NO_JEEP_ACCESS_WALK_M = 3500; // from a barangay with no jeepney (noJeepFrom): walking in is the only way
     const TERMINAL_RADIUS_M = 60;     // default "you are at this terminal" distance (data can override)
     const NEAR_TERMINAL_DEST_M = 700; // destinations closer than this to a terminal get no terminal choice
     const MUCH_FASTER_MIN = 5;        // the usual plan wins when it is this much faster than every terminal
@@ -299,10 +298,9 @@
             if (!origin || !dest) return [];
             const found = [];
             const force = boardStopId || null;
-            // From a no-jeepney barangay the walk to the first jeep may be longer (there is no other way in)
-            const noJeep = noJeepAreaOf(origin);
-            const accessWalkM = noJeep ? NO_JEEP_ACCESS_WALK_M : MAX_ACCESS_WALK_M;
-            const terminalWalkM = noJeep ? Math.max(MAX_TERMINAL_WALK_M, NO_JEEP_ACCESS_WALK_M) : MAX_TERMINAL_WALK_M;
+            // No jeepney leaves the barangays listed under noJeepFrom (the poblacion Barangay 2–7, San Jose,
+            // San Juan) toward Uno, Real or Halang: from there the trip is a walk (the planner walks it)
+            if (noJeepAreaOf(origin)) return [];
 
             // The picked terminal on route r in direction dir, as a board point, or null
             const forcedBoard = (r, dir) => {
@@ -336,7 +334,7 @@
                 A.dirs.forEach((dirA) => {
                     // Direct. With a picked terminal: the jeep loads there and the user walks to it
                     const bd = force ? forcedBoard(A, dirA) : boardNear(A, origin, dirA);
-                    if (bd && bd.walkM <= (force ? terminalWalkM : accessWalkM)) {
+                    if (bd && bd.walkM <= (force ? MAX_TERMINAL_WALK_M : MAX_ACCESS_WALK_M)) {
                         const a = alightFor(A, dirA, bd.pos);
                         if (a) {
                             found.push(summarize([
@@ -385,18 +383,6 @@
             // planner's own highway route is better): total walk at most 60% of the straight distance
             const straight = haversineM(origin, dest);
             const maxWalk = Math.max(400, straight * 0.6);
-            // From a barangay with no jeepney into the coverage area (areas.noJeepFrom: the poblacion
-            // barangays 2–7, San Jose, San Juan) the user walks in: no jeep at all to a place in Uno (it is
-            // a walk from there), and to Real / Halang the first jeep loads at a listed stop inside the
-            // coverage area (a terminal), never on a road in or near that barangay.
-            if (noJeep) {
-                if (areaOf(dest) === 'Uno') return [];
-                for (let i = found.length - 1; i >= 0; i--) {
-                    const j = found[i].legs.find((l) => l.type === 'jeep');
-                    if (!j || !j.board.stopId || !areaOf(j.board.pt)) found.splice(i, 1);
-                }
-            }
-
             // A picked terminal: its options, best first (the walk there is the user's choice)
             if (force) return mergeTwins(found.sort((a, b) => a.cost - b.cost || a.totalMin - b.totalMin));
             return rank(found.filter((o) => o.walkM <= maxWalk));
