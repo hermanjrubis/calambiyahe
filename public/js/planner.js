@@ -676,6 +676,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, 2000);
             }
         });
+        // Guests can search, compare and preview routes. Only Start Journey (live navigation, which
+        // keeps the trip in the account's route history) needs a signed-in account.
+        const isSignedInUser = () => {
+            const u = window.CalzadaAuth?.getCurrentUser();
+            return !!(u && !u.isAnonymous);
+        };
+        // Set by resumePendingRoute() when the person signed in from the Start Journey prompt:
+        // the next route that loads gets the Start button focused (it never starts by itself).
+        let pendingStartFocus = false;
         window.selectedCoords = selectedCoords;
         Object.defineProperty(window, 'originPlaceName', {
             get: () => originPlaceName,
@@ -3041,6 +3050,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (startBtn) startBtn.disabled = false;
                 if (savePdfBtn) savePdfBtn.style.display = 'inline-flex';
                 if (startHelper) startHelper.style.display = 'none';
+                syncStartGuestState();
             } else if (routeLoading && hasBothFields) {
                 // Route being computed: keep the skeleton and the "Finding routes…" line
                 if (startBtn) startBtn.disabled = true;
@@ -4766,7 +4776,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return (place && place.barangay && typeof place.barangay === 'string') ? place.barangay.slice(0, 40) : null;
         };
 
-        function writePendingRoute() {
+        // intent 'start': saved from the Start Journey sign-in prompt. Only the destination (name and
+        // map point) and the starting point's name are kept, in this tab, for 15 minutes; a GPS or
+        // pinned starting point is never saved, it is asked for again.
+        function writePendingRoute(opts = {}) {
             let originData;
             if (currentOriginKind === 'my_location') {
                 originData = { kind: 'my_location' };
@@ -4787,6 +4800,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 origin: originData,
                 mode: selectedMode === 'walking' ? 'walking' : 'jeepney',
+                intent: opts.intent === 'start' ? 'start' : 'route',
                 savedAt: Date.now()
             };
             try {
@@ -4962,6 +4976,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!data || typeof data !== 'object') return;
             if (!data.savedAt || (Date.now() - data.savedAt > 15 * 60 * 1000)) return;
+            pendingStartFocus = data.intent === 'start';
 
             if (data.mode) {
                 selectedMode = data.mode === 'walking' ? 'walking' : 'jeepney';
@@ -5037,17 +5052,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return executeRouteQueryCore();
             }
 
-            const user = window.CalzadaAuth?.getCurrentUser();
-            if (!user || user.isAnonymous) {
-                writePendingRoute();
-                const gateMsg = (window.t ? window.t('planner.gate_toast') : null) || 'Sign in to see your route';
-                (window.showToast || showToast)(gateMsg, 'info');
-                setTimeout(() => {
-                    window.location.href = '/login?redirect=%2Fplanner%3Fresume%3D1&reason=route';
-                }, 900);
-                return;
-            }
-
+            // No sign-in needed to see a route (guests preview freely). Route history is written only
+            // for signed-in accounts (recordPlannedRouteHistory returns early for guests), and
+            // Start Journey asks guests to sign in (see the #startJourneyBtn handler).
             let failed = false;
             setRouteLoading(true);
             try {
@@ -5061,6 +5068,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasRoute = !!((walkRouteGeojson && walkRouteGeojson.coordinates?.length >= 2) || (transitRouteGeojson && transitRouteGeojson.coordinates?.length >= 2));
             if (hasRoute && !failed) {
                 recordPlannedRouteHistory();
+                if (pendingStartFocus) {
+                    pendingStartFocus = false;
+                    focusStartAfterSignIn();
+                }
             }
             // Phones: a new route opens the sheet at half height so the route on the map is seen
             // (review #04). Only for a new trip, not for the live origin's quiet replans.
@@ -6799,8 +6810,124 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
+        // =============================================
+        // START JOURNEY: SIGN-IN PROMPT FOR GUESTS
+        // =============================================
+        const journeyAuthModal = document.getElementById('journeyAuthModal');
+        const journeyAuthOverlay = document.getElementById('journeyAuthOverlay');
+        let journeyAuthReturnFocus = null;
+
+        function closeJourneyAuthPrompt() {
+            if (!journeyAuthModal || journeyAuthModal.style.display === 'none') return;
+            journeyAuthModal.classList.remove('visible');
+            journeyAuthModal.style.display = 'none';
+            if (journeyAuthOverlay) journeyAuthOverlay.classList.remove('visible');
+            document.removeEventListener('keydown', onJourneyAuthKey, true);
+            if (journeyAuthReturnFocus && typeof journeyAuthReturnFocus.focus === 'function') journeyAuthReturnFocus.focus();
+            journeyAuthReturnFocus = null;
+        }
+
+        function onJourneyAuthKey(e) {
+            // The privacy policy can open on top of the prompt; it handles its own keys
+            if (document.body.classList.contains('legal-modal-open')) return;
+            if (e.key === 'Escape') { e.preventDefault(); closeJourneyAuthPrompt(); return; }
+            if (e.key !== 'Tab' || !journeyAuthModal) return;
+            // Keep keyboard focus inside the prompt while it is open
+            const items = [...journeyAuthModal.querySelectorAll('a[href], button:not([disabled])')];
+            if (!items.length) return;
+            const first = items[0], last = items[items.length - 1];
+            if (!journeyAuthModal.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+            else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+
+        function openJourneyAuthPrompt() {
+            if (!journeyAuthModal) {
+                // Page without the prompt markup: go straight to sign-in
+                window.location.href = '/login?redirect=%2Fplanner%3Fresume%3D1&reason=journey';
+                return;
+            }
+            const dest = (destPlaceName || '').trim();
+            const line = document.getElementById('journeyAuthDest');
+            if (line) {
+                line.textContent = dest ? t('journey.auth_dest', { dest }) : '';
+                line.style.display = dest ? '' : 'none';
+            }
+            journeyAuthReturnFocus = document.activeElement;
+            journeyAuthModal.style.display = 'block';
+            if (journeyAuthOverlay) journeyAuthOverlay.classList.add('visible');
+            requestAnimationFrame(() => {
+                journeyAuthModal.classList.add('visible');
+                // Focus once the dialog is visible (it is hidden for the first frame of its fade-in)
+                const primary = document.getElementById('journeyAuthLoginBtn');
+                requestAnimationFrame(() => { if (primary) primary.focus(); });
+            });
+            document.addEventListener('keydown', onJourneyAuthKey, true);
+        }
+
+        if (journeyAuthOverlay) journeyAuthOverlay.addEventListener('click', closeJourneyAuthPrompt);
+        ['closeJourneyAuthBtn', 'journeyAuthKeepBtn'].forEach((id) => {
+            const b = document.getElementById(id);
+            if (b) b.addEventListener('click', closeJourneyAuthPrompt);
+        });
+
+        // Guest look of the Start button: a small lock and one helper line. It stays tappable.
+        function syncStartGuestState() {
+            const btn = document.getElementById('startJourneyBtn');
+            const helper = document.getElementById('startJourneyHelper');
+            if (!btn) return;
+            const guest = authInitDone && !isSignedInUser();
+            btn.classList.toggle('is-guest', guest);
+            if (guest) btn.setAttribute('aria-describedby', 'startJourneyHelper');
+            else btn.removeAttribute('aria-describedby');
+            if (!helper || btn.disabled || isTrackingArrival) return;
+            if (guest) {
+                helper.style.display = '';
+                helper.removeAttribute('role');
+                helper.textContent = t('journey.guest_helper');
+            } else if (helper.textContent === t('journey.guest_helper')) {
+                helper.style.display = 'none';
+            }
+        }
+        window.addEventListener('calzada_lang_changed', () => {
+            const helper = document.getElementById('startJourneyHelper');
+            const btn = document.getElementById('startJourneyBtn');
+            if (helper && btn && btn.classList.contains('is-guest') && !btn.disabled && !isTrackingArrival) {
+                helper.textContent = t('journey.guest_helper');
+            }
+        });
+        authInitPromise.then(() => {
+            syncStartGuestState();
+            if (window.CalzadaAuth?.onAuthStateChanged) {
+                window.CalzadaAuth.onAuthStateChanged(() => {
+                    syncStartGuestState();
+                    if (isSignedInUser()) closeJourneyAuthPrompt();
+                });
+            }
+        });
+
+        // After signing in from the prompt: the route is back; point at Start, never start it.
+        function focusStartAfterSignIn() {
+            if (!isSignedInUser() || isTrackingArrival) return;
+            const btn = document.getElementById('startJourneyBtn');
+            if (!btn || btn.disabled) return;
+            try { btn.focus({ preventScroll: false }); } catch (_) { btn.focus(); }
+            btn.classList.add('is-ready-pulse');
+            setTimeout(() => btn.classList.remove('is-ready-pulse'), 2400);
+            showToast(t('journey.signed_in_start'), 'success');
+        }
+
         document.getElementById('startJourneyBtn').addEventListener('click', () => {
             if (!selectedCoords.origin || !selectedCoords.destination) return;
+
+            // Live navigation needs an account (the trip is kept in its route history). Guests get
+            // a short prompt; the route is saved in this tab so it comes back after signing in.
+            // Checked synchronously so the iOS motion permission below stays inside this tap.
+            if (!isSignedInUser()) {
+                writePendingRoute({ intent: 'start' });
+                openJourneyAuthPrompt();
+                return;
+            }
 
             // E1: iOS DeviceOrientationEvent.requestPermission() inside user gesture
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {

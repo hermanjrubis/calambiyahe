@@ -1,0 +1,406 @@
+/* =============================================
+   LEGAL MODAL (Terms of Service & Privacy Policy), v3.1
+   Loaded by js/legal-modal.js, so it works on every page (the planner does not load style.css).
+
+   One readable column, no boxes inside boxes:
+     fixed header   title + quiet meta line ("Version 2.0 · Effective November 20, 2026")
+     scroll body    opening paragraphs on a plain tint · divider · numbered sections · divider · contact
+     fixed footer   hint + "I understand" (enabled once the body is scrolled to the end)
+
+   Plain CSS (the site has no Tailwind build, and the CSP blocks the Tailwind CDN). The values are
+   Tailwind's, so the names in the comments map one to one: slate-50, gray-500, text-xs, rounded-lg...
+   ============================================= */
+:root {
+    --legal-ink: #111827;        /* gray-900 */
+    --legal-text: #374151;       /* gray-700 */
+    --legal-muted: #6B7280;      /* gray-500 */
+    --legal-line: #E5E7EB;       /* gray-200 */
+    --legal-paper: #FFFFFF;
+    --legal-tint: #F8FAFC;       /* slate-50 */
+    --legal-btn-off: #E5E7EB;    /* gray-200 */
+    --legal-btn-off-text: #6B7280;
+}
+
+body.legal-modal-open {
+    overflow: hidden !important;
+}
+
+.legal-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.55);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.legal-modal-overlay[hidden] {
+    display: none !important;
+}
+
+.legal-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Frame: header and footer stay put, the body scrolls */
+.legal-modal-dialog {
+    background: var(--legal-paper);
+    border-radius: 12px;                                   /* rounded-xl */
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.18);
+    width: 100%;
+    max-width: 680px;
+    height: min(85vh, 860px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: translateY(6px);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.legal-modal-overlay.active .legal-modal-dialog {
+    transform: none;
+}
+
+.legal-modal-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--legal-line);
+}
+
+.legal-modal-header-text {
+    min-width: 0;
+}
+
+.legal-modal-title {
+    margin: 0;
+    font-family: inherit;
+    font-size: 1.25rem;                                    /* text-xl */
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--legal-ink);
+    text-wrap: balance;
+}
+
+/* Quiet meta line: text-xs, gray-500, not bold, no border */
+.legal-modal-meta {
+    margin: 4px 0 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 400;
+    color: var(--legal-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.legal-modal-close {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    margin: -4px -6px 0 0;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--legal-muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.legal-modal-close:hover {
+    background: #F3F4F6;
+    color: var(--legal-ink);
+}
+
+.legal-modal-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 24px;
+    background: var(--legal-paper);
+}
+
+.legal-modal-body:focus-visible {
+    outline: 2px solid var(--legal-ink);
+    outline-offset: -2px;
+}
+
+/* Centered readable column (about 65 characters a line) */
+.legal-modal-column {
+    max-width: 36rem;
+    margin: 0 auto;
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--legal-text);
+}
+
+/* Summary: a plain slate-50 block, rounded-lg, no border */
+.legal-summary {
+    background: var(--legal-tint);
+    border-radius: 8px;
+    padding: 16px 20px;
+}
+
+.legal-summary-title {
+    margin: 0 0 8px;
+    font-size: 0.75rem;                                    /* text-xs */
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--legal-ink);
+}
+
+.legal-summary p {
+    margin: 0 0 10px;
+}
+
+.legal-summary p:last-child {
+    margin-bottom: 0;
+}
+
+.legal-summary-when {
+    margin: 10px 0 0;
+    font-size: 0.8125rem;
+    color: var(--legal-muted);
+}
+
+.legal-divider {
+    border: 0;
+    border-top: 1px solid var(--legal-line);
+    margin: 28px 0;
+}
+
+.legal-modal-section {
+    margin: 0 0 26px;
+}
+
+.legal-modal-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.legal-modal-section h3 {
+    margin: 0 0 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--legal-ink);
+    text-wrap: balance;
+}
+
+.legal-sec-num {
+    color: var(--legal-muted);
+    font-variant-numeric: tabular-nums;
+    margin-right: 2px;
+}
+
+.legal-modal-section p {
+    margin: 0 0 10px;
+}
+
+.legal-modal-section p:last-child {
+    margin-bottom: 0;
+}
+
+.legal-modal-section ul {
+    margin: 6px 0 12px;
+    padding-left: 20px;
+}
+
+.legal-modal-section li {
+    margin-bottom: 6px;
+}
+
+.legal-modal-section strong {
+    color: var(--legal-ink);
+}
+
+/* The route-history notice and its Tagalog version: plain text, a small subhead each */
+.legal-disclosure {
+    margin: 0 0 16px;
+}
+
+.legal-disclosure-title {
+    margin: 0 0 4px !important;
+    font-weight: 600;
+    color: var(--legal-ink);
+}
+
+.legal-disclosure-tl {
+    font-size: 0.875rem;
+}
+
+/* Service roles in the processor list: muted words, not pills */
+.legal-tag {
+    color: var(--legal-muted);
+    font-size: 0.8125rem;
+}
+
+.legal-tag::before {
+    content: "(";
+}
+
+.legal-tag::after {
+    content: ")";
+}
+
+.legal-doc-end {
+    font-size: 0.875rem;
+    color: var(--legal-muted);
+}
+
+.legal-doc-end p {
+    margin: 0 0 6px;
+}
+
+.legal-link,
+.legal-link-btn {
+    color: var(--legal-ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 500;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    display: inline;
+    overflow-wrap: anywhere;
+}
+
+.legal-link:hover,
+.legal-link-btn:hover {
+    color: #000000;
+}
+
+/* Footer: always reachable */
+.legal-modal-footer {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+    padding: 14px 24px;
+    border-top: 1px solid var(--legal-line);
+    background: var(--legal-paper);
+}
+
+.legal-modal-hint {
+    margin: 0 auto 0 0;
+    font-size: 0.8125rem;
+    color: var(--legal-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* A down arrow while locked, a check once at the end: shape, not just colour */
+.legal-modal-hint::before {
+    content: "\2193";
+    font-weight: 700;
+}
+
+.legal-modal-hint.is-done::before {
+    content: "\2713";
+}
+
+.legal-modal-action-btn {
+    min-height: 40px;
+    padding: 8px 22px;
+    border: 1px solid var(--legal-ink);
+    border-radius: 8px;
+    background: var(--legal-ink);
+    color: #FFFFFF;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.legal-modal-action-btn:hover:not(:disabled) {
+    background: #000000;
+}
+
+.legal-modal-action-btn:disabled {
+    background: var(--legal-btn-off);
+    border-color: var(--legal-btn-off);
+    color: var(--legal-btn-off-text);
+    cursor: not-allowed;
+}
+
+.legal-modal-close:focus-visible,
+.legal-modal-action-btn:focus-visible,
+.legal-link:focus-visible,
+.legal-link-btn:focus-visible {
+    outline: 2px solid var(--legal-ink);
+    outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+    .legal-modal-overlay {
+        padding: 0;
+        align-items: flex-end;
+    }
+
+    .legal-modal-dialog {
+        max-width: none;
+        height: 92vh;
+        height: 92dvh;
+        border-radius: 14px 14px 0 0;
+    }
+
+    .legal-modal-header {
+        padding: 16px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+    }
+
+    .legal-modal-title {
+        font-size: 1.125rem;
+    }
+
+    .legal-modal-body {
+        padding: 18px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px));
+    }
+
+    .legal-summary {
+        padding: 14px 16px;
+    }
+
+    .legal-modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    }
+
+    .legal-modal-hint {
+        margin: 0;
+        justify-content: center;
+    }
+
+    .legal-modal-action-btn {
+        width: 100%;
+        min-height: 44px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .legal-modal-overlay,
+    .legal-modal-dialog {
+        transition: none;
+    }
+}

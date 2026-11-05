@@ -36,7 +36,26 @@ service cloud.firestore {
 
     match /users/{userId}/{collectionId}/{rest=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId
-        && collectionId != 'trips' && collectionId != 'reminders' && collectionId != 'routeHistory';
+        && collectionId != 'trips' && collectionId != 'reminders' && collectionId != 'routeHistory'
+        && collectionId != 'consents';
+    }
+
+    // Consent record (RA 10173, NPC Circular 2023-04: consent must be provable). Written once at
+    // sign-up or when accepting new Terms; the owner can read it, nobody can change or delete it
+    // from the app (removed with the account).
+    match /users/{userId}/consents/{consentId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId
+        && request.auth.token.firebase.sign_in_provider != 'anonymous'
+        && request.resource.data.keys().hasOnly(['termsVersion', 'privacyVersion', 'ageConfirmed', 'method', 'lang', 'acceptedAt'])
+        && request.resource.data.keys().size() == 6
+        && request.resource.data.termsVersion is string && request.resource.data.termsVersion.size() <= 10
+        && request.resource.data.privacyVersion is string && request.resource.data.privacyVersion.size() <= 10
+        && request.resource.data.ageConfirmed == true
+        && request.resource.data.method in ['email', 'google']
+        && request.resource.data.lang in ['en', 'tl']
+        && request.resource.data.acceptedAt == request.time;
+      allow update, delete: if false;
     }
 
     // Trip history: users/{uid}/trips/{tripId} (tripId = the journey id).
@@ -652,6 +671,11 @@ service cloud.firestore {
     match /emailLog/{logId} {
       allow read: if request.auth != null && request.auth.token.admin == true;
       allow write: if false;
+    }
+
+    // Password reset cooldowns (server/password-reset.js): hashed keys, server only.
+    match /passwordResetThrottle/{key} {
+      allow read, write: if false;
     }
   }
 }

@@ -69,6 +69,12 @@ const EVENTS = {
     post_hidden: {
         recipients: ['owner'],
         subject: 'Calzada post moderation notice'
+    },
+    // Account emails (server/password-reset.js). The reset link goes in the email only; the log
+    // keeps the recipient, subject and time like every other event.
+    password_reset: {
+        recipients: ['user'],
+        subject: 'Reset your Calzada password'
     }
 };
 

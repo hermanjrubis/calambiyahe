@@ -7987,3 +7987,113 @@ body.cz-route-busy .segment-btn[data-mode] {
     .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:hover { background-color: #F1F5F9 !important; }
     .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group button:focus-visible { outline: 2px solid #378ADD; outline-offset: -3px; border-radius: 14px; }
 }
+
+/* =============================================
+   START JOURNEY FOR GUESTS (sign-in prompt)
+   Routes are free to preview; the button keeps its colour and gets a small lock.
+   ============================================= */
+.start-journey-btn.is-guest:not(:disabled) .start-journey-lock-icon {
+    display: inline-block;
+    stroke: currentColor;
+    opacity: 0.9;
+}
+
+.start-journey-btn.is-ready-pulse {
+    animation: startReadyPulse 1.2s ease-out 2;
+}
+
+@keyframes startReadyPulse {
+    0% { box-shadow: 0 0 0 0 rgba(55, 138, 221, 0.55); }
+    100% { box-shadow: 0 0 0 14px rgba(55, 138, 221, 0); }
+}
+
+/* Visible from the first frame of the fade (so the Log in button can take focus right away) */
+.journey-auth-modal.visible {
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), visibility 0s;
+}
+
+.journey-auth-modal .auth-desc {
+    margin-bottom: 12px;
+}
+
+.journey-auth-dest {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    background: rgba(55, 138, 221, 0.08);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 0 0 16px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.journey-auth-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.journey-auth-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.journey-auth-secondary,
+.journey-auth-ghost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.journey-auth-secondary {
+    background: transparent;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+}
+
+.journey-auth-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: none;
+    min-height: 40px;
+    font-weight: 600;
+}
+
+.journey-auth-privacy {
+    display: block;
+    margin: 12px auto 0;
+    background: none;
+    border: none;
+    padding: 4px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.journey-auth-primary:focus-visible,
+.journey-auth-secondary:focus-visible,
+.journey-auth-ghost:focus-visible,
+.journey-auth-privacy:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .start-journey-btn.is-ready-pulse { animation: none; }
+}

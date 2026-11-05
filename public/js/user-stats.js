@@ -27,9 +27,9 @@ import {
     Timestamp,
     onAuthStateChanged,
     signOut,
-    updateProfile,
-    sendPasswordResetEmail
+    updateProfile
 } from "./firebase-init.js";
+import { requestPasswordReset, resetMessage, startCooldown } from "./password-reset.js";
 
 // Badge criteria definitions with pure SVGs
 export const BADGE_DEFINITIONS = [
@@ -2342,7 +2342,6 @@ let initialLoadedDisplayName = '';
 let initialHadCustomPhoto = false;
 let isSavingSettings = false;
 let isRemovingPhoto = false;
-let passwordResetCooldownTimer = null;
 
 function updateAvatarActionState() {
     const user = auth.currentUser || activeUser;
@@ -2665,12 +2664,23 @@ async function handlePasswordReset() {
 
     const user = auth.currentUser || activeUser;
     const email = user?.email;
+    const tl = (() => { try { return localStorage.getItem('calzada_lang') === 'tl'; } catch (_) { return false; } })();
+    const showNote = (text) => {
+        if (!errorEl) return;
+        errorEl.textContent = text;
+        errorEl.style.display = 'block';
+    };
 
     if (!email || user?.isAnonymous) {
-        if (errorEl) {
-            errorEl.textContent = 'Please sign in with a registered email account to reset password.';
-            errorEl.style.display = 'block';
-        }
+        showNote('Please sign in with a registered email account to reset password.');
+        return;
+    }
+    // Google-only accounts have no Calzada password (this is the person's own account, so saying so reveals nothing)
+    const hasPassword = Array.isArray(user.providerData) && user.providerData.some((p) => p.providerId === 'password');
+    if (!hasPassword) {
+        showNote(tl
+            ? 'Sa Google ka nagsa-sign in, kaya walang Calzada password na ire-reset. Palitan ang password sa iyong Google Account.'
+            : 'You sign in with Google, so there is no Calzada password to reset. Change it in your Google Account instead.');
         return;
     }
 
@@ -2678,27 +2688,18 @@ async function handlePasswordReset() {
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
-    try {
-        await sendPasswordResetEmail(auth, email);
-        btn.textContent = 'Email sent — check your inbox';
-        btn.disabled = true;
-
-        if (passwordResetCooldownTimer) clearTimeout(passwordResetCooldownTimer);
-        passwordResetCooldownTimer = setTimeout(() => {
-            const currentBtn = document.getElementById('btnSendPasswordReset') || document.getElementById('btnChangePassword');
-            if (currentBtn) {
-                currentBtn.disabled = false;
-                currentBtn.textContent = defaultLabel;
-            }
-        }, 30000);
-    } catch (err) {
-        console.warn('Password reset error:', err);
+    // Same throttled request as the login page: 60 s, 120 s, then 300 s between emails, 5 a day
+    const result = await requestPasswordReset(email);
+    if (result.ok || result.code === 'rate_limited') {
+        if (result.code === 'rate_limited') showNote(resetMessage(result, email, tl ? 'tl' : 'en'));
+        startCooldown(btn, result.cooldownSec || 60, {
+            idleText: defaultLabel,
+            waitText: (sec) => (result.ok ? `Email sent. Resend in ${sec}s` : `Resend in ${sec}s`)
+        });
+    } else {
         btn.disabled = false;
         btn.textContent = defaultLabel;
-        if (errorEl) {
-            errorEl.textContent = err.message || 'Could not send reset email. Please try again.';
-            errorEl.style.display = 'block';
-        }
+        showNote(resetMessage(result, email, tl ? 'tl' : 'en'));
     }
 }
 

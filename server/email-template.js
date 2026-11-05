@@ -400,6 +400,26 @@ function renderEventEmail(eventName, payload = {}, recipientType = 'owner') {
             buttonUrl = myBusinessUrl;
             break;
 
+        case 'password_reset': {
+            // payload.link comes from Firebase Admin generatePasswordResetLink (https only)
+            const link = typeof payload.link === 'string' && payload.link.startsWith('https://') ? payload.link : `${baseUrl}/login`;
+            const firstName = String(payload.name || '').trim().split(/\s+/)[0] || '';
+            subject = 'Reset your Calzada password';
+            headline = firstName ? `Hi ${escapeHtml(firstName)}, reset your password` : 'Reset your password';
+            lines = [
+                'Someone, hopefully you, asked to reset the password for the Calzada account with this email address.',
+                'Tap the button to choose a new password. The link works once and expires in 1 hour.',
+                'Your new password needs 8 to 64 characters with an uppercase letter, a lowercase letter, a number and a symbol.'
+            ];
+            extraBox = `
+              <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 16px; margin: 16px 0; font-size: 13px; color: #475569; line-height: 1.5;">
+                Didn't ask for this? You can ignore this email; your password stays the same. Calzada will never ask for your password by email, chat or phone.
+              </div>`;
+            buttonText = 'Choose a new password';
+            buttonUrl = escapeHtml(link);
+            break;
+        }
+
         default:
             subject = `Update regarding ${plainBusName}`;
             headline = `Notification for ${businessName}`;

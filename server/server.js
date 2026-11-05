@@ -561,6 +561,11 @@ const { getFirestore } = require('firebase-admin/firestore');
 const { EVENTS, sendEvent } = require('./mailer');
 const requireAuth = createAuthMiddleware();
 
+// Account: POST /api/auth/password-reset (throttled per email and per address; same answer for every email)
+require('./password-reset').registerPasswordReset(app);
+// Daily data retention: route history, sign-in records, email log and feedback older than 12 months; expired reset throttles
+require('./data-retention').registerDataRetention(app);
+
 let approvedBusinessesCache = null;
 let approvedBusinessesCacheTime = 0;
 const BUSINESSES_CACHE_TTL_MS = 60 * 1000;
