@@ -1,32 +1,37 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
-import { 
-    getAuth, 
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signInWithPopup, 
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     getRedirectResult,
-    GoogleAuthProvider, 
-    onAuthStateChanged, 
-    signOut, 
-    updateProfile, 
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    signOut,
+    updateProfile,
     sendPasswordResetEmail,
     fetchSignInMethodsForEmail,
-    connectAuthEmulator
+    connectAuthEmulator,
+    verifyPasswordResetCode,
+    confirmPasswordReset,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
 } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
-import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    setDoc, 
-    getDoc, 
-    getDocs, 
-    addDoc, 
-    deleteDoc, 
-    query, 
-    where, 
-    orderBy, 
-    limit, 
+import {
+    getFirestore,
+    collection,
+    doc,
+    setDoc,
+    getDoc,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    query,
+    where,
+    orderBy,
+    limit,
     onSnapshot,
     updateDoc,
     serverTimestamp,
@@ -42,7 +47,7 @@ import {
 // Set authDomain by hostname:
 // - on calzadaph.com (and www.calzadaph.com): "calzadaph.com"
 // - everywhere else (localhost, vercel.app previews): keep "calzada-web.firebaseapp.com"
-const isCalzadaDomain = typeof window !== 'undefined' && 
+const isCalzadaDomain = typeof window !== 'undefined' &&
     (window.location.hostname === 'calzadaph.com' || window.location.hostname === 'www.calzadaph.com');
 const authDomain = isCalzadaDomain ? 'calzadaph.com' : 'calzada-web.firebaseapp.com';
 
@@ -66,16 +71,16 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Connect to local emulators when test flag is set on localhost
-const isLocalhost = typeof window !== 'undefined' && 
+const isLocalhost = typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-const useEmulator = isLocalhost && 
+const useEmulator = isLocalhost &&
     (window.location.search.includes('emulator=1') || window.localStorage?.getItem('calzada_use_emulator') === '1' || window.sessionStorage?.getItem('calzada_use_emulator') === '1');
 
 if (useEmulator) {
     try {
         connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
         connectFirestoreEmulator(db, '127.0.0.1', 8080);
-    } catch (_) {}
+    } catch (_) { }
 }
 
 /**
@@ -110,7 +115,7 @@ async function cleanupCollection(colRef, timestampField, maxEntries) {
         if (snap.size > maxEntries) {
             const overflow = snap.docs.slice(maxEntries);
             for (const d of overflow) {
-                await deleteDoc(d.ref).catch(() => {});
+                await deleteDoc(d.ref).catch(() => { });
             }
         }
     } catch (_) {
@@ -136,7 +141,7 @@ export async function addSearchHistory(queryStr) {
 
     try {
         const historyRef = collection(db, `users/${user.uid}/searchHistory`);
-        
+
         // Deduplication: check if the most recent query matches (case-insensitive)
         const latestQuery = query(historyRef, orderBy("timestamp", "desc"), limit(1));
         const snap = await getDocs(latestQuery);
@@ -153,7 +158,7 @@ export async function addSearchHistory(queryStr) {
         });
 
         // Cap to latest 20
-        cleanupCollection(historyRef, "timestamp", 20).catch(() => {});
+        cleanupCollection(historyRef, "timestamp", 20).catch(() => { });
         return docRef.id;
     } catch (_) {
         return null;
@@ -259,7 +264,7 @@ export async function addRecentlyViewed(placeId, placeName) {
         });
 
         // Cap to latest 20
-        cleanupCollection(viewedRef, "viewedAt", 20).catch(() => {});
+        cleanupCollection(viewedRef, "viewedAt", 20).catch(() => { });
         return docRef.id;
     } catch (_) {
         return null;
@@ -303,7 +308,7 @@ export async function addChatMessage(role, message) {
         });
 
         // Cap to latest 50
-        cleanupCollection(chatRef, "timestamp", 50).catch(() => {});
+        cleanupCollection(chatRef, "timestamp", 50).catch(() => { });
         return docRef.id;
     } catch (_) {
         return null;
@@ -383,21 +388,21 @@ onAuthStateChanged(auth, (u) => {
     } catch (_) { /* storage blocked: the header just waits for Firebase as before */ }
 });
 
-export { 
-    auth, 
-    db, 
+export {
+    auth,
+    db,
     getCurrentUser,
     getFirebaseIdToken,
-    signInWithEmailAndPassword, 
-    createUserWithEmailAndPassword, 
-    signInWithPopup, 
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     getRedirectResult,
-    GoogleAuthProvider, 
-    onAuthStateChanged, 
-    collection, 
-    doc, 
-    setDoc, 
+    GoogleAuthProvider,
+    onAuthStateChanged,
+    collection,
+    doc,
+    setDoc,
     getDoc,
     getDocs,
     addDoc,
@@ -419,5 +424,10 @@ export {
     updateProfile,
     sendPasswordResetEmail,
     fetchSignInMethodsForEmail,
+    verifyPasswordResetCode,
+    confirmPasswordReset,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword,
     CalzadaActivity
 };

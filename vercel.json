@@ -29,6 +29,7 @@
     { "source": "/places", "destination": "/pages/places.html" },
     { "source": "/discover", "destination": "/pages/discover.html" },
     { "source": "/login", "destination": "/pages/login.html" },
+    { "source": "/reset-password", "destination": "/pages/reset-password.html" },
     { "source": "/business", "destination": "/pages/business.html" },
     { "source": "/my-business", "destination": "/pages/my-business.html" },
     { "source": "/submit", "destination": "/pages/submit.html" },
@@ -78,7 +79,7 @@
       ]
     },
     {
-      "source": "/(about|fares|planner|faq|feedback|places|discover|login|business|my-business|submit|admin|calibrate-360|plans)",
+      "source": "/(about|fares|planner|faq|feedback|places|discover|login|reset-password|business|my-business|submit|admin|calibrate-360|plans)",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache" }
       ]

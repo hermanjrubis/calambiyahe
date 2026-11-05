@@ -99,7 +99,7 @@ async function claimIpSlot(db, ip, nowMs = Date.now()) {
 const clientIp = (req) => String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim().slice(0, 64);
 
 /** Sends the email if the account exists and signs in with a password. Never throws. */
-async function sendResetIfAccount(email) {
+async function sendResetIfAccount(email, customOrigin) {
     let user;
     try {
         user = await getAuth().getUserByEmail(email);
@@ -110,7 +110,25 @@ async function sendResetIfAccount(email) {
     const hasPassword = Array.isArray(user.providerData) && user.providerData.some((p) => p.providerId === 'password');
     if (!hasPassword || user.disabled) return;
     try {
-        const link = await getAuth().generatePasswordResetLink(email, { url: CONTINUE_URL });
+        const rawLink = await getAuth().generatePasswordResetLink(email, { url: CONTINUE_URL });
+        let link = rawLink;
+        try {
+            const parsed = new URL(rawLink);
+            const oobCode = parsed.searchParams.get('oobCode');
+            if (oobCode) {
+                const origin = customOrigin || process.env.PRODUCTION_ORIGIN || 'https://calzadaph.com';
+                link = `${origin}/reset-password?oobCode=${encodeURIComponent(oobCode)}`;
+            }
+        } catch (_) {
+            // Keep rawLink fallback if URL parsing fails
+        }
+
+        // In development / localhost, print link directly in terminal for quick testing
+        console.log(`\n======================================================`);
+        console.log(`🔑 [PASSWORD RESET LINK FOR: ${email}]`);
+        console.log(`👉 ${link}`);
+        console.log(`======================================================\n`);
+
         await sendEvent('password_reset', {
             entityId: user.uid,
             version: String(Date.now()),
@@ -150,11 +168,16 @@ function registerPasswordReset(app) {
             return res.status(429).json({ ok: false, error: 'rate_limited', retryAfterSec: slot.retryAfterSec });
         }
 
+        // Detect origin (e.g. http://localhost:5000 during local testing, or https://calzadaph.com in prod)
+        const reqOrigin = (req.headers.origin && (req.headers.origin.includes('localhost') || req.headers.origin.includes('127.0.0.1')))
+            ? req.headers.origin
+            : (process.env.PRODUCTION_ORIGIN || 'https://calzadaph.com');
+
         // The send finishes before answering (a serverless function may stop once it has
         // answered), and every answer takes at least MIN_ANSWER_MS, so the time taken does not
         // tell an existing account from a missing one.
         const started = Date.now();
-        await sendResetIfAccount(email);
+        await sendResetIfAccount(email, reqOrigin);
         const wait = MIN_ANSWER_MS + crypto.randomInt(0, 400) - (Date.now() - started);
         if (wait > 0) await new Promise((r) => setTimeout(r, wait));
         return res.json({ ok: true, message: GENERIC_MESSAGE, cooldownSec: slot.cooldownSec });

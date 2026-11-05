@@ -27,9 +27,13 @@ import {
     Timestamp,
     onAuthStateChanged,
     signOut,
-    updateProfile
+    updateProfile,
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    updatePassword
 } from "./firebase-init.js";
 import { requestPasswordReset, resetMessage, startCooldown } from "./password-reset.js";
+import { validatePassword } from "./validators.js";
 
 // Badge criteria definitions with pure SVGs
 export const BADGE_DEFINITIONS = [
@@ -1943,9 +1947,33 @@ export function setupProfileUI() {
             return;
         }
 
-        // Change Password / Password Reset button
-        const changePasswordBtn = e.target.closest('#btnSendPasswordReset') || e.target.closest('#btnChangePassword');
-        if (changePasswordBtn) {
+        // Toggle Change Password container
+        const togglePwBtn = e.target.closest('#btnToggleChangePassword');
+        if (togglePwBtn) {
+            e.preventDefault();
+            toggleChangePasswordForm();
+            return;
+        }
+
+        // Cancel Change Password
+        const cancelPwBtn = e.target.closest('#btnCancelChangePw');
+        if (cancelPwBtn) {
+            e.preventDefault();
+            toggleChangePasswordForm(false);
+            return;
+        }
+
+        // Submit Change Password
+        const submitPwBtn = e.target.closest('#btnSubmitChangePassword');
+        if (submitPwBtn) {
+            e.preventDefault();
+            handleChangePassword();
+            return;
+        }
+
+        // Password Reset Email button
+        const sendResetEmailBtn = e.target.closest('#btnSendPasswordReset');
+        if (sendResetEmailBtn) {
             e.preventDefault();
             handlePasswordReset();
             return;
@@ -2532,6 +2560,7 @@ export function renderSettingsModal() {
     if (resetErrorEl) { resetErrorEl.style.display = 'none'; resetErrorEl.textContent = ''; }
     if (saveErrorEl) { saveErrorEl.style.display = 'none'; saveErrorEl.textContent = ''; }
     if (bannerEl) { bannerEl.style.display = 'none'; }
+    toggleChangePasswordForm(false);
 
     // Retrieve saved custom display name and photo
     const savedName = localStorage.getItem('calzada_pref_name');
@@ -2700,6 +2729,165 @@ async function handlePasswordReset() {
         btn.disabled = false;
         btn.textContent = defaultLabel;
         showNote(resetMessage(result, email, tl ? 'tl' : 'en'));
+    }
+}
+
+function toggleChangePasswordForm(forceState) {
+    const container = document.getElementById('settingsChangePwContainer');
+    const alertEl = document.getElementById('settingsChangePwAlert');
+    const successEl = document.getElementById('settingsChangePwSuccess');
+    const currentPwErr = document.getElementById('settingsCurrentPwError');
+    const newPwErr = document.getElementById('settingsNewPwError');
+    const currentInput = document.getElementById('settingsCurrentPwInput');
+    const newInput = document.getElementById('settingsNewPwInput');
+
+    if (!container) return;
+    const isVisible = container.style.display !== 'none';
+    const show = forceState !== undefined ? forceState : !isVisible;
+
+    container.style.display = show ? 'block' : 'none';
+    if (alertEl) { alertEl.style.display = 'none'; alertEl.textContent = ''; }
+    if (successEl) { successEl.style.display = 'none'; successEl.textContent = ''; }
+    if (currentPwErr) { currentPwErr.style.display = 'none'; currentPwErr.textContent = ''; }
+    if (newPwErr) { newPwErr.style.display = 'none'; newPwErr.textContent = ''; }
+    if (currentInput) currentInput.value = '';
+    if (newInput) newInput.value = '';
+    if (show && currentInput) {
+        setTimeout(() => currentInput.focus(), 50);
+    }
+}
+
+async function handleChangePassword() {
+    const user = auth.currentUser || activeUser;
+    const alertEl = document.getElementById('settingsChangePwAlert');
+    const successEl = document.getElementById('settingsChangePwSuccess');
+    const currentPwErr = document.getElementById('settingsCurrentPwError');
+    const newPwErr = document.getElementById('settingsNewPwError');
+    const currentInput = document.getElementById('settingsCurrentPwInput');
+    const newInput = document.getElementById('settingsNewPwInput');
+    const submitBtn = document.getElementById('btnSubmitChangePassword');
+    const btnText = document.getElementById('btnChangePwText');
+    const btnSpinner = document.getElementById('btnChangePwSpinner');
+
+    const showAlert = (msg) => {
+        if (!alertEl) return;
+        alertEl.textContent = msg;
+        alertEl.style.display = 'block';
+    };
+
+    // Reset error states
+    if (alertEl) { alertEl.style.display = 'none'; alertEl.textContent = ''; }
+    if (successEl) { successEl.style.display = 'none'; successEl.textContent = ''; }
+    if (currentPwErr) { currentPwErr.style.display = 'none'; currentPwErr.textContent = ''; }
+    if (newPwErr) { newPwErr.style.display = 'none'; newPwErr.textContent = ''; }
+
+    if (!user || !user.email || user.isAnonymous) {
+        showAlert('Please sign in with a registered account to change password.');
+        return;
+    }
+
+    const hasPassword = Array.isArray(user.providerData) && user.providerData.some((p) => p.providerId === 'password');
+    if (!hasPassword) {
+        showAlert('You sign in with Google, so there is no Calzada password to change. Update your password in your Google Account settings.');
+        return;
+    }
+
+    const currentPassword = currentInput ? currentInput.value : '';
+    const newPassword = newInput ? newInput.value : '';
+    let hasValidationError = false;
+
+    if (!currentPassword) {
+        if (currentPwErr) {
+            currentPwErr.textContent = 'Please enter your current password.';
+            currentPwErr.style.display = 'block';
+        }
+        hasValidationError = true;
+    }
+
+    const isPwValid = typeof validatePassword === 'function'
+        ? (typeof validatePassword(newPassword) === 'boolean' ? validatePassword(newPassword) : Boolean(validatePassword(newPassword)?.ok))
+        : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\^$*.\[\]{}()?"!@#%&\/\\,><':;|_~`\-+=])\S{8,64}$/.test(newPassword);
+
+    if (!newPassword) {
+        if (newPwErr) {
+            newPwErr.textContent = 'Please enter a new password.';
+            newPwErr.style.display = 'block';
+        }
+        hasValidationError = true;
+    } else if (!isPwValid) {
+        if (newPwErr) {
+            newPwErr.textContent = 'Must be 8-64 characters with uppercase, lowercase, number, special symbol, and no spaces.';
+            newPwErr.style.display = 'block';
+        }
+        hasValidationError = true;
+    } else if (currentPassword && newPassword && currentPassword === newPassword) {
+        if (newPwErr) {
+            newPwErr.textContent = 'New password must be different from current password.';
+            newPwErr.style.display = 'block';
+        }
+        hasValidationError = true;
+    }
+
+    if (hasValidationError) return;
+
+    // Loading State
+    if (submitBtn) submitBtn.disabled = true;
+    if (btnText) btnText.style.display = 'none';
+    if (btnSpinner) btnSpinner.style.display = 'inline-block';
+
+    try {
+        // Step 1: Reauthenticate with current credential
+        const credential = EmailAuthProvider.credential(user.email, currentPassword);
+        await reauthenticateWithCredential(user, credential);
+
+        // Step 2: Update password in Firebase Auth
+        await updatePassword(user, newPassword);
+
+        // Step 3: Success feedback
+        if (successEl) {
+            successEl.textContent = 'Password updated successfully!';
+            successEl.style.display = 'block';
+        }
+        if (currentInput) currentInput.value = '';
+        if (newInput) newInput.value = '';
+
+        setTimeout(() => {
+            toggleChangePasswordForm(false);
+        }, 2200);
+
+    } catch (error) {
+        console.error('Change password failed:', error);
+        switch (error.code) {
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+                if (currentPwErr) {
+                    currentPwErr.textContent = 'Incorrect current password.';
+                    currentPwErr.style.display = 'block';
+                }
+                break;
+            case 'auth/too-many-requests':
+                showAlert('Too many unsuccessful attempts. Please wait a moment before trying again.');
+                break;
+            case 'auth/requires-recent-login':
+                showAlert('Session expired. Please sign out and sign back in to change your password.');
+                break;
+            case 'auth/weak-password':
+                if (newPwErr) {
+                    newPwErr.textContent = 'Password does not meet minimum security requirements.';
+                    newPwErr.style.display = 'block';
+                }
+                break;
+            case 'auth/network-request-failed':
+                showAlert('Network error. Check your connection and try again.');
+                break;
+            default:
+                showAlert(error.message || 'Failed to update password. Please try again.');
+                break;
+        }
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.style.display = 'inline';
+        if (btnSpinner) btnSpinner.style.display = 'none';
     }
 }
 
@@ -2999,8 +3187,38 @@ function createProfileModals() {
                         <div class="settings-form-group settings-security-group">
                             <label class="settings-label">Account Security</label>
                             <div class="settings-reset-wrapper">
-                                <button type="button" class="settings-text-link" id="btnSendPasswordReset">Send Password Reset Email</button>
+                                <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+                                    <button type="button" class="settings-text-link" id="btnToggleChangePassword" style="font-weight: 600;">Change Password</button>
+                                    <span style="color: #94A3B8; font-size: 0.75rem;">•</span>
+                                    <button type="button" class="settings-text-link" id="btnSendPasswordReset">Email Reset Link</button>
+                                </div>
                                 <div id="settingsResetError" class="settings-inline-error" style="display: none;"></div>
+
+                                <!-- Inline Change Password Form -->
+                                <div id="settingsChangePwContainer" style="display: none; width: 100%; margin-top: 10px; padding: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
+                                    <div id="settingsChangePwAlert" class="settings-inline-error" style="display: none; margin-bottom: 10px;"></div>
+                                    <div id="settingsChangePwSuccess" style="display: none; margin-bottom: 10px; font-size: 0.825rem; color: #0F7B4A; background: #EBF8F2; padding: 8px 10px; border-radius: 6px;"></div>
+
+                                    <div style="margin-bottom: 10px;">
+                                        <label for="settingsCurrentPwInput" style="display: block; font-size: 0.8rem; font-weight: 600; color: #042C53; margin-bottom: 4px;">Current Password</label>
+                                        <input type="password" id="settingsCurrentPwInput" class="settings-input" style="padding: 8px 12px; font-size: 0.85rem;" placeholder="Enter current password" autocomplete="current-password" />
+                                        <div id="settingsCurrentPwError" class="settings-inline-error" style="display: none;"></div>
+                                    </div>
+
+                                    <div style="margin-bottom: 12px;">
+                                        <label for="settingsNewPwInput" style="display: block; font-size: 0.8rem; font-weight: 600; color: #042C53; margin-bottom: 4px;">New Password</label>
+                                        <input type="password" id="settingsNewPwInput" class="settings-input" style="padding: 8px 12px; font-size: 0.85rem;" placeholder="8–64 chars (upper, lower, num, symbol)" autocomplete="new-password" />
+                                        <div id="settingsNewPwError" class="settings-inline-error" style="display: none;"></div>
+                                    </div>
+
+                                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                                        <button type="button" class="settings-text-link" id="btnCancelChangePw" style="font-size: 0.825rem; color: #64748B;">Cancel</button>
+                                        <button type="button" class="settings-save-btn" id="btnSubmitChangePassword" style="padding: 7px 14px; font-size: 0.825rem;">
+                                            <span id="btnChangePwText">Update Password</span>
+                                            <span id="btnChangePwSpinner" style="display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite;"></span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

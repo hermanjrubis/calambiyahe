@@ -217,7 +217,7 @@ async function resolveRecipients(eventName, entityId, toOverride, data, adminDb)
                         if (!bSnap.empty) {
                             businessId = bSnap.docs[0].id;
                         }
-                    } catch (_) {}
+                    } catch (_) { }
                 }
             }
 
@@ -333,7 +333,8 @@ async function sendEvent(eventName, options = {}) {
         }
     }
 
-    const isDryRun = process.env.DRY_RUN_EMAIL === 'true' || !process.env.VERCEL;
+    // If explicitly set to 'false' in .env, allow sending real emails even on localhost
+    const isDryRun = process.env.DRY_RUN_EMAIL === 'true' || (!process.env.VERCEL && process.env.DRY_RUN_EMAIL !== 'false');
 
     // 4. Handle DRY_RUN_EMAIL=true
     if (isDryRun) {
