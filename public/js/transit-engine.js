@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.5.0)
+ * Calzada transit engine (v1.5.1)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -13,6 +13,9 @@
  * No jeepney from the poblacion (1.5.0): barangays listed under noJeepFrom in /data/barangays.json
  * (Barangay 2–7, San Jose, San Juan) have no jeepney into the coverage area. From there plan() and
  * terminalChoices() give nothing and the planner shows the walk.
+ *
+ * No boarding on the road at Calamba Crossing / SM (1.5.1): in Uno a jeep is boarded only at a terminal
+ * or listed stop (roadBoardingOk); along the road elsewhere it can still be flagged down.
  *
  * Distances here are estimates (straight line x 1.25 for walks, along the route path for rides);
  * the planner replaces the walks of the option it shows with real foot routes.
@@ -241,9 +244,10 @@
     }
 
     // Board point near the origin on r in direction dir: { pos, pt, walkM, stop? }
-    function boardNear(r, p, dir) {
+    // roadOk(pt): false where jeeps may not be boarded on the road (only at a listed stop there)
+    function boardNear(r, p, dir, roadOk) {
         const pr = project(r, p, true);
-        let res = { pos: pr.pos, pt: pr.pt, walkM: pr.off * WALK_FACTOR, stop: null };
+        let res = { pos: pr.pos, pt: pr.pt, walkM: (!roadOk || roadOk(pr.pt)) ? pr.off * WALK_FACTOR : Infinity, stop: null };
         const s = nearStop(r, pr.pos, dir, 'board');
         if (s) {
             const w = haversineM(p, s.stopPt) * WALK_FACTOR;
@@ -333,7 +337,7 @@
                 if (A.terminalOnly && !force) return;
                 A.dirs.forEach((dirA) => {
                     // Direct. With a picked terminal: the jeep loads there and the user walks to it
-                    const bd = force ? forcedBoard(A, dirA) : boardNear(A, origin, dirA);
+                    const bd = force ? forcedBoard(A, dirA) : boardNear(A, origin, dirA, roadBoardingOk);
                     if (bd && bd.walkM <= (force ? MAX_TERMINAL_WALK_M : MAX_ACCESS_WALK_M)) {
                         const a = alightFor(A, dirA, bd.pos);
                         if (a) {
@@ -348,7 +352,7 @@
                     // With a picked terminal (a user coming from farther away): B loads at that terminal,
                     // and getting off there is allowed for this trip even where it is no transfer stop.
                     if (A.terminalOnly) return;
-                    const b = boardNear(A, origin, dirA);
+                    const b = boardNear(A, origin, dirA, roadBoardingOk);
                     if (b.walkM > MAX_ACCESS_WALK_M) return;
                     A.stopPos.forEach((sA) => {
                         if (!stopAllows(sA, dirA, 'alight')) return;
@@ -409,6 +413,19 @@
             }
             return c;
         }
+        // Calamba Crossing / SM (Uno): jeeps load only at the terminals and listed stops; boarding on the
+        // road there (e.g. on J.P. Rizal past the junction, on the National Highway at Sampaguita St) is
+        // not allowed. Elsewhere a jeep can be flagged down along its route.
+        const NO_ROAD_BOARDING_AREAS = ['Uno'];
+        function roadBoardingOk(p) {
+            return !NO_ROAD_BOARDING_AREAS.includes(areaOf(p));
+        }
+        // Listed stops where some route loads passengers (the terminals): { id, name, name_tl, pt }
+        function boardingStops() {
+            return Object.keys(stops).filter((id) => routes.some((r) => r.stopPos.some((s) => s.id === id && r.dirs.some((d) => stopAllows(s, d, 'board')))))
+                .map((id) => ({ id, name: stops[id].name, name_tl: stops[id].name_tl || null, pt: [stops[id].lat, stops[id].lng] }));
+        }
+
         // The no-jeepney barangay a point is in, or null
         function noJeepAreaOf(p) {
             if (!p || !noJeepPolys.length) return null;
@@ -506,7 +523,7 @@
             return s ? s.pos : null;
         }
 
-        return { plan, routes, stops, areaOf, noJeepAreaOf, terminalChoices, terminalAt, routeNear, stopPosOn };
+        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn };
     }
 
     // Same trip on different routes (e.g. Tagaytay or Tanauan jeep from SM to Real): one card
@@ -595,13 +612,15 @@
     }
 
     return {
-        VERSION: '1.5.0',
+        VERSION: '1.5.1',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
         stops: () => (planner ? planner.stops : {}),
         areaOf: (p) => (planner ? planner.areaOf(p) : null),
         noJeepAreaOf: (p) => (planner ? planner.noJeepAreaOf(p) : null),
+        roadBoardingOk: (p) => (planner ? planner.roadBoardingOk(p) : true),
+        boardingStops: () => (planner ? planner.boardingStops() : []),
         terminalChoices: (o, d, destArea) => (planner ? planner.terminalChoices(o, d, destArea) : null),
         terminalAt: (p, area) => (planner ? planner.terminalAt(p, area) : null),
         routeNear: (p, maxM, onlyIds) => (planner ? planner.routeNear(p, maxM, onlyIds) : []),

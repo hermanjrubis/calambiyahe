@@ -4218,6 +4218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // opts.noJeep: the curated routes have no trip from a no-jeepney barangay (set by the retry below)
+        // opts.walkOnly: the only jeep would load at a terminal farther than walking there is worth
         const executeRouteQueryCore = async (opts = {}) => {
             if (!selectedCoords.origin || !selectedCoords.destination) {
                 renderPlannerState();
@@ -4246,6 +4247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try { await Promise.race([T0.load(), new Promise(r => setTimeout(r, 2500))]); } catch (_) { /* engine unavailable */ }
             }
             const noJeepArea = (T0 && T0.isReady && T0.isReady() && T0.noJeepAreaOf) ? T0.noJeepAreaOf(oPt) : null;
+            const walkInstead = !!opts.walkOnly;
             const noJeepTrip = !!noJeepArea && (opts.noJeep
                 || (!T0.plan(oPt, dPt).length && !(T0.terminalChoices && T0.terminalChoices(oPt, dPt, destKnownBarangay()))));
 
@@ -4253,9 +4255,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (noJeepOverride && userExplicitMode) selectedMode = 'jeepney';
             noJeepOverride = false;
             if (!userExplicitMode) {
-                selectedMode = (straightDistM < 800 || noJeepTrip) ? 'walking' : 'jeepney';
+                selectedMode = (straightDistM < 800 || noJeepTrip || walkInstead) ? 'walking' : 'jeepney';
             }
-            if (noJeepTrip && selectedMode !== 'walking') {
+            if ((noJeepTrip || walkInstead) && selectedMode !== 'walking') {
                 // Shown as a walk this time only; the user's Jeepney choice stays for the next trip
                 noJeepOverride = userExplicitMode;
                 selectedMode = 'walking';
@@ -4321,6 +4323,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         walkHintEl.innerHTML = '<ion-icon name="information-circle-outline"></ion-icon><span></span>';
                         walkHintEl.querySelector('span').textContent = t('planner.no_jeep_from', { area: noJeepArea });
                         walkHintEl.style.display = 'inline-flex';
+                    } else if (walkInstead) {
+                        walkHintEl.innerHTML = '<ion-icon name="information-circle-outline"></ion-icon><span></span>';
+                        walkHintEl.querySelector('span').textContent = t('planner.walk_terminal_only');
+                        walkHintEl.style.display = 'inline-flex';
                     } else if (totalWalkM < 800) {
                         walkHintEl.innerHTML = `<ion-icon name="walk-outline"></ion-icon><span>This distance is walkable (${formatDistanceM(totalWalkM)})</span>`;
                         walkHintEl.style.display = 'inline-flex';
@@ -4379,7 +4385,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 return routeResult.coordinates[0];
             };
 
-            const boardingPt = findHighwayBoardingPoint(fullCarRes);
+            let boardingPt = findHighwayBoardingPoint(fullCarRes);
+            // Calamba Crossing / SM (Uno): jeeps are boarded only at a terminal, never on the road (e.g. on
+            // J.P. Rizal just past the junction, or on the National Highway at Sampaguita St). A boarding
+            // point there moves to the terminal with the best walk + ride (transit engine 1.5.1).
+            const Tb = window.CalzadaTransit;
+            const roadBoardingOk = (p) => !(Tb && Tb.isReady && Tb.isReady() && Tb.roadBoardingOk) || Tb.roadBoardingOk(p);
+            if (!roadBoardingOk(boardingPt)) {
+                const terminals = (Tb.boardingStops ? Tb.boardingStops() : []);
+                let best = null;
+                terminals.forEach((st) => {
+                    const walkM = getHaversineDist(oPt[0], oPt[1], st.pt[0], st.pt[1]) * 1000;
+                    const rideM = getHaversineDist(st.pt[0], st.pt[1], dPt[0], dPt[1]) * 1000;
+                    const score = walkM + rideM * 0.2;   // a jeep is about five times as fast as walking
+                    if (!best || score < best.score) best = { st, score, walkM };
+                });
+                // Most of the way on foot to the terminal anyway: the trip is a walk
+                if (best && best.walkM > straightDistM * 0.6) return executeRouteQueryCore({ walkOnly: true });
+                if (best) {
+                    console.info(`Highway route: boarding moved from the road to ${best.st.name} (no boarding on the road at Crossing / SM)`);
+                    boardingPt = best.st.pt.slice();
+                }
+            }
             const walkDistM = getHaversineDist(oPt[0], oPt[1], boardingPt[0], boardingPt[1]) * 1000;
 
             // Fetch walking leg from origin to highway boarding point
@@ -4426,7 +4453,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // own route for more than ~150 m, provided the jeepney from there passes the old boarding
             // point (right direction, no detour). The fare follows the new, longer ride.
             const earlierBoarding = await boardWhereWalkReachesJeepneyRoad(wRes, tRes, boardingPt, dPt, isJeepneyRoadStep);
-            if (earlierBoarding) {
+            const earlierPt = earlierBoarding && earlierBoarding.walk.coordinates[earlierBoarding.walk.coordinates.length - 1];
+            if (earlierBoarding && earlierPt && roadBoardingOk(earlierPt)) {
                 wRes = earlierBoarding.walk;
                 tRes = earlierBoarding.transit;
             }

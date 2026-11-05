@@ -1,4 +1,4 @@
-// Terminal choice and no-jeepney barangays (transit-engine 1.5.0): node scripts/test-terminal-choices.mjs
+// Terminal choice, no-jeepney barangays, no road boarding at Crossing / SM (transit-engine 1.5.1): node scripts/test-terminal-choices.mjs
 import { createRequire } from 'module';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -91,6 +91,28 @@ check('Barangay 5 -> Jollibee Crossing (Uno): no jeep option', P.plan(BRGY5, JOL
 [[BRGY3, JOLLIBEE_REAL, 'Barangay 3 -> Jollibee Real'], [BRGY5, CHICKEN_JOO, 'Barangay 5 -> Chicken Joo'], [SAN_JUAN, JOLLIBEE_REAL, 'San Juan -> Jollibee Real']].forEach(([o, d, label]) => {
     check(`${label}: no jeep option (walk)`, P.plan(o, d).length === 0 && P.terminalChoices(o, d) === null);
 });
+// Calamba Crossing / SM (Uno): jeeps are boarded only at terminals, never on the road there
+const JP_RIZAL_PAST_JUNCTION = [14.2066, 121.1562], NH_AT_SAMPAGUITA = [14.2039194, 121.1572045];
+check('no road boarding on J.P. Rizal past the Crossing junction', P.roadBoardingOk(JP_RIZAL_PAST_JUNCTION) === false);
+check('no road boarding on the National Highway at Sampaguita St', P.roadBoardingOk(NH_AT_SAMPAGUITA) === false);
+check('road boarding still fine on Real Road', P.roadBoardingOk([14.20207, 121.15222]) === true);
+check('boarding stops are the terminals', P.boardingStops().length >= 4 && P.boardingStops().every((s) => stops[s.id]));
+{
+    let bad = 0, n = 0;
+    for (let la = 14.2025; la <= 14.2075; la += 0.0005) for (let lo = 121.1530; lo <= 121.1600; lo += 0.0005) {
+        const o = [la, lo];
+        [SM, JOLLIBEE_CROSSING, JOLLIBEE_REAL, CHICKEN_JOO].forEach((d) => {
+            const tcx = P.terminalChoices(o, d);
+            [...P.plan(o, d), ...(tcx ? tcx.choices.map((c) => c.option) : [])].forEach((opt) => opt.legs.forEach((l) => {
+                if (l.type !== 'jeep') return;
+                n++;
+                if (!l.board.stopId && P.areaOf(l.board.pt) === 'Uno') bad++;
+            }));
+        });
+    }
+    check('no jeep option boards on the road in Uno (grid around Crossing / SM)', bad === 0, `${n} jeep rides checked`);
+}
+
 // Not from there: unchanged
 check('Cabuyao -> SM City Calamba still has jeep options', P.plan(cabuyao, SM).length > 0);
 
