@@ -261,6 +261,7 @@
         .flex-wrap { flex-wrap: wrap; }
         .items-start { align-items: flex-start; }
         .items-center { align-items: center; }
+        .items-stretch { align-items: stretch; }
         .items-baseline { align-items: baseline; }
         .justify-center { justify-content: center; }
         .justify-between { justify-content: space-between; }
@@ -286,6 +287,9 @@
         .border-0 { border: none; }
         .border-t { border-top-width: 1px; border-top-style: solid; }
         .border-b { border-bottom-width: 1px; border-bottom-style: solid; }
+        .border-r { border-right-width: 1px; border-right-style: solid; }
+        .select-none { user-select: none; }
+        .focus\:outline-none:focus { outline: none; }
         .border-slate-50 { border-color: #F8FAFC; }
         .border-slate-100 { border-color: #F1F5F9; }
         .border-slate-200 { border-color: #E2E8F0; }
@@ -347,6 +351,17 @@
         .cz-input:focus {
             border-color: #378ADD !important;
             box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+        }
+        #contactInputGroup {
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        #contactInputGroup:focus-within {
+            border-color: #378ADD !important;
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+        }
+        #contactInputGroup input {
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            outline: none;
         }
         .hover\:bg-\[\#1F69B8\]:hover { background-color: #1F69B8; }
         .hover\:bg-slate-50:hover { background-color: #F8FAFC; }
@@ -451,7 +466,7 @@
             where,
             getDocs
         } from "../js/firebase-init.js";
-        import { RegisterWizard } from "../js/register-wizard.js?v=3.1.0";
+        import { RegisterWizard } from "../js/register-wizard.js?v=3.1.1";
 
         const loadingOverlay = document.getElementById('loadingOverlay');
         const submitTopbar = document.getElementById('submitTopbar');

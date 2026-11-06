@@ -120,7 +120,7 @@ export function validateBusinessName(raw) {
         return { valid: false, message: 'Business name must be between 2 and 80 characters.' };
     }
     if (!/^[A-Za-z0-9\s.,\-&'()/]+$/.test(val)) {
-        return { valid: false, message: "Only letters, numbers, spaces, and standard punctuation (., - & ' ( ) /) are allowed." };
+        return { valid: false, message: 'Only letters, numbers, spaces, and standard punctuation.' };
     }
     if (!/[A-Za-z]/.test(val) || !/[aeiouAEIOU]/.test(val)) {
         return { valid: false, message: 'Business name must contain real words with at least one vowel.' };
@@ -147,11 +147,11 @@ export function validateBusinessName(raw) {
  */
 export function validatePhContactNumber(raw) {
     const val = String(raw || '').trim();
-    if (!val) {
-        return { valid: false, message: 'Contact number is required in +639XXXXXXXXX format.' };
+    if (!val || val === '+63') {
+        return { valid: false, message: 'Contact number is required.' };
     }
     if (!/^\+639\d{9}$/.test(val)) {
-        return { valid: false, message: 'Must use strict Philippine format: +639XXXXXXXXX (e.g., +639171234567).' };
+        return { valid: false, message: 'Enter a valid 10-digit Philippine mobile number starting with 9 (e.g., 9171234567).' };
     }
     return { valid: true, message: '' };
 }
@@ -635,8 +635,9 @@ export class RegisterWizard {
                 }
 
                 const contactInput = area.querySelector('#inputBizContact');
+                const contactGroup = area.querySelector('#contactInputGroup') || contactInput;
                 const contactErr = area.querySelector('#bizContactError');
-                this.setFieldError(contactInput, contactErr, phoneCheck.valid ? '' : phoneCheck.message);
+                this.setFieldError(contactGroup, contactErr, phoneCheck.valid ? '' : phoneCheck.message);
                 if (!phoneCheck.valid) markInvalid(contactInput);
 
                 const offBox = area.querySelector('.offerings-editor-box');
@@ -842,7 +843,6 @@ export class RegisterWizard {
                             placeholder="e.g. Lola Nena's Eatery & Grill"
                             class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
                         />
-                        <div class="text-xs text-slate-500 mt-1">Letters, numbers, and standard punctuation (., - &amp; ').</div>
                         <div id="bizNameError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
                     </div>
 
@@ -880,21 +880,24 @@ export class RegisterWizard {
                     <div id="customCategoryError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
                 </div>
 
-                <!-- Contact Number (+639XXXXXXXXX) -->
+                <!-- Contact Number (+639XXXXXXXXX with fixed +63 prefix) -->
                 <div>
                     <label for="inputBizContact" class="block font-semibold text-sm text-[#042C53] mb-1.5">
                         Contact Number <span class="text-red-600">*</span>
                     </label>
-                    <input
-                        type="tel"
-                        id="inputBizContact"
-                        value="${this.escapeHtml(this.formData.contactNumber)}"
-                        maxlength="13"
-                        inputmode="tel"
-                        placeholder="+639171234567"
-                        class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
-                    />
-                    <div class="text-xs text-slate-500 mt-1">Strict Philippine mobile format: <strong>+639XXXXXXXXX</strong> (13 characters starting with +639).</div>
+                    <div id="contactInputGroup" class="flex items-stretch border border-slate-300 rounded-lg overflow-hidden bg-white transition-colors" style="min-height: 44px;">
+                        <span class="inline-flex items-center px-3.5 bg-slate-100 border-r border-slate-300 text-sm font-semibold text-[#042C53] select-none">+63</span>
+                        <input
+                            type="tel"
+                            id="inputBizContact"
+                            value="${this.escapeHtml((this.formData.contactNumber || '').replace(/^\+?63/, '').replace(/^0/, ''))}"
+                            maxlength="10"
+                            inputmode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="9171234567"
+                            class="w-full min-h-[44px] border-0 px-3.5 py-2.5 text-sm text-[#042C53] focus:outline-none"
+                        />
+                    </div>
                     <div id="bizContactError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
                 </div>
 
@@ -1069,19 +1072,29 @@ export class RegisterWizard {
             customInput.addEventListener('blur', checkCustomInline);
         }
 
-        // 5. Wire Contact Number (+639XXXXXXXXX)
+        // 5. Wire Contact Number (+63 fixed prefix + 10 mobile digits)
         const contactInput = area.querySelector('#inputBizContact');
+        const contactGroup = area.querySelector('#contactInputGroup') || contactInput;
         const contactErr = area.querySelector('#bizContactError');
-        contactInput.addEventListener('focus', () => {
-            if (!contactInput.value.trim()) {
-                contactInput.value = '+639';
-                this.formData.contactNumber = '+639';
+        const normalizeLocalMobileDigits = (rawVal) => {
+            let digits = String(rawVal || '').replace(/\D/g, '');
+            if (digits.startsWith('639') && digits.length > 10) {
+                digits = digits.slice(2);
+            } else if (digits.startsWith('09')) {
+                digits = digits.slice(1);
+            } else if (digits.startsWith('0')) {
+                digits = digits.replace(/^0+/, '');
             }
-        });
+            return digits.slice(0, 10);
+        };
         const checkContactInline = () => {
-            this.formData.contactNumber = contactInput.value.trim();
+            const digits = normalizeLocalMobileDigits(contactInput.value);
+            if (contactInput.value !== digits) {
+                contactInput.value = digits;
+            }
+            this.formData.contactNumber = digits ? `+63${digits}` : '';
             const res = validatePhContactNumber(this.formData.contactNumber);
-            this.setFieldError(contactInput, contactErr, res.valid ? '' : res.message);
+            this.setFieldError(contactGroup, contactErr, res.valid ? '' : res.message);
             this.validateCurrentStepButton();
             this.triggerAutosave();
         };

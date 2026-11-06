@@ -1571,7 +1571,7 @@
                 <form id="receiptUploadForm" novalidate>
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label class="form-label" for="receiptRefNo" data-i18n="mybus.awaiting.ref_label">Reference no.</label>
-                        <input type="text" id="receiptRefNo" class="form-input" inputmode="numeric" pattern="[0-9]*" placeholder="13-digit number on your receipt" maxlength="20" required>
+                        <input type="text" id="receiptRefNo" class="form-input" inputmode="numeric" pattern="[0-9]{10,13}" placeholder="10 to 13-digit number on your receipt" minlength="10" maxlength="13" autocomplete="off" required>
                         <span id="errReceiptRef" class="field-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;"></span>
                     </div>
 
@@ -1672,7 +1672,7 @@
                     <form id="replaceReceiptForm" novalidate>
                         <div class="form-group" style="margin-bottom: 14px;">
                             <label class="form-label" for="replaceRefNo">Reference no.</label>
-                            <input type="text" id="replaceRefNo" class="form-input" inputmode="numeric" pattern="[0-9]*" placeholder="13-digit number on your receipt" maxlength="20" required>
+                            <input type="text" id="replaceRefNo" class="form-input" inputmode="numeric" pattern="[0-9]{10,13}" placeholder="10 to 13-digit number on your receipt" minlength="10" maxlength="13" autocomplete="off" required>
                             <span id="errReplaceRef" class="field-error" style="display: none; color: #DC2626; font-size: 13px; margin-top: 4px;"></span>
                         </div>
                         <div class="form-group" style="margin-bottom: 16px;">
@@ -3719,14 +3719,26 @@
             });
         }
 
+        // Strict numeric-only (10-13 digits) enforcement on Reference No. inputs
+        [receiptRefNo, replaceRefNo].forEach(refInput => {
+            if (!refInput) return;
+            refInput.addEventListener('input', () => {
+                const digitsOnly = refInput.value.replace(/\D/g, '').slice(0, 13);
+                if (refInput.value !== digitsOnly) {
+                    refInput.value = digitsOnly;
+                }
+            });
+        });
+
         receiptUploadForm?.addEventListener('submit', async (e) => {
             e.preventDefault();
             errReceiptRef.style.display = 'none';
             errReceiptFile.style.display = 'none';
 
-            const rawRef = receiptRefNo.value.replace(/\s+/g, '');
-            if (!/^[0-9]{10,20}$/.test(rawRef)) {
-                errReceiptRef.textContent = 'Enter a valid 10 to 20 digit reference number.';
+            const rawRef = receiptRefNo.value.replace(/\D/g, '').slice(0, 13);
+            receiptRefNo.value = rawRef;
+            if (!/^[0-9]{10,13}$/.test(rawRef)) {
+                errReceiptRef.textContent = 'Enter a valid 10 to 13 digit reference number (numbers only).';
                 errReceiptRef.style.display = 'block';
                 receiptRefNo.focus();
                 return;
@@ -3868,10 +3880,12 @@
             errReplaceRef.style.display = 'none';
             errReplaceFile.style.display = 'none';
 
-            const rawRef = replaceRefNo.value.replace(/\s+/g, '');
-            if (!/^[0-9]{10,20}$/.test(rawRef)) {
-                errReplaceRef.textContent = 'Enter a valid 10 to 20 digit reference number.';
+            const rawRef = replaceRefNo.value.replace(/\D/g, '').slice(0, 13);
+            replaceRefNo.value = rawRef;
+            if (!/^[0-9]{10,13}$/.test(rawRef)) {
+                errReplaceRef.textContent = 'Enter a valid 10 to 13 digit reference number (numbers only).';
                 errReplaceRef.style.display = 'block';
+                replaceRefNo.focus();
                 return;
             }
 

@@ -1200,12 +1200,39 @@
             margin: 0;
             padding: 16px 20px;
             display: grid;
-            grid-template-columns: 88px minmax(0, 1fr);
-            gap: 10px 12px;
+            grid-template-columns: 92px minmax(0, 1fr);
+            gap: 12px 14px;
             font-size: 13px;
+            align-items: baseline;
         }
-        .bus-detail-fields dt { color: var(--navy-muted); }
-        .bus-detail-fields dd { margin: 0; color: var(--navy-dark); overflow-wrap: anywhere; }
+        .bus-detail-fields dt {
+            color: var(--navy-muted);
+            font-weight: 500;
+        }
+        .bus-detail-fields dd {
+            margin: 0;
+            color: var(--navy-dark);
+            font-weight: 500;
+            overflow-wrap: anywhere;
+            line-height: 1.45;
+        }
+        .bus-workflow-box {
+            padding: 16px 20px 20px;
+            border-top: 1px solid var(--border-color);
+            background: #F8FAFC;
+        }
+        .bus-workflow-title {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 4px;
+        }
+        .bus-workflow-desc {
+            font-size: 12.5px;
+            color: var(--navy-muted);
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
         .bus-detail-links { padding: 0 20px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
         .bus-detail-links .btn-admin-secondary { text-decoration: none; }
         .bus-detail-section { padding: 16px 20px; border-top: 1px solid var(--border-color); }
@@ -2431,10 +2458,6 @@
                                                     <input type="checkbox" id="chkAmountMatch">
                                                     <span id="labelAmountMatch">The amount matches the required amount</span>
                                                 </label>
-                                                <label class="checklist-item" style="opacity: 0.75; cursor: default;">
-                                                    <input type="checkbox" id="chkRefUnique" disabled>
-                                                    <span id="labelRefUnique">This reference no. was not used by another business</span>
-                                                </label>
                                             </div>
                                         </div>
                                     </div>
@@ -2600,65 +2623,79 @@
                             </div>
 
                             <dl class="bus-detail-fields">
+                                <dt>Category</dt>
+                                <dd id="busDetailCategory">--</dd>
                                 <dt>Owner</dt>
                                 <dd id="busDetailOwner">--</dd>
                                 <dt>Address</dt>
                                 <dd id="busDetailAddress">--</dd>
                                 <dt>Contact</dt>
                                 <dd id="busDetailContact">--</dd>
-                                <dt>360 shoot</dt>
+                                <dt id="busDetailShootLabel">360 shoot</dt>
                                 <dd id="busDetailShoot">--</dd>
                                 <dt>About</dt>
                                 <dd id="busDetailDesc">--</dd>
                             </dl>
 
-                            <div class="bus-detail-links">
-                                <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">View on map</a>
-                                <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">360 shoots</a>
+                            <!-- Shown when business is NOT live yet (Pending, Awaiting Payment, Payment Review, Needs Changes, Rejected) -->
+                            <div class="bus-workflow-box" id="busPendingWorkflowBox" style="display: none;">
+                                <div class="bus-workflow-title" id="busWorkflowTitle">Pending Application Review</div>
+                                <p class="bus-workflow-desc" id="busWorkflowDesc">This business is not on the public map yet. Review its details in Applications before it can go live.</p>
+                                <button type="button" class="btn-admin-primary" id="btnBusWorkflowAction" style="width: 100%; justify-content: center;">
+                                    Review in Applications
+                                </button>
                             </div>
 
-                            <!-- Hide from map -->
-                            <div class="bus-detail-section">
-                                <div id="busHideInitialGroup">
-                                    <div class="bus-action-row">
-                                        <div class="bus-action-text">
-                                            <strong>Hide from map</strong>
-                                            <span>Reverts to pending and emails the owner. Reversible.</span>
+                            <!-- Shown ONLY when business is Live (status === 'approved') -->
+                            <div id="busLiveOnlyControls" style="display: none;">
+                                <div class="bus-detail-links">
+                                    <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">View on map</a>
+                                    <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">360 shoots</a>
+                                </div>
+
+                                <!-- Hide from map -->
+                                <div class="bus-detail-section">
+                                    <div id="busHideInitialGroup">
+                                        <div class="bus-action-row">
+                                            <div class="bus-action-text">
+                                                <strong>Hide from map</strong>
+                                                <span>Reverts to pending and emails the owner. Reversible.</span>
+                                            </div>
+                                            <button type="button" class="btn-admin-secondary" id="btnTriggerHideFromMap">Hide</button>
                                         </div>
-                                        <button type="button" class="btn-admin-secondary" id="btnTriggerHideFromMap">Hide</button>
+                                    </div>
+                                    <div class="action-reason-box" id="busHideConfirmBox">
+                                        <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
+                                        <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Explain why this business is being hidden from the map..."></textarea>
+                                        <div class="action-inline-error" id="busHideInlineError"></div>
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                            <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide</button>
+                                            <button type="button" class="btn-admin-secondary" id="btnCancelHideFromMap">Cancel</button>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="action-reason-box" id="busHideConfirmBox">
-                                    <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
-                                    <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Explain why this business is being hidden from the map..."></textarea>
-                                    <div class="action-inline-error" id="busHideInlineError"></div>
-                                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide</button>
-                                        <button type="button" class="btn-admin-secondary" id="btnCancelHideFromMap">Cancel</button>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <!-- Delete permanently -->
-                            <div class="bus-danger-zone">
-                                <div id="busDeleteInitialGroup" class="bus-action-row">
-                                    <div class="bus-action-text">
-                                        <strong class="text-danger-strong">Delete permanently</strong>
-                                        <span>Removes the listing, posts, reviews, 360 photos and uploaded images. Payment records stay marked "(deleted)". Cannot be undone.</span>
+                                <!-- Delete permanently -->
+                                <div class="bus-danger-zone">
+                                    <div id="busDeleteInitialGroup" class="bus-action-row">
+                                        <div class="bus-action-text">
+                                            <strong class="text-danger-strong">Delete permanently</strong>
+                                            <span>Removes the listing, posts, reviews, 360 photos and uploaded images. Payment records stay marked "(deleted)". Cannot be undone.</span>
+                                        </div>
+                                        <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">Delete</button>
                                     </div>
-                                    <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">Delete</button>
-                                </div>
-                                <div class="bus-delete-confirm" id="busDeleteConfirmBox" style="display: none;">
-                                    <strong class="text-danger-strong">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
-                                    <p class="bus-delete-note">Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.</p>
-                                    <label for="busDeleteReasonText" class="bus-field-label">Reason (emailed to the owner)</label>
-                                    <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
-                                    <label for="busDeleteConfirmName" class="bus-field-label">Type the business name to confirm</label>
-                                    <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
-                                    <div class="action-inline-error" id="busDeleteInlineError"></div>
-                                    <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
-                                        <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
-                                        <button type="button" class="btn-admin-secondary" id="btnCancelDeleteBusiness">Cancel</button>
+                                    <div class="bus-delete-confirm" id="busDeleteConfirmBox" style="display: none;">
+                                        <strong class="text-danger-strong">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
+                                        <p class="bus-delete-note">Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.</p>
+                                        <label for="busDeleteReasonText" class="bus-field-label">Reason (emailed to the owner)</label>
+                                        <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
+                                        <label for="busDeleteConfirmName" class="bus-field-label">Type the business name to confirm</label>
+                                        <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
+                                        <div class="action-inline-error" id="busDeleteInlineError"></div>
+                                        <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                                            <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
+                                            <button type="button" class="btn-admin-secondary" id="btnCancelDeleteBusiness">Cancel</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -4183,17 +4220,12 @@
 
             const chkRefHistory = document.getElementById('chkRefHistory');
             const chkAmountMatch = document.getElementById('chkAmountMatch');
-            const chkRefUnique = document.getElementById('chkRefUnique');
             const labelAmountMatch = document.getElementById('labelAmountMatch');
             const btnMarkPaid = document.getElementById('btnMarkPaidAndLive');
 
             chkRefHistory.checked = false;
             chkAmountMatch.checked = false;
             labelAmountMatch.textContent = `The amount is ₱${payment.amountDue}`;
-
-            const dupCount = allPayments.filter(p => p.referenceNo === payment.referenceNo && p.id !== payment.id && p.status === 'verified').length;
-            chkRefUnique.checked = dupCount === 0;
-            chkRefUnique.disabled = true;
 
             const updateMarkPaidBtn = () => {
                 btnMarkPaid.disabled = !(chkRefHistory.checked && chkAmountMatch.checked);
@@ -4830,6 +4862,9 @@
                 const shootVal = bus.shoot360 || 'none';
                 const selected = bus.id === selectedDetailBusId;
 
+                const isLive = bus.status === 'approved';
+                const has360Plan = bus.plan === 'plus360' || bus.plan === 'featured' || (shootVal && shootVal !== 'none');
+
                 return `
                     <tr data-bus-row-id="${bus.id}" class="${selected ? 'is-selected' : ''}">
                         <td class="bus-name-cell">
@@ -4843,18 +4878,20 @@
                             </div>
                         </td>
                         <td class="bus-extra-cell ${paidDate ? '' : 'is-empty'}" data-label="Paid">${paidDate || '--'}</td>
-                        <td class="bus-extra-cell" data-label="360 shoot" onclick="event.stopPropagation()">
-                            <select class="admin-select select-shoot360" data-bus-id="${bus.id}" aria-label="360 shoot for ${escapeHtml(bus.name || 'business')}">
-                                <option value="none" ${shootVal === 'none' ? 'selected' : ''}>None</option>
-                                <option value="to_schedule" ${shootVal === 'to_schedule' ? 'selected' : ''}>To schedule</option>
-                                <option value="scheduled" ${shootVal === 'scheduled' ? 'selected' : ''}>Scheduled</option>
-                                <option value="done" ${shootVal === 'done' ? 'selected' : ''}>Done</option>
-                            </select>
+                        <td class="bus-extra-cell ${isLive && has360Plan ? '' : 'is-empty'}" data-label="360 shoot" ${isLive && has360Plan ? 'onclick="event.stopPropagation()"' : ''}>
+                            ${isLive && has360Plan ? `
+                                <select class="admin-select select-shoot360" data-bus-id="${bus.id}" aria-label="360 shoot for ${escapeHtml(bus.name || 'business')}">
+                                    <option value="none" ${shootVal === 'none' ? 'selected' : ''}>None</option>
+                                    <option value="to_schedule" ${shootVal === 'to_schedule' ? 'selected' : ''}>To schedule</option>
+                                    <option value="scheduled" ${shootVal === 'scheduled' ? 'selected' : ''}>Scheduled</option>
+                                    <option value="done" ${shootVal === 'done' ? 'selected' : ''}>Done</option>
+                                </select>
+                            ` : '<span style="color: var(--navy-subtle);">--</span>'}
                         </td>
                         <td class="bus-extra-cell ${featUntil ? '' : 'is-empty'}" data-label="Featured until">${featUntil || '--'}</td>
                         <td class="bus-manage-cell">
-                            <button type="button" class="bus-icon-btn bus-manage-btn" aria-label="Manage ${escapeHtml(bus.name || 'business')}">
-                                <i class="ti ti-dots"></i>
+                            <button type="button" class="bus-icon-btn bus-manage-btn" aria-label="Inspect ${escapeHtml(bus.name || 'business')}">
+                                <i class="ti ti-chevron-right"></i>
                             </button>
                         </td>
                     </tr>
@@ -4912,27 +4949,127 @@
             markSelectedBusRow();
 
             const { planName, dotColor, statusLabel } = busStatusInfo(bus);
+            const isLive = bus.status === 'approved';
+            const has360Plan = bus.plan === 'plus360' || bus.plan === 'featured' || (bus.shoot360 && bus.shoot360 !== 'none');
+
             card.style.display = 'block';
             document.getElementById('busDetailName').textContent = bus.name || 'Unnamed';
             document.getElementById('busDetailDot').className = `status-dot ${dotColor}`;
             document.getElementById('busDetailSub').textContent =
                 [statusLabel, planName, bus.paidAt ? `Paid ${formatAdminDate(bus.paidAt)}` : ''].filter(Boolean).join(' · ');
-            document.getElementById('busDetailOwner').textContent = bus.ownerEmail || '--';
+
+            const catEl = document.getElementById('busDetailCategory');
+            if (catEl) {
+                catEl.textContent = bus.serviceType || bus.category || 'General';
+            }
+            document.getElementById('busDetailOwner').textContent = bus.ownerEmail || 'Registered owner';
             document.getElementById('busDetailAddress').textContent =
                 [bus.address, bus.barangay ? `Brgy. ${bus.barangay}` : ''].filter(Boolean).join(', ') || '--';
             document.getElementById('busDetailContact').textContent = bus.contactNumber || '--';
-            document.getElementById('busDetailShoot').textContent = SHOOT_LABELS[bus.shoot360 || 'none'] || 'None';
-            document.getElementById('busDetailDesc').textContent = bus.description || 'No description';
-            const viewLink = document.getElementById('busDetailViewLink');
-            if (viewLink) {
-                viewLink.hidden = bus.status !== 'approved';
-                viewLink.href = `/business?id=${encodeURIComponent(bus.id)}`;
+
+            const shootLabelEl = document.getElementById('busDetailShootLabel');
+            const shootValEl = document.getElementById('busDetailShoot');
+            if (shootLabelEl && shootValEl) {
+                if (isLive && has360Plan) {
+                    shootLabelEl.style.display = '';
+                    shootValEl.style.display = '';
+                    shootValEl.textContent = SHOOT_LABELS[bus.shoot360 || 'none'] || 'None';
+                } else {
+                    shootLabelEl.style.display = 'none';
+                    shootValEl.style.display = 'none';
+                }
             }
 
-            document.getElementById('busHideInitialGroup').style.display = 'block';
-            document.getElementById('busHideConfirmBox').style.display = 'none';
-            setInlineError('busHideInlineError', '');
-            resetDeleteBusinessBox();
+            document.getElementById('busDetailDesc').textContent = bus.description || 'No description provided';
+
+            const liveControls = document.getElementById('busLiveOnlyControls');
+            const pendingBox = document.getElementById('busPendingWorkflowBox');
+            const wfTitle = document.getElementById('busWorkflowTitle');
+            const wfDesc = document.getElementById('busWorkflowDesc');
+            const wfBtn = document.getElementById('btnBusWorkflowAction');
+
+            if (isLive) {
+                if (liveControls) liveControls.style.display = 'block';
+                if (pendingBox) pendingBox.style.display = 'none';
+
+                const viewLink = document.getElementById('busDetailViewLink');
+                if (viewLink) {
+                    viewLink.style.display = 'inline-flex';
+                    viewLink.href = `/business?id=${encodeURIComponent(bus.id)}`;
+                }
+                const shootLink = document.getElementById('busDetailShootLink');
+                if (shootLink) {
+                    shootLink.style.display = has360Plan ? 'inline-flex' : 'none';
+                }
+
+                document.getElementById('busHideInitialGroup').style.display = 'block';
+                document.getElementById('busHideConfirmBox').style.display = 'none';
+                setInlineError('busHideInlineError', '');
+                resetDeleteBusinessBox();
+            } else {
+                // Not live on the map yet — hide map-management & delete controls; show helpful workflow step
+                if (liveControls) liveControls.style.display = 'none';
+                if (pendingBox) pendingBox.style.display = 'block';
+
+                if (wfTitle && wfDesc && wfBtn) {
+                    if (bus.status === 'pending') {
+                        wfTitle.textContent = 'Pending Application Review';
+                        wfDesc.textContent = 'This business is not on the public map yet. Review its storefront photo, location pin, and details in Applications.';
+                        wfBtn.textContent = 'Review in Applications';
+                        wfBtn.className = 'btn-admin-primary';
+                        wfBtn.onclick = () => {
+                            currentAppFilter = 'pending';
+                            document.querySelectorAll('.admin-underline-tab[data-app-filter]').forEach(t => {
+                                t.classList.toggle('active', t.getAttribute('data-app-filter') === 'pending');
+                            });
+                            selectedAppId = bus.id;
+                            renderApplicationsSection();
+                            window.location.hash = '#applications';
+                        };
+                    } else if (bus.status === 'payment_review') {
+                        wfTitle.textContent = 'GCash Payment Under Review';
+                        wfDesc.textContent = 'Application details are approved. Verify the uploaded GCash receipt in Payments so this business can go live on the map.';
+                        wfBtn.textContent = 'Verify in Payments';
+                        wfBtn.className = 'btn-admin-primary';
+                        wfBtn.onclick = () => {
+                            const matchingPayment = allPayments.find(p => p.businessId === bus.id && p.status === 'submitted');
+                            if (matchingPayment) selectedPaymentId = matchingPayment.id;
+                            renderPaymentsSection();
+                            window.location.hash = '#payments';
+                        };
+                    } else if (bus.status === 'awaiting_payment') {
+                        wfTitle.textContent = 'Waiting for Owner Payment';
+                        wfDesc.textContent = 'Application details were approved. The listing will go live once the owner uploads their GCash receipt and it is verified.';
+                        wfBtn.textContent = 'View in Applications';
+                        wfBtn.className = 'btn-admin-secondary';
+                        wfBtn.onclick = () => {
+                            currentAppFilter = 'awaiting_payment';
+                            document.querySelectorAll('.admin-underline-tab[data-app-filter]').forEach(t => {
+                                t.classList.toggle('active', t.getAttribute('data-app-filter') === 'awaiting_payment');
+                            });
+                            selectedAppId = bus.id;
+                            renderApplicationsSection();
+                            window.location.hash = '#applications';
+                        };
+                    } else {
+                        wfTitle.textContent = bus.status === 'needs_changes' ? 'Changes Requested from Owner' : 'Application Rejected';
+                        wfDesc.textContent = bus.reviewNote
+                            ? `Note sent to owner: "${bus.reviewNote}"`
+                            : 'This application was returned to the owner and is not shown on the map.';
+                        wfBtn.textContent = 'View in Applications';
+                        wfBtn.className = 'btn-admin-secondary';
+                        wfBtn.onclick = () => {
+                            currentAppFilter = 'sent_back';
+                            document.querySelectorAll('.admin-underline-tab[data-app-filter]').forEach(t => {
+                                t.classList.toggle('active', t.getAttribute('data-app-filter') === 'sent_back');
+                            });
+                            selectedAppId = bus.id;
+                            renderApplicationsSection();
+                            window.location.hash = '#applications';
+                        };
+                    }
+                }
+            }
 
             // Beside the table on wide screens; below it otherwise, so bring it into view
             if (window.innerWidth < 1200) {

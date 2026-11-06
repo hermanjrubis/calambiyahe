@@ -509,7 +509,7 @@ service cloud.firestore {
         && request.resource.data.amountDue == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.amountDue
         && request.resource.data.plan == get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.plan
         && request.resource.data.referenceNo is string
-        && request.resource.data.referenceNo.matches('^[0-9]{10,20}$')
+        && request.resource.data.referenceNo.matches('^[0-9]{10,13}$')
         // The reference-number lock must be written in the same batch and point at this payment,
         // so a reference number can never be used twice even if someone skips the website.
         && existsAfter(/databases/$(database)/documents/paymentRefs/$(request.resource.data.referenceNo))
@@ -543,7 +543,7 @@ service cloud.firestore {
       allow create: if request.auth != null
         && request.resource.data.keys().hasOnly(['businessId', 'paymentId', 'createdAt'])
         && request.resource.data.createdAt == request.time
-        && referenceNo.matches('^[0-9]{10,20}$')
+        && referenceNo.matches('^[0-9]{10,13}$')
         && request.resource.data.paymentId is string
         && existsAfter(/databases/$(database)/documents/payments/$(request.resource.data.paymentId))
         && getAfter(/databases/$(database)/documents/payments/$(request.resource.data.paymentId)).data.ownerId == request.auth.uid
