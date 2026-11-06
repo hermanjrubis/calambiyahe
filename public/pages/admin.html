@@ -2444,94 +2444,116 @@
                 <!-- ==============================================
                      PANEL 5: POSTS
                      ============================================== -->
-                <section class="admin-panel" id="panel-posts">
-                    <div class="section-header">
-                        <h1 class="section-title">Posts</h1>
-                        <p class="section-subtitle">Moderate updates posted by businesses in the Updates feed.</p>
+                <section class="admin-panel space-y-5" id="panel-posts">
+                    <!-- Section Header + Search Toolbar -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                        <div>
+                            <h1 class="section-title">Posts</h1>
+                            <p class="section-subtitle">Moderate business announcements, pin featured updates for 7 days, or hide policy-violating posts.</p>
+                        </div>
+
+                        <div class="bus-toolbar m-0 w-full lg:w-80">
+                            <label class="bus-search max-w-none w-full bg-slate-50/70">
+                                <i class="ti ti-search" aria-hidden="true"></i>
+                                <span class="sr-only">Search posts</span>
+                                <input type="search" id="postSearchInput" placeholder="Search by business or caption..." autocomplete="off">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs for Posts -->
+                    <div class="admin-underline-tabs overflow-x-auto">
+                        <button type="button" class="admin-underline-tab active" data-post-filter="all">All Updates</button>
+                        <button type="button" class="admin-underline-tab" data-post-filter="active">Active</button>
+                        <button type="button" class="admin-underline-tab" data-post-filter="pinned">Pinned (7d)</button>
+                        <button type="button" class="admin-underline-tab" data-post-filter="hidden">Hidden</button>
                     </div>
 
                     <div id="postsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <div id="postsListContainer" style="display: flex; flex-direction: column; gap: 14px;"></div>
-                    <div id="postsEmptyState" class="flat-card" style="display: none; text-align: center; color: var(--navy-muted); padding: 32px 16px;">
-                        No business updates found.
+                    <div id="postsListContainer" class="grid grid-cols-1 xl:grid-cols-2 gap-4"></div>
+                    <div id="postsEmptyState" class="flat-card text-center text-slate-500 py-10 px-4 text-sm" style="display: none;">
+                        <i class="ti ti-news-off text-2xl text-slate-400 block mb-1.5"></i>
+                        No business updates match the current filter.
                     </div>
                 </section>
 
                 <!-- ==============================================
                      PANEL 6: REVIEWS
                      ============================================== -->
-                <section class="admin-panel" id="panel-reviews">
-                    <div class="section-header">
-                        <h1 class="section-title">Reviews</h1>
-                        <p class="section-subtitle">Real-time moderation and monitoring of commuter place reviews.</p>
+                <section class="admin-panel space-y-5" id="panel-reviews">
+                    <!-- Header + Rating Summary Pill -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                        <div>
+                            <h1 class="section-title">Reviews</h1>
+                            <p class="section-subtitle">Real-time moderation and quality monitoring of commuter place reviews. Click any truncated review to expand full text.</p>
+                        </div>
+                        <div id="reviewsSummaryLine" class="inline-flex items-center gap-2 rounded-xl bg-amber-50/80 border border-amber-200 px-4 py-2.5 font-['Sora'] text-sm font-bold text-[#042C53] self-start sm:self-auto">
+                            0.0 average · 0 reviews
+                        </div>
                     </div>
 
                     <!-- Filter Controls -->
-                    <div class="flat-card" style="margin-bottom: 16px; padding: 16px;">
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
-                            <div style="flex: 1; min-width: 180px;">
-                                <label for="reviewFilterPlace" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Place</label>
-                                <select id="reviewFilterPlace" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                    <div class="flat-card p-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                            <div class="sm:col-span-2 lg:col-span-2">
+                                <label for="reviewFilterPlace" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Establishment</label>
+                                <select id="reviewFilterPlace" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
                                     <option value="all">All Places</option>
                                 </select>
                             </div>
-                            <div style="min-width: 120px;">
-                                <label for="reviewFilterStars" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Stars</label>
-                                <select id="reviewFilterStars" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
-                                    <option value="all">All Stars</option>
-                                    <option value="5">5 Stars</option>
-                                    <option value="4">4 Stars</option>
-                                    <option value="3">3 Stars</option>
-                                    <option value="2">2 Stars</option>
-                                    <option value="1">1 Star</option>
+                            <div>
+                                <label for="reviewFilterStars" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Star Rating</label>
+                                <select id="reviewFilterStars" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
+                                    <option value="all">All Stars (1★ – 5★)</option>
+                                    <option value="5">★★★★★ (5 Stars)</option>
+                                    <option value="4">★★★★☆ (4 Stars)</option>
+                                    <option value="3">★★★☆☆ (3 Stars)</option>
+                                    <option value="2">★★☆☆☆ (2 Stars - Low)</option>
+                                    <option value="1">★☆☆☆☆ (1 Star - Critical)</option>
                                 </select>
                             </div>
-                            <div style="min-width: 140px;">
-                                <label for="reviewFilterComment" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Comment</label>
-                                <select id="reviewFilterComment" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                            <div>
+                                <label for="reviewFilterComment" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Review Content</label>
+                                <select id="reviewFilterComment" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
                                     <option value="all">All Reviews</option>
-                                    <option value="has_comment">Has Comment</option>
-                                    <option value="no_comment">Rating Only</option>
+                                    <option value="has_comment">Has Written Comment</option>
+                                    <option value="no_comment">Star Rating Only</option>
                                 </select>
                             </div>
-                            <div style="min-width: 130px;">
-                                <label for="reviewFilterDate" style="font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Date Range</label>
-                                <select id="reviewFilterDate" class="admin-select" style="width: 100%; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
-                                    <option value="all">All Days</option>
+                            <div>
+                                <label for="reviewFilterDate" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Date Range</label>
+                                <select id="reviewFilterDate" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
+                                    <option value="all">All Time</option>
                                     <option value="7">Last 7 Days</option>
                                     <option value="30">Last 30 Days</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <!-- Summary line under filters -->
-                        <div id="reviewsSummaryLine" style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #E2E8F0; font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 600; color: #042C53;">
-                            0.0 average · 0 reviews
                         </div>
                     </div>
 
                     <div id="reviewsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
                     <!-- Reviews Table -->
-                    <div class="flat-card" style="padding: 0; overflow-x: auto;">
-                        <table class="admin-table" id="reviewsTable" style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <div class="admin-table-container">
+                        <table class="admin-table" id="reviewsTable">
                             <thead>
-                                <tr style="border-bottom: 1px solid #E2E8F0; background: #F8FAFC;">
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Place</th>
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Stars</th>
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Comment</th>
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Reviewer</th>
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Date</th>
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B;">Status</th>
-                                    <th style="padding: 12px 16px; font-size: 12px; font-weight: 600; color: #64748B; text-align: right;">Action</th>
+                                <tr>
+                                    <th>Establishment</th>
+                                    <th>Rating</th>
+                                    <th style="min-width: 280px;">Commuter Feedback</th>
+                                    <th>Reviewer</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="reviewsTableBody">
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
-                        <div id="reviewsEmptyState" style="display: none; padding: 32px 16px; text-align: center; color: #64748B;">
+                        <div id="reviewsEmptyState" class="p-10 text-center text-sm text-slate-500" style="display: none;">
+                            <i class="ti ti-message-off text-2xl text-slate-400 block mb-1.5"></i>
                             No reviews match the current filters.
                         </div>
                     </div>
@@ -2540,21 +2562,21 @@
                 <!-- ==============================================
                      PANEL 7: ACTIVITY
                      ============================================== -->
-                <section class="admin-panel" id="panel-activity">
-                    <div class="section-header">
-                        <h1 class="section-title">Activity</h1>
-                        <p class="section-subtitle">Live real-time feed of admin, owner, and commuter activities.</p>
-                    </div>
+                <section class="admin-panel space-y-5" id="panel-activity">
+                    <!-- Section Header + Category Filter -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                        <div>
+                            <h1 class="section-title">Activity Log</h1>
+                            <p class="section-subtitle">Real-time audit trail of administrator decisions, business submissions, and commuter moderation events.</p>
+                        </div>
 
-                    <!-- Category Filter -->
-                    <div class="flat-card" style="margin-bottom: 16px; padding: 16px;">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <label for="activityFilterType" style="font-size: 13px; font-weight: 600; color: #475569;">Event Category:</label>
-                            <select id="activityFilterType" class="admin-select" style="min-width: 200px; height: 38px; border: 1px solid #E2E8F0; border-radius: 8px; padding: 0 10px; font-family: 'Outfit', sans-serif;">
+                        <div class="flex items-center gap-2.5 self-start sm:self-auto">
+                            <label for="activityFilterType" class="text-xs font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">Filter Event:</label>
+                            <select id="activityFilterType" class="admin-select min-w-[200px] h-10 rounded-lg border border-slate-200 px-3">
                                 <option value="all">All Events</option>
                                 <option value="application">Applications</option>
                                 <option value="payment">Payments</option>
-                                <option value="business">Businesses & 360</option>
+                                <option value="business">Businesses &amp; 360°</option>
                                 <option value="review">Reviews</option>
                                 <option value="post">Posts</option>
                             </select>
@@ -2563,47 +2585,127 @@
 
                     <div id="activityLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Activity List Container -->
-                    <div id="activityFeedContainer" style="display: flex; flex-direction: column; gap: 12px;"></div>
-                    <div id="activityEmptyState" class="flat-card" style="display: none; padding: 32px 16px; text-align: center; color: #64748B;">
-                        No activity records found.
+                    <!-- Activity Timeline Feed Container -->
+                    <div class="flat-card p-0 overflow-hidden">
+                        <div id="activityFeedContainer" class="divide-y divide-slate-200"></div>
+                        <div id="activityEmptyState" class="p-10 text-center text-sm text-slate-500" style="display: none;">
+                            <i class="ti ti-activity-heartbeat text-2xl text-slate-400 block mb-1.5"></i>
+                            No activity records found for this category.
+                        </div>
                     </div>
                 </section>
 
                 <!-- ==============================================
                      PANEL 8: SETTINGS
                      ============================================== -->
-                <section class="admin-panel" id="panel-settings">
-                    <div class="section-header">
+                <section class="admin-panel space-y-5" id="panel-settings">
+                    <div class="bg-white border border-slate-200 rounded-xl p-5">
                         <h1 class="section-title">Settings</h1>
-                        <p class="section-subtitle">Account information and administrator session.</p>
+                        <p class="section-subtitle">Administrator credentials, session controls, and active Calzada platform configuration.</p>
                     </div>
 
-                    <div style="max-width: 600px; display: flex; flex-direction: column; gap: 16px;">
-                        <div class="flat-card">
-                            <h2 style="font-family: 'Sora', sans-serif; font-size: 16px; margin-bottom: 16px;">Administrator Profile</h2>
-                            <div class="detail-fields-grid" style="grid-template-columns: 1fr;">
-                                <div class="field-group">
-                                    <span class="field-label">Email</span>
-                                    <span class="field-val" id="settingsEmail">--</span>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                        <!-- Left 6 Cols: Administrator Profile & Session -->
+                        <div class="lg:col-span-6 space-y-5">
+                            <div class="flat-card space-y-4">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-11 w-11 rounded-xl bg-blue-50 border border-blue-200 text-[#1F69B8] flex items-center justify-center text-xl">
+                                            <i class="ti ti-shield-lock"></i>
+                                        </div>
+                                        <div>
+                                            <h2 class="font-['Sora'] text-base font-bold text-[#042C53]">Administrator Profile</h2>
+                                            <p class="text-xs text-slate-500">Verified Firebase Custom Claim Identity</p>
+                                        </div>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700">
+                                        <i class="ti ti-circle-check"></i> Admin Active
+                                    </span>
                                 </div>
-                                <div class="field-group">
-                                    <span class="field-label">Role Claim</span>
-                                    <span class="field-val" style="color: var(--brand-blue-dark); font-family: monospace;">{ admin: true }</span>
+
+                                <div class="space-y-3 text-sm">
+                                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-2">
+                                        <div>
+                                            <span class="field-label block">Authenticated Email</span>
+                                            <span class="field-val font-semibold text-[#042C53]" id="settingsEmail">--</span>
+                                        </div>
+                                        <i class="ti ti-mail text-slate-400 text-lg"></i>
+                                    </div>
+
+                                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-2">
+                                        <div>
+                                            <span class="field-label block">Security Privilege Claim</span>
+                                            <span class="field-val font-mono text-xs font-bold text-[#1F69B8]">System Administrator ({ admin: true })</span>
+                                        </div>
+                                        <i class="ti ti-key text-slate-400 text-lg"></i>
+                                    </div>
+
+                                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-2">
+                                        <div class="min-w-0">
+                                            <span class="field-label block">Firebase Account UID</span>
+                                            <span class="field-val font-mono text-xs text-slate-700 select-all" id="settingsUid">--</span>
+                                        </div>
+                                        <button type="button" class="btn-copy-ref shrink-0" id="btnCopyAdminUid">Copy UID</button>
+                                    </div>
                                 </div>
-                                <div class="field-group">
-                                    <span class="field-label">Account UID</span>
-                                    <span class="field-val" id="settingsUid" style="font-family: monospace; font-size: 12px;">--</span>
+
+                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                                    <span class="text-xs text-slate-500">Sign out of this administrator session on this device.</span>
+                                    <button type="button" class="btn-admin-danger" id="settingsSignOutBtn">
+                                        <i class="ti ti-logout"></i>
+                                        <span>Sign Out of Admin Portal</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flat-card">
-                            <h2 style="font-family: 'Sora', sans-serif; font-size: 16px; margin-bottom: 12px;">Session</h2>
-                            <button type="button" class="btn-admin-secondary" id="settingsSignOutBtn">
-                                <i class="ti ti-logout"></i>
-                                <span>Sign Out of Admin Portal</span>
-                            </button>
+                        <!-- Right 6 Cols: Active Platform Rules & Plan Reference -->
+                        <div class="lg:col-span-6 space-y-5">
+                            <div class="flat-card space-y-4">
+                                <div class="border-b border-slate-100 pb-3">
+                                    <h2 class="font-['Sora'] text-base font-bold text-[#042C53]">Platform Rules &amp; Tier Reference</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Active parameters used by automated pre-flight checks and GCash verification.</p>
+                                </div>
+
+                                <div class="space-y-3">
+                                    <div class="rounded-lg border border-slate-200 p-3.5">
+                                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Listing Plans (CALZADA_PLANS)</div>
+                                        <div class="grid grid-cols-3 gap-2 text-center">
+                                            <div class="rounded-md bg-slate-50 border border-slate-200 p-2.5">
+                                                <div class="text-xs font-bold text-[#042C53]">Listed</div>
+                                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8] mt-0.5">₱59</div>
+                                                <div class="text-[11px] text-slate-500">Map Pin + Profile</div>
+                                            </div>
+                                            <div class="rounded-md bg-slate-50 border border-slate-200 p-2.5">
+                                                <div class="text-xs font-bold text-[#042C53]">Listed + 360</div>
+                                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8] mt-0.5">₱99</div>
+                                                <div class="text-[11px] text-slate-500">Includes 360° Tour</div>
+                                            </div>
+                                            <div class="rounded-md bg-blue-50/60 border border-blue-200 p-2.5">
+                                                <div class="text-xs font-bold text-[#042C53]">Featured</div>
+                                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8] mt-0.5">₱149</div>
+                                                <div class="text-[11px] text-slate-500">360° + 14d Featured</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="rounded-lg border border-slate-200 p-3.5 text-xs text-slate-600 space-y-1.5">
+                                        <div class="font-bold uppercase tracking-wider text-slate-400 mb-1">Geofence &amp; Verification Rules</div>
+                                        <div class="flex items-center justify-between">
+                                            <span>Covered Calamba Barangays:</span>
+                                            <strong class="text-[#042C53]">Brgy. Uno (Poblacion 1), Real, Halang</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>Duplicate Establishment Proximity Warning:</span>
+                                            <strong class="text-[#042C53]">≤ 30 meters</strong>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>360° Equirectangular Aspect Ratio:</span>
+                                            <strong class="text-[#042C53]">2:1 (Up to 5 scenes, max 6000×3000)</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -4738,48 +4840,76 @@
         });
 
         // --- Posts Moderation View ---
+        let currentPostFilter = 'all';
+        let postSearchQuery = '';
+
         function renderPostsSection() {
             const container = document.getElementById('postsListContainer');
             const emptyState = document.getElementById('postsEmptyState');
             if (!container || !emptyState) return;
 
-            if (allPosts.length === 0) {
+            let list = allPosts.slice();
+            const nowMs = Date.now();
+
+            if (currentPostFilter === 'active') {
+                list = list.filter(p => p.status !== 'hidden');
+            } else if (currentPostFilter === 'pinned') {
+                list = list.filter(p => p.pinnedUntil && (p.pinnedUntil.toMillis ? p.pinnedUntil.toMillis() : new Date(p.pinnedUntil).getTime()) > nowMs);
+            } else if (currentPostFilter === 'hidden') {
+                list = list.filter(p => p.status === 'hidden');
+            }
+
+            const q = postSearchQuery.trim().toLowerCase();
+            if (q) {
+                list = list.filter(p => {
+                    const bus = allBusinesses.find(b => b.id === p.businessId);
+                    const busName = bus ? bus.name : (p.businessName || '');
+                    return [busName, p.caption, p.label].some(v => String(v || '').toLowerCase().includes(q));
+                });
+            }
+
+            if (list.length === 0) {
                 container.innerHTML = '';
                 emptyState.style.display = 'block';
                 return;
             }
 
             emptyState.style.display = 'none';
-            container.innerHTML = allPosts.map(p => {
+            container.innerHTML = list.map(p => {
                 const bus = allBusinesses.find(b => b.id === p.businessId);
                 const busName = bus ? bus.name : (p.businessName || 'Business');
                 const photo = (p.photoUrls && p.photoUrls[0]) || p.photoUrl || '';
                 const isHidden = p.status === 'hidden';
-                const isPinned = p.pinnedUntil && (p.pinnedUntil.toMillis ? p.pinnedUntil.toMillis() : new Date(p.pinnedUntil).getTime()) > Date.now();
+                const pinMs = p.pinnedUntil ? (p.pinnedUntil.toMillis ? p.pinnedUntil.toMillis() : new Date(p.pinnedUntil).getTime()) : 0;
+                const isPinned = pinMs > nowMs;
+                const pinUntilStr = isPinned ? formatAdminDate(p.pinnedUntil) : '';
 
                 return `
-                    <div class="flat-card" style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
-                        ${photo ? `<img src="${escapeHtml(photo)}" alt="Post Photo" style="width: 100px; height: 75px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border-color); flex-shrink: 0;">` : ''}
-                        <div style="flex: 1; min-width: min(240px, 100%);">
-                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                <strong style="font-family: 'Sora', sans-serif; font-size: 15px; color: var(--navy-dark);">${escapeHtml(busName)}</strong>
-                                <span style="font-size: 12px; color: var(--navy-subtle);">${formatAdminDate(p.createdAt)}</span>
+                    <div class="flat-card flex flex-col justify-between gap-4">
+                        <div class="flex gap-4 items-start">
+                            ${photo ? `<img src="${escapeHtml(photo)}" alt="Post Photo" class="w-24 h-20 object-cover rounded-lg border border-slate-200 shrink-0">` : ''}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start gap-2">
+                                    <strong class="font-['Sora'] text-sm font-bold text-[#042C53] truncate">${escapeHtml(busName)}</strong>
+                                    <span class="text-xs text-slate-400 shrink-0">${formatAdminDate(p.createdAt)}</span>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-1.5 my-1.5">
+                                    <span class="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#1F69B8]">${escapeHtml(p.label || 'Announcement')}</span>
+                                    ${isPinned ? `<span class="rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-700"><i class="ti ti-pin"></i> Pinned until ${escapeHtml(pinUntilStr)}</span>` : ''}
+                                    ${isHidden ? `<span class="rounded bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-bold text-red-700"><i class="ti ti-eye-off"></i> Hidden</span>` : ''}
+                                </div>
+                                <p class="text-sm text-slate-700 leading-relaxed break-words">
+                                    ${escapeHtml(p.caption || 'No caption')}
+                                </p>
                             </div>
-                            <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--brand-blue-dark); margin: 4px 0;">
-                                ${escapeHtml(p.label || 'Announcement')}
-                                ${isPinned ? ' · <span style="color: var(--dot-green);">PINNED</span>' : ''}
-                                ${isHidden ? ' · <span style="color: var(--dot-red);">HIDDEN</span>' : ''}
-                            </div>
-                            <p style="font-size: 13px; color: var(--navy-dark); line-height: 1.5; margin-top: 4px;">
-                                ${escapeHtml(p.caption || 'No caption')}
-                            </p>
                         </div>
-                        <div style="display: flex; gap: 8px; align-items: center; align-self: center;">
+                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                             <button type="button" class="btn-admin-secondary btn-toggle-post-hide" data-post-id="${p.id}" data-current-status="${p.status || 'active'}">
-                                ${isHidden ? '<i class="ti ti-eye"></i> Show' : '<i class="ti ti-eye-off"></i> Hide'}
+                                ${isHidden ? '<i class="ti ti-eye"></i> Show Post' : '<i class="ti ti-eye-off"></i> Hide'}
                             </button>
-                            <button type="button" class="btn-admin-primary btn-pin-post" data-post-id="${p.id}">
-                                <i class="ti ti-pin"></i> Pin for 7 days
+                            <button type="button" class="${isPinned ? 'btn-admin-secondary' : 'btn-admin-primary'} btn-pin-post" data-post-id="${p.id}" data-pinned="${isPinned ? '1' : '0'}">
+                                <i class="ti ${isPinned ? 'ti-pinned-off' : 'ti-pin'}"></i>
+                                <span>${isPinned ? 'Unpin' : 'Pin for 7 days'}</span>
                             </button>
                         </div>
                     </div>
@@ -4806,7 +4936,7 @@
 
                         const p = allPosts.find(item => item.id === postId);
                         if (p) p.status = newStatus;
-                        showAdminNotice(`Post ${newStatus === 'hidden' ? 'hidden' : 'unhidden'}.`, 'success');
+                        showAdminNotice(`Post ${newStatus === 'hidden' ? 'hidden' : 'restored'}.`, 'success');
                         renderPostsSection();
                     } catch (err) {
                         console.error('Error toggling post visibility:', err);
@@ -4820,27 +4950,42 @@
             container.querySelectorAll('.btn-pin-post').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     const postId = btn.getAttribute('data-post-id');
+                    const currentlyPinned = btn.getAttribute('data-pinned') === '1';
                     try {
-                        setButtonLoading(btn, true, 'Pinning...');
+                        setButtonLoading(btn, true, currentlyPinned ? 'Unpinning...' : 'Pinning...');
                         const postRef = doc(db, 'posts', postId);
-                        const sevenDaysLater = Timestamp.fromMillis(Date.now() + 7 * 86400000);
+                        const nextPinVal = currentlyPinned ? null : Timestamp.fromMillis(Date.now() + 7 * 86400000);
                         await updateDoc(postRef, {
-                            pinnedUntil: sevenDaysLater,
+                            pinnedUntil: nextPinVal,
                             updatedAt: serverTimestamp()
                         });
                         const p = allPosts.find(item => item.id === postId);
-                        if (p) p.pinnedUntil = sevenDaysLater;
-                        showAdminNotice('Post pinned for 7 days.', 'success');
+                        if (p) p.pinnedUntil = nextPinVal;
+                        showAdminNotice(currentlyPinned ? 'Post unpinned.' : 'Post pinned for 7 days.', 'success');
                         renderPostsSection();
                     } catch (err) {
                         console.error('Error pinning post:', err);
-                        showAdminNotice(`Failed to pin post: ${err.message}`, 'error');
+                        showAdminNotice(`Failed to update pin: ${err.message}`, 'error');
                     } finally {
                         setButtonLoading(btn, false);
                     }
                 });
             });
         }
+
+        document.querySelectorAll('.admin-underline-tab[data-post-filter]').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.admin-underline-tab[data-post-filter]').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentPostFilter = tab.getAttribute('data-post-filter') || 'all';
+                renderPostsSection();
+            });
+        });
+
+        document.getElementById('postSearchInput')?.addEventListener('input', (e) => {
+            postSearchQuery = e.target.value || '';
+            renderPostsSection();
+        });
 
         // --- Reviews View ---
         function populateReviewPlaceOptions() {
@@ -4917,7 +5062,7 @@
             const count = list.length;
             const avg = count > 0 ? (list.reduce((acc, r) => acc + (Number(r.rating) || 0), 0) / count).toFixed(1) : '0.0';
             if (summaryLine) {
-                summaryLine.textContent = `${avg} average · ${count} review${count === 1 ? '' : 's'}`;
+                summaryLine.textContent = `★ ${avg} average · ${count} review${count === 1 ? '' : 's'}`;
             }
 
             if (count === 0) {
@@ -4930,20 +5075,27 @@
             tbody.innerHTML = list.map(r => {
                 const placeTitle = r.placeName || r.placeId || 'Place';
                 const isHidden = r.status === 'hidden' || r.status === 'removed';
-                const ratingNum = Number(r.rating || 5).toFixed(1);
+                const numRating = Number(r.rating || 5);
+                const ratingNum = numRating.toFixed(1);
                 const reviewerName = r.userName || 'Anonymous';
                 const reviewerEmail = r.userEmail || '';
                 const dateStr = formatAdminDate(r.updatedAt || r.createdAt);
                 const isNew = newlyAddedIds.has(r.id);
 
+                // Semantic color hierarchy for star rating badges
+                const ratingBadgeStyle = numRating <= 2
+                    ? 'background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;'
+                    : (numRating === 3 ? 'background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;' : 'background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;');
+
                 return `
                     <tr class="${isNew ? 'new-item-highlight' : ''}" data-review-row-id="${r.id}">
                         <td style="padding: 12px 16px; font-weight: 600; color: #042C53;">${escapeHtml(placeTitle)}</td>
                         <td style="padding: 12px 16px;">
-                            <span style="font-weight: 700; color: #D97706;">★ ${ratingNum}</span>
+                            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;${ratingBadgeStyle}">★ ${ratingNum}</span>
                         </td>
                         <td style="padding: 12px 16px;">
-                            <div class="review-comment-clamped">${escapeHtml(r.commentText || '—')}</div>
+                            <div class="review-comment-clamped" title="Click to expand or collapse full review" style="cursor: pointer;">${escapeHtml(r.commentText || '—')}</div>
+                            ${isHidden && r.hiddenReason ? `<div style="margin-top:6px;padding:4px 8px;border-radius:6px;background:#FEF2F2;border:1px solid #FECACA;font-size:11px;color:#991B1B;"><strong>Hidden reason:</strong> ${escapeHtml(r.hiddenReason)}</div>` : ''}
                         </td>
                         <td style="padding: 12px 16px;">
                             <div style="font-weight: 500; color: #042C53;">${escapeHtml(reviewerName)}</div>
@@ -4966,6 +5118,14 @@
                     </tr>
                 `;
             }).join('');
+
+            // Click-to-expand clamped review comments
+            tbody.querySelectorAll('.review-comment-clamped').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    el.classList.toggle('review-comment-clamped');
+                });
+            });
 
             // Hide review trigger
             tbody.querySelectorAll('.btn-trigger-hide-review').forEach(btn => {
@@ -5105,6 +5265,23 @@
         }
 
         // --- Activity View ---
+        const EVENT_LABELS = {
+            application_submitted: 'Application Submitted',
+            application_approved_pay: 'Application Approved for Payment',
+            application_needs_changes: 'Changes Requested on Application',
+            application_declined: 'Application Declined',
+            payment_submitted: 'GCash Receipt Uploaded',
+            payment_not_matched: 'Payment Sent Back (Discrepancy)',
+            business_live: 'Payment Verified & Business Published Live',
+            business_removed: 'Listing Hidden from Map',
+            business_deleted: 'Listing Permanently Deleted',
+            tour360_availed: '360° Shoot Added to Queue',
+            tour360_scheduled: '360° Photo Shoot Scheduled',
+            tour360_published: '360° Virtual Tour Published',
+            review_removed: 'Commuter Review Hidden',
+            post_hidden: 'Business Update Hidden'
+        };
+
         function renderActivitySection() {
             const container = document.getElementById('activityFeedContainer');
             const emptyState = document.getElementById('activityEmptyState');
@@ -5136,7 +5313,7 @@
             container.innerHTML = list.map(a => {
                 let roleBadgeBg = '#F1F5F9';
                 let roleBadgeColor = '#475569';
-                let roleLabel = 'User';
+                let roleLabel = 'Commuter';
 
                 if (a.actorRole === 'admin') {
                     roleBadgeBg = '#EFF6FF';
@@ -5145,35 +5322,41 @@
                 } else if (a.actorRole === 'owner') {
                     roleBadgeBg = '#ECFDF5';
                     roleBadgeColor = '#047857';
-                    roleLabel = 'Owner';
+                    roleLabel = 'Business Owner';
                 }
 
                 let iconClass = 'ti-activity';
-                if (a.event && a.event.includes('payment')) iconClass = 'ti-receipt';
-                else if (a.event && a.event.includes('application')) iconClass = 'ti-file-text';
-                else if (a.event && a.event.includes('review')) iconClass = 'ti-star';
-                else if (a.event && a.event.includes('tour360')) iconClass = 'ti-camera';
-                else if (a.event && a.event.includes('live')) iconClass = 'ti-circle-check';
+                let targetHash = '#businesses';
+                if (a.event && a.event.includes('payment')) { iconClass = 'ti-receipt'; targetHash = '#payments'; }
+                else if (a.event && a.event.includes('application')) { iconClass = 'ti-file-text'; targetHash = '#applications'; }
+                else if (a.event && a.event.includes('review')) { iconClass = 'ti-star'; targetHash = '#reviews'; }
+                else if (a.event && a.event.includes('tour360')) { iconClass = 'ti-camera'; targetHash = '#shoots'; }
+                else if (a.event && a.event.includes('post')) { iconClass = 'ti-news'; targetHash = '#posts'; }
+                else if (a.event && a.event.includes('live')) { iconClass = 'ti-circle-check'; targetHash = '#businesses'; }
 
                 const relTime = formatRelativeTime(a.at);
+                const exactDate = formatAdminDate(a.at);
+                const readableType = EVENT_LABELS[a.event] || (a.event || 'System Event').replace(/_/g, ' ');
 
                 return `
-                    <div class="flat-card" style="display: flex; gap: 14px; align-items: center; padding: 14px 18px;">
-                        <div style="width: 36px; height: 36px; border-radius: 8px; background: #F8FAFC; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div class="flex gap-3.5 items-center px-5 py-3.5 hover:bg-slate-50/80 transition-colors">
+                        <div class="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
                             <i class="ti ${iconClass}" style="color: var(--brand-blue-dark); font-size: 18px;"></i>
                         </div>
-                        <div style="flex: 1; min-width: 0;">
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span style="font-size: 13px; font-weight: 600; color: var(--navy-dark);">${escapeHtml(a.summary || a.event)}</span>
-                                <span style="display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10px; font-weight: 600; background: ${roleBadgeBg}; color: ${roleBadgeColor};">${roleLabel}</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-semibold text-[#042C53]">${escapeHtml(a.summary || readableType)}</span>
+                                <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: ${roleBadgeBg}; color: ${roleBadgeColor};">${roleLabel}</span>
                             </div>
-                            <div style="font-size: 11px; color: var(--navy-subtle); margin-top: 2px;">
-                                Event: <code style="font-family: monospace; color: var(--brand-blue-dark);">${escapeHtml(a.event)}</code>
-                                ${a.entityId ? ` · ID: ${escapeHtml(a.entityId)}` : ''}
+                            <div class="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                                <span class="font-medium text-slate-600">${escapeHtml(readableType)}</span>
+                                <span>·</span>
+                                <span>${exactDate}</span>
                             </div>
                         </div>
-                        <div style="font-size: 12px; color: var(--navy-subtle); white-space: nowrap; flex-shrink: 0;">
-                            ${relTime}
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-xs font-medium text-slate-400 whitespace-nowrap">${relTime}</span>
+                            <a href="${targetHash}" class="btn-admin-secondary" style="padding: 4px 10px; font-size: 12px;">View</a>
                         </div>
                     </div>
                 `;
@@ -5187,6 +5370,19 @@
                 renderActivitySection();
             });
         }
+
+        document.getElementById('btnCopyAdminUid')?.addEventListener('click', async (e) => {
+            const btn = e.currentTarget;
+            const uid = (document.getElementById('settingsUid')?.textContent || '').trim();
+            if (!uid || uid === '--') return;
+            try {
+                await navigator.clipboard.writeText(uid);
+                btn.textContent = 'Copied';
+            } catch (_) {
+                btn.textContent = 'Selected';
+            }
+            setTimeout(() => { btn.textContent = 'Copy UID'; }, 1600);
+        });
 
         // --- Catalog Places Loading for Proximity Checks ---
         async function loadCatalogPlaces() {
