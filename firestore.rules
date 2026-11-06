@@ -47,11 +47,10 @@ service cloud.firestore {
       allow read: if request.auth != null && request.auth.uid == userId;
       allow create: if request.auth != null && request.auth.uid == userId
         && request.auth.token.firebase.sign_in_provider != 'anonymous'
-        && request.resource.data.keys().hasOnly(['termsVersion', 'privacyVersion', 'ageConfirmed', 'method', 'lang', 'acceptedAt'])
-        && request.resource.data.keys().size() == 6
+        && request.resource.data.keys().hasOnly(['termsVersion', 'privacyVersion', 'method', 'lang', 'acceptedAt'])
+        && request.resource.data.keys().size() == 5
         && request.resource.data.termsVersion is string && request.resource.data.termsVersion.size() <= 10
         && request.resource.data.privacyVersion is string && request.resource.data.privacyVersion.size() <= 10
-        && request.resource.data.ageConfirmed == true
         && request.resource.data.method in ['email', 'google']
         && request.resource.data.lang in ['en', 'tl']
         && request.resource.data.acceptedAt == request.time;

@@ -5,12 +5,13 @@
  * One copy of the rules, used by login.html and user-stats.js (ES module imports) and by classic
  * scripts through window.CalzadaValidators.
  *
- * Names (decided Nov 2026, "wider rule"): letters from any language, single spaces, and the
+ * Names or nicknames (decided Nov 2026): letters from any language, single spaces, and the
  * marks real Filipino names use: a period (Ma., Jr., Sto.), a hyphen (Juan-Carlos) and an
  * apostrophe (D'Souza, O'Connor; straight or curly). No digits or other symbols. 2 to 60
- * characters after tidying.
- *   pass: "Ma. Theresa Dela Cruz", "Juan-Carlos Niño", "D'Souza", "Jose Rizal Jr.", "José Ma. Sto. Tomas"
- *   fail: "John2 Doe", "J", "--", "Ana  .", "Ana@Cruz"
+ * characters after tidying. Single-word names or nicknames are fine ("Marco", "Ate Joy", "Ng");
+ * obvious junk ("hahahah", "aaa", "asdf", "qwerty", "test", "xzcvb") is rejected.
+ *   pass: "Marco", "Ate Joy", "Ma. Theresa Dela Cruz", "Juan-Carlos Niño", "D'Souza", "Jose Rizal Jr.", "Ng"
+ *   fail: "hahahah", "aaa", "asdf", "xzcvb", "John2 Doe", "J", "--", "Ana  .", "Ana@Cruz"
  *
  * Passwords (matches the Firebase Authentication password policy, set to Enforce):
  *   8 to 64 characters, at least one lowercase letter, one uppercase letter, one number and one
@@ -39,20 +40,59 @@ export const NAME_RE = /^[\p{L}\p{M}]+\.?(?:[ '’-][\p{L}\p{M}]+\.?)*$/u;
 
 const NAME_MSG = {
     en: {
-        empty: 'Please enter your full name.',
+        empty: 'Please enter your name or nickname.',
         short: `Please enter at least ${NAME_MIN} letters.`,
         long: `Please keep your name to ${NAME_MAX} characters or fewer.`,
         digits: 'Names can’t contain numbers.',
-        chars: 'Use letters and spaces only. A period ( . ), hyphen ( - ) or apostrophe ( \' ) is fine, as in “Ma. Dela Cruz-Reyes”.'
+        chars: 'Use letters and spaces only. A period ( . ), hyphen ( - ) or apostrophe ( \' ) is fine, as in “Ma. Dela Cruz-Reyes”.',
+        junk: 'Please enter a real name or nickname.'
     },
     tl: {
-        empty: 'Pakilagay ang iyong buong pangalan.',
+        empty: 'Pakilagay ang iyong pangalan o palayaw.',
         short: `Maglagay ng hindi bababa sa ${NAME_MIN} letra.`,
         long: `Hanggang ${NAME_MAX} character lang ang pangalan.`,
         digits: 'Hindi puwedeng may numero ang pangalan.',
-        chars: 'Letra at espasyo lang ang gamitin. Puwede ang tuldok ( . ), gitling ( - ) o kudlit ( \' ), gaya ng “Ma. Dela Cruz-Reyes”.'
+        chars: 'Letra at espasyo lang ang gamitin. Puwede ang tuldok ( . ), gitling ( - ) o kudlit ( \' ), gaya ng “Ma. Dela Cruz-Reyes”.',
+        junk: 'Maglagay ng totoong pangalan o palayaw.'
     }
 };
+
+const JUNK_WORDS = new Set([
+    'lol', 'lmao', 'rofl', 'lmfao', 'kek', 'wkwk', 'wkwkwk', 'hahaha', 'hehehe', 'hihihi', 'jejeje',
+    'asdf', 'asdfg', 'asdfgh', 'asdfghjkl', 'qwer', 'qwert', 'qwerty', 'qwertyuiop',
+    'zxcv', 'zxcvb', 'zxcvbn', 'zxcvbnm', 'abcd', 'abcde', 'abcdef',
+    'test', 'testing', 'tester', 'user', 'username', 'admin', 'administrator',
+    'none', 'null', 'undefined', 'anonymous', 'anon', 'sample', 'example', 'unknown',
+    'ambot', 'ewan', 'wala', 'pangalan', 'name', 'nickname', 'fullname',
+    'blah', 'meh', 'idk', 'wtf', 'omg', 'bruh'
+]);
+
+/** Laughs made of repeated ha/he/hi/ho/hu/ja/je ("haha", "hahahah", "hehe", "hihi", "jaja"). */
+const LAUGH_RE = /^(?:ha|he|hi|ho|hu|ja|je){2,}[hj]?$/i;
+
+/** Any 2-letter syllable repeated 3+ times ("bababa", "lalala", "nanana"). */
+const REPEAT_SYLLABLE_RE = /^([\p{L}]{2})\1{2,}[\p{L}]?$/iu;
+
+/** Same letter 3+ times in a row ("aaa", "zzz", "joooohn"). */
+const TRIPLE_LETTER_RE = /([\p{L}])\1\1/iu;
+
+function isJunkName(value) {
+    const words = value.split(/[ '’-]+/).map((w) => w.replace(/\.+$/, '')).filter(Boolean);
+    for (let i = 0; i < words.length; i++) {
+        const w = words[i];
+        const lower = w.toLowerCase();
+        if (JUNK_WORDS.has(lower)) return true;
+        if (LAUGH_RE.test(lower)) return true;
+        if (REPEAT_SYLLABLE_RE.test(lower)) return true;
+        // Allow Roman numeral "III" at the end of a multi-word name ("Juan Dela Cruz III")
+        const isTrailingRomanIII = words.length > 1 && i === words.length - 1 && w === 'III';
+        if (!isTrailingRomanIII && TRIPLE_LETTER_RE.test(w)) return true;
+        // Words of 4+ letters with no vowels at all ("xzcvb", "bcdfg"); short names like "Ng" pass
+        const base = w.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (base.length >= 4 && !/[aeiouy]/i.test(base)) return true;
+    }
+    return false;
+}
 
 /**
  * @param {string} raw  what the person typed
@@ -70,6 +110,7 @@ export function validateFullName(raw, lang) {
     if (value.length > NAME_MAX) return fail('long');
     if (!NAME_RE.test(value)) return fail('chars');
     if (letters < NAME_MIN) return fail('short');
+    if (isJunkName(value)) return fail('junk');
     return { ok: true, value };
 }
 

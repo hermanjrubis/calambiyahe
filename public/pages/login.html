@@ -142,7 +142,7 @@
                             <p id="emailError" class="auth-error-text"></p>
 
                             <button type="submit" id="btnEmailContinue" class="btn-auth-primary">Continue</button>
-                            <p class="auth-legal-terms" data-i18n="login.terms_notice">By continuing, you confirm you are 13 or older and agree to our <button type="button" class="auth-legal-link" data-open-legal="terms">Terms of Service</button> and <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>.</p>
+                            <p class="auth-legal-terms" data-i18n="login.terms_notice">By continuing, you agree to our <button type="button" class="auth-legal-link" data-open-legal="terms">Terms of Service</button> and <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>.</p>
                         </form>
                     </div>
 
@@ -193,13 +193,13 @@
                                 <p id="regEmailInputError" class="auth-error-text"></p>
                             </div>
 
-                            <label for="regName" class="auth-input-label">Full Name</label>
+                            <label for="regName" class="auth-input-label">Name or nickname</label>
                             <div class="input-group">
                                 <ion-icon name="person-outline"></ion-icon>
-                                <input type="text" id="regName" placeholder="Full Name" autocomplete="name" autocapitalize="words" spellcheck="false" maxlength="60" aria-describedby="regNameHint regNameError" required>
+                                <input type="text" id="regName" placeholder="Name or nickname" autocomplete="name" autocapitalize="words" spellcheck="false" maxlength="60" aria-describedby="regNameHint regNameError" required>
                             </div>
                             <p id="regNameError" class="auth-error-text" role="alert"></p>
-                            <p id="regNameHint" class="auth-field-hint">Letters and spaces. A period, hyphen or apostrophe is fine (Ma. Dela Cruz-Reyes, D'Souza).</p>
+                            <p id="regNameHint" class="auth-field-hint">What Calzada will call you. Letters and spaces (a period, hyphen or apostrophe is fine).</p>
 
                             <label for="regPass" class="auth-input-label">Password</label>
                             <div class="input-group">
@@ -212,11 +212,6 @@
                             <p id="regError" class="auth-error-text" role="alert"></p>
 
                             <div class="auth-consent">
-                                <label for="regAge">
-                                    <input type="checkbox" id="regAge">
-                                    <span>I confirm I am 13 years old or older.</span>
-                                </label>
-                                <p class="auth-consent-note">Under 18? Please ask a parent or guardian to read the Privacy Policy with you.</p>
                                 <label for="regTerms">
                                     <input type="checkbox" id="regTerms">
                                     <span>I have read and agree to the <button type="button" class="auth-legal-link" data-open-legal="terms">Terms of Service</button> and the <button type="button" class="auth-legal-link" data-open-legal="privacy">Privacy Policy</button>, including how route history is kept.</span>
@@ -297,7 +292,6 @@
         const regName = document.getElementById('regName');
         const regPass = document.getElementById('regPass');
         const regTerms = document.getElementById('regTerms');
-        const regAge = document.getElementById('regAge');
         const checkRegPassword = attachPasswordChecklist(regPass, document.getElementById('regPassRules'), pageLang);
         window.addEventListener('calzada_lang_changed', () => checkRegPassword());
 
@@ -365,7 +359,6 @@
             if (regEmailInputWrap) regEmailInputWrap.style.display = 'none';
             if (regEmailInput) regEmailInput.value = '';
             if (regTerms) regTerms.checked = false;
-            if (regAge) regAge.checked = false;
             checkRegPassword();
             const passNoticeEl = document.getElementById('passNotice');
             if (passNoticeEl) { passNoticeEl.innerText = ''; passNoticeEl.style.display = 'none'; }
@@ -552,14 +545,12 @@
         };
 
         // Proof of consent (RA 10173; NPC Circular 2023-04): which Terms and Privacy Policy versions
-        // were accepted, that the person confirmed being 13 or older, and when. Kept in the account,
-        // write-once (see firestore.rules users/{uid}/consents).
+        // were accepted and when. Kept in the account, write-once (see firestore.rules users/{uid}/consents).
         const recordConsent = async (uid, method) => {
             try {
                 await setDoc(doc(collection(db, `users/${uid}/consents`)), {
                     termsVersion: LEGAL_VERSIONS.terms,
                     privacyVersion: LEGAL_VERSIONS.privacy,
-                    ageConfirmed: true,
                     method,
                     lang: pageLang(),
                     acceptedAt: serverTimestamp()
@@ -703,13 +694,6 @@
                 regPass.focus();
                 return;
             }
-            if (regAge && !regAge.checked) {
-                showError(regError, pageLang() === 'tl'
-                    ? 'Kailangang 13 taong gulang pataas para gumawa ng account.'
-                    : 'You need to be 13 or older to create an account. Please confirm your age.');
-                regAge.focus();
-                return;
-            }
             if (regTerms && !regTerms.checked) {
                 showError(regError, pageLang() === 'tl'
                     ? 'Pakibasa at sang-ayunan ang Terms of Service at Privacy Policy para magpatuloy.'
@@ -807,7 +791,7 @@
             else showError(emailError, msg);
         };
 
-        // A new account made with Google accepted the Terms, the Privacy Policy and the 13+ line
+        // A new account made with Google accepted the Terms and the Privacy Policy line
         // shown right above the button ("By continuing, ..."): keep that as its consent record.
         const finishGoogleSignIn = async (user, credential) => {
             let isNew = false;

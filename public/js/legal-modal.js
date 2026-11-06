@@ -46,7 +46,7 @@
             // Opening paragraphs (shown first, on a light block)
             summary: [
                 'These Terms of Service govern your use of Calzada, a free guide for finding places and getting around Calamba City on foot or by jeepney. By using Calzada or creating an account, you agree to them, so please read them carefully.',
-                'Routes, fares and travel times on Calzada are estimates. Always check the road, the signs and the jeepney itself before you rely on them. You can plan and preview routes without an account; live navigation needs one, and you must be 13 years old or older to create it. You are responsible for what happens in your account.',
+                'Routes, fares and travel times on Calzada are estimates. Always check the road, the signs and the jeepney itself before you rely on them. You can plan and preview routes without an account; live navigation needs one. You are responsible for what happens in your account.',
                 'Please use Calzada lawfully and with respect for others. Misusing the site, other people’s data or Routie can also break the Cybercrime Prevention Act of 2012 (RA 10175).'
             ],
             sections: [
@@ -61,7 +61,6 @@
                     html: `
                     <ul>
                         <li>Anyone can browse places and plan or preview routes without an account.</li>
-                        <li>To make an account you must be <strong>13 years old or older</strong>. You confirm this when you sign up.</li>
                         <li>If you are under 18, please use Calzada with the knowledge of a parent or guardian, and ask them to read the Privacy Policy with you.</li>
                         <li>One account is for one person. Business owners use their own account to manage their listing.</li>
                     </ul>`
@@ -82,7 +81,7 @@
                     id: 'accounts', title: 'Your account',
                     html: `
                     <ul>
-                        <li>Use your real name (letters, spaces, and . - ’ as in “Ma. Dela Cruz-Reyes”) and an email address you can open.</li>
+                        <li>Use your name or nickname (letters, spaces, and . - ’ as in “Ma. Dela Cruz-Reyes”) and an email address you can open.</li>
                         <li>Choose a strong password (8 to 64 characters with upper- and lowercase letters, a number and a symbol) that you do not use elsewhere. Never share it. Calzada will never ask for it by email, chat or phone.</li>
                         <li>You are responsible for activity in your account. Tell us right away at <a href="mailto:${DPO.email}" class="legal-link">${DPO.email}</a> if you think someone else got in.</li>
                         <li>We may suspend or close an account that breaks these Terms or the law, after telling you why unless the law or someone’s safety requires otherwise.</li>
@@ -158,8 +157,8 @@
                     id: 'collect', title: 'What we collect',
                     html: `
                     <ul>
-                        <li><strong>Account:</strong> your name and email address; if you use Google Sign-In, the name, email and profile photo Google shares. Your password is handled by Firebase Authentication and stored only in hashed form; we never see it.</li>
-                        <li><strong>Consent record:</strong> the versions of these Terms and this Policy you accepted, that you confirmed being 13 or older, the sign-up method and language, and the time.</li>
+                        <li><strong>Account:</strong> your name or nickname and email address; if you use Google Sign-In, the name, email and profile photo Google shares. Your password is handled by Firebase Authentication and stored only in hashed form; we never see it.</li>
+                        <li><strong>Consent record:</strong> the versions of these Terms and this Policy you accepted, the sign-up method and language, and the time.</li>
                         <li><strong>Route history and trips:</strong> described in full in the next section.</li>
                         <li><strong>Reminders you set:</strong> the destination, starting point name, leave and arrival times, travel mode, fare and language, so we can email you at the right time.</li>
                         <li><strong>Activity in your account:</strong> your last 20 searches, your last 20 places viewed, saved places, visits and badges, and your last 50 messages with Routie, so you can pick up where you left off.</li>
@@ -261,9 +260,9 @@
                     <p>To use a right, email the DPO at <a href="mailto:${DPO.email}" class="legal-link">${DPO.email}</a> from your account’s email address, so we know the request is yours. It is free.</p>`
                 },
                 {
-                    id: 'children', title: 'Children',
+                    id: 'children', title: 'Children and young commuters',
                     html: `
-                    <p>Accounts are for people 13 and older. If you are under 18, please use Calzada with a parent or guardian’s knowledge. If we learn that an account belongs to someone under 13, we delete it. Parents or guardians can write to the DPO about a child’s data.</p>`
+                    <p>Calzada does not ask for your age or birthdate, and anyone can browse places and plan routes without an account. If you are under 18 and create an account, please do so with a parent or guardian’s knowledge. A parent or guardian can write to the DPO at <a href="mailto:${DPO.email}" class="legal-link">${DPO.email}</a> at any time to access or delete a minor’s account.</p>`
                 },
                 {
                     id: 'changes', title: 'Changes to this policy',

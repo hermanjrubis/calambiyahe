@@ -33,7 +33,7 @@ import {
     updatePassword
 } from "./firebase-init.js";
 import { requestPasswordReset, resetMessage, startCooldown, clearResetLimits } from "./password-reset.js";
-import { validatePassword, attachPasswordChecklist } from "./validators.js";
+import { validateFullName, validatePassword, attachPasswordChecklist } from "./validators.js";
 
 // Badge criteria definitions with pure SVGs
 export const BADGE_DEFINITIONS = [
@@ -3069,14 +3069,30 @@ async function saveUserSettings() {
     if (nameErrorEl) { nameErrorEl.style.display = 'none'; nameErrorEl.textContent = ''; }
     if (saveErrorEl) { saveErrorEl.style.display = 'none'; saveErrorEl.textContent = ''; }
 
-    const newName = nameInput ? nameInput.value.trim() : '';
+    const rawName = nameInput ? nameInput.value.trim() : '';
+    const lang = (() => { try { return localStorage.getItem('calzada_lang') === 'tl' ? 'tl' : 'en'; } catch (_) { return 'en'; } })();
+    let newName = rawName;
 
-    if (!newName && !pendingAvatarDataUrl && !pendingAvatarRemoved) {
+    if (!rawName && !pendingAvatarDataUrl && !pendingAvatarRemoved) {
         if (nameErrorEl) {
-            nameErrorEl.textContent = 'Display name cannot be empty.';
+            nameErrorEl.textContent = lang === 'tl' ? 'Pakilagay ang iyong pangalan o palayaw.' : 'Please enter your name or nickname.';
             nameErrorEl.style.display = 'block';
         }
         return;
+    }
+
+    if (rawName && rawName !== initialLoadedDisplayName) {
+        const nameCheck = validateFullName(rawName, lang);
+        if (!nameCheck.ok) {
+            if (nameErrorEl) {
+                nameErrorEl.textContent = nameCheck.message;
+                nameErrorEl.style.display = 'block';
+            }
+            if (nameInput) nameInput.focus();
+            return;
+        }
+        newName = nameCheck.value;
+        if (nameInput) nameInput.value = newName;
     }
 
     isSavingSettings = true;
@@ -3345,8 +3361,8 @@ function createProfileModals() {
                     <!-- Profile Edit Form -->
                     <form id="settingsProfileForm" class="settings-form" novalidate>
                         <div class="settings-form-group">
-                            <label for="prefDisplayNameInput" class="settings-label">Display Name</label>
-                            <input type="text" id="prefDisplayNameInput" class="settings-input" placeholder="Your name or commuter handle" maxlength="40" autocomplete="off" />
+                            <label for="prefDisplayNameInput" class="settings-label">Name or nickname</label>
+                            <input type="text" id="prefDisplayNameInput" class="settings-input" placeholder="Your name or nickname" maxlength="60" autocomplete="name" />
                             <div id="settingsDisplayNameError" class="settings-inline-error" style="display: none;"></div>
                         </div>
 

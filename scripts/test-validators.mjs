@@ -1,9 +1,10 @@
 // Name and password rules (public/js/validators.js): node scripts/test-validators.mjs
-import V from '../public/js/validators.js';
+import fs from 'fs';
+const V = (await import('data:text/javascript,' + encodeURIComponent(fs.readFileSync(new URL('../public/js/validators.js', import.meta.url), 'utf8')))).default;
 let fails=0; const ck=(n,ok)=>{console.log((ok?'PASS':'FAIL')+'  '+n); if(!ok) fails++;};
-for (const n of ['Ma. Theresa Dela Cruz','Juan-Carlos Niño',"D'Souza",'Jose Rizal Jr.','José Ma. Sto. Tomas','O’Connor','  Ana   Cruz  ','Nguyễn Văn An','Li','Juan Dela Cruz III'])
+for (const n of ['Ma. Theresa Dela Cruz','Juan-Carlos Niño',"D'Souza",'Jose Rizal Jr.','José Ma. Sto. Tomas','O’Connor','  Ana   Cruz  ','Nguyễn Văn An','Li','Ng','Marco','Ate Joy','Nene','Juan Dela Cruz III'])
   ck('name ok: '+n, V.validateFullName(n).ok);
-for (const [n,c] of [['John2 Doe','digits'],['J','short'],['--','chars'],['Ana  .','chars'],['Ana@Cruz','chars'],['','empty'],['A'.repeat(61),'long'],["Ana''Cruz",'chars'],['.Ana','chars'],['Ana-','chars']])
+for (const [n,c] of [['John2 Doe','digits'],['J','short'],['--','chars'],['Ana  .','chars'],['Ana@Cruz','chars'],['','empty'],['A'.repeat(61),'long'],["Ana''Cruz",'chars'],['.Ana','chars'],['Ana-','chars'],['hahahah','junk'],['haha','junk'],['hehe','junk'],['lol','junk'],['aaa','junk'],['asdf','junk'],['qwerty','junk'],['test','junk'],['user','junk'],['xzcvb','junk']])
   { const r=V.validateFullName(n); ck(`name fail (${c}): ${JSON.stringify(n)} -> ${r.code}`, !r.ok && r.code===c); }
 ck('tidies spaces', V.validateFullName('  Ana   Cruz ').value==='Ana Cruz');
 ck('tl message', /numero/.test(V.validateFullName('Ana2','tl').message));
