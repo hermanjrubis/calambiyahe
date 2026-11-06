@@ -33,7 +33,7 @@ import {
     updatePassword
 } from "./firebase-init.js";
 import { requestPasswordReset, resetMessage, startCooldown, clearResetLimits } from "./password-reset.js";
-import { validatePassword } from "./validators.js";
+import { validatePassword, attachPasswordChecklist } from "./validators.js";
 
 // Badge criteria definitions with pure SVGs
 export const BADGE_DEFINITIONS = [
@@ -1947,27 +1947,42 @@ export function setupProfileUI() {
             return;
         }
 
-        // Toggle Change Password container
+        // Change password: open/close, step 1 (confirm current), step 2 (set new), show/hide
         const togglePwBtn = e.target.closest('#btnToggleChangePassword');
         if (togglePwBtn) {
             e.preventDefault();
             toggleChangePasswordForm();
             return;
         }
-
-        // Cancel Change Password
-        const cancelPwBtn = e.target.closest('#btnCancelChangePw');
+        const cancelPwBtn = e.target.closest('#btnCancelChangePw, #btnCancelChangePw2');
         if (cancelPwBtn) {
             e.preventDefault();
             toggleChangePasswordForm(false);
             return;
         }
-
-        // Submit Change Password
+        const verifyPwBtn = e.target.closest('#btnVerifyCurrentPw');
+        if (verifyPwBtn) {
+            e.preventDefault();
+            handleVerifyCurrentPassword();
+            return;
+        }
         const submitPwBtn = e.target.closest('#btnSubmitChangePassword');
         if (submitPwBtn) {
             e.preventDefault();
             handleChangePassword();
+            return;
+        }
+        const eyeBtn = e.target.closest('.cz-pw-eye');
+        if (eyeBtn) {
+            e.preventDefault();
+            const input = document.getElementById(eyeBtn.dataset.target);
+            if (input) {
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                eyeBtn.setAttribute('aria-pressed', show ? 'true' : 'false');
+                eyeBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                eyeBtn.classList.toggle('is-on', show);
+            }
             return;
         }
 
@@ -2686,11 +2701,12 @@ async function handlePasswordReset() {
     const errorEl = document.getElementById('settingsResetError');
     if (errorEl) {
         errorEl.style.display = 'none';
+        errorEl.hidden = true;
         errorEl.textContent = '';
         errorEl.style.color = '';
     }
 
-    if (!btn || btn.disabled) return;
+    if (!btn || btn.disabled || btn.classList.contains('is-cooling')) return;
 
     const user = auth.currentUser || activeUser;
     const email = user?.email;
@@ -2700,6 +2716,7 @@ async function handlePasswordReset() {
         if (!errorEl) return;
         errorEl.textContent = text;
         errorEl.style.color = info ? 'var(--text-muted, #64748B)' : '';
+        errorEl.hidden = false;
         errorEl.style.display = 'block';
     };
 
@@ -2716,7 +2733,7 @@ async function handlePasswordReset() {
         return;
     }
 
-    const defaultLabel = 'Send Password Reset Email';
+    const defaultLabel = btn.dataset.label || 'Send Password Reset Email';
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
@@ -2736,163 +2753,307 @@ async function handlePasswordReset() {
     }
 }
 
+// ── Change password (Account settings) ───────────────────────────────────────────────────────
+// Two steps in the "Account Security" card:
+//   1. Confirm it's you: the current password is checked with Firebase (re-authentication).
+//      Firebase itself pauses tries after too many wrong passwords (auth/too-many-requests).
+//   2. Choose a new password: same rules as sign-up (validators.js), typed twice, different from
+//      the current one. Allowed for 5 minutes after step 1; after that, step 1 again.
+// Nothing is stored: the current password is only kept as a SHA-256 hash in memory to tell
+// "same as current", and cleared when the card closes.
+const CHANGE_PW_WINDOW_MS = 5 * 60 * 1000;
+let changePwVerifiedAt = 0;
+let changePwCurrentHash = null;
+let changePwChecklist = null;
+
+const CZ_PW_CSS = `
+#czPwCard { border: 1px solid #E2E8F0; border-radius: 12px; background: #FFFFFF; overflow: hidden; }
+#czPwCard .cz-pw-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+#czPwCard .cz-pw-row-icon { flex: 0 0 auto; color: #5A6A7F; }
+#czPwCard .cz-pw-row-text { flex: 1 1 auto; min-width: 0; }
+#czPwCard .cz-pw-row-title { margin: 0; font-family: 'Sora', sans-serif; font-size: 0.88rem; font-weight: 600; color: #042C53; }
+#czPwCard .cz-pw-row-sub { margin: 2px 0 0; font-size: 0.78rem; line-height: 1.4; color: #5A6A7F; }
+#czPwCard .cz-pw-row-btn { flex: 0 0 auto; padding: 7px 14px; border: 1px solid #CBD5E1; border-radius: 8px; background: #FFFFFF; color: #1F69B8; font-family: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: border-color 0.15s ease, background 0.15s ease; }
+#czPwCard .cz-pw-row-btn:hover { border-color: #378ADD; background: #F5F9FE; }
+#czPwCard .cz-pw-panel { border-top: 1px solid #E2E8F0; padding: 14px; }
+#czPwCard .cz-pw-step { margin: 0 0 12px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #5A6A7F; }
+#czPwCard .cz-pw-label { display: block; margin: 0 0 6px; font-family: 'Sora', sans-serif; font-size: 0.8rem; font-weight: 600; color: #042C53; }
+#czPwCard .cz-pw-label.cz-pw-gap { margin-top: 14px; }
+#czPwCard .cz-pw-field { position: relative; }
+#czPwCard .cz-pw-field input.cz-pw-input { padding-right: 46px; }
+#czPwCard .cz-pw-eye { position: absolute; top: 50%; right: 4px; transform: translateY(-50%); width: 36px; height: 36px; padding: 0; border: none; border-radius: 8px; background: transparent; color: #5A6A7F; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+#czPwCard .cz-pw-eye:hover, #czPwCard .cz-pw-eye.is-on { color: #1F69B8; }
+#czPwCard .cz-pw-eye:focus-visible, #czPwCard .cz-pw-row-btn:focus-visible, #czPwCard .cz-pw-forgot:focus-visible { outline: 2px solid #378ADD; outline-offset: 2px; }
+#czPwCard .cz-pw-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+#czPwCard .cz-pw-actions-gap { flex: 1 1 auto; }
+#czPwCard .cz-pw-forgot { padding: 0; border: none; background: none; font-family: inherit; font-size: 0.78rem; color: #1F69B8; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; text-align: left; }
+#czPwCard .cz-pw-forgot.is-cooling { color: #5A6A7F; text-decoration: none; cursor: default; }
+#czPwCard .cz-pw-alert { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: #FEF3F2; color: #B42318; font-size: 0.8rem; line-height: 1.45; }
+#czPwCard .cz-pw-verified { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; font-size: 0.78rem; color: #0F7B4A; }
+#czPwCard .cz-pw-done { display: flex; align-items: flex-start; gap: 8px; padding: 12px 14px; border-top: 1px solid #E2E8F0; background: #F3FBF6; color: #0F7B4A; font-size: 0.82rem; line-height: 1.45; }
+#czPwCard .cz-pw-done svg { flex: 0 0 auto; margin-top: 2px; }
+#czPwCard .cz-pw-hidden-user { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#czPwCard .settings-btn-spinner[hidden], #czPwCard [hidden] { display: none !important; }
+/* Rule checklist: shape tells the state (○ not typed yet · ✔ met · ✖ not met), colour only helps */
+#czPwCard .cz-pw-rules { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 12px; font-size: 0.75rem; line-height: 1.35; color: #5A6A7F; }
+#czPwCard .cz-pw-rules li { display: flex; align-items: flex-start; gap: 6px; min-width: 0; }
+#czPwCard .cz-pw-rules .pw-rule-icon { flex: 0 0 auto; display: inline-flex; width: 14px; height: 14px; margin-top: 1px; color: #94A3B8; }
+#czPwCard .cz-pw-rules .pw-rule-icon svg { display: block; }
+#czPwCard .cz-pw-rules li.is-met, #czPwCard .cz-pw-rules li.is-met .pw-rule-icon { color: #0F7B4A; }
+#czPwCard .cz-pw-rules li.is-unmet { color: #B42318; }
+#czPwCard .cz-pw-rules li.is-unmet .pw-rule-icon { color: #D92D20; }
+#czPwCard .pw-sr { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (max-width: 400px) {
+  #czPwCard .cz-pw-rules { grid-template-columns: minmax(0, 1fr); }
+  #czPwCard .cz-pw-actions .settings-save-btn { flex: 1 1 100%; }
+}
+`;
+
+function ensureChangePwSetup() {
+    if (!document.getElementById('czPwStyles')) {
+        const style = document.createElement('style');
+        style.id = 'czPwStyles';
+        style.textContent = CZ_PW_CSS;
+        document.head.appendChild(style);
+    }
+    if (!window.__czPwKeys) {
+        window.__czPwKeys = true;
+        // Enter inside these fields runs that step (they sit inside the profile form, which must not submit)
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Enter' || !e.target || !e.target.id) return;
+            if (e.target.id === 'settingsCurrentPwInput') { e.preventDefault(); handleVerifyCurrentPassword(); }
+            else if (e.target.id === 'settingsNewPwInput' || e.target.id === 'settingsConfirmPwInput') { e.preventDefault(); handleChangePassword(); }
+        }, true);
+    }
+}
+
+const pwById = (id) => document.getElementById(id);
+
+function setPwText(id, msg) {
+    const el = pwById(id);
+    if (!el) return;
+    el.textContent = msg || '';
+    el.hidden = !msg;
+    el.style.display = msg ? 'block' : 'none';
+}
+
+function setPwBusy(btn, busy) {
+    if (!btn) return;
+    btn.disabled = busy;
+    const text = btn.querySelector('.cz-pw-btn-text');
+    const spin = btn.querySelector('.settings-btn-spinner');
+    if (text) text.hidden = busy;
+    if (spin) spin.hidden = !busy;
+}
+
+async function sha256Text(text) {
+    try {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+        return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+    } catch (_) {
+        return null;
+    }
+}
+
+function resetPwInputs() {
+    ['settingsCurrentPwInput', 'settingsNewPwInput', 'settingsConfirmPwInput'].forEach((id) => {
+        const input = pwById(id);
+        if (input) { input.value = ''; input.type = 'password'; input.removeAttribute('aria-invalid'); }
+    });
+    document.querySelectorAll('#czPwCard .cz-pw-eye').forEach((b) => {
+        b.classList.remove('is-on');
+        b.setAttribute('aria-pressed', 'false');
+        b.setAttribute('aria-label', 'Show password');
+    });
+    ['settingsChangePwAlert', 'settingsCurrentPwError', 'settingsNewPwError', 'settingsConfirmPwError', 'settingsResetError'].forEach((id) => setPwText(id, ''));
+    if (changePwChecklist) changePwChecklist();
+}
+
+function showChangePwStep(step) {
+    const one = pwById('czPwStage1');
+    const two = pwById('czPwStage2');
+    const label = pwById('czPwStepLabel');
+    if (one) one.hidden = step !== 1;
+    if (two) two.hidden = step !== 2;
+    if (label) label.textContent = step === 1 ? "Step 1 of 2 · Confirm it's you" : 'Step 2 of 2 · Choose a new password';
+    const focusId = step === 1 ? 'settingsCurrentPwInput' : 'settingsNewPwInput';
+    setTimeout(() => { const f = pwById(focusId); if (f) f.focus(); }, 50);
+}
+
 function toggleChangePasswordForm(forceState) {
-    const container = document.getElementById('settingsChangePwContainer');
-    const alertEl = document.getElementById('settingsChangePwAlert');
-    const successEl = document.getElementById('settingsChangePwSuccess');
-    const currentPwErr = document.getElementById('settingsCurrentPwError');
-    const newPwErr = document.getElementById('settingsNewPwError');
-    const currentInput = document.getElementById('settingsCurrentPwInput');
-    const newInput = document.getElementById('settingsNewPwInput');
+    ensureChangePwSetup();
+    const panel = pwById('settingsChangePwContainer');
+    const toggleBtn = pwById('btnToggleChangePassword');
+    const done = pwById('settingsChangePwSuccess');
+    const sub = pwById('czPwRowSub');
+    if (!panel) return;
 
-    if (!container) return;
-    const isVisible = container.style.display !== 'none';
-    const show = forceState !== undefined ? forceState : !isVisible;
+    const user = auth.currentUser || activeUser;
+    const hasPassword = !!(user && Array.isArray(user.providerData) && user.providerData.some((p) => p.providerId === 'password'));
 
-    container.style.display = show ? 'block' : 'none';
-    if (alertEl) { alertEl.style.display = 'none'; alertEl.textContent = ''; }
-    if (successEl) { successEl.style.display = 'none'; successEl.textContent = ''; }
-    if (currentPwErr) { currentPwErr.style.display = 'none'; currentPwErr.textContent = ''; }
-    if (newPwErr) { newPwErr.style.display = 'none'; newPwErr.textContent = ''; }
-    if (currentInput) currentInput.value = '';
-    if (newInput) newInput.value = '';
-    if (show && currentInput) {
-        setTimeout(() => currentInput.focus(), 50);
+    // Leaving the card always forgets the confirmation
+    changePwVerifiedAt = 0;
+    changePwCurrentHash = null;
+    resetPwInputs();
+
+    if (!hasPassword) {
+        // Google-only accounts have no Calzada password
+        panel.hidden = true;
+        if (toggleBtn) toggleBtn.hidden = true;
+        if (sub) sub.textContent = 'You sign in with Google. Change your password in your Google Account.';
+        return;
+    }
+    if (sub) sub.textContent = "You'll confirm your current one first.";
+
+    const show = forceState !== undefined ? !!forceState : panel.hidden;
+    panel.hidden = !show;
+    if (forceState === false && done) done.hidden = true;
+    if (toggleBtn) {
+        toggleBtn.hidden = show;
+        toggleBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+    }
+    if (show) {
+        if (done) done.hidden = true;
+        const userField = pwById('czPwUsername');
+        if (userField) userField.value = user.email || '';
+        if (!changePwChecklist) {
+            changePwChecklist = attachPasswordChecklist(pwById('settingsNewPwInput'), pwById('czNewPwRules'),
+                () => { try { return localStorage.getItem('calzada_lang') === 'tl' ? 'tl' : 'en'; } catch (_) { return 'en'; } });
+        }
+        showChangePwStep(1);
+    } else if (toggleBtn && forceState === false) {
+        // closed by Cancel: put focus back on the row button
+        if (document.activeElement && panel.contains(document.activeElement)) toggleBtn.focus();
+    }
+}
+
+async function handleVerifyCurrentPassword() {
+    const user = auth.currentUser || activeUser;
+    const input = pwById('settingsCurrentPwInput');
+    const btn = pwById('btnVerifyCurrentPw');
+    if (!input || !btn || btn.disabled) return;
+    setPwText('settingsChangePwAlert', '');
+    setPwText('settingsCurrentPwError', '');
+
+    if (!user || !user.email || user.isAnonymous) {
+        setPwText('settingsChangePwAlert', 'Please sign in again to change your password.');
+        return;
+    }
+    const current = input.value;
+    if (!current) {
+        setPwText('settingsCurrentPwError', 'Enter your current password.');
+        input.setAttribute('aria-invalid', 'true');
+        input.focus();
+        return;
+    }
+
+    setPwBusy(btn, true);
+    try {
+        await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, current));
+        changePwVerifiedAt = Date.now();
+        changePwCurrentHash = await sha256Text(current);
+        input.value = '';
+        input.removeAttribute('aria-invalid');
+        showChangePwStep(2);
+    } catch (error) {
+        const code = error && error.code;
+        if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+            setPwText('settingsCurrentPwError', "That's not your current password. Try again, or use the reset link.");
+            input.setAttribute('aria-invalid', 'true');
+            input.select();
+        } else if (code === 'auth/too-many-requests') {
+            setPwText('settingsChangePwAlert', 'Too many wrong tries. For your safety, password checks are paused for a while. Try again later, or use the reset link below.');
+        } else if (code === 'auth/network-request-failed') {
+            setPwText('settingsChangePwAlert', 'No connection. Check your internet and try again.');
+        } else if (code === 'auth/user-mismatch' || code === 'auth/user-token-expired' || code === 'auth/requires-recent-login') {
+            setPwText('settingsChangePwAlert', 'Your session ended. Please sign out, sign in again, then change your password.');
+        } else {
+            setPwText('settingsChangePwAlert', "Couldn't check your password right now. Please try again.");
+        }
+    } finally {
+        setPwBusy(btn, false);
     }
 }
 
 async function handleChangePassword() {
     const user = auth.currentUser || activeUser;
-    const alertEl = document.getElementById('settingsChangePwAlert');
-    const successEl = document.getElementById('settingsChangePwSuccess');
-    const currentPwErr = document.getElementById('settingsCurrentPwError');
-    const newPwErr = document.getElementById('settingsNewPwError');
-    const currentInput = document.getElementById('settingsCurrentPwInput');
-    const newInput = document.getElementById('settingsNewPwInput');
-    const submitBtn = document.getElementById('btnSubmitChangePassword');
-    const btnText = document.getElementById('btnChangePwText');
-    const btnSpinner = document.getElementById('btnChangePwSpinner');
+    const newInput = pwById('settingsNewPwInput');
+    const confirmInput = pwById('settingsConfirmPwInput');
+    const btn = pwById('btnSubmitChangePassword');
+    if (!newInput || !confirmInput || !btn || btn.disabled) return;
+    ['settingsChangePwAlert', 'settingsNewPwError', 'settingsConfirmPwError'].forEach((id) => setPwText(id, ''));
+    newInput.removeAttribute('aria-invalid');
+    confirmInput.removeAttribute('aria-invalid');
 
-    const showAlert = (msg) => {
-        if (!alertEl) return;
-        alertEl.textContent = msg;
-        alertEl.style.display = 'block';
-    };
-
-    // Reset error states
-    if (alertEl) { alertEl.style.display = 'none'; alertEl.textContent = ''; }
-    if (successEl) { successEl.style.display = 'none'; successEl.textContent = ''; }
-    if (currentPwErr) { currentPwErr.style.display = 'none'; currentPwErr.textContent = ''; }
-    if (newPwErr) { newPwErr.style.display = 'none'; newPwErr.textContent = ''; }
-
-    if (!user || !user.email || user.isAnonymous) {
-        showAlert('Please sign in with a registered account to change password.');
+    // Step 1 must be recent
+    if (!changePwVerifiedAt || Date.now() - changePwVerifiedAt > CHANGE_PW_WINDOW_MS) {
+        changePwVerifiedAt = 0;
+        changePwCurrentHash = null;
+        resetPwInputs();
+        showChangePwStep(1);
+        setPwText('settingsChangePwAlert', 'For your security, please confirm your current password again. It has been more than 5 minutes.');
         return;
     }
 
-    const hasPassword = Array.isArray(user.providerData) && user.providerData.some((p) => p.providerId === 'password');
-    if (!hasPassword) {
-        showAlert('You sign in with Google, so there is no Calzada password to change. Update your password in your Google Account settings.');
+    const newPassword = newInput.value;
+    const check = validatePassword(newPassword, { email: user && user.email });
+    let bad = false;
+    if (!check.ok) {
+        setPwText('settingsNewPwError', check.message);
+        newInput.setAttribute('aria-invalid', 'true');
+        bad = true;
+    } else if (changePwCurrentHash && (await sha256Text(newPassword)) === changePwCurrentHash) {
+        setPwText('settingsNewPwError', 'Choose a password different from your current one.');
+        newInput.setAttribute('aria-invalid', 'true');
+        bad = true;
+    }
+    if (!confirmInput.value) {
+        setPwText('settingsConfirmPwError', 'Type your new password again.');
+        confirmInput.setAttribute('aria-invalid', 'true');
+        bad = true;
+    } else if (confirmInput.value !== newPassword) {
+        setPwText('settingsConfirmPwError', "The two passwords don't match.");
+        confirmInput.setAttribute('aria-invalid', 'true');
+        bad = true;
+    }
+    if (bad) {
+        (newInput.getAttribute('aria-invalid') ? newInput : confirmInput).focus();
         return;
     }
 
-    const currentPassword = currentInput ? currentInput.value : '';
-    const newPassword = newInput ? newInput.value : '';
-    let hasValidationError = false;
-
-    if (!currentPassword) {
-        if (currentPwErr) {
-            currentPwErr.textContent = 'Please enter your current password.';
-            currentPwErr.style.display = 'block';
-        }
-        hasValidationError = true;
-    }
-
-    const isPwValid = typeof validatePassword === 'function'
-        ? (typeof validatePassword(newPassword) === 'boolean' ? validatePassword(newPassword) : Boolean(validatePassword(newPassword)?.ok))
-        : /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\^$*.\[\]{}()?"!@#%&\/\\,><':;|_~`\-+=])\S{8,64}$/.test(newPassword);
-
-    if (!newPassword) {
-        if (newPwErr) {
-            newPwErr.textContent = 'Please enter a new password.';
-            newPwErr.style.display = 'block';
-        }
-        hasValidationError = true;
-    } else if (!isPwValid) {
-        if (newPwErr) {
-            newPwErr.textContent = 'Must be 8-64 characters with uppercase, lowercase, number, special symbol, and no spaces.';
-            newPwErr.style.display = 'block';
-        }
-        hasValidationError = true;
-    } else if (currentPassword && newPassword && currentPassword === newPassword) {
-        if (newPwErr) {
-            newPwErr.textContent = 'New password must be different from current password.';
-            newPwErr.style.display = 'block';
-        }
-        hasValidationError = true;
-    }
-
-    if (hasValidationError) return;
-
-    // Loading State
-    if (submitBtn) submitBtn.disabled = true;
-    if (btnText) btnText.style.display = 'none';
-    if (btnSpinner) btnSpinner.style.display = 'inline-block';
-
+    setPwBusy(btn, true);
     try {
-        // Step 1: Reauthenticate with current credential
-        const credential = EmailAuthProvider.credential(user.email, currentPassword);
-        await reauthenticateWithCredential(user, credential);
-
-        // Step 2: Update password in Firebase Auth
         await updatePassword(user, newPassword);
         clearResetLimits(user); // the person proved who they are: no reset-email wait for this account
-
-        // Step 3: Success feedback
-        if (successEl) {
-            successEl.textContent = 'Password updated successfully!';
-            successEl.style.display = 'block';
-        }
-        if (currentInput) currentInput.value = '';
-        if (newInput) newInput.value = '';
-
-        setTimeout(() => {
-            toggleChangePasswordForm(false);
-        }, 2200);
-
+        changePwVerifiedAt = 0;
+        changePwCurrentHash = null;
+        resetPwInputs();
+        const panel = pwById('settingsChangePwContainer');
+        const toggleBtn = pwById('btnToggleChangePassword');
+        const done = pwById('settingsChangePwSuccess');
+        if (panel) panel.hidden = true;
+        if (toggleBtn) { toggleBtn.hidden = false; toggleBtn.setAttribute('aria-expanded', 'false'); }
+        if (done) done.hidden = false;
     } catch (error) {
-        console.error('Change password failed:', error);
-        switch (error.code) {
-            case 'auth/wrong-password':
-            case 'auth/invalid-credential':
-                if (currentPwErr) {
-                    currentPwErr.textContent = 'Incorrect current password.';
-                    currentPwErr.style.display = 'block';
-                }
-                break;
-            case 'auth/too-many-requests':
-                showAlert('Too many unsuccessful attempts. Please wait a moment before trying again.');
-                break;
-            case 'auth/requires-recent-login':
-                showAlert('Session expired. Please sign out and sign back in to change your password.');
-                break;
-            case 'auth/weak-password':
-                if (newPwErr) {
-                    newPwErr.textContent = 'Password does not meet minimum security requirements.';
-                    newPwErr.style.display = 'block';
-                }
-                break;
-            case 'auth/network-request-failed':
-                showAlert('Network error. Check your connection and try again.');
-                break;
-            default:
-                showAlert(error.message || 'Failed to update password. Please try again.');
-                break;
+        const code = error && error.code;
+        if (code === 'auth/requires-recent-login') {
+            changePwVerifiedAt = 0;
+            changePwCurrentHash = null;
+            resetPwInputs();
+            showChangePwStep(1);
+            setPwText('settingsChangePwAlert', 'For your security, please confirm your current password again.');
+        } else if (code === 'auth/weak-password' || code === 'auth/password-does-not-meet-requirements') {
+            setPwText('settingsNewPwError', validatePassword(newPassword).message || 'That password does not meet the requirements.');
+            newInput.setAttribute('aria-invalid', 'true');
+        } else if (code === 'auth/network-request-failed') {
+            setPwText('settingsChangePwAlert', 'No connection. Check your internet and try again.');
+        } else if (code === 'auth/too-many-requests') {
+            setPwText('settingsChangePwAlert', 'Too many tries. Please wait a while and try again.');
+        } else {
+            setPwText('settingsChangePwAlert', "Couldn't update your password right now. Please try again.");
         }
     } finally {
-        if (submitBtn) submitBtn.disabled = false;
-        if (btnText) btnText.style.display = 'inline';
-        if (btnSpinner) btnSpinner.style.display = 'none';
+        setPwBusy(btn, false);
     }
 }
 
@@ -3190,39 +3351,77 @@ function createProfileModals() {
                         </div>
 
                         <div class="settings-form-group settings-security-group">
-                            <label class="settings-label">Account Security</label>
-                            <div class="settings-reset-wrapper">
-                                <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
-                                    <button type="button" class="settings-text-link" id="btnToggleChangePassword" style="font-weight: 600;">Change Password</button>
-                                    <span style="color: #94A3B8; font-size: 0.75rem;">•</span>
-                                    <button type="button" class="settings-text-link" id="btnSendPasswordReset">Email Reset Link</button>
+                            <span class="settings-label" id="czSecurityLabel">Account Security</span>
+                            <!-- Password card: a row, and a two-step change flow under it (confirm the current password, then set a new one) -->
+                            <div class="cz-pw-card" id="czPwCard" role="group" aria-labelledby="czSecurityLabel">
+                                <div class="cz-pw-row">
+                                    <svg class="cz-pw-row-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
+                                    <div class="cz-pw-row-text">
+                                        <p class="cz-pw-row-title">Password</p>
+                                        <p class="cz-pw-row-sub" id="czPwRowSub">You'll confirm your current one first.</p>
+                                    </div>
+                                    <button type="button" class="cz-pw-row-btn" id="btnToggleChangePassword" aria-expanded="false" aria-controls="settingsChangePwContainer">Change</button>
                                 </div>
-                                <div id="settingsResetError" class="settings-inline-error" style="display: none;"></div>
 
-                                <!-- Inline Change Password Form -->
-                                <div id="settingsChangePwContainer" style="display: none; width: 100%; margin-top: 10px; padding: 14px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px;">
-                                    <div id="settingsChangePwAlert" class="settings-inline-error" style="display: none; margin-bottom: 10px;"></div>
-                                    <div id="settingsChangePwSuccess" style="display: none; margin-bottom: 10px; font-size: 0.825rem; color: #0F7B4A; background: #EBF8F2; padding: 8px 10px; border-radius: 6px;"></div>
+                                <div class="cz-pw-panel" id="settingsChangePwContainer" hidden>
+                                    <!-- Hidden username so password managers save the new password to the right account -->
+                                    <input type="email" id="czPwUsername" autocomplete="username" tabindex="-1" aria-hidden="true" class="cz-pw-hidden-user" readonly>
 
-                                    <div style="margin-bottom: 10px;">
-                                        <label for="settingsCurrentPwInput" style="display: block; font-size: 0.8rem; font-weight: 600; color: #042C53; margin-bottom: 4px;">Current Password</label>
-                                        <input type="password" id="settingsCurrentPwInput" class="settings-input" style="padding: 8px 12px; font-size: 0.85rem;" placeholder="Enter current password" autocomplete="current-password" />
-                                        <div id="settingsCurrentPwError" class="settings-inline-error" style="display: none;"></div>
+                                    <p class="cz-pw-step" id="czPwStepLabel" aria-live="polite">Step 1 of 2 · Confirm it's you</p>
+                                    <div id="settingsChangePwAlert" class="cz-pw-alert" role="alert" hidden></div>
+
+                                    <!-- Step 1: current password -->
+                                    <div class="cz-pw-stage" id="czPwStage1">
+                                        <label for="settingsCurrentPwInput" class="cz-pw-label">Current password</label>
+                                        <div class="cz-pw-field">
+                                            <input type="password" id="settingsCurrentPwInput" class="settings-input cz-pw-input" autocomplete="current-password" maxlength="128" aria-describedby="settingsCurrentPwError">
+                                            <button type="button" class="cz-pw-eye" data-target="settingsCurrentPwInput" aria-label="Show password" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                                        </div>
+                                        <div id="settingsCurrentPwError" class="settings-inline-error" hidden></div>
+                                        <div class="cz-pw-actions">
+                                            <button type="button" class="cz-pw-forgot" id="btnSendPasswordReset" data-label="Forgot it? Email me a reset link">Forgot it? Email me a reset link</button>
+                                            <span class="cz-pw-actions-gap"></span>
+                                            <button type="button" class="settings-text-link cz-pw-cancel" id="btnCancelChangePw">Cancel</button>
+                                            <button type="button" class="settings-save-btn" id="btnVerifyCurrentPw">
+                                                <span class="cz-pw-btn-text">Continue</span>
+                                                <span class="settings-btn-spinner" hidden></span>
+                                            </button>
+                                        </div>
+                                        <div id="settingsResetError" class="settings-inline-error" hidden></div>
                                     </div>
 
-                                    <div style="margin-bottom: 12px;">
-                                        <label for="settingsNewPwInput" style="display: block; font-size: 0.8rem; font-weight: 600; color: #042C53; margin-bottom: 4px;">New Password</label>
-                                        <input type="password" id="settingsNewPwInput" class="settings-input" style="padding: 8px 12px; font-size: 0.85rem;" placeholder="8–64 chars (upper, lower, num, symbol)" autocomplete="new-password" />
-                                        <div id="settingsNewPwError" class="settings-inline-error" style="display: none;"></div>
-                                    </div>
+                                    <!-- Step 2: new password -->
+                                    <div class="cz-pw-stage" id="czPwStage2" hidden>
+                                        <p class="cz-pw-verified"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="currentColor"></circle><path d="M4.4 8.3l2.3 2.3 4.9-5.2" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg><span>Confirmed. Choose your new password within 5 minutes.</span></p>
+                                        <label for="settingsNewPwInput" class="cz-pw-label">New password</label>
+                                        <div class="cz-pw-field">
+                                            <input type="password" id="settingsNewPwInput" class="settings-input cz-pw-input" autocomplete="new-password" maxlength="64" aria-describedby="czNewPwRules settingsNewPwError">
+                                            <button type="button" class="cz-pw-eye" data-target="settingsNewPwInput" aria-label="Show password" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                                        </div>
+                                        <ul class="cz-pw-rules" id="czNewPwRules" aria-label="Password requirements"></ul>
+                                        <div id="settingsNewPwError" class="settings-inline-error" hidden></div>
 
-                                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
-                                        <button type="button" class="settings-text-link" id="btnCancelChangePw" style="font-size: 0.825rem; color: #64748B;">Cancel</button>
-                                        <button type="button" class="settings-save-btn" id="btnSubmitChangePassword" style="padding: 7px 14px; font-size: 0.825rem;">
-                                            <span id="btnChangePwText">Update Password</span>
-                                            <span id="btnChangePwSpinner" style="display: none; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite;"></span>
-                                        </button>
+                                        <label for="settingsConfirmPwInput" class="cz-pw-label cz-pw-gap">Confirm new password</label>
+                                        <div class="cz-pw-field">
+                                            <input type="password" id="settingsConfirmPwInput" class="settings-input cz-pw-input" autocomplete="new-password" maxlength="64" aria-describedby="settingsConfirmPwError">
+                                            <button type="button" class="cz-pw-eye" data-target="settingsConfirmPwInput" aria-label="Show password" aria-pressed="false"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg></button>
+                                        </div>
+                                        <div id="settingsConfirmPwError" class="settings-inline-error" hidden></div>
+
+                                        <div class="cz-pw-actions">
+                                            <span class="cz-pw-actions-gap"></span>
+                                            <button type="button" class="settings-text-link cz-pw-cancel" id="btnCancelChangePw2">Cancel</button>
+                                            <button type="button" class="settings-save-btn" id="btnSubmitChangePassword">
+                                                <span class="cz-pw-btn-text">Update password</span>
+                                                <span class="settings-btn-spinner" hidden></span>
+                                            </button>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="cz-pw-done" id="settingsChangePwSuccess" role="status" hidden>
+                                    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="currentColor"></circle><path d="M4.4 8.3l2.3 2.3 4.9-5.2" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                                    <span>Password updated. Use your new password the next time you sign in.</span>
                                 </div>
                             </div>
                         </div>
