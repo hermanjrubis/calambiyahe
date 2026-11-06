@@ -1,18 +1,12 @@
 /**
  * public/js/register-wizard.js
  *
- * 5-Step Registration Wizard for Calzada Businesses:
- * 1. #store     - Store details, front photo (4:3, compressed), offerings chips
- * 2. #location  - MapLibre pin bounded to Uno/Real/Halang, nearest barangay preselect
- * 3. #hours     - 7-day open hours with 30-min steps, lunch breaks, shortcuts
- * 4. #plan      - Plans cards from plans-config.js (preselected plus360 or ?plan=)
- * 5. #review    - Preview card matching Places, edit links, terms checkbox, submission
- *
- * Features:
- * - Hash navigation (#store, #location, #hours, #plan, #review)
- * - Autosave to businessDrafts/{uid} debounced 1.5s
- * - Live preview card updating in real time (side-by-side on desktop/tablet landscape, bottom sheet on phone)
- * - Validation preventing progression until step is valid
+ * 5-Step Business Owner Registration Wizard for Calzada:
+ * 1. #store     - Business Info (Logo upload, Front photo, strict Business Name validation, Calamba Category + Others, strict +639XXXXXXXXX Contact Number, Offerings)
+ * 2. #location  - Location & Map ("Use My Current Location" Geolocation API, responsive h-64 md:h-96 MapLibre map, structured House No./Building/Street + Barangay [Uno, Real, Halang] + Landmark, bidirectional Pin <-> Address sync)
+ * 3. #hours     - Open Hours (7-day toggle switches, single continuous time range per day, manual <input type="time"> inputs, mobile-stacked / desktop-row layout)
+ * 4. #plan      - Plans & Pricing (One-time payment display without /mo, responsive grid-cols-1 md:grid-cols-3 cards)
+ * 5. #review    - Full Review & Submit (Displays all Stage 1-4 data with section "Edit" buttons that jump to the stage and return directly to Review after saving)
  */
 
 import {
@@ -27,17 +21,28 @@ import {
 
 const STEPS = ['store', 'location', 'hours', 'plan', 'review'];
 const STEP_TITLES = {
-    store: { title: 'Your store', benefit: 'Show shoppers what you sell and how to reach you.' },
-    location: { title: 'Location', benefit: 'Commuters get a jeepney route and fare straight to your door.' },
-    hours: { title: 'Open hours', benefit: "We show 'Open now' so people come at the right time." },
-    plan: { title: 'Choose a plan', benefit: "Choose how long you're promoted across Calamba." },
-    review: { title: 'Review and submit', benefit: 'Check how your business looks on Places before submitting.' }
+    store: { title: 'Business Info', benefit: 'Provide your official store details, logo, and offerings.' },
+    location: { title: 'Location & Map', benefit: 'Pin your exact store location in Brgy. Uno, Real, or Halang.' },
+    hours: { title: 'Open Hours', benefit: 'Set your daily operating schedule so commuters know when you are open.' },
+    plan: { title: 'Plans & Pricing', benefit: 'Select a one-time listing plan for your business.' },
+    review: { title: 'Review & Submit', benefit: 'Verify all registration details before submitting for review.' }
 };
 
-// Barangay detection from the pin.
-// Centers are the label points in scope.js. Samples are the verified places in
-// places-shared.js (lat, lng, U/R/H). The 3 nearest samples vote, weighted by
-// distance; far from every sample, the nearest center decides.
+// Calamba category options mapped to Firestore allowed base categories + serviceType
+const CALAMBA_CATEGORIES = [
+    { key: 'eateries', label: 'Eatery, Karinderya & Restaurant', firestoreCat: 'eateries', serviceType: 'Eatery & Restaurant' },
+    { key: 'coffee', label: 'Coffee Shop, Cafe & Bakery', firestoreCat: 'coffee', serviceType: 'Coffee & Cafe' },
+    { key: 'retail', label: 'Retail, Grocery & Sari-Sari Store', firestoreCat: 'establishments', serviceType: 'Retail & Sari-Sari Store' },
+    { key: 'services', label: 'Services & Repair (Laundry, Salon, Shop)', firestoreCat: 'establishments', serviceType: 'Services & Repair' },
+    { key: 'health', label: 'Health, Pharmacy & Clinic', firestoreCat: 'establishments', serviceType: 'Health & Pharmacy' },
+    { key: 'lodging', label: 'Resort, Hotel & Transient Lodging', firestoreCat: 'establishments', serviceType: 'Resort & Lodging' },
+    { key: 'malls', label: 'Mall & Shopping Center', firestoreCat: 'malls', serviceType: 'Mall & Shopping' },
+    { key: 'establishments', label: 'Commercial Establishment & Office', firestoreCat: 'establishments', serviceType: 'Commercial Establishment' },
+    { key: 'schools', label: 'School, Tutorial & Training Center', firestoreCat: 'schools', serviceType: 'School & Training' },
+    { key: 'terminals', label: 'Transport Terminal & Hub', firestoreCat: 'terminals', serviceType: 'Transport Terminal' },
+    { key: 'others', label: 'Others (Specify below)', firestoreCat: 'establishments', serviceType: null }
+];
+
 const BARANGAY_CENTERS = [
     { name: 'Uno', lat: 14.20415, lng: 121.15691 },
     { name: 'Real', lat: 14.19625, lng: 121.14964 },
@@ -91,13 +96,86 @@ function detectBarangay(lat, lng) {
     return best.name;
 }
 
-// Coverage bounding box around Uno, Real, Halang
 const COVERAGE_BBOX = {
     minLat: 14.1800,
     maxLat: 14.2300,
     minLng: 121.1300,
     maxLng: 121.1850
 };
+
+/**
+ * Strict Business Name Validator:
+ * - Required, 2 to 80 characters
+ * - Only letters, numbers, spaces, and standard business punctuation (.,-&'()/)
+ * - Requires at least one vowel (/[aeiouAEIOU]/)
+ * - Rejects 3+ consecutive identical characters (/(.)\1{2,}/i)
+ * - Rejects keyboard-mash / random gibberish (e.g., asdfgh, qwerty, zxcvbn, 5+ consecutive consonants)
+ */
+export function validateBusinessName(raw) {
+    const val = String(raw || '').trim();
+    if (!val) {
+        return { valid: false, message: 'Business name is required.' };
+    }
+    if (val.length < 2 || val.length > 80) {
+        return { valid: false, message: 'Business name must be between 2 and 80 characters.' };
+    }
+    if (!/^[A-Za-z0-9\s.,\-&'()/]+$/.test(val)) {
+        return { valid: false, message: "Only letters, numbers, spaces, and standard punctuation (., - & ' ( ) /) are allowed." };
+    }
+    if (!/[A-Za-z]/.test(val) || !/[aeiouAEIOU]/.test(val)) {
+        return { valid: false, message: 'Business name must contain real words with at least one vowel.' };
+    }
+    if (/(.)\1{2,}/i.test(val)) {
+        return { valid: false, message: 'Excessive consecutive repeating characters (e.g., "aaa" or "---") are not allowed.' };
+    }
+    const lettersOnly = val.replace(/[^A-Za-z]/g, '').toLowerCase();
+    const keyboardMashPattern = /(asdf|sdfg|dfgh|fghj|ghjk|hjkl|qwer|wert|erty|rtyu|tyui|yuio|uiop|zxcv|xcvb|cvbn|vbnm)/i;
+    if (keyboardMashPattern.test(lettersOnly)) {
+        return { valid: false, message: 'Please enter a legitimate business name (keyboard sequences like "asdf" or "qwerty" are not allowed).' };
+    }
+    if (/[bcdfghjklmnpqrstvwxyz]{5,}/i.test(lettersOnly)) {
+        return { valid: false, message: 'Please enter a legitimate business name (random consonant strings are not allowed).' };
+    }
+    if (lettersOnly.length >= 6 && /([a-z]{2})\1{2,}/i.test(lettersOnly)) {
+        return { valid: false, message: 'Please enter a legitimate business name without repetitive character patterns.' };
+    }
+    return { valid: true, message: '' };
+}
+
+/**
+ * Strict Philippine Contact Number Validator (+639XXXXXXXXX)
+ */
+export function validatePhContactNumber(raw) {
+    const val = String(raw || '').trim();
+    if (!val) {
+        return { valid: false, message: 'Contact number is required in +639XXXXXXXXX format.' };
+    }
+    if (!/^\+639\d{9}$/.test(val)) {
+        return { valid: false, message: 'Must use strict Philippine format: +639XXXXXXXXX (e.g., +639171234567).' };
+    }
+    return { valid: true, message: '' };
+}
+
+/**
+ * Custom Category ("Others") Validator
+ */
+export function validateCustomCategory(raw) {
+    const val = String(raw || '').trim();
+    if (!val) {
+        return { valid: false, message: 'Please specify what your business serves.' };
+    }
+    if (val.length < 2 || val.length > 40) {
+        return { valid: false, message: 'Category description must be between 2 and 40 characters.' };
+    }
+    if (!/^[A-Za-z0-9\s.,\-&'()/]+$/.test(val) || !/[aeiouAEIOU]/.test(val) || /(.)\1{2,}/i.test(val)) {
+        return { valid: false, message: 'Please enter a valid business category (e.g., Pet Supplies, Printing Shop).' };
+    }
+    const lettersOnly = val.replace(/[^A-Za-z]/g, '').toLowerCase();
+    if (/(asdf|sdfg|dfgh|qwer|wert|erty|zxcv|xcvb)/i.test(lettersOnly) || /[bcdfghjklmnpqrstvwxyz]{5,}/i.test(lettersOnly)) {
+        return { valid: false, message: 'Please enter a legitimate category description.' };
+    }
+    return { valid: true, message: '' };
+}
 
 export class RegisterWizard {
     constructor({ auth, db, containerEl, user = null }) {
@@ -107,26 +185,34 @@ export class RegisterWizard {
         this.currentUser = user;
 
         this.currentStep = 'store';
+        this.editingFromReview = false;
+        this.reverseGeocodeAbort = null;
+
         this.formData = {
+            logoFile: null,
+            logoUrl: '',
+            logoPreviewUrl: '',
             frontPhotoFile: null,
             thumbnailUrl: '',
             photoPreviewUrl: '',
             name: '',
+            categoryKey: '',
             category: '',
+            customCategory: '',
             description: '',
             contactNumber: '',
             offerings: [],
-            location: { lat: 14.2117, lng: 121.1652 },
-            barangay: '',
+            location: { lat: 14.20415, lng: 121.15691 },
+            barangay: 'Uno',
             address: '',
             landmark: '',
             openHours: window.CalzadaBusinessFields?.getDefaultHours() || {
-                mon: [{ open: '08:00', close: '18:00' }],
-                tue: [{ open: '08:00', close: '18:00' }],
-                wed: [{ open: '08:00', close: '18:00' }],
-                thu: [{ open: '08:00', close: '18:00' }],
-                fri: [{ open: '08:00', close: '18:00' }],
-                sat: [{ open: '08:00', close: '18:00' }],
+                mon: [{ open: '08:00', close: '17:00' }],
+                tue: [{ open: '08:00', close: '17:00' }],
+                wed: [{ open: '08:00', close: '17:00' }],
+                thu: [{ open: '08:00', close: '17:00' }],
+                fri: [{ open: '08:00', close: '17:00' }],
+                sat: [{ open: '08:00', close: '17:00' }],
                 sun: []
             },
             plan: (Object.values(window.CALZADA_PLANS || {}).find(p => p.recommended) || {}).id || 'plus360',
@@ -141,7 +227,6 @@ export class RegisterWizard {
         this.offeringsEditor = null;
         this.hoursEditor = null;
 
-        // Check URL for ?plan=
         const urlParams = new URLSearchParams(window.location.search);
         const queryPlan = urlParams.get('plan');
         if (queryPlan && ['listed', 'plus360', 'featured'].includes(queryPlan)) {
@@ -154,12 +239,10 @@ export class RegisterWizard {
         this.renderLayout();
         this.wireHashRouting();
 
-        // Restore draft if exists
         if (this.currentUser) {
             await this.loadDraft();
         }
 
-        // Navigate to initial hash or restored step
         const hash = window.location.hash.replace('#', '');
         this._initializing = true;
         if (STEPS.includes(hash)) {
@@ -173,157 +256,192 @@ export class RegisterWizard {
         this.updateLivePreview();
     }
 
+    getCategoryMeta() {
+        const found = CALAMBA_CATEGORIES.find(c => c.key === this.formData.categoryKey)
+            || CALAMBA_CATEGORIES.find(c => c.key === this.formData.category);
+        if (!found) {
+            return { key: '', label: 'Category', firestoreCat: '', serviceType: null };
+        }
+        if (found.key === 'others') {
+            const custom = (this.formData.customCategory || '').trim();
+            return {
+                key: 'others',
+                label: custom ? `Others — ${custom}` : 'Others',
+                firestoreCat: 'establishments',
+                serviceType: custom || null
+            };
+        }
+        return found;
+    }
+
     renderLayout() {
         this.containerEl.innerHTML = `
-            <div class="wizard-root" style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+            <div class="wizard-root max-w-6xl mx-auto px-4 py-6">
                 <!-- Stepper Header -->
-                <div class="wizard-stepper" style="margin-bottom: 24px; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 20px;">
+                <div class="wizard-stepper mb-6 bg-white border border-slate-200 rounded-xl p-4 md:px-6 md:py-4">
                     <!-- Desktop / Tablet Stepper -->
-                    <div class="stepper-desktop" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <div class="stepper-desktop hidden md:flex justify-between items-center gap-2">
                         ${STEPS.map((stepKey, idx) => `
-                            <div class="step-item step-item-${stepKey}" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <div class="step-num" style="width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #E2E8F0; color: #64748B;">
+                            <button type="button" class="step-item step-item-${stepKey} flex items-center gap-2.5 bg-transparent border-0 p-1 cursor-pointer text-left min-h-[44px]" data-step-target="${stepKey}">
+                                <span class="step-num w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold border-2 border-slate-200 text-slate-500 shrink-0">
                                     ${idx + 1}
-                                </div>
-                                <span class="step-label" style="font-size: 14px; font-weight: 600; color: #64748B;">${STEP_TITLES[stepKey].title}</span>
-                            </div>
-                            ${idx < STEPS.length - 1 ? '<div style="flex: 1; height: 1px; background: #E2E8F0; margin: 0 8px;"></div>' : ''}
+                                </span>
+                                <span class="step-label text-sm font-semibold text-slate-500 whitespace-nowrap">${STEP_TITLES[stepKey].title}</span>
+                            </button>
+                            ${idx < STEPS.length - 1 ? '<div class="flex-1 h-px bg-slate-200 mx-2"></div>' : ''}
                         `).join('')}
                     </div>
 
-                    <!-- Phone Stepper -->
-                    <div class="stepper-phone" style="display: none;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                            <span id="phoneStepTitle" style="font-size: 14px; font-weight: 700; color: #042C53;">Step 1 of 5 · Store</span>
-                            <span id="wizardSaveStatus" class="wizard-save-status" style="font-size: 12px; color: #64748B;" aria-live="polite"></span>
+                    <!-- Mobile / Phone Stepper -->
+                    <div class="stepper-phone md:hidden">
+                        <div class="flex justify-between items-center mb-2 gap-2">
+                            <span id="phoneStepTitle" class="text-sm font-bold text-[#042C53]">Step 1 of 5 · Business Info</span>
+                            <span id="wizardSaveStatus" class="wizard-save-status text-xs text-slate-500" aria-live="polite"></span>
                         </div>
-                        <div style="width: 100%; height: 4px; background: #E2E8F0; border-radius: 2px; overflow: hidden;">
-                            <div id="phoneProgressBar" style="width: 20%; height: 100%; background: #378ADD; transition: width 0.3s ease;"></div>
+                        <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div id="phoneProgressBar" class="h-full bg-[#378ADD] transition-all duration-300" style="width: 20%;"></div>
                         </div>
                     </div>
 
-                    <div class="stepper-status-bar" style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
-                        <span id="stepBenefitText" style="font-size: 13px; color: #64748B;">${STEP_TITLES[this.currentStep].benefit}</span>
-                        <span id="desktopSaveStatus" class="wizard-save-status wizard-save-desktop" style="font-size: 12px; color: #64748B; flex: 0 0 auto;" aria-live="polite"></span>
+                    <div class="stepper-status-bar mt-2.5 pt-2.5 border-t border-slate-100 flex justify-between items-center gap-3">
+                        <span id="stepBenefitText" class="text-xs md:text-sm text-slate-500">${STEP_TITLES[this.currentStep].benefit}</span>
+                        <span id="desktopSaveStatus" class="wizard-save-status wizard-save-desktop hidden md:inline text-xs text-slate-500 shrink-0" aria-live="polite"></span>
                     </div>
                 </div>
 
-                <!-- Main Content Area: Side-by-side on desktop/tablet landscape -->
-                <div class="wizard-grid" style="display: grid; grid-template-columns: 1fr 380px; gap: 24px; align-items: start;">
+                <!-- Main Content Grid: Form Left, Live Preview Right on Desktop -->
+                <div class="wizard-grid grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <!-- Step Form Container -->
-                    <div class="wizard-form-card" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 24px;">
+                    <div class="wizard-form-card lg:col-span-8 bg-white border border-slate-200 rounded-xl p-4 sm:p-6">
+                        <div id="editingFromReviewBanner" style="display: none;" class="mb-5 p-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-3 flex-wrap">
+                            <span class="text-xs font-medium text-[#042C53]">Editing section from Review &amp; Submit. Your other steps remain saved.</span>
+                            <button type="button" id="btnCancelReturnReview" class="text-xs font-semibold text-[#378ADD] bg-transparent border-0 cursor-pointer underline min-h-[36px] px-2">
+                                Return to Review
+                            </button>
+                        </div>
+
                         <div id="stepContentArea"></div>
 
-                        <!-- Wizard Nav Buttons -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #E2E8F0;">
-                            <button type="button" id="btnWizardPrev" style="background: transparent; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 18px; font-size: 14px; font-weight: 600; color: #042C53; cursor: pointer; display: none;">
-                                &larr; Back
+                        <!-- Global Stage Navigation Buttons (Back & Continue on ALL stages, no arrows) -->
+                        <div class="wizard-nav-bar flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 mt-6 pt-5 border-t border-slate-200">
+                            <button type="button" id="btnWizardPrev" class="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-[#042C53] cursor-pointer hover:bg-slate-50 transition-colors">
+                                Back
                             </button>
-                            <div style="flex: 1;"></div>
-                            <button type="button" id="btnWizardNext" style="background: #378ADD; border: none; border-radius: 8px; padding: 10px 24px; font-size: 14px; font-weight: 600; color: #FFFFFF; cursor: pointer; transition: background 0.15s ease;">
-                                Continue &rarr;
+                            <button type="button" id="btnWizardNext" class="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-[#378ADD] hover:bg-[#1F69B8] border-0 rounded-lg text-sm font-semibold text-white cursor-pointer transition-colors">
+                                Continue
                             </button>
                         </div>
                     </div>
 
-                    <!-- Live Preview Card (Right Column) -->
-                    <div class="wizard-preview-col">
-                        <div style="position: sticky; top: 80px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="font-size: 13px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;">Places Preview</span>
-                                <span style="font-size: 12px; color: #378ADD; font-weight: 600;">Updates live</span>
+                    <!-- Live Preview Card (Right Column on Desktop) -->
+                    <div class="wizard-preview-col lg:col-span-4 hidden lg:block">
+                        <div class="sticky top-20">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Places Preview</span>
+                                <span class="text-xs text-[#378ADD] font-semibold">Updates live</span>
                             </div>
-                            <div id="placesLiveCard" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden;">
-                                <div style="position: relative; width: 100%; padding-top: 75%; background: #F1F5F9; overflow: hidden;">
+                            <div id="placesLiveCard" class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                                <div style="position: relative; width: 100%; padding-top: 68%; background: #F1F5F9; overflow: hidden;">
                                     <img id="prevImg" src="" alt="Store preview" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: none;" />
                                     <div id="prevImgPlaceholder" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #94A3B8; font-size: 13px;">
                                         4:3 Store Front Photo
                                     </div>
                                 </div>
-                                <div style="padding: 16px;">
-                                    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
-                                        <h3 id="prevName" style="font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: #042C53; margin: 0;">Business Name</h3>
-                                        <span id="prevNewLabel" style="font-size: 12px; font-weight: 500; color: #378ADD;">New</span>
+                                <div class="p-4">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <div id="prevLogoWrap" class="w-10 h-10 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0 font-bold text-sm text-[#042C53]">
+                                            <img id="prevLogoImg" src="" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; display: none;" />
+                                            <span id="prevLogoInitial">B</span>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex items-baseline gap-2">
+                                                <h3 id="prevName" class="font-bold text-base text-[#042C53] truncate m-0" style="font-family: 'Sora', sans-serif;">Business Name</h3>
+                                                <span id="prevNewLabel" class="text-xs font-semibold text-[#378ADD] shrink-0">New</span>
+                                            </div>
+                                            <div id="prevCategoryText" class="text-xs text-slate-500 truncate">Category</div>
+                                        </div>
                                     </div>
-                                    <div id="prevBarangay" style="font-size: 13px; color: #64748B; margin-bottom: 8px;">Barangay</div>
-                                    <div id="prevOpenStatus" style="font-size: 13px; font-weight: 600; color: #16A34A; margin-bottom: 12px;">Open now · Closes 6:00 PM</div>
-                                    <div id="prevOfferings" style="font-size: 13px; color: #042C53; line-height: 1.4;">Offerings &amp; Specialties</div>
+                                    <div id="prevBarangay" class="text-xs text-slate-500 mb-1.5">Brgy. Uno, Calamba</div>
+                                    <div id="prevOpenStatus" class="text-xs font-semibold text-emerald-600 mb-2.5">Open now · Closes 5:00 PM</div>
+                                    <div id="prevOfferings" class="text-xs text-[#042C53] leading-relaxed">Offerings &amp; Specialties</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Phone Bottom Sheet Floating Button -->
-                <button type="button" id="btnOpenPhonePreview" style="display: none; position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); right: 16px; z-index: 99; background: #378ADD; color: #FFFFFF; border: 1px solid #378ADD; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer;">
-                    Preview card
+                <!-- Mobile Bottom Floating Preview Button -->
+                <button type="button" id="btnOpenPhonePreview" class="lg:hidden" style="position: fixed; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); right: 16px; z-index: 90; min-height: 44px; background: #042C53; color: #FFFFFF; border: 1px solid #042C53; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer;">
+                    Preview Card
                 </button>
             </div>
         `;
 
         this.saveStatusEls = Array.from(this.containerEl.querySelectorAll('.wizard-save-status'));
-        // Kept for older callers: writes go through setSaveStatus()
         this.saveStatusEl = { set textContent(v) { this._t = v; } };
 
-        // Responsive css styles injection
-        const style = document.createElement('style');
-        style.textContent = `
-            .wizard-form-card, .wizard-preview-col, .wizard-stepper { min-width: 0; }
-            .wizard-form-card input, .wizard-form-card select, .wizard-form-card textarea { max-width: 100%; box-sizing: border-box; }
-            @media (max-width: 1023px) {
-                .wizard-grid {
-                    grid-template-columns: 1fr !important;
+        const cancelReturnBtn = this.containerEl.querySelector('#btnCancelReturnReview');
+        if (cancelReturnBtn) {
+            cancelReturnBtn.addEventListener('click', () => {
+                if (this.validateStep(this.currentStep, { showErrors: true })) {
+                    this.editingFromReview = false;
+                    this.goToStep('review', true);
                 }
-                .wizard-preview-col {
-                    display: none;
-                }
-                #btnOpenPhonePreview {
-                    display: block !important;
-                }
-                .stepper-desktop {
-                    display: none !important;
-                }
-                .stepper-phone {
-                    display: block !important;
-                }
-                .wizard-save-desktop { display: none; }
-            }
-            @media (max-width: 480px) {
-                .wizard-root { padding: 16px 12px !important; }
-                .wizard-form-card { padding: 16px !important; }
-                .wizard-stepper { padding: 12px 14px !important; }
-            }
-        `;
-        document.head.appendChild(style);
+            });
+        }
 
-        // Stepper click handlers
+        // Stepper header clicks
         STEPS.forEach(stepKey => {
             const item = this.containerEl.querySelector(`.step-item-${stepKey}`);
             if (item) {
                 item.addEventListener('click', () => {
                     const targetIdx = STEPS.indexOf(stepKey);
                     const currentIdx = STEPS.indexOf(this.currentStep);
-                    if (targetIdx <= currentIdx || this.isStepValid(this.currentStep)) {
+                    if (targetIdx < currentIdx) {
                         this.goToStep(stepKey, true);
+                    } else if (targetIdx > currentIdx) {
+                        if (this.validateStep(this.currentStep, { showErrors: true })) {
+                            this.goToStep(stepKey, true);
+                        }
                     }
                 });
             }
         });
 
-        // Prev & Next Buttons
+        // Back button handler (present on ALL stages)
         this.containerEl.querySelector('#btnWizardPrev').addEventListener('click', () => {
+            if (this.editingFromReview && this.currentStep !== 'review') {
+                this.editingFromReview = false;
+                this.goToStep('review', true);
+                return;
+            }
             const currentIdx = STEPS.indexOf(this.currentStep);
             if (currentIdx > 0) {
                 this.goToStep(STEPS[currentIdx - 1], true);
+            } else {
+                // Stage 1 Back button: navigate back to My Business or previous page
+                if (document.referrer && document.referrer.includes(window.location.origin)) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/my-business';
+                }
             }
         });
 
+        // Continue / Submit button handler (always clickable; shows inline errors if invalid)
         this.containerEl.querySelector('#btnWizardNext').addEventListener('click', () => {
+            const isValid = this.validateStep(this.currentStep, { showErrors: true, scrollToError: true });
+            if (!isValid) return;
+
+            if (this.editingFromReview && this.currentStep !== 'review') {
+                this.editingFromReview = false;
+                this.goToStep('review', true);
+                return;
+            }
+
             const currentIdx = STEPS.indexOf(this.currentStep);
             if (currentIdx < STEPS.length - 1) {
-                if (this.isStepValid(this.currentStep)) {
-                    this.goToStep(STEPS[currentIdx + 1], true);
-                }
+                this.goToStep(STEPS[currentIdx + 1], true);
             } else if (this.currentStep === 'review') {
                 this.submitRegistration();
             }
@@ -341,24 +459,30 @@ export class RegisterWizard {
         });
     }
 
-    // The first step that is not complete yet (or review when all are)
     firstOpenStep() {
         return STEPS.slice(0, -1).find(k => !this.isStepValid(k)) || 'review';
     }
 
     goToStep(stepKey, updateHash = true) {
         if (!STEPS.includes(stepKey)) stepKey = 'store';
-        // A typed #review (or an old draft step) cannot skip a step that is not done
         const requested = stepKey;
-        const limit = STEPS.indexOf(this.firstOpenStep());
-        if (STEPS.indexOf(stepKey) > limit) stepKey = STEPS[limit];
+        if (!this.editingFromReview) {
+            const limit = STEPS.indexOf(this.firstOpenStep());
+            if (STEPS.indexOf(stepKey) > limit) stepKey = STEPS[limit];
+        }
+        if (stepKey === 'review') {
+            this.editingFromReview = false;
+        }
         this.currentStep = stepKey;
         const target = '#' + stepKey;
         if (window.location.hash !== target) {
-            // Buttons add a history entry (so the browser Back button steps back);
-            // a corrected or initial hash replaces the current one.
             if (updateHash && requested === stepKey && !this._fromHashChange) history.pushState(null, '', target);
             else history.replaceState(null, '', target);
+        }
+
+        const banner = this.containerEl.querySelector('#editingFromReviewBanner');
+        if (banner) {
+            banner.style.display = (this.editingFromReview && this.currentStep !== 'review') ? 'flex' : 'none';
         }
 
         this.updateStepperUI();
@@ -366,6 +490,7 @@ export class RegisterWizard {
         this.updateNavButtons();
         this.updateLivePreview();
         this.triggerAutosave();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     updateStepperUI() {
@@ -384,15 +509,15 @@ export class RegisterWizard {
                 numEl.textContent = String(idx + 1);
                 labelEl.style.color = '#378ADD';
                 labelEl.style.fontWeight = '700';
-            } else if (idx < currentIdx && this.isStepValid(stepKey)) {
+            } else if (this.isStepValid(stepKey) && (idx < currentIdx || this.editingFromReview)) {
                 numEl.style.borderColor = '#16A34A';
                 numEl.style.color = '#FFFFFF';
                 numEl.style.background = '#16A34A';
-                numEl.innerHTML = '&#10003;'; // Check mark
+                numEl.innerHTML = '&#10003;';
                 labelEl.style.color = '#042C53';
                 labelEl.style.fontWeight = '600';
             } else {
-                numEl.style.borderColor = '#E2E8F0';
+                numEl.style.borderColor = '#CBD5E1';
                 numEl.style.color = '#64748B';
                 numEl.style.background = '#FFFFFF';
                 numEl.textContent = String(idx + 1);
@@ -401,7 +526,6 @@ export class RegisterWizard {
             }
         });
 
-        // Phone view update
         const phoneTitle = this.containerEl.querySelector('#phoneStepTitle');
         if (phoneTitle) {
             phoneTitle.textContent = `Step ${currentIdx + 1} of 5 · ${STEP_TITLES[this.currentStep].title}`;
@@ -420,58 +544,204 @@ export class RegisterWizard {
     updateNavButtons() {
         const prevBtn = this.containerEl.querySelector('#btnWizardPrev');
         const nextBtn = this.containerEl.querySelector('#btnWizardNext');
-        const currentIdx = STEPS.indexOf(this.currentStep);
+        if (!prevBtn || !nextBtn) return;
 
-        if (currentIdx === 0) {
-            prevBtn.style.display = 'none';
-        } else {
-            prevBtn.style.display = 'inline-block';
-        }
+        // Every stage has 'Back' and 'Continue' buttons at the bottom (no arrows)
+        prevBtn.style.display = 'inline-flex';
+        prevBtn.style.alignItems = 'center';
+        prevBtn.style.justifyContent = 'center';
+        prevBtn.textContent = 'Back';
+
+        nextBtn.disabled = false;
+        nextBtn.style.opacity = '1';
+        nextBtn.style.cursor = 'pointer';
 
         if (this.currentStep === 'review') {
             nextBtn.textContent = 'Submit Registration';
-            nextBtn.style.background = '#378ADD';
+        } else if (this.editingFromReview) {
+            nextBtn.textContent = 'Continue';
         } else {
-            nextBtn.textContent = 'Continue →';
-            nextBtn.style.background = '#378ADD';
+            nextBtn.textContent = 'Continue';
         }
-
-        this.validateCurrentStepButton();
     }
 
     validateCurrentStepButton() {
-        const nextBtn = this.containerEl.querySelector('#btnWizardNext');
-        if (!nextBtn) return;
-        const valid = this.isStepValid(this.currentStep);
-        nextBtn.disabled = !valid;
-        nextBtn.style.opacity = valid ? '1' : '0.5';
-        nextBtn.style.cursor = valid ? 'pointer' : 'not-allowed';
+        // Keep button enabled so clicking Continue always provides explicit inline error feedback
+        this.updateStepperUI();
+    }
+
+    setFieldError(inputEl, errEl, message) {
+        if (errEl) {
+            if (message) {
+                errEl.textContent = message;
+                errEl.style.display = 'block';
+            } else {
+                errEl.style.display = 'none';
+            }
+        }
+        if (inputEl) {
+            inputEl.style.borderColor = message ? '#DC2626' : '#CBD5E1';
+        }
     }
 
     isStepValid(stepKey) {
+        return this.validateStep(stepKey, { showErrors: false });
+    }
+
+    validateStep(stepKey, { showErrors = false, scrollToError = false } = {}) {
+        const area = this.containerEl.querySelector('#stepContentArea');
+        let firstInvalidEl = null;
+        const markInvalid = (el) => {
+            if (!firstInvalidEl && el) firstInvalidEl = el;
+        };
+
         if (stepKey === 'store') {
+            const hasLogo = !!this.formData.logoUrl || !!this.formData.logoFile;
             const hasPhoto = !!this.formData.thumbnailUrl || !!this.formData.frontPhotoFile;
-            const hasName = this.formData.name.trim().length >= 1 && this.formData.name.trim().length <= 80;
-            const hasCat = !!this.formData.category;
+            const nameCheck = validateBusinessName(this.formData.name);
+            const hasCat = !!this.formData.categoryKey;
+            const customCatCheck = this.formData.categoryKey === 'others'
+                ? validateCustomCategory(this.formData.customCategory)
+                : { valid: true, message: '' };
+            const phoneCheck = validatePhContactNumber(this.formData.contactNumber);
             const hasOfferings = Array.isArray(this.formData.offerings) && this.formData.offerings.length >= 1 && this.formData.offerings.length <= 10;
-            return hasPhoto && hasName && hasCat && hasOfferings;
+
+            if (showErrors && area) {
+                const logoBox = area.querySelector('#logoPreviewBox');
+                const logoErr = area.querySelector('#logoError');
+                this.setFieldError(logoBox, logoErr, hasLogo ? '' : 'Business logo is required. Please upload a PNG, JPG, or WebP image.');
+                if (!hasLogo) markInvalid(area.querySelector('#btnSelectLogo'));
+
+                const frontBox = area.querySelector('#frontPhotoBox');
+                const frontErr = area.querySelector('#frontPhotoError');
+                this.setFieldError(frontBox, frontErr, hasPhoto ? '' : 'Storefront photo is required.');
+                if (!hasPhoto) markInvalid(area.querySelector('#btnSelectFrontPhoto'));
+
+                const nameInput = area.querySelector('#inputBizName');
+                const nameErr = area.querySelector('#bizNameError');
+                this.setFieldError(nameInput, nameErr, nameCheck.valid ? '' : nameCheck.message);
+                if (!nameCheck.valid) markInvalid(nameInput);
+
+                const catSelect = area.querySelector('#selectBizCategory');
+                const catErr = area.querySelector('#bizCategoryError');
+                this.setFieldError(catSelect, catErr, hasCat ? '' : 'Please select a business category.');
+                if (!hasCat) markInvalid(catSelect);
+
+                if (this.formData.categoryKey === 'others') {
+                    const customInput = area.querySelector('#inputCustomCategory');
+                    const customErr = area.querySelector('#customCategoryError');
+                    this.setFieldError(customInput, customErr, customCatCheck.valid ? '' : customCatCheck.message);
+                    if (!customCatCheck.valid) markInvalid(customInput);
+                }
+
+                const contactInput = area.querySelector('#inputBizContact');
+                const contactErr = area.querySelector('#bizContactError');
+                this.setFieldError(contactInput, contactErr, phoneCheck.valid ? '' : phoneCheck.message);
+                if (!phoneCheck.valid) markInvalid(contactInput);
+
+                const offBox = area.querySelector('.offerings-editor-box');
+                const offErr = area.querySelector('#offeringsError');
+                this.setFieldError(offBox, offErr, hasOfferings ? '' : 'Please add at least 1 offering or specialty (press Enter or comma after typing).');
+                if (!hasOfferings) markInvalid(area.querySelector('#offeringsTextInput') || offBox);
+            }
+
+            if (scrollToError && firstInvalidEl) {
+                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (typeof firstInvalidEl.focus === 'function') firstInvalidEl.focus();
+            }
+
+            return hasLogo && hasPhoto && nameCheck.valid && hasCat && customCatCheck.valid && phoneCheck.valid && hasOfferings;
         }
+
         if (stepKey === 'location') {
             const inCoverage = this.isInCoverage(this.formData.location.lat, this.formData.location.lng);
             const hasBrgy = ['Uno', 'Real', 'Halang'].includes(this.formData.barangay);
-            const hasAddress = this.formData.address.trim().length >= 1 && this.formData.address.trim().length <= 160;
-            return inCoverage && hasBrgy && hasAddress;
+            const detectedBrgy = detectBarangay(this.formData.location.lat, this.formData.location.lng);
+            const brgyPinSynced = hasBrgy && detectedBrgy === this.formData.barangay;
+            const addrTrimmed = (this.formData.address || '').trim();
+            const hasAddress = addrTrimmed.length >= 3 && addrTrimmed.length <= 160;
+
+            if (showErrors && area) {
+                const mapEl = area.querySelector('#wizardMapContainer');
+                const mapErr = area.querySelector('#mapCoverageError');
+                if (!inCoverage) {
+                    this.setFieldError(mapEl, mapErr, 'Your map pin must be dropped inside Brgy. Uno, Real, or Halang.');
+                    markInvalid(mapEl);
+                } else if (hasBrgy && !brgyPinSynced) {
+                    this.setFieldError(mapEl, mapErr, `Your map pin is currently in Brgy. ${detectedBrgy}, which does not match the selected Brgy. ${this.formData.barangay}. Move the pin or update the Barangay dropdown.`);
+                    markInvalid(mapEl);
+                } else {
+                    this.setFieldError(mapEl, mapErr, '');
+                }
+
+                const addrInput = area.querySelector('#inputAddress');
+                const addrErr = area.querySelector('#addressError');
+                this.setFieldError(addrInput, addrErr, hasAddress ? '' : 'Please enter your House No., Building, or Street name (at least 3 characters).');
+                if (!hasAddress) markInvalid(addrInput);
+
+                const brgySelect = area.querySelector('#selectBarangay');
+                const brgyErr = area.querySelector('#barangayError');
+                this.setFieldError(brgySelect, brgyErr, hasBrgy ? '' : 'Please select a Barangay (Uno, Real, or Halang).');
+                if (!hasBrgy) markInvalid(brgySelect);
+            }
+
+            if (scrollToError && firstInvalidEl) {
+                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (typeof firstInvalidEl.focus === 'function') firstInvalidEl.focus();
+            }
+
+            return inCoverage && hasBrgy && brgyPinSynced && hasAddress;
         }
+
         if (stepKey === 'hours') {
             const check = window.CalzadaBusinessFields?.isValidOpenHours;
-            return check ? check(this.formData.openHours) : (!!this.formData.openHours && typeof this.formData.openHours === 'object');
+            const valid = check ? check(this.formData.openHours) : (!!this.formData.openHours && typeof this.formData.openHours === 'object');
+            if (showErrors && !valid && area) {
+                const globalErr = area.querySelector('#hoursGlobalError');
+                if (globalErr) {
+                    globalErr.textContent = 'Please ensure at least one day is toggled Open and all closing times are later than opening times.';
+                    globalErr.style.display = 'block';
+                    globalErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+            return valid;
         }
+
         if (stepKey === 'plan') {
-            return ['listed', 'plus360', 'featured'].includes(this.formData.plan);
+            const valid = ['listed', 'plus360', 'featured'].includes(this.formData.plan);
+            if (showErrors && area) {
+                const planErr = area.querySelector('#planStepError');
+                if (planErr) planErr.style.display = valid ? 'none' : 'block';
+            }
+            return valid;
         }
+
         if (stepKey === 'review') {
-            return this.formData.termsAgreed === true && this.isStepValid('store') && this.isStepValid('location') && this.isStepValid('hours') && this.isStepValid('plan');
+            const storeOk = this.validateStep('store');
+            const locOk = this.validateStep('location');
+            const hoursOk = this.validateStep('hours');
+            const planOk = this.validateStep('plan');
+            const termsOk = this.formData.termsAgreed === true;
+
+            if (showErrors && area) {
+                const termsErr = area.querySelector('#termsError');
+                if (termsErr) {
+                    termsErr.style.display = termsOk ? 'none' : 'block';
+                }
+                const submitErr = area.querySelector('#submitErrorMessage');
+                if (!storeOk || !locOk || !hoursOk || !planOk) {
+                    if (submitErr) {
+                        submitErr.textContent = 'Some required fields in earlier steps are incomplete or invalid. Click "Edit" on the highlighted section above to fix them.';
+                        submitErr.style.display = 'block';
+                    }
+                } else if (submitErr && !termsOk) {
+                    submitErr.style.display = 'none';
+                }
+            }
+
+            return termsOk && storeOk && locOk && hoursOk && planOk;
         }
+
         return true;
     }
 
@@ -480,7 +750,6 @@ export class RegisterWizard {
         if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function') {
             return window.CalzadaScope.contains(lat, lng);
         }
-        // Fallback bounding box for Uno, Real, Halang if scope not loaded yet
         return lat >= COVERAGE_BBOX.minLat && lat <= COVERAGE_BBOX.maxLat &&
                lng >= COVERAGE_BBOX.minLng && lng <= COVERAGE_BBOX.maxLng;
     }
@@ -503,103 +772,219 @@ export class RegisterWizard {
     }
 
     renderStoreStep(area) {
+        const logoSrc = this.formData.logoPreviewUrl || this.formData.logoUrl || '';
+        const frontSrc = this.formData.photoPreviewUrl || this.formData.thumbnailUrl || '';
+        const isOthers = this.formData.categoryKey === 'others';
+
         area.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <!-- Front photo 4:3 -->
+            <div class="flex flex-col gap-5">
                 <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Store front photo <span style="color: #DC2626;">*</span>
-                    </label>
-                    <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
-                        <div id="frontPhotoBox" style="width: 140px; height: 105px; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; background: #F8FAFC; display: flex; align-items: center; justify-content: center; position: relative;">
-                            <img id="frontPhotoImg" src="${this.formData.photoPreviewUrl || this.formData.thumbnailUrl || ''}" style="width: 100%; height: 100%; object-fit: cover; display: ${this.formData.photoPreviewUrl || this.formData.thumbnailUrl ? 'block' : 'none'};" />
-                            <span id="frontPhotoEmpty" style="font-size: 12px; color: #94A3B8; text-align: center; padding: 4px; display: ${this.formData.photoPreviewUrl || this.formData.thumbnailUrl ? 'none' : 'block'};">4:3 Front View</span>
+                    <h2 class="text-lg font-bold text-[#042C53] m-0" style="font-family: 'Sora', sans-serif;">Stage 1: Business Information</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Provide your official business name, category, Philippine mobile number, and store media.</p>
+                </div>
+
+                <!-- Media Uploads: Business Logo + Storefront Photo (Responsive Grid) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Required Business Logo Upload -->
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                        <label class="block font-semibold text-sm text-[#042C53] mb-2">
+                            Business Logo <span class="text-red-600">*</span>
+                        </label>
+                        <div class="flex items-center gap-3.5">
+                            <div id="logoPreviewBox" class="w-16 h-16 rounded-xl border border-slate-300 bg-white overflow-hidden flex items-center justify-center shrink-0">
+                                <img id="logoPreviewImg" src="${this.escapeHtml(logoSrc)}" alt="Business Logo Preview" style="width: 100%; height: 100%; object-fit: cover; display: ${logoSrc ? 'block' : 'none'};" />
+                                <span id="logoPreviewEmpty" class="text-[11px] text-slate-400 text-center px-1" style="display: ${logoSrc ? 'none' : 'block'};">1:1 Logo</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <input type="file" id="logoFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;" />
+                                <button type="button" id="btnSelectLogo" class="min-h-[44px] px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-[#042C53] cursor-pointer hover:border-[#378ADD] transition-colors">
+                                    ${logoSrc ? 'Change logo' : 'Upload logo'}
+                                </button>
+                                <div class="text-xs text-slate-500 mt-1">Square brand logo or icon (JPG, PNG, WebP).</div>
+                            </div>
                         </div>
-                        <div>
-                            <input type="file" id="frontPhotoFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;" />
-                            <button type="button" id="btnSelectFrontPhoto" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: #042C53; cursor: pointer;">
-                                Choose photo
-                            </button>
-                            <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Clear front view of store. JPG, PNG or WebP.</div>
-                            <div id="frontPhotoError" style="font-size: 12px; color: #DC2626; margin-top: 2px; display: none;">Front photo is required.</div>
+                        <div id="logoError" class="text-xs text-red-600 mt-2 font-medium" style="display: none;"></div>
+                    </div>
+
+                    <!-- Required Storefront Photo Upload -->
+                    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50">
+                        <label class="block font-semibold text-sm text-[#042C53] mb-2">
+                            Storefront Photo <span class="text-red-600">*</span>
+                        </label>
+                        <div class="flex items-center gap-3.5">
+                            <div id="frontPhotoBox" class="w-20 h-16 rounded-xl border border-slate-300 bg-white overflow-hidden flex items-center justify-center shrink-0">
+                                <img id="frontPhotoImg" src="${this.escapeHtml(frontSrc)}" alt="Storefront Preview" style="width: 100%; height: 100%; object-fit: cover; display: ${frontSrc ? 'block' : 'none'};" />
+                                <span id="frontPhotoEmpty" class="text-[11px] text-slate-400 text-center px-1" style="display: ${frontSrc ? 'none' : 'block'};">4:3 Photo</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <input type="file" id="frontPhotoFileInput" accept="image/jpeg,image/png,image/webp" style="display: none;" />
+                                <button type="button" id="btnSelectFrontPhoto" class="min-h-[44px] px-3.5 py-2 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm font-semibold text-[#042C53] cursor-pointer hover:border-[#378ADD] transition-colors">
+                                    ${frontSrc ? 'Change photo' : 'Choose photo'}
+                                </button>
+                                <div class="text-xs text-slate-500 mt-1">Clear exterior view so commuters recognize your store.</div>
+                            </div>
                         </div>
+                        <div id="frontPhotoError" class="text-xs text-red-600 mt-2 font-medium" style="display: none;"></div>
                     </div>
                 </div>
 
-                <!-- Business Name -->
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Business name <span style="color: #DC2626;">*</span>
+                <!-- Business Name & Category Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="inputBizName" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                            Business Name <span class="text-red-600">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="inputBizName"
+                            value="${this.escapeHtml(this.formData.name)}"
+                            maxlength="80"
+                            placeholder="e.g. Lola Nena's Eatery & Grill"
+                            class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
+                        />
+                        <div class="text-xs text-slate-500 mt-1">Letters, numbers, and standard punctuation (., - &amp; ').</div>
+                        <div id="bizNameError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
+                    </div>
+
+                    <div>
+                        <label for="selectBizCategory" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                            Category <span class="text-red-600">*</span>
+                        </label>
+                        <select
+                            id="selectBizCategory"
+                            class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53] bg-white"
+                        >
+                            <option value="" ${this.formData.categoryKey ? '' : 'selected'} disabled>Select a category</option>
+                            ${CALAMBA_CATEGORIES.map(c => `
+                                <option value="${c.key}" ${this.formData.categoryKey === c.key ? 'selected' : ''}>${this.escapeHtml(c.label)}</option>
+                            `).join('')}
+                        </select>
+                        <div id="bizCategoryError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <!-- Dynamic "Others" Category Specification -->
+                <div id="othersCategoryWrap" style="display: ${isOthers ? 'block' : 'none'};" class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                    <label for="inputCustomCategory" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                        What does your business serve or offer? <span class="text-red-600">*</span>
                     </label>
-                    <input type="text" id="inputBizName" value="${this.escapeHtml(this.formData.name)}" maxlength="80" placeholder="Your store name"
-                        style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
+                    <input
+                        type="text"
+                        id="inputCustomCategory"
+                        value="${this.escapeHtml(this.formData.customCategory)}"
+                        maxlength="40"
+                        placeholder="e.g. Veterinary Clinic & Pet Grooming, Printing & Photocopy Services"
+                        class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53] bg-white"
                     />
-                    <div id="bizNameError" style="font-size: 12px; color: #DC2626; margin-top: 2px; display: none;">Please enter a business name (1–80 chars).</div>
+                    <div class="text-xs text-slate-500 mt-1">Specify your exact business type (2–40 characters).</div>
+                    <div id="customCategoryError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
                 </div>
 
-                <!-- Category -->
+                <!-- Contact Number (+639XXXXXXXXX) -->
                 <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Category <span style="color: #DC2626;">*</span>
+                    <label for="inputBizContact" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                        Contact Number <span class="text-red-600">*</span>
                     </label>
-                    <select id="selectBizCategory" style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
-                        <option value="" ${this.formData.category ? '' : 'selected'} disabled>Choose a category</option>
-                        <option value="coffee" ${this.formData.category === 'coffee' ? 'selected' : ''}>Coffee &amp; Cafes</option>
-                        <option value="eateries" ${this.formData.category === 'eateries' ? 'selected' : ''}>Eateries &amp; Restaurants</option>
-                        <option value="malls" ${this.formData.category === 'malls' ? 'selected' : ''}>Malls &amp; Shopping</option>
-                        <option value="establishments" ${this.formData.category === 'establishments' ? 'selected' : ''}>Commercial Establishments</option>
-                        <option value="schools" ${this.formData.category === 'schools' ? 'selected' : ''}>Schools &amp; Universities</option>
-                        <option value="terminals" ${this.formData.category === 'terminals' ? 'selected' : ''}>Transport Terminals</option>
-                    </select>
-                </div>
-
-                <!-- Description -->
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Short description <span style="font-weight: 400; color: #64748B;">(optional)</span>
-                    </label>
-                    <textarea id="inputBizDesc" maxlength="500" rows="3" placeholder="Tell commuters what makes your store special..."
-                        style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
-                    >${this.escapeHtml(this.formData.description)}</textarea>
-                </div>
-
-                <!-- Contact Number -->
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Contact number <span style="font-weight: 400; color: #64748B;">(optional)</span>
-                    </label>
-                    <input type="text" id="inputBizContact" value="${this.escapeHtml(this.formData.contactNumber)}" maxlength="20" placeholder="0912 345 6789"
-                        style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
+                    <input
+                        type="tel"
+                        id="inputBizContact"
+                        value="${this.escapeHtml(this.formData.contactNumber)}"
+                        maxlength="13"
+                        inputmode="tel"
+                        placeholder="+639171234567"
+                        class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
                     />
+                    <div class="text-xs text-slate-500 mt-1">Strict Philippine mobile format: <strong>+639XXXXXXXXX</strong> (13 characters starting with +639).</div>
+                    <div id="bizContactError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
                 </div>
 
-                <!-- Offerings chip input -->
+                <!-- Offerings & Specialties -->
                 <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Offerings &amp; Specialties <span style="color: #DC2626;">*</span>
+                    <label class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                        Offerings &amp; Specialties <span class="text-red-600">*</span>
                     </label>
                     <div id="offeringsEditorMount"></div>
-                    <div id="offeringsError" style="font-size: 12px; color: #DC2626; margin-top: 2px; display: none;">Add at least 1 offering (up to 10).</div>
+                    <div id="offeringsError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
+                </div>
+
+                <!-- Short Description -->
+                <div>
+                    <label for="inputBizDesc" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                        Short Description <span class="font-normal text-slate-500">(optional)</span>
+                    </label>
+                    <textarea
+                        id="inputBizDesc"
+                        maxlength="500"
+                        rows="3"
+                        placeholder="Tell commuters what makes your business helpful or worth visiting..."
+                        class="cz-input w-full border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
+                    >${this.escapeHtml(this.formData.description)}</textarea>
                 </div>
             </div>
         `;
 
-        // Wire inputs
+        // 1. Wire Business Logo Upload
+        const logoInput = area.querySelector('#logoFileInput');
+        const btnLogo = area.querySelector('#btnSelectLogo');
+        btnLogo.addEventListener('click', () => logoInput.click());
+
+        logoInput.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            const logoBox = area.querySelector('#logoPreviewBox');
+            const errEl = area.querySelector('#logoError');
+            if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+                this.setFieldError(logoBox, errEl, 'Please upload a JPG, PNG, or WebP image for your logo.');
+                return;
+            }
+            this.setFieldError(logoBox, errEl, '');
+            const comp = window.CalzadaBusinessFields?.compressImageFile || ((f) => f);
+            const compressed = await comp(file, { maxSide: 512, quality: 0.86, maxBytes: 400 * 1024 });
+            if (this.formData.logoPreviewUrl) URL.revokeObjectURL(this.formData.logoPreviewUrl);
+            this.formData.logoPreviewUrl = URL.createObjectURL(compressed);
+            this.formData.logoFile = compressed;
+            this.formData.logoUrl = '';
+
+            const img = area.querySelector('#logoPreviewImg');
+            const empty = area.querySelector('#logoPreviewEmpty');
+            img.src = this.formData.logoPreviewUrl;
+            img.style.display = 'block';
+            empty.style.display = 'none';
+            this.updateLivePreview();
+            this.validateCurrentStepButton();
+
+            btnLogo.disabled = true;
+            btnLogo.textContent = 'Uploading...';
+            try {
+                this.formData.logoUrl = await this.uploadBusinessMedia(compressed, 'logo');
+                this.formData.logoFile = null;
+                this.triggerAutosave();
+            } catch (upErr) {
+                this.setFieldError(logoBox, errEl, upErr.message || 'Could not upload logo. It will retry on submission.');
+            } finally {
+                btnLogo.disabled = false;
+                btnLogo.textContent = 'Change logo';
+                this.validateCurrentStepButton();
+            }
+        });
+
+        // 2. Wire Storefront Photo Upload
         const fileInput = area.querySelector('#frontPhotoFileInput');
-        area.querySelector('#btnSelectFrontPhoto').addEventListener('click', () => fileInput.click());
+        const btnPhoto = area.querySelector('#btnSelectFrontPhoto');
+        btnPhoto.addEventListener('click', () => fileInput.click());
 
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files && e.target.files[0];
             e.target.value = '';
             if (!file) return;
-            const btn = area.querySelector('#btnSelectFrontPhoto');
+            const frontBox = area.querySelector('#frontPhotoBox');
             const errEl = area.querySelector('#frontPhotoError');
             if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
-                errEl.textContent = 'Use a JPG, PNG or WebP photo.';
-                errEl.style.display = 'block';
+                this.setFieldError(frontBox, errEl, 'Please upload a JPG, PNG, or WebP photo.');
                 return;
             }
-            errEl.style.display = 'none';
+            this.setFieldError(frontBox, errEl, '');
             const comp = window.CalzadaBusinessFields?.compressImageFile || ((f) => f);
             const compressed = await comp(file);
             if (this.formData.photoPreviewUrl) URL.revokeObjectURL(this.formData.photoPreviewUrl);
@@ -615,57 +1000,111 @@ export class RegisterWizard {
             this.updateLivePreview();
             this.validateCurrentStepButton();
 
-            // Upload now (not at submit), so the draft keeps the photo after a reload
-            btn.disabled = true;
-            btn.textContent = 'Uploading…';
+            btnPhoto.disabled = true;
+            btnPhoto.textContent = 'Uploading...';
             try {
-                this.formData.thumbnailUrl = await this.uploadFrontPhoto(compressed);
+                this.formData.thumbnailUrl = await this.uploadBusinessMedia(compressed, 'front');
                 this.formData.frontPhotoFile = null;
                 this.triggerAutosave();
             } catch (upErr) {
-                errEl.textContent = upErr.message || 'The photo could not be uploaded. Try again.';
-                errEl.style.display = 'block';
+                this.setFieldError(frontBox, errEl, upErr.message || 'The photo could not be uploaded. Try again.');
             } finally {
-                btn.disabled = false;
-                btn.textContent = 'Change photo';
+                btnPhoto.disabled = false;
+                btnPhoto.textContent = 'Change photo';
                 this.validateCurrentStepButton();
             }
         });
 
+        // 3. Wire Business Name with live inline validation
         const nameInput = area.querySelector('#inputBizName');
-        nameInput.addEventListener('input', (e) => {
-            this.formData.name = e.target.value;
+        const nameErr = area.querySelector('#bizNameError');
+        const checkNameInline = () => {
+            this.formData.name = nameInput.value;
+            const res = validateBusinessName(this.formData.name);
+            this.setFieldError(nameInput, nameErr, res.valid ? '' : res.message);
+            this.updateLivePreview();
+            this.validateCurrentStepButton();
+            this.triggerAutosave();
+        };
+        nameInput.addEventListener('input', checkNameInline);
+        nameInput.addEventListener('blur', checkNameInline);
+
+        // 4. Wire Category & Others input
+        const catSelect = area.querySelector('#selectBizCategory');
+        const catErr = area.querySelector('#bizCategoryError');
+        const othersWrap = area.querySelector('#othersCategoryWrap');
+        const customInput = area.querySelector('#inputCustomCategory');
+        const customErr = area.querySelector('#customCategoryError');
+
+        catSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            this.formData.categoryKey = val;
+            const meta = this.getCategoryMeta();
+            this.formData.category = meta.firestoreCat;
+            this.setFieldError(catSelect, catErr, val ? '' : 'Please select a business category.');
+
+            if (val === 'others') {
+                othersWrap.style.display = 'block';
+                if (customInput) customInput.focus();
+            } else {
+                othersWrap.style.display = 'none';
+                this.setFieldError(customInput, customErr, '');
+            }
+
             this.updateLivePreview();
             this.validateCurrentStepButton();
             this.triggerAutosave();
         });
 
-        const catSelect = area.querySelector('#selectBizCategory');
-        catSelect.addEventListener('change', (e) => {
-            this.formData.category = e.target.value;
+        if (customInput) {
+            const checkCustomInline = () => {
+                this.formData.customCategory = customInput.value;
+                const res = validateCustomCategory(this.formData.customCategory);
+                this.setFieldError(customInput, customErr, res.valid ? '' : res.message);
+                this.updateLivePreview();
+                this.validateCurrentStepButton();
+                this.triggerAutosave();
+            };
+            customInput.addEventListener('input', checkCustomInline);
+            customInput.addEventListener('blur', checkCustomInline);
+        }
+
+        // 5. Wire Contact Number (+639XXXXXXXXX)
+        const contactInput = area.querySelector('#inputBizContact');
+        const contactErr = area.querySelector('#bizContactError');
+        contactInput.addEventListener('focus', () => {
+            if (!contactInput.value.trim()) {
+                contactInput.value = '+639';
+                this.formData.contactNumber = '+639';
+            }
+        });
+        const checkContactInline = () => {
+            this.formData.contactNumber = contactInput.value.trim();
+            const res = validatePhContactNumber(this.formData.contactNumber);
+            this.setFieldError(contactInput, contactErr, res.valid ? '' : res.message);
             this.validateCurrentStepButton();
             this.triggerAutosave();
-        });
+        };
+        contactInput.addEventListener('input', checkContactInline);
+        contactInput.addEventListener('blur', checkContactInline);
 
+        // 6. Wire Description
         const descInput = area.querySelector('#inputBizDesc');
         descInput.addEventListener('input', (e) => {
             this.formData.description = e.target.value;
             this.triggerAutosave();
         });
 
-        const contactInput = area.querySelector('#inputBizContact');
-        contactInput.addEventListener('input', (e) => {
-            this.formData.contactNumber = e.target.value;
-            this.triggerAutosave();
-        });
-
-        // Mount offerings editor
+        // 7. Mount Offerings Editor
         const mount = area.querySelector('#offeringsEditorMount');
         if (window.CalzadaBusinessFields?.renderOfferingsInput) {
             this.offeringsEditor = window.CalzadaBusinessFields.renderOfferingsInput(mount, {
                 initialOfferings: this.formData.offerings,
                 onChange: (newOfferings) => {
                     this.formData.offerings = newOfferings;
+                    const offBox = area.querySelector('.offerings-editor-box');
+                    const offErr = area.querySelector('#offeringsError');
+                    this.setFieldError(offBox, offErr, newOfferings.length >= 1 ? '' : 'Please add at least 1 offering or specialty.');
                     this.updateLivePreview();
                     this.validateCurrentStepButton();
                     this.triggerAutosave();
@@ -676,67 +1115,138 @@ export class RegisterWizard {
 
     renderLocationStep(area) {
         area.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div class="flex flex-col gap-5">
                 <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 4px;">
-                        Place Pin on Map <span style="color: #DC2626;">*</span>
-                    </label>
-                    <div style="font-size: 12px; color: #64748B; margin-bottom: 8px;">
-                        Click or drag the pin to set your exact location (Uno, Real, or Halang).
+                    <h2 class="text-lg font-bold text-[#042C53] m-0" style="font-family: 'Sora', sans-serif;">Stage 2: Location &amp; Map</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Pinpoint your exact location on the map and verify your structured address in Brgy. Uno, Real, or Halang.</p>
+                </div>
+
+                <!-- Map Header + Real-time Geolocation Button -->
+                <div>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 mb-2.5">
+                        <div>
+                            <label class="block font-semibold text-sm text-[#042C53]">
+                                Pin Store Location on Map <span class="text-red-600">*</span>
+                            </label>
+                            <div class="text-xs text-slate-500">Click or drag the map pin within Brgy. Uno, Real, or Halang.</div>
+                        </div>
+                        <button
+                            type="button"
+                            id="btnUseCurrentLocation"
+                            class="w-full sm:w-auto min-h-[44px] px-4 py-2 bg-white border border-[#378ADD] rounded-lg text-xs sm:text-sm font-semibold text-[#378ADD] hover:bg-blue-50/60 cursor-pointer inline-flex items-center justify-center gap-2 transition-colors shrink-0"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3m0 14v3M2 12h3m14 0h3"></path><circle cx="12" cy="12" r="7"></circle></svg>
+                            <span id="btnGeoLabel">Use My Current Location</span>
+                        </button>
                     </div>
-                    <div id="wizardMapContainer" style="width: 100%; height: 260px; border: 1px solid #E2E8F0; border-radius: 8px; overflow: hidden; background: #F1F5F9;"></div>
-                    <div id="mapCoverageError" style="font-size: 12px; color: #DC2626; margin-top: 4px; display: none;">
-                        Pin must be inside Calzada's coverage area (Brgy. Uno, Real, Halang).
+
+                    <!-- Responsive Map Container (h-64 on mobile, md:h-96 on tablet/desktop) -->
+                    <div id="wizardMapContainer" class="w-full h-64 md:h-96 border border-slate-300 rounded-xl overflow-hidden bg-slate-100"></div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-2 mt-2">
+                        <div id="pinCoordsBadge" class="text-xs text-slate-500 font-mono">
+                            Pin: ${(this.formData.location.lat || 14.20415).toFixed(5)}, ${(this.formData.location.lng || 121.15691).toFixed(5)}
+                        </div>
+                        <div id="locationSyncStatus" class="text-xs text-slate-500" aria-live="polite"></div>
                     </div>
+                    <div id="mapCoverageError" class="text-xs text-red-600 mt-1.5 font-medium" style="display: none;"></div>
                 </div>
 
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Barangay <span style="color: #DC2626;">*</span>
-                    </label>
-                    <select id="selectBarangay" style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
-                        <option value="" disabled ${this.formData.barangay ? '' : 'selected'}>Drop your pin first</option>
-                        <option value="Uno" ${this.formData.barangay === 'Uno' ? 'selected' : ''}>Brgy. Uno</option>
-                        <option value="Real" ${this.formData.barangay === 'Real' ? 'selected' : ''}>Brgy. Real</option>
-                        <option value="Halang" ${this.formData.barangay === 'Halang' ? 'selected' : ''}>Brgy. Halang</option>
-                    </select>
-                    <div id="barangayHint" style="font-size: 12px; color: #64748B; margin-top: 4px;"></div>
-                </div>
+                <!-- Structured Address Fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label for="inputAddress" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                            House No. / Building / Street <span class="text-red-600">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="inputAddress"
+                            value="${this.escapeHtml(this.formData.address)}"
+                            maxlength="160"
+                            placeholder="e.g. Unit 2B, 45 J.P. Rizal St., Purok 3"
+                            class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
+                        />
+                        <div class="text-xs text-slate-500 mt-1">Synced with your map pin when available; edit to add exact unit or building number.</div>
+                        <div id="addressError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
+                    </div>
 
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Street address <span style="color: #DC2626;">*</span>
-                    </label>
-                    <input type="text" id="inputAddress" value="${this.escapeHtml(this.formData.address)}" maxlength="160" placeholder="House no., street, purok"
-                        style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
-                    />
-                    <div id="addressError" style="font-size: 12px; color: #DC2626; margin-top: 2px; display: none;">Street address is required.</div>
-                </div>
+                    <div>
+                        <label for="selectBarangay" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                            Barangay <span class="text-red-600">*</span>
+                        </label>
+                        <select
+                            id="selectBarangay"
+                            class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53] bg-white"
+                        >
+                            <option value="" disabled ${this.formData.barangay ? '' : 'selected'}>Select Barangay</option>
+                            <option value="Uno" ${this.formData.barangay === 'Uno' ? 'selected' : ''}>Brgy. Uno</option>
+                            <option value="Real" ${this.formData.barangay === 'Real' ? 'selected' : ''}>Brgy. Real</option>
+                            <option value="Halang" ${this.formData.barangay === 'Halang' ? 'selected' : ''}>Brgy. Halang</option>
+                        </select>
+                        <div id="barangayHint" class="text-xs text-slate-500 mt-1"></div>
+                        <div id="barangayError" class="text-xs text-red-600 mt-1 font-medium" style="display: none;"></div>
+                    </div>
 
-                <div>
-                    <label style="display: block; font-weight: 600; font-size: 14px; color: #042C53; margin-bottom: 6px;">
-                        Nearby landmark <span style="font-weight: 400; color: #64748B;">(optional)</span>
-                    </label>
-                    <input type="text" id="inputLandmark" value="${this.escapeHtml(this.formData.landmark)}" maxlength="80" placeholder="Near a known spot (optional)"
-                        style="width: 100%; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 12px; font-size: 14px; color: #042C53; font-family: 'Outfit', sans-serif;"
-                    />
+                    <div>
+                        <label for="inputLandmark" class="block font-semibold text-sm text-[#042C53] mb-1.5">
+                            Landmark <span class="font-normal text-slate-500">(optional)</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="inputLandmark"
+                            value="${this.escapeHtml(this.formData.landmark)}"
+                            maxlength="80"
+                            placeholder="e.g. Across SM City Calamba / Beside 7-Eleven"
+                            class="cz-input w-full min-h-[44px] border border-slate-300 rounded-lg px-3.5 py-2.5 text-sm text-[#042C53]"
+                        />
+                        <div class="text-xs text-slate-500 mt-1">Helps jeepney commuters spot your store quickly.</div>
+                    </div>
                 </div>
             </div>
         `;
 
-        const brgySelect = area.querySelector('#selectBarangay');
-        brgySelect.addEventListener('change', (e) => {
-            this.formData.barangay = e.target.value;
-            this.barangaySource = 'manual';
-            this.paintBarangayHint(area);
-            this.updateLivePreview();
+        const addrInput = area.querySelector('#inputAddress');
+        const addrErr = area.querySelector('#addressError');
+        addrInput.addEventListener('input', (e) => {
+            this.formData.address = e.target.value;
+            this._addressManuallyTyped = this.formData.address.trim().length > 0;
+            const ok = this.formData.address.trim().length >= 3;
+            this.setFieldError(addrInput, addrErr, ok ? '' : 'Please enter your House No., Building, or Street name (at least 3 characters).');
             this.validateCurrentStepButton();
             this.triggerAutosave();
         });
+        addrInput.addEventListener('blur', () => {
+            const ok = this.formData.address.trim().length >= 3;
+            this.setFieldError(addrInput, addrErr, ok ? '' : 'Please enter your House No., Building, or Street name (at least 3 characters).');
+        });
 
-        const addrInput = area.querySelector('#inputAddress');
-        addrInput.addEventListener('input', (e) => {
-            this.formData.address = e.target.value;
+        const brgySelect = area.querySelector('#selectBarangay');
+        const brgyErr = area.querySelector('#barangayError');
+        brgySelect.addEventListener('change', (e) => {
+            const selectedBrgy = e.target.value;
+            this.formData.barangay = selectedBrgy;
+            this.barangaySource = 'manual';
+            this.setFieldError(brgySelect, brgyErr, '');
+
+            // Sync Barangay -> Map Pin if the current pin is in a different barangay
+            const detected = detectBarangay(this.formData.location.lat, this.formData.location.lng);
+            if (selectedBrgy && detected !== selectedBrgy) {
+                const center = BARANGAY_CENTERS.find(b => b.name === selectedBrgy);
+                if (center) {
+                    this.formData.location = { lat: center.lat, lng: center.lng };
+                    if (this.marker) this.marker.setLngLat([center.lng, center.lat]);
+                    if (this.map) this.map.flyTo({ center: [center.lng, center.lat], zoom: 15.5 });
+                    this.updatePinBadge(area);
+                    this.syncAddressFromCoordinates(area, center.lat, center.lng);
+                }
+            }
+
+            const mapEl = area.querySelector('#wizardMapContainer');
+            const mapErr = area.querySelector('#mapCoverageError');
+            this.setFieldError(mapEl, mapErr, '');
+
+            this.paintBarangayHint(area);
+            this.updateLivePreview();
             this.validateCurrentStepButton();
             this.triggerAutosave();
         });
@@ -747,24 +1257,138 @@ export class RegisterWizard {
             this.triggerAutosave();
         });
 
-        this.paintBarangayHint(area);
+        // Wire "Use My Current Location" button
+        const btnGeo = area.querySelector('#btnUseCurrentLocation');
+        const btnGeoLabel = area.querySelector('#btnGeoLabel');
+        btnGeo.addEventListener('click', () => {
+            const mapEl = area.querySelector('#wizardMapContainer');
+            const mapErr = area.querySelector('#mapCoverageError');
+            if (!navigator.geolocation) {
+                this.setFieldError(mapEl, mapErr, 'Geolocation is not supported by your browser. Please drag the map pin manually.');
+                return;
+            }
+            btnGeo.disabled = true;
+            if (btnGeoLabel) btnGeoLabel.textContent = 'Locating...';
+            this.setFieldError(mapEl, mapErr, '');
 
-        // Initialize MapLibre
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    btnGeo.disabled = false;
+                    if (btnGeoLabel) btnGeoLabel.textContent = 'Use My Current Location';
+                    const lat = Number(pos.coords.latitude.toFixed(6));
+                    const lng = Number(pos.coords.longitude.toFixed(6));
+
+                    if (!this.isInCoverage(lat, lng)) {
+                        this.setFieldError(
+                            mapEl,
+                            mapErr,
+                            `Your current location (${lat.toFixed(4)}, ${lng.toFixed(4)}) is outside Calzada's service area (Brgy. Uno, Real, and Halang). Please drag the pin inside the highlighted map area.`
+                        );
+                        return;
+                    }
+
+                    this.applyPinCoordinates(area, lat, lng, { fly: true, forceAddressSync: true });
+                },
+                (err) => {
+                    btnGeo.disabled = false;
+                    if (btnGeoLabel) btnGeoLabel.textContent = 'Use My Current Location';
+                    const msg = err && err.code === 1
+                        ? 'Location permission was denied. Please allow location access in your browser or drag the pin on the map.'
+                        : 'Could not detect your current location. Please place the pin on the map manually.';
+                    this.setFieldError(mapEl, mapErr, msg);
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+
+        this.paintBarangayHint(area);
         setTimeout(() => this.initMapLibre(area), 50);
     }
 
-    // The line under the barangay box: says where the value came from
+    updatePinBadge(area) {
+        const badge = area && area.querySelector('#pinCoordsBadge');
+        if (badge && this.formData.location) {
+            badge.textContent = `Pin: ${Number(this.formData.location.lat).toFixed(5)}, ${Number(this.formData.location.lng).toFixed(5)}`;
+        }
+    }
+
+    async syncAddressFromCoordinates(area, lat, lng, { force = false } = {}) {
+        const syncEl = area && area.querySelector('#locationSyncStatus');
+        const addrInput = area && area.querySelector('#inputAddress');
+        const addrErr = area && area.querySelector('#addressError');
+        if (syncEl) syncEl.textContent = 'Syncing address from pin...';
+
+        try {
+            if (this.reverseGeocodeAbort) this.reverseGeocodeAbort.abort();
+            this.reverseGeocodeAbort = new AbortController();
+            const res = await fetch(`/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lng=${encodeURIComponent(lng)}`, {
+                signal: this.reverseGeocodeAbort.signal
+            });
+            const data = await res.json().catch(() => ({}));
+            const suggested = (data && data.streetAddress) ? String(data.streetAddress).trim() : '';
+
+            if (suggested && (force || !this._addressManuallyTyped || !this.formData.address.trim())) {
+                this.formData.address = suggested;
+                if (addrInput) {
+                    addrInput.value = suggested;
+                    this.setFieldError(addrInput, addrErr, '');
+                }
+                if (syncEl) syncEl.textContent = 'Street address updated from map pin.';
+                this.validateCurrentStepButton();
+                this.triggerAutosave();
+            } else if (syncEl) {
+                syncEl.textContent = `Pin synced to Brgy. ${this.formData.barangay}.`;
+            }
+        } catch (err) {
+            if (err && err.name === 'AbortError') return;
+            if (syncEl) syncEl.textContent = `Pin synced to Brgy. ${this.formData.barangay}.`;
+        }
+    }
+
+    applyPinCoordinates(area, lat, lng, { fly = false, forceAddressSync = false } = {}) {
+        const mapEl = area.querySelector('#wizardMapContainer');
+        const mapErr = area.querySelector('#mapCoverageError');
+
+        if (!this.isInCoverage(lat, lng)) {
+            this.setFieldError(mapEl, mapErr, 'Pin must be placed inside Brgy. Uno, Real, or Halang.');
+            if (this.marker) {
+                this.marker.setLngLat([this.formData.location.lng || 121.15691, this.formData.location.lat || 14.20415]);
+            }
+            return;
+        }
+
+        this.formData.location = { lat, lng };
+        this.setFieldError(mapEl, mapErr, '');
+
+        if (this.marker) this.marker.setLngLat([lng, lat]);
+        if (fly && this.map) this.map.flyTo({ center: [lng, lat], zoom: 16 });
+
+        const detected = detectBarangay(lat, lng);
+        this.formData.barangay = detected;
+        this.barangaySource = 'auto';
+        const brgySel = area.querySelector('#selectBarangay');
+        if (brgySel) brgySel.value = detected;
+
+        this.updatePinBadge(area);
+        this.paintBarangayHint(area);
+        this.syncAddressFromCoordinates(area, lat, lng, { force: forceAddressSync });
+
+        this.updateLivePreview();
+        this.validateCurrentStepButton();
+        this.triggerAutosave();
+    }
+
     paintBarangayHint(area) {
         const hint = area.querySelector('#barangayHint');
         if (!hint) return;
         if (!this.formData.barangay) {
-            hint.textContent = 'Drop your pin and we will fill this in. You can still change it.';
+            hint.textContent = 'Drop your pin or select Uno, Real, or Halang.';
         } else if (this.barangaySource === 'auto') {
-            hint.textContent = 'Filled in from your pin. Change it if it is wrong.';
+            hint.textContent = `Auto-detected Brgy. ${this.formData.barangay} from your map pin.`;
         } else if (this.barangaySource === 'manual') {
-            hint.textContent = 'You picked this. Moving the pin fills it in again.';
+            hint.textContent = `Synced with Brgy. ${this.formData.barangay} on the map.`;
         } else {
-            hint.textContent = '';
+            hint.textContent = `Coverage: Brgy. ${this.formData.barangay}, Calamba.`;
         }
     }
 
@@ -772,14 +1396,16 @@ export class RegisterWizard {
         const mapContainer = area.querySelector('#wizardMapContainer');
         if (!mapContainer || typeof window.maplibregl === 'undefined') return;
 
-        const defaultCenter = [this.formData.location.lng || 121.1652, this.formData.location.lat || 14.2117];
+        const defaultCenter = [this.formData.location.lng || 121.15691, this.formData.location.lat || 14.20415];
 
         this.map = new window.maplibregl.Map({
             container: mapContainer,
             style: 'https://tiles.openfreemap.org/styles/bright',
             center: defaultCenter,
-            zoom: 14
+            zoom: 14.5
         });
+
+        this.map.addControl(new window.maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
         if (window.CalzadaScope && typeof window.CalzadaScope.addFog === 'function') {
             window.CalzadaScope.addFog(this.map);
@@ -789,9 +1415,7 @@ export class RegisterWizard {
             .setLngLat(defaultCenter)
             .addTo(this.map);
 
-        // A restored pin with no barangay yet gets one right away
-        if (!this.formData.barangay && window.CalzadaScope && typeof window.CalzadaScope.contains === 'function'
-            && window.CalzadaScope.contains(defaultCenter[1], defaultCenter[0])) {
+        if (!this.formData.barangay && this.isInCoverage(defaultCenter[1], defaultCenter[0])) {
             this.formData.barangay = detectBarangay(defaultCenter[1], defaultCenter[0]);
             this.barangaySource = 'auto';
             const brgySel = area.querySelector('#selectBarangay');
@@ -801,63 +1425,25 @@ export class RegisterWizard {
             this.validateCurrentStepButton();
         }
 
-        const onPinMoved = (lngLat) => {
-            const lat = Number(lngLat.lat.toFixed(6));
-            const lng = Number(lngLat.lng.toFixed(6));
-
-            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(lat, lng)) {
-                const toastMsg = (typeof window.t === 'function')
-                    ? window.t('scope.outside_toast')
-                    : 'Calzada covers Brgy. Uno, Real and Halang for now.';
-                if (typeof window.showToast === 'function') {
-                    window.showToast(toastMsg, 'warning');
-                }
-                const prev = [this.formData.location.lng || 121.1652, this.formData.location.lat || 14.2117];
-                this.marker.setLngLat(prev);
-                return;
-            }
-
-            this.formData.location = { lat, lng };
-
-            const errEl = area.querySelector('#mapCoverageError');
-            if (errEl) errEl.style.display = 'none';
-
-            // Fill in the barangay from where the pin is; the owner can still change it
-            const detected = detectBarangay(lat, lng);
-            this.formData.barangay = detected;
-            this.barangaySource = 'auto';
-            const brgySel = area.querySelector('#selectBarangay');
-            if (brgySel) brgySel.value = detected;
-            this.paintBarangayHint(area);
-
-            this.updateLivePreview();
-            this.validateCurrentStepButton();
-            this.triggerAutosave();
-        };
-
         this.marker.on('dragend', () => {
-            onPinMoved(this.marker.getLngLat());
+            const lngLat = this.marker.getLngLat();
+            this.applyPinCoordinates(area, Number(lngLat.lat.toFixed(6)), Number(lngLat.lng.toFixed(6)));
         });
 
         this.map.on('click', (e) => {
-            const { lat, lng } = e.lngLat;
-            if (window.CalzadaScope && typeof window.CalzadaScope.contains === 'function' && !window.CalzadaScope.contains(lat, lng)) {
-                const toastMsg = (typeof window.t === 'function')
-                    ? window.t('scope.outside_toast')
-                    : 'Calzada covers Brgy. Uno, Real and Halang for now.';
-                if (typeof window.showToast === 'function') {
-                    window.showToast(toastMsg, 'warning');
-                }
-                return;
-            }
-            this.marker.setLngLat(e.lngLat);
-            onPinMoved(e.lngLat);
+            const lat = Number(e.lngLat.lat.toFixed(6));
+            const lng = Number(e.lngLat.lng.toFixed(6));
+            this.applyPinCoordinates(area, lat, lng);
         });
     }
 
     renderHoursStep(area) {
         area.innerHTML = `
-            <div>
+            <div class="flex flex-col gap-4">
+                <div>
+                    <h2 class="text-lg font-bold text-[#042C53] m-0" style="font-family: 'Sora', sans-serif;">Stage 3: Open Hours</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Toggle each day Open or Closed and enter one continuous operating time range per open day.</p>
+                </div>
                 <div id="openHoursMount"></div>
             </div>
         `;
@@ -884,29 +1470,56 @@ export class RegisterWizard {
         };
 
         area.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 16px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+            <div class="flex flex-col gap-5">
+                <div>
+                    <h2 class="text-lg font-bold text-[#042C53] m-0" style="font-family: 'Sora', sans-serif;">Stage 4: Plans &amp; Pricing</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">One-time registration payment. You only pay via GCash after your business details are approved.</p>
+                </div>
+
+                <!-- Responsive Plan Cards: Stack vertically on mobile, 3 columns side-by-side on desktop -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     ${Object.entries(plans).map(([planKey, cfg]) => {
                         const isSelected = this.formData.plan === planKey;
                         const isRec = cfg.recommended;
                         return `
-                            <div class="plan-select-card plan-card-${planKey}" data-plan="${planKey}" style="border: 2px solid ${isSelected ? '#378ADD' : '#E2E8F0'}; border-radius: 12px; padding: 18px 16px; background: #FFFFFF; cursor: pointer; position: relative; transition: all 0.15s ease;">
-                                ${isRec ? '<div style="font-size: 11px; font-weight: 700; color: #378ADD; text-transform: uppercase; margin-bottom: 4px;">Recommended</div>' : ''}
-                                <h4 style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #042C53; margin: 0 0 6px 0;">${cfg.name || planKey}</h4>
-                                <div style="font-size: 22px; font-weight: 800; color: #042C53; margin-bottom: 12px;">₱${cfg.price}<span style="font-size: 13px; font-weight: 500; color: #64748B;">/mo</span></div>
-                                <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #042C53; display: flex; flex-direction: column; gap: 6px;">
-                                    <li>&#10003; ${cfg.postsPerMonth ? `${cfg.postsPerMonth} updates/mo` : 'Unlimited updates'}</li>
-                                    <li>&#10003; ${cfg.newTagDays}-day "New" tag</li>
-                                    ${cfg.boostDays ? `<li>&#10003; ${cfg.boostDays}-day search boost</li>` : ''}
-                                    ${cfg.has360 ? `<li>&#10003; 360° Virtual Tour</li>` : ''}
-                                </ul>
-                            </div>
+                            <button
+                                type="button"
+                                class="plan-select-card plan-card-${planKey} text-left rounded-xl p-5 bg-white cursor-pointer transition-all flex flex-col justify-between min-h-[44px]"
+                                data-plan="${planKey}"
+                                style="border: ${isSelected ? '2px solid #378ADD' : '1px solid #CBD5E1'}; background: ${isSelected ? '#F8FAFC' : '#FFFFFF'};"
+                            >
+                                <div>
+                                    <div class="flex items-center justify-between gap-2 mb-1.5">
+                                        <span class="text-xs font-bold uppercase tracking-wider ${isRec ? 'text-[#378ADD]' : 'text-slate-400'}">
+                                            ${isRec ? 'Recommended' : 'One-Time Plan'}
+                                        </span>
+                                        <span class="w-5 h-5 rounded-full border flex items-center justify-center text-xs ${isSelected ? 'border-[#378ADD] bg-[#378ADD] text-white' : 'border-slate-300 bg-white text-transparent'}">
+                                            &#10003;
+                                        </span>
+                                    </div>
+                                    <h4 class="text-base font-bold text-[#042C53] m-0 mb-2" style="font-family: 'Sora', sans-serif;">${this.escapeHtml(cfg.name || planKey)}</h4>
+                                    <div class="flex items-baseline gap-1.5 mb-3">
+                                        <span class="text-2xl font-extrabold text-[#042C53]">₱${cfg.price}</span>
+                                        <span class="text-xs font-medium text-slate-500">one-time</span>
+                                    </div>
+                                    <ul class="list-none p-0 m-0 text-xs sm:text-sm text-[#042C53] flex flex-col gap-2">
+                                        <li class="flex items-center gap-2"><span class="text-[#378ADD] font-bold">&#10003;</span> ${cfg.postsPerMonth ? `${cfg.postsPerMonth} post updates` : 'Unlimited post updates'}</li>
+                                        <li class="flex items-center gap-2"><span class="text-[#378ADD] font-bold">&#10003;</span> ${cfg.newTagDays}-day "New" badge</li>
+                                        ${cfg.boostDays ? `<li class="flex items-center gap-2"><span class="text-[#378ADD] font-bold">&#10003;</span> ${cfg.boostDays}-day search priority</li>` : ''}
+                                        ${cfg.has360 ? `<li class="flex items-center gap-2"><span class="text-[#378ADD] font-bold">&#10003;</span> 360° Virtual Tour shoot</li>` : ''}
+                                    </ul>
+                                </div>
+                            </button>
                         `;
                     }).join('')}
                 </div>
 
-                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 14px; font-size: 13px; color: #64748B;">
-                    You pay with GCash only after we approve your business.
+                <div id="planStepError" class="text-xs text-red-600 font-medium" style="display: none;">
+                    Please select a plan to continue.
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3.5 text-xs sm:text-sm text-slate-600">
+                    <strong>No upfront payment today:</strong> You pay the one-time fee via GCash only after our team approves your business listing.
                 </div>
             </div>
         `;
@@ -922,54 +1535,175 @@ export class RegisterWizard {
     }
 
     renderReviewStep(area) {
-        const planName = window.CALZADA_PLANS?.[this.formData.plan]?.name || this.formData.plan;
+        const plans = window.CALZADA_PLANS || {
+            listed: { name: 'Listed', price: 59, postsPerMonth: 4, newTagDays: 7, boostDays: 0 },
+            plus360: { name: 'Listed + 360', price: 199, postsPerMonth: 8, recommended: true, newTagDays: 14, boostDays: 7, has360: true },
+            featured: { name: 'Featured', price: 299, postsPerMonth: null, newTagDays: 30, boostDays: 30, has360: true }
+        };
+        const selectedPlan = plans[this.formData.plan] || { name: this.formData.plan, price: 199 };
+        const catMeta = this.getCategoryMeta();
+        const logoSrc = this.formData.logoPreviewUrl || this.formData.logoUrl || '';
+        const frontSrc = this.formData.photoPreviewUrl || this.formData.thumbnailUrl || '';
+        const weeklyHours = window.CalzadaBusinessFields?.formatWeeklyHours
+            ? window.CalzadaBusinessFields.formatWeeklyHours(this.formData.openHours)
+            : [];
 
         area.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <!-- Review summary details -->
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #E2E8F0;">
-                        <div>
-                            <span style="font-size: 12px; color: #64748B; display: block;">Store</span>
-                            <span style="font-weight: 600; font-size: 14px; color: #042C53;">${this.escapeHtml(this.formData.name)} (${this.formData.category})</span>
-                        </div>
-                        <a href="#store" style="font-size: 13px; font-weight: 600; color: #378ADD; text-decoration: none;">Edit</a>
-                    </div>
+            <div class="flex flex-col gap-5">
+                <div>
+                    <h2 class="text-lg font-bold text-[#042C53] m-0" style="font-family: 'Sora', sans-serif;">Stage 5: Review &amp; Submit</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Review all details from Stages 1 to 4. Click "Edit" on any section to make changes and return directly here.</p>
+                </div>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #E2E8F0;">
-                        <div>
-                            <span style="font-size: 12px; color: #64748B; display: block;">Location</span>
-                            <span style="font-weight: 600; font-size: 14px; color: #042C53;">Brgy. ${this.formData.barangay} · ${this.escapeHtml(this.formData.address)}</span>
-                        </div>
-                        <a href="#location" style="font-size: 13px; font-weight: 600; color: #378ADD; text-decoration: none;">Edit</a>
+                <!-- Section 1: Business Information -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-white">
+                    <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                        <h3 class="text-sm font-bold text-[#042C53] m-0">1. Business Information</h3>
+                        <button type="button" class="btn-review-edit min-h-[36px] px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-[#378ADD] text-xs font-semibold text-[#378ADD] cursor-pointer" data-edit-step="store">
+                            Edit
+                        </button>
                     </div>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #E2E8F0;">
-                        <div>
-                            <span style="font-size: 12px; color: #64748B; display: block;">Plan</span>
-                            <span style="font-weight: 600; font-size: 14px; color: #042C53;">${planName}</span>
+                    <div class="flex flex-wrap items-center gap-4 mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-12 h-12 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0">
+                                ${logoSrc ? `<img src="${this.escapeHtml(logoSrc)}" alt="Logo" style="width:100%;height:100%;object-fit:cover;" />` : `<span class="text-[11px] text-red-600">No Logo</span>`}
+                            </div>
+                            <span class="text-xs text-slate-500">Business Logo</span>
                         </div>
-                        <a href="#plan" style="font-size: 13px; font-weight: 600; color: #378ADD; text-decoration: none;">Edit</a>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-16 h-12 rounded-lg border border-slate-200 bg-slate-50 overflow-hidden flex items-center justify-center shrink-0">
+                                ${frontSrc ? `<img src="${this.escapeHtml(frontSrc)}" alt="Storefront" style="width:100%;height:100%;object-fit:cover;" />` : `<span class="text-[11px] text-red-600">No Photo</span>`}
+                            </div>
+                            <span class="text-xs text-slate-500">Storefront Photo</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                        <div>
+                            <span class="text-slate-500 block text-xs">Business Name</span>
+                            <strong class="text-[#042C53]">${this.escapeHtml(this.formData.name || '—')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-xs">Category</span>
+                            <strong class="text-[#042C53]">${this.escapeHtml(catMeta.label || '—')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-xs">Contact Number</span>
+                            <strong class="text-[#042C53]">${this.escapeHtml(this.formData.contactNumber || '—')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-xs">Offerings &amp; Specialties</span>
+                            <strong class="text-[#042C53]">${this.escapeHtml((this.formData.offerings || []).join(', ') || '—')}</strong>
+                        </div>
+                        ${this.formData.description ? `
+                            <div class="sm:col-span-2">
+                                <span class="text-slate-500 block text-xs">Description</span>
+                                <span class="text-[#042C53]">${this.escapeHtml(this.formData.description)}</span>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
 
-                <!-- Terms checkbox -->
-                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px;">
-                    <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer;">
-                        <input type="checkbox" id="chkTermsAgreed" ${this.formData.termsAgreed ? 'checked' : ''} style="margin-top: 3px; width: 16px; height: 16px; accent-color: #378ADD;" />
-                        <span style="font-size: 13px; color: #042C53; line-height: 1.4;">
-                            I confirm that the business details provided are accurate and agree to Calzada's terms of service and registration review.
+                <!-- Section 2: Location & Map -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-white">
+                    <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                        <h3 class="text-sm font-bold text-[#042C53] m-0">2. Location &amp; Map</h3>
+                        <button type="button" class="btn-review-edit min-h-[36px] px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-[#378ADD] text-xs font-semibold text-[#378ADD] cursor-pointer" data-edit-step="location">
+                            Edit
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                        <div class="sm:col-span-2">
+                            <span class="text-slate-500 block text-xs">House No. / Building / Street</span>
+                            <strong class="text-[#042C53]">${this.escapeHtml(this.formData.address || '—')}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-xs">Barangay</span>
+                            <strong class="text-[#042C53]">Brgy. ${this.escapeHtml(this.formData.barangay || '—')}, Calamba</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block text-xs">Landmark</span>
+                            <strong class="text-[#042C53]">${this.escapeHtml(this.formData.landmark || 'None specified')}</strong>
+                        </div>
+                        <div class="sm:col-span-2">
+                            <span class="text-slate-500 block text-xs">Pinned Coordinates</span>
+                            <span class="font-mono text-xs text-[#042C53]">${Number(this.formData.location.lat).toFixed(5)}, ${Number(this.formData.location.lng).toFixed(5)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Open Hours -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-white">
+                    <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                        <h3 class="text-sm font-bold text-[#042C53] m-0">3. Open Hours</h3>
+                        <button type="button" class="btn-review-edit min-h-[36px] px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-[#378ADD] text-xs font-semibold text-[#378ADD] cursor-pointer" data-edit-step="hours">
+                            Edit
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs sm:text-sm">
+                        ${weeklyHours.map(w => `
+                            <div class="flex justify-between items-center py-1 border-b border-slate-50">
+                                <span class="text-slate-600 font-medium">${this.escapeHtml(w.dayName)}</span>
+                                <span class="font-semibold ${w.hoursText === 'Closed' ? 'text-slate-400' : 'text-[#042C53]'}">${this.escapeHtml(w.hoursText)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Section 4: Plan & Pricing -->
+                <div class="border border-slate-200 rounded-xl p-4 bg-white">
+                    <div class="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+                        <h3 class="text-sm font-bold text-[#042C53] m-0">4. Selected Plan &amp; Pricing</h3>
+                        <button type="button" class="btn-review-edit min-h-[36px] px-3 py-1 rounded-md border border-slate-200 bg-slate-50 hover:border-[#378ADD] text-xs font-semibold text-[#378ADD] cursor-pointer" data-edit-step="plan">
+                            Edit
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <strong class="text-sm sm:text-base text-[#042C53]">${this.escapeHtml(selectedPlan.name)} Plan</strong>
+                            <div class="text-xs text-slate-500 mt-0.5">One-time payment via GCash after approval</div>
+                        </div>
+                        <div class="text-lg font-extrabold text-[#042C53]">₱${selectedPlan.price}</div>
+                    </div>
+                </div>
+
+                <!-- Terms Agreement -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <label class="flex items-start gap-3 cursor-pointer min-h-[44px]">
+                        <input
+                            type="checkbox"
+                            id="chkTermsAgreed"
+                            ${this.formData.termsAgreed ? 'checked' : ''}
+                            class="mt-1 w-5 h-5 accent-[#378ADD] shrink-0"
+                        />
+                        <span class="text-xs sm:text-sm text-[#042C53] leading-relaxed">
+                            I confirm that the business details provided above are accurate and legitimate, and I agree to Calzada's terms of service and registration review.
                         </span>
                     </label>
+                    <div id="termsError" class="text-xs text-red-600 mt-2 font-medium" style="display: none;">
+                        Please check the confirmation box above before submitting your registration.
+                    </div>
                 </div>
 
-                <div id="submitErrorMessage" style="display: none; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 8px; padding: 12px; color: #DC2626; font-size: 13px;"></div>
+                <div id="submitErrorMessage" style="display: none;" class="bg-red-50 border border-red-200 rounded-lg p-3.5 text-red-600 text-xs sm:text-sm font-medium"></div>
             </div>
         `;
 
+        // Wire section "Edit" buttons -> jump to specific stage with editingFromReview = true
+        area.querySelectorAll('.btn-review-edit').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetStep = btn.getAttribute('data-edit-step');
+                if (STEPS.includes(targetStep)) {
+                    this.editingFromReview = true;
+                    this.goToStep(targetStep, true);
+                }
+            });
+        });
+
         const chk = area.querySelector('#chkTermsAgreed');
+        const termsErr = area.querySelector('#termsError');
         chk.addEventListener('change', () => {
             this.formData.termsAgreed = chk.checked;
+            if (termsErr) termsErr.style.display = chk.checked ? 'none' : 'block';
             this.validateCurrentStepButton();
         });
     }
@@ -977,14 +1711,17 @@ export class RegisterWizard {
     updateLivePreview() {
         const prevImg = this.containerEl.querySelector('#prevImg');
         const prevEmpty = this.containerEl.querySelector('#prevImgPlaceholder');
+        const prevLogoImg = this.containerEl.querySelector('#prevLogoImg');
+        const prevLogoInitial = this.containerEl.querySelector('#prevLogoInitial');
         const prevName = this.containerEl.querySelector('#prevName');
+        const prevCategoryText = this.containerEl.querySelector('#prevCategoryText');
         const prevBrgy = this.containerEl.querySelector('#prevBarangay');
         const prevStatus = this.containerEl.querySelector('#prevOpenStatus');
         const prevOfferings = this.containerEl.querySelector('#prevOfferings');
 
         if (!prevName) return;
 
-        // Photo
+        // Storefront Photo
         const photoSrc = this.formData.photoPreviewUrl || this.formData.thumbnailUrl;
         if (photoSrc) {
             prevImg.src = photoSrc;
@@ -995,8 +1732,26 @@ export class RegisterWizard {
             prevEmpty.style.display = 'flex';
         }
 
-        // Name
+        // Logo
+        const logoSrc = this.formData.logoPreviewUrl || this.formData.logoUrl;
+        if (prevLogoImg && prevLogoInitial) {
+            if (logoSrc) {
+                prevLogoImg.src = logoSrc;
+                prevLogoImg.style.display = 'block';
+                prevLogoInitial.style.display = 'none';
+            } else {
+                prevLogoImg.style.display = 'none';
+                prevLogoInitial.style.display = 'inline';
+                prevLogoInitial.textContent = (this.formData.name.trim().charAt(0) || 'B').toUpperCase();
+            }
+        }
+
+        // Name & Category
         prevName.textContent = this.formData.name.trim() || 'Business Name';
+        if (prevCategoryText) {
+            const catMeta = this.getCategoryMeta();
+            prevCategoryText.textContent = catMeta.label || 'Category';
+        }
 
         // Barangay
         prevBrgy.textContent = this.formData.barangay ? `Brgy. ${this.formData.barangay}, Calamba` : 'Barangay';
@@ -1004,30 +1759,35 @@ export class RegisterWizard {
         // Open status
         const openInfo = window.CalzadaBusinessFields?.getOpenStatus(this.formData.openHours) || {
             isOpen: true,
-            formattedText: 'Open now · Closes 6:00 PM'
+            formattedText: 'Open now · Closes 5:00 PM'
         };
         prevStatus.textContent = openInfo.formattedText;
         prevStatus.style.color = openInfo.isOpen ? '#16A34A' : '#DC2626';
 
-        // First 3 offerings
+        // Offerings
         const first3 = (this.formData.offerings || []).slice(0, 3);
         prevOfferings.textContent = first3.length > 0 ? first3.join(' · ') : 'Offerings & Specialties';
     }
 
-    async uploadFrontPhoto(fileOrBlob) {
+    async uploadBusinessMedia(fileOrBlob, kind = 'front') {
         const user = this.auth.currentUser || this.currentUser;
         if (!user) throw new Error('Sign in again to upload the photo.');
         const token = await user.getIdToken();
         const form = new FormData();
-        form.append('photo', fileOrBlob, 'front.jpg');
+        form.append('kind', kind);
+        form.append('photo', fileOrBlob, kind === 'logo' ? 'logo.jpg' : 'front.jpg');
         const res = await fetch('/api/businesses/upload-thumbnail', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` },
             body: form
         });
         const json = await res.json().catch(() => ({}));
-        if (!res.ok || !json.url) throw new Error(json.error || 'The photo could not be uploaded. Try again.');
+        if (!res.ok || !json.url) throw new Error(json.error || 'The image could not be uploaded. Try again.');
         return json.url;
+    }
+
+    async uploadFrontPhoto(fileOrBlob) {
+        return this.uploadBusinessMedia(fileOrBlob, 'front');
     }
 
     setSaveStatus(text) {
@@ -1039,21 +1799,25 @@ export class RegisterWizard {
         clearTimeout(this.autosaveTimer);
         this.autosaveTimer = null;
         try {
+            const meta = this.getCategoryMeta();
             const draftRef = doc(this.db, 'businessDrafts', this.currentUser.uid);
             const draftData = {
                 step: this.currentStep,
                 name: this.formData.name || '',
-                category: this.formData.category || '',
+                categoryKey: this.formData.categoryKey || '',
+                category: meta.firestoreCat || this.formData.category || '',
+                customCategory: this.formData.customCategory || '',
                 description: this.formData.description || '',
                 contactNumber: this.formData.contactNumber || '',
                 offerings: this.formData.offerings || [],
-                location: this.formData.location || { lat: 14.2117, lng: 121.1652 },
-                barangay: this.formData.barangay || '',
+                location: this.formData.location || { lat: 14.20415, lng: 121.15691 },
+                barangay: this.formData.barangay || 'Uno',
                 address: this.formData.address || '',
                 landmark: this.formData.landmark || '',
                 openHours: this.formData.openHours || {},
                 plan: this.formData.plan || 'plus360',
                 thumbnailUrl: this.formData.thumbnailUrl || '',
+                logoUrl: this.formData.logoUrl || '',
                 updatedAt: serverTimestamp()
             };
             await setDoc(draftRef, draftData);
@@ -1067,9 +1831,7 @@ export class RegisterWizard {
     triggerAutosave() {
         if (!this.currentUser || this.isSubmitted || this._initializing) return;
         clearTimeout(this.autosaveTimer);
-
         this.setSaveStatus('Saving…');
-
         this.autosaveTimer = setTimeout(() => this.saveDraftNow(), 1500);
     }
 
@@ -1080,7 +1842,9 @@ export class RegisterWizard {
             if (snap.exists()) {
                 const d = snap.data();
                 this.formData.name = d.name || this.formData.name;
+                this.formData.categoryKey = d.categoryKey || d.category || this.formData.categoryKey;
                 this.formData.category = d.category || this.formData.category;
+                this.formData.customCategory = d.customCategory || this.formData.customCategory;
                 this.formData.description = d.description || this.formData.description;
                 this.formData.contactNumber = d.contactNumber || this.formData.contactNumber;
                 this.formData.offerings = Array.isArray(d.offerings) ? d.offerings : this.formData.offerings;
@@ -1091,6 +1855,7 @@ export class RegisterWizard {
                 this.formData.openHours = d.openHours || this.formData.openHours;
                 this.formData.plan = d.plan || this.formData.plan;
                 this.formData.thumbnailUrl = d.thumbnailUrl || this.formData.thumbnailUrl;
+                this.formData.logoUrl = d.logoUrl || this.formData.logoUrl;
                 if (d.step && STEPS.includes(d.step)) {
                     this.currentStep = d.step;
                 }
@@ -1114,39 +1879,42 @@ export class RegisterWizard {
         nextBtn.textContent = 'Submitting...';
 
         try {
-            // 1. Upload photo if file present
+            // 1. Upload Business Logo if pending file
+            let finalLogoUrl = this.formData.logoUrl;
+            if (!finalLogoUrl && this.formData.logoFile) {
+                finalLogoUrl = await this.uploadBusinessMedia(this.formData.logoFile, 'logo');
+                this.formData.logoUrl = finalLogoUrl;
+            }
+            if (!finalLogoUrl) {
+                throw new Error('Business logo is required. Please upload your business logo in Stage 1.');
+            }
+
+            // 2. Upload Storefront Photo if pending file
             let finalPhotoUrl = this.formData.thumbnailUrl;
-            if (this.formData.frontPhotoFile) {
-                const token = await this.currentUser.getIdToken();
-                const form = new FormData();
-                form.append('photo', this.formData.frontPhotoFile);
-
-                const upRes = await fetch('/api/businesses/upload-thumbnail', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` },
-                    body: form
-                });
-                const upJson = await upRes.json();
-                if (!upRes.ok || !upJson.url) {
-                    throw new Error(upJson.error || 'Failed to upload store front photo.');
-                }
-                finalPhotoUrl = upJson.url;
+            if (!finalPhotoUrl && this.formData.frontPhotoFile) {
+                finalPhotoUrl = await this.uploadBusinessMedia(this.formData.frontPhotoFile, 'front');
+                this.formData.thumbnailUrl = finalPhotoUrl;
             }
-
             if (!finalPhotoUrl) {
-                throw new Error('Front store photo is required.');
+                throw new Error('Storefront photo is required. Please upload your storefront photo in Stage 1.');
             }
 
-            // 2. Create businesses/{id} document
+            // 3. Resolve Category & ServiceType for Firestore schema compliance
+            const catMeta = this.getCategoryMeta();
+            const firestoreCategory = catMeta.firestoreCat || 'establishments';
+            const serviceType = (catMeta.serviceType || '').trim().slice(0, 40) || null;
+
+            // 4. Create businesses/{id} document
             const newBizRef = doc(collection(this.db, 'businesses'));
             const businessId = newBizRef.id;
 
-            const bizPayload = {
+            const basePayload = {
                 ownerId: this.currentUser.uid,
                 status: 'pending',
                 submittedAt: serverTimestamp(),
                 name: this.formData.name.trim(),
-                category: this.formData.category,
+                category: firestoreCategory,
+                ...(serviceType && serviceType.length >= 2 ? { serviceType } : {}),
                 address: this.formData.address.trim(),
                 description: this.formData.description.trim() || null,
                 contactNumber: this.formData.contactNumber.trim() || null,
@@ -1162,22 +1930,29 @@ export class RegisterWizard {
                 landmark: this.formData.landmark.trim() || null
             };
 
-            const batch = writeBatch(this.db);
-            batch.set(newBizRef, bizPayload);
             const ownerPrivateRef = doc(this.db, 'businesses', businessId, 'private', 'owner');
-            batch.set(ownerPrivateRef, {
-                ownerEmail: this.currentUser.email || null
-            });
-            await batch.commit();
 
-            // 3. Delete the draft
+            try {
+                const batchWithLogo = writeBatch(this.db);
+                batchWithLogo.set(newBizRef, { ...basePayload, logoUrl: finalLogoUrl });
+                batchWithLogo.set(ownerPrivateRef, { ownerEmail: this.currentUser.email || null });
+                await batchWithLogo.commit();
+            } catch (firstCommitErr) {
+                // Fallback if live Firestore rules have not been redeployed with logoUrl on create yet
+                const batchFallback = writeBatch(this.db);
+                batchFallback.set(newBizRef, basePayload);
+                batchFallback.set(ownerPrivateRef, { ownerEmail: this.currentUser.email || null });
+                await batchFallback.commit();
+            }
+
+            // 5. Delete the draft
             try {
                 await deleteDoc(doc(this.db, 'businessDrafts', this.currentUser.uid));
             } catch (dErr) {
                 console.warn('Could not delete draft:', dErr);
             }
 
-            // 4. POST /api/events { event: 'application_received' } (unawaited)
+            // 6. POST /api/events { event: 'application_received', logoUrl } (persists logoUrl via Admin SDK if needed)
             this.currentUser.getIdToken().then(idToken => {
                 fetch('/api/events', {
                     method: 'POST',
@@ -1187,12 +1962,13 @@ export class RegisterWizard {
                     },
                     body: JSON.stringify({
                         event: 'application_received',
-                        entityId: businessId
+                        entityId: businessId,
+                        logoUrl: finalLogoUrl
                     })
                 }).catch(e => console.warn('application_received error:', e));
             }).catch(e => console.warn('Could not get token for event:', e));
 
-            // 5. Show success screen
+            // 7. Show success screen
             this.renderSuccessScreen(businessId);
 
         } catch (err) {
@@ -1213,7 +1989,7 @@ export class RegisterWizard {
         const userEmail = this.currentUser.email || 'your email';
 
         this.containerEl.innerHTML = `
-            <div style="max-width: 680px; margin: 40px auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 36px 32px; text-align: center;">
+            <div style="max-width: 680px; margin: 40px auto; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 36px 24px; text-align: center;">
                 <div style="width: 56px; height: 56px; border-radius: 50%; background: #F0FDF4; border: 1px solid #BBF7D0; color: #16A34A; display: inline-flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 20px;">
                     &#10003;
                 </div>
@@ -1224,7 +2000,6 @@ export class RegisterWizard {
                     Your business is now pending review. We'll email you at <strong>${this.escapeHtml(userEmail)}</strong> from <strong>thecalzada@gmail.com</strong> once approved.
                 </p>
 
-                <!-- Process Timeline -->
                 <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 20px; margin-bottom: 28px; text-align: left;">
                     <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: #64748B; margin-bottom: 14px; letter-spacing: 0.05em;">What happens next</div>
                     <div style="display: flex; justify-content: space-between; align-items: center; position: relative;">
@@ -1246,8 +2021,8 @@ export class RegisterWizard {
                 </div>
 
                 <div style="display: flex; justify-content: center; gap: 12px;">
-                    <a href="/my-business" style="background: #378ADD; color: #FFFFFF; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
-                        Go to My Business &rarr;
+                    <a href="/my-business" style="min-height: 44px; background: #378ADD; color: #FFFFFF; border-radius: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+                        Go to My Business
                     </a>
                 </div>
             </div>

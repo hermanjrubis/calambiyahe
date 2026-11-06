@@ -323,8 +323,9 @@ service cloud.firestore {
           'name', 'category', 'address', 'description', 'contactNumber', 
           'ownerId', 'status', 'submittedAt', 'profilePhotoUrl', 'approvedAt',
           'serviceType', 'socialLinks', 'location', 'plan',
-          'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark'
+          'thumbnailUrl', 'logoUrl', 'offerings', 'openHours', 'barangay', 'landmark'
         ])
+        && (!('logoUrl' in request.resource.data) || request.resource.data.logoUrl == null || (isValidCloudinaryUrl(request.resource.data.logoUrl) && request.resource.data.logoUrl.size() <= 500))
         && request.resource.data.plan in ['listed', 'plus360', 'featured']
         && !('reviewNote' in request.resource.data)
         && !('paidAt' in request.resource.data)

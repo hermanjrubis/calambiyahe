@@ -1502,6 +1502,46 @@ app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
     });
 });
 
+// GET /api/reverse-geocode - Reverse geocode coordinates within Calamba for map pin sync
+app.get('/api/reverse-geocode', async (req, res) => {
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < 14.10 || lat > 14.30 || lng < 121.05 || lng > 121.25) {
+        return res.status(400).json({ error: 'Coordinates outside Calamba bounds.' });
+    }
+
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3500);
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+        const resp = await fetch(url, {
+            headers: {
+                'User-Agent': 'CalzadaCalambaDirectory/1.0 (https://calzadaph.com)',
+                'Accept-Language': 'en'
+            },
+            signal: controller.signal
+        });
+        clearTimeout(timer);
+        if (!resp.ok) {
+            return res.json({ streetAddress: '', displayName: '' });
+        }
+        const data = await resp.json();
+        const addr = (data && data.address) || {};
+        const parts = [
+            addr.house_number,
+            addr.building || addr.amenity || addr.shop,
+            addr.road || addr.pedestrian || addr.residential || addr.suburb || addr.neighbourhood
+        ].filter(Boolean);
+        const streetAddress = parts.join(', ').slice(0, 140);
+        return res.json({
+            streetAddress,
+            displayName: (data && data.display_name) ? String(data.display_name).slice(0, 200) : ''
+        });
+    } catch (_) {
+        return res.json({ streetAddress: '', displayName: '' });
+    }
+});
+
 const paymentReceiptUpload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -2153,6 +2193,14 @@ async function handleTriggerEvent(req, res) {
             } else if (eventName === 'application_received') {
                 if (bData.status !== 'pending' && bData.status !== 'submitted') {
                     return res.status(409).json({ error: "Conflict: application_received requires status 'pending' or 'submitted'." });
+                }
+                if (typeof rawBody.logoUrl === 'string' && /^https:\/\/res\.cloudinary\.com\//.test(rawBody.logoUrl) && rawBody.logoUrl.length <= 500 && !bData.logoUrl) {
+                    try {
+                        await bDoc.ref.update({ logoUrl: rawBody.logoUrl });
+                        bData.logoUrl = rawBody.logoUrl;
+                    } catch (logoErr) {
+                        console.warn('[EVENTS] Could not persist logoUrl on application_received:', logoErr.message);
+                    }
                 }
                 summary = `Application submitted: "${bData.name || entityId}"`;
                 versionKey = tsKey(bData.updatedAt || bData.submittedAt);

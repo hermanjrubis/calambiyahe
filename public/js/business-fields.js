@@ -122,16 +122,18 @@
         return `${h12}:${String(mm).padStart(2, '0')} ${period}`;
     }
 
-    // Every range must end after it starts ("24:00" = midnight at the end of the day)
+    // Every open day has a single continuous range that ends after it starts, and at least 1 day is open
     function isValidOpenHours(openHours) {
         if (!openHours || typeof openHours !== 'object') return false;
         const toMin = (t) => {
             const m = /^(\d{2}):(\d{2})$/.exec(String(t || ''));
             return m ? (+m[1]) * 60 + (+m[2]) : NaN;
         };
-        return DAYS_ORDER.every((d) => {
+        let openDaysCount = 0;
+        const everyDayValid = DAYS_ORDER.every((d) => {
             const ranges = openHours[d] || [];
             if (!Array.isArray(ranges) || ranges.length > 2) return false;
+            if (ranges.length > 0) openDaysCount++;
             let prevEnd = -1;
             return ranges.every((r) => {
                 const a = toMin(r && r.open), b = toMin(r && r.close);
@@ -140,6 +142,203 @@
                 return ok;
             });
         });
+        return everyDayValid && openDaysCount > 0;
+    }
+
+    function ensureHoursStyles() {
+        if (typeof document === 'undefined' || document.getElementById('calzada-hours-editor-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'calzada-hours-editor-styles';
+        style.textContent = `
+            .cz-hours-toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-bottom: 14px;
+            }
+            .cz-hours-preset-btn {
+                min-height: 44px;
+                padding: 8px 14px;
+                background: #FFFFFF;
+                border: 1px solid #CBD5E1;
+                border-radius: 8px;
+                font-family: 'Outfit', sans-serif;
+                font-size: 13px;
+                font-weight: 600;
+                color: #042C53;
+                cursor: pointer;
+                transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+            }
+            .cz-hours-preset-btn:hover {
+                border-color: #378ADD;
+                color: #378ADD;
+                background: #F8FAFC;
+            }
+            .cz-hours-list {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .cz-hours-row {
+                background: #FFFFFF;
+                border: 1px solid #E2E8F0;
+                border-radius: 10px;
+                padding: 12px 16px;
+                transition: border-color 0.15s ease, background-color 0.15s ease;
+            }
+            .cz-hours-row.is-closed {
+                background: #F8FAFC;
+            }
+            .cz-hours-row.has-error {
+                border-color: #DC2626;
+                background: #FEF2F2;
+            }
+            .cz-hours-row-main {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+            @media (min-width: 768px) {
+                .cz-hours-row-main {
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                }
+            }
+            .cz-hours-day-toggle-group {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                min-width: 210px;
+            }
+            @media (min-width: 768px) {
+                .cz-hours-day-toggle-group {
+                    justify-content: flex-start;
+                }
+            }
+            .cz-hours-day-label {
+                font-weight: 600;
+                font-size: 14px;
+                color: #042C53;
+                min-width: 96px;
+            }
+            .cz-switch-label {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                min-height: 44px;
+                cursor: pointer;
+                user-select: none;
+            }
+            .cz-switch-input {
+                position: absolute;
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+            .cz-switch-track {
+                position: relative;
+                width: 44px;
+                height: 24px;
+                background: #CBD5E1;
+                border-radius: 9999px;
+                transition: background-color 0.18s ease;
+                flex-shrink: 0;
+            }
+            .cz-switch-thumb {
+                position: absolute;
+                top: 2px;
+                left: 2px;
+                width: 20px;
+                height: 20px;
+                background: #FFFFFF;
+                border-radius: 50%;
+                box-shadow: 0 1px 2px rgba(4, 44, 83, 0.2);
+                transition: transform 0.18s ease;
+            }
+            .cz-switch-input:checked + .cz-switch-track {
+                background: #378ADD;
+            }
+            .cz-switch-input:checked + .cz-switch-track .cz-switch-thumb {
+                transform: translateX(20px);
+            }
+            .cz-switch-input:focus-visible + .cz-switch-track {
+                outline: 2px solid #378ADD;
+                outline-offset: 2px;
+            }
+            .cz-switch-state-text {
+                font-size: 13px;
+                font-weight: 600;
+                color: #042C53;
+                min-width: 46px;
+            }
+            .cz-hours-row.is-closed .cz-switch-state-text {
+                color: #64748B;
+                font-weight: 500;
+            }
+            .cz-hours-time-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+            }
+            @media (min-width: 640px) {
+                .cz-hours-time-group {
+                    flex-direction: row;
+                    align-items: center;
+                    width: auto;
+                }
+            }
+            .cz-time-field-wrap {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex: 1;
+            }
+            .cz-time-input {
+                min-height: 44px;
+                width: 100%;
+                min-width: 132px;
+                padding: 8px 12px;
+                border: 1px solid #CBD5E1;
+                border-radius: 8px;
+                background: #FFFFFF;
+                color: #042C53;
+                font-family: 'Outfit', sans-serif;
+                font-size: 14px;
+                font-weight: 500;
+                outline: none;
+                transition: border-color 0.15s ease;
+            }
+            .cz-time-input:focus {
+                border-color: #378ADD;
+            }
+            .cz-time-sep {
+                font-size: 13px;
+                color: #64748B;
+                font-weight: 500;
+                text-align: center;
+                padding: 0 2px;
+            }
+            .cz-closed-badge {
+                font-size: 13px;
+                color: #64748B;
+                padding: 8px 0;
+            }
+            .cz-hours-row-error {
+                font-size: 12px;
+                color: #DC2626;
+                margin-top: 8px;
+                font-weight: 500;
+            }
+        `;
+        document.head.appendChild(style);
     }
 
     /**
@@ -259,31 +458,83 @@
     }
 
     /**
+     * Normalize openHours so each day has at most 1 continuous range with HH:MM (00:00..23:59)
+     */
+    function normalizeSingleRangeHours(rawHours) {
+        const base = rawHours && typeof rawHours === 'object' ? rawHours : getDefaultHours();
+        const normalized = {};
+        DAYS_ORDER.forEach(d => {
+            const arr = Array.isArray(base[d]) ? base[d] : [];
+            if (arr.length === 0) {
+                normalized[d] = [];
+            } else {
+                const openVal = (arr[0] && arr[0].open) ? String(arr[0].open) : '08:00';
+                let closeVal = (arr[arr.length - 1] && arr[arr.length - 1].close) ? String(arr[arr.length - 1].close) : '17:00';
+                if (closeVal === '24:00') closeVal = '23:59';
+                normalized[d] = [{ open: openVal, close: closeVal }];
+            }
+        });
+        return normalized;
+    }
+
+    /**
      * Render the 7-day Open Hours Editor
+     * - Toggle switches (Open / Closed) per day
+     * - Single continuous time range per day (no second range / split shift)
+     * - Standard <input type="time"> manual & picker inputs
+     * - Mobile: stacked vertically; Desktop: aligned in a clean row
      */
     function renderOpenHoursEditor(container, { initialHours = null, onChange = () => {} } = {}) {
-        let hours = JSON.parse(JSON.stringify(initialHours || getDefaultHours()));
-        const timeOptions = getTimeOptions();
-        // Closing times may also be midnight at the end of the day
-        const closeOptions = [...timeOptions.slice(1), { value: '24:00', label: '12:00 AM (midnight)' }];
+        ensureHoursStyles();
+        let hours = normalizeSingleRangeHours(initialHours || getDefaultHours());
+
+        function parseTimeMin(t) {
+            const m = /^(\d{2}):(\d{2})$/.exec(String(t || ''));
+            return m ? (+m[1]) * 60 + (+m[2]) : NaN;
+        }
+
+        function isRangeValid(r) {
+            if (!r) return false;
+            const o = parseTimeMin(r.open);
+            const c = parseTimeMin(r.close === '24:00' ? '23:59' : r.close);
+            return !isNaN(o) && !isNaN(c) && o >= 0 && c <= 1440 && o < c;
+        }
 
         function updateUI() {
+            const anyDayOpen = DAYS_ORDER.some(d => Array.isArray(hours[d]) && hours[d].length > 0);
+
             container.innerHTML = `
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-                    <button type="button" id="btnShortcutSame" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: #378ADD; cursor: pointer; font-family: 'Outfit', sans-serif;">
-                        Same hours every day
+                <div class="cz-hours-toolbar">
+                    <button type="button" id="btnShortcutSame" class="cz-hours-preset-btn">
+                        Apply Monday hours to all days
                     </button>
-                    <button type="button" id="btnShortcut24" style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: #378ADD; cursor: pointer; font-family: 'Outfit', sans-serif;">
+                    <button type="button" id="btnShortcutWeekdays" class="cz-hours-preset-btn">
+                        Mon–Fri (8:00 AM – 5:00 PM)
+                    </button>
+                    <button type="button" id="btnShortcut24" class="cz-hours-preset-btn">
                         Open 24 hours
                     </button>
                 </div>
-                <div id="daysRowsContainer" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div id="daysRowsContainer" class="cz-hours-list"></div>
+                <div id="hoursGlobalError" style="display: ${anyDayOpen ? 'none' : 'block'}; margin-top: 10px; font-size: 13px; color: #DC2626; font-weight: 500;">
+                    Please set at least one open day for your business.
+                </div>
             `;
 
             container.querySelector('#btnShortcutSame').addEventListener('click', () => {
-                const monRanges = hours.mon ? JSON.parse(JSON.stringify(hours.mon)) : [{ open: '08:00', close: '18:00' }];
+                const monRanges = (hours.mon && hours.mon.length > 0)
+                    ? [{ open: hours.mon[0].open, close: hours.mon[0].close === '24:00' ? '23:59' : hours.mon[0].close }]
+                    : [{ open: '08:00', close: '17:00' }];
                 DAYS_ORDER.forEach(d => {
-                    hours[d] = JSON.parse(JSON.stringify(monRanges));
+                    hours[d] = [{ open: monRanges[0].open, close: monRanges[0].close }];
+                });
+                updateUI();
+                onChange(hours);
+            });
+
+            container.querySelector('#btnShortcutWeekdays').addEventListener('click', () => {
+                DAYS_ORDER.forEach(d => {
+                    hours[d] = (d === 'sat' || d === 'sun') ? [] : [{ open: '08:00', close: '17:00' }];
                 });
                 updateUI();
                 onChange(hours);
@@ -291,7 +542,7 @@
 
             container.querySelector('#btnShortcut24').addEventListener('click', () => {
                 DAYS_ORDER.forEach(d => {
-                    hours[d] = [{ open: '00:00', close: '24:00' }];
+                    hours[d] = [{ open: '00:00', close: '23:59' }];
                 });
                 updateUI();
                 onChange(hours);
@@ -302,61 +553,74 @@
             DAYS_ORDER.forEach(dayKey => {
                 const dayRanges = hours[dayKey] || [];
                 const isOpen = Array.isArray(dayRanges) && dayRanges.length > 0;
-                const range1 = isOpen ? dayRanges[0] : { open: '08:00', close: '18:00' };
-                const range2 = (isOpen && dayRanges.length > 1) ? dayRanges[1] : null;
+                const rawRange = isOpen ? dayRanges[0] : { open: '08:00', close: '17:00' };
+                const openTime = rawRange.open || '08:00';
+                const closeTime = (rawRange.close === '24:00' ? '23:59' : rawRange.close) || '17:00';
+                const validRange = !isOpen || isRangeValid({ open: openTime, close: closeTime });
 
                 const row = document.createElement('div');
-                row.style.cssText = 'background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px;';
+                row.className = `cz-hours-row ${!isOpen ? 'is-closed' : ''} ${!validRange ? 'has-error' : ''}`;
+                row.setAttribute('data-day-row', dayKey);
 
                 row.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-weight: 600; font-size: 14px; color: #042C53; min-width: 90px;">${DAY_NAMES.en[dayKey]}</span>
-                        <div style="display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; flex-wrap: wrap;">
-                            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #042C53; cursor: pointer;">
-                                <input type="checkbox" class="day-toggle" data-day="${dayKey}" ${isOpen ? 'checked' : ''} style="width: 16px; height: 16px; accent-color: #378ADD;" />
-                                <span>${isOpen ? 'Open' : 'Closed'}</span>
+                    <div class="cz-hours-row-main">
+                        <div class="cz-hours-day-toggle-group">
+                            <span class="cz-hours-day-label">${DAY_NAMES.en[dayKey]}</span>
+                            <label class="cz-switch-label" for="toggle-day-${dayKey}">
+                                <input
+                                    type="checkbox"
+                                    id="toggle-day-${dayKey}"
+                                    role="switch"
+                                    aria-checked="${isOpen ? 'true' : 'false'}"
+                                    class="cz-switch-input day-toggle"
+                                    data-day="${dayKey}"
+                                    ${isOpen ? 'checked' : ''}
+                                />
+                                <span class="cz-switch-track" aria-hidden="true">
+                                    <span class="cz-switch-thumb"></span>
+                                </span>
+                                <span class="cz-switch-state-text">${isOpen ? 'Open' : 'Closed'}</span>
                             </label>
-                            ${isOpen ? `
-                                <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; max-width: 100%;">
-                                    <select class="time-select-open-1" data-day="${dayKey}" style="border: 1px solid #E2E8F0; border-radius: 6px; padding: 4px 6px; font-size: 13px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
-                                        ${timeOptions.map(t => `<option value="${t.value}" ${t.value === range1.open ? 'selected' : ''}>${t.label}</option>`).join('')}
-                                    </select>
-                                    <span style="color: #64748B; font-size: 13px;">to</span>
-                                    <select class="time-select-close-1" data-day="${dayKey}" style="border: 1px solid #E2E8F0; border-radius: 6px; padding: 4px 6px; font-size: 13px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
-                                        ${closeOptions.map(t => `<option value="${t.value}" ${t.value === range1.close ? 'selected' : ''}>${t.label}</option>`).join('')}
-                                    </select>
-                                    ${!range2 ? `
-                                        <button type="button" class="btn-add-range" data-day="${dayKey}" style="background: transparent; border: none; color: #378ADD; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 6px; white-space: nowrap;">
-                                            + Second range
-                                        </button>
-                                    ` : ''}
+                        </div>
+
+                        ${isOpen ? `
+                            <div class="cz-hours-time-group">
+                                <div class="cz-time-field-wrap">
+                                    <input
+                                        type="time"
+                                        class="cz-time-input time-input-open"
+                                        data-day="${dayKey}"
+                                        value="${openTime}"
+                                        aria-label="${DAY_NAMES.en[dayKey]} opening time"
+                                        required
+                                    />
                                 </div>
-                            ` : '<span style="font-size: 13px; color: #94A3B8;">Closed all day</span>'}
-                        </div>
+                                <span class="cz-time-sep">to</span>
+                                <div class="cz-time-field-wrap">
+                                    <input
+                                        type="time"
+                                        class="cz-time-input time-input-close"
+                                        data-day="${dayKey}"
+                                        value="${closeTime}"
+                                        aria-label="${DAY_NAMES.en[dayKey]} closing time"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        ` : `
+                            <div class="cz-closed-badge">Closed all day</div>
+                        `}
                     </div>
-                    ${range2 ? `
-                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding-top: 4px; border-top: 1px dashed #E2E8F0; flex-wrap: wrap;">
-                            <span style="font-size: 12px; color: #64748B;">Range 2:</span>
-                            <select class="time-select-open-2" data-day="${dayKey}" style="border: 1px solid #E2E8F0; border-radius: 6px; padding: 4px 6px; font-size: 13px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
-                                ${timeOptions.map(t => `<option value="${t.value}" ${t.value === range2.open ? 'selected' : ''}>${t.label}</option>`).join('')}
-                            </select>
-                            <span style="color: #64748B; font-size: 13px;">to</span>
-                            <select class="time-select-close-2" data-day="${dayKey}" style="border: 1px solid #E2E8F0; border-radius: 6px; padding: 4px 6px; font-size: 13px; color: #042C53; background: #FFFFFF; font-family: 'Outfit', sans-serif;">
-                                ${closeOptions.map(t => `<option value="${t.value}" ${t.value === range2.close ? 'selected' : ''}>${t.label}</option>`).join('')}
-                            </select>
-                            <button type="button" class="btn-remove-range-2" data-day="${dayKey}" style="background: transparent; border: none; color: #DC2626; font-size: 12px; font-weight: 600; cursor: pointer; padding: 4px 6px;">
-                                Remove
-                            </button>
-                        </div>
-                    ` : ''}
+                    <div class="cz-hours-row-error" data-day-error="${dayKey}" style="display: ${validRange ? 'none' : 'block'};">
+                        Closing time must be later than opening time (e.g., 08:00 AM to 05:00 PM).
+                    </div>
                 `;
 
-                // Wire event listeners for row
                 const chk = row.querySelector('.day-toggle');
                 if (chk) {
                     chk.addEventListener('change', () => {
                         if (chk.checked) {
-                            hours[dayKey] = [{ open: '08:00', close: '18:00' }];
+                            hours[dayKey] = [{ open: '08:00', close: '17:00' }];
                         } else {
                             hours[dayKey] = [];
                         }
@@ -365,59 +629,26 @@
                     });
                 }
 
-                const selOpen1 = row.querySelector('.time-select-open-1');
-                const selClose1 = row.querySelector('.time-select-close-1');
-                if (selOpen1 && selClose1) {
-                    selOpen1.addEventListener('change', () => {
-                        if (!hours[dayKey] || hours[dayKey].length === 0) hours[dayKey] = [{ open: '08:00', close: '18:00' }];
-                        hours[dayKey][0].open = selOpen1.value;
-                        onChange(hours);
-                    });
-                    selClose1.addEventListener('change', () => {
-                        if (!hours[dayKey] || hours[dayKey].length === 0) hours[dayKey] = [{ open: '08:00', close: '18:00' }];
-                        hours[dayKey][0].close = selClose1.value;
-                        onChange(hours);
-                    });
-                }
+                const inpOpen = row.querySelector('.time-input-open');
+                const inpClose = row.querySelector('.time-input-close');
+                const errEl = row.querySelector(`[data-day-error="${dayKey}"]`);
 
-                const btnAdd2 = row.querySelector('.btn-add-range');
-                if (btnAdd2) {
-                    btnAdd2.addEventListener('click', () => {
-                        if (!hours[dayKey]) hours[dayKey] = [];
-                        if (hours[dayKey].length === 1) {
-                            hours[dayKey].push({ open: '13:00', close: '19:00' });
-                            updateUI();
-                            onChange(hours);
-                        }
-                    });
-                }
+                const handleTimeInput = () => {
+                    if (! inpOpen || !inpClose) return;
+                    const newOpen = inpOpen.value || '08:00';
+                    const newClose = inpClose.value || '17:00';
+                    hours[dayKey] = [{ open: newOpen, close: newClose }];
+                    const ok = isRangeValid(hours[dayKey][0]);
+                    row.classList.toggle('has-error', !ok);
+                    if (errEl) errEl.style.display = ok ? 'none' : 'block';
+                    onChange(hours);
+                };
 
-                const btnRem2 = row.querySelector('.btn-remove-range-2');
-                if (btnRem2) {
-                    btnRem2.addEventListener('click', () => {
-                        if (hours[dayKey] && hours[dayKey].length > 1) {
-                            hours[dayKey].splice(1, 1);
-                            updateUI();
-                            onChange(hours);
-                        }
-                    });
-                }
-
-                const selOpen2 = row.querySelector('.time-select-open-2');
-                const selClose2 = row.querySelector('.time-select-close-2');
-                if (selOpen2 && selClose2) {
-                    selOpen2.addEventListener('change', () => {
-                        if (hours[dayKey] && hours[dayKey][1]) {
-                            hours[dayKey][1].open = selOpen2.value;
-                            onChange(hours);
-                        }
-                    });
-                    selClose2.addEventListener('change', () => {
-                        if (hours[dayKey] && hours[dayKey][1]) {
-                            hours[dayKey][1].close = selClose2.value;
-                            onChange(hours);
-                        }
-                    });
+                if (inpOpen && inpClose) {
+                    inpOpen.addEventListener('input', handleTimeInput);
+                    inpOpen.addEventListener('change', handleTimeInput);
+                    inpClose.addEventListener('input', handleTimeInput);
+                    inpClose.addEventListener('change', handleTimeInput);
                 }
 
                 rowsContainer.appendChild(row);
@@ -430,7 +661,7 @@
             getHours: () => JSON.parse(JSON.stringify(hours)),
             getOpenHours: () => JSON.parse(JSON.stringify(hours)),
             setHours: (newHours) => {
-                hours = JSON.parse(JSON.stringify(newHours || getDefaultHours()));
+                hours = normalizeSingleRangeHours(newHours || getDefaultHours());
                 updateUI();
                 onChange(hours);
             }
