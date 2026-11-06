@@ -79,9 +79,12 @@ function getFriendlyAuthError(code) {
     }
 }
 
-// Extract oobCode from URL
+// Extract oobCode from URL, then take it out of the address bar and history (it can reset the password)
 const urlParams = new URLSearchParams(window.location.search);
 const oobCode = urlParams.get('oobCode');
+if (oobCode) {
+    try { history.replaceState(null, '', window.location.pathname); } catch (_) { /* keep going */ }
+}
 
 /**
  * Step 1: Verify the action code on page load
@@ -110,29 +113,37 @@ async function verifyResetToken() {
 }
 
 /**
- * Live password checklist status update
+ * Live password checklist: the same rules as sign-up (validators.js, Firebase's symbol list).
+ * Each rule shows a shape for its state, not only a colour: ○ not typed yet · ✔ met · ✖ not met,
+ * with hidden words for screen readers and a short spoken summary once typing pauses.
  */
+const checklistStatus = document.getElementById('passwordChecklistStatus');
+let checklistTimer = null;
+let checklistSaid = '';
 function updateLiveChecklist(password) {
     const val = String(password || '');
-    const checks = {
-        length: val.length >= 8 && val.length <= 64,
-        lower: /[a-z]/.test(val),
-        upper: /[A-Z]/.test(val),
-        number: /\d/.test(val),
-        special: /[\^$*.\[\]{}()?"!@#%&\/\\,><':;|_~`\-+=]/.test(val),
-        nospace: val.length > 0 && !/\s/.test(val)
-    };
-
-    Object.keys(checks).forEach(rule => {
-        const el = ruleElements[rule];
+    const touched = val.length > 0;
+    const { results } = originalValidatePassword(val);
+    results.forEach((r) => {
+        const el = ruleElements[r.id];
         if (!el) return;
-        const passed = checks[rule];
-        el.classList.toggle('is-met', passed);
+        const state = !touched ? 'idle' : (r.ok ? 'met' : 'unmet');
+        el.classList.toggle('is-met', state === 'met');
+        el.classList.toggle('is-unmet', state === 'unmet');
         const icon = el.querySelector('.pw-check-icon');
-        if (icon) {
-            icon.textContent = passed ? '✔' : '○';
-        }
+        if (icon) icon.textContent = state === 'met' ? '✔' : state === 'unmet' ? '✖' : '○';
+        const sr = el.querySelector('.pw-rule-state');
+        if (sr) sr.textContent = state === 'met' ? ': met' : state === 'unmet' ? ': not met' : ': not checked yet';
     });
+    clearTimeout(checklistTimer);
+    checklistTimer = setTimeout(() => {
+        if (!checklistStatus) return;
+        const missing = results.filter((r) => !r.ok);
+        const msg = !touched ? '' : missing.length
+            ? `${results.length - missing.length} of ${results.length} password rules met. Still needed: ${missing.map((r) => r.label).join(', ')}.`
+            : 'All password rules met.';
+        if (msg !== checklistSaid) { checklistStatus.textContent = msg; checklistSaid = msg; }
+    }, 700);
 }
 
 newPasswordInput.addEventListener('input', () => {

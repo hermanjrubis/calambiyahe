@@ -1,10 +1,10 @@
 /* =============================================
-   LEGAL MODAL (Terms of Service & Privacy Policy), v3.1
+   LEGAL MODAL (Terms of Service & Privacy Policy), v3.2
    Loaded by js/legal-modal.js, so it works on every page (the planner does not load style.css).
 
    One readable column, no boxes inside boxes:
-     fixed header   title + quiet meta line ("Version 2.0 · Effective November 20, 2026")
-     scroll body    opening paragraphs on a plain tint · divider · numbered sections · divider · contact
+     fixed header   title
+     scroll body    opening paragraphs · divider · numbered sections · divider · contact
      fixed footer   hint + "I understand" (enabled once the body is scrolled to the end)
 
    Plain CSS (the site has no Tailwind build, and the CSP blocks the Tailwind CDN). The values are
@@ -16,7 +16,6 @@
     --legal-muted: #6B7280;      /* gray-500 */
     --legal-line: #E5E7EB;       /* gray-200 */
     --legal-paper: #FFFFFF;
-    --legal-tint: #F8FAFC;       /* slate-50 */
     --legal-btn-off: #E5E7EB;    /* gray-200 */
     --legal-btn-off-text: #6B7280;
 }
@@ -92,16 +91,6 @@ body.legal-modal-open {
     text-wrap: balance;
 }
 
-/* Quiet meta line: text-xs, gray-500, not bold, no border */
-.legal-modal-meta {
-    margin: 4px 0 0;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    font-weight: 400;
-    color: var(--legal-muted);
-    font-variant-numeric: tabular-nums;
-}
-
 .legal-modal-close {
     flex: 0 0 auto;
     width: 32px;
@@ -147,34 +136,13 @@ body.legal-modal-open {
     color: var(--legal-text);
 }
 
-/* Summary: a plain slate-50 block, rounded-lg, no border */
-.legal-summary {
-    background: var(--legal-tint);
-    border-radius: 8px;
-    padding: 16px 20px;
+/* Opening paragraphs: plain text on the white page, no block or heading */
+.legal-intro p {
+    margin: 0 0 12px;
 }
 
-.legal-summary-title {
-    margin: 0 0 8px;
-    font-size: 0.75rem;                                    /* text-xs */
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--legal-ink);
-}
-
-.legal-summary p {
-    margin: 0 0 10px;
-}
-
-.legal-summary p:last-child {
+.legal-intro p:last-child {
     margin-bottom: 0;
-}
-
-.legal-summary-when {
-    margin: 10px 0 0;
-    font-size: 0.8125rem;
-    color: var(--legal-muted);
 }
 
 .legal-divider {
@@ -374,10 +342,6 @@ body.legal-modal-open {
 
     .legal-modal-body {
         padding: 18px max(16px, env(safe-area-inset-right, 0px)) 18px max(16px, env(safe-area-inset-left, 0px));
-    }
-
-    .legal-summary {
-        padding: 14px 16px;
     }
 
     .legal-modal-footer {

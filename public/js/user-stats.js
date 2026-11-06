@@ -32,7 +32,7 @@ import {
     reauthenticateWithCredential,
     updatePassword
 } from "./firebase-init.js";
-import { requestPasswordReset, resetMessage, startCooldown } from "./password-reset.js";
+import { requestPasswordReset, resetMessage, startCooldown, clearResetLimits } from "./password-reset.js";
 import { validatePassword } from "./validators.js";
 
 // Badge criteria definitions with pure SVGs
@@ -2687,6 +2687,7 @@ async function handlePasswordReset() {
     if (errorEl) {
         errorEl.style.display = 'none';
         errorEl.textContent = '';
+        errorEl.style.color = '';
     }
 
     if (!btn || btn.disabled) return;
@@ -2694,9 +2695,11 @@ async function handlePasswordReset() {
     const user = auth.currentUser || activeUser;
     const email = user?.email;
     const tl = (() => { try { return localStorage.getItem('calzada_lang') === 'tl'; } catch (_) { return false; } })();
-    const showNote = (text) => {
+    // info: a plain note (sent, or when to try again); otherwise the red error style
+    const showNote = (text, info = false) => {
         if (!errorEl) return;
         errorEl.textContent = text;
+        errorEl.style.color = info ? 'var(--text-muted, #64748B)' : '';
         errorEl.style.display = 'block';
     };
 
@@ -2717,13 +2720,14 @@ async function handlePasswordReset() {
     btn.disabled = true;
     btn.textContent = 'Sending...';
 
-    // Same throttled request as the login page: 60 s, 120 s, then 300 s between emails, 5 a day
+    // Same limited request as the login page: 60 s then 2 min between emails, 3 an hour, 5 a day
     const result = await requestPasswordReset(email);
     if (result.ok || result.code === 'rate_limited') {
-        if (result.code === 'rate_limited') showNote(resetMessage(result, email, tl ? 'tl' : 'en'));
-        startCooldown(btn, result.cooldownSec || 60, {
+        showNote(resetMessage(result, email, tl ? 'tl' : 'en'), result.ok);
+        startCooldown(btn, result.retryAt || Date.now() + 60000, {
             idleText: defaultLabel,
-            waitText: (sec) => (result.ok ? `Email sent. Resend in ${sec}s` : `Resend in ${sec}s`)
+            lang: tl ? 'tl' : 'en',
+            prefix: result.ok ? (tl ? 'Naipadala. ' : 'Email sent. ') : ''
         });
     } else {
         btn.disabled = false;
@@ -2842,6 +2846,7 @@ async function handleChangePassword() {
 
         // Step 2: Update password in Firebase Auth
         await updatePassword(user, newPassword);
+        clearResetLimits(user); // the person proved who they are: no reset-email wait for this account
 
         // Step 3: Success feedback
         if (successEl) {

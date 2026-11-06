@@ -249,7 +249,7 @@
         </div>
     </div>
 
-    <script src="../js/legal-modal.js?v=3.1.0"></script>
+    <script src="../js/legal-modal.js?v=3.2.0"></script>
     <script src="../js/script.js?v=2.6.7"></script>
     <script src="../js/i18n.js?v=2.10.0"></script>
     <script src="../js/transitions.js?v=2.6.3"></script>
@@ -274,7 +274,9 @@
         } from '../js/firebase-init.js';
         import { getAdditionalUserInfo } from 'https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js';
         import { validateFullName, validatePassword, attachPasswordChecklist, isEmail } from '../js/validators.js';
-        import { requestPasswordReset, resetMessage, startCooldown } from '../js/password-reset.js';
+        import { requestPasswordReset, resetMessage, startCooldown, clearResetLimits } from '../js/password-reset.js';
+        // Signed in with a password: clear that email's reset limits (waits at most 1.2 s)
+        const afterPasswordSignIn = (user) => Promise.race([clearResetLimits(user), new Promise((r) => setTimeout(r, 1200))]);
 
         const pageLang = () => {
             try { return (window.getCurrentLang ? window.getCurrentLang() : localStorage.getItem('calzada_lang')) === 'tl' ? 'tl' : 'en'; } catch (_) { return 'en'; }
@@ -643,6 +645,7 @@
             try {
                 const userCredential = await signInWithEmailAndPassword(auth, currentEmail, pass);
                 logActivity(userCredential.user.uid, "login", "email"); // fire-and-forget
+                await afterPasswordSignIn(userCredential.user);
                 window.location.href = getSafeRedirectUrl();
             } catch (err) {
                 let msg = err.message;
@@ -736,6 +739,7 @@
                     try {
                         const existing = await signInWithEmailAndPassword(auth, emailToUse, pass);
                         logActivity(existing.user.uid, "login", "email"); // fire-and-forget
+                        await afterPasswordSignIn(existing.user);
                         window.location.href = getSafeRedirectUrl();
                         return;
                     } catch (_) {
@@ -870,10 +874,10 @@
         });
 
         // Handle Forgot Password: one request through /api/auth/password-reset (js/password-reset.js),
-        // the same answer for every email, and a "Resend in N s" wait (60 s, 120 s, then 300 s).
+        // the same answer for every email. Limits: 60 s then 2 min between emails, 3 an hour, 5 a day;
+        // the link shows "Resend in 45s" / "Resend in 12 min" / "Try again at 3:12 AM".
         if (forgotPassLink) {
             const forgotIdle = () => (pageLang() === 'tl' ? 'Nakalimutan ang password?' : 'Forgot Password?');
-            const forgotWait = (sec) => (pageLang() === 'tl' ? `Ipadala ulit sa ${sec}s` : `Resend in ${sec}s`);
             let forgotBusy = false;
             forgotPassLink.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -890,7 +894,7 @@
                 forgotBusy = false;
                 if (result.ok || result.code === 'rate_limited') {
                     setPassNotice(resetMessage(result, currentEmail, pageLang()));
-                    startCooldown(forgotPassLink, result.cooldownSec || 60, { idleText: forgotIdle(), waitText: forgotWait });
+                    startCooldown(forgotPassLink, result.retryAt || Date.now() + 60000, { idleText: forgotIdle(), lang: pageLang() });
                 } else {
                     forgotPassLink.textContent = forgotIdle();
                     showError(loginError, resetMessage(result, currentEmail, pageLang()));

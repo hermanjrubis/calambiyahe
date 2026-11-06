@@ -403,7 +403,9 @@ function renderEventEmail(eventName, payload = {}, recipientType = 'owner') {
         case 'password_reset': {
             // payload.link comes from Firebase Admin generatePasswordResetLink (https only)
             const link = typeof payload.link === 'string' && payload.link.startsWith('https://') ? payload.link : `${baseUrl}/login`;
-            const firstName = String(payload.name || '').trim().split(/\s+/)[0] || '';
+            // Greet by first name only when it looks like a name (older accounts may hold anything)
+            const firstWord = String(payload.name || '').normalize('NFC').trim().split(/\s+/)[0] || '';
+            const firstName = /^[\p{L}][\p{L}\p{M}.'\u2019-]{0,29}$/u.test(firstWord) ? firstWord : '';
             subject = 'Reset your Calzada password';
             headline = firstName ? `Hi ${escapeHtml(firstName)}, reset your password` : 'Reset your password';
             lines = [

@@ -14,8 +14,8 @@
  *
  * Opens from any element with data-open-legal="terms|privacy" (and old terms/privacy links).
  * window.CalzadaLegal = { versions, effectiveDate, open(type), close() }.
- * Layout (v3.1): fixed header (title + quiet meta line "Version 2.0 · Effective ..."), a scrollable
- * body (summary on a plain tint, a divider, the sections in one readable column) and a fixed footer
+ * Layout (v3.2): fixed header (title only), a scrollable body (opening paragraphs, a divider, the
+ * numbered sections in one readable column) and a fixed footer
  * whose "I understand" turns on only after the body is scrolled to its end. Fires
  * "calzada:legal-read" { type, version } on document when it is pressed.
  * Styles: css/legal-modal.css (loaded by this file, so pages need no extra tag).
@@ -31,12 +31,9 @@
     const EFFECTIVE_ISO = '2026-11-20';
     const EFFECTIVE_LABEL = 'November 20, 2026';
     const PUBLISHED_LABEL = 'November 6, 2026';
-    const PREVIOUS_VERSION = '1.0';
     const DPO = { title: 'Calzada Data Protection Officer', email: 'thecalzadaph@gmail.com' };
-    const STYLE_HREF = '/css/legal-modal.css?v=3.1.0';
+    const STYLE_HREF = '/css/legal-modal.css?v=3.2.0';
 
-    // Effective from 00:00 Philippine time (UTC+8) on the effective date
-    const isInEffect = () => Date.now() >= Date.parse(`${EFFECTIVE_ISO}T00:00:00+08:00`);
 
     const dpoLine = `<strong>${DPO.title}</strong>, <a href="mailto:${DPO.email}" class="legal-link">${DPO.email}</a>`;
 
@@ -129,7 +126,7 @@
                 {
                     id: 'changes', title: 'Changes to these Terms',
                     html: `
-                    <p>When we change these Terms in a way that matters, we post the new version here with its version number and effective date at least 14 days before it applies, and show a notice on the site. If you keep using Calzada after that date, the new Terms apply. If you do not agree, you can stop using Calzada and ask us to delete your account.</p>`
+                    <p>When we change these Terms in a way that matters, we post the new version here with its version number and effective date at least 14 days before it applies, and show a notice on the site. If you keep using Calzada after that date, the new Terms apply. If you do not agree, you can stop using Calzada and ask us to delete your account. This is version ${VERSIONS.terms}, published ${PUBLISHED_LABEL}, effective ${EFFECTIVE_LABEL}.</p>`
                 },
                 {
                     id: 'law', title: 'Governing law and contact',
@@ -330,14 +327,12 @@
         modalOverlay.setAttribute('role', 'dialog');
         modalOverlay.setAttribute('aria-modal', 'true');
         modalOverlay.setAttribute('aria-labelledby', 'legalModalTitle');
-        modalOverlay.setAttribute('aria-describedby', 'legalModalMeta');
-        // Fixed header (title + meta line) · scrollable body (summary, divider, text) · fixed footer
+        // Fixed header (title) · scrollable body (opening paragraphs, divider, text) · fixed footer
         modalOverlay.innerHTML = `
             <div class="legal-modal-dialog">
                 <header class="legal-modal-header">
                     <div class="legal-modal-header-text">
                         <h2 id="legalModalTitle" class="legal-modal-title">Terms of Service</h2>
-                        <p id="legalModalMeta" class="legal-modal-meta"></p>
                     </div>
                     <button type="button" class="legal-modal-close" id="legalModalCloseBtn" aria-label="Close">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -391,14 +386,12 @@
     }
 
     function renderBody(key, data) {
-        const pending = !isInEffect();
         const other = LEGAL_CONTENT[data.switchTarget];
+        // Opening paragraphs: plain text on white, before the numbered sections
         const summary = `
-            <section class="legal-summary" aria-labelledby="legal-${key}-summary-h">
-                <h3 class="legal-summary-title" id="legal-${key}-summary-h">Please read carefully</h3>
+            <div class="legal-intro">
                 ${data.summary.map((s) => `<p>${s}</p>`).join('')}
-                ${pending ? `<p class="legal-summary-when">This version takes effect on ${EFFECTIVE_LABEL}. Until then, version ${PREVIOUS_VERSION} applies, and nothing in this version reduces the rights it gave you.</p>` : ''}
-            </section>
+            </div>
             <hr class="legal-divider">`;
         const sections = data.sections.map((sec, i) => `
             <section class="legal-modal-section" id="legal-${key}-${sec.id}" aria-labelledby="legal-${key}-${sec.id}-h">
@@ -424,14 +417,11 @@
         if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
 
         const titleEl = modalOverlay.querySelector('#legalModalTitle');
-        const metaEl = modalOverlay.querySelector('#legalModalMeta');
         const bodyEl = modalOverlay.querySelector('#legalModalBody');
         const contentEl = modalOverlay.querySelector('#legalModalContent');
         const closeBtn = modalOverlay.querySelector('#legalModalCloseBtn');
 
         titleEl.textContent = data.title;
-        // Quiet meta line, kept for acceptance records
-        metaEl.textContent = `Version ${data.version} · Effective ${EFFECTIVE_LABEL}`;
         contentEl.innerHTML = renderBody(key, data);
         bodyEl.scrollTop = 0;
         setAccept(false); // every document is read from the top, also when switching between them
