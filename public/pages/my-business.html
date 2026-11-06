@@ -1288,7 +1288,144 @@
             .mb-stats { gap: 8px; }
             .mb-save-bar { margin: 0 -20px; border-radius: 0; border-left: 0; border-right: 0; }
         }
+
+        /* ====================================================
+           STORE LOCATIONS & BRANCHES MANAGER (Edit Profile)
+           ==================================================== */
+        .mb-loc-box {
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            background: #F8FAFC;
+        }
+        .mb-loc-box-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .mb-loc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #1F69B8;
+            background: #EAF3FC;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+        .mb-loc-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #042C53;
+            line-height: 1.35;
+        }
+        .mb-loc-meta {
+            font-size: 13px;
+            color: #64748B;
+            line-height: 1.45;
+            margin-top: 2px;
+        }
+        .mb-loc-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .mb-loc-btn {
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #CBD5E1;
+            background: #FFFFFF;
+            color: #042C53;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+        .mb-loc-btn:hover { background: #F1F5F9; border-color: #94A3B8; }
+        .mb-loc-btn.is-danger { color: #DC2626; border-color: #FECACA; background: #FEF2F2; }
+        .mb-loc-btn.is-danger:hover { background: #FEE2E2; }
+        .mb-loc-btn.is-primary { background: #1F69B8; border-color: #1F69B8; color: #FFFFFF; }
+        .mb-loc-btn.is-primary:hover { background: #185FA5; }
+        .mb-loc-editor {
+            margin-top: 12px;
+            padding: 16px;
+            border: 1px solid #CBD5E1;
+            border-radius: 10px;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .mb-loc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .mb-loc-map-wrap {
+            position: relative;
+            width: 100%;
+            height: 220px;
+            border: 1px solid #CBD5E1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #EEF2F7;
+        }
+        .mb-phone-input-group {
+            display: flex;
+            align-items: stretch;
+            border: 1px solid #CBD5E1;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #FFFFFF;
+            min-height: 44px;
+        }
+        .mb-phone-prefix {
+            display: inline-flex;
+            align-items: center;
+            padding: 0 12px;
+            background: #F1F5F9;
+            border-right: 1px solid #CBD5E1;
+            font-size: 14px;
+            font-weight: 600;
+            color: #042C53;
+            user-select: none;
+        }
+        .mb-phone-digits {
+            flex: 1;
+            min-width: 0;
+            border: 0;
+            padding: 0 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            color: #042C53;
+            outline: none;
+        }
+        .mb-branches-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (max-width: 640px) {
+            .mb-loc-grid { grid-template-columns: 1fr; }
+            .mb-loc-actions { width: 100%; }
+            .mb-loc-btn { min-height: 44px; flex: 1 1 auto; justify-content: center; }
+        }
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css">
     <link rel="stylesheet" href="../css/site-drawer.css?v=1.0.0">
 </head>
 
@@ -1817,6 +1954,10 @@
                         <dt class="details-label">Map pin</dt>
                         <dd class="details-value" id="approvedLocation">--</dd>
                     </div>
+                    <div class="details-row" id="approvedBranchesRow" style="display: none;">
+                        <dt class="details-label">Branches</dt>
+                        <dd class="details-value" id="approvedBranches">--</dd>
+                    </div>
                     <div class="details-row" id="approvedSocialRow" style="display: none;">
                         <dt class="details-label">Social links</dt>
                         <dd class="details-value" id="approvedSocialLinks">--</dd>
@@ -1827,7 +1968,7 @@
                     </div>
                 </dl>
                 <p class="details-note">
-                    Registered name, category, and address are verified by Calzada and cannot be changed here.
+                    Registered business name and category are verified by Calzada. Need to relocate your physical store or add/remove branches? <button type="button" class="mb-link-btn" data-mb-go="edit" data-mb-target="mbEditLocations">Manage store locations &amp; branches</button>.
                 </p>
                         </section>
                     </div>
@@ -1870,6 +2011,159 @@
                                             <button type="button" class="btn-change-photo" id="btnChangePhoto">Change photo</button>
                                             <span class="photo-hint">JPEG, PNG, or WebP. Max 10MB.</span>
                                             <span class="photo-selected-status" id="photoSelectedStatus"></span>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <!-- STORE LOCATIONS & BRANCHES (Relocate Store / Manage Branches) -->
+                                <section class="mb-card" id="mbEditLocations">
+                                    <div class="mb-card-head">
+                                        <div>
+                                            <h2 class="mb-card-title">Store locations &amp; branches</h2>
+                                            <p class="mb-card-sub" style="margin-top: 2px;">Relocate your main physical store (replacing the previous location) or add and edit additional branches in Uno, Real, or Halang.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- 1. Main Store Location Card -->
+                                    <div class="mb-loc-box" id="mbMainStoreBox">
+                                        <div class="mb-loc-box-head">
+                                            <div style="min-width: 0; flex: 1;">
+                                                <span class="mb-loc-badge"><i class="ti ti-map-pin"></i> Main Store</span>
+                                                <div class="mb-loc-title" id="mbMainLocAddressText">--</div>
+                                                <div class="mb-loc-meta" id="mbMainLocMetaText">--</div>
+                                            </div>
+                                            <div class="mb-loc-actions">
+                                                <button type="button" class="mb-loc-btn" id="btnToggleRelocateMain">
+                                                    <i class="ti ti-Arrows-exchange"></i>
+                                                    <span>Relocate / Edit main store</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Inline Relocate / Edit Main Store Editor -->
+                                        <div class="mb-loc-editor" id="mbMainStoreEditor" hidden>
+                                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                                <strong style="font-size: 14px; color: #042C53;">Relocate or update main store location</strong>
+                                                <button type="button" class="mb-loc-btn" id="btnMainUseCurrentLoc">
+                                                    <i class="ti ti-current-location"></i>
+                                                    <span>Use My Current Location</span>
+                                                </button>
+                                            </div>
+                                            <p style="font-size: 12.5px; color: #64748B; margin: 0;">Click or drag the pin on the map to your new store location. Saving will replace your previous main location unless you choose to keep the previous address as a branch below.</p>
+                                            <div class="mb-loc-map-wrap" id="mbMainLocationMap"></div>
+
+                                            <div class="mb-loc-grid">
+                                                <div>
+                                                    <label class="form-label" for="editMainBarangay" style="margin-bottom: 4px;">Barangay <span class="req">*</span></label>
+                                                    <select id="editMainBarangay" class="form-select" style="min-height: 44px;">
+                                                        <option value="Uno">Brgy. 1 (Poblacion Uno)</option>
+                                                        <option value="Real">Brgy. Real</option>
+                                                        <option value="Halang">Brgy. Halang</option>
+                                                    </select>
+                                                </div>
+                                                <div>
+                                                    <label class="form-label" for="editMainContactDigits" style="margin-bottom: 4px;">Store contact number</label>
+                                                    <div class="mb-phone-input-group">
+                                                        <span class="mb-phone-prefix">+63</span>
+                                                        <input type="tel" id="editMainContactDigits" class="mb-phone-digits" inputmode="numeric" maxlength="10" placeholder="9171234567">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-loc-grid">
+                                                <div>
+                                                    <label class="form-label" for="editMainAddress" style="margin-bottom: 4px;">House No. / Building / Street <span class="req">*</span></label>
+                                                    <input type="text" id="editMainAddress" class="form-input" maxlength="160" placeholder="e.g. Unit 2, National Hwy" style="min-height: 44px;">
+                                                </div>
+                                                <div>
+                                                    <label class="form-label" for="editMainLandmark" style="margin-bottom: 4px;">Landmark <span class="opt">(optional)</span></label>
+                                                    <input type="text" id="editMainLandmark" class="form-input" maxlength="80" placeholder="e.g. Near SM Calamba" style="min-height: 44px;">
+                                                </div>
+                                            </div>
+
+                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #042C53; cursor: pointer; user-select: none;">
+                                                <input type="checkbox" id="chkKeepOldMainAsBranch" style="width: 16px; height: 16px;">
+                                                <span>Keep previous main location as an additional branch instead of removing it</span>
+                                            </label>
+
+                                            <div class="field-error-msg" id="errMainLocation" style="margin: 0;"></div>
+
+                                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                                                <button type="button" class="btn-cancel" id="btnCancelMainLocation">Cancel</button>
+                                                <button type="button" class="btn-primary" id="btnApplyMainLocation" style="min-height: 40px; padding: 0 16px;">Apply new location</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-divider"></div>
+
+                                    <!-- 2. Additional Branches Section -->
+                                    <div>
+                                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                            <div>
+                                                <h3 style="font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: #042C53; margin: 0;">Additional branches <span id="mbBranchesCountLabel" style="font-weight: 500; color: #64748B; font-size: 13px;">(0 / 5)</span></h3>
+                                                <p style="font-size: 12.5px; color: #64748B; margin-top: 2px;">Include other physical branches, edit their info, or remove old locations.</p>
+                                            </div>
+                                            <button type="button" class="mb-loc-btn is-primary" id="btnAddBranch">
+                                                <i class="ti ti-plus"></i>
+                                                <span>Add branch</span>
+                                            </button>
+                                        </div>
+
+                                        <div class="mb-branches-list" id="mbBranchesList"></div>
+
+                                        <!-- Inline Branch Add/Edit Editor -->
+                                        <div class="mb-loc-editor" id="mbBranchEditorBox" hidden>
+                                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                                                <strong id="mbBranchEditorTitle" style="font-size: 14px; color: #042C53;">Add branch</strong>
+                                                <button type="button" class="mb-loc-btn" id="btnBranchUseCurrentLoc">
+                                                    <i class="ti ti-current-location"></i>
+                                                    <span>Use My Current Location</span>
+                                                </button>
+                                            </div>
+
+                                            <div class="mb-loc-map-wrap" id="mbBranchLocationMap"></div>
+
+                                            <div class="mb-loc-grid">
+                                                <div>
+                                                    <label class="form-label" for="branchEditName" style="margin-bottom: 4px;">Branch name <span class="req">*</span></label>
+                                                    <input type="text" id="branchEditName" class="form-input" maxlength="60" placeholder="e.g. Real Branch / Crossing Branch" style="min-height: 44px;">
+                                                </div>
+                                                <div>
+                                                    <label class="form-label" for="branchEditBarangay" style="margin-bottom: 4px;">Barangay <span class="req">*</span></label>
+                                                    <select id="branchEditBarangay" class="form-select" style="min-height: 44px;">
+                                                        <option value="Uno">Brgy. 1 (Poblacion Uno)</option>
+                                                        <option value="Real">Brgy. Real</option>
+                                                        <option value="Halang">Brgy. Halang</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-loc-grid">
+                                                <div>
+                                                    <label class="form-label" for="branchEditAddress" style="margin-bottom: 4px;">House No. / Building / Street <span class="req">*</span></label>
+                                                    <input type="text" id="branchEditAddress" class="form-input" maxlength="160" placeholder="e.g. Block 4 Lot 2, Maharlika Hwy" style="min-height: 44px;">
+                                                </div>
+                                                <div>
+                                                    <label class="form-label" for="branchEditLandmark" style="margin-bottom: 4px;">Landmark <span class="opt">(optional)</span></label>
+                                                    <input type="text" id="branchEditLandmark" class="form-input" maxlength="80" placeholder="e.g. Across WalterMart" style="min-height: 44px;">
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="form-label" for="branchEditContactDigits" style="margin-bottom: 4px;">Branch contact number <span class="opt">(optional)</span></label>
+                                                <div class="mb-phone-input-group" style="max-width: 320px;">
+                                                    <span class="mb-phone-prefix">+63</span>
+                                                    <input type="tel" id="branchEditContactDigits" class="mb-phone-digits" inputmode="numeric" maxlength="10" placeholder="9171234567">
+                                                </div>
+                                            </div>
+
+                                            <div class="field-error-msg" id="errBranchEditor" style="margin: 0;"></div>
+
+                                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                                                <button type="button" class="btn-cancel" id="btnCancelBranchEditor">Cancel</button>
+                                                <button type="button" class="btn-primary" id="btnSaveBranchEditor" style="min-height: 40px; padding: 0 16px;">Save branch</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </section>
@@ -2039,9 +2333,11 @@
 
     </main>
 
-    <!-- Plans Configuration, Business Fields, and i18n -->
+    <!-- Plans Configuration, Business Fields, MapLibre, and i18n -->
     <script src="../js/plans-config.js?v=3.1.2"></script>
     <script src="../js/business-fields.js?v=3.1.2"></script>
+    <script src="../js/scope.js?v=2.9.2"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.js"></script>
     <script src="../js/i18n.js?v=2.9.5"></script>
 
     <script type="module">
@@ -3099,6 +3395,7 @@
                 approvedDocId.textContent = activeBusinessId;
                 renderLocationRow(approvedLocation, approvedLocationRow, activeBusiness.location);
                 renderSocialLinksRow(approvedSocialLinks, approvedSocialRow, activeBusiness.socialLinks);
+                renderApprovedBranchesRow(activeBusiness.branches);
 
                 // View mode thumbnail
                 if (approvedThumbnailRow && approvedThumbnailImg) {
@@ -3172,6 +3469,8 @@
                     });
                     initialOpenHours = openHoursEditor.getHours();
                 }
+
+                initLocationsAndBranchesState();
 
                 initialSocialLinks = {
                     facebook: activeBusiness.socialLinks?.facebook || '',
@@ -3251,6 +3550,521 @@
             });
         }
 
+        // ---- Store Locations & Branches Manager ----
+        const BARANGAY_CENTERS = {
+            Uno: { lat: 14.2124, lng: 121.1640 },
+            Real: { lat: 14.2050, lng: 121.1558 },
+            Halang: { lat: 14.1982, lng: 121.1678 }
+        };
+        let initialMainLocationState = null;
+        let currentMainLocationState = null;
+        let initialBranchesState = [];
+        let currentBranchesState = [];
+        let mainLocMap = null;
+        let mainLocMarker = null;
+        let mainEditorPin = null;
+        let branchLocMap = null;
+        let branchLocMarker = null;
+        let branchEditorPin = null;
+        let editingBranchIndex = -1;
+
+        function extractTenPhoneDigits(raw) {
+            const digits = String(raw || '').replace(/\D/g, '');
+            if (digits.startsWith('63') && digits.length >= 12) return digits.slice(2, 12);
+            if (digits.startsWith('09') && digits.length >= 11) return digits.slice(1, 11);
+            if (digits.startsWith('9')) return digits.slice(0, 10);
+            return digits.slice(-10);
+        }
+
+        function formatE164Phone(digits10) {
+            const clean = String(digits10 || '').replace(/\D/g, '').slice(0, 10);
+            if (!clean) return null;
+            return `+63${clean}`;
+        }
+
+        function cloneMainLoc(bus) {
+            const brgy = ['Uno', 'Real', 'Halang'].includes(bus?.barangay) ? bus.barangay : 'Real';
+            const loc = (bus?.location && typeof bus.location.lat === 'number' && typeof bus.location.lng === 'number')
+                ? { lat: Number(bus.location.lat.toFixed(6)), lng: Number(bus.location.lng.toFixed(6)) }
+                : { ...BARANGAY_CENTERS[brgy] };
+            return {
+                address: String(bus?.address || '').trim(),
+                barangay: brgy,
+                landmark: bus?.landmark ? String(bus.landmark).trim() : null,
+                contactNumber: bus?.contactNumber ? String(bus.contactNumber).trim() : null,
+                location: loc
+            };
+        }
+
+        function cloneBranchesList(list) {
+            if (!Array.isArray(list)) return [];
+            return list
+                .filter(b => b && typeof b === 'object' && (b.name || b.address))
+                .slice(0, 5)
+                .map((b, idx) => {
+                    const brgy = ['Uno', 'Real', 'Halang'].includes(b.barangay) ? b.barangay : 'Real';
+                    const loc = (b.location && typeof b.location.lat === 'number' && typeof b.location.lng === 'number')
+                        ? { lat: Number(b.location.lat.toFixed(6)), lng: Number(b.location.lng.toFixed(6)) }
+                        : { ...BARANGAY_CENTERS[brgy] };
+                    return {
+                        id: b.id || `br_${idx + 1}`,
+                        name: String(b.name || `Branch ${idx + 1}`).trim(),
+                        address: String(b.address || '').trim(),
+                        barangay: brgy,
+                        landmark: b.landmark ? String(b.landmark).trim() : null,
+                        contactNumber: b.contactNumber ? String(b.contactNumber).trim() : null,
+                        location: loc
+                    };
+                });
+        }
+
+        function areLocationsAndBranchesEqual() {
+            if (!initialMainLocationState || !currentMainLocationState) return true;
+            const sameMain = JSON.stringify(initialMainLocationState) === JSON.stringify(currentMainLocationState);
+            const sameBranches = JSON.stringify(initialBranchesState) === JSON.stringify(currentBranchesState);
+            return sameMain && sameBranches;
+        }
+
+        function renderApprovedBranchesRow(branches) {
+            const row = document.getElementById('approvedBranchesRow');
+            const val = document.getElementById('approvedBranches');
+            if (!row || !val) return;
+            const list = cloneBranchesList(branches);
+            if (!list.length) {
+                row.style.display = 'none';
+                val.textContent = '--';
+                return;
+            }
+            val.innerHTML = list.map(b => {
+                const parts = [b.address, `Brgy. ${b.barangay}`];
+                if (b.landmark) parts.push(`(${b.landmark})`);
+                if (b.contactNumber) parts.push(b.contactNumber);
+                return `<div style="margin-bottom:4px;"><strong style="color:#042C53;">${escapeHtml(b.name)}:</strong> ${escapeHtml(parts.filter(Boolean).join(', '))}</div>`;
+            }).join('');
+            row.style.display = 'flex';
+        }
+
+        function renderLocationsAndBranchesUI() {
+            if (!currentMainLocationState) return;
+            const addrEl = document.getElementById('mbMainLocAddressText');
+            const metaEl = document.getElementById('mbMainLocMetaText');
+            if (addrEl) {
+                addrEl.textContent = `${currentMainLocationState.address || 'Address not set'}, Brgy. ${currentMainLocationState.barangay}, Calamba`;
+            }
+            if (metaEl) {
+                const bits = [];
+                if (currentMainLocationState.landmark) bits.push(`Landmark: ${currentMainLocationState.landmark}`);
+                if (currentMainLocationState.contactNumber) bits.push(`Tel: ${currentMainLocationState.contactNumber}`);
+                if (currentMainLocationState.location) {
+                    bits.push(`Pin: ${currentMainLocationState.location.lat.toFixed(5)}, ${currentMainLocationState.location.lng.toFixed(5)}`);
+                }
+                metaEl.textContent = bits.join(' · ') || 'Primary store location';
+            }
+
+            const countLabel = document.getElementById('mbBranchesCountLabel');
+            if (countLabel) countLabel.textContent = `(${currentBranchesState.length} / 5)`;
+            const btnAdd = document.getElementById('btnAddBranch');
+            if (btnAdd) btnAdd.disabled = currentBranchesState.length >= 5;
+
+            const listEl = document.getElementById('mbBranchesList');
+            if (!listEl) return;
+            if (!currentBranchesState.length) {
+                listEl.innerHTML = `<div style="font-size: 13px; color: #64748B; padding: 10px 12px; border: 1px dashed #CBD5E1; border-radius: 8px; background: #F8FAFC;">No additional branches added yet. Click <strong>Add branch</strong> if your business has another physical store.</div>`;
+                return;
+            }
+            listEl.innerHTML = currentBranchesState.map((b, idx) => {
+                const metaBits = [`Brgy. ${b.barangay}`];
+                if (b.landmark) metaBits.push(`Landmark: ${b.landmark}`);
+                if (b.contactNumber) metaBits.push(b.contactNumber);
+                if (b.location) metaBits.push(`Pin: ${b.location.lat.toFixed(5)}, ${b.location.lng.toFixed(5)}`);
+                return `
+                    <div class="mb-loc-box" data-branch-idx="${idx}">
+                        <div class="mb-loc-box-head">
+                            <div style="min-width: 0; flex: 1;">
+                                <span class="mb-loc-badge" style="background:#F1F5F9;color:#042C53;"><i class="ti ti-building-store"></i> ${escapeHtml(b.name)}</span>
+                                <div class="mb-loc-title">${escapeHtml(b.address)}</div>
+                                <div class="mb-loc-meta">${escapeHtml(metaBits.join(' · '))}</div>
+                            </div>
+                            <div class="mb-loc-actions">
+                                <button type="button" class="mb-loc-btn" data-branch-action="edit" data-branch-idx="${idx}">
+                                    <i class="ti ti-pencil"></i><span>Edit info</span>
+                                </button>
+                                <button type="button" class="mb-loc-btn" data-branch-action="promote" data-branch-idx="${idx}" title="Make this your new Main Store and remove the previous main store location">
+                                    <i class="ti ti-map-pin-share"></i><span>Set as main &amp; remove previous</span>
+                                </button>
+                                <button type="button" class="mb-loc-btn is-danger" data-branch-action="remove" data-branch-idx="${idx}">
+                                    <i class="ti ti-trash"></i><span>Remove</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function reverseGeocodePin(lat, lng, targetAddrInput, targetBrgySelect) {
+            if (window.CalzadaScope && typeof window.CalzadaScope.detectBarangay === 'function') {
+                const detected = window.CalzadaScope.detectBarangay(lng, lat);
+                if (detected && ['Uno', 'Real', 'Halang'].includes(detected) && targetBrgySelect) {
+                    targetBrgySelect.value = detected;
+                }
+            }
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`, {
+                    headers: { 'Accept-Language': 'en' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                const a = data.address || {};
+                const road = a.road || a.pedestrian || a.Residential || a.suburb || a.neighbourhood || '';
+                const house = a.house_number || a.building || a.amenity || '';
+                const streetLine = [house, road].filter(Boolean).join(' ').trim();
+                if (streetLine && targetAddrInput && !targetAddrInput.value.trim()) {
+                    targetAddrInput.value = streetLine.slice(0, 160);
+                }
+                const fullText = `${data.display_name || ''} ${a.village || ''} ${a.suburb || ''} ${a.Quarter || ''}`.toLowerCase();
+                if (targetBrgySelect) {
+                    if (fullText.includes('halang')) targetBrgySelect.value = 'Halang';
+                    else if (fullText.includes('real')) targetBrgySelect.value = 'Real';
+                    else if (fullText.includes('barangay 1') || fullText.includes('poblacion') || fullText.includes('uno')) targetBrgySelect.value = 'Uno';
+                }
+            } catch (_) {}
+        }
+
+        function ensureInteractivePinMap(containerId, initialPin, onPinChange) {
+            if (typeof maplibregl === 'undefined') return null;
+            const isMain = containerId === 'mbMainLocationMap';
+            let mapInst = isMain ? mainLocMap : branchLocMap;
+            let markerInst = isMain ? mainLocMarker : branchLocMarker;
+            const start = (initialPin && typeof initialPin.lat === 'number' && typeof initialPin.lng === 'number')
+                ? initialPin
+                : BARANGAY_CENTERS.Real;
+
+            if (!mapInst) {
+                mapInst = new maplibregl.Map({
+                    container: containerId,
+                    style: 'https://tiles.openfreemap.org/styles/liberty',
+                    center: [start.lng, start.lat],
+                    zoom: 15.5,
+                    attributionControl: false
+                });
+                mapInst.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+                if (window.CalzadaScope && typeof window.CalzadaScope.addFog === 'function') {
+                    window.CalzadaScope.addFog(mapInst);
+                }
+                markerInst = new maplibregl.Marker({ color: '#1F69B8', draggable: true })
+                    .setLngLat([start.lng, start.lat])
+                    .addTo(mapInst);
+                markerInst.on('dragend', () => {
+                    const pos = markerInst.getLngLat();
+                    onPinChange({ lat: Number(pos.lat.toFixed(6)), lng: Number(pos.lng.toFixed(6)) });
+                });
+                mapInst.on('click', (ev) => {
+                    markerInst.setLngLat(ev.lngLat);
+                    onPinChange({ lat: Number(ev.lngLat.lat.toFixed(6)), lng: Number(ev.lngLat.lng.toFixed(6)) });
+                });
+                if (isMain) { mainLocMap = mapInst; mainLocMarker = markerInst; }
+                else { branchLocMap = mapInst; branchLocMarker = markerInst; }
+            } else {
+                markerInst.setLngLat([start.lng, start.lat]);
+                mapInst.jumpTo({ center: [start.lng, start.lat], zoom: 15.5 });
+                setTimeout(() => mapInst.resize(), 60);
+            }
+            return { map: mapInst, marker: markerInst };
+        }
+
+        function initLocationsAndBranchesState() {
+            if (!activeBusiness) return;
+            initialMainLocationState = cloneMainLoc(activeBusiness);
+            currentMainLocationState = JSON.parse(JSON.stringify(initialMainLocationState));
+            initialBranchesState = cloneBranchesList(activeBusiness.branches);
+            currentBranchesState = JSON.parse(JSON.stringify(initialBranchesState));
+
+            const mainEd = document.getElementById('mbMainStoreEditor');
+            const brEd = document.getElementById('mbBranchEditorBox');
+            if (mainEd) mainEd.hidden = true;
+            if (brEd) brEd.hidden = true;
+            renderLocationsAndBranchesUI();
+            bindLocationsAndBranchesEvents();
+        }
+
+        function bindLocationsAndBranchesEvents() {
+            const sec = document.getElementById('mbEditLocations');
+            if (!sec || sec.dataset.bound === '1') return;
+            sec.dataset.bound = '1';
+
+            const mainEditor = document.getElementById('mbMainStoreEditor');
+            const editMainBarangay = document.getElementById('editMainBarangay');
+            const editMainContactDigits = document.getElementById('editMainContactDigits');
+            const editMainAddress = document.getElementById('editMainAddress');
+            const editMainLandmark = document.getElementById('editMainLandmark');
+            const chkKeepOldMain = document.getElementById('chkKeepOldMainAsBranch');
+            const errMainLocation = document.getElementById('errMainLocation');
+
+            editMainContactDigits?.addEventListener('input', () => {
+                editMainContactDigits.value = editMainContactDigits.value.replace(/\D/g, '').slice(0, 10);
+            });
+
+            document.getElementById('btnToggleRelocateMain')?.addEventListener('click', () => {
+                if (!mainEditor || !currentMainLocationState) return;
+                const opening = mainEditor.hidden;
+                mainEditor.hidden = !opening;
+                if (!opening) return;
+
+                if (editMainBarangay) editMainBarangay.value = currentMainLocationState.barangay || 'Real';
+                if (editMainContactDigits) editMainContactDigits.value = extractTenPhoneDigits(currentMainLocationState.contactNumber);
+                if (editMainAddress) editMainAddress.value = currentMainLocationState.address || '';
+                if (editMainLandmark) editMainLandmark.value = currentMainLocationState.landmark || '';
+                if (chkKeepOldMain) chkKeepOldMain.checked = false;
+                if (errMainLocation) { errMainLocation.textContent = ''; errMainLocation.classList.remove('visible'); }
+
+                mainEditorPin = { ...(currentMainLocationState.location || BARANGAY_CENTERS[currentMainLocationState.barangay || 'Real']) };
+                setTimeout(() => {
+                    ensureInteractivePinMap('mbMainLocationMap', mainEditorPin, (newPin) => {
+                        mainEditorPin = newPin;
+                        reverseGeocodePin(newPin.lat, newPin.lng, editMainAddress, editMainBarangay);
+                    });
+                }, 40);
+            });
+
+            editMainBarangay?.addEventListener('change', () => {
+                const center = BARANGAY_CENTERS[editMainBarangay.value];
+                if (center && mainLocMap && mainLocMarker) {
+                    mainEditorPin = { ...center };
+                    mainLocMarker.setLngLat([center.lng, center.lat]);
+                    mainLocMap.flyTo({ center: [center.lng, center.lat], zoom: 15.5 });
+                }
+            });
+
+            document.getElementById('btnMainUseCurrentLoc')?.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    if (errMainLocation) { errMainLocation.textContent = 'Geolocation is not supported by your browser.'; errMainLocation.classList.add('visible'); }
+                    return;
+                }
+                const btn = document.getElementById('btnMainUseCurrentLoc');
+                if (btn) btn.disabled = true;
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    if (btn) btn.disabled = false;
+                    const pin = { lat: Number(pos.coords.latitude.toFixed(6)), lng: Number(pos.coords.longitude.toFixed(6)) };
+                    mainEditorPin = pin;
+                    if (mainLocMap && mainLocMarker) {
+                        mainLocMarker.setLngLat([pin.lng, pin.lat]);
+                        mainLocMap.flyTo({ center: [pin.lng, pin.lat], zoom: 16 });
+                    }
+                    reverseGeocodePin(pin.lat, pin.lng, editMainAddress, editMainBarangay);
+                }, () => {
+                    if (btn) btn.disabled = false;
+                    if (errMainLocation) { errMainLocation.textContent = 'Could not access your GPS location. Please allow location access or drag the map pin.'; errMainLocation.classList.add('visible'); }
+                }, { enableHighAccuracy: true, timeout: 10000 });
+            });
+
+            document.getElementById('btnCancelMainLocation')?.addEventListener('click', () => {
+                if (mainEditor) mainEditor.hidden = true;
+            });
+
+            document.getElementById('btnApplyMainLocation')?.addEventListener('click', () => {
+                const addr = (editMainAddress?.value || '').trim();
+                const brgy = editMainBarangay?.value || 'Real';
+                const landmark = (editMainLandmark?.value || '').trim() || null;
+                const digits = (editMainContactDigits?.value || '').replace(/\D/g, '');
+                if (addr.length < 3) {
+                    if (errMainLocation) { errMainLocation.textContent = 'Please enter a valid street address (at least 3 characters).'; errMainLocation.classList.add('visible'); }
+                    return;
+                }
+                if (digits.length > 0 && !/^9\d{9}$/.test(digits)) {
+                    if (errMainLocation) { errMainLocation.textContent = 'Enter a valid 10-digit mobile number starting with 9 (e.g. 9171234567).'; errMainLocation.classList.add('visible'); }
+                    return;
+                }
+                const pin = mainEditorPin || currentMainLocationState.location || BARANGAY_CENTERS[brgy];
+                if (pin.lat < 14.15 || pin.lat > 14.25 || pin.lng < 121.10 || pin.lng > 121.22) {
+                    if (errMainLocation) { errMainLocation.textContent = 'Pin must be placed within Calamba (Uno, Real, or Halang).'; errMainLocation.classList.add('visible'); }
+                    return;
+                }
+
+                // Optionally keep previous main store location as a branch before replacing
+                if (chkKeepOldMain?.checked && currentBranchesState.length < 5 && currentMainLocationState.address) {
+                    currentBranchesState.push({
+                        id: `br_${Date.now()}`,
+                        name: `Previous Store (${currentMainLocationState.barangay})`,
+                        address: currentMainLocationState.address,
+                        barangay: currentMainLocationState.barangay,
+                        landmark: currentMainLocationState.landmark,
+                        contactNumber: currentMainLocationState.contactNumber,
+                        location: { ...currentMainLocationState.location }
+                    });
+                }
+
+                currentMainLocationState = {
+                    address: addr,
+                    barangay: brgy,
+                    landmark: landmark,
+                    contactNumber: digits ? formatE164Phone(digits) : null,
+                    location: { lat: Number(pin.lat.toFixed(6)), lng: Number(pin.lng.toFixed(6)) }
+                };
+
+                if (mainEditor) mainEditor.hidden = true;
+                renderLocationsAndBranchesUI();
+                updateSaveButtonState();
+            });
+
+            // ---- Additional Branches Events ----
+            const branchEditorBox = document.getElementById('mbBranchEditorBox');
+            const branchEditorTitle = document.getElementById('mbBranchEditorTitle');
+            const branchEditName = document.getElementById('branchEditName');
+            const branchEditBarangay = document.getElementById('branchEditBarangay');
+            const branchEditAddress = document.getElementById('branchEditAddress');
+            const branchEditLandmark = document.getElementById('branchEditLandmark');
+            const branchEditContactDigits = document.getElementById('branchEditContactDigits');
+            const errBranchEditor = document.getElementById('errBranchEditor');
+
+            branchEditContactDigits?.addEventListener('input', () => {
+                branchEditContactDigits.value = branchEditContactDigits.value.replace(/\D/g, '').slice(0, 10);
+            });
+
+            function openBranchEditor(idx) {
+                if (!branchEditorBox) return;
+                editingBranchIndex = idx;
+                const existing = idx >= 0 ? currentBranchesState[idx] : null;
+                if (branchEditorTitle) branchEditorTitle.textContent = existing ? `Edit branch: ${existing.name}` : 'Add another branch';
+                if (branchEditName) branchEditName.value = existing ? existing.name : '';
+                if (branchEditBarangay) branchEditBarangay.value = existing ? existing.barangay : 'Real';
+                if (branchEditAddress) branchEditAddress.value = existing ? existing.address : '';
+                if (branchEditLandmark) branchEditLandmark.value = existing?.landmark || '';
+                if (branchEditContactDigits) branchEditContactDigits.value = existing?.contactNumber ? extractTenPhoneDigits(existing.contactNumber) : '';
+                if (errBranchEditor) { errBranchEditor.textContent = ''; errBranchEditor.classList.remove('visible'); }
+
+                branchEditorPin = existing?.location
+                    ? { ...existing.location }
+                    : { ...BARANGAY_CENTERS[branchEditBarangay?.value || 'Real'] };
+                branchEditorBox.hidden = false;
+                setTimeout(() => {
+                    ensureInteractivePinMap('mbBranchLocationMap', branchEditorPin, (newPin) => {
+                        branchEditorPin = newPin;
+                        reverseGeocodePin(newPin.lat, newPin.lng, branchEditAddress, branchEditBarangay);
+                    });
+                }, 40);
+            }
+
+            document.getElementById('btnAddBranch')?.addEventListener('click', () => {
+                if (currentBranchesState.length >= 5) return;
+                openBranchEditor(-1);
+            });
+
+            branchEditBarangay?.addEventListener('change', () => {
+                const center = BARANGAY_CENTERS[branchEditBarangay.value];
+                if (center && branchLocMap && branchLocMarker) {
+                    branchEditorPin = { ...center };
+                    branchLocMarker.setLngLat([center.lng, center.lat]);
+                    branchLocMap.flyTo({ center: [center.lng, center.lat], zoom: 15.5 });
+                }
+            });
+
+            document.getElementById('btnBranchUseCurrentLoc')?.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    if (errBranchEditor) { errBranchEditor.textContent = 'Geolocation is not supported by your browser.'; errBranchEditor.classList.add('visible'); }
+                    return;
+                }
+                const btn = document.getElementById('btnBranchUseCurrentLoc');
+                if (btn) btn.disabled = true;
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    if (btn) btn.disabled = false;
+                    const pin = { lat: Number(pos.coords.latitude.toFixed(6)), lng: Number(pos.coords.longitude.toFixed(6)) };
+                    branchEditorPin = pin;
+                    if (branchLocMap && branchLocMarker) {
+                        branchLocMarker.setLngLat([pin.lng, pin.lat]);
+                        branchLocMap.flyTo({ center: [pin.lng, pin.lat], zoom: 16 });
+                    }
+                    reverseGeocodePin(pin.lat, pin.lng, branchEditAddress, branchEditBarangay);
+                }, () => {
+                    if (btn) btn.disabled = false;
+                    if (errBranchEditor) { errBranchEditor.textContent = 'Could not access your GPS location. Please allow location access or drag the map pin.'; errBranchEditor.classList.add('visible'); }
+                }, { enableHighAccuracy: true, timeout: 10000 });
+            });
+
+            document.getElementById('btnCancelBranchEditor')?.addEventListener('click', () => {
+                if (branchEditorBox) branchEditorBox.hidden = true;
+                editingBranchIndex = -1;
+            });
+
+            document.getElementById('btnSaveBranchEditor')?.addEventListener('click', () => {
+                const bName = (branchEditName?.value || '').trim();
+                const bBrgy = branchEditBarangay?.value || 'Real';
+                const bAddr = (branchEditAddress?.value || '').trim();
+                const bLand = (branchEditLandmark?.value || '').trim() || null;
+                const bDigits = (branchEditContactDigits?.value || '').replace(/\D/g, '');
+
+                if (bName.length < 2) {
+                    if (errBranchEditor) { errBranchEditor.textContent = 'Please enter a branch name (e.g. Real Branch).'; errBranchEditor.classList.add('visible'); }
+                    return;
+                }
+                if (bAddr.length < 3) {
+                    if (errBranchEditor) { errBranchEditor.textContent = 'Please enter the branch street address.'; errBranchEditor.classList.add('visible'); }
+                    return;
+                }
+                if (bDigits.length > 0 && !/^9\d{9}$/.test(bDigits)) {
+                    if (errBranchEditor) { errBranchEditor.textContent = 'Enter a valid 10-digit mobile number starting with 9.'; errBranchEditor.classList.add('visible'); }
+                    return;
+                }
+                const pin = branchEditorPin || BARANGAY_CENTERS[bBrgy];
+                if (pin.lat < 14.15 || pin.lat > 14.25 || pin.lng < 121.10 || pin.lng > 121.22) {
+                    if (errBranchEditor) { errBranchEditor.textContent = 'Branch pin must be placed within Calamba (Uno, Real, or Halang).'; errBranchEditor.classList.add('visible'); }
+                    return;
+                }
+
+                const branchObj = {
+                    id: editingBranchIndex >= 0 && currentBranchesState[editingBranchIndex]?.id ? currentBranchesState[editingBranchIndex].id : `br_${Date.now()}`,
+                    name: bName,
+                    address: bAddr,
+                    barangay: bBrgy,
+                    landmark: bLand,
+                    contactNumber: bDigits ? formatE164Phone(bDigits) : null,
+                    location: { lat: Number(pin.lat.toFixed(6)), lng: Number(pin.lng.toFixed(6)) }
+                };
+
+                if (editingBranchIndex >= 0) {
+                    currentBranchesState[editingBranchIndex] = branchObj;
+                } else {
+                    currentBranchesState.push(branchObj);
+                }
+
+                if (branchEditorBox) branchEditorBox.hidden = true;
+                editingBranchIndex = -1;
+                renderLocationsAndBranchesUI();
+                updateSaveButtonState();
+            });
+
+            document.getElementById('mbBranchesList')?.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-branch-action]');
+                if (!btn) return;
+                const action = btn.getAttribute('data-branch-action');
+                const idx = parseInt(btn.getAttribute('data-branch-idx'), 10);
+                if (isNaN(idx) || !currentBranchesState[idx]) return;
+
+                if (action === 'edit') {
+                    openBranchEditor(idx);
+                } else if (action === 'remove') {
+                    currentBranchesState.splice(idx, 1);
+                    if (branchEditorBox) branchEditorBox.hidden = true;
+                    renderLocationsAndBranchesUI();
+                    updateSaveButtonState();
+                } else if (action === 'promote') {
+                    const promoted = currentBranchesState[idx];
+                    currentMainLocationState = {
+                        address: promoted.address,
+                        barangay: promoted.barangay,
+                        landmark: promoted.landmark || null,
+                        contactNumber: promoted.contactNumber || currentMainLocationState.contactNumber || null,
+                        location: { ...promoted.location }
+                    };
+                    currentBranchesState.splice(idx, 1);
+                    if (branchEditorBox) branchEditorBox.hidden = true;
+                    if (mainEditor) mainEditor.hidden = true;
+                    renderLocationsAndBranchesUI();
+                    updateSaveButtonState();
+                }
+            });
+        }
+
         function updateSaveButtonState() {
             const currentDesc = editDescription.value.trim();
             const descChanged = currentDesc !== initialDescription.trim();
@@ -3273,7 +4087,8 @@
                 : false;
 
             const logoChanged = selectedLogoFile !== null || logoRemoved;
-            const hasChanges = descChanged || photoChanged || logoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged;
+            const locationsChanged = !areLocationsAndBranchesEqual();
+            const hasChanges = descChanged || photoChanged || logoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged || locationsChanged;
             saveChangesBtn.disabled = !hasChanges || hasSocialErrors || hasHoursError;
             resetChangesBtn.style.display = hasChanges ? 'inline-flex' : 'none';
             resetChangesBtn.disabled = !hasChanges;
@@ -3379,6 +4194,7 @@
                     onChange: () => updateSaveButtonState()
                 });
             }
+            initLocationsAndBranchesState();
             updateSaveButtonState();
             hideBanner();
         });
@@ -3497,11 +4313,40 @@
                     updatePayload.logoUrl = null;
                 }
 
+                // Store relocation & additional branches changes
+                if (currentMainLocationState && initialMainLocationState) {
+                    if (currentMainLocationState.address !== initialMainLocationState.address) {
+                        updatePayload.address = currentMainLocationState.address;
+                    }
+                    if (currentMainLocationState.barangay !== initialMainLocationState.barangay) {
+                        updatePayload.barangay = currentMainLocationState.barangay;
+                    }
+                    if (currentMainLocationState.landmark !== initialMainLocationState.landmark) {
+                        updatePayload.landmark = currentMainLocationState.landmark || null;
+                    }
+                    if (currentMainLocationState.contactNumber !== initialMainLocationState.contactNumber) {
+                        updatePayload.contactNumber = currentMainLocationState.contactNumber || null;
+                    }
+                    if (!sameJson(currentMainLocationState.location, initialMainLocationState.location)) {
+                        updatePayload.location = currentMainLocationState.location;
+                    }
+                }
+                if (!sameJson(currentBranchesState, initialBranchesState)) {
+                    updatePayload.branches = currentBranchesState;
+                }
+
                 await updateDoc(busDocRef, updatePayload);
                 if ('logoUrl' in updatePayload) {
                     activeBusiness.logoUrl = updatePayload.logoUrl;
                     initialLogoUrl = updatePayload.logoUrl || '';
                 }
+                if ('address' in updatePayload) activeBusiness.address = updatePayload.address;
+                if ('barangay' in updatePayload) activeBusiness.barangay = updatePayload.barangay;
+                if ('landmark' in updatePayload) activeBusiness.landmark = updatePayload.landmark;
+                if ('contactNumber' in updatePayload) activeBusiness.contactNumber = updatePayload.contactNumber;
+                if ('location' in updatePayload) activeBusiness.location = updatePayload.location;
+                if ('branches' in updatePayload) activeBusiness.branches = updatePayload.branches;
+
                 if (!updatePayload.thumbnailUrl) updatedThumbnailUrl = initialThumbnailUrl || null;
                 activeBusiness.profilePhotoUrl = updatedThumbnailUrl;
                 activeBusiness.thumbnailUrl = updatedThumbnailUrl;
@@ -3516,7 +4361,16 @@
                 initialSocialLinks = { ...newSocialLinks };
                 initialOfferings = [...newOfferings];
                 initialOpenHours = newOpenHours ? JSON.parse(JSON.stringify(newOpenHours)) : null;
+                initialMainLocationState = cloneMainLoc(activeBusiness);
+                currentMainLocationState = JSON.parse(JSON.stringify(initialMainLocationState));
+                initialBranchesState = cloneBranchesList(activeBusiness.branches);
+                currentBranchesState = JSON.parse(JSON.stringify(initialBranchesState));
 
+                if (approvedAddress) approvedAddress.textContent = activeBusiness.address || '--';
+                if (approvedContact) approvedContact.textContent = activeBusiness.contactNumber || 'None provided';
+                renderLocationRow(approvedLocation, approvedLocationRow, activeBusiness.location);
+                renderApprovedBranchesRow(activeBusiness.branches);
+                renderLocationsAndBranchesUI();
                 renderSocialLinksRow(approvedSocialLinks, approvedSocialRow, newSocialLinks);
 
                 // Update view mode thumbnail

@@ -371,7 +371,7 @@ service cloud.firestore {
             'category', 'address', 'description', 'contactNumber', 'profilePhotoUrl', 'updatedAt',
             'serviceType', 'socialLinks', 'location',
             'plan', 'amountDue', 'detailsApprovedAt', 'paidAt', 'featuredUntil', 'shoot360', 'legacyPlan', 'lastPaymentId',
-            'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark', 'tour360', 'shoot360Date', 'logoUrl'
+            'thumbnailUrl', 'offerings', 'openHours', 'barangay', 'landmark', 'tour360', 'shoot360Date', 'logoUrl', 'branches'
           ])
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['logoUrl']) || request.resource.data.logoUrl == null || isValidCloudinaryUrl(request.resource.data.logoUrl))
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
@@ -389,13 +389,15 @@ service cloud.firestore {
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['openHours']) || isValidOpenHours(request.resource.data.openHours))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['barangay']) || request.resource.data.barangay in ['Uno', 'Real', 'Halang'])
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['landmark']) || request.resource.data.landmark == null || (request.resource.data.landmark is string && request.resource.data.landmark.size() <= 80))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['branches']) || request.resource.data.branches == null || (request.resource.data.branches is list && request.resource.data.branches.size() <= 5))
         ) || (
           // Owner edit profile (only when approved)
           resource.data.ownerId == request.auth.uid
           && resource.data.status == 'approved'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'profilePhotoUrl', 'description', 'updatedAt', 'socialLinks',
-            'thumbnailUrl', 'offerings', 'openHours', 'logoUrl'
+            'thumbnailUrl', 'offerings', 'openHours', 'logoUrl',
+            'address', 'barangay', 'landmark', 'location', 'contactNumber', 'branches'
           ])
           // Logo: removed (null) or a Cloudinary image
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['logoUrl']) || request.resource.data.logoUrl == null || (isValidCloudinaryUrl(request.resource.data.logoUrl) && request.resource.data.logoUrl.size() <= 500))
@@ -407,6 +409,12 @@ service cloud.firestore {
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['offerings']) || hasValidOfferings(request.resource.data.offerings))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['openHours']) || isValidOpenHours(request.resource.data.openHours))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['socialLinks']) || isValidSocialLinks(request.resource.data.get('socialLinks', null)))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['address']) || (request.resource.data.address is string && request.resource.data.address.size() >= 1 && request.resource.data.address.size() <= 160))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['barangay']) || request.resource.data.barangay in ['Uno', 'Real', 'Halang'])
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['landmark']) || request.resource.data.landmark == null || (request.resource.data.landmark is string && request.resource.data.landmark.size() <= 80))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['location']) || isValidLocation(request.resource.data.location))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['contactNumber']) || request.resource.data.contactNumber == null || (request.resource.data.contactNumber is string && request.resource.data.contactNumber.size() <= 20))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['branches']) || request.resource.data.branches == null || (request.resource.data.branches is list && request.resource.data.branches.size() <= 5))
           // FIX 2: require updatedAt == request.time when changed, forbid changing submittedAt
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['updatedAt']) || request.resource.data.updatedAt == request.time)
           && (!('submittedAt' in resource.data) || request.resource.data.submittedAt == resource.data.submittedAt)
