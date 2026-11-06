@@ -24,6 +24,12 @@
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
     <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            corePlugins: { preflight: false }
+        };
+    </script>
 
     <style>
         :root {
@@ -1301,9 +1307,8 @@
             .bus-search { max-width: none; }
         }
 
-        /* Sidebar items: quiet by default, a plain grey fill for the current one.
-           No coloured side bar, no blue tint, icons follow the text colour. */
-        .sidebar-nav { padding: 12px 10px; gap: 1px; }
+        /* ===== Upgraded Global Shell: Sidebar Notification Pills & Topbar ===== */
+        .sidebar-nav { padding: 14px 10px; gap: 3px; }
         .nav-item {
             gap: 12px;
             padding: 9px 12px;
@@ -1311,22 +1316,95 @@
             font-weight: 500;
             border-left: 0;
             border-radius: 8px;
-            transition: background 0.12s ease, color 0.12s ease;
+            transition: all 0.15s ease;
         }
-        .nav-item .nav-icon { color: #64748B; font-size: 18px; transition: color 0.12s ease; }
-        .nav-item:hover { background: #F6F8FA; color: var(--navy-dark); }
-        .nav-item:hover .nav-icon { color: var(--navy-dark); }
+        .nav-item .nav-icon { color: #64748B; font-size: 18px; transition: color 0.15s ease; }
+        .nav-item:hover { background: #F1F5F9; color: var(--navy-dark); }
+        .nav-item:hover .nav-icon { color: var(--brand-blue-dark); }
         .nav-item.active {
-            background: #E8EDF3;
+            background: #EEF5FD;
             color: var(--navy-dark);
-            font-weight: 600;
+            font-weight: 700;
             border-left: 0;
+            box-shadow: inset 3px 0 0 var(--brand-blue);
         }
-        .nav-item.active .nav-icon { color: var(--navy-dark); }
+        .nav-item.active .nav-icon { color: var(--brand-blue-dark); }
         .nav-item:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
-        .nav-count { font-size: 12px; font-variant-numeric: tabular-nums; }
-        .nav-group-label { padding: 16px 12px 6px; font-size: 11px; letter-spacing: 0.07em; color: #64748B; }
-        .sidebar-view-site { color: #64748B; }
+
+        /* Distinct Notification Pills for Sidebar Counts */
+        .nav-count {
+            font-size: 11px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #FEF3C7;
+            color: #B45309;
+            border: 1px solid #FDE68A;
+            margin-left: auto;
+            transition: all 0.15s ease;
+        }
+        .nav-count.is-zero {
+            background: #F1F5F9;
+            color: #64748B;
+            border-color: #E2E8F0;
+            font-weight: 600;
+        }
+        .nav-count:empty {
+            display: none;
+        }
+
+        .nav-group-label {
+            padding: 18px 12px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            color: #64748B;
+        }
+        .sidebar-view-site {
+            color: #475569;
+            border: 1px solid var(--border-color);
+            background: #F8FAFC;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .sidebar-view-site:hover {
+            background: #EEF5FD;
+            border-color: #BFDBFE;
+            color: var(--brand-blue-dark);
+        }
+
+        /* Topbar Refinements */
+        .topbar-connection-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #166534;
+        }
+        .topbar-user-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 12px;
+            background: #F8FAFC;
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--navy-dark);
+        }
+        .topbar-user-pill i {
+            color: var(--brand-blue-dark);
+            font-size: 15px;
+        }
 
         /* Phones: keep the admin inside the screen */
         html, body { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
@@ -1588,32 +1666,29 @@
             <!-- Topbar in Content Area -->
             <header class="admin-topbar">
                 <div class="topbar-left">
-                    <button type="button" class="topbar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar navigation">
+                    <button type="button" class="topbar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar navigation" title="Toggle Sidebar">
                         <i class="ti ti-layout-sidebar-left-collapse" id="toggleIcon"></i>
                     </button>
                     <div class="topbar-breadcrumb">
                         <span>Admin</span>
-                        <span>/</span>
+                        <span style="color: #CBD5E1;">/</span>
                         <span class="breadcrumb-current" id="breadcrumbCurrent">Overview</span>
                     </div>
-                    <div class="topbar-connection-indicator" id="connectionStatusIndicator" title="Live connection status">
+                    <div class="topbar-connection-indicator" id="connectionStatusIndicator" title="Live Firestore connection status">
                         <span class="connection-dot" id="connectionDot"></span>
                         <span id="connectionLabel">Live</span>
                     </div>
                 </div>
 
                 <div class="topbar-right">
-                    <span class="topbar-user-email" id="adminEmailHeader">Admin</span>
-                    <button type="button" class="btn-signout" id="adminSignOutBtn" title="Sign Out">
+                    <div class="topbar-user-pill" title="Signed-in Administrator">
+                        <i class="ti ti-shield-check"></i>
+                        <span class="topbar-user-email" id="adminEmailHeader">Admin</span>
+                    </div>
+                    <button type="button" class="btn-signout" id="adminSignOutBtn" title="Sign Out of Admin Portal">
                         <i class="ti ti-logout"></i>
                         <span>Sign Out</span>
                     </button>
-                    <button type="button" class="site-menu-btn" id="adminSiteMenuBtn" data-site-menu aria-label="Open menu" aria-expanded="false" aria-controls="sideDrawer">
-                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28" aria-hidden="true">
-                    <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
-                    <path class="menu-toggle-line" d="M7 16 27 16" />
-                </svg>
-            </button>
                 </div>
             </header>
 
@@ -1626,202 +1701,364 @@
                 <!-- ==============================================
                      PANEL 1: OVERVIEW
                      ============================================== -->
-                <section class="admin-panel active" id="panel-overview">
-                    <div class="section-header">
-                        <h1 class="section-title">Overview</h1>
-                        <p class="section-subtitle">Real-time status of applications, payments, and live establishments.</p>
+                <section class="admin-panel active space-y-6" id="panel-overview">
+                    <!-- Section Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                        <div>
+                            <h1 class="section-title">Overview</h1>
+                            <p class="section-subtitle">Real-time status of applications, GCash verifications, 360° shoots, and live establishments.</p>
+                        </div>
+                        <a href="/" target="_blank" rel="noopener" class="btn-admin-secondary self-start sm:self-auto">
+                            <i class="ti ti-map-2" style="color: var(--brand-blue);"></i>
+                            <span>Open Live Calzada Map</span>
+                            <i class="ti ti-external-link" style="font-size: 13px; color: var(--navy-subtle);"></i>
+                        </a>
                     </div>
 
                     <div id="overviewLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Four flat stat cards -->
-                    <div class="stat-cards-grid">
-                        <div class="flat-card">
-                            <div class="stat-card-label">Applications to review</div>
-                            <div class="stat-card-val text-amber" id="statAppsToReview">0</div>
+                    <!-- 4 KPI Cards (Semantic Color Hierarchy + Direct Queue Links) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                        <!-- KPI 1: Applications to review -->
+                        <a href="#applications" class="group rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-amber-500 hover:border-amber-400 transition-all flex flex-col justify-between no-underline">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Action Required</span>
+                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Applications to review</div>
+                                </div>
+                                <div class="h-10 w-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                                    <i class="ti ti-clipboard-list"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline justify-between">
+                                <div class="stat-card-val text-amber" id="statAppsToReview">0</div>
+                                <span class="text-xs font-semibold text-[#1F69B8] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                                    Review queue <i class="ti ti-arrow-right"></i>
+                                </span>
+                            </div>
                             <div class="stat-card-sub">Pending owner submissions</div>
-                        </div>
+                        </a>
 
-                        <div class="flat-card">
-                            <div class="stat-card-label">Payments to verify</div>
-                            <div class="stat-card-val text-amber" id="statPaymentsToVerify">0</div>
+                        <!-- KPI 2: Payments to verify -->
+                        <a href="#payments" class="group rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-[#378ADD] hover:border-[#378ADD] transition-all flex flex-col justify-between no-underline">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">GCash Check</span>
+                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Payments to verify</div>
+                                </div>
+                                <div class="h-10 w-10 rounded-lg bg-blue-50 text-[#378ADD] flex items-center justify-center text-xl shrink-0">
+                                    <i class="ti ti-receipt"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline justify-between">
+                                <div class="stat-card-val" style="color: var(--brand-blue-dark);" id="statPaymentsToVerify">0</div>
+                                <span class="text-xs font-semibold text-[#1F69B8] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                                    Verify receipts <i class="ti ti-arrow-right"></i>
+                                </span>
+                            </div>
                             <div class="stat-card-sub">GCash receipts uploaded</div>
-                        </div>
+                        </a>
 
-                        <div class="flat-card">
-                            <div class="stat-card-label">Live businesses</div>
-                            <div class="stat-card-val" id="statLiveBusinesses" style="color: var(--dot-green);">0</div>
+                        <!-- KPI 3: Live businesses -->
+                        <a href="#businesses" class="group rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-emerald-500 hover:border-emerald-400 transition-all flex flex-col justify-between no-underline">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">Published</span>
+                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Live businesses</div>
+                                </div>
+                                <div class="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                                    <i class="ti ti-building-store"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex items-baseline justify-between">
+                                <div class="stat-card-val" id="statLiveBusinesses" style="color: var(--dot-green);">0</div>
+                                <span class="text-xs font-semibold text-slate-500 group-hover:text-[#042C53] inline-flex items-center gap-1 transition-colors">
+                                    Directory <i class="ti ti-arrow-right"></i>
+                                </span>
+                            </div>
                             <div class="stat-card-sub">Approved and on the map</div>
-                        </div>
+                        </a>
 
-                        <div class="flat-card">
-                            <div class="stat-card-label">Collected so far</div>
-                            <div class="stat-card-val" id="statCollectedSoFar" style="color: var(--brand-blue-dark);">₱0</div>
+                        <!-- KPI 4: Collected so far -->
+                        <div class="rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-[#042C53] flex flex-col justify-between">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">Revenue</span>
+                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Collected so far</div>
+                                </div>
+                                <div class="h-10 w-10 rounded-lg bg-slate-100 text-[#042C53] flex items-center justify-center text-xl shrink-0">
+                                    <i class="ti ti-coins"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="stat-card-val" id="statCollectedSoFar" style="color: var(--navy-dark);">₱0</div>
+                            </div>
                             <div class="stat-card-sub">Total verified GCash revenue</div>
                         </div>
                     </div>
 
-                    <!-- Shortcuts to Applications and Payments -->
-                    <div class="shortcuts-grid">
-                        <a href="#applications" class="shortcut-card">
-                            <div class="shortcut-card-header">
-                                <h2 class="shortcut-card-title">Review Applications</h2>
-                                <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
+                    <!-- Lower Split Grid: 3-Step Approval Pipeline + Quick Moderation Links -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                        <!-- Left 2 Columns: End-to-End Approval Workflow -->
+                        <div class="lg:col-span-2 flat-card">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                                <div>
+                                    <h2 class="shortcut-card-title">Listing Approval &amp; Fulfillment Pipeline</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Follow these three stages in order to take a business from registration to a live 360° tour.</p>
+                                </div>
                             </div>
-                            <p class="shortcut-card-desc">Check new registrations, review location pins, and approve businesses for GCash payment.</p>
-                        </a>
 
-                        <a href="#payments" class="shortcut-card">
-                            <div class="shortcut-card-header">
-                                <h2 class="shortcut-card-title">Verify Payments</h2>
-                                <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <a href="#applications" class="shortcut-card flex flex-col justify-between hover:border-[#378ADD] hover:bg-blue-50/20">
+                                    <div>
+                                        <div class="shortcut-card-header">
+                                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 px-2 py-0.5 rounded">Stage 1</span>
+                                            <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
+                                        </div>
+                                        <h3 class="shortcut-card-title mt-2">Review Applications</h3>
+                                        <p class="shortcut-card-desc mt-1">Check new registrations, verify barangay pins, and send GCash QR for payment.</p>
+                                    </div>
+                                    <div class="mt-4 pt-2.5 border-t border-slate-100 text-xs font-semibold text-[#1F69B8]">
+                                        Open Applications →
+                                    </div>
+                                </a>
+
+                                <a href="#payments" class="shortcut-card flex flex-col justify-between hover:border-[#378ADD] hover:bg-blue-50/20">
+                                    <div>
+                                        <div class="shortcut-card-header">
+                                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 px-2 py-0.5 rounded">Stage 2</span>
+                                            <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
+                                        </div>
+                                        <h3 class="shortcut-card-title mt-2">Verify Payments</h3>
+                                        <p class="shortcut-card-desc mt-1">Match uploaded GCash receipts against reference history and publish businesses live.</p>
+                                    </div>
+                                    <div class="mt-4 pt-2.5 border-t border-slate-100 text-xs font-semibold text-[#1F69B8]">
+                                        Open Payments →
+                                    </div>
+                                </a>
+
+                                <a href="#shoots" class="shortcut-card flex flex-col justify-between hover:border-[#378ADD] hover:bg-blue-50/20">
+                                    <div>
+                                        <div class="shortcut-card-header">
+                                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 px-2 py-0.5 rounded">Stage 3</span>
+                                            <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
+                                        </div>
+                                        <h3 class="shortcut-card-title mt-2">360° Photo Shoots</h3>
+                                        <p class="shortcut-card-desc mt-1">Schedule on-site visits and upload 2:1 equirectangular virtual tours for eligible plans.</p>
+                                    </div>
+                                    <div class="mt-4 pt-2.5 border-t border-slate-100 text-xs font-semibold text-[#1F69B8]">
+                                        Manage 360° Shoots →
+                                    </div>
+                                </a>
                             </div>
-                            <p class="shortcut-card-desc">Match uploaded GCash receipts against transaction history and publish businesses live.</p>
-                        </a>
+                        </div>
+
+                        <!-- Right Column: Community Moderation & Audit Shortcuts -->
+                        <div class="flat-card flex flex-col justify-between">
+                            <div>
+                                <div class="border-b border-slate-100 pb-3 mb-4">
+                                    <h2 class="shortcut-card-title">Moderation &amp; System Audit</h2>
+                                    <p class="text-xs text-slate-500 mt-0.5">Quick access to commuter reviews, business updates, and activity logs.</p>
+                                </div>
+
+                                <div class="flex flex-col gap-2.5">
+                                    <a href="#reviews" class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3 text-sm font-semibold text-[#042C53] hover:border-[#378ADD] hover:bg-slate-50 no-underline transition-all">
+                                        <span class="inline-flex items-center gap-2.5">
+                                            <i class="ti ti-star text-amber-500 text-lg"></i>
+                                            <span>Moderate Commuter Reviews</span>
+                                        </span>
+                                        <i class="ti ti-chevron-right text-slate-400"></i>
+                                    </a>
+
+                                    <a href="#posts" class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3 text-sm font-semibold text-[#042C53] hover:border-[#378ADD] hover:bg-slate-50 no-underline transition-all">
+                                        <span class="inline-flex items-center gap-2.5">
+                                            <i class="ti ti-news text-[#378ADD] text-lg"></i>
+                                            <span>Moderate Business Posts</span>
+                                        </span>
+                                        <i class="ti ti-chevron-right text-slate-400"></i>
+                                    </a>
+
+                                    <a href="#activity" class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3 text-sm font-semibold text-[#042C53] hover:border-[#378ADD] hover:bg-slate-50 no-underline transition-all">
+                                        <span class="inline-flex items-center gap-2.5">
+                                            <i class="ti ti-activity text-emerald-600 text-lg"></i>
+                                            <span>Real-Time Activity Log</span>
+                                        </span>
+                                        <i class="ti ti-chevron-right text-slate-400"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
                 <!-- ==============================================
                      PANEL 2: APPLICATIONS
                      ============================================== -->
-                <section class="admin-panel" id="panel-applications">
-                    <div class="section-header">
-                        <h1 class="section-title">Applications</h1>
-                        <p class="section-subtitle">Review business details, verify locations, and send GCash QR for payment.</p>
-                        <ol class="flow-steps" aria-label="How a listing goes live">
-                            <li class="is-current">1 Review details</li>
+                <section class="admin-panel space-y-5" id="panel-applications">
+                    <!-- Section Header + Visual Pipeline Stepper -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                        <div>
+                            <h1 class="section-title">Applications</h1>
+                            <p class="section-subtitle">Review business details, verify barangay pins, and send GCash QR for payment.</p>
+                        </div>
+                        <ol class="flow-steps bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 m-0" aria-label="How a listing goes live">
+                            <li class="is-current inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-[#1F69B8] px-2 py-0.5 rounded text-xs font-bold">
+                                <span>1. Review details</span>
+                            </li>
                             <li aria-hidden="true">›</li>
-                            <li>2 Owner pays by GCash</li>
+                            <li class="text-xs">2. Owner pays by GCash</li>
                             <li aria-hidden="true">›</li>
-                            <li>3 Verify in Payments</li>
+                            <li class="text-xs">3. Verify in Payments</li>
                             <li aria-hidden="true">›</li>
-                            <li>4 Live on the map</li>
+                            <li class="text-xs">4. Live on the map</li>
                         </ol>
                     </div>
 
                     <div id="applicationsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Underline tabs (not pills) -->
+                    <!-- Queue Underline Tabs with Pill Counters -->
                     <div class="admin-underline-tabs">
-                        <button type="button" class="admin-underline-tab active" id="tabAppToReview" data-tab="pending">
-                            To review (<span id="tabCountToReview">0</span>)
+                        <button type="button" class="admin-underline-tab active inline-flex items-center gap-2" id="tabAppToReview" data-tab="pending">
+                            <span>To review</span>
+                            <span class="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-bold" id="tabCountToReview">0</span>
                         </button>
-                        <button type="button" class="admin-underline-tab" id="tabAppWaitingPayment" data-tab="awaiting_payment">
-                            Waiting for payment (<span id="tabCountWaitingPayment">0</span>)
+                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" id="tabAppWaitingPayment" data-tab="awaiting_payment">
+                            <span>Waiting for payment</span>
+                            <span class="rounded-full bg-blue-50 text-[#1F69B8] px-2 py-0.5 text-xs font-bold" id="tabCountWaitingPayment">0</span>
                         </button>
-                        <button type="button" class="admin-underline-tab" id="tabAppSentBack" data-tab="sent_back">
-                            Sent back (<span id="tabCountSentBack">0</span>)
+                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" id="tabAppSentBack" data-tab="sent_back">
+                            <span>Sent back / Declined</span>
+                            <span class="rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-xs font-bold" id="tabCountSentBack">0</span>
                         </button>
                     </div>
 
-                    <!-- Master-Detail Layout -->
+                    <!-- Master-Detail Workbench -->
                     <div class="master-detail-layout">
-                        <!-- Left: List -->
-                        <div class="list-col" id="applicationsListCol">
-                            <div id="applicationsListContainer"></div>
-                            <div id="applicationsEmptyState" class="flat-card" style="display: none; text-align: center; color: var(--navy-muted); font-size: 14px; padding: 32px 16px;">
+                        <!-- Left: Scrollable Queue Column -->
+                        <div class="list-col lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto pr-1" id="applicationsListCol">
+                            <div id="applicationsListContainer" class="flex flex-col gap-2.5"></div>
+                            <div id="applicationsEmptyState" class="flat-card text-center text-slate-500 text-sm py-10 px-4" style="display: none;">
+                                <i class="ti ti-clipboard-check text-2xl text-slate-400 block mb-1.5"></i>
                                 No applications in this queue.
                             </div>
                         </div>
 
-                        <!-- Right: Detail Panel -->
+                        <!-- Right: Detail Inspector Column -->
                         <div class="detail-col">
-                            <div class="flat-card" id="applicationDetailPanel">
-                                <div id="appDetailEmptyPlaceholder" style="text-align: center; color: var(--navy-muted); padding: 48px 16px; font-size: 14px;">
-                                    Select an application from the list to view its full details.
+                            <div class="flat-card p-0 overflow-hidden" id="applicationDetailPanel">
+                                <div id="appDetailEmptyPlaceholder" class="text-center text-slate-500 py-14 px-4 text-sm">
+                                    <i class="ti ti-click text-2xl text-slate-400 block mb-2"></i>
+                                    Select an application from the left queue to view its full details and location pin.
                                 </div>
 
                                 <div id="appDetailContent" style="display: none;">
-                                    <div class="detail-header-row">
+                                    <!-- Top Identity Header -->
+                                    <div class="detail-header-row p-5 m-0 border-b border-slate-200 bg-slate-50/70">
                                         <div>
                                             <h2 class="detail-title" id="appDetailName">--</h2>
-                                            <div class="detail-subtitle" id="appDetailMetaLine">--</div>
+                                            <div class="detail-subtitle mt-1 font-medium text-slate-600" id="appDetailMetaLine">--</div>
                                         </div>
-                                        <div class="status-line" id="appDetailStatusLine">
+                                        <div class="status-line rounded-full bg-white border border-slate-200 px-3 py-1 shadow-none" id="appDetailStatusLine">
                                             <span class="status-dot amber" id="appDetailStatusDot"></span>
                                             <span id="appDetailStatusText">Pending review</span>
                                         </div>
                                     </div>
 
-                                    <!-- Two boxes side by side: photo and map -->
-                                    <div class="two-boxes-grid">
-                                        <div class="media-box" id="appDetailPhotoBox">
-                                            <span id="appDetailPhotoPlaceholder">No business photo yet</span>
-                                            <img id="appDetailPhotoImg" src="" alt="Business Photo" style="display: none;">
+                                    <div class="p-5 space-y-5">
+                                        <!-- Pre-Flight Automated Verification Scorecard -->
+                                        <div class="checks-box m-0 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
+                                                <i class="ti ti-shield-check text-[#378ADD] text-sm"></i>
+                                                <span>Automated Pre-Flight Checks</span>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                                                <div class="check-item bg-white border border-slate-200 rounded-lg px-3 py-2 font-medium" id="chkItemBarangay">
+                                                    <i class="ti ti-check shrink-0" id="chkIconBarangay"></i>
+                                                    <span id="chkTextBarangay">Pin is inside covered barangays</span>
+                                                </div>
+                                                <div class="check-item bg-white border border-slate-200 rounded-lg px-3 py-2 font-medium" id="chkItemProximity">
+                                                    <i class="ti ti-check shrink-0" id="chkIconProximity"></i>
+                                                    <span id="chkTextProximity">No other listed place within 30 m with a similar name</span>
+                                                </div>
+                                                <div class="check-item bg-white border border-slate-200 rounded-lg px-3 py-2 font-medium" id="chkItemPhoto">
+                                                    <i class="ti ti-check shrink-0" id="chkIconPhoto"></i>
+                                                    <span id="chkTextPhoto">Business photo uploaded</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="media-box" id="appDetailMapBox" style="padding: 0;">
-                                            <div id="appDetailMap" style="width: 100%; height: 100%;"></div>
+
+                                        <!-- Visual Evidence: Storefront Photo & MapLibre Pin -->
+                                        <div class="two-boxes-grid m-0">
+                                            <div>
+                                                <span class="field-label block mb-1.5">Storefront / Profile Photo</span>
+                                                <div class="media-box h-52 rounded-lg" id="appDetailPhotoBox">
+                                                    <span id="appDetailPhotoPlaceholder">No business photo yet</span>
+                                                    <img id="appDetailPhotoImg" src="" alt="Business Photo" style="display: none;">
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span class="field-label block mb-1.5">Submitted Location Pin (Calamba)</span>
+                                                <div class="media-box h-52 rounded-lg" id="appDetailMapBox" style="padding: 0;">
+                                                    <div id="appDetailMap" style="width: 100%; height: 100%;"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Structured Application Fields -->
+                                        <div class="detail-fields-grid m-0 rounded-xl border border-slate-200 bg-white p-4">
+                                            <div class="field-group">
+                                                <span class="field-label">Address &amp; Barangay</span>
+                                                <span class="field-val mt-0.5" id="appDetailAddress">--</span>
+                                            </div>
+                                            <div class="field-group">
+                                                <span class="field-label">Contact Number</span>
+                                                <span class="field-val mt-0.5" id="appDetailContact">--</span>
+                                            </div>
+                                            <div class="field-group pt-2 border-t border-slate-100" style="grid-column: span 2;">
+                                                <span class="field-label">Establishment Description</span>
+                                                <span class="field-val mt-0.5 leading-relaxed" id="appDetailDescription">--</span>
+                                            </div>
+                                            <div class="field-group pt-2 border-t border-slate-100" style="grid-column: span 2;">
+                                                <span class="field-label">Social &amp; Verification Links</span>
+                                                <span class="field-val mt-0.5" id="appDetailSocialLinks">--</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Fields -->
-                                    <div class="detail-fields-grid">
-                                        <div class="field-group">
-                                            <span class="field-label">Address</span>
-                                            <span class="field-val" id="appDetailAddress">--</span>
+                                    <!-- Decision Action Bar -->
+                                    <div class="detail-action-bar m-0 border-t border-slate-200 bg-slate-50 p-5">
+                                        <div class="flex flex-wrap items-center justify-between gap-3" id="appActionButtonsGroup">
+                                            <div class="flex flex-wrap items-center gap-2.5">
+                                                <button type="button" class="btn-admin-success" id="btnApproveApplication">
+                                                    <i class="ti ti-qrcode"></i>
+                                                    <span>Approve &amp; Send GCash QR</span>
+                                                </button>
+                                                <button type="button" class="btn-admin-secondary" id="btnNeedsChangesApplication">
+                                                    <i class="ti ti-edit"></i>
+                                                    <span>Needs changes</span>
+                                                </button>
+                                            </div>
+                                            <button type="button" class="btn-admin-danger" id="btnDeclineApplication">
+                                                <i class="ti ti-x"></i>
+                                                <span>Decline</span>
+                                            </button>
                                         </div>
-                                        <div class="field-group">
-                                            <span class="field-label">Contact Number</span>
-                                            <span class="field-val" id="appDetailContact">--</span>
-                                        </div>
-                                        <div class="field-group" style="grid-column: span 2;">
-                                            <span class="field-label">Description</span>
-                                            <span class="field-val" id="appDetailDescription">--</span>
-                                        </div>
-                                        <div class="field-group" style="grid-column: span 2;">
-                                            <span class="field-label">Social Links</span>
-                                            <span class="field-val" id="appDetailSocialLinks">--</span>
-                                        </div>
-                                    </div>
+                                        <div class="action-inline-error" id="appActionInlineError"></div>
 
-                                    <!-- Automatic Checks Box -->
-                                    <div class="checks-box">
-                                        <div class="check-item" id="chkItemBarangay">
-                                            <i class="ti ti-check" id="chkIconBarangay"></i>
-                                            <span id="chkTextBarangay">Pin is inside covered barangays</span>
+                                        <div class="text-xs text-slate-500 mt-2.5">
+                                            <i class="ti ti-mail mr-1 text-slate-400"></i>Approving emails the owner the amount and the GCash QR. "Needs changes" and "Decline" email your reason; declined owners never pay.
                                         </div>
-                                        <div class="check-item" id="chkItemProximity">
-                                            <i class="ti ti-check" id="chkIconProximity"></i>
-                                            <span id="chkTextProximity">No other listed place within 30 m with a similar name</span>
-                                        </div>
-                                        <div class="check-item" id="chkItemPhoto">
-                                            <i class="ti ti-check" id="chkIconPhoto"></i>
-                                            <span id="chkTextPhoto">Business photo uploaded</span>
-                                        </div>
-                                    </div>
 
-                                    <div class="detail-action-bar">
-                                    <!-- Action Buttons -->
-                                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 18px;" id="appActionButtonsGroup">
-                                        <button type="button" class="btn-admin-primary" id="btnApproveApplication">
-                                            <i class="ti ti-qrcode"></i>
-                                            <span>Approve and send GCash QR</span>
-                                        </button>
-                                        <button type="button" class="btn-admin-secondary" id="btnNeedsChangesApplication">
-                                            <i class="ti ti-edit"></i>
-                                            <span>Needs changes</span>
-                                        </button>
-                                        <button type="button" class="btn-admin-text-danger" id="btnDeclineApplication">
-                                            <span>Decline</span>
-                                        </button>
-                                    </div>
-                                    <div class="action-inline-error" id="appActionInlineError"></div>
-
-                                    <!-- Helper note under buttons -->
-                                    <div style="font-size: 12px; color: var(--navy-subtle); margin-top: 10px;">
-                                        Approving emails the owner the amount and the GCash QR. "Needs changes" and "Decline" email your reason; declined owners never pay.
-                                    </div>
-
-                                    <!-- Reason Textarea Box (Needs changes / Decline) -->
-                                    <div class="action-reason-box" id="appReasonBox">
-                                        <strong id="appReasonBoxTitle" style="font-size: 13px; color: var(--navy-dark);">Enter reason for owner:</strong>
-                                        <textarea class="admin-textarea" id="appReasonTextarea" rows="3" placeholder="Explain clearly what changes are needed or why the application was declined..."></textarea>
-                                        <div class="action-inline-error" id="appReasonInlineError"></div>
-                                        <div style="display: flex; gap: 8px;">
-                                            <button type="button" class="btn-admin-primary" id="btnSubmitAppReason">Submit & Email Owner</button>
-                                            <button type="button" class="btn-admin-secondary" id="btnCancelAppReason">Cancel</button>
+                                        <!-- Reason Textarea Box (Needs changes / Decline) -->
+                                        <div class="action-reason-box bg-white border border-slate-300 rounded-lg p-4 mt-4" id="appReasonBox">
+                                            <strong id="appReasonBoxTitle" class="block text-xs font-bold uppercase tracking-wider text-[#042C53]">Enter reason for owner:</strong>
+                                            <textarea class="admin-textarea" id="appReasonTextarea" rows="3" placeholder="Explain clearly what changes are needed or why the application was declined..."></textarea>
+                                            <div class="action-inline-error" id="appReasonInlineError"></div>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" class="btn-admin-primary" id="btnSubmitAppReason">Submit &amp; Email Owner</button>
+                                                <button type="button" class="btn-admin-secondary" id="btnCancelAppReason">Cancel</button>
+                                            </div>
                                         </div>
-                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -1832,143 +2069,169 @@
                 <!-- ==============================================
                      PANEL 3: PAYMENTS TO VERIFY
                      ============================================== -->
-                <section class="admin-panel" id="panel-payments">
-                    <div class="section-header" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px;">
+                <section class="admin-panel space-y-5" id="panel-payments">
+                    <!-- Section Header + Total Verified Pill -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
                         <div>
                             <h1 class="section-title">Payments to verify</h1>
-                            <p class="section-subtitle">Find each reference no. in the Calzada GCash history before marking it paid.</p>
+                            <p class="section-subtitle">Cross-check each reference number in your Calzada GCash transaction history before publishing live.</p>
                         </div>
-                        <div style="font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: var(--brand-blue-dark);">
-                            Collected so far: <span id="paymentsHeaderCollected">₱0</span>
+                        <div class="inline-flex items-center gap-2.5 rounded-xl bg-blue-50/70 border border-blue-200 px-4 py-2.5 self-start sm:self-auto">
+                            <i class="ti ti-coins text-lg text-[#1F69B8]"></i>
+                            <div>
+                                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Collected so far</div>
+                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8]" id="paymentsHeaderCollected">₱0</div>
+                            </div>
                         </div>
                     </div>
 
                     <div id="paymentsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Master-Detail Layout -->
+                    <!-- Master-Detail Workbench -->
                     <div class="master-detail-layout">
-                        <!-- Left: List -->
-                        <div class="list-col" id="paymentsListCol">
-                            <div id="paymentsListContainer"></div>
-                            <div id="paymentsEmptyState" class="flat-card" style="display: none; text-align: center; color: var(--navy-muted); font-size: 14px; padding: 32px 16px;">
+                        <!-- Left: Scrollable Queue Column -->
+                        <div class="list-col lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto pr-1" id="paymentsListCol">
+                            <div id="paymentsListContainer" class="flex flex-col gap-2.5"></div>
+                            <div id="paymentsEmptyState" class="flat-card text-center text-slate-500 text-sm py-10 px-4" style="display: none;">
+                                <i class="ti ti-receipt-off text-2xl text-slate-400 block mb-1.5"></i>
                                 No payments awaiting verification.
                             </div>
                         </div>
 
-                        <!-- Right: Detail Panel -->
+                        <!-- Right: Side-by-Side Receipt & Verification Inspector -->
                         <div class="detail-col">
-                            <div class="flat-card" id="paymentDetailPanel">
-                                <div id="paymentDetailEmptyPlaceholder" style="text-align: center; color: var(--navy-muted); padding: 48px 16px; font-size: 14px;">
-                                    Select a payment from the list to verify the receipt.
+                            <div class="flat-card p-0 overflow-hidden" id="paymentDetailPanel">
+                                <div id="paymentDetailEmptyPlaceholder" class="text-center text-slate-500 py-14 px-4 text-sm">
+                                    <i class="ti ti-receipt text-2xl text-slate-400 block mb-2"></i>
+                                    Select a payment from the left queue to inspect its GCash receipt and reference number.
                                 </div>
 
                                 <div id="paymentDetailContent" style="display: none;">
-                                    <div class="detail-header-row">
+                                    <!-- Top Identity Header -->
+                                    <div class="detail-header-row p-5 m-0 border-b border-slate-200 bg-slate-50/70">
                                         <div>
                                             <h2 class="detail-title" id="paymentDetailBusName">--</h2>
-                                            <div class="detail-subtitle" id="paymentDetailMetaLine">--</div>
+                                            <div class="detail-subtitle mt-1" id="paymentDetailMetaLine">--</div>
                                         </div>
-                                        <div class="status-line">
+                                        <div class="status-line rounded-full bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1">
                                             <span class="status-dot amber"></span>
                                             <span>Under review</span>
                                         </div>
                                     </div>
 
-                                    <!-- Receipt image with click to zoom -->
-                                    <div style="margin: 16px 0;">
-                                        <div style="font-size: 11px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; color: var(--navy-subtle); margin-bottom: 6px;">
-                                            Receipt Screenshot (Click to zoom)
+                                    <!-- Side-by-Side Comparison Grid: Receipt Screenshot (Left) vs. Data + Checklist (Right) -->
+                                    <div class="p-5 grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+                                        <!-- Left 5 Cols: Tall Receipt Viewer -->
+                                        <div class="xl:col-span-5">
+                                            <div class="flex items-center justify-between mb-1.5">
+                                                <span class="field-label">GCash Receipt Screenshot</span>
+                                                <span class="text-xs font-semibold text-[#1F69B8] inline-flex items-center gap-1">
+                                                    <i class="ti ti-zoom-in"></i> Click image to zoom
+                                                </span>
+                                            </div>
+                                            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-900/5 cursor-pointer flex items-center justify-center h-[360px] hover:border-[#378ADD] transition-colors" id="btnZoomReceipt" title="Click to open full-screen receipt">
+                                                <img id="paymentReceiptThumb" src="" alt="Payment Receipt" class="max-h-[350px] max-w-full object-contain">
+                                            </div>
                                         </div>
-                                        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden; background: #F8FAFC; cursor: pointer; text-align: center; max-height: 240px;" id="btnZoomReceipt">
-                                            <img id="paymentReceiptThumb" src="" alt="Payment Receipt" style="max-height: 240px; max-width: 100%; object-fit: contain;">
+
+                                        <!-- Right 7 Cols: Transaction Details + Mandatory Safety Checklist -->
+                                        <div class="xl:col-span-7 space-y-4">
+                                            <!-- Highlighted Reference Number & Amount Box -->
+                                            <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div class="field-group">
+                                                    <span class="field-label">Selected Plan</span>
+                                                    <span class="field-val text-sm font-bold text-[#042C53] mt-0.5" id="paymentDetailPlan">--</span>
+                                                </div>
+                                                <div class="field-group">
+                                                    <span class="field-label">Amount Due</span>
+                                                    <span class="field-val font-['Sora'] text-2xl font-bold text-[#1F69B8]" id="paymentDetailAmount">--</span>
+                                                </div>
+                                                <div class="field-group sm:col-span-2 pt-3 border-t border-slate-200/80">
+                                                    <span class="field-label">GCash Reference No. (Full)</span>
+                                                    <div class="ref-copy-row mt-1 flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2">
+                                                        <span class="field-val font-mono text-base font-bold tracking-wider text-[#042C53] select-all" id="paymentDetailRef">--</span>
+                                                        <button type="button" class="btn-copy-ref inline-flex items-center gap-1" id="btnCopyPaymentRef">
+                                                            <i class="ti ti-copy"></i> Copy
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="field-group sm:col-span-2">
+                                                    <span class="field-label">Receipt Submitted At</span>
+                                                    <span class="field-val text-xs text-slate-600 mt-0.5" id="paymentDetailSentAt">--</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Mandatory 3-Point GCash Verification Checklist -->
+                                            <div class="gcash-checklist m-0 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
+                                                <div class="text-xs font-bold uppercase tracking-wider text-[#042C53] mb-1 flex items-center gap-1.5">
+                                                    <i class="ti ti-shield-check text-[#378ADD] text-base"></i>
+                                                    <span>Mandatory GCash Verification Checklist</span>
+                                                </div>
+                                                <p class="text-xs text-slate-500 mb-2">Check both boxes below after confirming the receipt in the official Calzada GCash wallet:</p>
+                                                <label class="checklist-item bg-white border border-slate-200 rounded-lg px-3 py-2.5 font-medium hover:border-[#378ADD] transition-colors">
+                                                    <input type="checkbox" id="chkRefHistory">
+                                                    <span>The reference no. is in your GCash transaction history</span>
+                                                </label>
+                                                <label class="checklist-item bg-white border border-slate-200 rounded-lg px-3 py-2.5 font-medium hover:border-[#378ADD] transition-colors">
+                                                    <input type="checkbox" id="chkAmountMatch">
+                                                    <span id="labelAmountMatch">The amount matches the required amount</span>
+                                                </label>
+                                                <label class="checklist-item bg-slate-100/80 border border-slate-200 rounded-lg px-3 py-2 text-slate-600">
+                                                    <input type="checkbox" id="chkRefUnique" disabled>
+                                                    <span id="labelRefUnique">This reference no. was not used by another business</span>
+                                                </label>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- 2-column info grid -->
-                                    <div class="detail-fields-grid">
-                                        <div class="field-group">
-                                            <span class="field-label">Plan</span>
-                                            <span class="field-val" id="paymentDetailPlan">--</span>
+                                    <!-- Decision Action Bar -->
+                                    <div class="detail-action-bar m-0 border-t border-slate-200 bg-slate-50 p-5">
+                                        <div class="flex flex-wrap items-center justify-between gap-3">
+                                            <button type="button" class="btn-admin-success" id="btnMarkPaidAndLive" disabled>
+                                                <i class="ti ti-circle-check"></i>
+                                                <span>Mark as paid and go live</span>
+                                            </button>
+                                            <button type="button" class="btn-admin-danger" id="btnToggleDoesntMatch">
+                                                <i class="ti ti-alert-triangle"></i>
+                                                <span>Doesn't match</span>
+                                            </button>
                                         </div>
-                                        <div class="field-group">
-                                            <span class="field-label">Amount Due</span>
-                                            <span class="field-val" id="paymentDetailAmount" style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700; color: var(--brand-blue-dark);">--</span>
-                                        </div>
-                                        <div class="field-group">
-                                            <span class="field-label">Reference No. (Full)</span>
-                                            <span class="ref-copy-row"><span class="field-val" id="paymentDetailRef" style="font-family: monospace; font-size: 14px; font-weight: 700; color: var(--navy-dark); user-select: all;">--</span><button type="button" class="btn-copy-ref" id="btnCopyPaymentRef">Copy</button></span>
-                                        </div>
-                                        <div class="field-group">
-                                            <span class="field-label">Sent At</span>
-                                            <span class="field-val" id="paymentDetailSentAt">--</span>
-                                        </div>
-                                    </div>
+                                        <div class="action-inline-error" id="paymentActionInlineError"></div>
 
-                                    <!-- Check in GCash box with 3 checkboxes -->
-                                    <div class="gcash-checklist">
-                                        <div style="font-size: 13px; font-weight: 700; color: var(--navy-dark); margin-bottom: 2px;">
-                                            <i class="ti ti-shield-check" style="color: var(--brand-blue); margin-right: 4px;"></i>
-                                            Check in GCash
+                                        <div class="text-xs text-slate-500 mt-2.5">
+                                            <i class="ti ti-camera mr-1 text-slate-400"></i>Approving a <strong>Listed + 360</strong> or <strong>Featured</strong> plan automatically queues a 360° shoot in <strong>360 Shoots</strong>.
                                         </div>
-                                        <label class="checklist-item">
-                                            <input type="checkbox" id="chkRefHistory">
-                                            <span>The reference no. is in your GCash history</span>
-                                        </label>
-                                        <label class="checklist-item">
-                                            <input type="checkbox" id="chkAmountMatch">
-                                            <span id="labelAmountMatch">The amount matches the required amount</span>
-                                        </label>
-                                        <label class="checklist-item">
-                                            <input type="checkbox" id="chkRefUnique" disabled>
-                                            <span id="labelRefUnique">This reference no. was not used by another business</span>
-                                        </label>
-                                    </div>
 
-                                    <div class="detail-action-bar">
-                                    <!-- Action Buttons -->
-                                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                                        <button type="button" class="btn-admin-success" id="btnMarkPaidAndLive" disabled>
-                                            <i class="ti ti-circle-check"></i>
-                                            <span>Mark as paid and go live</span>
-                                        </button>
-                                        <button type="button" class="btn-admin-danger" id="btnToggleDoesntMatch">
-                                            <span>Doesn't match</span>
-                                        </button>
-                                    </div>
-                                    <div class="action-inline-error" id="paymentActionInlineError"></div>
-
-                                    <div style="font-size: 12px; color: var(--navy-subtle); margin-top: 10px;">
-                                        Listed + 360 also adds a 360 shoot to your to-do list in Businesses.
-                                    </div>
-
-                                    <!-- Doesn't Match Pinkish Panel -->
-                                    <div class="not-matched-panel" id="panelDoesntMatch">
-                                        <strong style="font-size: 13px; color: #991B1B;">Send back to owner:</strong>
-                                        <div class="reason-options">
-                                            <label class="reason-option">
-                                                <input type="radio" name="notMatchedReason" value="Amount is different" checked>
-                                                <span>Amount is different</span>
-                                            </label>
-                                            <label class="reason-option">
-                                                <input type="radio" name="notMatchedReason" value="Reference no. not found">
-                                                <span>Reference no. not found</span>
-                                            </label>
-                                            <label class="reason-option">
-                                                <input type="radio" name="notMatchedReason" value="Receipt is unclear">
-                                                <span>Receipt is unclear</span>
-                                            </label>
-                                            <label class="reason-option">
-                                                <input type="radio" name="notMatchedReason" value="Other">
-                                                <span>Other</span>
-                                            </label>
+                                        <!-- Doesn't Match Pinkish Panel -->
+                                        <div class="not-matched-panel" id="panelDoesntMatch">
+                                            <strong class="block text-xs font-bold uppercase tracking-wider text-red-900">Send back to owner (Select discrepancy):</strong>
+                                            <div class="reason-options grid grid-cols-1 sm:grid-cols-2 gap-2 my-3">
+                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                    <input type="radio" name="notMatchedReason" value="Amount is different" checked>
+                                                    <span>Amount is different</span>
+                                                </label>
+                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                    <input type="radio" name="notMatchedReason" value="Reference no. not found">
+                                                    <span>Reference no. not found</span>
+                                                </label>
+                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                    <input type="radio" name="notMatchedReason" value="Receipt is unclear">
+                                                    <span>Receipt is unclear</span>
+                                                </label>
+                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                    <input type="radio" name="notMatchedReason" value="Other">
+                                                    <span>Other</span>
+                                                </label>
+                                            </div>
+                                            <textarea class="admin-textarea bg-white" id="notMatchedTextarea" rows="2" placeholder="Add specific guidance so the owner can re-upload the correct receipt..."></textarea>
+                                            <div class="action-inline-error" id="paymentDoesntMatchInlineError"></div>
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <button type="button" class="btn-admin-primary" id="btnSendBackToOwner" style="background: var(--dot-red); border-color: var(--dot-red);">
+                                                    <i class="ti ti-arrow-back-up"></i> Send back to owner
+                                                </button>
+                                                <button type="button" class="btn-admin-secondary" id="btnCancelDoesntMatch">Cancel</button>
+                                            </div>
                                         </div>
-                                        <textarea class="admin-textarea" id="notMatchedTextarea" rows="2" placeholder="Add specific guidance for the owner..."></textarea>
-                                        <div class="action-inline-error" id="paymentDoesntMatchInlineError"></div>
-                                        <div style="display: flex; gap: 8px;">
-                                            <button type="button" class="btn-admin-primary" id="btnSendBackToOwner" style="background: var(--dot-red); border-color: var(--dot-red);">Send back to owner</button>
-                                            <button type="button" class="btn-admin-secondary" id="btnCancelDoesntMatch">Cancel</button>
-                                        </div>
-                                    </div>
                                     </div>
                                 </div>
                             </div>
@@ -1979,21 +2242,37 @@
                 <!-- ==============================================
                      PANEL: 360 SHOOTS
                      ============================================== -->
-                <section class="admin-panel" id="panel-shoots">
-                    <div class="section-header">
-                        <h1 class="section-title">360 Shoots</h1>
-                        <p class="section-subtitle">Track photo shoots, schedule photographer visits, and publish 360 virtual tours.</p>
+                <section class="admin-panel space-y-5" id="panel-shoots">
+                    <!-- Section Header + Workflow Guide -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                        <div>
+                            <h1 class="section-title">360 Shoots</h1>
+                            <p class="section-subtitle">Track eligible establishments, schedule on-site photography visits, and publish 2:1 equirectangular virtual tours.</p>
+                        </div>
+                        <div class="inline-flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs text-slate-600 self-start lg:self-auto">
+                            <i class="ti ti-camera text-[#378ADD] text-base"></i>
+                            <span>Eligible plans: <strong>Listed + 360</strong> &amp; <strong>Featured</strong></span>
+                        </div>
                     </div>
 
                     <!-- Filter Tabs: Pending, Scheduled, Published -->
                     <div class="admin-underline-tabs">
-                        <button type="button" class="admin-underline-tab active" data-shoot-tab="pending" id="shootTabPending">Pending</button>
-                        <button type="button" class="admin-underline-tab" data-shoot-tab="scheduled" id="shootTabScheduled">Scheduled</button>
-                        <button type="button" class="admin-underline-tab" data-shoot-tab="published" id="shootTabPublished">Published</button>
+                        <button type="button" class="admin-underline-tab active inline-flex items-center gap-2" data-shoot-tab="pending" id="shootTabPending">
+                            <i class="ti ti-clock-hour-4 text-amber-600"></i>
+                            <span>Pending Schedule</span>
+                        </button>
+                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" data-shoot-tab="scheduled" id="shootTabScheduled">
+                            <i class="ti ti-calendar-event text-[#378ADD]"></i>
+                            <span>Scheduled Visits</span>
+                        </button>
+                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" data-shoot-tab="published" id="shootTabPublished">
+                            <i class="ti ti-360-view text-emerald-600"></i>
+                            <span>Published Tours</span>
+                        </button>
                     </div>
 
-                    <!-- Shoots Table -->
-                    <div class="admin-table-container">
+                    <!-- Shoots Table Card -->
+                    <div class="admin-table-container shadow-none">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2017,17 +2296,28 @@
                 <!-- ==============================================
                      PANEL 4: BUSINESSES
                      ============================================== -->
-                <section class="admin-panel" id="panel-businesses">
-                    <div class="section-header">
-                        <h1 class="section-title">Businesses</h1>
-                        <p class="section-subtitle">Manage all listings, 360 photo shoots, and visibility across Calamba.</p>
+                <section class="admin-panel space-y-5" id="panel-businesses">
+                    <!-- Section Header + Search Toolbar -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                        <div>
+                            <h1 class="section-title">Businesses</h1>
+                            <p class="section-subtitle">Master directory to manage all listings, 360° shoot statuses, and map visibility across Calamba.</p>
+                        </div>
+
+                        <div class="bus-toolbar m-0 w-full lg:w-96">
+                            <label class="bus-search max-w-none w-full bg-slate-50/70">
+                                <i class="ti ti-search" aria-hidden="true"></i>
+                                <span class="sr-only">Search businesses</span>
+                                <input type="search" id="busSearchInput" placeholder="Search by name, owner email, or address..." autocomplete="off">
+                            </label>
+                        </div>
                     </div>
 
                     <div id="businessesLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Filter by status -->
-                    <div class="admin-underline-tabs">
-                        <button type="button" class="admin-underline-tab active" data-bus-filter="all">All</button>
+                    <!-- Filter by lifecycle status -->
+                    <div class="admin-underline-tabs overflow-x-auto">
+                        <button type="button" class="admin-underline-tab active" data-bus-filter="all">All Listings</button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="approved">Live</button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="awaiting_payment">Awaiting payment</button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="pending">Pending</button>
@@ -2035,25 +2325,17 @@
                         <button type="button" class="admin-underline-tab" data-bus-filter="rejected">Rejected</button>
                     </div>
 
-                    <div class="bus-toolbar">
-                        <label class="bus-search">
-                            <i class="ti ti-search" aria-hidden="true"></i>
-                            <span class="sr-only">Search businesses</span>
-                            <input type="search" id="busSearchInput" placeholder="Search by name, owner or address" autocomplete="off">
-                        </label>
-                    </div>
-
                     <div class="bus-layout">
-                        <!-- Businesses Table -->
+                        <!-- Businesses Master Table -->
                         <div class="admin-table-container bus-table-wrap">
                             <table class="admin-table bus-table">
                                 <thead>
                                     <tr>
-                                        <th>Business</th>
+                                        <th>Business &amp; Tier</th>
                                         <th>Status</th>
-                                        <th>Paid</th>
-                                        <th>360 shoot</th>
-                                        <th>Featured until</th>
+                                        <th>Paid Date</th>
+                                        <th>360° Shoot</th>
+                                        <th>Featured Until</th>
                                         <th><span class="sr-only">Manage</span></th>
                                     </tr>
                                 </thead>
@@ -2061,35 +2343,47 @@
                                     <!-- Populated dynamically -->
                                 </tbody>
                             </table>
-                            <div id="busTableEmpty" class="bus-table-empty" hidden>No businesses match.</div>
+                            <div id="busTableEmpty" class="bus-table-empty" hidden>No businesses match your current filter or search query.</div>
                         </div>
 
-                        <!-- Details, right beside the table -->
+                        <!-- Right-Hand Business Inspector Card -->
                         <aside class="flat-card bus-detail-card" id="businessRowDetailCard" style="display: none;" aria-label="Business details">
-                            <div class="bus-detail-head">
+                            <div class="bus-detail-head bg-slate-50/80">
                                 <div style="min-width: 0;">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Selected Listing</span>
                                     <h2 class="detail-title" id="busDetailName">--</h2>
-                                    <div class="status-line bus-detail-status">
+                                    <div class="status-line bus-detail-status mt-1">
                                         <span class="status-dot green" id="busDetailDot"></span>
                                         <span id="busDetailSub">--</span>
                                     </div>
                                 </div>
-                                <button type="button" class="bus-icon-btn" id="btnCloseBusDetail" aria-label="Close details">
+                                <button type="button" class="bus-icon-btn" id="btnCloseBusDetail" aria-label="Close details" title="Close Inspector">
                                     <i class="ti ti-x"></i>
                                 </button>
                             </div>
 
                             <dl class="bus-detail-fields">
-                                <dt>Owner</dt><dd id="busDetailOwner">--</dd>
-                                <dt>Address</dt><dd id="busDetailAddress">--</dd>
-                                <dt>Contact</dt><dd id="busDetailContact">--</dd>
-                                <dt>360 shoot</dt><dd id="busDetailShoot">--</dd>
-                                <dt>About</dt><dd id="busDetailDesc">--</dd>
+                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">Owner</dt>
+                                <dd class="font-medium" id="busDetailOwner">--</dd>
+                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">Address</dt>
+                                <dd id="busDetailAddress">--</dd>
+                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">Contact</dt>
+                                <dd id="busDetailContact">--</dd>
+                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">360° Shoot</dt>
+                                <dd class="font-medium" id="busDetailShoot">--</dd>
+                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">About</dt>
+                                <dd class="text-slate-600 leading-relaxed" id="busDetailDesc">--</dd>
                             </dl>
 
                             <div class="bus-detail-links">
-                                <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">View on map</a>
-                                <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">360 shoots</a>
+                                <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">
+                                    <i class="ti ti-map-pin" style="color: var(--brand-blue);"></i>
+                                    <span>View on map</span>
+                                </a>
+                                <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">
+                                    <i class="ti ti-camera" style="color: var(--brand-blue);"></i>
+                                    <span>360° shoots</span>
+                                </a>
                             </div>
 
                             <!-- Hide from map (in-page confirmation, no confirm()) -->
@@ -2098,7 +2392,7 @@
                                     <div class="bus-action-row">
                                         <div class="bus-action-text">
                                             <strong>Hide from map</strong>
-                                            <span>Back to pending with a note to the owner. Can be undone.</span>
+                                            <span>Reverts listing to pending and emails a moderation note to the owner. Reversible.</span>
                                         </div>
                                         <button type="button" class="btn-admin-secondary" id="btnTriggerHideFromMap">
                                             <i class="ti ti-eye-off"></i>
@@ -2108,7 +2402,7 @@
                                 </div>
                                 <div class="action-reason-box" id="busHideConfirmBox">
                                     <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
-                                    <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Visible to the owner"></textarea>
+                                    <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Explain why this listing is being hidden (visible to the owner)..."></textarea>
                                     <div class="action-inline-error" id="busHideInlineError"></div>
                                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                                         <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide from Map</button>
@@ -2122,7 +2416,7 @@
                                 <div id="busDeleteInitialGroup" class="bus-action-row">
                                     <div class="bus-action-text">
                                         <strong class="text-danger-strong">Delete permanently</strong>
-                                        <span>Removes the listing, posts, reviews, 360 photos and uploaded images. Payment records stay, marked "(deleted)". This cannot be undone.</span>
+                                        <span>Removes the listing, posts, reviews, 360° photos, and uploaded images. Payment records stay marked "(deleted)". Cannot be undone.</span>
                                     </div>
                                     <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">
                                         <i class="ti ti-trash"></i>
@@ -2131,11 +2425,11 @@
                                 </div>
                                 <div class="bus-delete-confirm" id="busDeleteConfirmBox" style="display: none;">
                                     <strong class="text-danger-strong">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
-                                    <p class="bus-delete-note">Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.</p>
-                                    <label for="busDeleteReasonText" class="bus-field-label">Reason, emailed to the owner</label>
-                                    <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
-                                    <label for="busDeleteConfirmName" class="bus-field-label">Type the business name to confirm</label>
-                                    <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
+                                    <p class="bus-delete-note">Its listing, posts, reviews, 360° photos, and uploaded images will be removed for good. The owner is emailed the reason below.</p>
+                                    <label for="busDeleteReasonText" class="bus-field-label">Reason (emailed to the owner)</label>
+                                    <textarea class="admin-textarea bg-white" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
+                                    <label for="busDeleteConfirmName" class="bus-field-label">Type the exact business name to confirm</label>
+                                    <input type="text" class="admin-textarea bg-white" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
                                     <div class="action-inline-error" id="busDeleteInlineError"></div>
                                     <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
                                         <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
