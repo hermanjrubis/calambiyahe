@@ -1301,49 +1301,42 @@
             .bus-search { max-width: none; }
         }
 
-        /* ===== Upgraded Global Shell: Sidebar Notification Pills & Topbar ===== */
-        .sidebar-nav { padding: 14px 10px; gap: 3px; }
+        /* ===== Quiet, Restrained Editorial Admin Aesthetic (Zero AI Clutter) ===== */
+        .sidebar-nav { padding: 12px 10px; gap: 2px; }
         .nav-item {
-            gap: 12px;
-            padding: 9px 12px;
+            gap: 10px;
+            padding: 8px 12px;
             color: #475569;
+            font-size: 13.5px;
             font-weight: 500;
             border-left: 0;
-            border-radius: 8px;
-            transition: all 0.15s ease;
+            border-radius: 6px;
+            transition: background-color 0.12s ease, color 0.12s ease;
         }
-        .nav-item .nav-icon { color: #64748B; font-size: 18px; transition: color 0.15s ease; }
+        .nav-item .nav-icon { color: #64748B; font-size: 17px; transition: color 0.12s ease; }
         .nav-item:hover { background: #F1F5F9; color: var(--navy-dark); }
-        .nav-item:hover .nav-icon { color: var(--brand-blue-dark); }
+        .nav-item:hover .nav-icon { color: var(--navy-dark); }
         .nav-item.active {
-            background: #EEF5FD;
+            background: #E8EDF3;
             color: var(--navy-dark);
-            font-weight: 700;
+            font-weight: 600;
             border-left: 0;
-            box-shadow: inset 3px 0 0 var(--brand-blue);
+            box-shadow: none;
         }
-        .nav-item.active .nav-icon { color: var(--brand-blue-dark); }
+        .nav-item.active .nav-icon { color: var(--navy-dark); }
         .nav-item:focus-visible { outline: 2px solid var(--brand-blue); outline-offset: -2px; }
 
-        /* Distinct Notification Pills for Sidebar Counts */
+        /* Quiet tabular sidebar counts (no pill bubbles) */
         .nav-count {
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 12px;
+            font-weight: 600;
             font-variant-numeric: tabular-nums;
-            line-height: 1;
-            padding: 3px 8px;
-            border-radius: 999px;
-            background: #FEF3C7;
-            color: #B45309;
-            border: 1px solid #FDE68A;
+            color: var(--dot-amber);
             margin-left: auto;
-            transition: all 0.15s ease;
         }
         .nav-count.is-zero {
-            background: #F1F5F9;
-            color: #64748B;
-            border-color: #E2E8F0;
-            font-weight: 600;
+            color: #94A3B8;
+            font-weight: 500;
         }
         .nav-count:empty {
             display: none;
@@ -1352,52 +1345,244 @@
         .nav-group-label {
             padding: 18px 12px 6px;
             font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.07em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
             color: #64748B;
         }
         .sidebar-view-site {
             color: #475569;
-            border: 1px solid var(--border-color);
-            background: #F8FAFC;
-            justify-content: center;
-            font-weight: 600;
+            font-weight: 500;
         }
         .sidebar-view-site:hover {
-            background: #EEF5FD;
-            border-color: #BFDBFE;
-            color: var(--brand-blue-dark);
+            background: #F1F5F9;
+            color: var(--navy-dark);
         }
 
-        /* Topbar Refinements */
+        /* Topbar Refinements (Quiet plain text + subtle status dot) */
         .topbar-connection-indicator {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            margin-left: 8px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: #F0FDF4;
-            border: 1px solid #BBF7D0;
-            font-size: 12px;
-            font-weight: 600;
-            color: #166534;
-        }
-        .topbar-user-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 5px 12px;
-            background: #F8FAFC;
-            border: 1px solid var(--border-color);
-            border-radius: 999px;
-            font-size: 13px;
+            margin-left: 12px;
+            font-size: 12.5px;
             font-weight: 500;
+            color: #64748B;
+        }
+        .topbar-user-email {
+            font-size: 13px;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        /* Editorial Page Header */
+        .page-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--navy-dark);
+            margin-bottom: 4px;
+        }
+        .section-subtitle {
+            font-size: 13.5px;
+            color: var(--navy-muted);
+            line-height: 1.45;
+        }
+
+        /* Unified 4-Column Metric Strip (Overview) */
+        .metric-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .metric-cell {
+            padding: 18px 22px;
+            border-right: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: background-color 0.12s ease;
+        }
+        .metric-cell:last-child {
+            border-right: 0;
+        }
+        a.metric-cell:hover {
+            background: #F8FAFC;
+        }
+        .metric-label {
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--navy-muted);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .metric-val {
+            font-family: 'Sora', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            font-variant-numeric: tabular-nums;
+            color: var(--navy-dark);
+            margin: 8px 0 4px;
+            line-height: 1.1;
+        }
+        .metric-sub {
+            font-size: 12px;
+            color: var(--navy-subtle);
+        }
+        @media (max-width: 1023px) {
+            .metric-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .metric-cell:nth-child(2) {
+                border-right: 0;
+            }
+            .metric-cell:nth-child(1),
+            .metric-cell:nth-child(2) {
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+        @media (max-width: 540px) {
+            .metric-strip {
+                grid-template-columns: 1fr;
+            }
+            .metric-cell {
+                border-right: 0 !important;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .metric-cell:last-child {
+                border-bottom: 0;
+            }
+        }
+
+        /* Overview Live Workspaces (2-Column Split) */
+        .overview-split {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 20px;
+            align-items: start;
+        }
+        @media (max-width: 1023px) {
+            .overview-split {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        .panel-card-head {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .panel-card-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
             color: var(--navy-dark);
         }
-        .topbar-user-pill i {
+        .panel-card-link {
+            font-size: 12.5px;
+            font-weight: 500;
             color: var(--brand-blue-dark);
-            font-size: 15px;
+            text-decoration: none;
+        }
+        .panel-card-link:hover {
+            text-decoration: underline;
+        }
+        .queue-list-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            text-decoration: none;
+            color: inherit;
+            transition: background-color 0.12s ease;
+        }
+        .queue-list-row:last-child {
+            border-bottom: 0;
+        }
+        .queue-list-row:hover {
+            background: #F8FAFC;
+        }
+        .queue-row-main {
+            min-width: 0;
+            flex: 1;
+        }
+        .queue-row-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--navy-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .queue-row-sub {
+            font-size: 12px;
+            color: var(--navy-muted);
+            margin-top: 2px;
+        }
+        .queue-row-right {
+            font-size: 12px;
+            color: var(--navy-subtle);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Clean Key-Value Rows for Settings */
+        .kv-card {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+        .kv-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 13.5px;
+        }
+        .kv-row:last-child {
+            border-bottom: 0;
+        }
+        .kv-label {
+            color: var(--navy-muted);
+            font-weight: 500;
+        }
+        .kv-val {
+            color: var(--navy-dark);
+            font-weight: 600;
+            text-align: right;
+            word-break: break-all;
         }
 
         /* Phones: keep the admin inside the screen */
@@ -1906,12 +2091,8 @@
                 </div>
 
                 <div class="topbar-right">
-                    <div class="topbar-user-pill" title="Signed-in Administrator">
-                        <i class="ti ti-shield-check"></i>
-                        <span class="topbar-user-email" id="adminEmailHeader">Admin</span>
-                    </div>
+                    <span class="topbar-user-email" id="adminEmailHeader">Admin</span>
                     <button type="button" class="btn-signout" id="adminSignOutBtn" title="Sign Out of Admin Portal">
-                        <i class="ti ti-logout"></i>
                         <span>Sign Out</span>
                     </button>
                 </div>
@@ -1926,190 +2107,83 @@
                 <!-- ==============================================
                      PANEL 1: OVERVIEW
                      ============================================== -->
-                <section class="admin-panel active space-y-6" id="panel-overview">
-                    <!-- Section Header -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+                <section class="admin-panel active" id="panel-overview">
+                    <!-- Unboxed Editorial Header -->
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">Overview</h1>
-                            <p class="section-subtitle">Real-time status of applications, GCash verifications, 360° shoots, and live establishments.</p>
+                            <p class="section-subtitle">Pending reviews, GCash verification queue, and recent platform activity.</p>
                         </div>
-                        <a href="/" target="_blank" rel="noopener" class="btn-admin-secondary self-start sm:self-auto">
-                            <i class="ti ti-map-2" style="color: var(--brand-blue);"></i>
-                            <span>Open Live Calzada Map</span>
-                            <i class="ti ti-external-link" style="font-size: 13px; color: var(--navy-subtle);"></i>
+                        <a href="/" target="_blank" rel="noopener" class="btn-admin-secondary">
+                            <span>Open Public Map</span>
+                            <i class="ti ti-arrow-up-right" style="font-size: 14px; color: var(--navy-muted);"></i>
                         </a>
                     </div>
 
                     <div id="overviewLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- 4 KPI Cards (Semantic Color Hierarchy + Direct Queue Links) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-                        <!-- KPI 1: Applications to review -->
-                        <a href="#applications" class="group rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-amber-500 hover:border-amber-400 transition-all flex flex-col justify-between no-underline">
-                            <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">Action Required</span>
-                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Applications to review</div>
-                                </div>
-                                <div class="h-10 w-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
-                                    <i class="ti ti-clipboard-list"></i>
-                                </div>
+                    <!-- Unified 4-Column Metric Strip (No rainbow borders, no decorative icon squares) -->
+                    <div class="metric-strip">
+                        <a href="#applications" class="metric-cell">
+                            <div class="metric-label">
+                                <span>Applications to review</span>
+                                <i class="ti ti-arrow-right" style="color: var(--navy-subtle); font-size: 14px;"></i>
                             </div>
-                            <div class="mt-4 flex items-baseline justify-between">
-                                <div class="stat-card-val text-amber" id="statAppsToReview">0</div>
-                                <span class="text-xs font-semibold text-[#1F69B8] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                    Review queue <i class="ti ti-arrow-right"></i>
-                                </span>
-                            </div>
-                            <div class="stat-card-sub">Pending owner submissions</div>
+                            <div class="metric-val" id="statAppsToReview">0</div>
+                            <div class="metric-sub">Pending owner submissions</div>
                         </a>
 
-                        <!-- KPI 2: Payments to verify -->
-                        <a href="#payments" class="group rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-[#378ADD] hover:border-[#378ADD] transition-all flex flex-col justify-between no-underline">
-                            <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">GCash Check</span>
-                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Payments to verify</div>
-                                </div>
-                                <div class="h-10 w-10 rounded-lg bg-blue-50 text-[#378ADD] flex items-center justify-center text-xl shrink-0">
-                                    <i class="ti ti-receipt"></i>
-                                </div>
+                        <a href="#payments" class="metric-cell">
+                            <div class="metric-label">
+                                <span>Payments to verify</span>
+                                <i class="ti ti-arrow-right" style="color: var(--navy-subtle); font-size: 14px;"></i>
                             </div>
-                            <div class="mt-4 flex items-baseline justify-between">
-                                <div class="stat-card-val" style="color: var(--brand-blue-dark);" id="statPaymentsToVerify">0</div>
-                                <span class="text-xs font-semibold text-[#1F69B8] inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
-                                    Verify receipts <i class="ti ti-arrow-right"></i>
-                                </span>
-                            </div>
-                            <div class="stat-card-sub">GCash receipts uploaded</div>
+                            <div class="metric-val" id="statPaymentsToVerify">0</div>
+                            <div class="metric-sub">GCash receipts uploaded</div>
                         </a>
 
-                        <!-- KPI 3: Live businesses -->
-                        <a href="#businesses" class="group rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-emerald-500 hover:border-emerald-400 transition-all flex flex-col justify-between no-underline">
-                            <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">Published</span>
-                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Live businesses</div>
-                                </div>
-                                <div class="h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
-                                    <i class="ti ti-building-store"></i>
-                                </div>
+                        <a href="#businesses" class="metric-cell">
+                            <div class="metric-label">
+                                <span>Live businesses</span>
+                                <i class="ti ti-arrow-right" style="color: var(--navy-subtle); font-size: 14px;"></i>
                             </div>
-                            <div class="mt-4 flex items-baseline justify-between">
-                                <div class="stat-card-val" id="statLiveBusinesses" style="color: var(--dot-green);">0</div>
-                                <span class="text-xs font-semibold text-slate-500 group-hover:text-[#042C53] inline-flex items-center gap-1 transition-colors">
-                                    Directory <i class="ti ti-arrow-right"></i>
-                                </span>
-                            </div>
-                            <div class="stat-card-sub">Approved and on the map</div>
+                            <div class="metric-val" id="statLiveBusinesses">0</div>
+                            <div class="metric-sub">Approved on the map</div>
                         </a>
 
-                        <!-- KPI 4: Collected so far -->
-                        <div class="rounded-xl bg-white p-5 border border-slate-200 border-l-4 border-l-[#042C53] flex flex-col justify-between">
-                            <div class="flex items-start justify-between gap-2">
-                                <div>
-                                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">Revenue</span>
-                                    <div class="mt-2.5 text-sm font-semibold text-slate-600">Collected so far</div>
-                                </div>
-                                <div class="h-10 w-10 rounded-lg bg-slate-100 text-[#042C53] flex items-center justify-center text-xl shrink-0">
-                                    <i class="ti ti-coins"></i>
-                                </div>
+                        <div class="metric-cell">
+                            <div class="metric-label">
+                                <span>Collected so far</span>
                             </div>
-                            <div class="mt-4">
-                                <div class="stat-card-val" id="statCollectedSoFar" style="color: var(--navy-dark);">₱0</div>
-                            </div>
-                            <div class="stat-card-sub">Total verified GCash revenue</div>
+                            <div class="metric-val" id="statCollectedSoFar">₱0</div>
+                            <div class="metric-sub">Verified GCash revenue</div>
                         </div>
                     </div>
 
-                    <!-- Lower Split Grid: 3-Step Approval Pipeline + Quick Moderation Links -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                        <!-- Left 2 Columns: End-to-End Approval Workflow -->
-                        <div class="lg:col-span-2 flat-card">
-                            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                                <div>
-                                    <h2 class="shortcut-card-title">Listing Approval &amp; Fulfillment Pipeline</h2>
-                                    <p class="text-xs text-slate-500 mt-0.5">Follow these three stages in order to take a business from registration to a live 360° tour.</p>
-                                </div>
+                    <!-- Live 2-Column Workspace: Needs Attention Queue + Recent Activity -->
+                    <div class="overview-split">
+                        <!-- Left Column: Live Action Queue -->
+                        <div class="panel-card">
+                            <div class="panel-card-head">
+                                <h2 class="panel-card-title">Needs attention</h2>
+                                <a href="#applications" class="panel-card-link">Applications →</a>
                             </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <a href="#applications" class="shortcut-card flex flex-col justify-between hover:border-[#378ADD] hover:bg-blue-50/20">
-                                    <div>
-                                        <div class="shortcut-card-header">
-                                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 px-2 py-0.5 rounded">Stage 1</span>
-                                            <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
-                                        </div>
-                                        <h3 class="shortcut-card-title mt-2">Review Applications</h3>
-                                        <p class="shortcut-card-desc mt-1">Check new registrations, verify barangay pins, and send GCash QR for payment.</p>
-                                    </div>
-                                    <div class="mt-4 pt-2.5 border-t border-slate-100 text-xs font-semibold text-[#1F69B8]">
-                                        Open Applications →
-                                    </div>
-                                </a>
-
-                                <a href="#payments" class="shortcut-card flex flex-col justify-between hover:border-[#378ADD] hover:bg-blue-50/20">
-                                    <div>
-                                        <div class="shortcut-card-header">
-                                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 px-2 py-0.5 rounded">Stage 2</span>
-                                            <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
-                                        </div>
-                                        <h3 class="shortcut-card-title mt-2">Verify Payments</h3>
-                                        <p class="shortcut-card-desc mt-1">Match uploaded GCash receipts against reference history and publish businesses live.</p>
-                                    </div>
-                                    <div class="mt-4 pt-2.5 border-t border-slate-100 text-xs font-semibold text-[#1F69B8]">
-                                        Open Payments →
-                                    </div>
-                                </a>
-
-                                <a href="#shoots" class="shortcut-card flex flex-col justify-between hover:border-[#378ADD] hover:bg-blue-50/20">
-                                    <div>
-                                        <div class="shortcut-card-header">
-                                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#1F69B8] bg-blue-50 px-2 py-0.5 rounded">Stage 3</span>
-                                            <i class="ti ti-arrow-right" style="color: var(--brand-blue);"></i>
-                                        </div>
-                                        <h3 class="shortcut-card-title mt-2">360° Photo Shoots</h3>
-                                        <p class="shortcut-card-desc mt-1">Schedule on-site visits and upload 2:1 equirectangular virtual tours for eligible plans.</p>
-                                    </div>
-                                    <div class="mt-4 pt-2.5 border-t border-slate-100 text-xs font-semibold text-[#1F69B8]">
-                                        Manage 360° Shoots →
-                                    </div>
-                                </a>
+                            <div id="overviewNeedsReviewList">
+                                <div style="padding: 32px 18px; text-align: center; font-size: 13px; color: var(--navy-muted);">
+                                    All queues are clear. No pending applications, receipts, or unscheduled shoots.
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Right Column: Community Moderation & Audit Shortcuts -->
-                        <div class="flat-card flex flex-col justify-between">
-                            <div>
-                                <div class="border-b border-slate-100 pb-3 mb-4">
-                                    <h2 class="shortcut-card-title">Moderation &amp; System Audit</h2>
-                                    <p class="text-xs text-slate-500 mt-0.5">Quick access to commuter reviews, business updates, and activity logs.</p>
-                                </div>
-
-                                <div class="flex flex-col gap-2.5">
-                                    <a href="#reviews" class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3 text-sm font-semibold text-[#042C53] hover:border-[#378ADD] hover:bg-slate-50 no-underline transition-all">
-                                        <span class="inline-flex items-center gap-2.5">
-                                            <i class="ti ti-star text-amber-500 text-lg"></i>
-                                            <span>Moderate Commuter Reviews</span>
-                                        </span>
-                                        <i class="ti ti-chevron-right text-slate-400"></i>
-                                    </a>
-
-                                    <a href="#posts" class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3 text-sm font-semibold text-[#042C53] hover:border-[#378ADD] hover:bg-slate-50 no-underline transition-all">
-                                        <span class="inline-flex items-center gap-2.5">
-                                            <i class="ti ti-news text-[#378ADD] text-lg"></i>
-                                            <span>Moderate Business Posts</span>
-                                        </span>
-                                        <i class="ti ti-chevron-right text-slate-400"></i>
-                                    </a>
-
-                                    <a href="#activity" class="flex items-center justify-between rounded-lg border border-slate-200 px-3.5 py-3 text-sm font-semibold text-[#042C53] hover:border-[#378ADD] hover:bg-slate-50 no-underline transition-all">
-                                        <span class="inline-flex items-center gap-2.5">
-                                            <i class="ti ti-activity text-emerald-600 text-lg"></i>
-                                            <span>Real-Time Activity Log</span>
-                                        </span>
-                                        <i class="ti ti-chevron-right text-slate-400"></i>
-                                    </a>
+                        <!-- Right Column: Live Recent Activity -->
+                        <div class="panel-card">
+                            <div class="panel-card-head">
+                                <h2 class="panel-card-title">Recent activity</h2>
+                                <a href="#activity" class="panel-card-link">See all →</a>
+                            </div>
+                            <div id="overviewRecentActivityList">
+                                <div style="padding: 32px 18px; text-align: center; font-size: 13px; color: var(--navy-muted);">
+                                    No recent activity recorded yet.
                                 </div>
                             </div>
                         </div>
@@ -2119,168 +2193,145 @@
                 <!-- ==============================================
                      PANEL 2: APPLICATIONS
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-applications">
-                    <!-- Section Header + Visual Pipeline Stepper -->
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-applications">
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">Applications</h1>
-                            <p class="section-subtitle">Review business details, verify barangay pins, and send GCash QR for payment.</p>
+                            <p class="section-subtitle">Check business details and barangay location before sending the GCash QR.</p>
+                            <ol class="flow-steps" aria-label="How a listing goes live">
+                                <li class="is-current">1. Review details</li>
+                                <li aria-hidden="true">›</li>
+                                <li>2. Owner pays by GCash</li>
+                                <li aria-hidden="true">›</li>
+                                <li>3. Verify in Payments</li>
+                                <li aria-hidden="true">›</li>
+                                <li>4. Live on the map</li>
+                            </ol>
                         </div>
-                        <ol class="flow-steps bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 m-0" aria-label="How a listing goes live">
-                            <li class="is-current inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-[#1F69B8] px-2 py-0.5 rounded text-xs font-bold">
-                                <span>1. Review details</span>
-                            </li>
-                            <li aria-hidden="true">›</li>
-                            <li class="text-xs">2. Owner pays by GCash</li>
-                            <li aria-hidden="true">›</li>
-                            <li class="text-xs">3. Verify in Payments</li>
-                            <li aria-hidden="true">›</li>
-                            <li class="text-xs">4. Live on the map</li>
-                        </ol>
                     </div>
 
                     <div id="applicationsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Queue Underline Tabs with Pill Counters -->
+                    <!-- Clean Underline Tabs (No colored pills) -->
                     <div class="admin-underline-tabs">
-                        <button type="button" class="admin-underline-tab active inline-flex items-center gap-2" id="tabAppToReview" data-tab="pending">
-                            <span>To review</span>
-                            <span class="rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-xs font-bold" id="tabCountToReview">0</span>
+                        <button type="button" class="admin-underline-tab active" id="tabAppToReview" data-tab="pending">
+                            To review (<span id="tabCountToReview">0</span>)
                         </button>
-                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" id="tabAppWaitingPayment" data-tab="awaiting_payment">
-                            <span>Waiting for payment</span>
-                            <span class="rounded-full bg-blue-50 text-[#1F69B8] px-2 py-0.5 text-xs font-bold" id="tabCountWaitingPayment">0</span>
+                        <button type="button" class="admin-underline-tab" id="tabAppWaitingPayment" data-tab="awaiting_payment">
+                            Waiting for payment (<span id="tabCountWaitingPayment">0</span>)
                         </button>
-                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" id="tabAppSentBack" data-tab="sent_back">
-                            <span>Sent back / Declined</span>
-                            <span class="rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-xs font-bold" id="tabCountSentBack">0</span>
+                        <button type="button" class="admin-underline-tab" id="tabAppSentBack" data-tab="sent_back">
+                            Sent back / Declined (<span id="tabCountSentBack">0</span>)
                         </button>
                     </div>
 
                     <!-- Master-Detail Workbench -->
                     <div class="master-detail-layout">
-                        <!-- Left: Scrollable Queue Column -->
-                        <div class="list-col lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto pr-1" id="applicationsListCol">
-                            <div id="applicationsListContainer" class="flex flex-col gap-2.5"></div>
+                        <!-- Left: Queue Column -->
+                        <div class="list-col" id="applicationsListCol">
+                            <div id="applicationsListContainer" class="flex flex-col gap-2"></div>
                             <div id="applicationsEmptyState" class="flat-card text-center text-slate-500 text-sm py-10 px-4" style="display: none;">
-                                <i class="ti ti-clipboard-check text-2xl text-slate-400 block mb-1.5"></i>
                                 No applications in this queue.
                             </div>
                         </div>
 
                         <!-- Right: Detail Inspector Column -->
                         <div class="detail-col">
-                            <div class="flat-card p-0 overflow-hidden" id="applicationDetailPanel">
-                                <div id="appDetailEmptyPlaceholder" class="text-center text-slate-500 py-14 px-4 text-sm">
-                                    <i class="ti ti-click text-2xl text-slate-400 block mb-2"></i>
-                                    Select an application from the left queue to view its full details and location pin.
+                            <div class="flat-card" id="applicationDetailPanel">
+                                <div id="appDetailEmptyPlaceholder" style="text-align: center; color: var(--navy-subtle); padding: 48px 0; font-size: 13.5px;">
+                                    Select an application from the left to view its details.
                                 </div>
 
                                 <div id="appDetailContent" style="display: none;">
-                                    <!-- Top Identity Header -->
-                                    <div class="detail-header-row p-5 m-0 border-b border-slate-200 bg-slate-50/70">
+                                    <div class="detail-header-row" style="padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
                                         <div>
                                             <h2 class="detail-title" id="appDetailName">--</h2>
-                                            <div class="detail-subtitle mt-1 font-medium text-slate-600" id="appDetailMetaLine">--</div>
+                                            <div class="detail-subtitle" id="appDetailMetaLine">--</div>
                                         </div>
-                                        <div class="status-line rounded-full bg-white border border-slate-200 px-3 py-1 shadow-none" id="appDetailStatusLine">
+                                        <div class="status-line" id="appDetailStatusLine">
                                             <span class="status-dot amber" id="appDetailStatusDot"></span>
                                             <span id="appDetailStatusText">Pending review</span>
                                         </div>
                                     </div>
 
-                                    <div class="p-5 space-y-5">
-                                        <!-- Pre-Flight Automated Verification Scorecard -->
-                                        <div class="checks-box m-0 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                                            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
-                                                <i class="ti ti-shield-check text-[#378ADD] text-sm"></i>
-                                                <span>Automated Pre-Flight Checks</span>
-                                            </div>
-                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                                                <div class="check-item bg-white border border-slate-200 rounded-lg px-3 py-2 font-medium" id="chkItemBarangay">
-                                                    <i class="ti ti-check shrink-0" id="chkIconBarangay"></i>
-                                                    <span id="chkTextBarangay">Pin is inside covered barangays</span>
-                                                </div>
-                                                <div class="check-item bg-white border border-slate-200 rounded-lg px-3 py-2 font-medium" id="chkItemProximity">
-                                                    <i class="ti ti-check shrink-0" id="chkIconProximity"></i>
-                                                    <span id="chkTextProximity">No other listed place within 30 m with a similar name</span>
-                                                </div>
-                                                <div class="check-item bg-white border border-slate-200 rounded-lg px-3 py-2 font-medium" id="chkItemPhoto">
-                                                    <i class="ti ti-check shrink-0" id="chkIconPhoto"></i>
-                                                    <span id="chkTextPhoto">Business photo uploaded</span>
-                                                </div>
+                                    <!-- Pre-flight verification checks (quiet list) -->
+                                    <div class="checks-box" style="margin: 16px 0;">
+                                        <div class="check-item" id="chkItemBarangay">
+                                            <i class="ti ti-check" id="chkIconBarangay"></i>
+                                            <span id="chkTextBarangay">Pin is inside covered barangays</span>
+                                        </div>
+                                        <div class="check-item" id="chkItemProximity">
+                                            <i class="ti ti-check" id="chkIconProximity"></i>
+                                            <span id="chkTextProximity">No other listed place within 30 m with a similar name</span>
+                                        </div>
+                                        <div class="check-item" id="chkItemPhoto">
+                                            <i class="ti ti-check" id="chkIconPhoto"></i>
+                                            <span id="chkTextPhoto">Business photo uploaded</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Storefront Photo & Map Pin -->
+                                    <div class="two-boxes-grid">
+                                        <div>
+                                            <span class="field-label" style="display: block; margin-bottom: 6px;">Business Photo</span>
+                                            <div class="media-box" id="appDetailPhotoBox">
+                                                <span id="appDetailPhotoPlaceholder">No business photo yet</span>
+                                                <img id="appDetailPhotoImg" src="" alt="Business Photo" style="display: none;">
                                             </div>
                                         </div>
-
-                                        <!-- Visual Evidence: Storefront Photo & MapLibre Pin -->
-                                        <div class="two-boxes-grid m-0">
-                                            <div>
-                                                <span class="field-label block mb-1.5">Storefront / Profile Photo</span>
-                                                <div class="media-box h-52 rounded-lg" id="appDetailPhotoBox">
-                                                    <span id="appDetailPhotoPlaceholder">No business photo yet</span>
-                                                    <img id="appDetailPhotoImg" src="" alt="Business Photo" style="display: none;">
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <span class="field-label block mb-1.5">Submitted Location Pin (Calamba)</span>
-                                                <div class="media-box h-52 rounded-lg" id="appDetailMapBox" style="padding: 0;">
-                                                    <div id="appDetailMap" style="width: 100%; height: 100%;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Structured Application Fields -->
-                                        <div class="detail-fields-grid m-0 rounded-xl border border-slate-200 bg-white p-4">
-                                            <div class="field-group">
-                                                <span class="field-label">Address &amp; Barangay</span>
-                                                <span class="field-val mt-0.5" id="appDetailAddress">--</span>
-                                            </div>
-                                            <div class="field-group">
-                                                <span class="field-label">Contact Number</span>
-                                                <span class="field-val mt-0.5" id="appDetailContact">--</span>
-                                            </div>
-                                            <div class="field-group pt-2 border-t border-slate-100" style="grid-column: span 2;">
-                                                <span class="field-label">Establishment Description</span>
-                                                <span class="field-val mt-0.5 leading-relaxed" id="appDetailDescription">--</span>
-                                            </div>
-                                            <div class="field-group pt-2 border-t border-slate-100" style="grid-column: span 2;">
-                                                <span class="field-label">Social &amp; Verification Links</span>
-                                                <span class="field-val mt-0.5" id="appDetailSocialLinks">--</span>
+                                        <div>
+                                            <span class="field-label" style="display: block; margin-bottom: 6px;">Location Pin</span>
+                                            <div class="media-box" id="appDetailMapBox" style="padding: 0;">
+                                                <div id="appDetailMap" style="width: 100%; height: 100%;"></div>
                                             </div>
                                         </div>
                                     </div>
 
+                                    <!-- Application Fields -->
+                                    <div class="detail-fields-grid" style="padding-top: 14px; border-top: 1px solid var(--border-subtle);">
+                                        <div class="field-group">
+                                            <span class="field-label">Address</span>
+                                            <span class="field-val" id="appDetailAddress">--</span>
+                                        </div>
+                                        <div class="field-group">
+                                            <span class="field-label">Contact Number</span>
+                                            <span class="field-val" id="appDetailContact">--</span>
+                                        </div>
+                                        <div class="field-group" style="grid-column: span 2;">
+                                            <span class="field-label">Description</span>
+                                            <span class="field-val" id="appDetailDescription">--</span>
+                                        </div>
+                                        <div class="field-group" style="grid-column: span 2;">
+                                            <span class="field-label">Social Links</span>
+                                            <span class="field-val" id="appDetailSocialLinks">--</span>
+                                        </div>
+                                    </div>
+
                                     <!-- Decision Action Bar -->
-                                    <div class="detail-action-bar m-0 border-t border-slate-200 bg-slate-50 p-5">
-                                        <div class="flex flex-wrap items-center justify-between gap-3" id="appActionButtonsGroup">
-                                            <div class="flex flex-wrap items-center gap-2.5">
-                                                <button type="button" class="btn-admin-success" id="btnApproveApplication">
-                                                    <i class="ti ti-qrcode"></i>
-                                                    <span>Approve &amp; Send GCash QR</span>
-                                                </button>
-                                                <button type="button" class="btn-admin-secondary" id="btnNeedsChangesApplication">
-                                                    <i class="ti ti-edit"></i>
-                                                    <span>Needs changes</span>
-                                                </button>
-                                            </div>
-                                            <button type="button" class="btn-admin-danger" id="btnDeclineApplication">
-                                                <i class="ti ti-x"></i>
-                                                <span>Decline</span>
+                                    <div class="detail-action-bar">
+                                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;" id="appActionButtonsGroup">
+                                            <button type="button" class="btn-admin-success" id="btnApproveApplication">
+                                                Approve details &amp; send GCash QR
+                                            </button>
+                                            <button type="button" class="btn-admin-secondary" id="btnNeedsChangesApplication">
+                                                Needs changes
+                                            </button>
+                                            <button type="button" class="btn-admin-text-danger" id="btnDeclineApplication" style="margin-left: auto;">
+                                                Decline
                                             </button>
                                         </div>
                                         <div class="action-inline-error" id="appActionInlineError"></div>
 
-                                        <div class="text-xs text-slate-500 mt-2.5">
-                                            <i class="ti ti-mail mr-1 text-slate-400"></i>Approving emails the owner the amount and the GCash QR. "Needs changes" and "Decline" email your reason; declined owners never pay.
+                                        <div style="font-size: 12px; color: var(--navy-muted); margin-top: 8px;">
+                                            Approving emails the owner the amount and the GCash QR. "Needs changes" and "Decline" email your reason; declined owners never pay.
                                         </div>
 
-                                        <!-- Reason Textarea Box (Needs changes / Decline) -->
-                                        <div class="action-reason-box bg-white border border-slate-300 rounded-lg p-4 mt-4" id="appReasonBox">
-                                            <strong id="appReasonBoxTitle" class="block text-xs font-bold uppercase tracking-wider text-[#042C53]">Enter reason for owner:</strong>
-                                            <textarea class="admin-textarea" id="appReasonTextarea" rows="3" placeholder="Explain clearly what changes are needed or why the application was declined..."></textarea>
+                                        <div class="action-reason-box" id="appReasonBox">
+                                            <strong id="appReasonBoxTitle" style="font-size: 13px; color: var(--navy-dark);">Enter reason for owner:</strong>
+                                            <textarea class="admin-textarea" id="appReasonTextarea" rows="3" placeholder="Explain clearly what needs to be changed or why it was declined..."></textarea>
                                             <div class="action-inline-error" id="appReasonInlineError"></div>
-                                            <div class="flex items-center gap-2">
-                                                <button type="button" class="btn-admin-primary" id="btnSubmitAppReason">Submit &amp; Email Owner</button>
+                                            <div style="display: flex; gap: 8px;">
+                                                <button type="button" class="btn-admin-primary" id="btnSubmitAppReason">Submit</button>
                                                 <button type="button" class="btn-admin-secondary" id="btnCancelAppReason">Cancel</button>
                                             </div>
                                         </div>
@@ -2294,114 +2345,93 @@
                 <!-- ==============================================
                      PANEL 3: PAYMENTS TO VERIFY
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-payments">
-                    <!-- Section Header + Total Verified Pill -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-payments">
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">Payments to verify</h1>
-                            <p class="section-subtitle">Cross-check each reference number in your Calzada GCash transaction history before publishing live.</p>
+                            <p class="section-subtitle">Check each reference number in your GCash transaction history before marking a business live.</p>
                         </div>
-                        <div class="inline-flex items-center gap-2.5 rounded-xl bg-blue-50/70 border border-blue-200 px-4 py-2.5 self-start sm:self-auto">
-                            <i class="ti ti-coins text-lg text-[#1F69B8]"></i>
-                            <div>
-                                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Collected so far</div>
-                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8]" id="paymentsHeaderCollected">₱0</div>
-                            </div>
+                        <div style="font-size: 13.5px; color: var(--navy-muted);">
+                            Collected so far: <strong id="paymentsHeaderCollected" style="color: var(--navy-dark); font-family: 'Sora', sans-serif;">₱0</strong>
                         </div>
                     </div>
 
                     <div id="paymentsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Master-Detail Workbench -->
                     <div class="master-detail-layout">
-                        <!-- Left: Scrollable Queue Column -->
-                        <div class="list-col lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto pr-1" id="paymentsListCol">
-                            <div id="paymentsListContainer" class="flex flex-col gap-2.5"></div>
+                        <!-- Left: Queue Column -->
+                        <div class="list-col" id="paymentsListCol">
+                            <div id="paymentsListContainer" class="flex flex-col gap-2"></div>
                             <div id="paymentsEmptyState" class="flat-card text-center text-slate-500 text-sm py-10 px-4" style="display: none;">
-                                <i class="ti ti-receipt-off text-2xl text-slate-400 block mb-1.5"></i>
-                                No payments awaiting verification.
+                                No payments waiting for verification.
                             </div>
                         </div>
 
-                        <!-- Right: Side-by-Side Receipt & Verification Inspector -->
+                        <!-- Right: Detail Column -->
                         <div class="detail-col">
-                            <div class="flat-card p-0 overflow-hidden" id="paymentDetailPanel">
-                                <div id="paymentDetailEmptyPlaceholder" class="text-center text-slate-500 py-14 px-4 text-sm">
-                                    <i class="ti ti-receipt text-2xl text-slate-400 block mb-2"></i>
-                                    Select a payment from the left queue to inspect its GCash receipt and reference number.
+                            <div class="flat-card" id="paymentDetailPanel">
+                                <div id="paymentDetailEmptyPlaceholder" style="text-align: center; color: var(--navy-subtle); padding: 48px 0; font-size: 13.5px;">
+                                    Select a payment from the left to inspect its receipt.
                                 </div>
 
                                 <div id="paymentDetailContent" style="display: none;">
-                                    <!-- Top Identity Header -->
-                                    <div class="detail-header-row p-5 m-0 border-b border-slate-200 bg-slate-50/70">
+                                    <div class="detail-header-row" style="padding-bottom: 14px; border-bottom: 1px solid var(--border-color);">
                                         <div>
                                             <h2 class="detail-title" id="paymentDetailBusName">--</h2>
-                                            <div class="detail-subtitle mt-1" id="paymentDetailMetaLine">--</div>
+                                            <div class="detail-subtitle" id="paymentDetailMetaLine">--</div>
                                         </div>
-                                        <div class="status-line rounded-full bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1">
+                                        <div class="status-line">
                                             <span class="status-dot amber"></span>
                                             <span>Under review</span>
                                         </div>
                                     </div>
 
-                                    <!-- Side-by-Side Comparison Grid: Receipt Screenshot (Left) vs. Data + Checklist (Right) -->
-                                    <div class="p-5 grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
-                                        <!-- Left 5 Cols: Tall Receipt Viewer -->
+                                    <!-- Side-by-side Receipt & Verification Details -->
+                                    <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start" style="margin-top: 16px;">
                                         <div class="xl:col-span-5">
-                                            <div class="flex items-center justify-between mb-1.5">
-                                                <span class="field-label">GCash Receipt Screenshot</span>
-                                                <span class="text-xs font-semibold text-[#1F69B8] inline-flex items-center gap-1">
-                                                    <i class="ti ti-zoom-in"></i> Click image to zoom
-                                                </span>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                                <span class="field-label">GCash Receipt</span>
+                                                <span style="font-size: 12px; color: var(--brand-blue-dark); font-weight: 500;">Click to zoom</span>
                                             </div>
-                                            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-900/5 cursor-pointer flex items-center justify-center h-[360px] hover:border-[#378ADD] transition-colors" id="btnZoomReceipt" title="Click to open full-screen receipt">
-                                                <img id="paymentReceiptThumb" src="" alt="Payment Receipt" class="max-h-[350px] max-w-full object-contain">
+                                            <div class="media-box" style="height: 300px; cursor: pointer; background: #F8FAFC;" id="btnZoomReceipt" title="Click to zoom receipt">
+                                                <img id="paymentReceiptThumb" src="" alt="Payment Receipt" style="object-fit: contain;">
                                             </div>
                                         </div>
 
-                                        <!-- Right 7 Cols: Transaction Details + Mandatory Safety Checklist -->
-                                        <div class="xl:col-span-7 space-y-4">
-                                            <!-- Highlighted Reference Number & Amount Box -->
-                                            <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="xl:col-span-7">
+                                            <div class="detail-fields-grid" style="margin-top: 0;">
                                                 <div class="field-group">
-                                                    <span class="field-label">Selected Plan</span>
-                                                    <span class="field-val text-sm font-bold text-[#042C53] mt-0.5" id="paymentDetailPlan">--</span>
+                                                    <span class="field-label">Plan</span>
+                                                    <span class="field-val" id="paymentDetailPlan">--</span>
                                                 </div>
                                                 <div class="field-group">
-                                                    <span class="field-label">Amount Due</span>
-                                                    <span class="field-val font-['Sora'] text-2xl font-bold text-[#1F69B8]" id="paymentDetailAmount">--</span>
+                                                    <span class="field-label">Amount Expected</span>
+                                                    <span class="field-val" id="paymentDetailAmount" style="font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 700;">--</span>
                                                 </div>
-                                                <div class="field-group sm:col-span-2 pt-3 border-t border-slate-200/80">
-                                                    <span class="field-label">GCash Reference No. (Full)</span>
-                                                    <div class="ref-copy-row mt-1 flex items-center justify-between bg-white border border-slate-200 rounded-lg px-3 py-2">
-                                                        <span class="field-val font-mono text-base font-bold tracking-wider text-[#042C53] select-all" id="paymentDetailRef">--</span>
-                                                        <button type="button" class="btn-copy-ref inline-flex items-center gap-1" id="btnCopyPaymentRef">
-                                                            <i class="ti ti-copy"></i> Copy
-                                                        </button>
+                                                <div class="field-group" style="grid-column: span 2;">
+                                                    <span class="field-label">GCash Reference No.</span>
+                                                    <div class="ref-copy-row" style="margin-top: 2px;">
+                                                        <span class="field-val" id="paymentDetailRef" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 15px; font-weight: 600;">--</span>
+                                                        <button type="button" class="btn-copy-ref" id="btnCopyPaymentRef">Copy</button>
                                                     </div>
                                                 </div>
-                                                <div class="field-group sm:col-span-2">
-                                                    <span class="field-label">Receipt Submitted At</span>
-                                                    <span class="field-val text-xs text-slate-600 mt-0.5" id="paymentDetailSentAt">--</span>
+                                                <div class="field-group" style="grid-column: span 2;">
+                                                    <span class="field-label">Sent At</span>
+                                                    <span class="field-val" id="paymentDetailSentAt">--</span>
                                                 </div>
                                             </div>
 
-                                            <!-- Mandatory 3-Point GCash Verification Checklist -->
-                                            <div class="gcash-checklist m-0 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
-                                                <div class="text-xs font-bold uppercase tracking-wider text-[#042C53] mb-1 flex items-center gap-1.5">
-                                                    <i class="ti ti-shield-check text-[#378ADD] text-base"></i>
-                                                    <span>Mandatory GCash Verification Checklist</span>
-                                                </div>
-                                                <p class="text-xs text-slate-500 mb-2">Check both boxes below after confirming the receipt in the official Calzada GCash wallet:</p>
-                                                <label class="checklist-item bg-white border border-slate-200 rounded-lg px-3 py-2.5 font-medium hover:border-[#378ADD] transition-colors">
+                                            <div class="gcash-checklist" style="margin-bottom: 0;">
+                                                <strong style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--navy-muted);">GCash Verification Checklist</strong>
+                                                <label class="checklist-item">
                                                     <input type="checkbox" id="chkRefHistory">
                                                     <span>The reference no. is in your GCash transaction history</span>
                                                 </label>
-                                                <label class="checklist-item bg-white border border-slate-200 rounded-lg px-3 py-2.5 font-medium hover:border-[#378ADD] transition-colors">
+                                                <label class="checklist-item">
                                                     <input type="checkbox" id="chkAmountMatch">
                                                     <span id="labelAmountMatch">The amount matches the required amount</span>
                                                 </label>
-                                                <label class="checklist-item bg-slate-100/80 border border-slate-200 rounded-lg px-3 py-2 text-slate-600">
+                                                <label class="checklist-item" style="opacity: 0.75; cursor: default;">
                                                     <input type="checkbox" id="chkRefUnique" disabled>
                                                     <span id="labelRefUnique">This reference no. was not used by another business</span>
                                                 </label>
@@ -2410,49 +2440,46 @@
                                     </div>
 
                                     <!-- Decision Action Bar -->
-                                    <div class="detail-action-bar m-0 border-t border-slate-200 bg-slate-50 p-5">
-                                        <div class="flex flex-wrap items-center justify-between gap-3">
+                                    <div class="detail-action-bar">
+                                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                             <button type="button" class="btn-admin-success" id="btnMarkPaidAndLive" disabled>
-                                                <i class="ti ti-circle-check"></i>
-                                                <span>Mark as paid and go live</span>
+                                                Mark as paid and go live
                                             </button>
                                             <button type="button" class="btn-admin-danger" id="btnToggleDoesntMatch">
-                                                <i class="ti ti-alert-triangle"></i>
-                                                <span>Doesn't match</span>
+                                                Doesn't match
                                             </button>
                                         </div>
                                         <div class="action-inline-error" id="paymentActionInlineError"></div>
 
-                                        <div class="text-xs text-slate-500 mt-2.5">
-                                            <i class="ti ti-camera mr-1 text-slate-400"></i>Approving a <strong>Listed + 360</strong> or <strong>Featured</strong> plan automatically queues a 360° shoot in <strong>360 Shoots</strong>.
+                                        <div style="font-size: 12px; color: var(--navy-muted); margin-top: 8px;">
+                                            Approving a Listed + 360 or Featured plan also queues a 360 shoot in 360 Shoots.
                                         </div>
 
-                                        <!-- Doesn't Match Pinkish Panel -->
                                         <div class="not-matched-panel" id="panelDoesntMatch">
-                                            <strong class="block text-xs font-bold uppercase tracking-wider text-red-900">Send back to owner (Select discrepancy):</strong>
-                                            <div class="reason-options grid grid-cols-1 sm:grid-cols-2 gap-2 my-3">
-                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                            <strong style="font-size: 13px; color: #991B1B;">Send back to owner (Select reason):</strong>
+                                            <div class="reason-options">
+                                                <label class="reason-option">
                                                     <input type="radio" name="notMatchedReason" value="Amount is different" checked>
                                                     <span>Amount is different</span>
                                                 </label>
-                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                <label class="reason-option">
                                                     <input type="radio" name="notMatchedReason" value="Reference no. not found">
                                                     <span>Reference no. not found</span>
                                                 </label>
-                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                <label class="reason-option">
                                                     <input type="radio" name="notMatchedReason" value="Receipt is unclear">
                                                     <span>Receipt is unclear</span>
                                                 </label>
-                                                <label class="reason-option bg-white border border-red-200 rounded-lg px-3 py-2">
+                                                <label class="reason-option">
                                                     <input type="radio" name="notMatchedReason" value="Other">
                                                     <span>Other</span>
                                                 </label>
                                             </div>
-                                            <textarea class="admin-textarea bg-white" id="notMatchedTextarea" rows="2" placeholder="Add specific guidance so the owner can re-upload the correct receipt..."></textarea>
+                                            <textarea class="admin-textarea" id="notMatchedTextarea" rows="2" placeholder="Additional note for the business owner (optional)..."></textarea>
                                             <div class="action-inline-error" id="paymentDoesntMatchInlineError"></div>
-                                            <div class="flex items-center gap-2 mt-2">
+                                            <div style="display: flex; gap: 8px;">
                                                 <button type="button" class="btn-admin-primary" id="btnSendBackToOwner" style="background: var(--dot-red); border-color: var(--dot-red);">
-                                                    <i class="ti ti-arrow-back-up"></i> Send back to owner
+                                                    Send back to owner
                                                 </button>
                                                 <button type="button" class="btn-admin-secondary" id="btnCancelDoesntMatch">Cancel</button>
                                             </div>
@@ -2467,37 +2494,27 @@
                 <!-- ==============================================
                      PANEL: 360 SHOOTS
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-shoots">
-                    <!-- Section Header + Workflow Guide -->
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-shoots">
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">360 Shoots</h1>
-                            <p class="section-subtitle">Track eligible establishments, schedule on-site photography visits, and publish 2:1 equirectangular virtual tours.</p>
-                        </div>
-                        <div class="inline-flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3.5 py-2 text-xs text-slate-600 self-start lg:self-auto">
-                            <i class="ti ti-camera text-[#378ADD] text-base"></i>
-                            <span>Eligible plans: <strong>Listed + 360</strong> &amp; <strong>Featured</strong></span>
+                            <p class="section-subtitle">Schedule on-site visits and upload 2:1 equirectangular virtual tours for Listed + 360 and Featured plans.</p>
                         </div>
                     </div>
 
-                    <!-- Filter Tabs: Pending, Scheduled, Published -->
                     <div class="admin-underline-tabs">
-                        <button type="button" class="admin-underline-tab active inline-flex items-center gap-2" data-shoot-tab="pending" id="shootTabPending">
-                            <i class="ti ti-clock-hour-4 text-amber-600"></i>
-                            <span>Pending Schedule</span>
+                        <button type="button" class="admin-underline-tab active" data-shoot-tab="pending" id="shootTabPending">
+                            Pending
                         </button>
-                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" data-shoot-tab="scheduled" id="shootTabScheduled">
-                            <i class="ti ti-calendar-event text-[#378ADD]"></i>
-                            <span>Scheduled Visits</span>
+                        <button type="button" class="admin-underline-tab" data-shoot-tab="scheduled" id="shootTabScheduled">
+                            Scheduled
                         </button>
-                        <button type="button" class="admin-underline-tab inline-flex items-center gap-2" data-shoot-tab="published" id="shootTabPublished">
-                            <i class="ti ti-360-view text-emerald-600"></i>
-                            <span>Published Tours</span>
+                        <button type="button" class="admin-underline-tab" data-shoot-tab="published" id="shootTabPublished">
+                            Published
                         </button>
                     </div>
 
-                    <!-- Shoots Table Card -->
-                    <div class="admin-table-container shadow-none">
+                    <div class="admin-table-container">
                         <table class="admin-table">
                             <thead>
                                 <tr>
@@ -2521,28 +2538,25 @@
                 <!-- ==============================================
                      PANEL 4: BUSINESSES
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-businesses">
-                    <!-- Section Header + Search Toolbar -->
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-businesses">
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">Businesses</h1>
-                            <p class="section-subtitle">Master directory to manage all listings, 360° shoot statuses, and map visibility across Calamba.</p>
+                            <p class="section-subtitle">All registered establishments across Calamba. Click any row to view details or manage map visibility.</p>
                         </div>
-
-                        <div class="bus-toolbar m-0 w-full lg:w-96">
-                            <label class="bus-search max-w-none w-full bg-slate-50/70">
+                        <div class="bus-toolbar" style="margin: 0; width: 100%; max-width: 360px;">
+                            <label class="bus-search" style="max-width: none;">
                                 <i class="ti ti-search" aria-hidden="true"></i>
                                 <span class="sr-only">Search businesses</span>
-                                <input type="search" id="busSearchInput" placeholder="Search by name, owner email, or address..." autocomplete="off">
+                                <input type="search" id="busSearchInput" placeholder="Search by name, owner email, or address…" autocomplete="off">
                             </label>
                         </div>
                     </div>
 
                     <div id="businessesLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Filter by lifecycle status -->
                     <div class="admin-underline-tabs overflow-x-auto">
-                        <button type="button" class="admin-underline-tab active" data-bus-filter="all">All Listings</button>
+                        <button type="button" class="admin-underline-tab active" data-bus-filter="all">All</button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="approved">Live</button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="awaiting_payment">Awaiting payment</button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="pending">Pending</button>
@@ -2551,16 +2565,15 @@
                     </div>
 
                     <div class="bus-layout">
-                        <!-- Businesses Master Table -->
                         <div class="admin-table-container bus-table-wrap">
                             <table class="admin-table bus-table">
                                 <thead>
                                     <tr>
-                                        <th>Business &amp; Tier</th>
+                                        <th>Business</th>
                                         <th>Status</th>
-                                        <th>Paid Date</th>
-                                        <th>360° Shoot</th>
-                                        <th>Featured Until</th>
+                                        <th>Paid</th>
+                                        <th>360 shoot</th>
+                                        <th>Featured until</th>
                                         <th><span class="sr-only">Manage</span></th>
                                     </tr>
                                 </thead>
@@ -2568,93 +2581,80 @@
                                     <!-- Populated dynamically -->
                                 </tbody>
                             </table>
-                            <div id="busTableEmpty" class="bus-table-empty" hidden>No businesses match your current filter or search query.</div>
+                            <div id="busTableEmpty" class="bus-table-empty" hidden>No businesses match this filter.</div>
                         </div>
 
                         <!-- Right-Hand Business Inspector Card -->
                         <aside class="flat-card bus-detail-card" id="businessRowDetailCard" style="display: none;" aria-label="Business details">
-                            <div class="bus-detail-head bg-slate-50/80">
+                            <div class="bus-detail-head">
                                 <div style="min-width: 0;">
-                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-0.5">Selected Listing</span>
                                     <h2 class="detail-title" id="busDetailName">--</h2>
-                                    <div class="status-line bus-detail-status mt-1">
+                                    <div class="status-line bus-detail-status">
                                         <span class="status-dot green" id="busDetailDot"></span>
                                         <span id="busDetailSub">--</span>
                                     </div>
                                 </div>
-                                <button type="button" class="bus-icon-btn" id="btnCloseBusDetail" aria-label="Close details" title="Close Inspector">
+                                <button type="button" class="bus-icon-btn" id="btnCloseBusDetail" aria-label="Close details">
                                     <i class="ti ti-x"></i>
                                 </button>
                             </div>
 
                             <dl class="bus-detail-fields">
-                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">Owner</dt>
-                                <dd class="font-medium" id="busDetailOwner">--</dd>
-                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">Address</dt>
+                                <dt>Owner</dt>
+                                <dd id="busDetailOwner">--</dd>
+                                <dt>Address</dt>
                                 <dd id="busDetailAddress">--</dd>
-                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">Contact</dt>
+                                <dt>Contact</dt>
                                 <dd id="busDetailContact">--</dd>
-                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">360° Shoot</dt>
-                                <dd class="font-medium" id="busDetailShoot">--</dd>
-                                <dt class="font-semibold text-xs uppercase tracking-wider text-slate-400">About</dt>
-                                <dd class="text-slate-600 leading-relaxed" id="busDetailDesc">--</dd>
+                                <dt>360 shoot</dt>
+                                <dd id="busDetailShoot">--</dd>
+                                <dt>About</dt>
+                                <dd id="busDetailDesc">--</dd>
                             </dl>
 
                             <div class="bus-detail-links">
-                                <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">
-                                    <i class="ti ti-map-pin" style="color: var(--brand-blue);"></i>
-                                    <span>View on map</span>
-                                </a>
-                                <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">
-                                    <i class="ti ti-camera" style="color: var(--brand-blue);"></i>
-                                    <span>360° shoots</span>
-                                </a>
+                                <a href="#" class="btn-admin-secondary" id="busDetailViewLink" target="_blank" rel="noopener">View on map</a>
+                                <a href="#shoots" class="btn-admin-secondary" id="busDetailShootLink">360 shoots</a>
                             </div>
 
-                            <!-- Hide from map (in-page confirmation, no confirm()) -->
+                            <!-- Hide from map -->
                             <div class="bus-detail-section">
                                 <div id="busHideInitialGroup">
                                     <div class="bus-action-row">
                                         <div class="bus-action-text">
                                             <strong>Hide from map</strong>
-                                            <span>Reverts listing to pending and emails a moderation note to the owner. Reversible.</span>
+                                            <span>Reverts to pending and emails the owner. Reversible.</span>
                                         </div>
-                                        <button type="button" class="btn-admin-secondary" id="btnTriggerHideFromMap">
-                                            <i class="ti ti-eye-off"></i>
-                                            <span>Hide</span>
-                                        </button>
+                                        <button type="button" class="btn-admin-secondary" id="btnTriggerHideFromMap">Hide</button>
                                     </div>
                                 </div>
                                 <div class="action-reason-box" id="busHideConfirmBox">
                                     <strong style="font-size: 13px; color: #991B1B;">Reason for hiding from map:</strong>
-                                    <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Explain why this listing is being hidden (visible to the owner)..."></textarea>
+                                    <textarea class="admin-textarea" id="busHideReasonText" rows="2" placeholder="Explain why this business is being hidden from the map..."></textarea>
                                     <div class="action-inline-error" id="busHideInlineError"></div>
                                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                        <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide from Map</button>
+                                        <button type="button" class="btn-admin-primary" id="btnConfirmHideFromMap" style="background: var(--dot-red); border-color: var(--dot-red);">Confirm Hide</button>
                                         <button type="button" class="btn-admin-secondary" id="btnCancelHideFromMap">Cancel</button>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Delete permanently (type the name to confirm) -->
+                            <!-- Delete permanently -->
                             <div class="bus-danger-zone">
                                 <div id="busDeleteInitialGroup" class="bus-action-row">
                                     <div class="bus-action-text">
                                         <strong class="text-danger-strong">Delete permanently</strong>
-                                        <span>Removes the listing, posts, reviews, 360° photos, and uploaded images. Payment records stay marked "(deleted)". Cannot be undone.</span>
+                                        <span>Removes the listing, posts, reviews, 360 photos and uploaded images. Payment records stay marked "(deleted)". Cannot be undone.</span>
                                     </div>
-                                    <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">
-                                        <i class="ti ti-trash"></i>
-                                        <span>Delete</span>
-                                    </button>
+                                    <button type="button" class="btn-admin-danger" id="btnTriggerDeleteBusiness">Delete</button>
                                 </div>
                                 <div class="bus-delete-confirm" id="busDeleteConfirmBox" style="display: none;">
                                     <strong class="text-danger-strong">Delete <span id="busDeleteNameLabel">this business</span> permanently?</strong>
-                                    <p class="bus-delete-note">Its listing, posts, reviews, 360° photos, and uploaded images will be removed for good. The owner is emailed the reason below.</p>
+                                    <p class="bus-delete-note">Its listing, posts, reviews, 360 photos and uploaded images will be removed for good. The owner is emailed the reason below.</p>
                                     <label for="busDeleteReasonText" class="bus-field-label">Reason (emailed to the owner)</label>
-                                    <textarea class="admin-textarea bg-white" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
-                                    <label for="busDeleteConfirmName" class="bus-field-label">Type the exact business name to confirm</label>
-                                    <input type="text" class="admin-textarea bg-white" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
+                                    <textarea class="admin-textarea" id="busDeleteReasonText" rows="2" maxlength="500"></textarea>
+                                    <label for="busDeleteConfirmName" class="bus-field-label">Type the business name to confirm</label>
+                                    <input type="text" class="admin-textarea" id="busDeleteConfirmName" autocomplete="off" spellcheck="false" style="height: 40px;">
                                     <div class="action-inline-error" id="busDeleteInlineError"></div>
                                     <div style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
                                         <button type="button" class="btn-admin-primary" id="btnConfirmDeleteBusiness" style="background: var(--dot-red); border-color: var(--dot-red);" disabled>Delete permanently</button>
@@ -2669,104 +2669,84 @@
                 <!-- ==============================================
                      PANEL 5: POSTS
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-posts">
-                    <!-- Section Header + Search Toolbar -->
-                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-posts">
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">Posts</h1>
-                            <p class="section-subtitle">Moderate business announcements, pin featured updates for 7 days, or hide policy-violating posts.</p>
+                            <p class="section-subtitle">Business updates and promotions. Hide posts that break rules or pin featured updates for 7 days.</p>
                         </div>
-
-                        <div class="bus-toolbar m-0 w-full lg:w-80">
-                            <label class="bus-search max-w-none w-full bg-slate-50/70">
+                        <div class="bus-toolbar" style="margin: 0; width: 100%; max-width: 320px;">
+                            <label class="bus-search" style="max-width: none;">
                                 <i class="ti ti-search" aria-hidden="true"></i>
                                 <span class="sr-only">Search posts</span>
-                                <input type="search" id="postSearchInput" placeholder="Search by business or caption..." autocomplete="off">
+                                <input type="search" id="postSearchInput" placeholder="Search by business or caption…" autocomplete="off">
                             </label>
                         </div>
                     </div>
 
-                    <!-- Filter Tabs for Posts -->
                     <div class="admin-underline-tabs overflow-x-auto">
-                        <button type="button" class="admin-underline-tab active" data-post-filter="all">All Updates</button>
+                        <button type="button" class="admin-underline-tab active" data-post-filter="all">All</button>
                         <button type="button" class="admin-underline-tab" data-post-filter="active">Active</button>
-                        <button type="button" class="admin-underline-tab" data-post-filter="pinned">Pinned (7d)</button>
+                        <button type="button" class="admin-underline-tab" data-post-filter="pinned">Pinned</button>
                         <button type="button" class="admin-underline-tab" data-post-filter="hidden">Hidden</button>
                     </div>
 
                     <div id="postsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <div id="postsListContainer" class="grid grid-cols-1 xl:grid-cols-2 gap-4"></div>
-                    <div id="postsEmptyState" class="flat-card text-center text-slate-500 py-10 px-4 text-sm" style="display: none;">
-                        <i class="ti ti-news-off text-2xl text-slate-400 block mb-1.5"></i>
-                        No business updates match the current filter.
+                    <div id="postsListContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                    <div id="postsEmptyState" class="flat-card" style="text-align: center; color: var(--navy-muted); padding: 40px 20px; display: none; font-size: 13.5px;">
+                        No business posts match the current filter.
                     </div>
                 </section>
 
                 <!-- ==============================================
                      PANEL 6: REVIEWS
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-reviews">
-                    <!-- Header + Rating Summary Pill -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-reviews">
+                    <div class="page-head">
                         <div>
                             <h1 class="section-title">Reviews</h1>
-                            <p class="section-subtitle">Real-time moderation and quality monitoring of commuter place reviews. Click any truncated review to expand full text.</p>
+                            <p class="section-subtitle">Commuter place reviews. Click any truncated comment to read the full text.</p>
                         </div>
-                        <div id="reviewsSummaryLine" class="inline-flex items-center gap-2 rounded-xl bg-amber-50/80 border border-amber-200 px-4 py-2.5 font-['Sora'] text-sm font-bold text-[#042C53] self-start sm:self-auto">
+                        <div id="reviewsSummaryLine" style="font-size: 13.5px; color: var(--navy-muted); font-weight: 500;">
                             0.0 average · 0 reviews
                         </div>
                     </div>
 
-                    <!-- Filter Controls -->
-                    <div class="flat-card p-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
-                            <div class="sm:col-span-2 lg:col-span-2">
-                                <label for="reviewFilterPlace" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Establishment</label>
-                                <select id="reviewFilterPlace" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
-                                    <option value="all">All Places</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="reviewFilterStars" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Star Rating</label>
-                                <select id="reviewFilterStars" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
-                                    <option value="all">All Stars (1★ – 5★)</option>
-                                    <option value="5">★★★★★ (5 Stars)</option>
-                                    <option value="4">★★★★☆ (4 Stars)</option>
-                                    <option value="3">★★★☆☆ (3 Stars)</option>
-                                    <option value="2">★★☆☆☆ (2 Stars - Low)</option>
-                                    <option value="1">★☆☆☆☆ (1 Star - Critical)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="reviewFilterComment" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Review Content</label>
-                                <select id="reviewFilterComment" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
-                                    <option value="all">All Reviews</option>
-                                    <option value="has_comment">Has Written Comment</option>
-                                    <option value="no_comment">Star Rating Only</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="reviewFilterDate" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Date Range</label>
-                                <select id="reviewFilterDate" class="admin-select w-full h-10 rounded-lg border border-slate-200 px-3">
-                                    <option value="all">All Time</option>
-                                    <option value="7">Last 7 Days</option>
-                                    <option value="30">Last 30 Days</option>
-                                </select>
-                            </div>
-                        </div>
+                    <!-- Clean inline filter bar -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px;">
+                        <select id="reviewFilterPlace" class="admin-select" style="min-width: 190px;" aria-label="Filter by place">
+                            <option value="all">All places</option>
+                        </select>
+                        <select id="reviewFilterStars" class="admin-select" aria-label="Filter by rating">
+                            <option value="all">All ratings</option>
+                            <option value="5">5 ★</option>
+                            <option value="4">4 ★</option>
+                            <option value="3">3 ★</option>
+                            <option value="2">2 ★</option>
+                            <option value="1">1 ★</option>
+                        </select>
+                        <select id="reviewFilterComment" class="admin-select" aria-label="Filter by comment">
+                            <option value="all">With or without comment</option>
+                            <option value="has_comment">With comment</option>
+                            <option value="no_comment">Rating only</option>
+                        </select>
+                        <select id="reviewFilterDate" class="admin-select" aria-label="Filter by date">
+                            <option value="all">All time</option>
+                            <option value="7">Last 7 days</option>
+                            <option value="30">Last 30 days</option>
+                        </select>
                     </div>
 
                     <div id="reviewsLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Reviews Table -->
                     <div class="admin-table-container">
                         <table class="admin-table" id="reviewsTable">
                             <thead>
                                 <tr>
-                                    <th>Establishment</th>
+                                    <th>Place</th>
                                     <th>Rating</th>
-                                    <th style="min-width: 280px;">Commuter Feedback</th>
+                                    <th style="min-width: 260px;">Comment</th>
                                     <th>Reviewer</th>
                                     <th>Date</th>
                                     <th>Status</th>
@@ -2777,9 +2757,8 @@
                                 <!-- Populated dynamically -->
                             </tbody>
                         </table>
-                        <div id="reviewsEmptyState" class="p-10 text-center text-sm text-slate-500" style="display: none;">
-                            <i class="ti ti-message-off text-2xl text-slate-400 block mb-1.5"></i>
-                            No reviews match the current filters.
+                        <div id="reviewsEmptyState" style="padding: 40px 20px; text-align: center; color: var(--navy-muted); font-size: 13.5px; display: none;">
+                            No reviews match the selected filters.
                         </div>
                     </div>
                 </section>
@@ -2787,21 +2766,18 @@
                 <!-- ==============================================
                      PANEL 7: ACTIVITY
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-activity">
-                    <!-- Section Header + Category Filter -->
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-slate-200 rounded-xl p-5">
+                <section class="admin-panel" id="panel-activity">
+                    <div class="page-head">
                         <div>
-                            <h1 class="section-title">Activity Log</h1>
-                            <p class="section-subtitle">Real-time audit trail of administrator decisions, business submissions, and commuter moderation events.</p>
+                            <h1 class="section-title">Activity</h1>
+                            <p class="section-subtitle">Chronological audit trail of applications, payments, listings, and moderation events.</p>
                         </div>
-
-                        <div class="flex items-center gap-2.5 self-start sm:self-auto">
-                            <label for="activityFilterType" class="text-xs font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">Filter Event:</label>
-                            <select id="activityFilterType" class="admin-select min-w-[200px] h-10 rounded-lg border border-slate-200 px-3">
-                                <option value="all">All Events</option>
+                        <div>
+                            <select id="activityFilterType" class="admin-select" style="min-width: 180px;" aria-label="Filter activity category">
+                                <option value="all">All categories</option>
                                 <option value="application">Applications</option>
                                 <option value="payment">Payments</option>
-                                <option value="business">Businesses &amp; 360°</option>
+                                <option value="business">Businesses &amp; 360</option>
                                 <option value="review">Reviews</option>
                                 <option value="post">Posts</option>
                             </select>
@@ -2810,11 +2786,9 @@
 
                     <div id="activityLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
-                    <!-- Activity Timeline Feed Container -->
-                    <div class="flat-card p-0 overflow-hidden">
-                        <div id="activityFeedContainer" class="divide-y divide-slate-200"></div>
-                        <div id="activityEmptyState" class="p-10 text-center text-sm text-slate-500" style="display: none;">
-                            <i class="ti ti-activity-heartbeat text-2xl text-slate-400 block mb-1.5"></i>
+                    <div class="panel-card">
+                        <div id="activityFeedContainer"></div>
+                        <div id="activityEmptyState" style="text-align: center; color: var(--navy-muted); padding: 40px 20px; font-size: 13.5px; display: none;">
                             No activity records found for this category.
                         </div>
                     </div>
@@ -2823,112 +2797,78 @@
                 <!-- ==============================================
                      PANEL 8: SETTINGS
                      ============================================== -->
-                <section class="admin-panel space-y-5" id="panel-settings">
-                    <div class="bg-white border border-slate-200 rounded-xl p-5">
-                        <h1 class="section-title">Settings</h1>
-                        <p class="section-subtitle">Administrator credentials, session controls, and active Calzada platform configuration.</p>
+                <section class="admin-panel" id="panel-settings">
+                    <div class="page-head">
+                        <div>
+                            <h1 class="section-title">Settings</h1>
+                            <p class="section-subtitle">Administrator account details and active platform parameters.</p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                        <!-- Left 6 Cols: Administrator Profile & Session -->
-                        <div class="lg:col-span-6 space-y-5">
-                            <div class="flat-card space-y-4">
-                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                    <div class="flex items-center gap-3">
-                                        <div class="h-11 w-11 rounded-xl bg-blue-50 border border-blue-200 text-[#1F69B8] flex items-center justify-center text-xl">
-                                            <i class="ti ti-shield-lock"></i>
-                                        </div>
-                                        <div>
-                                            <h2 class="font-['Sora'] text-base font-bold text-[#042C53]">Administrator Profile</h2>
-                                            <p class="text-xs text-slate-500">Verified Firebase Custom Claim Identity</p>
-                                        </div>
-                                    </div>
-                                    <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-700">
-                                        <i class="ti ti-circle-check"></i> Admin Active
+                        <!-- Left: Administrator Account -->
+                        <div class="lg:col-span-6">
+                            <div class="kv-card">
+                                <div class="panel-card-head">
+                                    <h2 class="panel-card-title">Administrator account</h2>
+                                    <span class="status-line" style="font-size: 12px;">
+                                        <span class="status-dot green"></span>
+                                        <span>Active session</span>
                                     </span>
                                 </div>
-
-                                <div class="space-y-3 text-sm">
-                                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-2">
-                                        <div>
-                                            <span class="field-label block">Authenticated Email</span>
-                                            <span class="field-val font-semibold text-[#042C53]" id="settingsEmail">--</span>
-                                        </div>
-                                        <i class="ti ti-mail text-slate-400 text-lg"></i>
-                                    </div>
-
-                                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-2">
-                                        <div>
-                                            <span class="field-label block">Security Privilege Claim</span>
-                                            <span class="field-val font-mono text-xs font-bold text-[#1F69B8]">System Administrator ({ admin: true })</span>
-                                        </div>
-                                        <i class="ti ti-key text-slate-400 text-lg"></i>
-                                    </div>
-
-                                    <div class="rounded-lg bg-slate-50 border border-slate-200 p-3 flex items-center justify-between gap-2">
-                                        <div class="min-w-0">
-                                            <span class="field-label block">Firebase Account UID</span>
-                                            <span class="field-val font-mono text-xs text-slate-700 select-all" id="settingsUid">--</span>
-                                        </div>
-                                        <button type="button" class="btn-copy-ref shrink-0" id="btnCopyAdminUid">Copy UID</button>
-                                    </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Email</span>
+                                    <span class="kv-val" id="settingsEmail">--</span>
                                 </div>
-
-                                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                                    <span class="text-xs text-slate-500">Sign out of this administrator session on this device.</span>
+                                <div class="kv-row">
+                                    <span class="kv-label">Role</span>
+                                    <span class="kv-val">Admin (custom claim)</span>
+                                </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Account UID</span>
+                                    <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                        <span class="kv-val" id="settingsUid" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; font-weight: 500;">--</span>
+                                        <button type="button" class="btn-copy-ref" id="btnCopyAdminUid">Copy UID</button>
+                                    </span>
+                                </div>
+                                <div class="kv-row" style="background: #F8FAFC;">
+                                    <span style="font-size: 12.5px; color: var(--navy-muted);">End your administrator session on this browser.</span>
                                     <button type="button" class="btn-admin-danger" id="settingsSignOutBtn">
-                                        <i class="ti ti-logout"></i>
-                                        <span>Sign Out of Admin Portal</span>
+                                        Sign Out
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right 6 Cols: Active Platform Rules & Plan Reference -->
-                        <div class="lg:col-span-6 space-y-5">
-                            <div class="flat-card space-y-4">
-                                <div class="border-b border-slate-100 pb-3">
-                                    <h2 class="font-['Sora'] text-base font-bold text-[#042C53]">Platform Rules &amp; Tier Reference</h2>
-                                    <p class="text-xs text-slate-500 mt-0.5">Active parameters used by automated pre-flight checks and GCash verification.</p>
+                        <!-- Right: Platform Configuration Reference -->
+                        <div class="lg:col-span-6">
+                            <div class="kv-card">
+                                <div class="panel-card-head">
+                                    <h2 class="panel-card-title">Platform rules &amp; plans</h2>
                                 </div>
-
-                                <div class="space-y-3">
-                                    <div class="rounded-lg border border-slate-200 p-3.5">
-                                        <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Listing Plans (CALZADA_PLANS)</div>
-                                        <div class="grid grid-cols-3 gap-2 text-center">
-                                            <div class="rounded-md bg-slate-50 border border-slate-200 p-2.5">
-                                                <div class="text-xs font-bold text-[#042C53]">Listed</div>
-                                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8] mt-0.5">₱59</div>
-                                                <div class="text-[11px] text-slate-500">Map Pin + Profile</div>
-                                            </div>
-                                            <div class="rounded-md bg-slate-50 border border-slate-200 p-2.5">
-                                                <div class="text-xs font-bold text-[#042C53]">Listed + 360</div>
-                                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8] mt-0.5">₱99</div>
-                                                <div class="text-[11px] text-slate-500">Includes 360° Tour</div>
-                                            </div>
-                                            <div class="rounded-md bg-blue-50/60 border border-blue-200 p-2.5">
-                                                <div class="text-xs font-bold text-[#042C53]">Featured</div>
-                                                <div class="font-['Sora'] text-base font-bold text-[#1F69B8] mt-0.5">₱149</div>
-                                                <div class="text-[11px] text-slate-500">360° + 14d Featured</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="rounded-lg border border-slate-200 p-3.5 text-xs text-slate-600 space-y-1.5">
-                                        <div class="font-bold uppercase tracking-wider text-slate-400 mb-1">Geofence &amp; Verification Rules</div>
-                                        <div class="flex items-center justify-between">
-                                            <span>Covered Calamba Barangays:</span>
-                                            <strong class="text-[#042C53]">Brgy. Uno (Poblacion 1), Real, Halang</strong>
-                                        </div>
-                                        <div class="flex items-center justify-between">
-                                            <span>Duplicate Establishment Proximity Warning:</span>
-                                            <strong class="text-[#042C53]">≤ 30 meters</strong>
-                                        </div>
-                                        <div class="flex items-center justify-between">
-                                            <span>360° Equirectangular Aspect Ratio:</span>
-                                            <strong class="text-[#042C53]">2:1 (Up to 5 scenes, max 6000×3000)</strong>
-                                        </div>
-                                    </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Listed plan</span>
+                                    <span class="kv-val">₱59 · Map pin &amp; profile</span>
+                                </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Listed + 360 plan</span>
+                                    <span class="kv-val">₱99 · Includes 360° tour</span>
+                                </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Featured plan</span>
+                                    <span class="kv-val">₱149 · 360° tour + 14 days featured</span>
+                                </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Covered barangays</span>
+                                    <span class="kv-val">Brgy. Uno, Real, Halang</span>
+                                </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">Duplicate proximity check</span>
+                                    <span class="kv-val">Within 30 m</span>
+                                </div>
+                                <div class="kv-row">
+                                    <span class="kv-label">360° panorama ratio</span>
+                                    <span class="kv-val">2:1 equirectangular (1–5 photos)</span>
                                 </div>
                             </div>
                         </div>
@@ -3494,7 +3434,107 @@
             const headerCol = document.getElementById('paymentsHeaderCollected');
             if (headerCol) headerCol.textContent = `₱${totalCollected.toLocaleString()}`;
 
+            renderOverviewWorkspace(pendingApps, reviewPayments, pendingShoots);
             updateTabTitle();
+        }
+
+        function renderOverviewWorkspace(pendingApps, reviewPayments, pendingShoots) {
+            const needsBox = document.getElementById('overviewNeedsReviewList');
+            if (needsBox) {
+                const items = [];
+                pendingApps.slice(0, 4).forEach(b => {
+                    const planName = window.CALZADA_PLANS?.[b.plan]?.name || (b.plan || 'Listed');
+                    items.push({
+                        href: '#applications',
+                        dot: 'amber',
+                        title: b.name || 'Unnamed business',
+                        sub: `Application · ${planName} · Brgy. ${b.barangay || 'Calamba'}`,
+                        time: formatRelativeTime(b.submittedAt),
+                        action: 'Review'
+                    });
+                });
+                reviewPayments.slice(0, 4).forEach(p => {
+                    const bus = allBusinesses.find(b => b.id === p.businessId);
+                    const busName = bus ? bus.name : (p.businessName || 'Business');
+                    const last4 = p.referenceNo ? p.referenceNo.slice(-4) : '----';
+                    items.push({
+                        href: '#payments',
+                        dot: 'blue',
+                        title: busName,
+                        sub: `GCash receipt · ₱${p.amountDue} · Ref •••• ${last4}`,
+                        time: formatRelativeTime(p.submittedAt),
+                        action: 'Verify'
+                    });
+                });
+                pendingShoots.slice(0, 3).forEach(b => {
+                    items.push({
+                        href: '#shoots',
+                        dot: 'amber',
+                        title: b.name || 'Unnamed business',
+                        sub: `360° shoot to schedule · Brgy. ${b.barangay || 'Calamba'}`,
+                        time: b.paidAt ? formatRelativeTime(b.paidAt) : 'Paid',
+                        action: 'Schedule'
+                    });
+                });
+
+                if (items.length === 0) {
+                    needsBox.innerHTML = `
+                        <div style="padding: 32px 18px; text-align: center; font-size: 13px; color: var(--navy-muted);">
+                            All queues are clear. No pending applications, receipts, or unscheduled shoots.
+                        </div>
+                    `;
+                } else {
+                    needsBox.innerHTML = items.slice(0, 7).map(it => `
+                        <a href="${it.href}" class="queue-list-row">
+                            <div class="queue-row-main">
+                                <div class="queue-row-title" style="display: flex; align-items: center; gap: 8px;">
+                                    <span class="status-dot ${it.dot}"></span>
+                                    <span>${escapeHtml(it.title)}</span>
+                                </div>
+                                <div class="queue-row-sub" style="padding-left: 16px;">${escapeHtml(it.sub)}</div>
+                            </div>
+                            <div class="queue-row-right">
+                                <span>${escapeHtml(it.time)}</span>
+                                <span style="color: var(--brand-blue-dark); font-weight: 600;">${it.action} →</span>
+                            </div>
+                        </a>
+                    `).join('');
+                }
+            }
+
+            const recentBox = document.getElementById('overviewRecentActivityList');
+            if (recentBox) {
+                const recent = allActivities.slice(0, 6);
+                if (recent.length === 0) {
+                    recentBox.innerHTML = `
+                        <div style="padding: 32px 18px; text-align: center; font-size: 13px; color: var(--navy-muted);">
+                            No recent activity recorded yet.
+                        </div>
+                    `;
+                } else {
+                    recentBox.innerHTML = recent.map(a => {
+                        const readableType = EVENT_LABELS[a.event] || (a.event || 'System event').replace(/_/g, ' ');
+                        let targetHash = '#businesses';
+                        if (a.event && a.event.includes('payment')) targetHash = '#payments';
+                        else if (a.event && a.event.includes('application')) targetHash = '#applications';
+                        else if (a.event && a.event.includes('review')) targetHash = '#reviews';
+                        else if (a.event && a.event.includes('tour360')) targetHash = '#shoots';
+                        else if (a.event && a.event.includes('post')) targetHash = '#posts';
+
+                        return `
+                            <a href="${targetHash}" class="queue-list-row">
+                                <div class="queue-row-main">
+                                    <div class="queue-row-title">${escapeHtml(a.summary || readableType)}</div>
+                                    <div class="queue-row-sub">${escapeHtml(readableType)}</div>
+                                </div>
+                                <div class="queue-row-right">
+                                    <span>${formatRelativeTime(a.at)}</span>
+                                </div>
+                            </a>
+                        `;
+                    }).join('');
+                }
+            }
         }
 
         // --- API Event Trigger Helper ---
@@ -3662,6 +3702,7 @@
                         initialPendingCount--;
                         checkInitialComplete();
                     }
+                    updateOverviewStats();
                     renderActivitySection();
                 }, (err) => {
                     console.error('Realtime activity listener error:', err);
@@ -5109,32 +5150,33 @@
                 const isPinned = pinMs > nowMs;
                 const pinUntilStr = isPinned ? formatAdminDate(p.pinnedUntil) : '';
 
+                const metaParts = [
+                    escapeHtml(p.label || 'Announcement'),
+                    formatAdminDate(p.createdAt)
+                ];
+                if (isPinned) metaParts.push(`<span style="color: var(--brand-blue-dark); font-weight: 600;">Pinned until ${escapeHtml(pinUntilStr)}</span>`);
+                if (isHidden) metaParts.push(`<span style="color: var(--dot-red); font-weight: 600;">Hidden</span>`);
+
                 return `
-                    <div class="flat-card flex flex-col justify-between gap-4">
-                        <div class="flex gap-4 items-start">
-                            ${photo ? `<img src="${escapeHtml(photo)}" alt="Post Photo" class="w-24 h-20 object-cover rounded-lg border border-slate-200 shrink-0">` : ''}
-                            <div class="flex-1 min-w-0">
-                                <div class="flex justify-between items-start gap-2">
-                                    <strong class="font-['Sora'] text-sm font-bold text-[#042C53] truncate">${escapeHtml(busName)}</strong>
-                                    <span class="text-xs text-slate-400 shrink-0">${formatAdminDate(p.createdAt)}</span>
+                    <div class="flat-card" style="display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; padding: 16px 20px;">
+                        <div style="display: flex; gap: 14px; align-items: flex-start; flex: 1; min-width: 0;">
+                            ${photo ? `<img src="${escapeHtml(photo)}" alt="Post Photo" style="width: 72px; height: 56px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); flex-shrink: 0;">` : ''}
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                                    <strong style="font-family: 'Sora', sans-serif; font-size: 14px; color: var(--navy-dark);">${escapeHtml(busName)}</strong>
+                                    <span style="font-size: 12px; color: var(--navy-muted);">${metaParts.join(' · ')}</span>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-1.5 my-1.5">
-                                    <span class="rounded bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#1F69B8]">${escapeHtml(p.label || 'Announcement')}</span>
-                                    ${isPinned ? `<span class="rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[11px] font-bold text-emerald-700"><i class="ti ti-pin"></i> Pinned until ${escapeHtml(pinUntilStr)}</span>` : ''}
-                                    ${isHidden ? `<span class="rounded bg-red-50 border border-red-200 px-2 py-0.5 text-[11px] font-bold text-red-700"><i class="ti ti-eye-off"></i> Hidden</span>` : ''}
-                                </div>
-                                <p class="text-sm text-slate-700 leading-relaxed break-words">
+                                <p style="font-size: 13.5px; color: #334155; line-height: 1.5; margin-top: 6px; word-break: break-word;">
                                     ${escapeHtml(p.caption || 'No caption')}
                                 </p>
                             </div>
                         </div>
-                        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-                            <button type="button" class="btn-admin-secondary btn-toggle-post-hide" data-post-id="${p.id}" data-current-status="${p.status || 'active'}">
-                                ${isHidden ? '<i class="ti ti-eye"></i> Show Post' : '<i class="ti ti-eye-off"></i> Hide'}
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                            <button type="button" class="btn-admin-secondary btn-toggle-post-hide" data-post-id="${p.id}" data-current-status="${p.status || 'active'}" style="padding: 6px 12px; font-size: 12.5px;">
+                                ${isHidden ? 'Show' : 'Hide'}
                             </button>
-                            <button type="button" class="${isPinned ? 'btn-admin-secondary' : 'btn-admin-primary'} btn-pin-post" data-post-id="${p.id}" data-pinned="${isPinned ? '1' : '0'}">
-                                <i class="ti ${isPinned ? 'ti-pinned-off' : 'ti-pin'}"></i>
-                                <span>${isPinned ? 'Unpin' : 'Pin for 7 days'}</span>
+                            <button type="button" class="btn-admin-secondary btn-pin-post" data-post-id="${p.id}" data-pinned="${isPinned ? '1' : '0'}" style="padding: 6px 12px; font-size: 12.5px;">
+                                ${isPinned ? 'Unpin' : 'Pin 7d'}
                             </button>
                         </div>
                     </div>
@@ -5307,26 +5349,24 @@
                 const dateStr = formatAdminDate(r.updatedAt || r.createdAt);
                 const isNew = newlyAddedIds.has(r.id);
 
-                // Semantic color hierarchy for star rating badges
-                const ratingBadgeStyle = numRating <= 2
-                    ? 'background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA;'
-                    : (numRating === 3 ? 'background:#FFFBEB;color:#B45309;border:1px solid #FDE68A;' : 'background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0;');
+                // Plain tabular rating text (no colored badge bubble)
+                const ratingColor = numRating <= 2 ? '#DC2626' : (numRating === 3 ? '#D97706' : '#042C53');
 
                 return `
                     <tr class="${isNew ? 'new-item-highlight' : ''}" data-review-row-id="${r.id}">
                         <td style="padding: 12px 16px; font-weight: 600; color: #042C53;">${escapeHtml(placeTitle)}</td>
-                        <td style="padding: 12px 16px;">
-                            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;${ratingBadgeStyle}">★ ${ratingNum}</span>
+                        <td style="padding: 12px 16px; font-variant-numeric: tabular-nums; font-weight: 600; color: ${ratingColor};">
+                            ${ratingNum} ★
                         </td>
                         <td style="padding: 12px 16px;">
                             <div class="review-comment-clamped" title="Click to expand or collapse full review" style="cursor: pointer;">${escapeHtml(r.commentText || '—')}</div>
-                            ${isHidden && r.hiddenReason ? `<div style="margin-top:6px;padding:4px 8px;border-radius:6px;background:#FEF2F2;border:1px solid #FECACA;font-size:11px;color:#991B1B;"><strong>Hidden reason:</strong> ${escapeHtml(r.hiddenReason)}</div>` : ''}
+                            ${isHidden && r.hiddenReason ? `<div style="margin-top: 4px; font-size: 12px; color: #991B1B;">Note: ${escapeHtml(r.hiddenReason)}</div>` : ''}
                         </td>
                         <td style="padding: 12px 16px;">
                             <div style="font-weight: 500; color: #042C53;">${escapeHtml(reviewerName)}</div>
-                            ${reviewerEmail ? `<div style="font-size: 11px; color: #64748B;">${escapeHtml(reviewerEmail)}</div>` : ''}
+                            ${reviewerEmail ? `<div style="font-size: 11.5px; color: #64748B;">${escapeHtml(reviewerEmail)}</div>` : ''}
                         </td>
-                        <td style="padding: 12px 16px; font-size: 12px; color: #64748B;">${dateStr}</td>
+                        <td style="padding: 12px 16px; font-size: 12.5px; color: #64748B;">${dateStr}</td>
                         <td style="padding: 12px 16px;">
                             <div class="status-line">
                                 <span class="status-dot ${isHidden ? 'red' : 'green'}"></span>
@@ -5337,7 +5377,7 @@
                             ${isHidden ? `
                                 <button type="button" class="btn-admin-secondary btn-restore-review" data-review-id="${r.id}" style="padding: 4px 10px; font-size: 12px;">Restore</button>
                             ` : `
-                                <button type="button" class="btn-admin-danger btn-trigger-hide-review" data-review-id="${r.id}" style="padding: 4px 10px; font-size: 12px;">Hide</button>
+                                <button type="button" class="btn-admin-text-danger btn-trigger-hide-review" data-review-id="${r.id}" style="padding: 4px 8px; font-size: 12.5px;">Hide</button>
                             `}
                         </td>
                     </tr>
@@ -5536,52 +5576,31 @@
 
             emptyState.style.display = 'none';
             container.innerHTML = list.map(a => {
-                let roleBadgeBg = '#F1F5F9';
-                let roleBadgeColor = '#475569';
                 let roleLabel = 'Commuter';
+                if (a.actorRole === 'admin') roleLabel = 'Admin';
+                else if (a.actorRole === 'owner') roleLabel = 'Owner';
 
-                if (a.actorRole === 'admin') {
-                    roleBadgeBg = '#EFF6FF';
-                    roleBadgeColor = '#1D4ED8';
-                    roleLabel = 'Admin';
-                } else if (a.actorRole === 'owner') {
-                    roleBadgeBg = '#ECFDF5';
-                    roleBadgeColor = '#047857';
-                    roleLabel = 'Business Owner';
-                }
-
-                let iconClass = 'ti-activity';
                 let targetHash = '#businesses';
-                if (a.event && a.event.includes('payment')) { iconClass = 'ti-receipt'; targetHash = '#payments'; }
-                else if (a.event && a.event.includes('application')) { iconClass = 'ti-file-text'; targetHash = '#applications'; }
-                else if (a.event && a.event.includes('review')) { iconClass = 'ti-star'; targetHash = '#reviews'; }
-                else if (a.event && a.event.includes('tour360')) { iconClass = 'ti-camera'; targetHash = '#shoots'; }
-                else if (a.event && a.event.includes('post')) { iconClass = 'ti-news'; targetHash = '#posts'; }
-                else if (a.event && a.event.includes('live')) { iconClass = 'ti-circle-check'; targetHash = '#businesses'; }
+                if (a.event && a.event.includes('payment')) targetHash = '#payments';
+                else if (a.event && a.event.includes('application')) targetHash = '#applications';
+                else if (a.event && a.event.includes('review')) targetHash = '#reviews';
+                else if (a.event && a.event.includes('tour360')) targetHash = '#shoots';
+                else if (a.event && a.event.includes('post')) targetHash = '#posts';
+                else if (a.event && a.event.includes('live')) targetHash = '#businesses';
 
                 const relTime = formatRelativeTime(a.at);
                 const exactDate = formatAdminDate(a.at);
                 const readableType = EVENT_LABELS[a.event] || (a.event || 'System Event').replace(/_/g, ' ');
 
                 return `
-                    <div class="flex gap-3.5 items-center px-5 py-3.5 hover:bg-slate-50/80 transition-colors">
-                        <div class="w-9 h-9 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0">
-                            <i class="ti ${iconClass}" style="color: var(--brand-blue-dark); font-size: 18px;"></i>
+                    <div class="queue-list-row" style="cursor: default;">
+                        <div class="queue-row-main">
+                            <div class="queue-row-title">${escapeHtml(a.summary || readableType)}</div>
+                            <div class="queue-row-sub">${escapeHtml(readableType)} · ${roleLabel} · ${exactDate}</div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-sm font-semibold text-[#042C53]">${escapeHtml(a.summary || readableType)}</span>
-                                <span style="display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; background: ${roleBadgeBg}; color: ${roleBadgeColor};">${roleLabel}</span>
-                            </div>
-                            <div class="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
-                                <span class="font-medium text-slate-600">${escapeHtml(readableType)}</span>
-                                <span>·</span>
-                                <span>${exactDate}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-3 shrink-0">
-                            <span class="text-xs font-medium text-slate-400 whitespace-nowrap">${relTime}</span>
-                            <a href="${targetHash}" class="btn-admin-secondary" style="padding: 4px 10px; font-size: 12px;">View</a>
+                        <div class="queue-row-right">
+                            <span>${relTime}</span>
+                            <a href="${targetHash}" class="panel-card-link" style="margin-left: 8px;">View →</a>
                         </div>
                     </div>
                 `;
