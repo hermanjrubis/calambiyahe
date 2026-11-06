@@ -182,13 +182,24 @@
                 display: flex;
                 flex-direction: column;
                 gap: 10px;
+                width: 100%;
+                max-width: 100%;
+                container-type: inline-size;
             }
             .cz-hours-row {
+                box-sizing: border-box;
+                width: 100%;
+                max-width: 100%;
                 background: #FFFFFF;
                 border: 1px solid #E2E8F0;
                 border-radius: 10px;
-                padding: 12px 16px;
+                padding: 10px 14px;
                 transition: border-color 0.15s ease, background-color 0.15s ease;
+            }
+            .cz-hours-row *,
+            .cz-hours-row *::before,
+            .cz-hours-row *::after {
+                box-sizing: border-box;
             }
             .cz-hours-row.is-closed {
                 background: #F8FAFC;
@@ -200,41 +211,32 @@
             .cz-hours-row-main {
                 display: flex;
                 flex-direction: column;
-                gap: 12px;
-            }
-            @media (min-width: 768px) {
-                .cz-hours-row-main {
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 16px;
-                }
+                gap: 10px;
+                width: 100%;
             }
             .cz-hours-day-toggle-group {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 16px;
-                min-width: 210px;
-            }
-            @media (min-width: 768px) {
-                .cz-hours-day-toggle-group {
-                    justify-content: flex-start;
-                }
+                gap: 10px;
+                width: 100%;
+                flex-shrink: 0;
             }
             .cz-hours-day-label {
                 font-weight: 600;
                 font-size: 14px;
                 color: #042C53;
-                min-width: 96px;
+                width: 86px;
+                flex-shrink: 0;
             }
             .cz-switch-label {
                 display: inline-flex;
                 align-items: center;
-                gap: 10px;
-                min-height: 44px;
+                gap: 8px;
+                min-height: 40px;
                 cursor: pointer;
                 user-select: none;
+                flex-shrink: 0;
             }
             .cz-switch-input {
                 position: absolute;
@@ -244,7 +246,7 @@
             }
             .cz-switch-track {
                 position: relative;
-                width: 44px;
+                width: 42px;
                 height: 24px;
                 background: #CBD5E1;
                 border-radius: 9999px;
@@ -266,7 +268,7 @@
                 background: #378ADD;
             }
             .cz-switch-input:checked + .cz-switch-track .cz-switch-thumb {
-                transform: translateX(20px);
+                transform: translateX(18px);
             }
             .cz-switch-input:focus-visible + .cz-switch-track {
                 outline: 2px solid #378ADD;
@@ -276,7 +278,8 @@
                 font-size: 13px;
                 font-weight: 600;
                 color: #042C53;
-                min-width: 46px;
+                width: 44px;
+                flex-shrink: 0;
             }
             .cz-hours-row.is-closed .cz-switch-state-text {
                 color: #64748B;
@@ -284,34 +287,30 @@
             }
             .cz-hours-time-group {
                 display: flex;
-                flex-direction: column;
-                gap: 8px;
+                flex-direction: row;
+                align-items: center;
+                gap: 6px;
                 width: 100%;
-            }
-            @media (min-width: 640px) {
-                .cz-hours-time-group {
-                    flex-direction: row;
-                    align-items: center;
-                    width: auto;
-                }
+                min-width: 0;
             }
             .cz-time-field-wrap {
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                flex: 1;
+                flex: 1 1 0%;
+                min-width: 0;
             }
             .cz-time-input {
-                min-height: 44px;
+                min-height: 40px;
                 width: 100%;
-                min-width: 132px;
-                padding: 8px 12px;
+                min-width: 0;
+                max-width: 100%;
+                padding: 6px 8px;
                 border: 1px solid #CBD5E1;
                 border-radius: 8px;
                 background: #FFFFFF;
                 color: #042C53;
                 font-family: 'Outfit', sans-serif;
-                font-size: 14px;
+                font-size: 13.5px;
                 font-weight: 500;
                 outline: none;
                 transition: border-color 0.15s ease;
@@ -325,11 +324,47 @@
                 font-weight: 500;
                 text-align: center;
                 padding: 0 2px;
+                white-space: nowrap;
+                flex-shrink: 0;
             }
             .cz-closed-badge {
                 font-size: 13px;
                 color: #64748B;
-                padding: 8px 0;
+                padding: 6px 0;
+                white-space: nowrap;
+            }
+            @media (min-width: 640px) {
+                .cz-hours-row-main {
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 12px;
+                }
+                .cz-hours-day-toggle-group {
+                    width: auto;
+                    justify-content: flex-start;
+                }
+                .cz-hours-time-group {
+                    width: auto;
+                    flex: 1 1 auto;
+                    max-width: 310px;
+                    justify-content: flex-end;
+                }
+            }
+            @container (max-width: 470px) {
+                .cz-hours-row-main {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 8px;
+                }
+                .cz-hours-day-toggle-group {
+                    width: 100%;
+                    justify-content: space-between;
+                }
+                .cz-hours-time-group {
+                    width: 100%;
+                    max-width: none;
+                }
             }
             .cz-hours-row-error {
                 font-size: 12px;

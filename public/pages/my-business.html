@@ -1105,7 +1105,7 @@
         }
 
         /* ===== My Business (approved): side tabs, cards, logo, live preview ===== */
-        .mybus-container.is-approved { max-width: 1160px; }
+        .mybus-container.is-approved { max-width: 1200px; }
         .mb-shell { display: flex; flex-direction: column; gap: 16px; }
         .mb-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
         .mb-main { min-width: 0; }
@@ -1114,6 +1114,9 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             padding: 20px;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
         }
         .mb-panel { display: flex; flex-direction: column; gap: 16px; }
         .mb-panel[hidden] { display: none; }
@@ -1269,12 +1272,12 @@
         #approvedThumbnailRow, #approvedOfferingsRow, #approvedHoursRow, #approvedSocialRow { display: none !important; }
 
         @media (min-width: 1024px) {
-            .mb-shell { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; align-items: start; }
+            .mb-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 20px; align-items: start; }
             .mb-side { position: sticky; top: 88px; }
             .mb-tabs { flex-direction: column; gap: 2px; border-bottom: 0; }
             .mb-tab { height: 42px; padding: 0 12px; border-bottom: 0; border-radius: 8px; text-align: left; }
             .mb-tab[aria-selected="true"] { background: #EAF3FC; }
-            .mb-edit-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+            .mb-edit-layout { display: grid; grid-template-columns: minmax(0, 1fr) 268px; gap: 16px; align-items: start; }
             .mb-edit-aside { position: sticky; top: 88px; }
         }
         @media (max-width: 1023px) {
@@ -2037,8 +2040,8 @@
     </main>
 
     <!-- Plans Configuration, Business Fields, and i18n -->
-    <script src="../js/plans-config.js?v=3.0.0"></script>
-    <script src="../js/business-fields.js?v=3.0.0"></script>
+    <script src="../js/plans-config.js?v=3.1.2"></script>
+    <script src="../js/business-fields.js?v=3.1.2"></script>
     <script src="../js/i18n.js?v=2.9.5"></script>
 
     <script type="module">
@@ -3167,6 +3170,7 @@
                         initialHours: initialOpenHours,
                         onChange: () => updateSaveButtonState()
                     });
+                    initialOpenHours = openHoursEditor.getHours();
                 }
 
                 initialSocialLinks = {
@@ -3232,6 +3236,21 @@
             setPhotoThumbnail(initialPhotoUrl);
         }
 
+        function areOpenHoursEqual(a, b) {
+            if (!a && !b) return true;
+            if (!a || !b) return false;
+            const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+            return days.every(d => {
+                const ra = Array.isArray(a[d]) ? a[d] : [];
+                const rb = Array.isArray(b[d]) ? b[d] : [];
+                if (ra.length !== rb.length) return false;
+                return ra.every((item, idx) =>
+                    String(item?.open || '') === String(rb[idx]?.open || '') &&
+                    String(item?.close || '') === String(rb[idx]?.close || '')
+                );
+            });
+        }
+
         function updateSaveButtonState() {
             const currentDesc = editDescription.value.trim();
             const descChanged = currentDesc !== initialDescription.trim();
@@ -3248,11 +3267,14 @@
             const offeringsChanged = JSON.stringify(currentOfferings) !== JSON.stringify(initialOfferings);
 
             const currentHours = openHoursEditor ? (typeof openHoursEditor.getHours === 'function' ? openHoursEditor.getHours() : openHoursEditor.getOpenHours()) : initialOpenHours;
-            const hoursChanged = JSON.stringify(currentHours) !== JSON.stringify(initialOpenHours);
+            const hoursChanged = !areOpenHoursEqual(currentHours, initialOpenHours);
+            const hasHoursError = currentHours && window.CalzadaBusinessFields?.isValidOpenHours
+                ? !window.CalzadaBusinessFields.isValidOpenHours(currentHours)
+                : false;
 
             const logoChanged = selectedLogoFile !== null || logoRemoved;
             const hasChanges = descChanged || photoChanged || logoChanged || fbChanged || igChanged || ttChanged || offeringsChanged || hoursChanged;
-            saveChangesBtn.disabled = !hasChanges || hasSocialErrors;
+            saveChangesBtn.disabled = !hasChanges || hasSocialErrors || hasHoursError;
             resetChangesBtn.style.display = hasChanges ? 'inline-flex' : 'none';
             resetChangesBtn.disabled = !hasChanges;
 
@@ -3463,7 +3485,12 @@
                     }
                     updatePayload.offerings = newOfferings;
                 }
-                if (newOpenHours && !sameJson(newOpenHours, initialOpenHours)) updatePayload.openHours = newOpenHours;
+                if (newOpenHours && !areOpenHoursEqual(newOpenHours, initialOpenHours)) {
+                    if (window.CalzadaBusinessFields?.isValidOpenHours && !window.CalzadaBusinessFields.isValidOpenHours(newOpenHours)) {
+                        throw Object.assign(new Error('Please set valid opening hours with at least one open day and closing times later than opening times.'), { userFacing: true });
+                    }
+                    updatePayload.openHours = newOpenHours;
+                }
                 if (selectedLogoFile && typeof newLogoUrl === 'string' && newLogoUrl.startsWith('https://res.cloudinary.com/')) {
                     updatePayload.logoUrl = newLogoUrl;
                 } else if (logoRemoved) {
