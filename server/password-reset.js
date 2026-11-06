@@ -253,6 +253,45 @@ function registerPasswordReset(app) {
             return res.status(500).json({ ok: false });
         }
     });
+
+    // Lightweight check so /login can tell a Google-only account to click "Sign in with Google"
+    // instead of asking for a password that does not exist (Firebase hides fetchSignInMethodsForEmail).
+    const hintIpMap = new Map();
+    const HINT_WINDOW_MS = 60 * 1000;
+    const HINT_MAX_PER_MIN = 25;
+
+    app.post('/api/auth/signin-hint', express.json({ limit: '1kb' }), async (req, res) => {
+        const email = String((req.body && req.body.email) || '').trim().toLowerCase();
+        if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
+            return res.json({ ok: true, googleOnly: false });
+        }
+
+        const ipKey = crypto.createHash('sha256').update(`calzada-hint-ip:${clientIp(req)}`).digest('hex');
+        const now = Date.now();
+        const entry = hintIpMap.get(ipKey);
+        if (entry && now - entry.start < HINT_WINDOW_MS) {
+            if (entry.count >= HINT_MAX_PER_MIN) {
+                return res.status(429).json({ ok: false, googleOnly: false });
+            }
+            entry.count += 1;
+        } else {
+            if (hintIpMap.size > 500) {
+                for (const [k, v] of hintIpMap) {
+                    if (now - v.start >= HINT_WINDOW_MS) hintIpMap.delete(k);
+                }
+            }
+            hintIpMap.set(ipKey, { start: now, count: 1 });
+        }
+
+        try {
+            const user = await getAuth().getUserByEmail(email);
+            const providers = Array.isArray(user.providerData) ? user.providerData.map((p) => p.providerId) : [];
+            const googleOnly = providers.includes('google.com') && !providers.includes('password');
+            return res.json({ ok: true, googleOnly });
+        } catch (_) {
+            return res.json({ ok: true, googleOnly: false });
+        }
+    });
 }
 
 module.exports = {
