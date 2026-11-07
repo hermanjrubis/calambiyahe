@@ -133,14 +133,15 @@ function initPlacePanelDOM() {
                         </div>
                     </div>
 
-                    <!-- Offerings Row -->
-                    <div class="panel-info-row" id="ppRowOfferings" style="display:none;">
-                        <div class="panel-info-icon" title="Offerings">
+                    <!-- Offerings / Specialties Row -->
+                    <div class="panel-info-row" id="ppRowOfferings" style="display:none; align-items: flex-start;">
+                        <div class="panel-info-icon" title="Specialties" style="margin-top: 3px;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                                <line x1="7" y1="7" x2="7.01" y2="7"/>
                             </svg>
                         </div>
-                        <div class="panel-info-text" id="ppOfferings" style="font-size: 13px; color: #475569; line-height: 1.4;">--</div>
+                        <div class="panel-info-text panel-offerings-wrap" id="ppOfferings"></div>
                     </div>
 
                     <!-- Website Row -->
@@ -181,17 +182,27 @@ function initPlacePanelDOM() {
                         </div>
                     </div>
 
-                    <!-- Updates Row -->
-                    <div class="panel-info-row" id="ppRowUpdates" style="display:none;">
-                        <div class="panel-info-icon" title="Updates">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                                <polyline points="22,6 12,13 2,6"/>
+                    <!-- Business Profile / Updates Banner -->
+                    <div class="panel-profile-btn-wrap" id="ppRowUpdates" style="display:none;">
+                        <a href="#" class="panel-profile-action-btn" id="ppSeeUpdatesLink">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="panel-profile-btn-icon">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                                        <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                                        <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+                                        <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                                    </svg>
+                                </div>
+                                <div style="display: flex; flex-direction: column; text-align: left;">
+                                    <span class="panel-profile-btn-title">View Business Profile</span>
+                                    <span class="panel-profile-btn-sub">Posts, updates &amp; offerings</span>
+                                </div>
+                            </div>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+                                <polyline points="9 18 15 12 9 6"></polyline>
                             </svg>
-                        </div>
-                        <div class="panel-info-text">
-                            <a href="#" class="panel-info-link" id="ppSeeUpdatesLink">See updates →</a>
-                        </div>
+                        </a>
                     </div>
                 </div>
 
@@ -2259,6 +2270,28 @@ function setPanelLogo(url) {
     }
 }
 
+// Render specialties / offerings as sleek rounded pill chips
+function renderPanelOfferings(offerings) {
+    const rowOfferings = document.getElementById('ppRowOfferings');
+    const offeringsEl = document.getElementById('ppOfferings');
+    if (!rowOfferings || !offeringsEl) return;
+    const list = Array.isArray(offerings) ? offerings : (typeof offerings === 'string' && offerings.trim() ? [offerings.trim()] : []);
+    const cleanItems = list.map(item => String(item || '').trim()).filter(Boolean);
+    if (cleanItems.length > 0) {
+        offeringsEl.innerHTML = '';
+        cleanItems.forEach(item => {
+            const pill = document.createElement('span');
+            pill.className = 'panel-offering-pill';
+            pill.textContent = item;
+            offeringsEl.appendChild(pill);
+        });
+        rowOfferings.style.display = 'flex';
+    } else {
+        offeringsEl.innerHTML = '';
+        rowOfferings.style.display = 'none';
+    }
+}
+
 window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
     if (!placeName) return;
     currentPlaceName = placeName;
@@ -2305,6 +2338,13 @@ window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
         dotsContainer.style.display = 'none';
         dotsContainer.innerHTML = '';
     }
+
+    const rowOfferings = document.getElementById('ppRowOfferings');
+    const offeringsEl = document.getElementById('ppOfferings');
+    if (rowOfferings) rowOfferings.style.display = 'none';
+    if (offeringsEl) offeringsEl.innerHTML = '';
+    const rowUpdates = document.getElementById('ppRowUpdates');
+    if (rowUpdates) rowUpdates.style.display = 'none';
 
     const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
     const ratingSummary = document.getElementById('ppRatingSummary');
@@ -2504,25 +2544,16 @@ async function fillRest(data, placeName, optLat, optLng) {
     }
 
     // Populate Offerings Row
-    const rowOfferings = document.getElementById('ppRowOfferings');
-    const offeringsEl = document.getElementById('ppOfferings');
-    if (rowOfferings && offeringsEl) {
-        if (Array.isArray(data.offerings) && data.offerings.length > 0) {
-            offeringsEl.textContent = data.offerings.join(' · ');
-            rowOfferings.style.display = 'flex';
-        } else {
-            rowOfferings.style.display = 'none';
-        }
-    }
+    renderPanelOfferings(data.offerings);
 
-    // Populate Updates Link
+    // Populate Business Profile Link
     const rowUpdates = document.getElementById('ppRowUpdates');
     const updatesLink = document.getElementById('ppSeeUpdatesLink');
     if (rowUpdates && updatesLink) {
-        if (data.source === 'business' || data.businessId) {
+        if (data.source === 'business' || data.businessId || (data.id && String(data.id).startsWith('biz_'))) {
             const bId = data.businessId || String(data.id || '').replace(/^biz_/, '');
-            updatesLink.href = `/pages/my-business.html?id=${encodeURIComponent(bId)}`;
-            rowUpdates.style.display = 'flex';
+            updatesLink.href = `/business?id=${encodeURIComponent(bId)}`;
+            rowUpdates.style.display = 'block';
         } else {
             rowUpdates.style.display = 'none';
         }
@@ -2677,13 +2708,8 @@ async function fillRest(data, placeName, optLat, optLng) {
                 }
             }
 
-            if (Array.isArray(match.offerings) && match.offerings.length > 0) {
-                const rOff = document.getElementById('ppRowOfferings');
-                const offEl = document.getElementById('ppOfferings');
-                if (rOff && offEl) {
-                    offEl.textContent = match.offerings.join(' · ');
-                    rOff.style.display = 'flex';
-                }
+            if (match.offerings) {
+                renderPanelOfferings(match.offerings);
             }
 
             if (match.ownerId) {
@@ -2855,7 +2881,14 @@ function closePlacePanel(updateHistory = true) {
     if (dotsContainer) {
         dotsContainer.style.display = 'none';
         dotsContainer.innerHTML = '';
-    } 
+    }
+
+    const rowOfferings = document.getElementById('ppRowOfferings');
+    const offeringsEl = document.getElementById('ppOfferings');
+    if (rowOfferings) rowOfferings.style.display = 'none';
+    if (offeringsEl) offeringsEl.innerHTML = '';
+    const rowUpdates = document.getElementById('ppRowUpdates');
+    if (rowUpdates) rowUpdates.style.display = 'none'; 
 
     const ratingSummarySkeleton = document.getElementById('ppRatingSummarySkeleton');
     const ratingSummary = document.getElementById('ppRatingSummary');
