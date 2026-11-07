@@ -65,23 +65,39 @@ async function runVisibilityTests() {
     report(isNew(featuredBiz, featExact) === false, 'Featured plan: isNew ends at exactly 30 days.');
 
     // -----------------------------------------------------------------
-    // TEST 2: Boost ends at 0 / 7 / 30 days
+    // TEST 2: Boost ends at 7 / 14 / 30 days
     // -----------------------------------------------------------------
     console.log('\n--- Test 2: Boost Expiration ---');
-    // listed: 0 days (never boosted)
-    report(isBoosted(listedBiz, basePaidAt + 1000) === false, 'Listed plan: boost is 0 days (never boosted).');
+    // listed: 7 days
+    const boostListedBefore = basePaidAt + (7 * DAY_MS) - 1000;
+    const boostListedExact = basePaidAt + (7 * DAY_MS);
+    report(isBoosted(listedBiz, boostListedBefore) === true, 'Listed plan: boosted before 7 days.');
+    report(isBoosted(listedBiz, boostListedExact) === false, 'Listed plan: boost ends at exactly 7 days.');
 
-    // plus360: 7 days
-    const boostPlusBefore = basePaidAt + (7 * DAY_MS) - 1000;
-    const boostPlusExact = basePaidAt + (7 * DAY_MS);
-    report(isBoosted(plus360Biz, boostPlusBefore) === true, 'Plus360 plan: boosted before 7 days.');
-    report(isBoosted(plus360Biz, boostPlusExact) === false, 'Plus360 plan: boost ends at exactly 7 days.');
+    // plus360: 14 days
+    const boostPlusBefore = basePaidAt + (14 * DAY_MS) - 1000;
+    const boostPlusExact = basePaidAt + (14 * DAY_MS);
+    report(isBoosted(plus360Biz, boostPlusBefore) === true, 'Plus360 plan: boosted before 14 days.');
+    report(isBoosted(plus360Biz, boostPlusExact) === false, 'Plus360 plan: boost ends at exactly 14 days.');
 
     // featured: 30 days
     const boostFeatBefore = basePaidAt + (30 * DAY_MS) - 1000;
     const boostFeatExact = basePaidAt + (30 * DAY_MS);
     report(isBoosted(featuredBiz, boostFeatBefore) === true, 'Featured plan: boosted before 30 days.');
     report(isBoosted(featuredBiz, boostFeatExact) === false, 'Featured plan: boost ends at exactly 30 days.');
+
+    // Test tier ordering: Featured (tier 3) > Plus360 (tier 2) > Listed (tier 1) > unboosted
+    const mixedList = [
+        { id: 'unboosted_biz', plan: 'listed', paidAt: basePaidAt - (100 * DAY_MS) },
+        { id: 'listed_biz', plan: 'listed', paidAt: basePaidAt },
+        { id: 'plus_biz', plan: 'plus360', paidAt: basePaidAt },
+        { id: 'feat_biz', plan: 'featured', paidAt: basePaidAt }
+    ];
+    const rankedMixed = rank(mixedList, basePaidAt + 1000).map(x => x.id);
+    report(
+        rankedMixed[0] === 'feat_biz' && rankedMixed[1] === 'plus_biz' && rankedMixed[2] === 'listed_biz' && rankedMixed[3] === 'unboosted_biz',
+        'Tier ranking: Featured (tier 3) > Plus360 (tier 2) > Listed (tier 1) > unboosted.'
+    );
 
     // -----------------------------------------------------------------
     // TEST 3: Rotation is identical within a day and different on the next day

@@ -1030,7 +1030,7 @@
                         offerings: Array.isArray(place.offerings) ? place.offerings : [],
                         openHours: place.openHours || null,
                         plan: place.plan || 'listed',
-                        paidAt: place.paidAt,
+                        paidAt: place.paidAt || place.approvedAt || place.createdAt || place.updatedAt || null,
                         has360: isPlan1 ? false : !!place.has360,
                         tour360: isPlan1 ? null : (place.tour360 || null),
                         ownerId: place.ownerId || null

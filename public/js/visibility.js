@@ -20,9 +20,9 @@
 }(typeof self !== 'undefined' ? self : this, function () {
 
     const DEFAULT_PLANS = {
-        listed:   { id: 'listed',   name: 'Listed',       price: 59,  newTagDays: 7,  boostDays: 0,  boostTier: 0 },
-        plus360:  { id: 'plus360',  name: 'Listed + 360', price: 199, newTagDays: 14, boostDays: 7,  boostTier: 1 },
-        featured: { id: 'featured', name: 'Featured',     price: 299, newTagDays: 30, boostDays: 30, boostTier: 2 }
+        listed:   { id: 'listed',   name: 'Listed',       price: 59,  newTagDays: 7,  boostDays: 7,  boostTier: 1 },
+        plus360:  { id: 'plus360',  name: 'Listed + 360', price: 199, newTagDays: 14, boostDays: 14, boostTier: 2 },
+        featured: { id: 'featured', name: 'Featured',     price: 299, newTagDays: 30, boostDays: 30, boostTier: 3 }
     };
 
     function getPlanConfig(biz) {
@@ -32,12 +32,15 @@
     }
 
     function getPaidAtMillis(biz) {
-        if (!biz || !biz.paidAt) return 0;
-        const p = biz.paidAt;
+        if (!biz) return 0;
+        const p = biz.paidAt || biz.approvedAt || biz.createdAt || biz.updatedAt;
+        if (!p) return 0;
         if (typeof p.toMillis === 'function') return p.toMillis();
         if (typeof p.toDate === 'function') return p.toDate().getTime();
         if (p instanceof Date) return p.getTime();
         if (typeof p === 'number') return p;
+        if (typeof p.seconds === 'number') return p.seconds * 1000;
+        if (typeof p._seconds === 'number') return p._seconds * 1000;
         const parsed = Date.parse(p);
         return isNaN(parsed) ? 0 : parsed;
     }

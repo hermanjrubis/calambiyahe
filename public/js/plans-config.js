@@ -5,9 +5,9 @@
  */
 
 window.CALZADA_PLANS = {
-  listed:   { id: 'listed',   name: 'Listed',       price: 59,  postsPerMonth: 4,    has360: false, featuredDays: 0,  pinnedPosts: 0, priorityReview: false, newTagDays: 7,  boostDays: 0,  boostTier: 0 },
-  plus360:  { id: 'plus360',  name: 'Listed + 360', price: 199, postsPerMonth: 8,    has360: true,  featuredDays: 0,  pinnedPosts: 0, priorityReview: false, recommended: true, newTagDays: 14, boostDays: 7,  boostTier: 1 },
-  featured: { id: 'featured', name: 'Featured',     price: 299, postsPerMonth: null, has360: true,  featuredDays: 14, pinnedPosts: 1, priorityReview: true,  newTagDays: 30, boostDays: 30, boostTier: 2 }
+  listed:   { id: 'listed',   name: 'Listed',       price: 59,  postsPerMonth: 4,    has360: false, featuredDays: 0,  pinnedPosts: 0, priorityReview: false, newTagDays: 7,  boostDays: 7,  boostTier: 1 },
+  plus360:  { id: 'plus360',  name: 'Listed + 360', price: 199, postsPerMonth: 8,    has360: true,  featuredDays: 0,  pinnedPosts: 0, priorityReview: false, recommended: true, newTagDays: 14, boostDays: 14, boostTier: 2 },
+  featured: { id: 'featured', name: 'Featured',     price: 299, postsPerMonth: null, has360: true,  featuredDays: 14, pinnedPosts: 1, priorityReview: true,  newTagDays: 30, boostDays: 30, boostTier: 3 }
 };
 
 window.CALZADA_ADDONS = {

@@ -3586,7 +3586,8 @@
                             const id = doc.id;
                             const lat = d.location && typeof d.location.lat === 'number' ? d.location.lat : (typeof d.lat === 'number' ? d.lat : null);
                             const lng = d.location && typeof d.location.lng === 'number' ? d.location.lng : (typeof d.lng === 'number' ? d.lng : null);
-                            const paidAtIso = d.paidAt ? (typeof d.paidAt.toDate === 'function' ? d.paidAt.toDate().toISOString() : (d.paidAt instanceof Date ? d.paidAt.toISOString() : String(d.paidAt))) : null;
+                            const rawPaid = d.paidAt || d.approvedAt || d.createdAt || d.updatedAt;
+                            const paidAtIso = rawPaid ? (typeof rawPaid.toDate === 'function' ? rawPaid.toDate().toISOString() : (rawPaid instanceof Date ? rawPaid.toISOString() : (typeof rawPaid.seconds === 'number' ? new Date(rawPaid.seconds * 1000).toISOString() : String(rawPaid)))) : null;
                             const has360 = d.plan === 'plus360' || d.plan === 'featured';
 
                             businesses.push({

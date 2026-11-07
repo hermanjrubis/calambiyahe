@@ -35,18 +35,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const planFeatures = {
         listed: [
             'Pin on the map and in Places',
+            `${plans.listed.boostDays || 7}-day top placement in Places`,
             'Business profile: photo, hours, contact, Facebook and Instagram',
             '"Plan route" with jeepney fare to your place',
             `Post ${plans.listed.postsPerMonth} updates a month`
         ],
         plus360: [
             'Everything in Listed',
+            `${plans.plus360.boostDays || 14}-day top placement in Places`,
             '360 photo shoot of your place by the Calzada team',
             '"360° view" on your profile and in street view',
             `Post ${plans.plus360.postsPerMonth} updates a month`
         ],
         featured: [
             'Everything in Listed + 360',
+            `${plans.featured.boostDays || 30}-day top placement in Places`,
             `Featured in "New on Calzada" for ${plans.featured.featuredDays} days`,
             'Pin one post at the top of Updates',
             'Unlimited updates',
@@ -163,6 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const rows = [
             { label: 'Pin on the map and in Places', listed: 'check', plus360: 'check', featured: 'check' },
+            { 
+                label: 'Top placement in Places', 
+                listed: `${plans.listed.boostDays || 7} days`, 
+                plus360: `${plans.plus360.boostDays || 14} days`, 
+                featured: `${plans.featured.boostDays || 30} days` 
+            },
             { label: '"Plan route" with jeepney fare', listed: 'check', plus360: 'check', featured: 'check' },
             { label: 'Business profile and photo', listed: 'check', plus360: 'check', featured: 'check' },
             { 

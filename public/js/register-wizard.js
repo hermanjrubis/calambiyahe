@@ -1477,8 +1477,8 @@ export class RegisterWizard {
 
     renderPlanStep(area) {
         const plans = window.CALZADA_PLANS || {
-            listed: { name: 'Listed', price: 59, postsPerMonth: 4, newTagDays: 7, boostDays: 0 },
-            plus360: { name: 'Listed + 360', price: 199, postsPerMonth: 8, recommended: true, newTagDays: 14, boostDays: 7, has360: true },
+            listed: { name: 'Listed', price: 59, postsPerMonth: 4, newTagDays: 7, boostDays: 7 },
+            plus360: { name: 'Listed + 360', price: 199, postsPerMonth: 8, recommended: true, newTagDays: 14, boostDays: 14, has360: true },
             featured: { name: 'Featured', price: 299, postsPerMonth: null, newTagDays: 30, boostDays: 30, has360: true }
         };
 
@@ -1549,8 +1549,8 @@ export class RegisterWizard {
 
     renderReviewStep(area) {
         const plans = window.CALZADA_PLANS || {
-            listed: { name: 'Listed', price: 59, postsPerMonth: 4, newTagDays: 7, boostDays: 0 },
-            plus360: { name: 'Listed + 360', price: 199, postsPerMonth: 8, recommended: true, newTagDays: 14, boostDays: 7, has360: true },
+            listed: { name: 'Listed', price: 59, postsPerMonth: 4, newTagDays: 7, boostDays: 7 },
+            plus360: { name: 'Listed + 360', price: 199, postsPerMonth: 8, recommended: true, newTagDays: 14, boostDays: 14, has360: true },
             featured: { name: 'Featured', price: 299, postsPerMonth: null, newTagDays: 30, boostDays: 30, has360: true }
         };
         const selectedPlan = plans[this.formData.plan] || { name: this.formData.plan, price: 199 };
