@@ -4046,9 +4046,9 @@ body.navigation-active #hamburgerBtn {
     }
 
     body.keyboard-open .chat-window {
-        max-height: calc(var(--visual-viewport-h, 100dvh) - var(--keyboard-inset-bottom, 0px) - 20px) !important;
-        height: auto !important;
-        bottom: calc(var(--keyboard-inset-bottom, 0px) + 10px) !important;
+        height: min(480px, calc(var(--visual-viewport-h, 100dvh) - 16px)) !important;
+        max-height: min(480px, calc(var(--visual-viewport-h, 100dvh) - 16px)) !important;
+        bottom: calc(var(--keyboard-inset-bottom, 0px) + 8px) !important;
     }
 }
 
@@ -4401,7 +4401,7 @@ body.navigation-active #hamburgerBtn {
     margin: 0;
     resize: none;
     font-family: 'Outfit', 'Inter', sans-serif;
-    font-size: 15px;
+    font-size: 16px; /* 16px prevents iOS Safari from auto-zooming on focus */
     color: #1e293b;
     min-height: 24px;
     max-height: 96px;

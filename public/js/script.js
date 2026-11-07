@@ -455,7 +455,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateVisualViewportMetrics() {
         if (!window.visualViewport) return;
         const vv = window.visualViewport;
-        const keyboardHeight = Math.max(0, window.innerHeight - vv.height);
+        const rawDiff = window.innerHeight - vv.height;
+        const isKeyboard = document.body.classList.contains('keyboard-open') && rawDiff > 120;
+        const keyboardHeight = isKeyboard ? Math.max(0, rawDiff) : 0;
         document.documentElement.style.setProperty('--keyboard-inset-bottom', `${keyboardHeight}px`);
         document.documentElement.style.setProperty('--visual-viewport-h', `${vv.height}px`);
     }
@@ -472,15 +474,23 @@ document.addEventListener('DOMContentLoaded', () => {
         updateVisualViewportMetrics();
     }
 
+    let keyboardBlurTimeout = null;
     const focusableInputs = document.querySelectorAll('input, textarea');
     focusableInputs.forEach(input => {
         input.addEventListener('focus', () => {
+            clearTimeout(keyboardBlurTimeout);
             document.body.classList.add('keyboard-open');
             updateVisualViewportMetrics();
         });
         input.addEventListener('blur', () => {
-            document.body.classList.remove('keyboard-open');
-            setTimeout(updateVisualViewportMetrics, 100);
+            clearTimeout(keyboardBlurTimeout);
+            keyboardBlurTimeout = setTimeout(() => {
+                const active = document.activeElement;
+                if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                    document.body.classList.remove('keyboard-open');
+                    updateVisualViewportMetrics();
+                }
+            }, 120);
         });
     });
 
@@ -558,6 +568,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!chatWindow || !chatWindow.classList.contains('open')) return;
         if (!e) return;
 
+        // If keyboard is currently open or chat input has focus, NEVER auto-close
+        if (document.body.classList.contains('keyboard-open')) return;
+        if (chatInput && document.activeElement === chatInput) return;
+
         // Resolve element target (handle text nodes, SVGs, etc.)
         let target = e.target;
         if (target && target.nodeType === 3) {
@@ -566,10 +580,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!target || !(target instanceof Element)) return;
 
         // 1. If clicked/tapped element is inside chatWindow, do NOT close
-        if (chatWindow.contains(target)) return;
+        if (chatWindow.contains(target) || (target.closest && target.closest('#chatWindow'))) return;
 
         // 2. If clicked/tapped element is inside chatToggleBtn, do NOT close
-        if (chatToggleBtn && chatToggleBtn.contains(target)) return;
+        if (chatToggleBtn && (chatToggleBtn.contains(target) || (target.closest && target.closest('#chatToggleBtn')))) return;
 
         // 3. If clicked/tapped element is inside any Routie open trigger, do NOT close
         if (target.closest && (
@@ -586,9 +600,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 4. Exclude keyboard-induced layout shifts and focus transitions:
         // When on-screen keyboard appears, visualViewport fires resize and coordinates shift.
-        // Ignore any clicks/taps during active keyboard transition (< 450ms).
-        if (Date.now() - lastViewportResizeTime < 450) return;
-        if (Date.now() - lastChatInputFocusTime < 450) return;
+        // Ignore any clicks/taps during active keyboard transition (< 600ms).
+        if (Date.now() - lastViewportResizeTime < 600) return;
+        if (Date.now() - lastChatInputFocusTime < 600) return;
 
         // Genuine outside click or tap — close the chat
         closeChat();
@@ -616,8 +630,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Delay slightly so the triggering click doesn't close the chat immediately
         setTimeout(() => {
             if (!isAutoCloseAttached) return;
-            // Listen for pointerdown / tap outside
-            document.addEventListener('pointerdown', handleOutsideClick, true);
+            // Listen for genuine click outside
+            document.addEventListener('click', handleOutsideClick);
 
             // On DESKTOP ONLY: close when the page outside the chat is scrolled.
             // On mobile / touch devices: scroll-to-close is disabled.
@@ -629,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function detachAutoCloseListeners() {
         isAutoCloseAttached = false;
-        document.removeEventListener('pointerdown', handleOutsideClick, true);
+        document.removeEventListener('click', handleOutsideClick);
         window.removeEventListener('scroll', handlePageScroll);
     }
 
@@ -1059,6 +1073,8 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         chatInput.addEventListener('focus', function () {
             lastChatInputFocusTime = Date.now();
             clearVoiceError();
+            document.body.classList.add('keyboard-open');
+            updateVisualViewportMetrics();
             setTimeout(() => {
                 if (chatMessages) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
