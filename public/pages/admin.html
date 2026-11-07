@@ -2585,6 +2585,7 @@
                         <button type="button" class="admin-underline-tab" data-bus-filter="pending">Pending <span class="tab-badge" id="busCountPending"></span></button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="needs_changes">Needs changes <span class="tab-badge" id="busCountNeedsChanges"></span></button>
                         <button type="button" class="admin-underline-tab" data-bus-filter="rejected">Rejected <span class="tab-badge" id="busCountRejected"></span></button>
+                        <button type="button" class="admin-underline-tab" data-bus-filter="delisted">Delisted <span class="tab-badge" id="busCountDelisted"></span></button>
                     </div>
 
                     <div class="bus-layout">
@@ -2647,6 +2648,49 @@
                                     <button type="button" id="btnToggleDescClamp" class="mb-link-btn" style="display: none; margin-top: 4px; font-size: 12px; font-weight: 600; color: #1D4ED8; cursor: pointer; border: none; background: none; padding: 0;">Show more</button>
                                 </dd>
                             </dl>
+
+                            <!-- Delist Request from Owner Handshake Card -->
+                            <div id="busDelistRequestCard" style="display: none; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #92400E; font-weight: 700; font-size: 13.5px; margin-bottom: 6px;">
+                                    <i class="ti ti-alert-triangle" style="font-size: 16px;"></i> Owner Requested Delisting
+                                </div>
+                                <div style="font-size: 12.5px; color: #78350F; line-height: 1.45; margin-bottom: 12px;">
+                                    <div><strong>Reason:</strong> <span id="busDelistReqReasonText">--</span></div>
+                                    <div id="busDelistReqNotesWrap" style="margin-top: 4px; display: none;"><strong>Notes:</strong> <span id="busDelistReqNotesText"></span></div>
+                                    <div style="margin-top: 4px; color: #92400E; opacity: 0.85;" id="busDelistReqDateText"></div>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button type="button" class="btn-admin-primary" id="btnApproveDelistRequest" style="background: #DC2626; border-color: #DC2626; font-size: 12px; padding: 6px 12px; cursor: pointer;">
+                                        <i class="ti ti-check"></i> Approve Delisting (Hide from Map)
+                                    </button>
+                                    <button type="button" class="btn-admin-secondary" id="btnDismissDelistRequest" style="font-size: 12px; padding: 6px 12px; cursor: pointer;">
+                                        <i class="ti ti-x"></i> Dismiss Request (Keep Active)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Delisted Status Card -->
+                            <div id="busDelistedInfoBox" style="display: none; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #475569; font-weight: 700; font-size: 13.5px; margin-bottom: 6px;">
+                                    <i class="ti ti-archive" style="font-size: 16px;"></i> Business Delisted (Hidden from Map)
+                                </div>
+                                <div style="font-size: 12.5px; color: #334155; line-height: 1.45; margin-bottom: 12px;">
+                                    <div><strong>Delist Reason:</strong> <span id="busDelistedReasonDisplay">--</span></div>
+                                    <div id="busDelistedNotesDisplayWrap" style="margin-top: 4px; display: none;"><strong>Notes:</strong> <span id="busDelistedNotesDisplay"></span></div>
+                                    <div id="busDelistedDateDisplay" style="margin-top: 4px; color: #64748B;"></div>
+                                    <div id="busReactivateNoticeWrap" style="margin-top: 10px; background: #EFF6FF; border: 1px solid #93C5FD; border-radius: 8px; padding: 8px 10px; display: none; color: #1E40AF;">
+                                        <div style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                                            <i class="ti ti-refresh"></i> Reactivation requested by owner!
+                                        </div>
+                                        <div id="busReactivateNotesDisplay" style="font-size: 12px; margin-top: 4px; color: #1E3A8A;"></div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                    <button type="button" class="btn-admin-primary" id="btnReactivateBusinessAction" style="background: #16A34A; border-color: #16A34A; font-size: 12px; padding: 6px 12px; cursor: pointer;">
+                                        <i class="ti ti-refresh"></i> Reactivate Business (Restore to Map)
+                                    </button>
+                                </div>
+                            </div>
 
                             <!-- Shown when business is NOT live yet (Pending, Awaiting Payment, Payment Review, Needs Changes, Rejected) -->
                             <div class="bus-workflow-box" id="busPendingWorkflowBox" style="display: none;">
@@ -4901,6 +4945,8 @@
             else if (bus.status === 'payment_review') { dotColor = 'amber'; statusLabel = 'Payment review'; }
             else if (bus.status === 'needs_changes') { dotColor = 'red'; statusLabel = 'Needs changes'; }
             else if (bus.status === 'rejected') { dotColor = 'red'; statusLabel = 'Rejected'; }
+            else if (bus.status === 'delisted') { dotColor = 'grey'; statusLabel = 'Delisted'; }
+            else if (bus.status === 'hidden') { dotColor = 'grey'; statusLabel = 'Hidden'; }
             return { planName, dotColor, statusLabel };
         }
         const SHOOT_LABELS = { none: 'None', to_schedule: 'To schedule', scheduled: 'Scheduled', done: 'Done' };
@@ -4914,6 +4960,7 @@
             const cPending = allBusinesses.filter(b => b.status === 'pending').length;
             const cNeedsChanges = allBusinesses.filter(b => b.status === 'needs_changes').length;
             const cRejected = allBusinesses.filter(b => b.status === 'rejected').length;
+            const cDelisted = allBusinesses.filter(b => b.status === 'delisted' || b.status === 'hidden').length;
 
             const elCAll = document.getElementById('busCountAll'); if (elCAll) elCAll.textContent = cAll ? `(${cAll})` : '';
             const elCApp = document.getElementById('busCountApproved'); if (elCApp) elCApp.textContent = cApproved ? `(${cApproved})` : '';
@@ -4921,10 +4968,15 @@
             const elCPen = document.getElementById('busCountPending'); if (elCPen) elCPen.textContent = cPending ? `(${cPending})` : '';
             const elCNch = document.getElementById('busCountNeedsChanges'); if (elCNch) elCNch.textContent = cNeedsChanges ? `(${cNeedsChanges})` : '';
             const elCRej = document.getElementById('busCountRejected'); if (elCRej) elCRej.textContent = cRejected ? `(${cRejected})` : '';
+            const elCDel = document.getElementById('busCountDelisted'); if (elCDel) elCDel.textContent = cDelisted ? `(${cDelisted})` : '';
 
             let list = allBusinesses.slice();
             if (currentBusFilter !== 'all') {
-                list = list.filter(b => b.status === currentBusFilter);
+                if (currentBusFilter === 'delisted') {
+                    list = list.filter(b => b.status === 'delisted' || b.status === 'hidden');
+                } else {
+                    list = list.filter(b => b.status === currentBusFilter);
+                }
             }
             const q = busSearchQuery.trim().toLowerCase();
             if (q) {
@@ -4950,7 +5002,19 @@
                 return `
                     <tr data-bus-row-id="${bus.id}" class="${selected ? 'is-selected' : ''}">
                         <td class="bus-name-cell">
-                            <div class="bus-name">${escapeHtml(bus.name || 'Unnamed')}</div>
+                            <div class="bus-name" style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                                <span>${escapeHtml(bus.name || 'Unnamed')}</span>
+                                ${bus.delistRequest ? `
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; background: #FEF3C7; border: 1px solid #F59E0B; color: #92400E; border-radius: 999px; font-size: 11px; font-weight: 700;">
+                                        <i class="ti ti-alert-triangle" style="font-size: 12px;"></i> Delist Requested
+                                    </span>
+                                ` : ''}
+                                ${(bus.status === 'delisted' || bus.status === 'hidden') && bus.reactivateRequest ? `
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 7px; background: #DBEAFE; border: 1px solid #3B82F6; color: #1E40AF; border-radius: 999px; font-size: 11px; font-weight: 700;">
+                                        <i class="ti ti-refresh" style="font-size: 12px;"></i> Reactivate Requested
+                                    </span>
+                                ` : ''}
+                            </div>
                             <div class="bus-plan">${escapeHtml(planName)}</div>
                         </td>
                         <td class="bus-status-cell">
@@ -5094,13 +5158,54 @@
 
             const liveControls = document.getElementById('busLiveOnlyControls');
             const pendingBox = document.getElementById('busPendingWorkflowBox');
+            const delistedBox = document.getElementById('busDelistedInfoBox');
+            const delistCard = document.getElementById('busDelistRequestCard');
             const wfTitle = document.getElementById('busWorkflowTitle');
             const wfDesc = document.getElementById('busWorkflowDesc');
             const wfBtn = document.getElementById('btnBusWorkflowAction');
 
+            // Handle Owner Delisting Request Card
+            if (delistCard) {
+                if (bus.delistRequest) {
+                    delistCard.style.display = 'block';
+                    const reasonMap = {
+                        permanent_closure: 'Permanently closed (Nagsara na)',
+                        relocated: 'Relocated outside Calamba (Lumipat ng lugar)',
+                        duplicate: 'Duplicate listing (May kaparehong listing)',
+                        temporary_pause: 'Temporarily paused operations',
+                        owner_request: 'Owner request / Other personal reason'
+                    };
+                    const rText = reasonMap[bus.delistRequest.reason] || bus.delistRequest.reason || 'Owner request';
+                    const reasonEl = document.getElementById('busDelistReqReasonText');
+                    if (reasonEl) reasonEl.textContent = rText;
+
+                    const notesWrap = document.getElementById('busDelistReqNotesWrap');
+                    const notesEl = document.getElementById('busDelistReqNotesText');
+                    if (notesWrap && notesEl) {
+                        if (bus.delistRequest.notes) {
+                            notesEl.textContent = bus.delistRequest.notes;
+                            notesWrap.style.display = 'block';
+                        } else {
+                            notesWrap.style.display = 'none';
+                        }
+                    }
+
+                    const dateEl = document.getElementById('busDelistReqDateText');
+                    if (dateEl) {
+                        const reqDate = bus.delistRequest.requestedAt ? formatAdminDate(bus.delistRequest.requestedAt) : '';
+                        dateEl.textContent = reqDate ? `Requested on ${reqDate}` : '';
+                    }
+                } else {
+                    delistCard.style.display = 'none';
+                }
+            }
+
+            const isDelisted = bus.status === 'delisted' || bus.status === 'hidden';
+
             if (isLive) {
                 if (liveControls) liveControls.style.display = 'block';
                 if (pendingBox) pendingBox.style.display = 'none';
+                if (delistedBox) delistedBox.style.display = 'none';
 
                 const viewLink = document.getElementById('busDetailViewLink');
                 if (viewLink) {
@@ -5116,10 +5221,57 @@
                 document.getElementById('busHideConfirmBox').style.display = 'none';
                 setInlineError('busHideInlineError', '');
                 resetDeleteBusinessBox();
+            } else if (isDelisted) {
+                if (liveControls) liveControls.style.display = 'none';
+                if (pendingBox) pendingBox.style.display = 'none';
+                if (delistedBox) {
+                    delistedBox.style.display = 'block';
+                    const reasonMap = {
+                        permanent_closure: 'Permanently closed (Nagsara na)',
+                        relocated: 'Relocated outside Calamba (Lumipat ng lugar)',
+                        duplicate: 'Duplicate listing (May kaparehong listing)',
+                        temporary_pause: 'Temporarily paused operations',
+                        owner_request: 'Owner request / Other personal reason'
+                    };
+                    const rText = reasonMap[bus.delistReason] || bus.delistReason || bus.reviewNote || 'Delisted by Calzada';
+                    const reasonEl = document.getElementById('busDelistedReasonDisplay');
+                    if (reasonEl) reasonEl.textContent = rText;
+
+                    const notesWrap = document.getElementById('busDelistedNotesDisplayWrap');
+                    const notesEl = document.getElementById('busDelistedNotesDisplay');
+                    if (notesWrap && notesEl) {
+                        if (bus.delistNotes) {
+                            notesEl.textContent = bus.delistNotes;
+                            notesWrap.style.display = 'block';
+                        } else {
+                            notesWrap.style.display = 'none';
+                        }
+                    }
+
+                    const dateEl = document.getElementById('busDelistedDateDisplay');
+                    if (dateEl) {
+                        const dt = bus.delistedAt ? formatAdminDate(bus.delistedAt) : '';
+                        dateEl.textContent = dt ? `Delisted on ${dt}` : '';
+                    }
+
+                    const reactivateWrap = document.getElementById('busReactivateNoticeWrap');
+                    const reactivateNotes = document.getElementById('busReactivateNotesDisplay');
+                    if (reactivateWrap) {
+                        if (bus.reactivateRequest) {
+                            reactivateWrap.style.display = 'block';
+                            if (reactivateNotes) {
+                                reactivateNotes.textContent = bus.reactivateRequest.notes ? `Note: "${bus.reactivateRequest.notes}"` : 'Owner is requesting to make listing live again.';
+                            }
+                        } else {
+                            reactivateWrap.style.display = 'none';
+                        }
+                    }
+                }
             } else {
                 // Not live on the map yet — hide map-management & delete controls; show helpful workflow step
                 if (liveControls) liveControls.style.display = 'none';
                 if (pendingBox) pendingBox.style.display = 'block';
+                if (delistedBox) delistedBox.style.display = 'none';
 
                 if (wfTitle && wfDesc && wfBtn) {
                     if (bus.status === 'pending') {
@@ -5283,6 +5435,123 @@
                     setInlineError('busHideInlineError', `Failed to hide business: ${err.message}`);
                 } finally {
                     setButtonLoading(btnConfirmHide, false);
+                }
+            });
+        }
+
+        // Delisting handshake action: Approve delisting request
+        const btnApproveDelist = document.getElementById('btnApproveDelistRequest');
+        if (btnApproveDelist) {
+            btnApproveDelist.addEventListener('click', async () => {
+                const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
+                if (!bus) return;
+                if (!confirm(`Approve delisting for "${bus.name}"? This will hide the business from Calzada public maps and commuter search.`)) {
+                    return;
+                }
+
+                try {
+                    setButtonLoading(btnApproveDelist, true, 'Delisting...');
+                    const busRef = doc(db, 'businesses', bus.id);
+                    const delistData = bus.delistRequest || {};
+                    const reason = delistData.reason || 'Owner request';
+                    const notes = delistData.notes || '';
+
+                    await updateDoc(busRef, {
+                        status: 'delisted',
+                        delistedAt: serverTimestamp(),
+                        delistedBy: 'admin',
+                        delistReason: reason,
+                        delistNotes: notes,
+                        delistRequest: deleteField(),
+                        updatedAt: serverTimestamp()
+                    });
+
+                    await triggerAdminEvent('business_removed', bus.id, { reason });
+
+                    bus.status = 'delisted';
+                    bus.delistedAt = new Date();
+                    bus.delistReason = reason;
+                    bus.delistNotes = notes;
+                    delete bus.delistRequest;
+
+                    showAdminNotice(`"${bus.name}" has been delisted and removed from the map.`, 'success');
+                    renderBusinessesTable();
+                    showBusinessRowDetail(bus);
+                    updateOverviewStats();
+                } catch (err) {
+                    console.error('Approve delist error:', err);
+                    showAdminNotice(`Failed to delist business: ${err.message}`, 'error');
+                } finally {
+                    setButtonLoading(btnApproveDelist, false);
+                }
+            });
+        }
+
+        // Delisting handshake action: Dismiss delisting request
+        const btnDismissDelist = document.getElementById('btnDismissDelistRequest');
+        if (btnDismissDelist) {
+            btnDismissDelist.addEventListener('click', async () => {
+                const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
+                if (!bus) return;
+                if (!confirm(`Dismiss the delisting request for "${bus.name}"? The listing will remain live on the map.`)) {
+                    return;
+                }
+
+                try {
+                    setButtonLoading(btnDismissDelist, true, 'Dismissing...');
+                    const busRef = doc(db, 'businesses', bus.id);
+                    await updateDoc(busRef, {
+                        delistRequest: deleteField(),
+                        updatedAt: serverTimestamp()
+                    });
+
+                    delete bus.delistRequest;
+                    showAdminNotice(`Delisting request dismissed for "${bus.name}".`, 'success');
+                    renderBusinessesTable();
+                    showBusinessRowDetail(bus);
+                } catch (err) {
+                    console.error('Dismiss delist error:', err);
+                    showAdminNotice(`Failed to dismiss request: ${err.message}`, 'error');
+                } finally {
+                    setButtonLoading(btnDismissDelist, false);
+                }
+            });
+        }
+
+        // Reactivate delisted business action
+        const btnReactivateAction = document.getElementById('btnReactivateBusinessAction');
+        if (btnReactivateAction) {
+            btnReactivateAction.addEventListener('click', async () => {
+                const bus = allBusinesses.find(b => b.id === selectedDetailBusId);
+                if (!bus) return;
+                if (!confirm(`Reactivate "${bus.name}" and restore it to the live map?`)) {
+                    return;
+                }
+
+                try {
+                    setButtonLoading(btnReactivateAction, true, 'Reactivating...');
+                    const busRef = doc(db, 'businesses', bus.id);
+                    await updateDoc(busRef, {
+                        status: 'approved',
+                        reactivatedAt: serverTimestamp(),
+                        reactivateRequest: deleteField(),
+                        updatedAt: serverTimestamp()
+                    });
+
+                    await triggerAdminEvent('business_live', bus.id, { reactivated: true });
+
+                    bus.status = 'approved';
+                    delete bus.reactivateRequest;
+
+                    showAdminNotice(`"${bus.name}" is now live and restored to the map!`, 'success');
+                    renderBusinessesTable();
+                    showBusinessRowDetail(bus);
+                    updateOverviewStats();
+                } catch (err) {
+                    console.error('Reactivate business error:', err);
+                    showAdminNotice(`Failed to reactivate business: ${err.message}`, 'error');
+                } finally {
+                    setButtonLoading(btnReactivateAction, false);
                 }
             });
         }

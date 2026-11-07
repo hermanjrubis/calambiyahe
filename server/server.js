@@ -1822,6 +1822,156 @@ app.post('/api/payments/upgrade-plan', requireAuth, (req, res) => {
     });
 });
 
+// =============================================
+// BUSINESS DELISTING & REMOVAL HANDSHAKE
+// =============================================
+
+// POST /api/businesses/request-delist - Owner requests delisting/closure of their business
+app.post('/api/businesses/request-delist', requireAuth, async (req, res) => {
+    try {
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId.' });
+        }
+
+        const validReasons = ['permanent_closure', 'relocated', 'duplicate', 'temporary_pause', 'owner_request'];
+        const reason = req.body && req.body.reason ? String(req.body.reason).trim() : '';
+        if (!validReasons.includes(reason)) {
+            return res.status(400).json({ error: 'A valid reason for delisting is required.' });
+        }
+
+        const notes = req.body && req.body.notes ? String(req.body.notes).trim().slice(0, 500) : '';
+
+        const adminDb = getFirestore();
+        if (!adminDb) {
+            return res.status(500).json({ error: 'Database service unavailable.' });
+        }
+
+        const busRef = adminDb.collection('businesses').doc(businessId);
+        const busSnap = await busRef.get();
+        if (!busSnap.exists) {
+            return res.status(404).json({ error: 'Business not found.' });
+        }
+
+        const busData = busSnap.data();
+        if (busData.ownerId !== req.user.uid && req.user.admin !== true) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this business.' });
+        }
+
+        if (busData.status === 'delisted') {
+            return res.status(400).json({ error: 'Business is already delisted.' });
+        }
+
+        await busRef.update({
+            delistRequest: {
+                reason,
+                notes,
+                requestedAt: FieldValue.serverTimestamp(),
+                requestedBy: req.user.uid,
+                ownerEmail: req.user.email || busData.ownerEmail || null
+            },
+            updatedAt: FieldValue.serverTimestamp()
+        });
+
+        return res.json({
+            success: true,
+            message: 'Delisting request submitted for Calzada Admin review.'
+        });
+    } catch (err) {
+        console.error('[DELIST] Request error:', err);
+        return res.status(500).json({ error: 'Failed to submit delisting request: ' + err.message });
+    }
+});
+
+// POST /api/businesses/cancel-delist - Owner cancels their pending delisting request
+app.post('/api/businesses/cancel-delist', requireAuth, async (req, res) => {
+    try {
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId.' });
+        }
+
+        const adminDb = getFirestore();
+        if (!adminDb) {
+            return res.status(500).json({ error: 'Database service unavailable.' });
+        }
+
+        const busRef = adminDb.collection('businesses').doc(businessId);
+        const busSnap = await busRef.get();
+        if (!busSnap.exists) {
+            return res.status(404).json({ error: 'Business not found.' });
+        }
+
+        const busData = busSnap.data();
+        if (busData.ownerId !== req.user.uid && req.user.admin !== true) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this business.' });
+        }
+
+        await busRef.update({
+            delistRequest: FieldValue.delete(),
+            updatedAt: FieldValue.serverTimestamp()
+        });
+
+        return res.json({
+            success: true,
+            message: 'Delisting request cancelled. Business remains active.'
+        });
+    } catch (err) {
+        console.error('[DELIST] Cancel error:', err);
+        return res.status(500).json({ error: 'Failed to cancel delisting request: ' + err.message });
+    }
+});
+
+// POST /api/businesses/request-reactivate - Owner of delisted business requests reactivation
+app.post('/api/businesses/request-reactivate', requireAuth, async (req, res) => {
+    try {
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId.' });
+        }
+
+        const notes = req.body && req.body.notes ? String(req.body.notes).trim().slice(0, 500) : '';
+
+        const adminDb = getFirestore();
+        if (!adminDb) {
+            return res.status(500).json({ error: 'Database service unavailable.' });
+        }
+
+        const busRef = adminDb.collection('businesses').doc(businessId);
+        const busSnap = await busRef.get();
+        if (!busSnap.exists) {
+            return res.status(404).json({ error: 'Business not found.' });
+        }
+
+        const busData = busSnap.data();
+        if (busData.ownerId !== req.user.uid && req.user.admin !== true) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this business.' });
+        }
+
+        if (busData.status !== 'delisted' && busData.status !== 'hidden') {
+            return res.status(400).json({ error: 'Only delisted or hidden businesses can request reactivation.' });
+        }
+
+        await busRef.update({
+            reactivateRequest: {
+                notes,
+                requestedAt: FieldValue.serverTimestamp(),
+                requestedBy: req.user.uid,
+                ownerEmail: req.user.email || busData.ownerEmail || null
+            },
+            updatedAt: FieldValue.serverTimestamp()
+        });
+
+        return res.json({
+            success: true,
+            message: 'Reactivation request submitted for Calzada Admin review.'
+        });
+    } catch (err) {
+        console.error('[REACTIVATE] Request error:', err);
+        return res.status(500).json({ error: 'Failed to request reactivation: ' + err.message });
+    }
+});
+
 const postPhotosUpload = multer({
     storage: multer.memoryStorage(),
     limits: {

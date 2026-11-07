@@ -2307,6 +2307,28 @@
                             </div>
                         </section>
 
+                        <!-- Delisting Pending Notice -->
+                        <section class="mb-card" id="mbDelistPendingCard" style="display: none; border-left: 4px solid #F59E0B; background: #FFFBEB;">
+                            <div style="display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap;">
+                                <div style="background: #FEF3C7; color: #D97706; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+                                    <i class="ti ti-alert-triangle"></i>
+                                </div>
+                                <div style="flex: 1; min-width: 260px;">
+                                    <div style="font-size: 11px; font-weight: 700; color: #B45309; text-transform: uppercase; letter-spacing: 0.04em;">Delisting Request Submitted</div>
+                                    <h3 style="font-size: 16px; font-weight: 700; color: #78350F; margin: 2px 0 6px;">Pending Calzada Admin Review</h3>
+                                    <p style="font-size: 13.5px; color: #92400E; margin: 0 0 10px; line-height: 1.5;">
+                                        You requested to remove/delist this business (<strong id="mbDelistPendingReasonText">Permanent closure</strong>). While under review, your listing remains active until admin confirmation.
+                                    </p>
+                                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                        <button type="button" class="btn-cancel" id="btnCancelDelistTrigger" style="background: #FFFFFF; border: 1px solid #D97706; color: #B45309; font-weight: 600; padding: 6px 14px; font-size: 13px; cursor: pointer; border-radius: 8px;">
+                                            <i class="ti ti-rotate-2"></i> Cancel Delist Request
+                                        </button>
+                                        <span style="font-size: 12px; color: #92400E; opacity: 0.9;">Changed your mind? Click to keep your business live.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
                         <!-- Upgrade Pending Notice -->
                         <section class="mb-card" id="mbUpgradePendingCard" style="display: none; border-left: 4px solid #1D4ED8; background: #F8FAFC;">
                             <div style="display: flex; gap: 14px; align-items: flex-start;">
@@ -2697,6 +2719,24 @@
                     </div>
                                 </section>
 
+                                <!-- Danger Zone: Close or Delist Business -->
+                                <section class="profile-card" id="mbDelistDangerZone" style="border: 1px solid #FECACA; background: #FFF5F5; margin-top: 24px; padding: 20px; border-radius: 12px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap;">
+                                        <div>
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                                <i class="ti ti-alert-triangle" style="color: #DC2626; font-size: 20px;"></i>
+                                                <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #991B1B;">Close or Delist Business</h3>
+                                            </div>
+                                            <p style="margin: 0; font-size: 13px; color: #7F1D1D; line-height: 1.5; max-width: 520px;">
+                                                Permanently closed, relocated, or need this establishment removed from Calzada search and commuter maps? Submit a delisting request. Our admin team will review and confirm the removal.
+                                            </p>
+                                        </div>
+                                        <button type="button" id="btnOpenDelistModal" class="btn-cancel" style="border: 1px solid #EF4444; color: #DC2626; font-weight: 600; white-space: nowrap; background: #FFFFFF; cursor: pointer; padding: 8px 16px; border-radius: 8px;">
+                                            <i class="ti ti-trash"></i> Request Delisting
+                                        </button>
+                                    </div>
+                                </section>
+
                                 <!-- Save bar: stays at the bottom of the screen while editing -->
                                 <div class="profile-actions mb-save-bar">
                                     <span class="mb-unsaved" id="mbUnsavedText">No changes yet</span>
@@ -2828,6 +2868,43 @@
             </div>
         </div>
 
+        <!-- STATE: DELISTED / INACTIVE -->
+        <div id="stateDelisted" style="display: none;">
+            <div class="section-block">
+                <h1 class="business-name" id="delistedBusinessName">--</h1>
+                <div class="status-line">
+                    <span class="status-dot" style="background: #94A3B8;" aria-hidden="true"></span>
+                    <span class="status-text" style="color: #64748B; font-weight: 600;">Delisted / Inactive</span>
+                </div>
+                <div id="delistedReasonCard" style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px 16px; margin-top: 14px;">
+                    <div style="font-size: 13.5px; color: #334155;">
+                        <strong>Delisting reason:</strong> <span id="delistedReasonText">Closed or delisted</span>
+                    </div>
+                    <div id="delistedNotesWrap" style="font-size: 13px; color: #64748B; margin-top: 6px; display: none;">
+                        <strong>Notes:</strong> <span id="delistedNotesText"></span>
+                    </div>
+                    <div style="font-size: 12px; color: #94A3B8; margin-top: 6px;" id="delistedDateText"></div>
+                </div>
+            </div>
+
+            <div class="section-block">
+                <p style="font-size: 14px; color: #475569; margin: 0 0 16px 0; line-height: 1.5;">
+                    This establishment is currently hidden from Calzada public maps, search results, and commuter directions. Your profile details, photos, and records remain saved safely.
+                </p>
+                <div id="delistedReactivatePendingNotice" style="display: none; background: #FEF3C7; border: 1px solid #FCD34D; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: #92400E;">
+                    <i class="ti ti-clock"></i> Reactivation request has been submitted and is pending Calzada Admin review.
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <button type="button" class="btn-primary" id="btnRequestReactivate" style="padding: 10px 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="ti ti-refresh"></i> Request Reactivation
+                    </button>
+                    <a href="mailto:support@calzadaph.com" class="btn-cancel" style="padding: 10px 18px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #CBD5E1; border-radius: 8px; color: #475569;">
+                        <i class="ti ti-mail"></i> Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- Plans Configuration, Business Fields, MapLibre, and i18n -->
@@ -2890,6 +2967,14 @@
         const statePaymentReview = document.getElementById('statePaymentReview');
         const stateApproved = document.getElementById('stateApproved');
         const stateRejected = document.getElementById('stateRejected');
+        const stateDelisted = document.getElementById('stateDelisted');
+        const delistedBusinessName = document.getElementById('delistedBusinessName');
+        const delistedReasonText = document.getElementById('delistedReasonText');
+        const delistedNotesWrap = document.getElementById('delistedNotesWrap');
+        const delistedNotesText = document.getElementById('delistedNotesText');
+        const delistedDateText = document.getElementById('delistedDateText');
+        const delistedReactivatePendingNotice = document.getElementById('delistedReactivatePendingNotice');
+        const btnRequestReactivate = document.getElementById('btnRequestReactivate');
 
         const pendingBusinessName = document.getElementById('pendingBusinessName');
         const pendingCategory = document.getElementById('pendingCategory');
@@ -3550,6 +3635,26 @@
                     if (cardPromo) cardPromo.style.display = 'none';
                 }
             }
+
+            // Handle Delisting Pending Alert in Overview
+            const cardDelist = document.getElementById('mbDelistPendingCard');
+            if (cardDelist) {
+                if (activeBusiness && activeBusiness.delistRequest) {
+                    cardDelist.style.display = 'block';
+                    const reasonMap = {
+                        permanent_closure: 'Permanent closure',
+                        relocated: 'Relocated outside Calamba',
+                        duplicate: 'Duplicate listing',
+                        temporary_pause: 'Temporarily paused',
+                        owner_request: 'Owner request'
+                    };
+                    const rText = reasonMap[activeBusiness.delistRequest.reason] || activeBusiness.delistRequest.reason || 'Owner request';
+                    const reasonEl = document.getElementById('mbDelistPendingReasonText');
+                    if (reasonEl) reasonEl.textContent = rText;
+                } else {
+                    cardDelist.style.display = 'none';
+                }
+            }
         }
 
         // ---- My Business tabs (Overview / Edit profile / Posts) ----
@@ -3781,6 +3886,7 @@
             statePaymentReview.style.display = 'none';
             stateApproved.style.display = 'none';
             stateRejected.style.display = 'none';
+            if (stateDelisted) stateDelisted.style.display = 'none';
             profileEditorForm.style.display = (stateKey === 'approved') ? 'flex' : 'none';
             document.getElementById('mybusContainer')?.classList.toggle('is-approved', stateKey === 'approved');
             if (postsCard) postsCard.style.display = (stateKey === 'approved') ? 'block' : 'none';
@@ -4047,6 +4153,39 @@
                 rejectedDocId.textContent = activeBusinessId;
                 rejectionReasonText.textContent = activeBusiness.reviewNote || activeBusiness.rejectionReason || 'No specific reason provided.';
                 stateRejected.style.display = 'block';
+
+            } else if (stateKey === 'delisted' || stateKey === 'hidden') {
+                delistedBusinessName.textContent = activeBusiness.name || 'Unnamed Business';
+                const reasonMap = {
+                    permanent_closure: 'Permanently closed (Nagsara na)',
+                    relocated: 'Relocated outside Calamba (Lumipat ng lugar)',
+                    duplicate: 'Duplicate listing (May kaparehong listing)',
+                    temporary_pause: 'Temporarily paused operations',
+                    owner_request: 'Owner request / Other personal reason'
+                };
+                delistedReasonText.textContent = reasonMap[activeBusiness.delistReason] || activeBusiness.delistReason || activeBusiness.reviewNote || 'Delisted by Calzada';
+                if (activeBusiness.delistNotes) {
+                    delistedNotesText.textContent = activeBusiness.delistNotes;
+                    delistedNotesWrap.style.display = 'block';
+                } else {
+                    delistedNotesWrap.style.display = 'none';
+                }
+                if (activeBusiness.delistedAt) {
+                    const dt = activeBusiness.delistedAt.toDate ? activeBusiness.delistedAt.toDate() : new Date(activeBusiness.delistedAt);
+                    delistedDateText.textContent = !isNaN(dt.getTime()) ? `Delisted on ${dt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })}` : '';
+                } else {
+                    delistedDateText.textContent = '';
+                }
+                if (activeBusiness.reactivateRequest) {
+                    delistedReactivatePendingNotice.style.display = 'block';
+                    btnRequestReactivate.disabled = true;
+                    btnRequestReactivate.innerHTML = '<i class="ti ti-clock"></i> Reactivation Pending Review';
+                } else {
+                    delistedReactivatePendingNotice.style.display = 'none';
+                    btnRequestReactivate.disabled = false;
+                    btnRequestReactivate.innerHTML = '<i class="ti ti-refresh"></i> Request Reactivation';
+                }
+                stateDelisted.style.display = 'block';
             }
         }
 
@@ -5645,6 +5784,201 @@
             });
         }
 
+        // =============================================
+        // BUSINESS DELIST & REACTIVATION HANDSHAKE
+        // =============================================
+        const modalDelist = document.getElementById('modalRequestDelist');
+        const formDelist = document.getElementById('formRequestDelist');
+        const btnOpenDelist = document.getElementById('btnOpenDelistModal');
+        const btnCloseDelist = document.getElementById('btnCloseDelistModal');
+        const btnCancelDelist = document.getElementById('btnCancelDelistModal');
+        const delistErrorEl = document.getElementById('delistModalError');
+        const btnSubmitDelist = document.getElementById('btnSubmitDelistRequest');
+
+        function openDelistModal() {
+            if (!modalDelist) return;
+            if (formDelist) formDelist.reset();
+            if (delistErrorEl) delistErrorEl.style.display = 'none';
+            modalDelist.style.display = 'flex';
+        }
+
+        function closeDelistModal() {
+            if (!modalDelist) return;
+            modalDelist.style.display = 'none';
+        }
+
+        if (btnOpenDelist) btnOpenDelist.addEventListener('click', openDelistModal);
+        if (btnCloseDelist) btnCloseDelist.addEventListener('click', closeDelistModal);
+        if (btnCancelDelist) btnCancelDelist.addEventListener('click', closeDelistModal);
+        if (modalDelist) {
+            modalDelist.addEventListener('click', (e) => {
+                if (e.target === modalDelist) closeDelistModal();
+            });
+        }
+
+        if (formDelist) {
+            formDelist.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (delistErrorEl) delistErrorEl.style.display = 'none';
+
+                const confirmCheck = document.getElementById('delistConfirmCheck');
+                if (!confirmCheck || !confirmCheck.checked) {
+                    if (delistErrorEl) {
+                        delistErrorEl.textContent = 'Please confirm that you authorize this delisting request.';
+                        delistErrorEl.style.display = 'block';
+                    }
+                    return;
+                }
+
+                const reason = document.getElementById('delistReasonSelect')?.value || 'owner_request';
+                const notes = document.getElementById('delistNotesInput')?.value?.trim() || '';
+
+                try {
+                    if (btnSubmitDelist) {
+                        btnSubmitDelist.disabled = true;
+                        btnSubmitDelist.innerHTML = 'Submitting...';
+                    }
+
+                    const idToken = await getFirebaseIdToken();
+                    const res = await fetch('/api/businesses/request-delist', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({
+                            businessId: activeBusinessId,
+                            reason,
+                            notes
+                        })
+                    });
+
+                    const data = await readApiJson(res);
+                    if (!res.ok) {
+                        throw new Error(data.error || 'Failed to submit delist request.');
+                    }
+
+                    if (activeBusiness) {
+                        activeBusiness.delistRequest = {
+                            reason,
+                            notes,
+                            requestedAt: new Date()
+                        };
+                    }
+
+                    closeDelistModal();
+                    updatePlanMetaDisplay();
+                    showBanner('Delisting request submitted. Calzada Admin will review and verify your request.', 'success');
+
+                } catch (err) {
+                    console.error('Delist submit error:', err);
+                    if (delistErrorEl) {
+                        delistErrorEl.textContent = err.message || 'Error submitting request.';
+                        delistErrorEl.style.display = 'block';
+                    }
+                } finally {
+                    if (btnSubmitDelist) {
+                        btnSubmitDelist.disabled = false;
+                        btnSubmitDelist.innerHTML = '<span>Submit Delist Request</span>';
+                    }
+                }
+            });
+        }
+
+        // Cancel pending delist request
+        const btnCancelDelistTrigger = document.getElementById('btnCancelDelistTrigger');
+        if (btnCancelDelistTrigger) {
+            btnCancelDelistTrigger.addEventListener('click', async () => {
+                if (!confirm('Cancel your delist request and keep your business live on Calzada?')) {
+                    return;
+                }
+
+                try {
+                    btnCancelDelistTrigger.disabled = true;
+                    btnCancelDelistTrigger.textContent = 'Cancelling...';
+
+                    const idToken = await getFirebaseIdToken();
+                    const res = await fetch('/api/businesses/cancel-delist', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({ businessId: activeBusinessId })
+                    });
+
+                    const data = await readApiJson(res);
+                    if (!res.ok) {
+                        throw new Error(data.error || 'Failed to cancel delist request.');
+                    }
+
+                    if (activeBusiness) {
+                        delete activeBusiness.delistRequest;
+                    }
+
+                    updatePlanMetaDisplay();
+                    showBanner('Delist request cancelled. Your business remains active on Calzada.', 'success');
+
+                } catch (err) {
+                    console.error('Cancel delist error:', err);
+                    showBanner(`Failed to cancel delist request: ${err.message}`, 'error');
+                } finally {
+                    btnCancelDelistTrigger.disabled = false;
+                    btnCancelDelistTrigger.innerHTML = '<i class="ti ti-rotate-2"></i> Cancel Delist Request';
+                }
+            });
+        }
+
+        // Request reactivation for delisted business
+        if (btnRequestReactivate) {
+            btnRequestReactivate.addEventListener('click', async () => {
+                const notes = prompt('Request reactivation: Provide optional notes for Calzada Admin (e.g. reopened, new hours, new management):');
+                if (notes === null) return; // user cancelled
+
+                try {
+                    btnRequestReactivate.disabled = true;
+                    btnRequestReactivate.innerHTML = 'Submitting...';
+
+                    const idToken = await getFirebaseIdToken();
+                    const res = await fetch('/api/businesses/request-reactivate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${idToken}`
+                        },
+                        body: JSON.stringify({
+                            businessId: activeBusinessId,
+                            notes: notes.trim()
+                        })
+                    });
+
+                    const data = await readApiJson(res);
+                    if (!res.ok) {
+                        throw new Error(data.error || 'Failed to request reactivation.');
+                    }
+
+                    if (activeBusiness) {
+                        activeBusiness.reactivateRequest = {
+                            notes: notes.trim(),
+                            requestedAt: new Date()
+                        };
+                    }
+
+                    if (delistedReactivatePendingNotice) {
+                        delistedReactivatePendingNotice.style.display = 'block';
+                    }
+                    btnRequestReactivate.innerHTML = '<i class="ti ti-clock"></i> Reactivation Pending Review';
+                    showBanner('Reactivation request submitted! Calzada Admin will review your request.', 'success');
+
+                } catch (err) {
+                    console.error('Reactivation error:', err);
+                    btnRequestReactivate.disabled = false;
+                    btnRequestReactivate.innerHTML = '<i class="ti ti-refresh"></i> Request Reactivation';
+                    showBanner(`Failed to request reactivation: ${err.message}`, 'error');
+                }
+            });
+        }
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -6464,6 +6798,64 @@
                     <button type="button" class="btn-cancel" id="btnCancelUpgradeModal" style="padding: 8px 16px; border: 1px solid #CBD5E1; border-radius: 8px; background: #FFFFFF; color: #475569; font-weight: 600; cursor: pointer;">Cancel</button>
                     <button type="submit" class="btn-primary" id="btnSubmitUpgrade" style="padding: 8px 20px; border: none; border-radius: 8px; background: #378ADD; color: #FFFFFF; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                         <span>Submit Upgrade Payment</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- BUSINESS DELIST REQUEST MODAL -->
+    <div id="modalRequestDelist" class="mb-modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(4, 44, 83, 0.65); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; padding: 16px; overflow-y: auto;">
+        <div class="mb-modal-card" style="background: #FFFFFF; border-radius: 14px; width: 100%; max-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; margin: auto;">
+            <div style="padding: 18px 22px; border-bottom: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 50%; background: #FEE2E2; color: #DC2626; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="ti ti-alert-triangle"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: #991B1B; margin: 0;">Request Business Delisting</h2>
+                        <p style="font-size: 12.5px; color: #64748B; margin: 2px 0 0;">Remove your business from Calzada public maps</p>
+                    </div>
+                </div>
+                <button type="button" id="btnCloseDelistModal" aria-label="Close modal" style="background: none; border: none; font-size: 20px; color: #64748B; cursor: pointer; padding: 4px;">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
+
+            <form id="formRequestDelist" style="padding: 22px;" novalidate>
+                <div style="background: #FFF5F5; border: 1px solid #FECACA; border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: #7F1D1D; line-height: 1.45;">
+                    <strong>Notice:</strong> Delisting hides your business from commuter routes, Places search, and category listings. Calzada Admin will review and verify this request before confirming.
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" for="delistReasonSelect" style="font-size: 13px; font-weight: 600; color: #042C53; display: block; margin-bottom: 6px;">Reason for delisting <span style="color: #DC2626;">*</span></label>
+                    <select id="delistReasonSelect" class="form-select" required style="width: 100%; min-height: 40px; border: 1px solid #CBD5E1; border-radius: 8px; padding: 8px 12px; font-size: 13.5px; color: #042C53; background: #FFFFFF;">
+                        <option value="permanent_closure">Permanently closed (Nagsara na ang negosyo)</option>
+                        <option value="relocated">Relocated outside Calamba (Lumipat ng ibang bayan/lugar)</option>
+                        <option value="duplicate">Duplicate listing (May kaparehong listing)</option>
+                        <option value="temporary_pause">Temporarily paused operations</option>
+                        <option value="owner_request">Owner request / Other personal reason</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="form-label" for="delistNotesInput" style="font-size: 13px; font-weight: 600; color: #042C53; display: block; margin-bottom: 6px;">Additional details / notes <span style="font-weight: 400; color: #64748B;">(optional)</span></label>
+                    <textarea id="delistNotesInput" class="form-textarea" rows="3" maxlength="500" placeholder="Provide any details for the Calzada review team..." style="width: 100%; border: 1px solid #CBD5E1; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #042C53; box-sizing: border-box; resize: vertical;"></textarea>
+                </div>
+
+                <div style="margin-bottom: 18px;">
+                    <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; user-select: none;">
+                        <input type="checkbox" id="delistConfirmCheck" required style="margin-top: 3px;">
+                        <span>I confirm that I am the owner or authorized representative requesting to remove/delist this establishment.</span>
+                    </label>
+                </div>
+
+                <div id="delistModalError" style="display: none; color: #DC2626; font-size: 13px; margin-bottom: 14px; font-weight: 500;"></div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn-cancel" id="btnCancelDelistModal" style="padding: 8px 16px; border: 1px solid #CBD5E1; border-radius: 8px; background: #FFFFFF; color: #475569; font-weight: 600; cursor: pointer;">Cancel</button>
+                    <button type="submit" class="btn-primary" id="btnSubmitDelistRequest" style="padding: 8px 18px; border: none; border-radius: 8px; background: #DC2626; color: #FFFFFF; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>Submit Delist Request</span>
                     </button>
                 </div>
             </form>
