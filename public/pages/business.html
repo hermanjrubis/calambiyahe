@@ -2446,19 +2446,27 @@
             const section = document.getElementById('bizTourSection');
             const frame = document.getElementById('bizTourFrame');
             const tabBtnTour = document.getElementById('igTabBtnTour');
+            const tabPanelTour = document.getElementById('igTabPanelTour');
             if (!section || !frame) return;
+
+            // Plan 1 has NO 360 section at all. Storefront only.
+            const isPlan1 = bus.plan === 'listed' || !bus.plan || bus.plan === 'plan1' || (bus.plan !== 'plus360' && bus.plan !== 'featured');
+            const has360Plan = !isPlan1 && (bus.plan === 'plus360' || bus.plan === 'featured');
+
+            if (tourViewer) { try { tourViewer.destroy(); } catch (_) {} tourViewer = null; }
+
+            if (isPlan1 || !has360Plan || bus.status !== 'approved') {
+                section.hidden = true;
+                if (tabBtnTour) tabBtnTour.hidden = true;
+                if (tabPanelTour) tabPanelTour.hidden = true;
+                return;
+            }
+
             const photos = (bus.tour360 && Array.isArray(bus.tour360.photos))
                 ? bus.tour360.photos.filter(p => p && typeof p.url === 'string' && p.url)
                 : [];
-            const has360Plan = bus.plan === 'plus360' || bus.plan === 'featured';
-            if (tourViewer) { try { tourViewer.destroy(); } catch (_) {} tourViewer = null; }
 
             if (!photos.length) {
-                if (!has360Plan || bus.status !== 'approved') {
-                    section.hidden = true;
-                    if (tabBtnTour) tabBtnTour.hidden = true;
-                    return;
-                }
                 const bg = bus.thumbnailUrl || bus.profilePhotoUrl || '';
                 frame.innerHTML = `
                     <div class="biz-tour-soon">

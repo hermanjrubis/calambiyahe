@@ -989,11 +989,14 @@
                 const category = place.category || 'Destination';
                 const barangay = place.barangay || '';
                 const municipality = place.municipality || 'Calamba';
-                const rawImg = place.photo || place.image_path || '';
+                const rawImg = place.photo || place.thumbnailUrl || place.profilePhotoUrl || place.image_path || place.image || '';
                 const imagePath = rawImg ? resolvePlaceImageUrl(rawImg) : '../assets/hero-places-bg.png';
                 const description = place.description || '';
                 const placeLat = place.lat != null ? place.lat : null;
                 const placeLng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
+
+                const isBiz = Boolean(place.source === 'business' || place.businessId || (place.id && String(place.id).startsWith('biz_')) || place.plan || place.ownerId);
+                const isPlan1 = isBiz && (place.plan === 'listed' || !place.plan || place.plan === 'plan1' || (place.plan !== 'plus360' && place.plan !== 'featured'));
 
                 const existing = window.placesData[name] || {};
                 window.placesData[name] = {
@@ -1003,9 +1006,11 @@
                     name: name,
                     category: category,
                     image: imagePath || existing.image || '../assets/hero-places-bg.png',
-                    photo: place.photo !== undefined ? place.photo : (existing.photo !== undefined ? existing.photo : null),
-                    pano: place.pano !== undefined ? place.pano : (existing.pano !== undefined ? existing.pano : null),
-                    pano_thumb: place.pano_thumb !== undefined ? place.pano_thumb : (existing.pano_thumb !== undefined ? existing.pano_thumb : null),
+                    photo: (place.photo || place.thumbnailUrl || place.profilePhotoUrl) !== undefined 
+                        ? (place.photo || place.thumbnailUrl || place.profilePhotoUrl) 
+                        : (existing.photo !== undefined ? existing.photo : null),
+                    pano: isPlan1 ? null : (place.pano !== undefined ? place.pano : (existing.pano !== undefined ? existing.pano : null)),
+                    pano_thumb: isPlan1 ? null : (place.pano_thumb !== undefined ? place.pano_thumb : (existing.pano_thumb !== undefined ? existing.pano_thumb : null)),
                     barangay: barangay ? `Brgy. ${barangay}, ${municipality}` : (existing.barangay || municipality),
                     full_address: place.full_address || existing.full_address || null,
                     phone: place.phone || null,
@@ -1019,15 +1024,15 @@
                     lng: placeLng != null ? placeLng : existing.lng,
                     // Listed businesses: what the panel needs for hours, offerings, the owner
                     // banner and the 360 tour / "coming soon" slide
-                    ...(place.source === 'business' ? {
+                    ...(isBiz ? {
                         source: 'business',
-                        businessId: place.businessId,
+                        businessId: place.businessId || (place.id && String(place.id).replace(/^biz_/, '')),
                         offerings: Array.isArray(place.offerings) ? place.offerings : [],
                         openHours: place.openHours || null,
-                        plan: place.plan,
+                        plan: place.plan || 'listed',
                         paidAt: place.paidAt,
-                        has360: !!place.has360,
-                        tour360: place.tour360 || null,
+                        has360: isPlan1 ? false : !!place.has360,
+                        tour360: isPlan1 ? null : (place.tour360 || null),
                         ownerId: place.ownerId || null
                     } : {})
                 };
@@ -1043,8 +1048,11 @@
                 const isPointer = (e && (e.pointerType === 'mouse' || e.pointerType === 'touch' || e.pointerType === 'pen' || e.detail > 0));
                 window._lastOpenedByKeyboard = !isPointer;
                 window._lastFocusedPlaceCard = card;
+                const matchedPlace = (typeof allMasterPlaces !== 'undefined' && Array.isArray(allMasterPlaces))
+                    ? allMasterPlaces.find(p => p.name === name)
+                    : (window.placesData && window.placesData[name]);
                 if (typeof window.openPlacePanel === 'function') {
-                    window.openPlacePanel(name, placeLat, placeLng);
+                    window.openPlacePanel(name, placeLat, placeLng, matchedPlace ? { placeData: matchedPlace } : undefined);
                 }
             }
 
@@ -1260,13 +1268,13 @@
                                 (pendingRating && pendingRating.placeId && p.id != null && String(p.id) === String(pendingRating.placeId))
                             );
                             if (match) {
-                                window.openPlacePanel(match.name, match.lat, match.lng || match.lon);
+                                window.openPlacePanel(match.name, match.lat, match.lng || match.lon, { placeData: match });
                             } else if (idParam) {
                                 fetch(`/api/places/${encodeURIComponent(idParam)}`)
                                     .then(r => r.ok ? r.json() : null)
                                     .then(p => {
                                         if (p && p.name) {
-                                            window.openPlacePanel(p.name, p.lat, p.lng || p.lon);
+                                            window.openPlacePanel(p.name, p.lat, p.lng || p.lon, { placeData: p });
                                         }
                                     }).catch(e => console.warn('[Places] API lookup by id notice:', e));
                             } else if (placeParam) {
@@ -1922,7 +1930,7 @@
                         if (typeof window.openPlacePanel === 'function') {
                             const lat = place.lat != null ? place.lat : null;
                             const lng = (place.lng != null ? place.lng : place.lon) != null ? (place.lng != null ? place.lng : place.lon) : null;
-                            window.openPlacePanel(place.name, lat, lng);
+                            window.openPlacePanel(place.name, lat, lng, { placeData: place });
                         }
                     }
                     row._onSelectRow = onSelectResultRow;
