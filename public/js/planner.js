@@ -1124,9 +1124,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (transitRouteGeojson && Array.isArray(transitRouteGeojson.coordinates)) {
                 transitRouteGeojson.coordinates.forEach(c => bounds.extend([c[1], c[0]]));
             }
-            // Terminal choice on tablet / desktop: every terminal pin stays in view
+            // Terminal choice on tablet / desktop: only include the selected terminal in view bounds
             try {
-                if (terminalTC && window.innerWidth >= 768) terminalTC.choices.forEach(c => bounds.extend([c.pt[1], c.pt[0]]));
+                if (terminalTC && terminalTC.choices && terminalTC.choices[transitSelected]) {
+                    const c = terminalTC.choices[transitSelected];
+                    bounds.extend([c.pt[1], c.pt[0]]);
+                }
             } catch (_) { /* not set up yet */ }
             if (bounds.isEmpty()) return;
 
@@ -3748,21 +3751,32 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTerminalPins();
         }
 
-        // Tablet / desktop: one pin per terminal on the map, the picked one filled; a click picks it
+        // Tablet / desktop: only display the user's selected terminal pin on the map
         const terminalPinsShown = () => !!terminalTC && !isTrackingArrival && window.innerWidth >= 768;
         function drawTerminalPins() {
             clearTerminalPins();
             if (!terminalPinsShown() || typeof maplibregl === 'undefined' || !map) return;
             const fmt = (window.CalzadaTransitUI && window.CalzadaTransitUI.fmtDur) || ((m) => `${m} min`);
             terminalTC.choices.forEach((c, i) => {
-                const on = i === transitSelected;
+                // Only display the selected terminal (hide unselected choices from map)
+                if (i !== transitSelected) return;
+
+                // If this is a transfer trip and a change marker is already placed at this terminal,
+                // do not render a duplicate overlapping pin
+                if (pendingTransfer) {
+                    const x = pendingTransfer;
+                    const atTransfer = getHaversineDist(c.pt[0], c.pt[1], x.boardPt[0], x.boardPt[1]) * 1000 <= 60;
+                    if (atTransfer) return;
+                }
+
+                const on = true;
                 const name = terminalName(c);
                 const mins = fmt(transitOptions[i] ? transitOptions[i].totalMin : c.option.totalMin);
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'czt-tpin' + (on ? ' is-on' : '');
+                btn.className = 'czt-tpin is-on';
                 btn.setAttribute('aria-label', `${name}, ${mins}`);
-                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                btn.setAttribute('aria-pressed', 'true');
                 const chip = document.createElement('span');
                 chip.className = 'czt-tpin-chip';
                 const b = document.createElement('b');
@@ -3786,7 +3800,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const m = new maplibregl.Marker({ element: btn, anchor: 'center' }).setLngLat([c.pt[1], c.pt[0]]).addTo(map);
                 // MapLibre labels every marker "Map marker": keep the terminal's name for screen readers
                 btn.setAttribute('aria-label', `${name}, ${mins}`);
-                if (on) btn.style.zIndex = '3';
+                btn.style.zIndex = '3';
                 terminalPins.push(m);
             });
         }
@@ -4127,8 +4141,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (boardingMarker) { boardingMarker.remove(); boardingMarker = null; }
             const c = tr.coordinates;
             const boardPt = c[0], alightPt = c[c.length - 1];
-            // While choosing a terminal on tablet / desktop, its pin marks the boarding point
-            if (!terminalPinsShown()) add(boardPt, 'board', L.board, tr.boardName);
+            // If choosing a terminal on tablet / desktop and the trip starts directly at that terminal,
+            // the terminal pin marks it; if the trip starts elsewhere (e.g. Cabuyao transfer), show the origin board marker
+            const startsAtTerminal = terminalPinsShown() && terminalTC && terminalTC.choices && terminalTC.choices[transitSelected] &&
+                getHaversineDist(boardPt[0], boardPt[1], terminalTC.choices[transitSelected].pt[0], terminalTC.choices[transitSelected].pt[1]) * 1000 <= 60;
+            if (!startsAtTerminal) add(boardPt, 'board', L.board, tr.boardName);
             const x = pendingTransfer;
             if (x) {
                 const together = getHaversineDist(alightPt[0], alightPt[1], x.boardPt[0], x.boardPt[1]) * 1000 <= 40;
