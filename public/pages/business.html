@@ -376,15 +376,47 @@
             display: block;
         }
 
-        .profile-description {
+        .profile-desc-wrap {
             margin: 0 0 10px;
+            max-width: 580px;
+        }
+
+        .profile-description {
+            margin: 0;
             padding: 0;
             border: none;
             font-size: 0.92rem;
             color: var(--navy-dark);
             line-height: 1.5;
             white-space: pre-line;
-            max-width: 580px;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+        .profile-description.is-clamped {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .btn-desc-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            padding: 3px 0 0;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #64748B;
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+
+        .btn-desc-toggle:hover {
+            color: #1F69B8;
         }
 
         .profile-meta-details {
@@ -1761,7 +1793,10 @@
 
                         <div class="ig-profile-bio">
                             <span class="profile-category-text" id="categoryText">--</span>
-                            <div class="profile-description" id="businessDescription" style="display: none;"></div>
+                            <div class="profile-desc-wrap" id="descWrap" style="display: none;">
+                                <div class="profile-description is-clamped" id="businessDescription"></div>
+                                <button type="button" class="btn-desc-toggle" id="btnDescToggle" aria-expanded="false" style="display: none;">... more</button>
+                            </div>
 
                             <div class="profile-meta-details">
                                 <div class="meta-detail-item" id="addressRow">
@@ -2313,11 +2348,43 @@
                 }
             }
 
+            const descWrap = document.getElementById('descWrap');
+            const btnDescToggle = document.getElementById('btnDescToggle');
+
             if (bus.description && businessDescription) {
-                businessDescription.textContent = bus.description;
-                businessDescription.style.display = 'block';
-            } else if (businessDescription) {
-                businessDescription.style.display = 'none';
+                const desc = String(bus.description).trim();
+                businessDescription.textContent = desc;
+                if (descWrap) descWrap.style.display = 'block';
+                else businessDescription.style.display = 'block';
+
+                const lineCount = (desc.match(/\n/g) || []).length + 1;
+                const isLong = lineCount > 3 || desc.length > 150;
+
+                if (isLong && btnDescToggle) {
+                    businessDescription.classList.add('is-clamped');
+                    btnDescToggle.style.display = 'inline-flex';
+                    btnDescToggle.textContent = '... more';
+                    btnDescToggle.setAttribute('aria-expanded', 'false');
+
+                    btnDescToggle.onclick = () => {
+                        const isClamped = businessDescription.classList.contains('is-clamped');
+                        if (isClamped) {
+                            businessDescription.classList.remove('is-clamped');
+                            btnDescToggle.textContent = 'Show less';
+                            btnDescToggle.setAttribute('aria-expanded', 'true');
+                        } else {
+                            businessDescription.classList.add('is-clamped');
+                            btnDescToggle.textContent = '... more';
+                            btnDescToggle.setAttribute('aria-expanded', 'false');
+                        }
+                    };
+                } else {
+                    businessDescription.classList.remove('is-clamped');
+                    if (btnDescToggle) btnDescToggle.style.display = 'none';
+                }
+            } else {
+                if (descWrap) descWrap.style.display = 'none';
+                if (businessDescription) businessDescription.style.display = 'none';
             }
 
             // Action Buttons (Plan route / Call / Edit profile) — Mini-map removed per Instagram profile redesign
