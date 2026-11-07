@@ -1773,18 +1773,24 @@ document.addEventListener('DOMContentLoaded', () => {
             return bySlug;
         }
 
-        // Places of a category from the shared data (places-shared.js mirrors places.json): no network.
+        // Places of a category: prefers live pickerKnownPlaces (from /api/places) if available, falling back to window.FALLBACK_PLACES
         function getCategoryPlaces(category) {
             if (!category || category === 'none') return [];
             const shared = Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length
                 ? window.FALLBACK_PLACES
                 : (typeof CALAMBA_PLACES_FALLBACK !== 'undefined' ? CALAMBA_PLACES_FALLBACK : []);
+            const sourcePool = (pickerKnownPlaces && pickerKnownPlaces.length > 0) ? pickerKnownPlaces : shared;
             const cat = String(category).toLowerCase();
-            return shared.filter(p => {
+            const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const seen = new Set();
+            return sourcePool.filter(p => {
                 const c = String(p.category || '').toLowerCase();
-                if (cat === 'all') return true;
-                if (cat === 'terminals') return c === 'terminals' || c.includes('terminal');
-                return c === cat;
+                const matches = (cat === 'all') || (cat === 'terminals' ? (c === 'terminals' || c.includes('terminal')) : (c === cat));
+                if (!matches) return false;
+                const key = norm(p.name);
+                if (key && seen.has(key)) return false;
+                if (key) seen.add(key);
+                return true;
             });
         }
 
@@ -7776,13 +7782,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (Array.isArray(data) && data.length > 0) {
                         pickerKnownPlaces = data.filter(p => p.lat && p.lng && !isBannedPickerPlace(p.name));
-                        if (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) && window.FALLBACK_PLACES.length > pickerKnownPlaces.length) {
-                            const knownIds = new Set(pickerKnownPlaces.map(p => p.id || p.name));
+                        if (typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES)) {
+                            const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                            const knownIds = new Set(pickerKnownPlaces.map(p => String(p.id)));
+                            const knownNames = new Set(pickerKnownPlaces.map(p => norm(p.name)));
                             for (const fp of window.FALLBACK_PLACES) {
-                                if (fp.lat && fp.lng && !isBannedPickerPlace(fp.name) && !knownIds.has(fp.id) && !knownIds.has(fp.name)) {
-                                    pickerKnownPlaces.push(fp);
+                                if (fp.lat && fp.lng && !isBannedPickerPlace(fp.name)) {
+                                    const fpNorm = norm(fp.name);
+                                    if (!knownIds.has(String(fp.id)) && !knownNames.has(fpNorm)) {
+                                        pickerKnownPlaces.push(fp);
+                                    }
                                 }
                             }
+                        }
+                        // If active category chips are open, refresh markers with the loaded places
+                        const activeChip = document.querySelector('.map-segment-btn.active');
+                        const activeCat = activeChip ? activeChip.getAttribute('data-category') : null;
+                        if (activeCat && activeCat !== 'none') {
+                            renderCategoryPlaces(activeCat);
                         }
                         return;
                     }

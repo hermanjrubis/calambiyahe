@@ -1415,10 +1415,14 @@
             "pano_thumb": "../assets/places/tranquility-serviced-homes/360-thumb.webp",
             "description": "",
             "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
-            "phone": null,
-            "website": null,
+            "phone": "+63 998 551 8542",
+            "website": "https://www.facebook.com/TranquilityServicedHomes",
             "opening_hours": null,
-            "coord_source": "manual"
+            "coord_source": "manual",
+            "businessId": "PgNqZLNxfXvNlUjqIUke",
+            "plan": "plus360",
+            "has360": true,
+            "shoot360": "done"
         },
         {
             "id": "2go",
@@ -3599,6 +3603,12 @@
                                 lat,
                                 lng,
                                 barangay: d.barangay || '',
+                                address: d.address || '',
+                                full_address: d.address || '',
+                                phone: d.contactNumber || null,
+                                description: d.description || '',
+                                website: (d.socialLinks && d.socialLinks.facebook) ? d.socialLinks.facebook : null,
+                                social: d.socialLinks || null,
                                 photo: d.thumbnailUrl || d.profilePhotoUrl || null,
                                 thumbnailUrl: d.thumbnailUrl || d.profilePhotoUrl || null,
                                 offerings: Array.isArray(d.offerings) ? d.offerings : [],
@@ -3629,6 +3639,40 @@
                 } catch (_) {}
             }
 
+            // Enrich live businesses with matching static verified establishment data
+            const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            for (const b of businesses) {
+                const bNorm = norm(b.name);
+                const staticMatch = FALLBACK_PLACES.find(p =>
+                    (b.businessId && p.businessId === b.businessId) ||
+                    (p.slug && (p.slug === b.slug || b.id === 'biz_' + p.slug)) ||
+                    (bNorm && norm(p.name) === bNorm)
+                );
+                if (staticMatch) {
+                    b.staticId = staticMatch.id;
+                    b.slug = staticMatch.slug || b.slug;
+                    // Canonical surveyed location from Planner takes precedence
+                    if (staticMatch.lat != null && staticMatch.lng != null && (staticMatch.coord_source === 'manual' || staticMatch.coord_source === '360-gps' || !b.lat)) {
+                        b.lat = staticMatch.lat;
+                        b.lng = staticMatch.lng;
+                        b.coord_source = staticMatch.coord_source || 'manual';
+                    }
+                    if (staticMatch.pano) {
+                        b.pano = staticMatch.pano;
+                        b.pano_thumb = staticMatch.pano_thumb || null;
+                        b.has360 = true;
+                        if (!b.tour360 || !b.tour360.panorama) b.tour360 = { panorama: staticMatch.pano };
+                    }
+                    if (staticMatch.category && (!b.category || b.category === 'establishments')) {
+                        b.category = staticMatch.category;
+                    }
+                    if (staticMatch.full_address && (!b.full_address || !b.address)) {
+                        b.full_address = staticMatch.full_address;
+                        b.address = staticMatch.full_address;
+                    }
+                }
+            }
+
             this._liveBusinesses = businesses;
             this._lastFetchTime = now;
             return businesses;
@@ -3636,8 +3680,20 @@
 
         async getAllPlaces(forceRefresh = false) {
             const live = await this.loadLiveBusinesses(forceRefresh);
-            const liveIds = new Set(live.map(b => b.id));
-            const staticPlaces = FALLBACK_PLACES.filter(p => !liveIds.has(p.id));
+            const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const liveBizIds = new Set(live.map(b => b.businessId).filter(Boolean));
+            const liveNames = new Set(live.map(b => norm(b.name)).filter(Boolean));
+            const liveSlugs = new Set(live.map(b => b.slug).filter(Boolean));
+            const liveStaticIds = new Set(live.map(b => b.staticId).filter(Boolean));
+            const liveRawIds = new Set(live.map(b => b.id).filter(Boolean));
+
+            const staticPlaces = FALLBACK_PLACES.filter(p => {
+                if (p.businessId && liveBizIds.has(p.businessId)) return false;
+                if (p.id && (liveRawIds.has(p.id) || liveStaticIds.has(p.id))) return false;
+                if (p.slug && liveSlugs.has(p.slug)) return false;
+                if (p.name && liveNames.has(norm(p.name))) return false;
+                return true;
+            });
             return [...staticPlaces, ...live];
         }
     };

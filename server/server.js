@@ -610,6 +610,12 @@ async function getLiveBusinesses() {
                 lat,
                 lng,
                 barangay: d.barangay || '',
+                address: d.address || '',
+                full_address: d.address || '',
+                phone: d.contactNumber || null,
+                description: d.description || '',
+                website: (d.socialLinks && d.socialLinks.facebook) ? d.socialLinks.facebook : null,
+                social: d.socialLinks || null,
                 photo: d.thumbnailUrl || d.profilePhotoUrl || null,
                 logo: typeof d.logoUrl === 'string' && d.logoUrl.startsWith('https://res.cloudinary.com/') ? d.logoUrl : null,
                 offerings: Array.isArray(d.offerings) ? d.offerings : [],
@@ -646,18 +652,46 @@ function mergeBusinessesIntoPlaces(staticPlaces, businesses) {
     const extra = [];
     for (const biz of businesses) {
         const key = normPlaceName(biz.name);
-        const idx = key ? merged.findIndex(p =>
-            p.source !== 'business' &&
-            normPlaceName(p.name) === key &&
-            p.lat != null && p.lng != null && biz.lat != null && biz.lng != null &&
-            haversineDistanceMeters(p.lat, p.lng, biz.lat, biz.lng) <= MERGE_RADIUS_M
-        ) : -1;
+        const idx = merged.findIndex(p => {
+            if (p.source === 'business') return false;
+            if (biz.businessId && (p.businessId === biz.businessId || p.linked_business_id === biz.businessId)) return true;
+            if (p.slug && biz.slug && p.slug === biz.slug) return true;
+            if (key && normPlaceName(p.name) === key) {
+                if (p.lat != null && p.lng != null && biz.lat != null && biz.lng != null) {
+                    return haversineDistanceMeters(p.lat, p.lng, biz.lat, biz.lng) <= 500;
+                }
+                return true;
+            }
+            return false;
+        });
         if (idx === -1) {
             extra.push(biz);
             continue;
         }
         const base = merged[idx];
-        const out = { ...biz, staticId: base.id };
+
+        // The canonical location surveyed / captured for 360 view takes priority
+        const useCanonicalCoords = base.lat != null && base.lng != null && (base.coord_source === 'manual' || base.coord_source === '360-gps' || biz.lat == null);
+        const outLat = useCanonicalCoords ? base.lat : (biz.lat != null ? biz.lat : base.lat);
+        const outLng = useCanonicalCoords ? base.lng : (biz.lng != null ? biz.lng : base.lng);
+
+        // Keep specific category from base if biz has generic 'establishments'
+        const category = (biz.category && biz.category !== 'establishments') ? biz.category : (base.category || biz.category || 'establishments');
+
+        const out = {
+            ...base,
+            ...biz,
+            id: biz.id || 'biz_' + biz.businessId,
+            staticId: base.id,
+            slug: base.slug || biz.slug,
+            lat: outLat,
+            lng: outLng,
+            category,
+            pano: base.pano || biz.pano || null,
+            pano_thumb: base.pano_thumb || biz.pano_thumb || null,
+            has360: Boolean(base.pano || biz.has360 || biz.tour360?.panorama),
+            tour360: biz.tour360 || (base.pano ? { panorama: base.pano } : null)
+        };
         for (const f of MERGE_FILL_FIELDS) {
             if ((out[f] == null || out[f] === '') && base[f] != null && base[f] !== '') out[f] = base[f];
         }
@@ -730,11 +764,17 @@ app.get('/api/places/search', async (req, res) => {
 
 async function findPlaceById(rawId) {
     if (!rawId) return null;
-    const places = getPlacesData();
-    const found = places.find(p => String(p.id) === String(rawId) || p.slug === rawId || (p.name && p.name.toLowerCase() === String(rawId).toLowerCase()));
-    if (found) return found;
-    const bizList = await getLiveBusinesses();
-    return bizList.find(p => String(p.id) === String(rawId) || String(p.businessId) === String(rawId) || (p.name && p.name.toLowerCase() === String(rawId).toLowerCase())) || null;
+    const liveBusinesses = await getLiveBusinesses();
+    const places = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
+    const rawStr = String(rawId).trim();
+    const rawLower = rawStr.toLowerCase();
+    return places.find(p =>
+        String(p.id) === rawStr ||
+        (p.businessId && String(p.businessId) === rawStr) ||
+        (p.staticId != null && String(p.staticId) === rawStr) ||
+        (p.slug && p.slug.toLowerCase() === rawLower) ||
+        (p.name && p.name.toLowerCase() === rawLower)
+    ) || null;
 }
 
 // GET /api/places/:id - Return full detail for a single place
