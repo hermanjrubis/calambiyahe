@@ -1934,14 +1934,11 @@ html {
 /* 8. Bottom Section: Single Clear Primary Action ("Plan route") */
 .panel-bottom-section {
     margin-top: auto;
-    padding-top: 10px;
-    padding-bottom: 2px;
-    position: sticky;
-    bottom: 0;
-    background: #ffffff;
-    z-index: 5;
+    padding-top: 14px;
+    padding-bottom: 4px;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .panel-cta-btn {
