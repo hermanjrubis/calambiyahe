@@ -1596,6 +1596,7 @@ body.chat-active .chat-toggle-pill {
 }
 
 .chat-header {
+    flex-shrink: 0;
     background: #FFFFFF;
     background-image: 
         radial-gradient(circle, rgba(55, 138, 221, 0.07) 1px, transparent 1px),
@@ -1708,13 +1709,16 @@ body.chat-active .chat-toggle-pill {
 }
 
 .chat-messages {
-    flex-grow: 1;
-    padding: 18px;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 16px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 12px;
     background: #f7f9fc;
+    box-sizing: border-box;
 }
 
 @keyframes messageSlideUp {
@@ -1734,6 +1738,8 @@ body.chat-active .chat-toggle-pill {
     gap: 12px;
     margin-bottom: 14px;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     animation: messageSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -1778,7 +1784,8 @@ body.chat-active .chat-toggle-pill {
 }
 
 .message {
-    max-width: 80%;
+    max-width: 82%;
+    min-width: 0;
     padding: var(--chat-bubble-pad);
     line-height: 1.5;
     font-size: var(--chat-msg-font);
@@ -1786,6 +1793,13 @@ body.chat-active .chat-toggle-pill {
     position: relative;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
     white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+}
+
+.message * {
+    overflow-wrap: anywhere;
     word-break: break-word;
 }
 
@@ -1868,9 +1882,10 @@ body.chat-active .chat-toggle-pill {
 
 /* Scrollable messages area – independent height */
 .chat-messages {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -1878,6 +1893,7 @@ body.chat-active .chat-toggle-pill {
     background: #f7f9fc;
     scrollbar-width: thin;
     scrollbar-color: rgba(14, 42, 71, 0.28) transparent;
+    box-sizing: border-box;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -1925,6 +1941,7 @@ body.chat-active .chat-toggle-pill {
 .chat-input-area,
 .chat-window .box {
     position: relative;
+    flex-shrink: 0 !important;
     min-height: var(--chat-box-min-h);
     padding: var(--chat-box-pad);
     margin: var(--chat-footer-pad);
@@ -1933,6 +1950,7 @@ body.chat-active .chat-toggle-pill {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 6px;
     border-radius: 24px;
     border: 1px solid #e2e8f0;
     /* Subtle border */
@@ -1940,6 +1958,7 @@ body.chat-active .chat-toggle-pill {
     cursor: text;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
+    z-index: 2;
 }
 
 .chat-input-area:focus-within,
@@ -1952,6 +1971,7 @@ body.chat-active .chat-toggle-pill {
 #chatInput {
     flex: 1 1 auto;
     width: 100%;
+    min-width: 0;
     border: 0;
     background: transparent;
     box-shadow: none;
@@ -1968,6 +1988,9 @@ body.chat-active .chat-toggle-pill {
     /* Auto-grows up to ~4 rows, then scrolls */
     line-height: 1.5;
     overflow-y: hidden;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     box-sizing: border-box;
 }
 
@@ -2354,9 +2377,10 @@ body.chat-active .chat-toggle-pill {
 /* Floating Toast Notification for Voice Alerts (Never squeezes input container) */
 .chat-voice-error {
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 8px;
-    right: 8px;
+    top: 64px;
+    bottom: auto;
+    left: 12px;
+    right: 12px;
     background: #ffffff;
     color: #991b1b;
     border: 1px solid #fecaca;
@@ -2370,10 +2394,21 @@ body.chat-active .chat-toggle-pill {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    z-index: 100;
+    z-index: 200;
     pointer-events: auto;
-    animation: voiceToastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: voiceToastSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
+}
+
+@keyframes voiceToastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .chat-voice-error .voice-error-content {
@@ -3216,9 +3251,9 @@ body.chat-active .chat-toggle-pill {
     }
 
     body.keyboard-open .chat-window {
-        max-height: calc(100dvh - 20px) !important;
-        height: calc(100dvh - 20px) !important;
-        bottom: 10px !important;
+        max-height: calc(var(--visual-viewport-h, 100dvh) - var(--keyboard-inset-bottom, 0px) - 20px) !important;
+        height: auto !important;
+        bottom: calc(var(--keyboard-inset-bottom, 0px) + 10px) !important;
     }
 
     /* Robust hiding logic for older iOS devices via JS classes */

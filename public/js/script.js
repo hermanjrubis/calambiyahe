@@ -452,10 +452,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // === VIRTUAL KEYBOARD DETECT (Mobile UI Fix) ===
+    function updateVisualViewportMetrics() {
+        if (!window.visualViewport) return;
+        const vv = window.visualViewport;
+        const keyboardHeight = Math.max(0, window.innerHeight - vv.height);
+        document.documentElement.style.setProperty('--keyboard-inset-bottom', `${keyboardHeight}px`);
+        document.documentElement.style.setProperty('--visual-viewport-h', `${vv.height}px`);
+    }
+
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            lastViewportResizeTime = Date.now();
+            updateVisualViewportMetrics();
+            if (chatMessages && document.body.classList.contains('keyboard-open')) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        });
+        window.visualViewport.addEventListener('scroll', updateVisualViewportMetrics);
+        updateVisualViewportMetrics();
+    }
+
     const focusableInputs = document.querySelectorAll('input, textarea');
     focusableInputs.forEach(input => {
-        input.addEventListener('focus', () => document.body.classList.add('keyboard-open'));
-        input.addEventListener('blur', () => document.body.classList.remove('keyboard-open'));
+        input.addEventListener('focus', () => {
+            document.body.classList.add('keyboard-open');
+            updateVisualViewportMetrics();
+        });
+        input.addEventListener('blur', () => {
+            document.body.classList.remove('keyboard-open');
+            setTimeout(updateVisualViewportMetrics, 100);
+        });
     });
 
     // === CHATBOT ===
@@ -996,6 +1022,9 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 
     function updateChatInputHeight() {
         if (!chatInput) return;
+        const wasNearBottom = chatMessages ? 
+            (chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop <= 60) : false;
+
         chatInput.style.height = 'auto';
         const scrollH = chatInput.scrollHeight;
         const maxHeight = 96; // auto-grows up to ~4 rows
@@ -1008,6 +1037,12 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             chatInput.classList.remove('scrolling');
             chatInput.style.overflowY = 'hidden';
         }
+
+        // If user was viewing latest messages, keep scroll position pinned to bottom
+        // so the expanding textarea doesn't obscure the latest message text
+        if (wasNearBottom && chatMessages) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
     }
 
     function triggerAutoExpand() {
@@ -1019,6 +1054,16 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             updateChatInputHeight();
             updateSendButtonState();
             clearVoiceError();
+        });
+
+        chatInput.addEventListener('focus', function () {
+            lastChatInputFocusTime = Date.now();
+            clearVoiceError();
+            setTimeout(() => {
+                if (chatMessages) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }, 180);
         });
 
         chatInput.addEventListener('keydown', (e) => {
@@ -1128,14 +1173,20 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         if (!voiceErrorEl) {
             voiceErrorEl = document.getElementById('chatVoiceError');
         }
+        const chatWin = document.getElementById('chatWindow');
+        if (chatWin && voiceErrorEl && voiceErrorEl.parentElement !== chatWin) {
+            chatWin.insertBefore(voiceErrorEl, chatWin.querySelector('.chat-messages') || null);
+        }
     }
 
     function showVoiceError(key, fallback) {
         ensureVoiceDockUI();
-        const area = getChatInputArea();
-        if (area) voiceErrorEl = area.querySelector('#chatVoiceError') || voiceErrorEl;
         if (!voiceErrorEl) voiceErrorEl = document.getElementById('chatVoiceError');
         if (!voiceErrorEl) return;
+        const chatWin = document.getElementById('chatWindow');
+        if (chatWin && voiceErrorEl.parentElement !== chatWin) {
+            chatWin.insertBefore(voiceErrorEl, chatWin.querySelector('.chat-messages') || null);
+        }
 
         clearTimeout(voiceToastTimeout);
         const msg = (typeof window.t === 'function' ? window.t(key) : '') || fallback;
@@ -1167,8 +1218,6 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 
     function clearVoiceError() {
         clearTimeout(voiceToastTimeout);
-        const area = getChatInputArea();
-        if (area) voiceErrorEl = area.querySelector('#chatVoiceError') || voiceErrorEl;
         if (!voiceErrorEl) voiceErrorEl = document.getElementById('chatVoiceError');
         if (voiceErrorEl) {
             voiceErrorEl.innerHTML = '';

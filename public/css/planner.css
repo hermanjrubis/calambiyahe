@@ -4046,9 +4046,9 @@ body.navigation-active #hamburgerBtn {
     }
 
     body.keyboard-open .chat-window {
-        max-height: calc(100dvh - 20px) !important;
-        height: calc(100dvh - 20px) !important;
-        bottom: 10px !important;
+        max-height: calc(var(--visual-viewport-h, 100dvh) - var(--keyboard-inset-bottom, 0px) - 20px) !important;
+        height: auto !important;
+        bottom: calc(var(--keyboard-inset-bottom, 0px) + 10px) !important;
     }
 }
 
@@ -4063,6 +4063,7 @@ body.navigation-active #hamburgerBtn {
 }
 
 .chat-header {
+    flex-shrink: 0;
     background: #FFFFFF;
     background-image:
         radial-gradient(circle, rgba(55, 138, 221, 0.07) 1px, transparent 1px),
@@ -4184,16 +4185,18 @@ body.navigation-active #hamburgerBtn {
    CHAT MESSAGES AREA & MESSAGE BUBBLES
    ============================================= */
 .chat-messages {
-    flex: 1;
+    flex: 1 1 auto;
     min-height: 0;
     padding: 16px;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: 12px;
     background: #f7f9fc;
     scrollbar-width: thin;
     scrollbar-color: rgba(14, 42, 71, 0.28) transparent;
+    box-sizing: border-box;
 }
 
 .chat-messages::-webkit-scrollbar {
@@ -4233,6 +4236,8 @@ body.navigation-active #hamburgerBtn {
     gap: 10px;
     margin-bottom: 10px;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     animation: messageSlideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
@@ -4245,7 +4250,8 @@ body.navigation-active #hamburgerBtn {
 }
 
 .message {
-    max-width: 80%;
+    max-width: 82%;
+    min-width: 0;
     padding: var(--chat-bubble-pad);
     line-height: 1.5;
     font-size: var(--chat-msg-font);
@@ -4253,6 +4259,13 @@ body.navigation-active #hamburgerBtn {
     position: relative;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+}
+
+.message * {
+    overflow-wrap: anywhere;
     word-break: break-word;
 }
 
@@ -4349,6 +4362,8 @@ body.navigation-active #hamburgerBtn {
    ============================================= */
 .chat-input-area,
 .chat-window .box {
+    position: relative;
+    flex-shrink: 0 !important;
     min-height: var(--chat-box-min-h);
     padding: var(--chat-box-pad);
     margin: var(--chat-footer-pad);
@@ -4356,12 +4371,14 @@ body.navigation-active #hamburgerBtn {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    gap: 6px;
     border-radius: 24px;
     border: 1px solid rgba(226, 232, 240, 0.9);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     cursor: text;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
     box-sizing: border-box;
+    z-index: 2;
 }
 
 .chat-input-area:focus-within,
@@ -4375,6 +4392,7 @@ body.navigation-active #hamburgerBtn {
 #chatInput {
     flex: 1 1 auto;
     width: 100%;
+    min-width: 0;
     border: 0;
     background: transparent;
     box-shadow: none;
@@ -4389,6 +4407,9 @@ body.navigation-active #hamburgerBtn {
     max-height: 96px;
     line-height: 1.5;
     overflow-y: hidden;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     box-sizing: border-box;
 }
 
@@ -4746,9 +4767,10 @@ body.navigation-active #hamburgerBtn {
 /* Floating Toast Notification for Voice Alerts (Never squeezes input container) */
 .chat-voice-error {
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 8px;
-    right: 8px;
+    top: 64px;
+    bottom: auto;
+    left: 12px;
+    right: 12px;
     background: #ffffff;
     color: #991b1b;
     border: 1px solid #fecaca;
@@ -4762,10 +4784,21 @@ body.navigation-active #hamburgerBtn {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
-    z-index: 100;
+    z-index: 200;
     pointer-events: auto;
-    animation: voiceToastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: voiceToastSlideDown 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     box-sizing: border-box;
+}
+
+@keyframes voiceToastSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .chat-voice-error .voice-error-content {
