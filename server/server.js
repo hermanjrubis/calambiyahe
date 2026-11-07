@@ -1,6 +1,6 @@
 const express = require('express');
 const compression = require('compression');
-const { Groq } = require('groq-sdk');
+const { Groq, toFile } = require('groq-sdk');
 const cors = require('cors');
 const https = require('https');
 const path = require('path');
@@ -1212,6 +1212,70 @@ app.post('/api/chat', async (req, res) => {
             return sendFallback(429, 'rate_limited', 'busy');
         }
         sendFallback(500, 'ai_unavailable', 'unavailable');
+    }
+});
+
+/**
+ * Voice Transcription API (Whisper Large v3)
+ * Provides high-speed, accurate multi-lingual (Tagalog/English/Taglish) voice transcription
+ * primed with Calamba transit vocabulary. Works across all modern browsers (Brave, Chrome, Safari, Firefox).
+ */
+const voiceAudioUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 15 * 1024 * 1024 } // 15MB audio upload limit
+});
+
+app.post('/api/voice/transcribe', (req, res, next) => {
+    voiceAudioUpload.single('audio')(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+            return res.status(400).json({ success: false, error: 'upload_error', message: err.message });
+        }
+        if (err) {
+            return res.status(400).json({ success: false, error: 'upload_error', message: err.message });
+        }
+        next();
+    });
+}, async (req, res) => {
+    try {
+        if (!req.file || !req.file.buffer || req.file.buffer.length === 0) {
+            return res.status(400).json({ success: false, error: 'no_audio', message: 'No audio data received.' });
+        }
+
+        const client = getGroqClient();
+        if (!client) {
+            return res.status(503).json({ success: false, error: 'voice_unavailable', message: 'Voice service currently unavailable.' });
+        }
+
+        const mime = req.file.mimetype || 'audio/webm';
+        let ext = 'webm';
+        if (mime.includes('mp4') || mime.includes('m4a')) ext = 'mp4';
+        else if (mime.includes('wav')) ext = 'wav';
+        else if (mime.includes('ogg')) ext = 'ogg';
+
+        const file = await toFile(req.file.buffer, `voice_${Date.now()}.${ext}`, { type: mime });
+
+        const reqLang = (req.body && req.body.lang) ? String(req.body.lang).toLowerCase() : 'tl';
+        const whisperLang = reqLang.startsWith('en') ? 'en' : 'tl';
+
+        const prompt = 'Calzada, Calamba, Laguna, commute, jeepney, tricycle, bus, UV Express, Crossing, Turbina, SM Calamba, Bucal, Real, Halang, Parian, Canlubang, Mayapa, Pansol, Lawa, pasahe, terminal';
+
+        const transcription = await client.audio.transcriptions.create({
+            file,
+            model: 'whisper-large-v3',
+            language: whisperLang,
+            prompt,
+            temperature: 0.0
+        });
+
+        const text = (transcription && transcription.text) ? transcription.text.trim() : '';
+        return res.json({ success: true, text });
+    } catch (err) {
+        console.error('Audio transcription error:', err);
+        return res.status(500).json({
+            success: false,
+            error: 'transcription_failed',
+            message: err.message || 'Failed to transcribe audio.'
+        });
     }
 });
 

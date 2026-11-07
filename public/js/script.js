@@ -648,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(inactivityTimer);
         if (chatWindow && chatWindow.classList.contains('open')) {
             inactivityTimer = setTimeout(() => {
-                const cancelBtn = document.getElementById('cancelMicBtn');
+                const cancelBtn = document.getElementById('voiceCancelBtn') || document.getElementById('cancelMicBtn');
                 if (cancelBtn) cancelBtn.click();
                 addMessage(window.t('js.session_ended'), false);
                 closeChat();
@@ -1050,115 +1050,381 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         updateSendButtonState();
     }
 
-    // === VOICE MESSAGING (Minimal, robust SpeechRecognition) ===
+    // === VOICE MESSAGING (Universal MediaRecorder + Groq Whisper STT) ===
     const micBtn = document.getElementById('micBtn');
-    const voiceErrorEl = document.getElementById('chatVoiceError');
-    let recognition = null;
+    let voiceErrorEl = document.getElementById('chatVoiceError');
+
+    let mediaRecorder = null;
+    let audioStream = null;
+    let audioChunks = [];
+    let audioContext = null;
+    let analyserNode = null;
+    let visualizerAnimId = null;
+    let recordingTimerId = null;
+    let recordingSeconds = 0;
     let isListening = false;
-    let preVoiceText = '';
+    let isTranscribing = false;
+    let voiceToastTimeout = null;
+
+    function getChatInputArea() {
+        if (micBtn) {
+            const parent = micBtn.closest('.chat-input-area');
+            if (parent) return parent;
+        }
+        return document.querySelector('#chatWindow .chat-input-area') || document.querySelector('.chat-input-area');
+    }
+
+    // Ensure Voice Dock and Transcribing UI elements exist inside .chat-input-area
+    function ensureVoiceDockUI() {
+        const inputArea = getChatInputArea();
+        if (!inputArea) return;
+
+        if (!inputArea.querySelector('.chat-voice-dock')) {
+            const dock = document.createElement('div');
+            dock.className = 'chat-voice-dock';
+            dock.setAttribute('role', 'region');
+            dock.setAttribute('aria-label', 'Voice recording');
+            dock.innerHTML = `
+                <div class="voice-dock-left">
+                    <span class="voice-rec-dot" aria-hidden="true"></span>
+                    <span class="voice-status-text" id="voiceStatusText">${window.t ? window.t('chat.voice_listening') : 'Listening...'}</span>
+                    <div class="voice-bars" aria-hidden="true" id="voiceBars">
+                        <span class="vbar"></span>
+                        <span class="vbar"></span>
+                        <span class="vbar"></span>
+                        <span class="vbar"></span>
+                    </div>
+                    <span class="voice-timer" id="voiceTimer" aria-live="off">0:00</span>
+                </div>
+                <div class="voice-dock-actions">
+                    <button type="button" class="voice-dock-btn voice-cancel-btn" id="voiceCancelBtn" title="${window.t ? window.t('chat.voice_cancel') : 'Cancel'}" aria-label="${window.t ? window.t('chat.voice_cancel') : 'Cancel voice recording'}">
+                        <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                    <button type="button" class="voice-dock-btn voice-done-btn" id="voiceDoneBtn" title="${window.t ? window.t('chat.voice_done') : 'Done'}" aria-label="${window.t ? window.t('chat.voice_done') : 'Done recording and transcribe'}">
+                        <ion-icon name="checkmark-outline"></ion-icon>
+                    </button>
+                </div>
+            `;
+            inputArea.appendChild(dock);
+
+            const cancelBtn = dock.querySelector('#voiceCancelBtn');
+            const doneBtn = dock.querySelector('#voiceDoneBtn');
+            if (cancelBtn) cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelRecording(); });
+            if (doneBtn) doneBtn.addEventListener('click', (e) => { e.preventDefault(); stopAndTranscribe(); });
+        }
+
+        if (!inputArea.querySelector('.chat-voice-transcribing')) {
+            const transcribing = document.createElement('div');
+            transcribing.className = 'chat-voice-transcribing';
+            transcribing.setAttribute('aria-live', 'polite');
+            transcribing.innerHTML = `
+                <div class="voice-spinner" aria-hidden="true"></div>
+                <span class="voice-transcribing-text" id="voiceTranscribingText">${window.t ? window.t('chat.voice_transcribing') : 'Transcribing with Routie...'}</span>
+            `;
+            inputArea.appendChild(transcribing);
+        }
+
+        if (!voiceErrorEl) {
+            voiceErrorEl = document.getElementById('chatVoiceError');
+        }
+    }
 
     function showVoiceError(key, fallback) {
+        ensureVoiceDockUI();
+        const area = getChatInputArea();
+        if (area) voiceErrorEl = area.querySelector('#chatVoiceError') || voiceErrorEl;
+        if (!voiceErrorEl) voiceErrorEl = document.getElementById('chatVoiceError');
         if (!voiceErrorEl) return;
+
+        clearTimeout(voiceToastTimeout);
         const msg = (typeof window.t === 'function' ? window.t(key) : '') || fallback;
-        voiceErrorEl.textContent = msg;
-        voiceErrorEl.style.display = 'block';
+
+        voiceErrorEl.innerHTML = `
+            <div class="voice-error-content">
+                <span class="voice-error-icon"><ion-icon name="alert-circle-outline"></ion-icon></span>
+                <span class="voice-error-text">${msg}</span>
+            </div>
+            <button type="button" class="voice-error-close" aria-label="Dismiss error">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+        `;
+        voiceErrorEl.style.display = 'flex';
+
+        const closeBtn = voiceErrorEl.querySelector('.voice-error-close');
+        if (closeBtn) {
+            closeBtn.onclick = (e) => {
+                e.preventDefault();
+                clearVoiceError();
+            };
+        }
+
+        // Auto-dismiss floating toast after 4.5 seconds
+        voiceToastTimeout = setTimeout(() => {
+            clearVoiceError();
+        }, 4500);
     }
 
     function clearVoiceError() {
+        clearTimeout(voiceToastTimeout);
+        const area = getChatInputArea();
+        if (area) voiceErrorEl = area.querySelector('#chatVoiceError') || voiceErrorEl;
+        if (!voiceErrorEl) voiceErrorEl = document.getElementById('chatVoiceError');
         if (voiceErrorEl) {
-            voiceErrorEl.textContent = '';
+            voiceErrorEl.innerHTML = '';
             voiceErrorEl.style.display = 'none';
         }
     }
 
-    function stopListeningUI() {
-        isListening = false;
-        if (micBtn) {
-            micBtn.classList.remove('recording');
-            micBtn.setAttribute('aria-pressed', 'false');
-            const label = (typeof window.t === 'function' ? window.t('chat.voice_input') : 'Voice input');
-            micBtn.setAttribute('aria-label', label);
-            micBtn.setAttribute('title', label);
+    function updateRecordingTimerDisplay() {
+        const timerEl = document.getElementById('voiceTimer');
+        if (!timerEl) return;
+        const mins = Math.floor(recordingSeconds / 60);
+        const secs = recordingSeconds % 60;
+        timerEl.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    function cleanupAudioNodes() {
+        if (visualizerAnimId) {
+            cancelAnimationFrame(visualizerAnimId);
+            visualizerAnimId = null;
+        }
+        if (audioContext) {
+            try { audioContext.close(); } catch (_) {}
+            audioContext = null;
+            analyserNode = null;
+        }
+        if (audioStream) {
+            try {
+                audioStream.getTracks().forEach(track => track.stop());
+            } catch (_) {}
+            audioStream = null;
+        }
+        if (recordingTimerId) {
+            clearInterval(recordingTimerId);
+            recordingTimerId = null;
         }
     }
 
-    function stopListening() {
-        if (recognition) {
-            try { recognition.stop(); } catch (_) {}
+    function setRecordingUIMode(mode) {
+        // mode: 'idle' | 'recording' | 'transcribing'
+        const inputArea = getChatInputArea();
+        if (!inputArea) return;
+
+        if (mode === 'recording') {
+            inputArea.classList.remove('is-transcribing');
+            inputArea.classList.add('is-recording');
+            if (micBtn) {
+                micBtn.classList.add('recording');
+                micBtn.setAttribute('aria-pressed', 'true');
+                const stopLabel = (typeof window.t === 'function' ? window.t('chat.voice_stop') : 'Stop listening');
+                micBtn.setAttribute('aria-label', stopLabel);
+                micBtn.setAttribute('title', stopLabel);
+            }
+        } else if (mode === 'transcribing') {
+            inputArea.classList.remove('is-recording');
+            inputArea.classList.add('is-transcribing');
+            if (micBtn) {
+                micBtn.classList.remove('recording');
+                micBtn.setAttribute('aria-pressed', 'false');
+            }
+        } else {
+            inputArea.classList.remove('is-recording');
+            inputArea.classList.remove('is-transcribing');
+            if (micBtn) {
+                micBtn.classList.remove('recording');
+                micBtn.setAttribute('aria-pressed', 'false');
+                const label = (typeof window.t === 'function' ? window.t('chat.voice_input') : 'Voice input');
+                micBtn.setAttribute('aria-label', label);
+                micBtn.setAttribute('title', label);
+            }
         }
-        stopListeningUI();
     }
 
-    function startListening() {
-        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRec) {
-            showVoiceError('chat.voice_err_unsupported', "Voice input isn't available in this browser. Try Chrome or Edge.");
+    function setupVisualizer(stream) {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            audioContext = new AudioCtx();
+            const source = audioContext.createMediaStreamSource(stream);
+            analyserNode = audioContext.createAnalyser();
+            analyserNode.fftSize = 64;
+            source.connect(analyserNode);
+
+            const bufferLength = analyserNode.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            const bars = document.querySelectorAll('#voiceBars .vbar');
+            if (!bars.length) return;
+
+            function renderWave() {
+                if (!isListening || !analyserNode) return;
+                analyserNode.getByteFrequencyData(dataArray);
+
+                for (let i = 0; i < bars.length; i++) {
+                    const sampleIndex = Math.min(Math.floor((i + 1) * 3), bufferLength - 1);
+                    const val = dataArray[sampleIndex] || 0;
+                    const height = Math.max(5, Math.min(22, Math.round(5 + (val / 255) * 17)));
+                    bars[i].style.height = `${height}px`;
+                }
+
+                visualizerAnimId = requestAnimationFrame(renderWave);
+            }
+            renderWave();
+        } catch (_) {
+            // CSS keyframes animation handles fallback wave smoothly
+        }
+    }
+
+    async function startListening() {
+        if (isListening || isTranscribing) return;
+        clearVoiceError();
+        ensureVoiceDockUI();
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
+            showVoiceError('chat.voice_err_unsupported', "Voice recording isn't supported in this browser.");
             return;
         }
 
-        clearVoiceError();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+
+            audioStream = stream;
+            audioChunks = [];
+
+            const supportedMime = [
+                'audio/webm;codecs=opus',
+                'audio/webm',
+                'audio/mp4',
+                'audio/ogg;codecs=opus',
+                'audio/ogg'
+            ].find(type => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) || '';
+
+            const options = supportedMime ? { mimeType: supportedMime } : undefined;
+            mediaRecorder = new MediaRecorder(stream, options);
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) {
+                    audioChunks.push(e.data);
+                }
+            };
+
+            isListening = true;
+            recordingSeconds = 0;
+            updateRecordingTimerDisplay();
+            setRecordingUIMode('recording');
+            setupVisualizer(stream);
+            resetInactivityTimer();
+
+            recordingTimerId = setInterval(() => {
+                recordingSeconds++;
+                updateRecordingTimerDisplay();
+                // Max recording duration: 60 seconds
+                if (recordingSeconds >= 60) {
+                    stopAndTranscribe();
+                }
+            }, 1000);
+
+            mediaRecorder.start(250);
+        } catch (err) {
+            cleanupAudioNodes();
+            setRecordingUIMode('idle');
+            isListening = false;
+
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                showVoiceError('chat.voice_err_permission', "Microphone access was denied. Please allow microphone access in your browser settings.");
+            } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                showVoiceError('chat.voice_err_generic', "No microphone detected on your device.");
+            } else {
+                showVoiceError('chat.voice_err_generic', "Voice input error occurred. Please try again.");
+            }
+        }
+    }
+
+    function cancelRecording() {
+        if (!isListening) return;
+        isListening = false;
+        cleanupAudioNodes();
+
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            try {
+                mediaRecorder.onstop = null;
+                mediaRecorder.stop();
+            } catch (_) {}
+        }
+        audioChunks = [];
+        setRecordingUIMode('idle');
+    }
+
+    async function stopAndTranscribe() {
+        if (!isListening || !mediaRecorder) return;
+        isListening = false;
+        const totalDuration = recordingSeconds;
+
+        cleanupAudioNodes();
+
+        const currentChunks = [...audioChunks];
+        const mimeType = mediaRecorder.mimeType || 'audio/webm';
+
+        if (mediaRecorder.state !== 'inactive') {
+            try { mediaRecorder.stop(); } catch (_) {}
+        }
+
+        // Check if recording was virtually empty (< 0.4s or empty chunks)
+        const totalBytes = currentChunks.reduce((acc, c) => acc + (c ? c.size : 0), 0);
+        if (totalDuration < 1 && totalBytes < 600) {
+            setRecordingUIMode('idle');
+            showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
+            return;
+        }
+
+        isTranscribing = true;
+        setRecordingUIMode('transcribing');
 
         try {
-            recognition = new SpeechRec();
-            recognition.continuous = false;
-            recognition.interimResults = true;
+            const blob = new Blob(currentChunks, { type: mimeType });
+            const formData = new FormData();
+            const ext = mimeType.includes('mp4') ? 'mp4' : (mimeType.includes('ogg') ? 'ogg' : 'webm');
+            formData.append('audio', blob, `voice.${ext}`);
 
             const curLang = (typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en');
-            recognition.lang = (curLang === 'tl' ? 'fil-PH' : 'en-PH');
+            formData.append('lang', curLang);
 
-            preVoiceText = chatInput ? chatInput.value : '';
+            const res = await fetch(`${CHAT_API}/api/voice/transcribe`, {
+                method: 'POST',
+                body: formData
+            });
 
-            recognition.onstart = () => {
-                isListening = true;
-                resetInactivityTimer();
-                if (micBtn) {
-                    micBtn.classList.add('recording');
-                    micBtn.setAttribute('aria-pressed', 'true');
-                    const stopLabel = (typeof window.t === 'function' ? window.t('chat.voice_stop') : 'Stop listening');
-                    micBtn.setAttribute('aria-label', stopLabel);
-                    micBtn.setAttribute('title', stopLabel);
-                }
-            };
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Transcription failed.');
+            }
 
-            recognition.onresult = (event) => {
-                let interim = '';
-                let final = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    const trans = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) final += trans;
-                    else interim += trans;
-                }
-                const speechPart = (final || interim).trim();
-                if (chatInput && speechPart) {
-                    const base = preVoiceText.trim();
-                    chatInput.value = base ? base + ' ' + speechPart : speechPart;
+            const data = await res.json();
+            const transcribedText = (data.text || '').trim();
+
+            if (transcribedText) {
+                if (chatInput) {
+                    const existing = chatInput.value.trim();
+                    chatInput.value = existing ? `${existing} ${transcribedText}` : transcribedText;
                     updateChatInputHeight();
                     updateSendButtonState();
+                    chatInput.focus();
                 }
-            };
-
-            recognition.onerror = (event) => {
-                stopListeningUI();
-                const err = event.error;
-                if (err === 'not-allowed' || err === 'service-not-allowed') {
-                    showVoiceError('chat.voice_err_permission', "Microphone access was denied. Please allow microphone access in your browser settings.");
-                } else if (err === 'no-speech') {
-                    showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
-                } else if (err === 'network') {
-                    showVoiceError('chat.voice_err_network', "Network error during speech recognition. Please check your connection.");
-                } else if (err !== 'aborted') {
-                    showVoiceError('chat.voice_err_generic', "Voice input error occurred. Please try again.");
-                }
-            };
-
-            recognition.onend = () => {
-                stopListeningUI();
-            };
-
-            recognition.start();
+            } else {
+                showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
+            }
         } catch (err) {
-            stopListeningUI();
-            showVoiceError('chat.voice_err_generic', "Voice input error occurred. Please try again.");
+            console.error('Voice transcription error:', err);
+            showVoiceError('chat.voice_err_network', "Unable to transcribe audio. Please check your connection.");
+        } finally {
+            isTranscribing = false;
+            setRecordingUIMode('idle');
+            resetInactivityTimer();
         }
     }
 
@@ -1170,11 +1436,18 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             e.preventDefault();
             resetInactivityTimer();
             if (isListening) {
-                stopListening();
-            } else {
+                stopAndTranscribe();
+            } else if (!isTranscribing) {
                 startListening();
             }
         });
+    }
+
+    ensureVoiceDockUI();
+
+    if (chatInput) {
+        chatInput.addEventListener('input', clearVoiceError);
+        chatInput.addEventListener('focus', clearVoiceError);
     }
 
     window.addEventListener('calzada_lang_changed', () => {
@@ -1194,6 +1467,22 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             const sendLabel = (window.t ? window.t('chat.send') : 'Send message');
             sendMessageBtn.setAttribute('aria-label', sendLabel);
             sendMessageBtn.setAttribute('title', sendLabel);
+        }
+        const statusText = document.getElementById('voiceStatusText');
+        if (statusText) statusText.textContent = (window.t ? window.t('chat.voice_listening') : 'Listening...');
+        const transcribingText = document.getElementById('voiceTranscribingText');
+        if (transcribingText) transcribingText.textContent = (window.t ? window.t('chat.voice_transcribing') : 'Transcribing with Routie...');
+        const cancelBtn = document.getElementById('voiceCancelBtn');
+        if (cancelBtn) {
+            const cancelLabel = (window.t ? window.t('chat.voice_cancel') : 'Cancel');
+            cancelBtn.setAttribute('title', cancelLabel);
+            cancelBtn.setAttribute('aria-label', cancelLabel);
+        }
+        const doneBtn = document.getElementById('voiceDoneBtn');
+        if (doneBtn) {
+            const doneLabel = (window.t ? window.t('chat.voice_done') : 'Done');
+            doneBtn.setAttribute('title', doneLabel);
+            doneBtn.setAttribute('aria-label', doneLabel);
         }
     });
 
