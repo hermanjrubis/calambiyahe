@@ -2579,12 +2579,12 @@
                     <div id="businessesLoadingSpinner" class="panel-spinner" style="display: none;"></div>
 
                     <div class="admin-underline-tabs overflow-x-auto">
-                        <button type="button" class="admin-underline-tab active" data-bus-filter="all">All</button>
-                        <button type="button" class="admin-underline-tab" data-bus-filter="approved">Live</button>
-                        <button type="button" class="admin-underline-tab" data-bus-filter="awaiting_payment">Awaiting payment</button>
-                        <button type="button" class="admin-underline-tab" data-bus-filter="pending">Pending</button>
-                        <button type="button" class="admin-underline-tab" data-bus-filter="needs_changes">Needs changes</button>
-                        <button type="button" class="admin-underline-tab" data-bus-filter="rejected">Rejected</button>
+                        <button type="button" class="admin-underline-tab active" data-bus-filter="all">All <span class="tab-badge" id="busCountAll"></span></button>
+                        <button type="button" class="admin-underline-tab" data-bus-filter="approved">Live <span class="tab-badge" id="busCountApproved"></span></button>
+                        <button type="button" class="admin-underline-tab" data-bus-filter="awaiting_payment">Awaiting payment <span class="tab-badge" id="busCountAwaiting"></span></button>
+                        <button type="button" class="admin-underline-tab" data-bus-filter="pending">Pending <span class="tab-badge" id="busCountPending"></span></button>
+                        <button type="button" class="admin-underline-tab" data-bus-filter="needs_changes">Needs changes <span class="tab-badge" id="busCountNeedsChanges"></span></button>
+                        <button type="button" class="admin-underline-tab" data-bus-filter="rejected">Rejected <span class="tab-badge" id="busCountRejected"></span></button>
                     </div>
 
                     <div class="bus-layout">
@@ -2610,11 +2610,19 @@
                         <!-- Right-Hand Business Inspector Card -->
                         <aside class="flat-card bus-detail-card" id="businessRowDetailCard" style="display: none;" aria-label="Business details">
                             <div class="bus-detail-head">
-                                <div style="min-width: 0;">
+                                <div style="min-width: 0; flex: 1;">
                                     <h2 class="detail-title" id="busDetailName">--</h2>
                                     <div class="status-line bus-detail-status">
                                         <span class="status-dot green" id="busDetailDot"></span>
                                         <span id="busDetailSub">--</span>
+                                    </div>
+                                    <div class="bus-detail-quick-actions" id="busDetailTopActions" style="display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap;">
+                                        <a href="#" class="btn-admin-secondary" id="busTopViewProfileLink" target="_blank" rel="noopener" style="padding: 4px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;">
+                                            <i class="ti ti-external-link"></i><span>View profile</span>
+                                        </a>
+                                        <a href="#" class="btn-admin-secondary" id="busTopViewMapLink" target="_blank" rel="noopener" style="padding: 4px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 5px;">
+                                            <i class="ti ti-map-pin"></i><span>Open map</span>
+                                        </a>
                                     </div>
                                 </div>
                                 <button type="button" class="bus-icon-btn" id="btnCloseBusDetail" aria-label="Close details">
@@ -2634,7 +2642,10 @@
                                 <dt id="busDetailShootLabel">360 shoot</dt>
                                 <dd id="busDetailShoot">--</dd>
                                 <dt>About</dt>
-                                <dd id="busDetailDesc">--</dd>
+                                <dd>
+                                    <div id="busDetailDesc" style="max-height: 72px; overflow: hidden; position: relative; transition: max-height 0.2s ease; line-height: 1.5;">--</div>
+                                    <button type="button" id="btnToggleDescClamp" class="mb-link-btn" style="display: none; margin-top: 4px; font-size: 12px; font-weight: 600; color: #1D4ED8; cursor: pointer; border: none; background: none; padding: 0;">Show more</button>
+                                </dd>
                             </dl>
 
                             <!-- Shown when business is NOT live yet (Pending, Awaiting Payment, Payment Review, Needs Changes, Rejected) -->
@@ -3040,6 +3051,7 @@
             writeBatch, 
             serverTimestamp, 
             Timestamp, 
+            deleteField,
             onAuthStateChanged, 
             signOut 
         } from "../js/firebase-init.js?v=2.9.2";
@@ -3417,6 +3429,7 @@
             if (p.status !== 'submitted') return false;
             const bus = allBusinesses.find(b => b.id === p.businessId);
             if (!bus) return true;
+            if (p.type === 'upgrade' || bus.pendingUpgrade) return true;
             if (bus.status !== 'payment_review') return false;
             return !bus.lastPaymentId || bus.lastPaymentId === p.id;
         }
@@ -4145,12 +4158,16 @@
                 const relTime = formatRelativeTime(p.submittedAt);
                 const isSelected = p.id === selectedPaymentId;
                 const isNew = newlyAddedIds.has(p.id);
+                const isUpgrade = p.type === 'upgrade';
 
                 return `
                     <div class="selectable-item-card ${isSelected ? 'selected' : ''} ${isNew ? 'new-item-highlight' : ''}" data-payment-id="${p.id}">
-                        <div class="item-card-title">${escapeHtml(busName)}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <div class="item-card-title">${escapeHtml(busName)}</div>
+                            ${isUpgrade ? '<span style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">UPGRADE</span>' : ''}
+                        </div>
                         <div class="item-card-meta">
-                            <span>${escapeHtml(planName)}</span>
+                            <span>${isUpgrade ? `Upgrade to ${escapeHtml(planName)}` : escapeHtml(planName)}</span>
                             <span>·</span>
                             <span style="font-weight: 700; color: var(--navy-dark);">₱${p.amountDue}</span>
                         </div>
@@ -4212,10 +4229,25 @@
             const thumb = document.getElementById('paymentReceiptThumb');
             thumb.src = payment.receiptUrl || '';
 
+            const isUpgrade = payment.type === 'upgrade' || (bus && bus.status === 'approved');
             const planCfg = window.CALZADA_PLANS?.[payment.plan] || window.CALZADA_PLANS?.listed;
-            document.getElementById('paymentDetailPlan').textContent = planCfg ? planCfg.name : (payment.plan || 'Listed');
+            const planName = planCfg ? planCfg.name : (payment.plan || 'Listed');
+            const planEl = document.getElementById('paymentDetailPlan');
+            if (planEl) {
+                planEl.innerHTML = isUpgrade
+                    ? `Upgrade to <strong>${escapeHtml(planName)}</strong> <span style="font-size: 12px; color: #64748B;">(from ${escapeHtml(payment.fromPlan || 'Listed')})</span>`
+                    : escapeHtml(planName);
+            }
             document.getElementById('paymentDetailAmount').textContent = `₱${payment.amountDue}`;
-            document.getElementById('paymentDetailRef').textContent = payment.referenceNo || '--';
+            
+            const refEl = document.getElementById('paymentDetailRef');
+            if (refEl) {
+                if (payment.preferredShootDate) {
+                    refEl.innerHTML = `<code>${escapeHtml(payment.referenceNo || '--')}</code><div style="margin-top: 4px; font-size: 12px; color: #1E293B; font-family: sans-serif;"><i class="ti ti-calendar" style="color: #378ADD;"></i> Preferred photoshoot: <strong>${escapeHtml(payment.preferredShootDate)}</strong></div>`;
+                } else {
+                    refEl.textContent = payment.referenceNo || '--';
+                }
+            }
             document.getElementById('paymentDetailSentAt').textContent = formatAdminDate(payment.submittedAt);
 
             const chkRefHistory = document.getElementById('chkRefHistory');
@@ -4234,6 +4266,10 @@
             chkRefHistory.onchange = updateMarkPaidBtn;
             chkAmountMatch.onchange = updateMarkPaidBtn;
             updateMarkPaidBtn();
+
+            if (btnMarkPaid) {
+                btnMarkPaid.textContent = isUpgrade ? 'Verify Payment & Activate Upgrade' : 'Mark as Paid and Go Live';
+            }
 
             const panelDoesntMatch = document.getElementById('panelDoesntMatch');
             if (panelDoesntMatch) panelDoesntMatch.style.display = 'none';
@@ -4280,6 +4316,7 @@
                     setButtonLoading(btnMarkPaidAndLive, true, 'Verifying & Activating...');
                     const batch = writeBatch(db);
 
+                    const isUpgrade = payment.type === 'upgrade' || (bus && bus.status === 'approved');
                     const payRef = doc(db, 'payments', payment.id);
                     batch.update(payRef, {
                         status: 'verified',
@@ -4288,16 +4325,21 @@
                     });
 
                     const busRef = doc(db, 'businesses', payment.businessId);
-                    const planCfg = window.CALZADA_PLANS?.[payment.plan] || window.CALZADA_PLANS?.listed;
+                    const planCfg = window.CALZADA_PLANS?.[payment.plan] || window.CALZADA_PLANS?.plus360;
                     const has360 = Boolean(planCfg?.has360);
                     const isFeatured = payment.plan === 'featured';
 
                     const busUpdate = {
-                        status: 'approved',
-                        paidAt: serverTimestamp(),
+                        plan: payment.plan,
                         updatedAt: serverTimestamp(),
-                        shoot360: has360 ? 'to_schedule' : 'none'
+                        shoot360: has360 ? 'to_schedule' : (bus?.shoot360 || 'none'),
+                        pendingUpgrade: deleteField()
                     };
+
+                    if (!bus || bus.status !== 'approved' || !bus.paidAt) {
+                        busUpdate.status = 'approved';
+                        busUpdate.paidAt = serverTimestamp();
+                    }
 
                     if (isFeatured) {
                         const featDays = planCfg?.featuredDays || 14;
@@ -4307,12 +4349,21 @@
                     batch.update(busRef, busUpdate);
                     await batch.commit();
 
-                    await triggerAdminEvent('business_live', payment.businessId, {
-                        paymentId: payment.id,
-                        plan: payment.plan,
-                        amountDue: payment.amountDue,
-                        referenceNo: payment.referenceNo
-                    });
+                    if (isUpgrade) {
+                        await triggerAdminEvent('business_plan_upgraded', payment.businessId, {
+                            paymentId: payment.id,
+                            plan: payment.plan,
+                            amountDue: payment.amountDue,
+                            referenceNo: payment.referenceNo
+                        });
+                    } else {
+                        await triggerAdminEvent('business_live', payment.businessId, {
+                            paymentId: payment.id,
+                            plan: payment.plan,
+                            amountDue: payment.amountDue,
+                            referenceNo: payment.referenceNo
+                        });
+                    }
 
                     if (has360) {
                         try {
@@ -4325,12 +4376,14 @@
                     payment.status = 'verified';
                     if (bus) {
                         bus.status = 'approved';
-                        bus.paidAt = new Date();
+                        bus.plan = payment.plan;
                         bus.shoot360 = busUpdate.shoot360;
+                        delete bus.pendingUpgrade;
+                        if (!bus.paidAt) bus.paidAt = new Date();
                         if (busUpdate.featuredUntil) bus.featuredUntil = busUpdate.featuredUntil.toDate();
                     }
 
-                    showAdminNotice(`Payment verified! "${bus?.name || payment.businessId}" is now live on Calzada.`, 'success');
+                    showAdminNotice(isUpgrade ? `Upgrade verified! "${bus?.name || payment.businessId}" is now on ${planCfg?.name || payment.plan} plan. 360 shoot queued.` : `Payment verified! "${bus?.name || payment.businessId}" is now live on Calzada.`, 'success');
                     renderPaymentsSection();
                     renderBusinessesTable();
                     updateOverviewStats();
@@ -4367,6 +4420,7 @@
                 const payment = allPayments.find(p => p.id === selectedPaymentId);
                 if (!payment) return;
                 const bus = allBusinesses.find(b => b.id === payment.businessId);
+                const isUpgrade = payment.type === 'upgrade' || (bus && bus.status === 'approved');
 
                 const radioReason = document.querySelector('input[name="notMatchedReason"]:checked')?.value || 'Other';
                 const extraNote = document.getElementById('notMatchedTextarea').value.trim();
@@ -4382,11 +4436,20 @@
                         reviewedAt: serverTimestamp(),
                         reviewedBy: auth.currentUser.uid
                     });
-                    batch.update(doc(db, 'businesses', payment.businessId), {
-                        status: 'awaiting_payment',
-                        reviewNote: fullReason,
-                        updatedAt: serverTimestamp()
-                    });
+                    
+                    if (isUpgrade) {
+                        batch.update(doc(db, 'businesses', payment.businessId), {
+                            pendingUpgrade: deleteField(),
+                            updatedAt: serverTimestamp()
+                        });
+                    } else {
+                        batch.update(doc(db, 'businesses', payment.businessId), {
+                            status: 'awaiting_payment',
+                            reviewNote: fullReason,
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+
                     if (payment.referenceNo) {
                         batch.delete(doc(db, 'paymentRefs', payment.referenceNo));
                     }
@@ -4400,8 +4463,12 @@
                     payment.status = 'not_matched';
                     payment.reviewNote = fullReason;
                     if (bus) {
-                        bus.status = 'awaiting_payment';
-                        bus.reviewNote = fullReason;
+                        if (isUpgrade) {
+                            delete bus.pendingUpgrade;
+                        } else {
+                            bus.status = 'awaiting_payment';
+                            bus.reviewNote = fullReason;
+                        }
                     }
 
                     showAdminNotice('Payment marked not matched and sent back to owner.', 'success');
@@ -4840,6 +4907,21 @@
         let busSearchQuery = '';
 
         function renderBusinessesTable() {
+            // Update tab badge counts
+            const cAll = allBusinesses.length;
+            const cApproved = allBusinesses.filter(b => b.status === 'approved').length;
+            const cAwaiting = allBusinesses.filter(b => b.status === 'awaiting_payment' || b.status === 'payment_review').length;
+            const cPending = allBusinesses.filter(b => b.status === 'pending').length;
+            const cNeedsChanges = allBusinesses.filter(b => b.status === 'needs_changes').length;
+            const cRejected = allBusinesses.filter(b => b.status === 'rejected').length;
+
+            const elCAll = document.getElementById('busCountAll'); if (elCAll) elCAll.textContent = cAll ? `(${cAll})` : '';
+            const elCApp = document.getElementById('busCountApproved'); if (elCApp) elCApp.textContent = cApproved ? `(${cApproved})` : '';
+            const elCAwt = document.getElementById('busCountAwaiting'); if (elCAwt) elCAwt.textContent = cAwaiting ? `(${cAwaiting})` : '';
+            const elCPen = document.getElementById('busCountPending'); if (elCPen) elCPen.textContent = cPending ? `(${cPending})` : '';
+            const elCNch = document.getElementById('busCountNeedsChanges'); if (elCNch) elCNch.textContent = cNeedsChanges ? `(${cNeedsChanges})` : '';
+            const elCRej = document.getElementById('busCountRejected'); if (elCRej) elCRej.textContent = cRejected ? `(${cRejected})` : '';
+
             let list = allBusinesses.slice();
             if (currentBusFilter !== 'all') {
                 list = list.filter(b => b.status === currentBusFilter);
@@ -4980,7 +5062,35 @@
                 }
             }
 
-            document.getElementById('busDetailDesc').textContent = bus.description || 'No description provided';
+            const descEl = document.getElementById('busDetailDesc');
+            const btnClamp = document.getElementById('btnToggleDescClamp');
+            if (descEl) {
+                descEl.textContent = bus.description || 'No description provided';
+                descEl.style.maxHeight = '72px';
+                if (btnClamp) {
+                    btnClamp.textContent = 'Show more';
+                    setTimeout(() => {
+                        const needsClamp = descEl.scrollHeight > 75;
+                        btnClamp.style.display = needsClamp ? 'inline-block' : 'none';
+                        btnClamp.onclick = () => {
+                            const isClamped = descEl.style.maxHeight === '72px';
+                            descEl.style.maxHeight = isClamped ? 'none' : '72px';
+                            btnClamp.textContent = isClamped ? 'Show less' : 'Show more';
+                        };
+                    }, 20);
+                }
+            }
+
+            const topView = document.getElementById('busTopViewProfileLink');
+            if (topView) {
+                topView.href = `/business?id=${encodeURIComponent(bus.id)}`;
+                topView.style.display = isLive ? 'inline-flex' : 'none';
+            }
+            const topMap = document.getElementById('busTopViewMapLink');
+            if (topMap) {
+                topMap.href = `/places?place=${encodeURIComponent(bus.name || '')}`;
+                topMap.style.display = isLive ? 'inline-flex' : 'none';
+            }
 
             const liveControls = document.getElementById('busLiveOnlyControls');
             const pendingBox = document.getElementById('busPendingWorkflowBox');
@@ -5108,6 +5218,16 @@
                 document.getElementById('businessRowDetailCard').style.display = 'none';
                 selectedDetailBusId = null;
                 markSelectedBusRow();
+            });
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const card = document.getElementById('businessRowDetailCard');
+                    if (card && card.style.display !== 'none') {
+                        card.style.display = 'none';
+                        selectedDetailBusId = null;
+                        markSelectedBusRow();
+                    }
+                }
             });
         }
 

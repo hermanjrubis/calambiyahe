@@ -557,7 +557,7 @@ function haversineDistanceMeters(lat1, lon1, lat2, lon2) {
 }
 
 const { createAuthMiddleware, getAuth } = require('./auth');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
 const { EVENTS, sendEvent } = require('./mailer');
 const requireAuth = createAuthMiddleware();
 
@@ -1676,6 +1676,148 @@ app.post('/api/payments/upload-receipt', requireAuth, (req, res) => {
         } catch (writeErr) {
             console.error('Error uploading payment receipt to Cloudinary:', writeErr);
             return res.status(500).json({ error: 'Failed to upload receipt to image hosting.' });
+        }
+    });
+});
+
+// POST /api/payments/upgrade-plan - Authenticated plan upgrade payment submission for live (approved) business
+app.post('/api/payments/upgrade-plan', requireAuth, (req, res) => {
+    paymentReceiptUpload(req, res, async (err) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({ error: 'File size exceeds 10MB limit.' });
+            }
+            return res.status(400).json({ error: `Upload error: ${err.message}` });
+        } else if (err) {
+            return res.status(400).json({ error: err.message || 'File upload error' });
+        }
+
+        const businessId = req.body ? req.body.businessId : null;
+        if (!businessId || !/^[a-zA-Z0-9_-]{1,128}$/.test(businessId)) {
+            return res.status(400).json({ error: 'Invalid or missing businessId.' });
+        }
+
+        const targetPlan = req.body ? req.body.targetPlan : null;
+        if (!targetPlan || !['plus360', 'featured'].includes(targetPlan)) {
+            return res.status(400).json({ error: 'Target plan must be plus360 or featured.' });
+        }
+
+        const rawRef = req.body ? String(req.body.referenceNo || '').trim() : '';
+        if (!/^[0-9]{10,13}$/.test(rawRef)) {
+            return res.status(400).json({ error: 'Reference number must be 10 to 13 digits.' });
+        }
+
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({ error: 'A receipt photo file is required.' });
+        }
+
+        const realMime = detectImageMimeType(file.buffer);
+        if (!realMime) {
+            return res.status(400).json({ error: 'Receipt file must be a valid image (JPEG, PNG, or WebP).' });
+        }
+
+        const preferredShootDate = req.body && req.body.preferredShootDate
+            ? String(req.body.preferredShootDate).trim().slice(0, 100)
+            : null;
+
+        const adminDb = getFirestore();
+
+        try {
+            // 1. Check if business exists, owned by user, and status === 'approved'
+            const busRef = adminDb.collection('businesses').doc(businessId);
+            const busSnap = await busRef.get();
+            if (!busSnap.exists) {
+                return res.status(404).json({ error: 'Business not found.' });
+            }
+            const busData = busSnap.data();
+            if (busData.ownerId !== req.user.uid) {
+                return res.status(403).json({ error: 'Forbidden: You do not own this business.' });
+            }
+            if (busData.status !== 'approved') {
+                return res.status(400).json({ error: 'Only live approved businesses can upgrade plans.' });
+            }
+
+            // 2. Check reference number uniqueness
+            const refDocRef = adminDb.collection('paymentRefs').doc(rawRef);
+            const refSnap = await refDocRef.get();
+            if (refSnap.exists) {
+                return res.status(409).json({ error: 'This GCash reference number has already been used. Please check your receipt.' });
+            }
+
+            // 3. Determine amount due
+            const upgradePrice = targetPlan === 'featured' ? 299 : 199;
+
+            // 4. Upload receipt to Cloudinary or emulator fallback
+            let receiptUrl = '';
+            if (process.env.CALZADA_EMULATORS === '1') {
+                const cloudName = process.env.CLOUDINARY_CLOUD_NAME || 'calzada';
+                const safeFileName = crypto.randomBytes(8).toString('hex');
+                receiptUrl = `https://res.cloudinary.com/${cloudName}/image/upload/v${Date.now()}/calzada/payments/${businessId}/upgrade_${safeFileName}.jpg`;
+            } else if (!cloudinaryConfigured()) {
+                return res.status(503).json({ error: 'Image hosting is not configured on the server.' });
+            } else {
+                const safeFileName = crypto.randomBytes(8).toString('hex');
+                const uploadRes = await uploadBuffer(
+                    file.buffer,
+                    `calzada/payments/${businessId}`,
+                    `upgrade_${safeFileName}`
+                );
+                receiptUrl = uploadRes.url;
+            }
+
+            // 5. Batch write: new payment doc + paymentRefs lock + update businesses.pendingUpgrade
+            const payRef = adminDb.collection('payments').doc();
+            const batch = adminDb.batch();
+
+            batch.set(payRef, {
+                businessId,
+                ownerId: req.user.uid,
+                businessName: busData.name || 'Unnamed',
+                plan: targetPlan,
+                fromPlan: busData.plan || 'listed',
+                amountDue: upgradePrice,
+                referenceNo: rawRef,
+                receiptUrl,
+                preferredShootDate,
+                type: 'upgrade',
+                status: 'submitted',
+                submittedAt: FieldValue.serverTimestamp(),
+                reviewedAt: null,
+                reviewedBy: null,
+                reviewNote: null
+            });
+
+            batch.set(refDocRef, {
+                businessId,
+                paymentId: payRef.id,
+                createdAt: FieldValue.serverTimestamp()
+            });
+
+            batch.update(busRef, {
+                pendingUpgrade: {
+                    targetPlan,
+                    paymentId: payRef.id,
+                    amountDue: upgradePrice,
+                    referenceNo: rawRef,
+                    receiptUrl,
+                    preferredShootDate,
+                    requestedAt: FieldValue.serverTimestamp()
+                },
+                updatedAt: FieldValue.serverTimestamp()
+            });
+
+            await batch.commit();
+
+            return res.json({
+                success: true,
+                paymentId: payRef.id,
+                amountDue: upgradePrice,
+                targetPlan
+            });
+        } catch (dbErr) {
+            console.error('Error recording upgrade payment:', dbErr);
+            return res.status(500).json({ error: 'Failed to record upgrade payment: ' + dbErr.message });
         }
     });
 });
