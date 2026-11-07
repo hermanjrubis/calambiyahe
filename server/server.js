@@ -1254,18 +1254,29 @@ app.post('/api/voice/transcribe', (req, res, next) => {
 
         const file = await toFile(req.file.buffer, `voice_${Date.now()}.${ext}`, { type: mime });
 
-        const reqLang = (req.body && req.body.lang) ? String(req.body.lang).toLowerCase() : 'tl';
-        const whisperLang = reqLang.startsWith('en') ? 'en' : 'tl';
+        const reqLang = (req.body && req.body.lang) ? String(req.body.lang).toLowerCase().trim() : 'auto';
 
-        const prompt = 'Calzada, Calamba, Laguna, commute, jeepney, tricycle, bus, UV Express, Crossing, Turbina, SM Calamba, Bucal, Real, Halang, Parian, Canlubang, Mayapa, Pansol, Lawa, pasahe, terminal';
+        // Bilingual vocabulary hint with Calamba transit locations & terms in both Tagalog and English
+        const prompt = 'Calzada, Calamba, Laguna, commute, jeepney, tricycle, bus, UV Express, Crossing, Turbina, SM Calamba, Bucal, Real, Halang, Parian, Canlubang, Mayapa, Pansol, Lawa, pasahe, pamasahe, sakayan, terminal, biyahe, saan, magkano, paano.';
 
-        const transcription = await client.audio.transcriptions.create({
+        const transcriptionOptions = {
             file,
             model: 'whisper-large-v3',
-            language: whisperLang,
             prompt,
             temperature: 0.0
-        });
+        };
+
+        // If explicitly requested Tagalog/Filipino, provide 'tl'.
+        // NEVER force 'en' unless explicitly forced: forcing 'en' activates Whisper's translation mode
+        // which forcibly turns Tagalog speech into English sentences. By omitting language for English/auto,
+        // Whisper auto-detects Tagalog, English, and Taglish natively and transcribes exactly what was spoken.
+        if (reqLang === 'tl' || reqLang === 'fil' || reqLang.startsWith('tl-') || reqLang.startsWith('fil-')) {
+            transcriptionOptions.language = 'tl';
+        } else if (reqLang === 'force_en') {
+            transcriptionOptions.language = 'en';
+        }
+
+        const transcription = await client.audio.transcriptions.create(transcriptionOptions);
 
         const text = (transcription && transcription.text) ? transcription.text.trim() : '';
         return res.json({ success: true, text });

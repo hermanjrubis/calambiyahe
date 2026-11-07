@@ -4592,6 +4592,21 @@ body.navigation-active #hamburgerBtn {
     white-space: nowrap;
 }
 
+.voice-lang-badge {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #475569;
+    background: #e2e8f0;
+    padding: 2px 6px;
+    border-radius: 6px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+    line-height: 1.2;
+    display: inline-flex;
+    align-items: center;
+}
+
 .voice-bars {
     display: inline-flex;
     align-items: center;

@@ -1088,6 +1088,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                 <div class="voice-dock-left">
                     <span class="voice-rec-dot" aria-hidden="true"></span>
                     <span class="voice-status-text" id="voiceStatusText">${window.t ? window.t('chat.voice_listening') : 'Listening...'}</span>
+                    <span class="voice-lang-badge" id="voiceLangBadge" title="${window.t ? window.t('chat.voice_lang_hint') : 'English & Tagalog'}">EN • TL</span>
                     <div class="voice-bars" aria-hidden="true" id="voiceBars">
                         <span class="vbar"></span>
                         <span class="vbar"></span>
@@ -1392,7 +1393,8 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             formData.append('audio', blob, `voice.${ext}`);
 
             const curLang = (typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en');
-            formData.append('lang', curLang);
+            // If current UI is Tagalog, send 'tl' hint; otherwise 'auto' allows seamless Tagalog & English speech
+            formData.append('lang', curLang === 'tl' ? 'tl' : 'auto');
 
             const res = await fetch(`${CHAT_API}/api/voice/transcribe`, {
                 method: 'POST',
@@ -1483,6 +1485,10 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             const doneLabel = (window.t ? window.t('chat.voice_done') : 'Done');
             doneBtn.setAttribute('title', doneLabel);
             doneBtn.setAttribute('aria-label', doneLabel);
+        }
+        const langBadge = document.getElementById('voiceLangBadge');
+        if (langBadge) {
+            langBadge.setAttribute('title', (window.t ? window.t('chat.voice_lang_hint') : 'English & Tagalog'));
         }
     });
 
