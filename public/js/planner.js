@@ -1312,7 +1312,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'pwu-cdcec', name: 'PWU CDCEC Calamba', category: 'schools', defaultLat: 14.2052421, defaultLng: 121.1562636, full_address: '6544+3HW, Bridge, Calamba, 4027 Laguna' },
             // Terminals
             { id: 'calamba-crossing-term', name: 'Calamba Crossing / Central Terminal', category: 'terminals', defaultLat: 14.19821, defaultLng: 121.16315, full_address: 'Calamba Crossing, Brgy. Real, Calamba City' },
-            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', full_address: 'SM City Calamba Complex, Calamba City', image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp' },
+            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', full_address: 'SM City Calamba Complex (East Side), Calamba City', image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp' },
+            { id: 'sm-calamba-inner-rd-terminal', name: 'SM Calamba Inner Rd Terminal', category: 'terminals', defaultLat: 14.2032625, defaultLng: 121.1547031, full_address: 'SM City Calamba Inner Road (Cinema Side), Brgy. Uno, Calamba City', image_path: '../assets/places/sm-city-calamba/photo.webp' },
             { id: 'turbina-bus-term', name: 'Turbina Bus Terminal', category: 'terminals', defaultLat: 14.18888, defaultLng: 121.14444, full_address: 'Turbina, Calamba City' },
             // Eateries
             { id: 'rose-grace', name: 'Rose and Grace Restaurant', category: 'eateries', defaultLat: 14.2012, defaultLng: 121.1568, full_address: 'Maharlika Highway, Brgy. Real, Calamba City' },
@@ -9836,6 +9837,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         "saint benilde international school": "saint-benilde",
                         "sm city calamba transport terminal": "sm-transport-term",
                         "sm transport terminal": "sm-transport-term",
+                        "sm calamba inner rd terminal": "sm-calamba-inner-rd-terminal",
+                        "sm calamba inner road terminal": "sm-calamba-inner-rd-terminal",
+                        "sm inner rd terminal": "sm-calamba-inner-rd-terminal",
+                        "sm inner road terminal": "sm-calamba-inner-rd-terminal",
                         "sti college - calamba": "sti-calamba",
                         "sti college calamba": "sti-calamba",
                         "teng-teng's": "teng-tengs",

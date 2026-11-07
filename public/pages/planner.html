@@ -4,45 +4,45 @@
 <head>
     <meta charset="UTF-8">
     <script>
-    /* Signed in last time? Show the profile in the header while the page loads,
-       instead of "Sign In" first. Firebase confirms it a moment later (or switches back). */
-    (function () {
-        try {
-            var h = JSON.parse(localStorage.getItem('calzada_auth_hint') || 'null');
-            if (!h || !h.name || Date.now() - (h.at || 0) > 30 * 864e5) return;
-            document.documentElement.classList.add('auth-hint');
-            var name = localStorage.getItem('calzada_pref_name') || h.name;
-            var photo = localStorage.getItem('calzada_pref_photo') || h.photo || '';
-            var initial = String(name).charAt(0).toUpperCase() || 'U';
-            var done = {};
-            var show = function (id, display) { var el = document.getElementById(id); if (el && !done[id]) { el.style.display = display; done[id] = 1; } };
-            var fill = function () {
-                show('authNavBtn', 'none');
-                show('userAvatarPill', 'flex');
-                show('mobileSignInBtn', 'none');
-                show('mobileAvatarBtn', 'flex');
-                var n = document.getElementById('userDisplayName');
-                if (n && !done.n) { n.textContent = name; done.n = 1; }
-                ['userAvatar', 'mobileAvatar'].forEach(function (k) {
-                    var ini = document.getElementById(k + 'Initials'), img = document.getElementById(k + 'Img');
-                    if (ini && !done[k + 'I']) { ini.textContent = initial; ini.style.display = 'block'; done[k + 'I'] = 1; }
-                    if (img && photo && !done[k + 'P']) {
-                        done[k + 'P'] = 1;
-                        img.onload = function () { if (img.naturalWidth) { img.style.display = 'block'; if (ini) ini.style.display = 'none'; } };
-                        img.src = photo;
-                    }
-                });
-            };
-            var mo = new MutationObserver(fill);
-            mo.observe(document.documentElement, { childList: true, subtree: true });
-            document.addEventListener('DOMContentLoaded', function () { fill(); mo.disconnect(); });
-        } catch (e) { /* no storage: wait for Firebase as before */ }
-    })();
+        /* Signed in last time? Show the profile in the header while the page loads,
+           instead of "Sign In" first. Firebase confirms it a moment later (or switches back). */
+        (function () {
+            try {
+                var h = JSON.parse(localStorage.getItem('calzada_auth_hint') || 'null');
+                if (!h || !h.name || Date.now() - (h.at || 0) > 30 * 864e5) return;
+                document.documentElement.classList.add('auth-hint');
+                var name = localStorage.getItem('calzada_pref_name') || h.name;
+                var photo = localStorage.getItem('calzada_pref_photo') || h.photo || '';
+                var initial = String(name).charAt(0).toUpperCase() || 'U';
+                var done = {};
+                var show = function (id, display) { var el = document.getElementById(id); if (el && !done[id]) { el.style.display = display; done[id] = 1; } };
+                var fill = function () {
+                    show('authNavBtn', 'none');
+                    show('userAvatarPill', 'flex');
+                    show('mobileSignInBtn', 'none');
+                    show('mobileAvatarBtn', 'flex');
+                    var n = document.getElementById('userDisplayName');
+                    if (n && !done.n) { n.textContent = name; done.n = 1; }
+                    ['userAvatar', 'mobileAvatar'].forEach(function (k) {
+                        var ini = document.getElementById(k + 'Initials'), img = document.getElementById(k + 'Img');
+                        if (ini && !done[k + 'I']) { ini.textContent = initial; ini.style.display = 'block'; done[k + 'I'] = 1; }
+                        if (img && photo && !done[k + 'P']) {
+                            done[k + 'P'] = 1;
+                            img.onload = function () { if (img.naturalWidth) { img.style.display = 'block'; if (ini) ini.style.display = 'none'; } };
+                            img.src = photo;
+                        }
+                    });
+                };
+                var mo = new MutationObserver(fill);
+                mo.observe(document.documentElement, { childList: true, subtree: true });
+                document.addEventListener('DOMContentLoaded', function () { fill(); mo.disconnect(); });
+            } catch (e) { /* no storage: wait for Firebase as before */ }
+        })();
     </script>
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Planner – Calzada</title>
-    <meta name="description" content="Plan jeepney and walking routes in Calamba, with fares and travel times for each part of the trip.">
+    <meta name="description"
+        content="Plan jeepney and walking routes in Calamba, with fares and travel times for each part of the trip.">
     <link rel="canonical" href="https://calzadaph.com/planner">
     <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
     <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
@@ -55,10 +55,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Google Fonts (Non-blocking) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap"
+        media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
@@ -72,7 +76,7 @@
     <link rel="stylesheet" href="../css/trips.css?v=2.9.0" data-calzada-trips-css>
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(regs) {
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
                 for (var i = 0; i < regs.length; i++) regs[i].unregister();
             });
         }
@@ -84,14 +88,24 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <style>
-        body { opacity: 0; }
-        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+        body {
+            opacity: 0;
+        }
+
+        body.fouc-ready {
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
     </style>
     <noscript>
-        <style>body { opacity: 1 !important; }</style>
+        <style>
+            body {
+                opacity: 1 !important;
+            }
+        </style>
     </noscript>
     <script>
-        (function() {
+        (function () {
             function show() {
                 if (document.body && !document.body.classList.contains('fouc-ready')) {
                     document.body.classList.add('fouc-ready');
@@ -102,13 +116,13 @@
             } else {
                 document.addEventListener('DOMContentLoaded', show);
             }
-            setTimeout(function() {
+            setTimeout(function () {
                 show();
                 var sk = document.getElementById('skeleton-overlay');
                 if (sk) {
                     sk.classList.add('hidden');
-                    setTimeout(function() { sk.remove(); }, 500);
-                    document.querySelectorAll('main, .scrollable-content, .planner-gui-container, .places-page, .auth-page-container, .ref-hero').forEach(function(el) {
+                    setTimeout(function () { sk.remove(); }, 500);
+                    document.querySelectorAll('main, .scrollable-content, .planner-gui-container, .places-page, .auth-page-container, .ref-hero').forEach(function (el) {
                         el.style.opacity = '1';
                     });
                 }
@@ -130,11 +144,14 @@
         </div>
         <div class="mp-pin-body">
             <svg class="mp-pin-svg" viewBox="0 0 48 60" width="48" height="60">
-                <path class="mp-pin-shape" d="M24 2C12.4 2 3 11.2 3 22.6 3 37.4 20.2 54 22.6 56.3a2 2 0 0 0 2.8 0C27.8 54 45 37.4 45 22.6 45 11.2 35.6 2 24 2Z"/>
-                <circle cx="24" cy="22.5" r="11" fill="#FFFFFF"/>
-                <g class="mp-icon-from"><circle cx="24" cy="22.5" r="5" class="mp-icon-fill"/></g>
+                <path class="mp-pin-shape"
+                    d="M24 2C12.4 2 3 11.2 3 22.6 3 37.4 20.2 54 22.6 56.3a2 2 0 0 0 2.8 0C27.8 54 45 37.4 45 22.6 45 11.2 35.6 2 24 2Z" />
+                <circle cx="24" cy="22.5" r="11" fill="#FFFFFF" />
+                <g class="mp-icon-from">
+                    <circle cx="24" cy="22.5" r="5" class="mp-icon-fill" />
+                </g>
                 <g class="mp-icon-to" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path class="mp-icon-stroke" d="M20 29V16.5M20 16.5h8.5l-1.8 3.2 1.8 3.2H20"/>
+                    <path class="mp-icon-stroke" d="M20 29V16.5M20 16.5h8.5l-1.8 3.2 1.8 3.2H20" />
                 </g>
             </svg>
         </div>
@@ -144,12 +161,17 @@
 
     <!-- Map pin picker: hint (top) and card (bottom) -->
     <div id="mapPickerHint" class="mp-hint" style="display:none;" role="status">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-2a1.5 1.5 0 0 1 3 0V12M14 10.5a1.5 1.5 0 0 1 3 0V12M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2 .208a6 6 0 0 1-5.012-2.7L7 19c-.312-.479-1.407-2.388-3.286-5.728a1.5 1.5 0 0 1 .536-2.022 1.867 1.867 0 0 1 2.28.28L8 13"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path
+                d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11.5v-2a1.5 1.5 0 0 1 3 0V12M14 10.5a1.5 1.5 0 0 1 3 0V12M17 11.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2 .208a6 6 0 0 1-5.012-2.7L7 19c-.312-.479-1.407-2.388-3.286-5.728a1.5 1.5 0 0 1 .536-2.022 1.867 1.867 0 0 1 2.28.28L8 13" />
+        </svg>
         <span id="mapPickerHintText">Move the map to place the pin</span>
     </div>
     <div id="mapPickerUI" class="mp-card" style="display:none;" role="dialog" aria-labelledby="mapPickerPrimaryLabel">
         <div class="mp-card-top">
-            <span class="mp-role"><span class="mp-role-dot" aria-hidden="true"></span><span id="mapPickerRole">Destination</span></span>
+            <span class="mp-role"><span class="mp-role-dot" aria-hidden="true"></span><span
+                    id="mapPickerRole">Destination</span></span>
             <span class="mp-coords" id="mapPickerCoordsLabel">--</span>
         </div>
         <div class="mp-title-wrap">
@@ -157,12 +179,14 @@
             <span class="mp-title-sk skeleton" aria-hidden="true"></span>
         </div>
         <button class="mp-confirm" id="mapPickerConfirmBtn" type="button">Set as destination</button>
-        <button class="mp-cancel" id="mapPickerCancelBtn" type="button" >Cancel</button>
+        <button class="mp-cancel" id="mapPickerCancelBtn" type="button">Cancel</button>
     </div>
 
     <!-- Floating Recenter Button (Real-time user location) -->
-    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map" aria-label="Re-center map on your location">
-        <svg class="recenter-crosshair-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <button id="reCenterBtn" class="recenter-btn" style="display:none;" title="Re-center map"
+        aria-label="Re-center map on your location">
+        <svg class="recenter-crosshair-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#378ADD"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="7"></circle>
             <line x1="12" y1="2" x2="12" y2="5"></line>
             <line x1="12" y1="19" x2="12" y2="22"></line>
@@ -171,7 +195,7 @@
         </svg>
         <span class="recenter-nav-arrow" aria-hidden="true" style="display:none;">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#2272C3">
-                <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+                <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" />
             </svg>
         </span>
         <span class="recenter-label" data-i18n="planner.recenter" style="display:none;">Re-center</span>
@@ -188,52 +212,146 @@
         <div class="map-category-bar-wrapper" id="mapCategoryBarWrapper">
             <div class="map-category-container">
                 <div class="category-scroll-wrapper" id="categoryScrollWrapper">
-                    <div class="map-segmented-control category-scroll" id="mapCategoryBar" role="tablist" aria-label="Place Categories">
+                    <div class="map-segmented-control category-scroll" id="mapCategoryBar" role="tablist"
+                        aria-label="Place Categories">
                         <div class="chip-highlight" id="chipHighlight" aria-hidden="true"></div>
-                        <button class="map-segment-btn" data-category="malls" type="button" role="tab" aria-selected="false" title="Malls" aria-label="Malls">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232,96a7.89,7.89,0,0,0-.3-2.2L217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.8A7.89,7.89,0,0,0,24,96h0v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96ZM54,48H202l11.42,40H42.61Zm50,56h48v8a24,24,0,0,1-48,0Zm-16,0v8a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8ZM200,208H56V151.2a40.57,40.57,0,0,0,8,.8,40,40,0,0,0,32-16,40,40,0,0,0,64,0,40,40,0,0,0,32,16,40.57,40.57,0,0,0,8-.8Zm4.93-75.8a8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48v8A24,24,0,0,1,204.93,132.2Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M231.69,93.81,217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.81A7.94,7.94,0,0,0,24,96v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96A7.94,7.94,0,0,0,231.69,93.81ZM88,112a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8H88Zm64,0a24,24,0,0,1-48,0v-8h48Zm64,0a24,24,0,0,1-11.07,20.2,8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48Z"/></svg>
+                        <button class="map-segment-btn" data-category="malls" type="button" role="tab"
+                            aria-selected="false" title="Malls" aria-label="Malls">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M232,96a7.89,7.89,0,0,0-.3-2.2L217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.8A7.89,7.89,0,0,0,24,96h0v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96ZM54,48H202l11.42,40H42.61Zm50,56h48v8a24,24,0,0,1-48,0Zm-16,0v8a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8ZM200,208H56V151.2a40.57,40.57,0,0,0,8,.8,40,40,0,0,0,32-16,40,40,0,0,0,64,0,40,40,0,0,0,32,16,40.57,40.57,0,0,0,8-.8Zm4.93-75.8a8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48v8A24,24,0,0,1,204.93,132.2Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M231.69,93.81,217.35,43.6A16.07,16.07,0,0,0,202,32H54A16.07,16.07,0,0,0,38.65,43.6L24.31,93.81A7.94,7.94,0,0,0,24,96v16a40,40,0,0,0,16,32v72a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V144a40,40,0,0,0,16-32V96A7.94,7.94,0,0,0,231.69,93.81ZM88,112a24,24,0,0,1-35.12,21.26,7.88,7.88,0,0,0-1.82-1.06A24,24,0,0,1,40,112v-8H88Zm64,0a24,24,0,0,1-48,0v-8h48Zm64,0a24,24,0,0,1-11.07,20.2,8.08,8.08,0,0,0-1.8,1.05A24,24,0,0,1,168,112v-8h48Z" />
+                            </svg>
                             <span class="cat-label">Malls</span>
                         </button>
-                        <button class="map-segment-btn" data-category="eateries" type="button" role="tab" aria-selected="false" title="Eateries" aria-label="Eateries">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M72,88V40a8,8,0,0,1,16,0V88a8,8,0,0,1-16,0ZM216,40V224a8,8,0,0,1-16,0V176H152a8,8,0,0,1-8-8,268.75,268.75,0,0,1,7.22-56.88c9.78-40.49,28.32-67.63,53.63-78.47A8,8,0,0,1,216,40ZM200,53.9c-32.17,24.57-38.47,84.42-39.7,106.1H200ZM119.89,38.69a8,8,0,1,0-15.78,2.63L112,88.63a32,32,0,0,1-64,0l7.88-47.31a8,8,0,1,0-15.78-2.63l-8,48A8.17,8.17,0,0,0,32,88a48.07,48.07,0,0,0,40,47.32V224a8,8,0,0,0,16,0V135.32A48.07,48.07,0,0,0,128,88a8.17,8.17,0,0,0-.11-1.31Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40V224a8,8,0,0,1-16,0V176H152a8,8,0,0,1-8-8,268.75,268.75,0,0,1,7.22-56.88c9.78-40.49,28.32-67.63,53.63-78.47A8,8,0,0,1,216,40Zm-96.11-1.31a8,8,0,1,0-15.78,2.63L111.89,88H88V40a8,8,0,0,0-16,0V88H48.11l7.78-46.68a8,8,0,1,0-15.78-2.63l-8,48A8.17,8.17,0,0,0,32,88a48.07,48.07,0,0,0,40,47.32V224a8,8,0,0,0,16,0V135.32A48.07,48.07,0,0,0,128,88a8.17,8.17,0,0,0-.11-1.31Z"/></svg>
+                        <button class="map-segment-btn" data-category="eateries" type="button" role="tab"
+                            aria-selected="false" title="Eateries" aria-label="Eateries">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M72,88V40a8,8,0,0,1,16,0V88a8,8,0,0,1-16,0ZM216,40V224a8,8,0,0,1-16,0V176H152a8,8,0,0,1-8-8,268.75,268.75,0,0,1,7.22-56.88c9.78-40.49,28.32-67.63,53.63-78.47A8,8,0,0,1,216,40ZM200,53.9c-32.17,24.57-38.47,84.42-39.7,106.1H200ZM119.89,38.69a8,8,0,1,0-15.78,2.63L112,88.63a32,32,0,0,1-64,0l7.88-47.31a8,8,0,1,0-15.78-2.63l-8,48A8.17,8.17,0,0,0,32,88a48.07,48.07,0,0,0,40,47.32V224a8,8,0,0,0,16,0V135.32A48.07,48.07,0,0,0,128,88a8.17,8.17,0,0,0-.11-1.31Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,40V224a8,8,0,0,1-16,0V176H152a8,8,0,0,1-8-8,268.75,268.75,0,0,1,7.22-56.88c9.78-40.49,28.32-67.63,53.63-78.47A8,8,0,0,1,216,40Zm-96.11-1.31a8,8,0,1,0-15.78,2.63L111.89,88H88V40a8,8,0,0,0-16,0V88H48.11l7.78-46.68a8,8,0,1,0-15.78-2.63l-8,48A8.17,8.17,0,0,0,32,88a48.07,48.07,0,0,0,40,47.32V224a8,8,0,0,0,16,0V135.32A48.07,48.07,0,0,0,128,88a8.17,8.17,0,0,0-.11-1.31Z" />
+                            </svg>
                             <span class="cat-label">Eateries</span>
                         </button>
-                        <button class="map-segment-btn" data-category="schools" type="button" role="tab" aria-selected="false" title="Schools" aria-label="Schools">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M251.76,88.94l-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V240a8,8,0,0,0,16,0V199.51a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12ZM128,200c-43.27,0-68.72-21.14-80-33.71V126.4l76.24,40.66a8,8,0,0,0,7.52,0L176,143.47v46.34C163.4,195.69,147.52,200,128,200Zm80-33.75a97.83,97.83,0,0,1-16,14.25V134.93l16-8.53ZM188,118.94l-.22-.13-56-29.87a8,8,0,0,0-7.52,14.12L171,128l-43,22.93L25,96,128,41.07,231,96Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M176,207.24a119,119,0,0,0,16-7.73V240a8,8,0,0,1-16,0Zm11.76-88.43-56-29.87a8,8,0,0,0-7.52,14.12L171,128l17-9.06Zm64-29.87-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V130.67L171,128l-43,22.93L43.83,106l0,0L25,96,128,41.07,231,96l-18.78,10-.06,0L188,118.94a8,8,0,0,1,4,6.93v73.64a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12Z"/></svg>
+                        <button class="map-segment-btn" data-category="schools" type="button" role="tab"
+                            aria-selected="false" title="Schools" aria-label="Schools">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M251.76,88.94l-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V240a8,8,0,0,0,16,0V199.51a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12ZM128,200c-43.27,0-68.72-21.14-80-33.71V126.4l76.24,40.66a8,8,0,0,0,7.52,0L176,143.47v46.34C163.4,195.69,147.52,200,128,200Zm80-33.75a97.83,97.83,0,0,1-16,14.25V134.93l16-8.53ZM188,118.94l-.22-.13-56-29.87a8,8,0,0,0-7.52,14.12L171,128l-43,22.93L25,96,128,41.07,231,96Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M176,207.24a119,119,0,0,0,16-7.73V240a8,8,0,0,1-16,0Zm11.76-88.43-56-29.87a8,8,0,0,0-7.52,14.12L171,128l17-9.06Zm64-29.87-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V130.67L171,128l-43,22.93L43.83,106l0,0L25,96,128,41.07,231,96l-18.78,10-.06,0L188,118.94a8,8,0,0,1,4,6.93v73.64a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12Z" />
+                            </svg>
                             <span class="cat-label">Schools</span>
                         </button>
-                        <button class="map-segment-btn" data-category="terminals" type="button" role="tab" aria-selected="false" title="Terminals" aria-label="Terminals">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M184,32H72A32,32,0,0,0,40,64V208a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16V192h64v16a16,16,0,0,0,16,16h24a16,16,0,0,0,16-16V64A32,32,0,0,0,184,32ZM56,176V120H200v56Zm0-96H200v24H56ZM72,48H184a16,16,0,0,1,16,16H56A16,16,0,0,1,72,48Zm8,160H56V192H80Zm96,0V192h24v16Zm-72-60a12,12,0,1,1-12-12A12,12,0,0,1,104,148Zm72,0a12,12,0,1,1-12-12A12,12,0,0,1,176,148Zm72-68v24a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0ZM24,80v24a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M248,80v24a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0ZM16,72a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V80A8,8,0,0,0,16,72Zm200-8V208a16,16,0,0,1-16,16H184a16,16,0,0,1-16-16v-8H88v8a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V64A32,32,0,0,1,72,32H184A32,32,0,0,1,216,64ZM104,148a12,12,0,1,0-12,12A12,12,0,0,0,104,148Zm72,0a12,12,0,1,0-12,12A12,12,0,0,0,176,148Zm24-76H56v40H200Z"/></svg>
+                        <button class="map-segment-btn" data-category="terminals" type="button" role="tab"
+                            aria-selected="false" title="Terminals" aria-label="Terminals">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M184,32H72A32,32,0,0,0,40,64V208a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16V192h64v16a16,16,0,0,0,16,16h24a16,16,0,0,0,16-16V64A32,32,0,0,0,184,32ZM56,176V120H200v56Zm0-96H200v24H56ZM72,48H184a16,16,0,0,1,16,16H56A16,16,0,0,1,72,48Zm8,160H56V192H80Zm96,0V192h24v16Zm-72-60a12,12,0,1,1-12-12A12,12,0,0,1,104,148Zm72,0a12,12,0,1,1-12-12A12,12,0,0,1,176,148Zm72-68v24a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0ZM24,80v24a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M248,80v24a8,8,0,0,1-16,0V80a8,8,0,0,1,16,0ZM16,72a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V80A8,8,0,0,0,16,72Zm200-8V208a16,16,0,0,1-16,16H184a16,16,0,0,1-16-16v-8H88v8a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V64A32,32,0,0,1,72,32H184A32,32,0,0,1,216,64ZM104,148a12,12,0,1,0-12,12A12,12,0,0,0,104,148Zm72,0a12,12,0,1,0-12,12A12,12,0,0,0,176,148Zm24-76H56v40H200Z" />
+                            </svg>
                             <span class="cat-label">Terminals</span>
                         </button>
-                        <button class="map-segment-btn" data-category="coffee" type="button" role="tab" aria-selected="false" title="Coffee Shops" aria-label="Coffee Shops">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M80,56V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0Zm40,8a8,8,0,0,0,8-8V24a8,8,0,0,0-16,0V56A8,8,0,0,0,120,64Zm32,0a8,8,0,0,0,8-8V24a8,8,0,0,0-16,0V56A8,8,0,0,0,152,64Zm96,56v8a40,40,0,0,1-37.51,39.91,96.59,96.59,0,0,1-27,40.09H208a8,8,0,0,1,0,16H32a8,8,0,0,1,0-16H56.54A96.3,96.3,0,0,1,24,136V88a8,8,0,0,1,8-8H208A40,40,0,0,1,248,120ZM200,96H40v40a80.27,80.27,0,0,0,45.12,72h69.76A80.27,80.27,0,0,0,200,136Zm32,24a24,24,0,0,0-16-22.62V136a95.78,95.78,0,0,1-1.2,15A24,24,0,0,0,232,128Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M208,80H32a8,8,0,0,0-8,8v48a96.3,96.3,0,0,0,32.54,72H32a8,8,0,0,0,0,16H208a8,8,0,0,0,0-16H183.46a96.59,96.59,0,0,0,27-40.09A40,40,0,0,0,248,128v-8A40,40,0,0,0,208,80Zm24,48a24,24,0,0,1-17.2,23,95.78,95.78,0,0,0,1.2-15V97.38A24,24,0,0,1,232,120ZM112,56V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0Zm32,0V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0ZM80,56V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0Z"/></svg>
+                        <button class="map-segment-btn" data-category="coffee" type="button" role="tab"
+                            aria-selected="false" title="Coffee Shops" aria-label="Coffee Shops">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M80,56V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0Zm40,8a8,8,0,0,0,8-8V24a8,8,0,0,0-16,0V56A8,8,0,0,0,120,64Zm32,0a8,8,0,0,0,8-8V24a8,8,0,0,0-16,0V56A8,8,0,0,0,152,64Zm96,56v8a40,40,0,0,1-37.51,39.91,96.59,96.59,0,0,1-27,40.09H208a8,8,0,0,1,0,16H32a8,8,0,0,1,0-16H56.54A96.3,96.3,0,0,1,24,136V88a8,8,0,0,1,8-8H208A40,40,0,0,1,248,120ZM200,96H40v40a80.27,80.27,0,0,0,45.12,72h69.76A80.27,80.27,0,0,0,200,136Zm32,24a24,24,0,0,0-16-22.62V136a95.78,95.78,0,0,1-1.2,15A24,24,0,0,0,232,128Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M208,80H32a8,8,0,0,0-8,8v48a96.3,96.3,0,0,0,32.54,72H32a8,8,0,0,0,0,16H208a8,8,0,0,0,0-16H183.46a96.59,96.59,0,0,0,27-40.09A40,40,0,0,0,248,128v-8A40,40,0,0,0,208,80Zm24,48a24,24,0,0,1-17.2,23,95.78,95.78,0,0,0,1.2-15V97.38A24,24,0,0,1,232,120ZM112,56V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0Zm32,0V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0ZM80,56V24a8,8,0,0,1,16,0V56a8,8,0,0,1-16,0Z" />
+                            </svg>
                             <span class="cat-label">Coffee</span>
                         </button>
-                        <button class="map-segment-btn" data-category="government" type="button" role="tab" aria-selected="false" title="Government &amp; Landmarks" aria-label="Government &amp; Landmarks">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M42.76,50A8,8,0,0,0,40,56V224a8,8,0,0,0,16,0V179.77c26.79-21.16,49.87-9.75,76.45,3.41,16.4,8.11,34.06,16.85,53,16.85,13.93,0,28.54-4.75,43.82-18a8,8,0,0,0,2.76-6V56A8,8,0,0,0,218.76,50c-28,24.23-51.72,12.49-79.21-1.12C111.07,34.76,78.78,18.79,42.76,50ZM216,172.25c-26.79,21.16-49.87,9.74-76.45-3.41-25-12.35-52.81-26.13-83.55-8.4V59.79c26.79-21.16,49.87-9.75,76.45,3.4,25,12.35,52.82,26.13,83.55,8.4Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232,56V176a8,8,0,0,1-2.76,6c-15.28,13.23-29.89,18-43.82,18-18.91,0-36.57-8.74-53-16.85C105.87,170,82.79,158.61,56,179.77V224a8,8,0,0,1-16,0V56a8,8,0,0,1,2.77-6h0c36-31.18,68.31-15.21,96.79-1.12C167,62.46,190.79,74.2,218.76,50A8,8,0,0,1,232,56Z"/></svg>
+                        <button class="map-segment-btn" data-category="government" type="button" role="tab"
+                            aria-selected="false" title="Government &amp; Landmarks"
+                            aria-label="Government &amp; Landmarks">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M42.76,50A8,8,0,0,0,40,56V224a8,8,0,0,0,16,0V179.77c26.79-21.16,49.87-9.75,76.45,3.41,16.4,8.11,34.06,16.85,53,16.85,13.93,0,28.54-4.75,43.82-18a8,8,0,0,0,2.76-6V56A8,8,0,0,0,218.76,50c-28,24.23-51.72,12.49-79.21-1.12C111.07,34.76,78.78,18.79,42.76,50ZM216,172.25c-26.79,21.16-49.87,9.74-76.45-3.41-25-12.35-52.81-26.13-83.55-8.4V59.79c26.79-21.16,49.87-9.75,76.45,3.4,25,12.35,52.82,26.13,83.55,8.4Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M232,56V176a8,8,0,0,1-2.76,6c-15.28,13.23-29.89,18-43.82,18-18.91,0-36.57-8.74-53-16.85C105.87,170,82.79,158.61,56,179.77V224a8,8,0,0,1-16,0V56a8,8,0,0,1,2.77-6h0c36-31.18,68.31-15.21,96.79-1.12C167,62.46,190.79,74.2,218.76,50A8,8,0,0,1,232,56Z" />
+                            </svg>
                             <span class="cat-label">Landmarks</span>
                         </button>
-                        <button class="map-segment-btn" data-category="health" type="button" role="tab" aria-selected="false" title="Health" aria-label="Health">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,56H176V48a24,24,0,0,0-24-24H104A24,24,0,0,0,80,48v8H40A16,16,0,0,0,24,72V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V72A16,16,0,0,0,216,56ZM96,48a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM216,200H40V72H216V200Zm-56-64a8,8,0,0,1-8,8H136v16a8,8,0,0,1-16,0V144H104a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,160,136Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,56H176V48a24,24,0,0,0-24-24H104A24,24,0,0,0,80,48v8H40A16,16,0,0,0,24,72V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V72A16,16,0,0,0,216,56Zm-64,88H136v16a8,8,0,0,1-16,0V144H104a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16a8,8,0,0,1,0,16Zm8-88H96V48a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Z"/></svg>
+                        <button class="map-segment-btn" data-category="health" type="button" role="tab"
+                            aria-selected="false" title="Health" aria-label="Health">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,56H176V48a24,24,0,0,0-24-24H104A24,24,0,0,0,80,48v8H40A16,16,0,0,0,24,72V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V72A16,16,0,0,0,216,56ZM96,48a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96ZM216,200H40V72H216V200Zm-56-64a8,8,0,0,1-8,8H136v16a8,8,0,0,1-16,0V144H104a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16A8,8,0,0,1,160,136Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,56H176V48a24,24,0,0,0-24-24H104A24,24,0,0,0,80,48v8H40A16,16,0,0,0,24,72V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V72A16,16,0,0,0,216,56Zm-64,88H136v16a8,8,0,0,1-16,0V144H104a8,8,0,0,1,0-16h16V112a8,8,0,0,1,16,0v16h16a8,8,0,0,1,0,16Zm8-88H96V48a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Z" />
+                            </svg>
                             <span class="cat-label">Health</span>
                         </button>
-                        <button class="map-segment-btn" data-category="banks" type="button" role="tab" aria-selected="false" title="Banks" aria-label="Banks">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M24,104H48v64H32a8,8,0,0,0,0,16H224a8,8,0,0,0,0-16H208V104h24a8,8,0,0,0,4.19-14.81l-104-64a8,8,0,0,0-8.38,0l-104,64A8,8,0,0,0,24,104Zm40,0H96v64H64Zm80,0v64H112V104Zm48,64H160V104h32ZM128,41.39,203.74,88H52.26ZM248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16H240A8,8,0,0,1,248,208Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16H240A8,8,0,0,1,248,208ZM16.3,98.18a8,8,0,0,1,3.51-9l104-64a8,8,0,0,1,8.38,0l104,64A8,8,0,0,1,232,104H208v64h16a8,8,0,0,1,0,16H32a8,8,0,0,1,0-16H48V104H24A8,8,0,0,1,16.3,98.18ZM144,160a8,8,0,0,0,16,0V112a8,8,0,0,0-16,0Zm-48,0a8,8,0,0,0,16,0V112a8,8,0,0,0-16,0Z"/></svg>
+                        <button class="map-segment-btn" data-category="banks" type="button" role="tab"
+                            aria-selected="false" title="Banks" aria-label="Banks">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M24,104H48v64H32a8,8,0,0,0,0,16H224a8,8,0,0,0,0-16H208V104h24a8,8,0,0,0,4.19-14.81l-104-64a8,8,0,0,0-8.38,0l-104,64A8,8,0,0,0,24,104Zm40,0H96v64H64Zm80,0v64H112V104Zm48,64H160V104h32ZM128,41.39,203.74,88H52.26ZM248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16H240A8,8,0,0,1,248,208Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16H240A8,8,0,0,1,248,208ZM16.3,98.18a8,8,0,0,1,3.51-9l104-64a8,8,0,0,1,8.38,0l104,64A8,8,0,0,1,232,104H208v64h16a8,8,0,0,1,0,16H32a8,8,0,0,1,0-16H48V104H24A8,8,0,0,1,16.3,98.18ZM144,160a8,8,0,0,0,16,0V112a8,8,0,0,0-16,0Zm-48,0a8,8,0,0,0,16,0V112a8,8,0,0,0-16,0Z" />
+                            </svg>
                             <span class="cat-label">Banks</span>
                         </button>
-                        <button class="map-segment-btn" data-category="hotels" type="button" role="tab" aria-selected="false" title="Hotels &amp; Stays" aria-label="Hotels &amp; Stays">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,72H32V48a8,8,0,0,0-16,0V208a8,8,0,0,0,16,0V176H240v32a8,8,0,0,0,16,0V112A40,40,0,0,0,216,72ZM32,88h72v72H32Zm88,72V88h96a24,24,0,0,1,24,24v48Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,72H32V48a8,8,0,0,0-16,0V208a8,8,0,0,0,16,0V176H240v32a8,8,0,0,0,16,0V112A40,40,0,0,0,216,72ZM32,88h72v72H32Z"/></svg>
+                        <button class="map-segment-btn" data-category="hotels" type="button" role="tab"
+                            aria-selected="false" title="Hotels &amp; Stays" aria-label="Hotels &amp; Stays">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,72H32V48a8,8,0,0,0-16,0V208a8,8,0,0,0,16,0V176H240v32a8,8,0,0,0,16,0V112A40,40,0,0,0,216,72ZM32,88h72v72H32Zm88,72V88h96a24,24,0,0,1,24,24v48Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,72H32V48a8,8,0,0,0-16,0V208a8,8,0,0,0,16,0V176H240v32a8,8,0,0,0,16,0V112A40,40,0,0,0,216,72ZM32,88h72v72H32Z" />
+                            </svg>
                             <span class="cat-label">Hotels</span>
                         </button>
-                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab" aria-selected="false" title="Shops &amp; Services" aria-label="Shops &amp; Services">
-                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H216V200ZM176,88a48,48,0,0,1-96,0,8,8,0,0,1,16,0,32,32,0,0,0,64,0,8,8,0,0,1,16,0Z"/></svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm-88,96A48.05,48.05,0,0,1,80,88a8,8,0,0,1,16,0,32,32,0,0,0,64,0,8,8,0,0,1,16,0A48.05,48.05,0,0,1,128,136Z"/></svg>
+                        <button class="map-segment-btn" data-category="establishments" type="button" role="tab"
+                            aria-selected="false" title="Shops &amp; Services" aria-label="Shops &amp; Services">
+                            <svg class="cat-ico cat-ico-line" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H216V200ZM176,88a48,48,0,0,1-96,0,8,8,0,0,1,16,0,32,32,0,0,0,64,0,8,8,0,0,1,16,0Z" />
+                            </svg><svg class="cat-ico cat-ico-fill" width="16" height="16" viewBox="0 0 256 256"
+                                fill="currentColor" aria-hidden="true">
+                                <path
+                                    d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm-88,96A48.05,48.05,0,0,1,80,88a8,8,0,0,1,16,0,32,32,0,0,0,64,0,8,8,0,0,1,16,0A48.05,48.05,0,0,1,128,136Z" />
+                            </svg>
                             <span class="cat-label">Shops</span>
                         </button>
                     </div>
                 </div>
-                <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button" aria-label="Clear active category filter">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <button class="map-cat-clear-btn" id="mapCatClearBtn" type="button"
+                    aria-label="Clear active category filter">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -241,7 +359,10 @@
                 </button>
             </div>
             <button class="cat-nav-btn cat-nav-next" id="catNextBtn" type="button" aria-label="More categories" hidden>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9 6l6 6-6 6" />
+                </svg>
             </button>
         </div>
 
@@ -255,14 +376,17 @@
 
             <!-- User Profile Nav / Sign In Button -->
             <div class="user-profile-nav" id="userProfileNav">
-                <a href="/login" id="authNavBtn" class="btn-nav-signin pill-btn" data-i18n="login.signin" style="display: inline-flex; text-decoration: none;">
+                <a href="/login" id="authNavBtn" class="btn-nav-signin pill-btn" data-i18n="login.signin"
+                    style="display: inline-flex; text-decoration: none;">
                     <ion-icon name="person-outline"></ion-icon>
                     <span>Sign In</span>
                 </a>
 
-                <div class="user-avatar-pill pill-btn" id="userAvatarPill" style="display: none; cursor: pointer;" aria-label="Account menu">
+                <div class="user-avatar-pill pill-btn" id="userAvatarPill" style="display: none; cursor: pointer;"
+                    aria-label="Account menu">
                     <div class="user-avatar-wrap">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img is-default" id="userAvatarImg" width="34" height="34" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img is-default"
+                            id="userAvatarImg" width="34" height="34" style="display:none;">
                         <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                         <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                     </div>
@@ -277,7 +401,8 @@
                     <!-- User Info Header -->
                     <div class="profile-header-card">
                         <div class="profile-header-avatar">
-                            <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img is-default" id="profileHeaderImg" width="48" height="48" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img is-default"
+                                id="profileHeaderImg" width="48" height="48" style="display:none;">
                             <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                         </div>
                         <div class="profile-header-details">
@@ -290,25 +415,42 @@
                     <div class="exploration-stats-section" id="explorationStatsSection">
                         <div class="stats-section-label" data-i18n="nav.user.stats_label">Your Exploration Stats</div>
                         <div class="exploration-stats-row">
-                            <button type="button" class="stat-pill-btn" id="statVisitsBtn" data-i18n="nav.user.title_visits" data-i18n-attr="title" title="View Visited Establishments">
+                            <button type="button" class="stat-pill-btn" id="statVisitsBtn"
+                                data-i18n="nav.user.title_visits" data-i18n-attr="title"
+                                title="View Visited Establishments">
                                 <span class="stat-icon">
-                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                        <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                                        <path
+                                            d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" />
+                                    </svg>
                                 </span>
                                 <span class="stat-value" id="statVisitsCount">0</span>
                                 <span class="stat-name" data-i18n="nav.user.visits">Visits</span>
                             </button>
                             <div class="stat-divider"></div>
-                            <button type="button" class="stat-pill-btn" id="statSavesBtn" data-i18n="nav.user.title_saves" data-i18n-attr="title" title="View Saved Places">
+                            <button type="button" class="stat-pill-btn" id="statSavesBtn"
+                                data-i18n="nav.user.title_saves" data-i18n-attr="title" title="View Saved Places">
                                 <span class="stat-icon">
-                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
+                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                        <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" />
+                                    </svg>
                                 </span>
                                 <span class="stat-value" id="statSavesCount">0</span>
                                 <span class="stat-name" data-i18n="nav.user.saves">Saves</span>
                             </button>
                             <div class="stat-divider"></div>
-                            <button type="button" class="stat-pill-btn" id="statBadgesBtn" data-i18n="nav.user.title_badges" data-i18n-attr="title" title="View Badges">
+                            <button type="button" class="stat-pill-btn" id="statBadgesBtn"
+                                data-i18n="nav.user.title_badges" data-i18n-attr="title" title="View Badges">
                                 <span class="stat-icon">
-                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+                                    <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                        <path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" />
+                                        <path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" />
+                                        <path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" />
+                                    </svg>
                                 </span>
                                 <span class="stat-value" id="statBadgesCount">0</span>
                                 <span class="stat-name" data-i18n="nav.user.badges">Badges</span>
@@ -323,7 +465,12 @@
                         <!-- 1. My Visits -->
                         <button type="button" class="profile-nav-btn" id="menuMyVisits">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                                    <path
+                                        d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" />
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.my_visits">My Visits</span>
                         </button>
@@ -331,7 +478,12 @@
                         <!-- My Trips -->
                         <button type="button" class="profile-nav-btn" id="menuMyTrips">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" /><path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                                    <path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" />
+                                    <path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" />
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.my_trips">My Trips</span>
                         </button>
@@ -339,7 +491,11 @@
                         <!-- Route History -->
                         <button type="button" class="profile-nav-btn" id="menuRouteHistory">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="9"></circle>
+                                    <polyline points="12 7 12 12 15 15"></polyline>
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.route_history">Route history</span>
                         </button>
@@ -347,7 +503,12 @@
                         <!-- My Reminders -->
                         <button type="button" class="profile-nav-btn" id="menuMyReminders">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" /><path d="M9 17v1a3 3 0 0 0 6 0v-1" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path
+                                        d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+                                    <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.my_reminders">My Reminders</span>
                         </button>
@@ -355,7 +516,10 @@
                         <!-- 2. Saved Places -->
                         <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" />
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.saved_places">Saved Places</span>
                             <span class="saved-count-pill" id="menuSavedCount" style="display: none;">0</span>
@@ -364,7 +528,12 @@
                         <!-- 3. My Badges -->
                         <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" />
+                                    <path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" />
+                                    <path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" />
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.my_achievements">My Badges</span>
                         </button>
@@ -372,17 +541,32 @@
                         <!-- 4. Account Settings -->
                         <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path
+                                        d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" />
+                                    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                                </svg>
                             </span>
                             <span class="nav-btn-title" data-i18n="nav.user.account_settings">Account Settings</span>
                         </button>
 
                         <!-- 5. Register your business -->
-                        <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
+                        <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness"
+                            style="text-decoration: none;">
                             <span class="nav-btn-icon">
-                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21v-10.15" /><path d="M19 21v-10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg>
+                                <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M3 21l18 0" />
+                                    <path
+                                        d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" />
+                                    <path d="M5 21v-10.15" />
+                                    <path d="M19 21v-10.15" />
+                                    <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" />
+                                </svg>
                             </span>
-                            <span class="nav-btn-title" data-i18n="nav.user.register_business">Register your business</span>
+                            <span class="nav-btn-title" data-i18n="nav.user.register_business">Register your
+                                business</span>
                         </a>
                     </div>
 
@@ -391,17 +575,25 @@
                     <!-- 6. Sign Out Button -->
                     <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path
+                                    d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+                                <path d="M9 12h12l-3 -3" />
+                                <path d="M18 15l3 -3" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.logout">Log Out</span>
                     </button>
-                    </div>
                 </div>
+            </div>
 
             <!-- Hamburger Button -->
             <button class="map-top-icon-btn pill-btn" id="hamburgerBtn" aria-label="Menu" title="Menu">
-                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
-                    <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                    <path class="menu-toggle-morph"
+                        d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
                     <path class="menu-toggle-line" d="M7 16 27 16" />
                 </svg>
             </button>
@@ -420,143 +612,173 @@
                     <div class="drag-pill"></div>
                 </div>
 
-            <!-- Logo link to homepage -->
-            <div class="ds-brand-header">
-                <a href="/" class="ds-brand-link" title="Return to Calzada Homepage">
-                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="ds-brand-logo">
-                </a>
-            </div>
-
-            <div class="ds-header">
-                <h1 class="ds-title">Directions</h1>
-                <!-- Collapsed state peek info -->
-                <div class="ds-peek-info" id="dsPeekInfo" style="display:none;">
-                    <span id="peekSummary" class="peek-summary-text">-- min • ₱ --</span>
-                </div>
-                <!-- 40x40 Save as PDF icon button (Tabler file-download, 22px, stroke #2272C3, no background) -->
-                <button class="header-icon-btn save-route-pdf-btn" id="headerSavePdfBtn" type="button" aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf" data-i18n-attr="aria-label,title" style="display:none;">
-                    <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-                        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
-                        <path d="M12 17v-6"></path>
-                        <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
-                    </svg>
-                </button>
-                <!-- Close X logic will reset planner -->
-                <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Clear route" data-i18n="planner.clear_route" data-i18n-attr="aria-label,title" title="Clear route" style="display:none;"><ion-icon
-                        name="close"></ion-icon></button>
-            </div>
-
-            <div class="ds-body">
-                <!-- Origin-Destination Block -->
-                <div class="od-input-block">
-                    <img src="../assets/originDestination-icon.png" class="od-connector-img" alt="" width="18" height="56">
-                    <div class="od-input-column">
-                        <div class="od-row">
-                            <span class="od-icon od-icon--origin" aria-hidden="true"></span>
-                            <div class="od-field unfilled" id="openOriginModal" role="button" tabindex="0" aria-haspopup="dialog">Where from?</div>
-                            <button class="od-clear-btn" id="clearOriginBtn" type="button" aria-label="Clear origin" data-i18n="planner.clear_origin" data-i18n-attr="aria-label" title="Clear origin" style="display:none;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
-                        <div class="od-row">
-                            <span class="od-icon od-icon--dest" aria-hidden="true"></span>
-                            <div class="od-field unfilled" id="openDestModal" role="button" tabindex="0" aria-haspopup="dialog">Where to?</div>
-                            <button class="od-clear-btn" id="clearDestBtn" type="button" aria-label="Clear destination" data-i18n="planner.clear_dest" data-i18n-attr="aria-label" title="Clear destination" style="display:none;">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                    <button class="swap-btn" id="swapLocationsBtn" aria-label="Swap origin and destination"><ion-icon name="swap-vertical"></ion-icon></button>
+                <!-- Logo link to homepage -->
+                <div class="ds-brand-header">
+                    <a href="/" class="ds-brand-link" title="Return to Calzada Homepage">
+                        <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo"
+                            class="ds-brand-logo">
+                    </a>
                 </div>
 
-                <!-- Schedule Dropdown -->
-                <div class="schedule-row">
-                    <div class="schedule-pill" id="scheduleSelected">
-                        <span id="scheduleSelectedText">Leave now</span>
-                        <ion-icon name="chevron-down-outline"></ion-icon>
+                <div class="ds-header">
+                    <h1 class="ds-title">Directions</h1>
+                    <!-- Collapsed state peek info -->
+                    <div class="ds-peek-info" id="dsPeekInfo" style="display:none;">
+                        <span id="peekSummary" class="peek-summary-text">-- min • ₱ --</span>
                     </div>
-                    <ul class="sakay-dropdown-menu" id="scheduleOptions">
-                        <li data-value="now" class="active" data-i18n="planner.leave_now">Leave now</li>
-                        <li data-value="depart" data-i18n="planner.depart_at">Depart at...</li>
-                        <li data-value="arrive" data-i18n="planner.arrive_by">Arrive by...</li>
-                    </ul>
-                    <input type="text" id="nativeDatePicker" aria-label="Select date"
-                        style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
+                    <!-- 40x40 Save as PDF icon button (Tabler file-download, 22px, stroke #2272C3, no background) -->
+                    <button class="header-icon-btn save-route-pdf-btn" id="headerSavePdfBtn" type="button"
+                        aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf"
+                        data-i18n-attr="aria-label,title" style="display:none;">
+                        <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
+                            <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
+                            <path d="M12 17v-6"></path>
+                            <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
+                        </svg>
+                    </button>
+                    <!-- Close X logic will reset planner -->
+                    <button class="ds-close-btn" id="closeDirectionsBtn" aria-label="Clear route"
+                        data-i18n="planner.clear_route" data-i18n-attr="aria-label,title" title="Clear route"
+                        style="display:none;"><ion-icon name="close"></ion-icon></button>
                 </div>
 
-                <!-- Transport Modes (Segmented Control) -->
-                <div class="mode-segment-control" id="transportModesBlock" style="display:none;">
-                    <div class="segment-track" role="tablist" aria-label="Transport Mode">
-                        <button class="segment-btn" id="modeWalking" data-mode="walking" type="button" role="tab" aria-selected="false">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
-                            </svg>
-                            <span>Walk</span>
-                        </button>
-                        <button class="segment-btn active" id="modeJeepney" data-mode="jeepney" type="button" role="tab" aria-selected="true">
-                            <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" alt="Jeepney" width="16" height="16">
-                            <span>Jeepney</span>
-                        </button>
-                    </div>
-                    <div class="walkable-trip-hint" id="walkableTripHint" style="display:none;">
-                        <ion-icon name="walk-outline"></ion-icon>
-                        <span>This distance is walkable</span>
-                    </div>
-                </div>
-
-
-                <!-- Summary Row (Visible when route is found) -->
-                <div class="route-summary-block" id="routeSummaryBlock" style="display: none;">
-                    <!-- Highlighted Header Summary Banner (one row, no card box) -->
-                    <div class="route-summary-banner">
-                        <div class="summary-left">
-                            <div class="summary-time"><span id="sumTime">-- min</span></div>
-                            <div class="summary-sub" id="summarySub">
-                                <span class="summary-arrive-text" id="sumArriveText">Arrive <span id="sumETA">--:--</span></span>
-                                <span class="sum-dot-sm">·</span>
-                                <span class="summary-dist-text"><span id="sumDist">--</span></span>
+                <div class="ds-body">
+                    <!-- Origin-Destination Block -->
+                    <div class="od-input-block">
+                        <img src="../assets/originDestination-icon.png" class="od-connector-img" alt="" width="18"
+                            height="56">
+                        <div class="od-input-column">
+                            <div class="od-row">
+                                <span class="od-icon od-icon--origin" aria-hidden="true"></span>
+                                <div class="od-field unfilled" id="openOriginModal" role="button" tabindex="0"
+                                    aria-haspopup="dialog">Where from?</div>
+                                <button class="od-clear-btn" id="clearOriginBtn" type="button" aria-label="Clear origin"
+                                    data-i18n="planner.clear_origin" data-i18n-attr="aria-label" title="Clear origin"
+                                    style="display:none;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="od-row">
+                                <span class="od-icon od-icon--dest" aria-hidden="true"></span>
+                                <div class="od-field unfilled" id="openDestModal" role="button" tabindex="0"
+                                    aria-haspopup="dialog">Where to?</div>
+                                <button class="od-clear-btn" id="clearDestBtn" type="button"
+                                    aria-label="Clear destination" data-i18n="planner.clear_dest"
+                                    data-i18n-attr="aria-label" title="Clear destination" style="display:none;">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
-                        <div class="summary-right">
-                            <span id="sumFare" class="sum-fare-pill">--</span>
-                        </div>
+                        <button class="swap-btn" id="swapLocationsBtn"
+                            aria-label="Swap origin and destination"><ion-icon name="swap-vertical"></ion-icon></button>
                     </div>
-                    <!-- Leave-time Hint & Remind Me Row (Visible when Depart at / Arrive by is scheduled) -->
-                    <div class="leave-time-hint-banner" id="leaveTimeHintBanner" style="display: none;">
-                        <div class="leave-time-hint-left">
-                            <svg class="leave-time-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <polyline points="12 6 12 12 16 14"></polyline>
-                            </svg>
-                            <span class="leave-time-hint-text" id="leaveTimeHintText">Leave by --:-- to arrive by --:--</span>
-                        </div>
-                        <button class="remind-me-btn" id="remindMeBtn" type="button" aria-label="Remind me" title="Remind me">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
-                                <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
-                            </svg>
-                            <span data-i18n="reminders.remind_me">Remind me</span>
-                        </button>
-                    </div>
-                    <!-- Sequential Timeline Itinerary -->
-                    <div class="itinerary-legs" id="itineraryLegs"></div>
-                </div>
 
-            </div>
+                    <!-- Schedule Dropdown -->
+                    <div class="schedule-row">
+                        <div class="schedule-pill" id="scheduleSelected">
+                            <span id="scheduleSelectedText">Leave now</span>
+                            <ion-icon name="chevron-down-outline"></ion-icon>
+                        </div>
+                        <ul class="sakay-dropdown-menu" id="scheduleOptions">
+                            <li data-value="now" class="active" data-i18n="planner.leave_now">Leave now</li>
+                            <li data-value="depart" data-i18n="planner.depart_at">Depart at...</li>
+                            <li data-value="arrive" data-i18n="planner.arrive_by">Arrive by...</li>
+                        </ul>
+                        <input type="text" id="nativeDatePicker" aria-label="Select date"
+                            style="position:absolute; right: 50%; opacity:0; pointer-events:none; width:0; height:0;">
+                    </div>
+
+                    <!-- Transport Modes (Segmented Control) -->
+                    <div class="mode-segment-control" id="transportModesBlock" style="display:none;">
+                        <div class="segment-track" role="tablist" aria-label="Transport Mode">
+                            <button class="segment-btn" id="modeWalking" data-mode="walking" type="button" role="tab"
+                                aria-selected="false">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path
+                                        d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" />
+                                </svg>
+                                <span>Walk</span>
+                            </button>
+                            <button class="segment-btn active" id="modeJeepney" data-mode="jeepney" type="button"
+                                role="tab" aria-selected="true">
+                                <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" alt="Jeepney"
+                                    width="16" height="16">
+                                <span>Jeepney</span>
+                            </button>
+                        </div>
+                        <div class="walkable-trip-hint" id="walkableTripHint" style="display:none;">
+                            <ion-icon name="walk-outline"></ion-icon>
+                            <span>This distance is walkable</span>
+                        </div>
+                    </div>
+
+
+                    <!-- Summary Row (Visible when route is found) -->
+                    <div class="route-summary-block" id="routeSummaryBlock" style="display: none;">
+                        <!-- Highlighted Header Summary Banner (one row, no card box) -->
+                        <div class="route-summary-banner">
+                            <div class="summary-left">
+                                <div class="summary-time"><span id="sumTime">-- min</span></div>
+                                <div class="summary-sub" id="summarySub">
+                                    <span class="summary-arrive-text" id="sumArriveText">Arrive <span
+                                            id="sumETA">--:--</span></span>
+                                    <span class="sum-dot-sm">·</span>
+                                    <span class="summary-dist-text"><span id="sumDist">--</span></span>
+                                </div>
+                            </div>
+                            <div class="summary-right">
+                                <span id="sumFare" class="sum-fare-pill">--</span>
+                            </div>
+                        </div>
+                        <!-- Leave-time Hint & Remind Me Row (Visible when Depart at / Arrive by is scheduled) -->
+                        <div class="leave-time-hint-banner" id="leaveTimeHintBanner" style="display: none;">
+                            <div class="leave-time-hint-left">
+                                <svg class="leave-time-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                    stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                <span class="leave-time-hint-text" id="leaveTimeHintText">Leave by --:-- to arrive by
+                                    --:--</span>
+                            </div>
+                            <button class="remind-me-btn" id="remindMeBtn" type="button" aria-label="Remind me"
+                                title="Remind me">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path
+                                        d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6">
+                                    </path>
+                                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
+                                </svg>
+                                <span data-i18n="reminders.remind_me">Remind me</span>
+                            </button>
+                        </div>
+                        <!-- Sequential Timeline Itinerary -->
+                        <div class="itinerary-legs" id="itineraryLegs"></div>
+                    </div>
+
+                </div>
             </div><!-- /ds-scroll-container -->
 
             <!-- Fixed Bottom Footer: Start Journey Button & Helper -->
             <div class="ds-footer" id="dsFooter">
                 <button class="start-journey-btn" id="startJourneyBtn" disabled>
-                    <svg class="start-journey-lock-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a919c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg class="start-journey-lock-icon" width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="#8a919c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
@@ -573,8 +795,12 @@
         <div class="active-nav-panel" id="activeNavPanel" style="display:none;">
             <div class="active-nav-header">
                 <span class="active-nav-title" data-i18n="planner.trip_active">Trip Active</span>
-                <button class="header-icon-btn save-route-pdf-btn" id="navSavePdfBtnDesktop" type="button" aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf" data-i18n-attr="aria-label,title">
-                    <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <button class="header-icon-btn save-route-pdf-btn" id="navSavePdfBtnDesktop" type="button"
+                    aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf"
+                    data-i18n-attr="aria-label,title">
+                    <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                        stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
                         <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
                         <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
                         <path d="M12 17v-6"></path>
@@ -586,12 +812,14 @@
             <div class="nav-panel-mode-track">
                 <button class="nav-panel-mode-btn" data-mode="walking" type="button" aria-label="Walking route">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                        <path
+                            d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" />
                     </svg>
                     <span>Walk</span>
                 </button>
                 <button class="nav-panel-mode-btn active" data-mode="jeepney" type="button" aria-label="Jeepney route">
-                    <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" width="15" height="15" alt="Jeep" style="object-fit:contain;">
+                    <img class="segment-icon-img" src="../assets/icons/jeepney-icon.png" width="15" height="15"
+                        alt="Jeep" style="object-fit:contain;">
                     <span>Jeep</span>
                 </button>
             </div>
@@ -628,7 +856,8 @@
 
             <!-- FULL ROUTE Collapsible Section (Collapsed by default) -->
             <div class="nav-panel-full-route" id="navPanelFullRoute">
-                <button class="nav-panel-full-route-header" id="navPanelFullRouteToggle" type="button" aria-expanded="false">
+                <button class="nav-panel-full-route-header" id="navPanelFullRouteToggle" type="button"
+                    aria-expanded="false">
                     <span class="nav-panel-full-route-title">FULL ROUTE</span>
                     <span class="nav-panel-full-route-badge" id="navPanelLegsCount"></span>
                     <ion-icon name="chevron-down-outline" class="nav-panel-chevron" id="navPanelChevron"></ion-icon>
@@ -676,20 +905,27 @@
                         <span class="nav-rem-dist" id="pillRemDist">-- m</span>
                     </div>
                     <div class="nav-collapsed-line2" id="pillSubLine">
-                        <span id="pillArrivalText">Arrive --:--</span> · <span id="pillModeText">Jeepney</span> · <span id="pillFareText">₱--</span>
+                        <span id="pillArrivalText">Arrive --:--</span> · <span id="pillModeText">Jeepney</span> · <span
+                            id="pillFareText">₱--</span>
                     </div>
                 </div>
                 <div class="nav-collapsed-right">
-                    <button class="header-icon-btn save-route-pdf-btn" id="navSavePdfBtnMobile" type="button" aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf" data-i18n-attr="aria-label,title">
-                        <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <button class="header-icon-btn save-route-pdf-btn" id="navSavePdfBtnMobile" type="button"
+                        aria-label="Save as PDF" title="Save as PDF" data-i18n="planner.save_pdf"
+                        data-i18n-attr="aria-label,title">
+                        <svg class="ti ti-file-download" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
                             <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
                             <path d="M12 17v-6"></path>
                             <path d="M9.5 14.5l2.5 2.5l2.5 -2.5"></path>
                         </svg>
                     </button>
-                    <button class="btn-cancel-route nav-end-btn" id="navEndRouteBtn" type="button" aria-label="End route" title="End route">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="btn-cancel-route nav-end-btn" id="navEndRouteBtn" type="button"
+                        aria-label="End route" title="End route">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                         </svg>
@@ -697,7 +933,8 @@
                 </div>
             </div>
             <!-- Swipe up hint -->
-            <div class="nav-swipe-hint" id="navSwipeHint" data-i18n="planner.swipe_up_all_steps">Swipe up for all steps</div>
+            <div class="nav-swipe-hint" id="navSwipeHint" data-i18n="planner.swipe_up_all_steps">Swipe up for all steps
+            </div>
 
             <!-- Expanded Part A timeline -->
             <div class="nav-expanded-content" id="navExpandedContent" style="display:none;">
@@ -720,7 +957,8 @@
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <a href="/" class="drawer-brand" aria-label="Calzada Home">
-                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo"
+                    onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
                 <ion-icon name="close-outline"></ion-icon>
@@ -731,12 +969,14 @@
                 <a href="/" class="drawer-nav-item"><span data-i18n="footer.nav.home">Home</span></a>
                 <a href="/about" class="drawer-nav-item"><span data-i18n="footer.nav.about">About Us</span></a>
                 <a href="/places" class="drawer-nav-item"><span data-i18n="footer.nav.explore">Places</span></a>
-                <a href="/planner" class="drawer-nav-item active"><span data-i18n="footer.nav.planner">Planner</span></a>
+                <a href="/planner" class="drawer-nav-item active"><span
+                        data-i18n="footer.nav.planner">Planner</span></a>
                 <a href="/discover" class="drawer-nav-item"><span data-i18n="nav.updates">Updates</span></a>
                 <a href="/plans" class="drawer-nav-item"><span data-i18n="nav.for_businesses">For businesses</span></a>
                 <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
                 <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
-                <button type="button" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></button>
+                <button type="button" id="drawerRoutieLink" class="drawer-nav-item"><span
+                        data-i18n="footer.nav.routie">Ask Routie</span></button>
             </div>
 
             <div class="drawer-separator"></div>
@@ -745,24 +985,27 @@
             <div class="mobile-lang-row">
                 <span class="mobile-lang-label">Language / Wika</span>
                 <div class="lang-dropdown-container mobile-lang-container">
-                        <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
-                            <i class="ti ti-language lang-icon" aria-hidden="true"></i>
-                            <span class="lang-active">EN</span>
-                            <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
+                    <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu"
+                        aria-label="Language: English">
+                        <i class="ti ti-language lang-icon" aria-hidden="true"></i>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu" role="menu">
+                        <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio"
+                            aria-checked="true">
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
-                        <div class="lang-dropdown-menu" role="menu">
-                            <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
-                                <span class="lang-name">English</span>
-                                <span class="lang-code">EN</span>
-                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
-                            </button>
-                            <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
-                                <span class="lang-name">Tagalog</span>
-                                <span class="lang-code">TL</span>
-                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
-                            </button>
-                        </div>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio"
+                            aria-checked="false">
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                        </button>
                     </div>
+                </div>
             </div>
         </nav>
         <div class="drawer-footer-text">© 2026 Calzada</div>
@@ -774,11 +1017,14 @@
         <div class="reminders-header">
             <div class="reminders-header-text">
                 <h3 class="reminders-title" id="remindersTitle" data-i18n="planner.reminders_title">Reminders</h3>
-                <p class="reminders-subtitle" data-i18n="planner.reminders_subtitle">A few things to keep in mind before and during your ride.</p>
+                <p class="reminders-subtitle" data-i18n="planner.reminders_subtitle">A few things to keep in mind before
+                    and during your ride.</p>
             </div>
-            <button class="reminders-close-btn" id="remindersCloseBtn" type="button" aria-label="Close reminders" data-i18n="planner.reminders_close" data-i18n-attr="aria-label">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-                    <path d="M18 6 6 18M6 6l12 12"/>
+            <button class="reminders-close-btn" id="remindersCloseBtn" type="button" aria-label="Close reminders"
+                data-i18n="planner.reminders_close" data-i18n-attr="aria-label">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
             </button>
         </div>
@@ -788,20 +1034,36 @@
                 <h4 class="reminders-group-label" data-i18n="planner.reminders_group_before">Before you board</h4>
                 <div class="reminders-group-rows">
                     <div class="reminder-row">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
-                            <path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z"/><path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z"/><path d="M16 17h4"/><path d="M4 13h4"/>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                            focusable="false" class="reminder-icon">
+                            <path
+                                d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" />
+                            <path
+                                d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" />
+                            <path d="M16 17h4" />
+                            <path d="M4 13h4" />
                         </svg>
                         <span data-i18n="planner.reminders_5">Be alert while walking to the terminal.</span>
                     </div>
                     <div class="reminder-row">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
-                            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                            focusable="false" class="reminder-icon">
+                            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                            <path d="M12 17h.01" />
                         </svg>
-                        <span data-i18n="planner.reminders_1">Ask the driver if they will pass by your destination.</span>
+                        <span data-i18n="planner.reminders_1">Ask the driver if they will pass by your
+                            destination.</span>
                     </div>
                     <div class="reminder-row">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
-                            <rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                            focusable="false" class="reminder-icon">
+                            <rect width="20" height="12" x="2" y="6" rx="2" />
+                            <circle cx="12" cy="12" r="2" />
+                            <path d="M6 12h.01M18 12h.01" />
                         </svg>
                         <span data-i18n="planner.reminders_2">Prepare exact fare to avoid change issues.</span>
                     </div>
@@ -813,35 +1075,44 @@
                 <h4 class="reminders-group-label" data-i18n="planner.reminders_group_during">On the ride</h4>
                 <div class="reminders-group-rows">
                     <div class="reminder-row">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" class="reminder-icon">
-                            <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"
+                            focusable="false" class="reminder-icon">
+                            <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                            <rect width="20" height="14" x="2" y="6" rx="2" />
                         </svg>
                         <span data-i18n="planner.reminders_3">Take care of your belongings inside the vehicle.</span>
                     </div>
                 </div>
             </div>
         </div>
-        <button type="button" class="reminders-confirm-btn" id="remindersConfirmBtn" data-i18n="planner.reminders_got_it">Got It!</button>
+        <button type="button" class="reminders-confirm-btn" id="remindersConfirmBtn"
+            data-i18n="planner.reminders_got_it">Got It!</button>
     </div>
 
     <!-- ===== DATETIME PICKER (GLASSMORPHISM) ===== -->
     <div class="dt-picker-overlay" id="dtPickerOverlay"></div>
     <div class="dt-picker-modal glass-panel" id="dtPickerModal">
         <div class="dt-picker-header">
-            <button type="button" class="dt-back-btn" id="dtBackBtn" aria-label="Back to departure options"><ion-icon name="arrow-back-outline"></ion-icon></button>
+            <button type="button" class="dt-back-btn" id="dtBackBtn" aria-label="Back to departure options"><ion-icon
+                    name="arrow-back-outline"></ion-icon></button>
             <div class="dt-toggle">
-                <button type="button" class="dt-toggle-btn active" id="dtLeaveBtn" data-i18n="planner.dt_leave">Leave</button>
-                <button type="button" class="dt-toggle-btn" id="dtArriveBtn" data-i18n="planner.dt_arrive">Arrive</button>
+                <button type="button" class="dt-toggle-btn active" id="dtLeaveBtn"
+                    data-i18n="planner.dt_leave">Leave</button>
+                <button type="button" class="dt-toggle-btn" id="dtArriveBtn"
+                    data-i18n="planner.dt_arrive">Arrive</button>
             </div>
             <button type="button" class="dt-now-btn" id="dtNowBtn" data-i18n="planner.dt_now">Now</button>
         </div>
         <div class="dt-picker-body">
             <div class="dt-time-display" id="dtTimeDisplay">12:00 PM</div>
             <div class="dt-sliders">
-                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_hr">HR</span><input type="range" class="dt-slider"
-                        id="dtHrSlider" aria-label="Select hour" min="1" max="12" value="12"></div>
-                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_min">MIN</span><input type="range" class="dt-slider"
-                        id="dtMinSlider" aria-label="Select minute" min="0" max="59" value="0"></div>
+                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_hr">HR</span><input
+                        type="range" class="dt-slider" id="dtHrSlider" aria-label="Select hour" min="1" max="12"
+                        value="12"></div>
+                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_min">MIN</span><input
+                        type="range" class="dt-slider" id="dtMinSlider" aria-label="Select minute" min="0" max="59"
+                        value="0"></div>
                 <div class="dt-ampm-row">
                     <button type="button" class="dt-ampm-btn active" id="dtAmBtn" data-i18n="planner.dt_am">AM</button>
                     <button type="button" class="dt-ampm-btn" id="dtPmBtn" data-i18n="planner.dt_pm">PM</button>
@@ -851,8 +1122,10 @@
                 <div class="dt-cal-header">
                     <span class="dt-cal-monthyear" id="dtCalMonthYear">January 2026</span>
                     <div class="dt-cal-nav">
-                        <button type="button" class="dt-cal-nav-btn" id="dtPrevMonth" aria-label="Previous month">&#9664;</button>
-                        <button type="button" class="dt-cal-nav-btn" id="dtNextMonth" aria-label="Next month">&#9654;</button>
+                        <button type="button" class="dt-cal-nav-btn" id="dtPrevMonth"
+                            aria-label="Previous month">&#9664;</button>
+                        <button type="button" class="dt-cal-nav-btn" id="dtNextMonth"
+                            aria-label="Next month">&#9654;</button>
                     </div>
                 </div>
                 <div class="dt-cal-weekdays">
@@ -862,7 +1135,8 @@
             </div>
         </div>
         <div class="dt-picker-footer">
-            <button type="button" class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set Schedule</button>
+            <button type="button" class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set
+                Schedule</button>
         </div>
     </div>
 
@@ -873,7 +1147,8 @@
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="chat-avatar">
-                    <img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async">
+                    <img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy"
+                        decoding="async">
                 </div>
                 <div class="chat-title-group">
                     <h3 class="chat-name">Routie Assistant</h3>
@@ -886,7 +1161,8 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message-wrapper bot-wrapper">
-                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async"></div>
+                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34"
+                        loading="lazy" decoding="async"></div>
                 <div class="message bot-message" data-i18n="chat.greeting">
                     Hello! I'm Routie. Where do you want to go today?
                 </div>
@@ -894,16 +1170,20 @@
         </div>
 
         <div class="chat-input-area">
-            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1" aria-label="Type a message"></textarea>
+            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..."
+                id="chatInput" rows="1" aria-label="Type a message"></textarea>
             <div class="chat-input-actions actions">
-                <button type="button" id="micBtn" class="mic-btn" aria-label="Voice input" title="Voice input" aria-pressed="false">
+                <button type="button" id="micBtn" class="mic-btn" aria-label="Voice input" title="Voice input"
+                    aria-pressed="false">
                     <ion-icon name="mic-outline"></ion-icon>
                 </button>
-                <button type="button" id="sendMessageBtn" class="chat-send-btn" aria-label="Send message" title="Send message" disabled>
+                <button type="button" id="sendMessageBtn" class="chat-send-btn" aria-label="Send message"
+                    title="Send message" disabled>
                     <ion-icon name="arrow-up-outline"></ion-icon>
                 </button>
             </div>
-            <div id="chatVoiceError" class="chat-voice-error" style="display: none;" role="alert" aria-live="polite"></div>
+            <div id="chatVoiceError" class="chat-voice-error" style="display: none;" role="alert" aria-live="polite">
+            </div>
         </div>
     </div>
 
@@ -918,7 +1198,8 @@
                 <ion-icon name="person-circle-outline" class="modal-icon-blue"></ion-icon>
                 <h3 data-i18n="planner.login_title">Mag-Login para Magpatuloy</h3>
             </div>
-            <button class="modal-close-btn" id="closeAuthBtn" aria-label="Close authentication modal"><ion-icon name="close-outline"></ion-icon></button>
+            <button class="modal-close-btn" id="closeAuthBtn" aria-label="Close authentication modal"><ion-icon
+                    name="close-outline"></ion-icon></button>
         </div>
         <div class="auth-body">
             <p class="auth-desc" data-i18n="planner.login_desc">Kailangan ng account para i-save ang iyong scheduled
@@ -940,16 +1221,21 @@
 
     <!-- ===== SET TRAVEL REMINDER MODAL ===== -->
     <div class="modal-overlay" id="setReminderOverlay"></div>
-    <div class="set-reminder-modal glass-panel" id="setReminderModal" role="dialog" aria-modal="true" aria-labelledby="setReminderTitle">
+    <div class="set-reminder-modal glass-panel" id="setReminderModal" role="dialog" aria-modal="true"
+        aria-labelledby="setReminderTitle">
         <div class="set-reminder-header">
             <div class="set-reminder-title-box">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6">
+                    </path>
                     <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
                 </svg>
-                <h3 class="set-reminder-title" id="setReminderTitle" data-i18n="reminders.set_title">Set Travel Reminder</h3>
+                <h3 class="set-reminder-title" id="setReminderTitle" data-i18n="reminders.set_title">Set Travel Reminder
+                </h3>
             </div>
-            <button class="modal-close-btn set-reminder-close-btn" id="closeSetReminderBtn" type="button" aria-label="Close reminder dialog">
+            <button class="modal-close-btn set-reminder-close-btn" id="closeSetReminderBtn" type="button"
+                aria-label="Close reminder dialog">
                 <ion-icon name="close-outline"></ion-icon>
             </button>
         </div>
@@ -961,7 +1247,8 @@
 
             <!-- Notice for unverified email or almost time to leave -->
             <div class="set-reminder-notice" id="setReminderNotice" style="display: none;" role="alert">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink:0;">
                     <circle cx="12" cy="12" r="10"></circle>
                     <line x1="12" y1="8" x2="12" y2="12"></line>
                     <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -973,10 +1260,14 @@
             <div class="set-reminder-section">
                 <label class="set-reminder-label" data-i18n="reminders.when_label">When to remind</label>
                 <div class="set-reminder-options" id="reminderWhenOptions" role="radiogroup">
-                    <button type="button" class="reminder-opt-btn" data-offset="0" data-i18n="reminders.at_leave_time">At leave time</button>
-                    <button type="button" class="reminder-opt-btn active" data-offset="10" data-i18n="reminders.10_before">10 min before</button>
-                    <button type="button" class="reminder-opt-btn" data-offset="15" data-i18n="reminders.15_before">15 min before</button>
-                    <button type="button" class="reminder-opt-btn" data-offset="30" data-i18n="reminders.30_before">30 min before</button>
+                    <button type="button" class="reminder-opt-btn" data-offset="0"
+                        data-i18n="reminders.at_leave_time">At leave time</button>
+                    <button type="button" class="reminder-opt-btn active" data-offset="10"
+                        data-i18n="reminders.10_before">10 min before</button>
+                    <button type="button" class="reminder-opt-btn" data-offset="15" data-i18n="reminders.15_before">15
+                        min before</button>
+                    <button type="button" class="reminder-opt-btn" data-offset="30" data-i18n="reminders.30_before">30
+                        min before</button>
                 </div>
             </div>
 
@@ -985,7 +1276,8 @@
                 <label class="set-reminder-label" data-i18n="reminders.channel_label">Channel</label>
                 <div class="set-reminder-channel-card">
                     <div class="reminder-channel-left">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <rect width="20" height="16" x="2" y="4" rx="2"></rect>
                             <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
                         </svg>
@@ -1013,11 +1305,14 @@
                 <ion-icon name="person-circle-outline" class="modal-icon-blue"></ion-icon>
                 <h3 id="reminderSignInTitle" data-i18n="reminders.toast_sign_in">Sign in to get reminders</h3>
             </div>
-            <button class="modal-close-btn" id="closeReminderSignInBtn" aria-label="Close modal"><ion-icon name="close-outline"></ion-icon></button>
+            <button class="modal-close-btn" id="closeReminderSignInBtn" aria-label="Close modal"><ion-icon
+                    name="close-outline"></ion-icon></button>
         </div>
         <div class="auth-body">
-            <p class="auth-desc" data-i18n="reminders.signed_out_desc">Reminders you schedule while signed in are kept in your account.</p>
-            <a href="/login?redirect=/planner" class="cta-btn reminder-signin-cta" style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
+            <p class="auth-desc" data-i18n="reminders.signed_out_desc">Reminders you schedule while signed in are kept
+                in your account.</p>
+            <a href="/login?redirect=/planner" class="cta-btn reminder-signin-cta"
+                style="text-decoration:none; display:flex; align-items:center; justify-content:center; gap:8px;">
                 <ion-icon name="log-in-outline"></ion-icon>
                 <span data-i18n="reminders.sign_in">Sign in</span>
             </a>
@@ -1027,28 +1322,35 @@
 
     <!-- Start Journey: sign-in prompt for guests (routes stay free to preview) -->
     <div class="modal-overlay" id="journeyAuthOverlay"></div>
-    <div class="auth-modal glass-panel journey-auth-modal" id="journeyAuthModal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="journeyAuthTitle" aria-describedby="journeyAuthBody">
+    <div class="auth-modal glass-panel journey-auth-modal" id="journeyAuthModal" style="display:none;" role="dialog"
+        aria-modal="true" aria-labelledby="journeyAuthTitle" aria-describedby="journeyAuthBody">
         <div class="modal-header">
             <div class="modal-title-row">
                 <ion-icon name="navigate-circle-outline" class="modal-icon-blue" aria-hidden="true"></ion-icon>
                 <h3 id="journeyAuthTitle" data-i18n="journey.auth_title">Sign in to start your journey</h3>
             </div>
-            <button type="button" class="modal-close-btn" id="closeJourneyAuthBtn" aria-label="Close"><ion-icon name="close-outline"></ion-icon></button>
+            <button type="button" class="modal-close-btn" id="closeJourneyAuthBtn" aria-label="Close"><ion-icon
+                    name="close-outline"></ion-icon></button>
         </div>
         <div class="auth-body">
-            <p class="auth-desc" id="journeyAuthBody" data-i18n="journey.auth_body">Live navigation guides you step by step and keeps this trip in your route history. You can keep previewing routes without an account.</p>
+            <p class="auth-desc" id="journeyAuthBody" data-i18n="journey.auth_body">Live navigation guides you step by
+                step and keeps this trip in your route history. You can keep previewing routes without an account.</p>
             <p class="journey-auth-dest" id="journeyAuthDest" style="display:none;"></p>
             <div class="journey-auth-actions">
-                <a href="/login?redirect=%2Fplanner%3Fresume%3D1&amp;reason=journey" class="cta-btn journey-auth-primary" id="journeyAuthLoginBtn">
+                <a href="/login?redirect=%2Fplanner%3Fresume%3D1&amp;reason=journey"
+                    class="cta-btn journey-auth-primary" id="journeyAuthLoginBtn">
                     <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
                     <span data-i18n="journey.auth_login">Log in</span>
                 </a>
-                <a href="/login?redirect=%2Fplanner%3Fresume%3D1&amp;reason=journey&amp;mode=register" class="journey-auth-secondary" id="journeyAuthRegisterBtn">
+                <a href="/login?redirect=%2Fplanner%3Fresume%3D1&amp;reason=journey&amp;mode=register"
+                    class="journey-auth-secondary" id="journeyAuthRegisterBtn">
                     <span data-i18n="journey.auth_register">Create an account</span>
                 </a>
-                <button type="button" class="journey-auth-ghost" id="journeyAuthKeepBtn" data-i18n="journey.auth_keep">Keep previewing</button>
+                <button type="button" class="journey-auth-ghost" id="journeyAuthKeepBtn"
+                    data-i18n="journey.auth_keep">Keep previewing</button>
             </div>
-            <button type="button" class="journey-auth-privacy" data-open-legal="privacy" data-i18n="journey.auth_privacy">How we keep route history</button>
+            <button type="button" class="journey-auth-privacy" data-open-legal="privacy"
+                data-i18n="journey.auth_privacy">How we keep route history</button>
         </div>
     </div>
 

@@ -1,0 +1,114 @@
+[
+  {
+    "title": "SM City Calamba to Halang",
+    "query": "SM City Calamba to Halang",
+    "reply": "Total: ₱14.00, around 14 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 338m (~5 min).\n2. Sumakay sa SM City Calamba Transport Terminal ng jeep na Calamba – Los Baños (UPLB) (signboard: \"UPLB\"), at bumaba sa Brgy. Halang, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 8 minuto.\n3. Maglakad nang humigit-kumulang 87m (~1 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• SM City Calamba Transport Terminal (Pinakamabilis) – mga 14 min, ₱14.00\n• Crossing Grand Terminal – mga 17 min, ₱14.00",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Halang to SM City Calamba (Reverse)",
+    "query": "Halang to SM City Calamba",
+    "reply": "Total: ₱14.00, around 11 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 87m (~1 min).\n2. Sumakay sa Sakayan sa Highway ng jeep na Los Baños (UPLB) – Calamba (signboard: \"SM Calamba / Crossing Terminal\"), at bumaba sa SM Calamba (Cinema side). Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 10 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "San Isidro, Cabuyao to SM City Calamba",
+    "query": "San Isidro, Cabuyao to SM City Calamba",
+    "reply": "Total: ₱18.00, around 28 minutes, 1 transfer\n\n1. Mula sa San Isidro proper, sumakay ng tricycle (o maglakad) palabas patungo sa sakayan sa National Highway (Cabuyao / San Isidro highway access). (Tricycle fare estimate: ~₱20–₱40 (depende sa pasahero/special trip)).\n2. Sumakay sa National Highway (Cabuyao / San Isidro access point) ng jeep na Sta. Rosa – Calamba (signboard: \"SM Calamba / Crossing Terminal\"), at bumaba sa SM Calamba (Cinema side). Pamasahe: ₱18.00 (₱14.50 student/senior/PWD), mga 18 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱14.50 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\nNagsisimula ang ruta sa San Isidro, Cabuyao (sa labas ng Calamba). Sakop ng Calzada ang jeepney leg sa kahabaan ng National Highway patungong Calamba.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "SM City Calamba to San Isidro, Cabuyao (Reverse)",
+    "query": "SM City Calamba to San Isidro, Cabuyao",
+    "reply": "Total: ₱18.00, around 28 minutes, 1 transfer\n\n1. Sumakay sa SM Calamba (Cinema side) ng jeep na Sta. Rosa – Calamba (signboard: \"Sta. Rosa / Cabuyao\"), at bumaba sa National Highway (Cabuyao / San Isidro access point). Pamasahe: ₱18.00 (₱14.50 student/senior/PWD), mga 18 minuto.\n2. Bumaba sa highway junction ng San Isidro, Cabuyao, at sumakay ng tricycle papasok sa iyong destinasyon. (Tricycle fare estimate: ~₱20–₱40).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱14.50 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\nAng destinasyon ay nasa San Isidro, Cabuyao. Sakop ng Calzada ang jeepney route hanggang sa highway junction ng Cabuyao.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "SM City Calamba to Real, Calamba (RSM)",
+    "query": "SM City Calamba to Real, Calamba (RSM)",
+    "reply": "Total: ₱14.00, around 12 minutes, 0 transfers\n\n1. Sumakay sa SM Calamba Inner Rd Terminal ng jeep na Calamba – Tagaytay (signboard: \"Tagaytay\"), at bumaba sa Brgy. Real, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 7 minuto.\n2. Maglakad nang humigit-kumulang 316m (~5 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• SM Calamba Inner Rd Terminal (Pinakamabilis) – mga 12 min, ₱14.00\n• Crossing Grand Terminal – mga 17 min, ₱14.00\n• New Calamba Transport Terminal – mga 21 min, ₱14.00",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Real, Calamba (RSM) to SM City Calamba (Reverse)",
+    "query": "RSM Real to SM City Calamba",
+    "reply": "Total: ₱14.00, around 11 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 32m (~1 min).\n2. Sumakay sa SM Transport Terminal ng jeep na Calamba – Tagaytay (signboard: \"SM Calamba\"), at bumaba sa SM Calamba Inner Rd Terminal. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 10 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Ambiguous Query: \"SM papuntang palengke\"",
+    "query": "SM papuntang palengke",
+    "reply": "Aling palengke po ang inyong pupuntahan — ang Calamba Public Market (sa Crossing/Bayan) o ang Canlubang Public Market?",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Typo: \"sm kalamba to hallang\"",
+    "query": "sm kalamba to hallang",
+    "reply": "Total: ₱14.00, around 14 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 338m (~5 min).\n2. Sumakay sa SM City Calamba Transport Terminal ng jeep na Calamba – Los Baños (UPLB) (signboard: \"UPLB\"), at bumaba sa Brgy. Halang, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 8 minuto.\n3. Maglakad nang humigit-kumulang 87m (~1 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• SM City Calamba Transport Terminal (Pinakamabilis) – mga 14 min, ₱14.00\n• Crossing Grand Terminal – mga 17 min, ₱14.00",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Non-existent Place: \"SM to Tokyo Grill\"",
+    "query": "SM to Tokyo Grill",
+    "reply": "Pasensya na po, hindi ko sigurado dahil wala sa verified data ng Calzada ang \"Tokyo Grill\". Puwede po ninyong subukang hanapin o i-set ang ruta sa Planner sa https://calzadaph.com/planner?origin=SM%20City%20Calamba&dest=Tokyo%20Grill o mag-email sa thecalzada@gmail.com.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "User Screenshot 1: \"saan ako sasakay papuntang Halang mula Calamba\"",
+    "query": "saan ako sasakay papuntang Halang mula Calamba",
+    "reply": "Total: ₱14.00, around 12 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 64m (~1 min).\n2. Sumakay sa Crossing Grand Terminal ng jeep na Crossing Grand Terminal – Halang (signboard: \"Halang\"), at bumaba sa Brgy. Halang, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 9 minuto.\n3. Maglakad nang humigit-kumulang 143m (~2 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• Crossing Grand Terminal (Pinakamabilis) – mga 12 min, ₱14.00\n• SM City Calamba Transport Terminal – mga 17 min, ₱14.00",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "User Screenshot 2: \"what about mula sm papuntang rsm, real\"",
+    "query": "what about mula sm papuntang rsm, real",
+    "reply": "Total: ₱14.00, around 11 minutes, 0 transfers\n\n1. Sumakay sa SM Calamba Inner Rd Terminal ng jeep na Calamba – Tagaytay (signboard: \"Tagaytay\"), at bumaba sa RSM Lutong Bahay – Real, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 10 minuto.\n2. Maglakad nang humigit-kumulang 32m (~1 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• SM Calamba Inner Rd Terminal (Pinakamabilis) – mga 11 min, ₱14.00\n• Crossing Grand Terminal – mga 15 min, ₱14.00\n• New Calamba Transport Terminal – mga 19 min, ₱14.00",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "User Screenshot 3: \"eh sm calamba papuntang halang?\"",
+    "query": "eh sm calamba papuntang halang?",
+    "reply": "Total: ₱14.00, around 14 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 338m (~5 min).\n2. Sumakay sa SM City Calamba Transport Terminal ng jeep na Calamba – Los Baños (UPLB) (signboard: \"UPLB\"), at bumaba sa Brgy. Halang, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 8 minuto.\n3. Maglakad nang humigit-kumulang 87m (~1 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• SM City Calamba Transport Terminal (Pinakamabilis) – mga 14 min, ₱14.00\n• Crossing Grand Terminal – mga 17 min, ₱14.00",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "User Screenshot 4: \"magkano ang pamasahe from San Isidro, Cabuyao, Laguna to SM City Calamba?\"",
+    "query": "magkano ang pamasahe from San Isidro, Cabuyao, Laguna to SM City Calamba?",
+    "reply": "Total: ₱18.00, around 28 minutes, 1 transfer\n\n1. Mula sa San Isidro proper, sumakay ng tricycle (o maglakad) palabas patungo sa sakayan sa National Highway (Cabuyao / San Isidro highway access). (Tricycle fare estimate: ~₱20–₱40 (depende sa pasahero/special trip)).\n2. Sumakay sa National Highway (Cabuyao / San Isidro access point) ng jeep na Sta. Rosa – Calamba (signboard: \"SM Calamba / Crossing Terminal\"), at bumaba sa SM Calamba (Cinema side). Pamasahe: ₱18.00 (₱14.50 student/senior/PWD), mga 18 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱14.50 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\nNagsisimula ang ruta sa San Isidro, Cabuyao (sa labas ng Calamba). Sakop ng Calzada ang jeepney leg sa kahabaan ng National Highway patungong Calamba.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Follow-up: \"what if student ako?\"",
+    "query": "what if student ako?",
+    "reply": "Kung student, senior citizen, o PWD ka po, may 20% discount base sa LTFRB fare guide:\nAng pamasahe para sa biyaheng SM City Calamba papuntang Brgy. Halang, Calamba ay magiging ₱11.25 (mula sa ₱14.00 regular fare sa jeep). Tantiya po ito base sa opisyal na fare guide.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Follow-up: \"how about going back?\"",
+    "query": "how about going back?",
+    "reply": "Total: ₱14.00, around 11 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 87m (~1 min).\n2. Sumakay sa Sakayan sa Highway ng jeep na Los Baños (UPLB) – Calamba (signboard: \"SM Calamba / Crossing Terminal\"), at bumaba sa SM Calamba (Cinema side). Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 10 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  },
+  {
+    "title": "Follow-up: \"what if I take a tricycle?\"",
+    "query": "what if I take a tricycle?",
+    "reply": "Kung mag-tricycle po mula Brgy. Halang, Calamba papuntang SM City Calamba:\nKaraniwang mas mahal ang tricycle kaysa sa jeep (humigit-kumulang ₱50 hanggang ₱80+ para sa special trip depende sa layo at TODA terminal), ngunit mas mabilis at ihahatid ka nang direkta sa destinasyon nang walang transfer. Paalala: Ang pamasahe sa tricycle ay lokal na tantiya at hindi sakop ng LTFRB jeepney tariff.",
+    "passed": true,
+    "mismatch": "None (100% Match)"
+  }
+]

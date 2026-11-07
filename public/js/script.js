@@ -587,11 +587,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 3. If clicked/tapped element is inside any Routie open trigger, do NOT close
         if (target.closest && (
-            target.closest('#chatToggleBtn') || 
-            target.closest('#routieLink') || 
-            target.closest('#drawerRoutieLink') || 
-            target.closest('#routieBannerBtn') || 
-            target.closest('#faqRoutieCtaBtn') || 
+            target.closest('#chatToggleBtn') ||
+            target.closest('#routieLink') ||
+            target.closest('#drawerRoutieLink') ||
+            target.closest('#routieBannerBtn') ||
+            target.closest('#faqRoutieCtaBtn') ||
             target.closest('#routieFeatureBtn') ||
             target.closest('#routieChatPreview')
         )) {
@@ -703,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const openChat = (e) => {
         if (e) e.preventDefault();
-        
+
         // Pre-warm the server when chat is opened
         fetch(`${CHAT_API}/api/ping`, { method: 'GET' }).catch(() => { });
 
@@ -954,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
                 window.CalzadaActivity.addChatMessage('user', text);
             }
-        } catch (_) {}
+        } catch (_) { }
 
         chatInput.value = '';
         updateChatInputHeight();
@@ -974,9 +974,17 @@ Fare: \u20b1${ctx.totalFare || 'unknown'}
 Distance: ${ctx.totalDistance || 'unknown'} km
 ` : '';
 
+        let chatSessionId = sessionStorage.getItem('calzadaChatSessionId');
+        if (!chatSessionId) {
+            chatSessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+            sessionStorage.setItem('calzadaChatSessionId', chatSessionId);
+        }
+
         const fullMessageWithContext = `${routeInfo}\n\nUser Message: ${text}`;
         const payload = {
             message: fullMessageWithContext,
+            history: (chatHistory || []).slice(-8),
+            sessionId: chatSessionId,
             lang: typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en'
         };
 
@@ -1008,7 +1016,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                     if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
                         window.CalzadaActivity.addChatMessage('routie', botReply);
                     }
-                } catch (_) {}
+                } catch (_) { }
             } else {
                 if (isDev) console.error("API Error:", data);
                 let errMsg = window.t('js.error_system');
@@ -1036,7 +1044,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 
     function updateChatInputHeight() {
         if (!chatInput) return;
-        const wasNearBottom = chatMessages ? 
+        const wasNearBottom = chatMessages ?
             (chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop <= 60) : false;
 
         chatInput.style.height = 'auto';
@@ -1255,14 +1263,14 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             visualizerAnimId = null;
         }
         if (audioContext) {
-            try { audioContext.close(); } catch (_) {}
+            try { audioContext.close(); } catch (_) { }
             audioContext = null;
             analyserNode = null;
         }
         if (audioStream) {
             try {
                 audioStream.getTracks().forEach(track => track.stop());
-            } catch (_) {}
+            } catch (_) { }
             audioStream = null;
         }
         if (recordingTimerId) {
@@ -1420,7 +1428,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             try {
                 mediaRecorder.onstop = null;
                 mediaRecorder.stop();
-            } catch (_) {}
+            } catch (_) { }
         }
         audioChunks = [];
         setRecordingUIMode('idle');
@@ -1437,7 +1445,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const mimeType = mediaRecorder.mimeType || 'audio/webm';
 
         if (mediaRecorder.state !== 'inactive') {
-            try { mediaRecorder.stop(); } catch (_) {}
+            try { mediaRecorder.stop(); } catch (_) { }
         }
 
         // Check if recording was virtually empty (< 0.4s or empty chunks)
@@ -1657,7 +1665,7 @@ function checkPasswordStrength() {
                     if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
                         window.CalzadaActivity.addSearchHistory(q);
                     }
-                } catch (_) {}
+                } catch (_) { }
                 window.location.href = '/places?q=' + encodeURIComponent(q);
             }
         }
@@ -1692,7 +1700,7 @@ function checkPasswordStrength() {
                                             if (window.CalzadaActivity && typeof window.CalzadaActivity.addSearchHistory === 'function') {
                                                 window.CalzadaActivity.addSearchHistory(placeQuery);
                                             }
-                                        } catch (_) {}
+                                        } catch (_) { }
                                     }
                                     window.location.href = el.dataset.href;
                                 });

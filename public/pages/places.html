@@ -4,40 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <script>
-    /* Signed in last time? Show the profile in the header while the page loads,
-       instead of "Sign In" first. Firebase confirms it a moment later (or switches back). */
-    (function () {
-        try {
-            var h = JSON.parse(localStorage.getItem('calzada_auth_hint') || 'null');
-            if (!h || !h.name || Date.now() - (h.at || 0) > 30 * 864e5) return;
-            document.documentElement.classList.add('auth-hint');
-            var name = localStorage.getItem('calzada_pref_name') || h.name;
-            var photo = localStorage.getItem('calzada_pref_photo') || h.photo || '';
-            var initial = String(name).charAt(0).toUpperCase() || 'U';
-            var done = {};
-            var show = function (id, display) { var el = document.getElementById(id); if (el && !done[id]) { el.style.display = display; done[id] = 1; } };
-            var fill = function () {
-                show('authNavBtn', 'none');
-                show('userAvatarPill', 'flex');
-                show('mobileSignInBtn', 'none');
-                show('mobileAvatarBtn', 'flex');
-                var n = document.getElementById('userDisplayName');
-                if (n && !done.n) { n.textContent = name; done.n = 1; }
-                ['userAvatar', 'mobileAvatar'].forEach(function (k) {
-                    var ini = document.getElementById(k + 'Initials'), img = document.getElementById(k + 'Img');
-                    if (ini && !done[k + 'I']) { ini.textContent = initial; ini.style.display = 'block'; done[k + 'I'] = 1; }
-                    if (img && photo && !done[k + 'P']) {
-                        done[k + 'P'] = 1;
-                        img.onload = function () { if (img.naturalWidth) { img.style.display = 'block'; if (ini) ini.style.display = 'none'; } };
-                        img.src = photo;
-                    }
-                });
-            };
-            var mo = new MutationObserver(fill);
-            mo.observe(document.documentElement, { childList: true, subtree: true });
-            document.addEventListener('DOMContentLoaded', function () { fill(); mo.disconnect(); });
-        } catch (e) { /* no storage: wait for Firebase as before */ }
-    })();
+        /* Signed in last time? Show the profile in the header while the page loads,
+           instead of "Sign In" first. Firebase confirms it a moment later (or switches back). */
+        (function () {
+            try {
+                var h = JSON.parse(localStorage.getItem('calzada_auth_hint') || 'null');
+                if (!h || !h.name || Date.now() - (h.at || 0) > 30 * 864e5) return;
+                document.documentElement.classList.add('auth-hint');
+                var name = localStorage.getItem('calzada_pref_name') || h.name;
+                var photo = localStorage.getItem('calzada_pref_photo') || h.photo || '';
+                var initial = String(name).charAt(0).toUpperCase() || 'U';
+                var done = {};
+                var show = function (id, display) { var el = document.getElementById(id); if (el && !done[id]) { el.style.display = display; done[id] = 1; } };
+                var fill = function () {
+                    show('authNavBtn', 'none');
+                    show('userAvatarPill', 'flex');
+                    show('mobileSignInBtn', 'none');
+                    show('mobileAvatarBtn', 'flex');
+                    var n = document.getElementById('userDisplayName');
+                    if (n && !done.n) { n.textContent = name; done.n = 1; }
+                    ['userAvatar', 'mobileAvatar'].forEach(function (k) {
+                        var ini = document.getElementById(k + 'Initials'), img = document.getElementById(k + 'Img');
+                        if (ini && !done[k + 'I']) { ini.textContent = initial; ini.style.display = 'block'; done[k + 'I'] = 1; }
+                        if (img && photo && !done[k + 'P']) {
+                            done[k + 'P'] = 1;
+                            img.onload = function () { if (img.naturalWidth) { img.style.display = 'block'; if (ini) ini.style.display = 'none'; } };
+                            img.src = photo;
+                        }
+                    });
+                };
+                var mo = new MutationObserver(fill);
+                mo.observe(document.documentElement, { childList: true, subtree: true });
+                document.addEventListener('DOMContentLoaded', function () { fill(); mo.disconnect(); });
+            } catch (e) { /* no storage: wait for Firebase as before */ }
+        })();
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Places – Calzada</title>
@@ -47,17 +47,23 @@
     <link rel="manifest" href="../manifest.json">
     <meta property="og:image" content="https://calzadaph.com/assets/brand-logo.png">
     <meta property="og:title" content="Calzada - Your Commuting Guide in Calamba">
-    <meta property="og:description" content="Browse and discover top places, dining, cafes, and local establishments across Calamba with interactive maps and curated spot guides.">
-    <meta name="description" content="Explore destinations, food spots, coffee shops, and local establishments across Calamba. Find great places to visit with Calzada.">
+    <meta property="og:description"
+        content="Browse and discover top places, dining, cafes, and local establishments across Calamba with interactive maps and curated spot guides.">
+    <meta name="description"
+        content="Explore destinations, food spots, coffee shops, and local establishments across Calamba. Find great places to visit with Calzada.">
     <!-- Google Fonts Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <!-- Google Fonts (Non-blocking) -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap"
+        media="print" onload="this.media='all'">
     <noscript>
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Sora:wght@400;500;600;700;800&display=swap">
     </noscript>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
     <link rel="stylesheet" href="../css/style.css?v=2.9.5">
@@ -71,16 +77,29 @@
     <link rel="stylesheet" href="../css/skeleton.css?v=2.6.3">
     <link rel="stylesheet" href="../css/place-panel.css?v=25">
     <style>
-        html { scrollbar-gutter: stable; }
-        body { opacity: 0; }
-        body.fouc-ready { opacity: 1; transition: opacity 0.2s ease-in-out; }
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        body {
+            opacity: 0;
+        }
+
+        body.fouc-ready {
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
     </style>
     <noscript>
-        <style>body { opacity: 1 !important; }</style>
+        <style>
+            body {
+                opacity: 1 !important;
+            }
+        </style>
     </noscript>
     <script>
-        (function() {
-            document.addEventListener('touchstart', function() {}, { passive: true });
+        (function () {
+            document.addEventListener('touchstart', function () { }, { passive: true });
             function show() {
                 if (document.body && !document.body.classList.contains('fouc-ready')) {
                     document.body.classList.add('fouc-ready');
@@ -91,13 +110,13 @@
             } else {
                 document.addEventListener('DOMContentLoaded', show);
             }
-            setTimeout(function() {
+            setTimeout(function () {
                 show();
                 var sk = document.getElementById('skeleton-overlay');
                 if (sk) {
                     sk.classList.add('hidden');
-                    setTimeout(function() { sk.remove(); }, 500);
-                    document.querySelectorAll('main, .scrollable-content, .planner-gui-container, .places-page, .auth-page-container, .ref-hero').forEach(function(el) {
+                    setTimeout(function () { sk.remove(); }, 500);
+                    document.querySelectorAll('main, .scrollable-content, .planner-gui-container, .places-page, .auth-page-container, .ref-hero').forEach(function (el) {
                         el.style.opacity = '1';
                     });
                 }
@@ -109,7 +128,8 @@
 <body data-header-autohide="true" ontouchstart="">
 
     <!-- Mobile Search Overlay -->
-    <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true" aria-label="Search places">
+    <div id="mobileSearchOverlay" class="mobile-search-overlay" role="dialog" aria-modal="true"
+        aria-label="Search places">
         <div class="mobile-search-backdrop" id="mobileSearchBackdrop"></div>
         <div class="mobile-search-card">
             <div class="mobile-search-topbar">
@@ -120,9 +140,8 @@
             </div>
             <div class="mobile-search-input-wrap">
                 <ion-icon name="search-outline" class="mobile-search-prefix"></ion-icon>
-                <input type="text" id="mobileSearchInput" class="mobile-search-input"
-                    placeholder="Where to go?" autocomplete="off" autocorrect="off"
-                    autocapitalize="off" spellcheck="false">
+                <input type="text" id="mobileSearchInput" class="mobile-search-input" placeholder="Where to go?"
+                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 <button class="mobile-search-submit" id="mobileSearchSubmit" aria-label="Search">
                     <ion-icon name="arrow-forward-outline"></ion-icon>
                 </button>
@@ -137,7 +156,8 @@
             <!-- [Left Side]: Logo -->
             <div class="nav-left">
                 <a href="/" class="brand-logo">
-                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo" class="logo-img">
+                    <img width="500" height="175" src="../assets/logo-header-blue.webp" alt="Calzada Logo"
+                        class="logo-img">
                 </a>
             </div>
 
@@ -147,38 +167,63 @@
 
                 <!-- Explore Dropdown (Active on places.html) -->
                 <div class="nav-dropdown" id="exploreDropdown">
-                    <button class="nav-link nav-dropdown-btn active" id="exploreDropdownBtn" type="button" aria-expanded="false">
+                    <button class="nav-link nav-dropdown-btn active" id="exploreDropdownBtn" type="button"
+                        aria-expanded="false">
                         <span data-i18n="footer.nav.explore">Places</span>
                         <ion-icon name="chevron-down-outline" class="nav-dropdown-chevron"></ion-icon>
                     </button>
                     <div class="nav-dropdown-menu" id="exploreDropdownMenu">
                         <a href="/places?category=malls" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-mall">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.malls">Malls</span>
                         </a>
                         <a href="/places?category=eateries" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-eatery">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                                    <line x1="6" y1="2" x2="6" y2="4"></line>
+                                    <line x1="10" y1="2" x2="10" y2="4"></line>
+                                    <line x1="14" y1="2" x2="14" y2="4"></line>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.eateries">Eateries</span>
                         </a>
                         <a href="/places?category=schools" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-school">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                    <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.schools">Schools</span>
                         </a>
                         <a href="/places?category=terminals" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-terminal">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"></rect><path d="M4 11h16"></path><path d="M8 19v2M16 19v2"></path><circle cx="8" cy="15" r="1"></circle><circle cx="16" cy="15" r="1"></circle></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="4" y="3" width="16" height="16" rx="2"></rect>
+                                    <path d="M4 11h16"></path>
+                                    <path d="M8 19v2M16 19v2"></path>
+                                    <circle cx="8" cy="15" r="1"></circle>
+                                    <circle cx="16" cy="15" r="1"></circle>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.terminals">Terminals</span>
                         </a>
                         <a href="/places?category=coffee" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-coffee">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M17 8h1a4 4 0 1 1 0 8h-1"></path>
                                     <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"></path>
                                     <line x1="6" y1="2" x2="6" y2="4"></line>
@@ -190,38 +235,68 @@
                         </a>
                         <a href="/places?category=government" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z"></path><path d="M5 21v-7"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9z">
+                                    </path>
+                                    <path d="M5 21v-7"></path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.government">Government & Landmarks</span>
                         </a>
                         <a href="/places?category=health" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"></path><rect x="4" y="8" width="16" height="12" rx="2"></rect><path d="M10 14h4M12 12v4"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M8 8v-2a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"></path>
+                                    <rect x="4" y="8" width="16" height="12" rx="2"></rect>
+                                    <path d="M10 14h4M12 12v4"></path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.health">Health</span>
                         </a>
                         <a href="/places?category=banks" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 6l7 -3l7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M3 21h18M3 10h18M5 6l7 -3l7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3">
+                                    </path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.banks">Banks</span>
                         </a>
                         <a href="/places?category=hotels" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path><path d="M22 17v-3h-20M2 8v9M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5z"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 9a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"></path>
+                                    <path d="M22 17v-3h-20M2 8v9M12 14h10v-2a3 3 0 0 0 -3 -3h-7v5z"></path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.hotels">Hotels & Stays</span>
                         </a>
                         <a href="/places?category=establishments" class="nav-dropdown-item">
                             <span class="nav-drop-icon icon-building">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304z"></path><path d="M9 11v-5a3 3 0 0 1 6 0v5"></path></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M6.331 8h11.339a2 2 0 0 1 1.977 2.304l-1.255 8.152a3 3 0 0 1 -2.966 2.544h-6.852a3 3 0 0 1 -2.965 -2.544l-1.255 -8.152a2 2 0 0 1 1.977 -2.304z">
+                                    </path>
+                                    <path d="M9 11v-5a3 3 0 0 1 6 0v5"></path>
+                                </svg>
                             </span>
                             <span data-i18n="nav.explore.establishments">Shops & Services</span>
                         </a>
                         <div class="nav-dropdown-divider"></div>
                         <a href="/places" class="nav-dropdown-item view-all">
                             <span class="nav-drop-icon icon-all">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="3" width="7" height="7"></rect>
+                                    <rect x="14" y="14" width="7" height="7"></rect>
+                                    <rect x="3" y="14" width="7" height="7"></rect>
+                                </svg>
                             </span>
                             <span><span data-i18n="nav.explore.view_all">View All Places</span></span>
                         </a>
@@ -236,24 +311,33 @@
 
             <!-- [Right Side]: Search Pill, Language, Activity Feed Bell, User Profile / Sign In -->
             <div class="nav-right">
-                <button type="button" class="header-search-pill-btn" id="headerSearchPillBtn" aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
-                    <svg class="header-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
+                <button type="button" class="header-search-pill-btn" id="headerSearchPillBtn" aria-label="Search places"
+                    data-i18n-aria-label="places.search_btn_label">
+                    <svg class="header-search-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                        viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" />
+                        <path d="M21 21l-6 -6" />
+                    </svg>
                     <span class="header-search-text" data-i18n="places.search_btn_text">Search places</span>
                 </button>
 
                 <div class="lang-dropdown-container">
-                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
+                    <button class="lang-toggle-btn" id="langToggleBtn" type="button" aria-expanded="false"
+                        aria-haspopup="menu" aria-label="Language: English">
                         <i class="ti ti-language lang-icon" aria-hidden="true"></i>
                         <span class="lang-active">EN</span>
                         <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
                     </button>
                     <div class="lang-dropdown-menu" role="menu">
-                        <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
+                        <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio"
+                            aria-checked="true">
                             <span class="lang-name">English</span>
                             <span class="lang-code">EN</span>
                             <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
-                        <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
+                        <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio"
+                            aria-checked="false">
                             <span class="lang-name">Tagalog</span>
                             <span class="lang-code">TL</span>
                             <i class="ti ti-check lang-check" aria-hidden="true"></i>
@@ -262,7 +346,8 @@
                 </div>
 
                 <div class="alerts-dropdown-container">
-                    <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed" title="Your recent activity">
+                    <button class="bell-container" id="bellAlertsBtn" type="button" aria-label="Activity Feed"
+                        title="Your recent activity">
                         <ion-icon name="notifications-outline"></ion-icon>
                         <span class="badge" id="bellBadge" style="display:none;">0</span>
                     </button>
@@ -276,7 +361,8 @@
 
                     <div class="user-avatar-pill" id="userAvatarPill" style="display: none;">
                         <div class="user-avatar-wrap">
-                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg" width="34" height="34" style="display:none;">
+                            <img src="../assets/brand-logo.png" alt="Profile" class="user-avatar-img" id="userAvatarImg"
+                                width="34" height="34" style="display:none;">
                             <div class="user-avatar-initials" id="userAvatarInitials">U</div>
                             <span class="user-badge-counter" id="userBadgeCounter" style="display: none;">0</span>
                         </div>
@@ -290,28 +376,50 @@
 
             <!-- Mobile-only icon cluster -->
             <div class="mobile-nav-icons" id="mobileNavIcons">
-                <button type="button" class="mobile-nav-icon-btn header-search-mobile-btn" id="headerSearchMobileBtn" aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
-                    <svg class="header-search-mobile-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
+                <button type="button" class="mobile-nav-icon-btn header-search-mobile-btn" id="headerSearchMobileBtn"
+                    aria-label="Search places" data-i18n-aria-label="places.search_btn_label">
+                    <svg class="header-search-mobile-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                        viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" />
+                        <path d="M21 21l-6 -6" />
+                    </svg>
                 </button>
                 <button class="mobile-nav-icon-btn" id="mobileBellBtn" aria-label="Activity Feed" type="button">
-                    <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
+                    <svg class="mobile-nav-svg" xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                        viewBox="0 0 24 24" fill="none" stroke="#2272C3" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path
+                            d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6" />
+                        <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+                    </svg>
                     <span class="mobile-bell-badge" id="mobileBellBadge" style="display:none;"></span>
                 </button>
-                <a href="/login" class="mobile-signin-pill" id="mobileSignInBtn" aria-label="Sign in" data-i18n-aria-label="login.signin">
-                    <svg class="mobile-signin-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
+                <a href="/login" class="mobile-signin-pill" id="mobileSignInBtn" aria-label="Sign in"
+                    data-i18n-aria-label="login.signin">
+                    <svg class="mobile-signin-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17"
+                        viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" />
+                        <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+                    </svg>
                     <span class="mobile-signin-text" data-i18n="login.signin">Sign in</span>
                 </a>
-                <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile" type="button" style="display:none;">
+                <button class="mobile-nav-icon-btn mobile-avatar-btn" id="mobileAvatarBtn" aria-label="User Profile"
+                    type="button" style="display:none;">
                     <div class="mobile-avatar-wrap">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg" width="34" height="34" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="mobile-avatar-img" id="mobileAvatarImg"
+                            width="34" height="34" style="display:none;">
                         <div class="mobile-avatar-initials" id="mobileAvatarInitials">U</div>
                     </div>
                 </button>
             </div>
 
             <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle Menu">
-                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
-                    <path class="menu-toggle-morph" d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
+                <svg class="menu-toggle-icon" viewBox="0 0 32 32" fill="none" stroke="#378ADD" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" width="28" height="28">
+                    <path class="menu-toggle-morph"
+                        d="M27 10 13 10C10.8 10 9 8.2 9 6 9 3.5 10.8 2 13 2 15.2 2 17 3.8 17 6L17 26C17 28.2 18.8 30 21 30 23.2 30 25 28.2 25 26 25 23.8 23.2 22 21 22L7 22" />
                     <path class="menu-toggle-line" d="M7 16 27 16" />
                 </svg>
             </button>
@@ -320,11 +428,18 @@
             <div class="alerts-dropdown-menu" id="alertsDropdownMenu">
                 <div class="alerts-header">
                     <div class="alerts-header-title">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
                         <span data-i18n="nav.activity.title">Activity Feed</span>
                     </div>
                     <button type="button" class="alerts-clear-btn" id="bellClearBtn" title="Mark all as read">
-                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
                         <span data-i18n="nav.activity.clear">Clear</span>
                     </button>
                 </div>
@@ -338,7 +453,8 @@
                 <!-- User Info Header -->
                 <div class="profile-header-card">
                     <div class="profile-header-avatar">
-                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img" id="profileHeaderImg" width="48" height="48" style="display:none;">
+                        <img src="../assets/brand-logo.png" alt="Profile" class="profile-header-img"
+                            id="profileHeaderImg" width="48" height="48" style="display:none;">
                         <div class="profile-header-initials" id="profileHeaderInitials">U</div>
                     </div>
                     <div class="profile-header-details">
@@ -351,25 +467,41 @@
                 <div class="exploration-stats-section" id="explorationStatsSection">
                     <div class="stats-section-label" data-i18n="nav.user.stats_label">Your Exploration Stats</div>
                     <div class="exploration-stats-row">
-                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" data-i18n="nav.user.title_visits" data-i18n-attr="title" title="View Visited Establishments">
+                        <button type="button" class="stat-pill-btn" id="statVisitsBtn" data-i18n="nav.user.title_visits"
+                            data-i18n-attr="title" title="View Visited Establishments">
                             <span class="stat-icon">
-                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                                    <path
+                                        d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" />
+                                </svg>
                             </span>
                             <span class="stat-value" id="statVisitsCount">0</span>
                             <span class="stat-name" data-i18n="nav.user.visits">Visits</span>
                         </button>
                         <div class="stat-divider"></div>
-                        <button type="button" class="stat-pill-btn" id="statSavesBtn" data-i18n="nav.user.title_saves" data-i18n-attr="title" title="View Saved Places">
+                        <button type="button" class="stat-pill-btn" id="statSavesBtn" data-i18n="nav.user.title_saves"
+                            data-i18n-attr="title" title="View Saved Places">
                             <span class="stat-icon">
-                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" />
+                                </svg>
                             </span>
                             <span class="stat-value" id="statSavesCount">0</span>
                             <span class="stat-name" data-i18n="nav.user.saves">Saves</span>
                         </button>
                         <div class="stat-divider"></div>
-                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" data-i18n="nav.user.title_badges" data-i18n-attr="title" title="View Badges">
+                        <button type="button" class="stat-pill-btn" id="statBadgesBtn" data-i18n="nav.user.title_badges"
+                            data-i18n-attr="title" title="View Badges">
                             <span class="stat-icon">
-                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+                                <svg width="20" height="20" fill="none" stroke="#378ADD" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" />
+                                    <path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" />
+                                    <path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" />
+                                </svg>
                             </span>
                             <span class="stat-value" id="statBadgesCount">0</span>
                             <span class="stat-name" data-i18n="nav.user.badges">Badges</span>
@@ -384,7 +516,12 @@
                     <!-- 1. My Visits -->
                     <button type="button" class="profile-nav-btn" id="menuMyVisits">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                                <path
+                                    d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.my_visits">My Visits</span>
                     </button>
@@ -392,7 +529,12 @@
                     <!-- My Trips -->
                     <button type="button" class="profile-nav-btn" id="menuMyTrips">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" /><path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M3 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                                <path d="M19 7a2 2 0 1 0 0 -4a2 2 0 0 0 0 4z" />
+                                <path d="M11 19h5.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h4.5" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.my_trips">My Trips</span>
                     </button>
@@ -400,7 +542,11 @@
                     <!-- Route History -->
                     <button type="button" class="profile-nav-btn" id="menuRouteHistory">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 15"></polyline></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="9"></circle>
+                                <polyline points="12 7 12 12 15 15"></polyline>
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.route_history">Route history</span>
                     </button>
@@ -408,7 +554,10 @@
                     <!-- 2. Saved Places -->
                     <button type="button" class="profile-nav-btn" id="menuSavedPlaces">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M18 7v14l-6 -4l-6 4v-14a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4z" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.saved_places">Saved Places</span>
                         <span class="saved-count-pill" id="menuSavedCount" style="display: none;">0</span>
@@ -417,7 +566,12 @@
                     <!-- 3. My Badges -->
                     <button type="button" class="profile-nav-btn" id="menuMyAchievements">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" /><path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" /><path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M12 9m-6 0a6 6 0 1 0 12 0a6 6 0 1 0 -12 0" />
+                                <path d="M12 15l3.4 5.89l1.598 -3.233l3.598 .232l-3.4 -5.889" />
+                                <path d="M6.802 12l-3.4 5.89l3.598 -.233l1.598 3.232l3.4 -5.889" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.my_achievements">My Badges</span>
                     </button>
@@ -425,7 +579,12 @@
                     <!-- 4. Account Settings -->
                     <button type="button" class="profile-nav-btn" id="menuAccountSettings">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path
+                                    d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c.996 .608 2.296 .07 2.572 -1.065z" />
+                                <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.account_settings">Account Settings</span>
                     </button>
@@ -433,7 +592,15 @@
                     <!-- 5. Register your business -->
                     <a href="/my-business" class="profile-nav-btn" id="menuMyBusiness" style="text-decoration: none;">
                         <span class="nav-btn-icon">
-                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 21l18 0" /><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" /><path d="M5 21v-10.15" /><path d="M19 21v-10.15" /><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" /></svg>
+                            <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                <path d="M3 21l18 0" />
+                                <path
+                                    d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4" />
+                                <path d="M5 21v-10.15" />
+                                <path d="M19 21v-10.15" />
+                                <path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4" />
+                            </svg>
                         </span>
                         <span class="nav-btn-title" data-i18n="nav.user.register_business">Register your business</span>
                     </a>
@@ -444,7 +611,12 @@
                 <!-- 6. Log Out -->
                 <button type="button" class="profile-nav-btn logout-btn" id="logoutBtn">
                     <span class="nav-btn-icon">
-                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" /><path d="M9 12h12l-3 -3" /><path d="M18 15l3 -3" /></svg>
+                        <svg class="w-5 h-5" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2" />
+                            <path d="M9 12h12l-3 -3" />
+                            <path d="M18 15l3 -3" />
+                        </svg>
                     </span>
                     <span class="nav-btn-title" data-i18n="nav.user.logout">Log Out</span>
                 </button>
@@ -456,7 +628,8 @@
     <div class="search-panel-overlay" id="searchPanelOverlay" aria-hidden="true"></div>
 
     <!-- Nike-Style Header Search Panel (Desktop slide-down / Mobile full-screen) -->
-    <div class="header-search-panel" id="headerSearchPanel" role="dialog" aria-modal="true" aria-label="Search places" data-i18n-aria-label="places.search_dialog_label">
+    <div class="header-search-panel" id="headerSearchPanel" role="dialog" aria-modal="true" aria-label="Search places"
+        data-i18n-aria-label="places.search_dialog_label">
         <div class="search-panel-inner">
             <!-- Top Row -->
             <div class="search-panel-top">
@@ -467,31 +640,34 @@
 
                 <!-- Search Input Box -->
                 <div class="search-panel-input-wrap">
-                    <label for="headerPanelSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search places</label>
-                    <svg class="search-panel-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
-                    <input
-                        type="text"
-                        id="headerPanelSearchInput"
-                        class="search-panel-input"
-                        role="combobox"
-                        aria-expanded="false"
-                        aria-autocomplete="list"
-                        aria-controls="searchPanelResultsList"
-                        data-i18n="places.search_placeholder"
-                        data-i18n-attr="placeholder"
-                        placeholder="Search for a place..."
-                        autocomplete="off"
-                        autocorrect="off"
-                        autocapitalize="off"
-                        spellcheck="false"
-                    >
-                    <button type="button" id="searchPanelClearBtn" class="search-panel-clear-btn" aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search" style="display: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+                    <label for="headerPanelSearchInput" class="sr-only" data-i18n="places.search_sr_label">Search
+                        places</label>
+                    <svg class="search-panel-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="10" cy="10" r="7" />
+                        <path d="M21 21l-6 -6" />
+                    </svg>
+                    <input type="text" id="headerPanelSearchInput" class="search-panel-input" role="combobox"
+                        aria-expanded="false" aria-autocomplete="list" aria-controls="searchPanelResultsList"
+                        data-i18n="places.search_placeholder" data-i18n-attr="placeholder"
+                        placeholder="Search for a place..." autocomplete="off" autocorrect="off" autocapitalize="off"
+                        spellcheck="false">
+                    <button type="button" id="searchPanelClearBtn" class="search-panel-clear-btn"
+                        aria-label="Clear search" data-i18n-attr="aria-label" data-i18n="places.clear_search"
+                        style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="#64748B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
+                            <path d="M18 6l-12 12" />
+                            <path d="M6 6l12 12" />
+                        </svg>
                     </button>
                 </div>
 
                 <!-- Cancel Button -->
-                <button type="button" class="search-panel-cancel-btn" id="searchPanelCancelBtn" data-i18n="places.cancel">
+                <button type="button" class="search-panel-cancel-btn" id="searchPanelCancelBtn"
+                    data-i18n="places.cancel">
                     Cancel
                 </button>
             </div>
@@ -503,38 +679,50 @@
                     <!-- Browse by category -->
                     <div class="panel-section">
                         <div class="panel-section-label" data-i18n="places.browse_by_category">Browse by category</div>
-                        <div class="panel-category-chips" id="panelCategoryChips" role="group" aria-label="Browse categories">
-                            <button type="button" class="panel-category-chip active" data-category="all" aria-pressed="true">
+                        <div class="panel-category-chips" id="panelCategoryChips" role="group"
+                            aria-label="Browse categories">
+                            <button type="button" class="panel-category-chip active" data-category="all"
+                                aria-pressed="true">
                                 <span data-i18n="places.cat_all">All Places</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="malls" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="malls"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_malls">Malls</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="eateries" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="eateries"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_eateries">Eateries</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="schools" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="schools"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_schools">Schools</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="terminals" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="terminals"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_terminals">Terminals</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="coffee" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="coffee"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_coffee">Coffee Shops</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="government" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="government"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_gov">Government & Landmarks</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="health" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="health"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_health">Health</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="banks" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="banks"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_banks">Banks</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="hotels" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="hotels"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_hotels">Hotels & Stays</span>
                             </button>
-                            <button type="button" class="panel-category-chip" data-category="establishments" aria-pressed="false">
+                            <button type="button" class="panel-category-chip" data-category="establishments"
+                                aria-pressed="false">
                                 <span data-i18n="places.cat_est">Shops & Services</span>
                             </button>
                         </div>
@@ -544,18 +732,22 @@
                     <div class="panel-section" id="panelRecentSection" style="display: none;">
                         <div class="panel-section-header">
                             <span class="panel-section-label" data-i18n="places.recent_searches">Recent searches</span>
-                            <button type="button" class="panel-clear-recents-btn" id="panelClearRecentsBtn" data-i18n="places.clear_recents">Clear</button>
+                            <button type="button" class="panel-clear-recents-btn" id="panelClearRecentsBtn"
+                                data-i18n="places.clear_recents">Clear</button>
                         </div>
-                        <div class="panel-recent-chips" id="panelRecentChips" role="group" aria-label="Recent searches"></div>
+                        <div class="panel-recent-chips" id="panelRecentChips" role="group" aria-label="Recent searches">
+                        </div>
                     </div>
                 </div>
 
                 <!-- B. Typing State: Live Results -->
                 <div class="search-panel-results" id="searchPanelResults" style="display: none;">
-                    <ul class="search-results-list" id="searchPanelResultsList" role="listbox" aria-label="Search results"></ul>
+                    <ul class="search-results-list" id="searchPanelResultsList" role="listbox"
+                        aria-label="Search results"></ul>
                     <div class="search-panel-no-results" id="searchPanelNoResults" style="display: none;">
                         <p class="no-results-msg" id="searchPanelNoResultsMsg"></p>
-                        <button type="button" class="panel-browse-cat-link" id="panelNoResultsBrowseLink" data-i18n="places.browse_by_category">Browse by category</button>
+                        <button type="button" class="panel-browse-cat-link" id="panelNoResultsBrowseLink"
+                            data-i18n="places.browse_by_category">Browse by category</button>
                     </div>
                 </div>
             </div>
@@ -614,56 +806,211 @@
                                 <span class="places-title-text" id="placesTitleText">All Places</span>
                                 <span class="places-title-count desktop-only" id="placesTitleCountDesktop"></span>
                             </h1>
-                            <button type="button" class="places-clear-query-btn" id="placesClearQueryBtn" style="display: none;" aria-label="Clear search query" data-i18n-aria-label="places.clear">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            <button type="button" class="places-clear-query-btn" id="placesClearQueryBtn"
+                                style="display: none;" aria-label="Clear search query"
+                                data-i18n-aria-label="places.clear">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
                                 <span class="clear-query-text" id="clearQueryText" data-i18n="places.clear">Clear</span>
                             </button>
                         </div>
-                        <div class="places-title-sub mobile-only" id="placesTitleSubMobile"><span class="places-title-sub-sk" style="display:inline-block;width:60px;height:12px;background:#e2e8f0;border-radius:4px;vertical-align:middle;"></span></div>
+                        <div class="places-title-sub mobile-only" id="placesTitleSubMobile"><span
+                                class="places-title-sub-sk"
+                                style="display:inline-block;width:60px;height:12px;background:#e2e8f0;border-radius:4px;vertical-align:middle;"></span>
+                        </div>
                     </div>
                     <div class="places-title-right mobile-only">
-                        <button type="button" class="places-mobile-filter-btn" id="placesMobileFilterBtn" aria-label="Filter" data-i18n-aria-label="places.filter">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10" /><path d="M4 12h4" /><path d="M4 18h8" /><circle cx="16" cy="6" r="2" /><circle cx="10" cy="12" r="2" /><circle cx="14" cy="18" r="2" /></svg>
+                        <button type="button" class="places-mobile-filter-btn" id="placesMobileFilterBtn"
+                            aria-label="Filter" data-i18n-aria-label="places.filter">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M4 6h10" />
+                                <path d="M4 12h4" />
+                                <path d="M4 18h8" />
+                                <circle cx="16" cy="6" r="2" />
+                                <circle cx="10" cy="12" r="2" />
+                                <circle cx="14" cy="18" r="2" />
+                            </svg>
                             <span id="placesFilterBtnText" data-i18n="places.filter">Filter</span>
-                            <span class="filter-active-dot" id="filterActiveDot" style="display: none;" aria-hidden="true"></span>
+                            <span class="filter-active-dot" id="filterActiveDot" style="display: none;"
+                                aria-hidden="true"></span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Review #16: what the directory covers -->
-                <p class="places-coverage-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"></path></svg><span data-i18n="places.coverage">Calzada covers Brgy. Uno, Real and Halang for now. More barangays will be added.</span></p>
+                <p class="places-coverage-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
+                        <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
+                        <path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z">
+                        </path>
+                    </svg><span data-i18n="places.coverage">Calzada covers Brgy. Uno, Real and Halang for now. More
+                        barangays will be added.</span></p>
 
                 <!-- No Results State -->
                 <div class="no-results" id="noResults">
                     <ion-icon name="search-outline"></ion-icon>
                     <p id="noResultsText">No places found in this category</p>
-                    <button type="button" class="no-results-clear-btn" id="noResultsClearBtn" style="display: none;" data-i18n="places.clear_search">Clear search</button>
+                    <button type="button" class="no-results-clear-btn" id="noResultsClearBtn" style="display: none;"
+                        data-i18n="places.clear_search">Clear search</button>
                 </div>
 
                 <div class="places-grid" id="placesGrid">
                     <!-- Skeleton loading placeholders — replaced by JS after API fetch -->
-                    <div class="ref-card sk-place-card" style="--sk-w1:75%;--sk-w2:55%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:65%;--sk-w2:50%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:80%;--sk-w2:60%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:70%;--sk-w2:45%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:60%;--sk-w2:55%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:85%;--sk-w2:50%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:72%;--sk-w2:48%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
-                    <div class="ref-card sk-place-card" style="--sk-w1:68%;--sk-w2:52%"><div class="ref-img-container skeleton sk-media"></div><div class="ref-card-body"><div class="skeleton sk-line-title"></div><div class="skeleton sk-line-sub"></div></div></div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:75%;--sk-w2:55%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:65%;--sk-w2:50%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:80%;--sk-w2:60%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:70%;--sk-w2:45%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:60%;--sk-w2:55%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:85%;--sk-w2:50%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:72%;--sk-w2:48%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
+                    <div class="ref-card sk-place-card" style="--sk-w1:68%;--sk-w2:52%">
+                        <div class="ref-img-container skeleton sk-media"></div>
+                        <div class="ref-card-body">
+                            <div class="skeleton sk-line-title"></div>
+                            <div class="skeleton sk-line-sub"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- No-JS fallback: preserved static cards for users without JavaScript -->
                 <noscript>
-                <div class="places-grid">
-                    <div class="ref-card" data-category="schools"><div class="ref-img-container"><img src="../assets/places/sti-college/sti-1.webp" alt="STI College - Calamba" class="ref-card-img" width="1200" height="900" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>STI College - Calamba</h3><p class="card-subtitle">schools • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="terminals"><div class="ref-img-container"><img src="../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp" alt="SM City Calamba Transport Terminal" class="ref-card-img" width="862" height="582" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>SM City Calamba Transport Terminal</h3><p class="card-subtitle">terminals • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="malls"><div class="ref-img-container"><img src="../assets/places/citymall-calamba/citymall-calamba-1.webp" alt="CityMall Calamba" class="ref-card-img" width="1169" height="1460" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>CityMall Calamba</h3><p class="card-subtitle">malls • Halang, Calamba</p></div></div>
-                    <div class="ref-card" data-category="eateries"><div class="ref-img-container"><img src="../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp" alt="Jollibee – Real, Calamba City" class="ref-card-img" width="1170" height="864" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Jollibee – Real, Calamba City</h3><p class="card-subtitle">eateries • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="schools"><div class="ref-img-container"><img src="../assets/places/letran-calamba/letran-calamba-1.webp" alt="Colegio de San Juan de Letran – Calamba" class="ref-card-img" width="600" height="450" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Colegio de San Juan de Letran – Calamba</h3><p class="card-subtitle">schools • Bucal, Calamba</p></div></div>
-                    <div class="ref-card" data-category="malls"><div class="ref-img-container"><img src="../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp" alt="Puregold – Halang, Calamba" class="ref-card-img" width="1077" height="1091" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Puregold – Halang, Calamba</h3><p class="card-subtitle">malls • Halang, Calamba</p></div></div>
-                    <div class="ref-card" data-category="coffee"><div class="ref-img-container"><img src="../assets/places/krav-cafe/krav-cafe-1.webp" alt="Krav Cafe" class="ref-card-img" width="1079" height="512" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Krav Cafe</h3><p class="card-subtitle">coffee • Real, Calamba</p></div></div>
-                    <div class="ref-card" data-category="establishments"><div class="ref-img-container"><img src="../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp" alt="Wilcon Depot Calamba" class="ref-card-img" width="1080" height="674" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='../assets/hero-places-bg.png'"></div><div class="ref-card-body"><h3>Wilcon Depot Calamba</h3><p class="card-subtitle">establishments • Real, Calamba</p></div></div>
-                </div>
+                    <div class="places-grid">
+                        <div class="ref-card" data-category="schools">
+                            <div class="ref-img-container"><img src="../assets/places/sti-college/sti-1.webp"
+                                    alt="STI College - Calamba" class="ref-card-img" width="1200" height="900"
+                                    loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>STI College - Calamba</h3>
+                                <p class="card-subtitle">schools • Real, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="terminals">
+                            <div class="ref-img-container"><img
+                                    src="../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp"
+                                    alt="SM City Calamba Transport Terminal" class="ref-card-img" width="862"
+                                    height="582" loading="lazy" decoding="async"
+                                    style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>SM City Calamba Transport Terminal</h3>
+                                <p class="card-subtitle">terminals • Real, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="malls">
+                            <div class="ref-img-container"><img
+                                    src="../assets/places/citymall-calamba/citymall-calamba-1.webp"
+                                    alt="CityMall Calamba" class="ref-card-img" width="1169" height="1460"
+                                    loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>CityMall Calamba</h3>
+                                <p class="card-subtitle">malls • Halang, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="eateries">
+                            <div class="ref-img-container"><img
+                                    src="../assets/places/jollibee-real-calamba/jollibee-real-calamba-1.webp"
+                                    alt="Jollibee – Real, Calamba City" class="ref-card-img" width="1170" height="864"
+                                    loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>Jollibee – Real, Calamba City</h3>
+                                <p class="card-subtitle">eateries • Real, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="schools">
+                            <div class="ref-img-container"><img
+                                    src="../assets/places/letran-calamba/letran-calamba-1.webp"
+                                    alt="Colegio de San Juan de Letran – Calamba" class="ref-card-img" width="600"
+                                    height="450" loading="lazy" decoding="async"
+                                    style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>Colegio de San Juan de Letran – Calamba</h3>
+                                <p class="card-subtitle">schools • Bucal, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="malls">
+                            <div class="ref-img-container"><img
+                                    src="../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp"
+                                    alt="Puregold – Halang, Calamba" class="ref-card-img" width="1077" height="1091"
+                                    loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>Puregold – Halang, Calamba</h3>
+                                <p class="card-subtitle">malls • Halang, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="coffee">
+                            <div class="ref-img-container"><img src="../assets/places/krav-cafe/krav-cafe-1.webp"
+                                    alt="Krav Cafe" class="ref-card-img" width="1079" height="512" loading="lazy"
+                                    decoding="async" style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>Krav Cafe</h3>
+                                <p class="card-subtitle">coffee • Real, Calamba</p>
+                            </div>
+                        </div>
+                        <div class="ref-card" data-category="establishments">
+                            <div class="ref-img-container"><img
+                                    src="../assets/places/wilcon-depot-calamba/wilcon-depot-calamba-1.webp"
+                                    alt="Wilcon Depot Calamba" class="ref-card-img" width="1080" height="674"
+                                    loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;"
+                                    onerror="this.src='../assets/hero-places-bg.png'"></div>
+                            <div class="ref-card-body">
+                                <h3>Wilcon Depot Calamba</h3>
+                                <p class="card-subtitle">establishments • Real, Calamba</p>
+                            </div>
+                        </div>
+                    </div>
                 </noscript>
             </div>
         </div>
@@ -672,7 +1019,8 @@
     <!-- Floating Chat Widget (Routie Pill) -->
     <div class="chat-widget-container">
         <button class="chat-toggle-pill" id="chatToggleBtn" type="button" aria-label="Ask Routie">
-            <img src="../assets/DyipTok-icon.png" alt="Routie" class="chat-pill-avatar" width="66" height="66" loading="lazy" decoding="async">
+            <img src="../assets/DyipTok-icon.png" alt="Routie" class="chat-pill-avatar" width="66" height="66"
+                loading="lazy" decoding="async">
             <div class="chat-pill-text-wrap">
                 <span class="chat-label" data-i18n="chat.label">Ask Routie</span>
             </div>
@@ -684,7 +1032,8 @@
         <div class="chat-header">
             <div class="chat-header-info">
                 <div class="chat-avatar">
-                    <img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async">
+                    <img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy"
+                        decoding="async">
                 </div>
                 <div class="chat-title-group">
                     <h3 class="chat-name">Routie Assistant</h3>
@@ -697,7 +1046,8 @@
         </div>
         <div class="chat-messages" id="chatMessages">
             <div class="message-wrapper bot-wrapper">
-                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34" loading="lazy" decoding="async"></div>
+                <div class="bot-avatar"><img src="../assets/DyipTok-icon.png" alt="Routie" width="34" height="34"
+                        loading="lazy" decoding="async"></div>
                 <div class="message bot-message" data-i18n="chat.greeting">
                     Hello! I'm Routie. Where do you want to go today?
                 </div>
@@ -705,16 +1055,20 @@
         </div>
 
         <div class="chat-input-area">
-            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..." id="chatInput" rows="1" aria-label="Type a message"></textarea>
+            <textarea data-i18n="chat.placeholder" data-i18n-attr="placeholder" placeholder="Type a message..."
+                id="chatInput" rows="1" aria-label="Type a message"></textarea>
             <div class="chat-input-actions actions">
-                <button type="button" id="micBtn" class="mic-btn" aria-label="Voice input" title="Voice input" aria-pressed="false">
+                <button type="button" id="micBtn" class="mic-btn" aria-label="Voice input" title="Voice input"
+                    aria-pressed="false">
                     <ion-icon name="mic-outline"></ion-icon>
                 </button>
-                <button type="button" id="sendMessageBtn" class="chat-send-btn" aria-label="Send message" title="Send message" disabled>
+                <button type="button" id="sendMessageBtn" class="chat-send-btn" aria-label="Send message"
+                    title="Send message" disabled>
                     <ion-icon name="arrow-up-outline"></ion-icon>
                 </button>
             </div>
-            <div id="chatVoiceError" class="chat-voice-error" style="display: none;" role="alert" aria-live="polite"></div>
+            <div id="chatVoiceError" class="chat-voice-error" style="display: none;" role="alert" aria-live="polite">
+            </div>
         </div>
     </div>
 
@@ -1006,8 +1360,8 @@
                     name: name,
                     category: category,
                     image: imagePath || existing.image || '../assets/hero-places-bg.png',
-                    photo: (place.photo || place.thumbnailUrl || place.profilePhotoUrl) !== undefined 
-                        ? (place.photo || place.thumbnailUrl || place.profilePhotoUrl) 
+                    photo: (place.photo || place.thumbnailUrl || place.profilePhotoUrl) !== undefined
+                        ? (place.photo || place.thumbnailUrl || place.profilePhotoUrl)
                         : (existing.photo !== undefined ? existing.photo : null),
                     pano: isPlan1 ? null : (place.pano !== undefined ? place.pano : (existing.pano !== undefined ? existing.pano : null)),
                     pano_thumb: isPlan1 ? null : (place.pano_thumb !== undefined ? place.pano_thumb : (existing.pano_thumb !== undefined ? existing.pano_thumb : null)),
@@ -1169,8 +1523,8 @@
                     if (filteredPlaces.length === 0) {
                         let msg = '';
                         if (currentGridQuery) {
-                            msg = isTagalog 
-                                ? `Walang nahanap na lugar para sa "${currentGridQuery}"` 
+                            msg = isTagalog
+                                ? `Walang nahanap na lugar para sa "${currentGridQuery}"`
                                 : `No places found for "${currentGridQuery}"`;
                             if (noResultsClearBtn) noResultsClearBtn.style.display = 'inline-flex';
                         } else {
@@ -1248,7 +1602,7 @@
                     try {
                         const raw = sessionStorage.getItem('calzada_pending_rating');
                         if (raw) pendingRating = JSON.parse(raw);
-                    } catch (_) {}
+                    } catch (_) { }
 
                     const targetParam = idParam || placeParam || pendingRating?.placeName || pendingRating?.placeId;
                     if (targetParam && typeof window.openPlacePanel === 'function') {
@@ -1260,7 +1614,7 @@
                                 ...(allMasterPlaces || []),
                                 ...(typeof window !== 'undefined' && Array.isArray(window.FALLBACK_PLACES) ? window.FALLBACK_PLACES : [])
                             ];
-                            const match = placesPool.find(p => 
+                            const match = placesPool.find(p =>
                                 (idParam && p.id != null && String(p.id) === String(idParam)) ||
                                 (p.id != null && String(p.id) === normTarget) ||
                                 (p.slug && p.slug.toLowerCase() === normTarget) ||
@@ -1378,7 +1732,7 @@
 
             // Delegated fast-tap for place cards in grid
             if (placesGrid && typeof window.bindTap === 'function') {
-                window.bindTap(placesGrid, '.ref-card', function(e) {
+                window.bindTap(placesGrid, '.ref-card', function (e) {
                     handleCardOpen(e, this);
                 });
             }
@@ -1420,7 +1774,7 @@
                     if (Array.isArray(parsed)) {
                         return parsed.filter(item => typeof item === 'string' && item.trim().length > 0).slice(0, 5);
                     }
-                } catch (_) {}
+                } catch (_) { }
                 return [];
             }
 
@@ -1435,7 +1789,7 @@
                     filtered.unshift(q);
                     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered.slice(0, 5)));
                     renderRecentSearches();
-                } catch (_) {}
+                } catch (_) { }
             }
 
             function removeRecentSearch(query) {
@@ -1445,14 +1799,14 @@
                     const filtered = recents.filter(item => normalizeStr(item) !== normQ);
                     localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(filtered));
                     renderRecentSearches();
-                } catch (_) {}
+                } catch (_) { }
             }
 
             function clearAllRecentSearches() {
                 try {
                     localStorage.removeItem(RECENT_SEARCHES_KEY);
                     renderRecentSearches();
-                } catch (_) {}
+                } catch (_) { }
             }
 
             function renderRecentSearches() {
@@ -1524,12 +1878,12 @@
             }
 
             if (panelRecentChips && typeof window.bindTap === 'function') {
-                window.bindTap(panelRecentChips, '.recent-chip-remove', function(e) {
+                window.bindTap(panelRecentChips, '.recent-chip-remove', function (e) {
                     if (e && e.stopPropagation) e.stopPropagation();
                     const q = this.getAttribute('data-query');
                     if (q) removeRecentSearch(q);
                 });
-                window.bindTap(panelRecentChips, '.panel-recent-chip', function(e) {
+                window.bindTap(panelRecentChips, '.panel-recent-chip', function (e) {
                     if (e.target && e.target.closest('.recent-chip-remove')) return;
                     const q = this.getAttribute('data-query');
                     if (headerPanelInput && q) {
@@ -1550,16 +1904,16 @@
                     const span = chip.querySelector('span');
                     if (span && typeof window.t === 'function') {
                         const key = (cat === 'all') ? 'places.cat_all' :
-                                    (cat === 'malls') ? 'places.cat_malls' :
-                                    (cat === 'eateries') ? 'places.cat_eateries' :
+                            (cat === 'malls') ? 'places.cat_malls' :
+                                (cat === 'eateries') ? 'places.cat_eateries' :
                                     (cat === 'schools') ? 'places.cat_schools' :
-                                    (cat === 'terminals') ? 'places.cat_terminals' :
-                                    (cat === 'coffee') ? 'places.cat_coffee' :
-                                    (cat === 'government') ? 'places.cat_gov' :
-                                    (cat === 'health') ? 'places.cat_health' :
-                                    (cat === 'banks') ? 'places.cat_banks' :
-                                    (cat === 'hotels') ? 'places.cat_hotels' :
-                                    (cat === 'establishments') ? 'places.cat_est' : '';
+                                        (cat === 'terminals') ? 'places.cat_terminals' :
+                                            (cat === 'coffee') ? 'places.cat_coffee' :
+                                                (cat === 'government') ? 'places.cat_gov' :
+                                                    (cat === 'health') ? 'places.cat_health' :
+                                                        (cat === 'banks') ? 'places.cat_banks' :
+                                                            (cat === 'hotels') ? 'places.cat_hotels' :
+                                                                (cat === 'establishments') ? 'places.cat_est' : '';
                         if (key) span.textContent = window.t(key);
                     }
                 });
@@ -1575,7 +1929,7 @@
                 chip.addEventListener('click', () => onPanelCategoryChip(chip));
             });
             if (searchPanel && typeof window.bindTap === 'function') {
-                window.bindTap(searchPanel, '.panel-category-chip', function(e) {
+                window.bindTap(searchPanel, '.panel-category-chip', function (e) {
                     onPanelCategoryChip(this);
                 });
             }
@@ -1611,7 +1965,7 @@
                     try {
                         window.history.pushState({ calzadaSearchPanel: true }, '');
                         hasHistoryPushed = true;
-                    } catch (_) {}
+                    } catch (_) { }
                 }
 
                 lockBodyScroll();
@@ -1643,7 +1997,7 @@
                             try {
                                 headerPanelInput.focus({ focusVisible: !!options.openedByKeyboard });
                             } catch (_) {
-                                try { headerPanelInput.focus(); } catch (_) {}
+                                try { headerPanelInput.focus(); } catch (_) { }
                             }
                         }, 50);
                     }
@@ -1676,21 +2030,21 @@
                     if (options.historyAction === 'replace') {
                         try {
                             window.history.replaceState({}, '', window.location.href);
-                        } catch (_) {}
+                        } catch (_) { }
                     } else if (options.historyAction !== 'none') {
                         try {
                             window.history.back();
-                        } catch (_) {}
+                        } catch (_) { }
                     }
                 }
 
                 if (options.focusReturn !== false && lastOpenedByKeyboard && lastOpenedBy && typeof lastOpenedBy.focus === 'function') {
                     setTimeout(() => {
-                        try { lastOpenedBy.focus(); } catch (_) {}
+                        try { lastOpenedBy.focus(); } catch (_) { }
                     }, 20);
                 } else {
                     if (document.activeElement && document.activeElement !== document.body) {
-                        try { document.activeElement.blur(); } catch (_) {}
+                        try { document.activeElement.blur(); } catch (_) { }
                     }
                 }
             }
@@ -1770,8 +2124,8 @@
                     const tag = (active && active.tagName) ? active.tagName.toLowerCase() : '';
                     const isEditable = active && (active.isContentEditable || tag === 'input' || tag === 'textarea' || tag === 'select');
                     const isModalOpen = document.body.classList.contains('legal-modal-open') ||
-                                        document.querySelector('.place-panel-backdrop.active') ||
-                                        document.querySelector('#placePanel.active');
+                        document.querySelector('.place-panel-backdrop.active') ||
+                        document.querySelector('#placePanel.active');
                     if (!isEditable && !isModalOpen) {
                         e.preventDefault();
                         const btn = (window.innerWidth >= 1024) ? headerSearchPillBtn : headerSearchMobileBtn;
@@ -1966,10 +2320,10 @@
             }
 
             if (searchPanelResultsList && typeof window.bindTap === 'function') {
-                window.bindTap(searchPanelResultsList, '.search-result-row', function(e) {
+                window.bindTap(searchPanelResultsList, '.search-result-row', function (e) {
                     if (typeof this._onSelectRow === 'function') this._onSelectRow(e);
                 });
-                window.bindTap(searchPanelResultsList, '.search-see-all-row', function(e) {
+                window.bindTap(searchPanelResultsList, '.search-see-all-row', function (e) {
                     if (typeof this._onSelectSeeAll === 'function') this._onSelectSeeAll(e);
                 });
             }
@@ -2124,7 +2478,8 @@
     <div class="side-drawer" id="sideDrawer">
         <div class="drawer-top">
             <a href="/" class="drawer-brand" aria-label="Calzada Home">
-                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo" onerror="this.src='../assets/logo-new.png'">
+                <img width="500" height="175" src="../assets/logo-header.webp" alt="Calzada" class="drawer-logo"
+                    onerror="this.src='../assets/logo-new.png'">
             </a>
             <button class="drawer-close" id="drawerCloseBtn" type="button" aria-label="Close menu">
                 <ion-icon name="close-outline"></ion-icon>
@@ -2140,7 +2495,8 @@
                 <a href="/plans" class="drawer-nav-item"><span data-i18n="nav.for_businesses">For businesses</span></a>
                 <a href="/faq" class="drawer-nav-item"><span data-i18n="footer.nav.faq">FAQs</span></a>
                 <a href="/feedback" class="drawer-nav-item"><span data-i18n="footer.nav.feedback">Feedback</span></a>
-                <button type="button" id="drawerRoutieLink" class="drawer-nav-item"><span data-i18n="footer.nav.routie">Ask Routie</span></button>
+                <button type="button" id="drawerRoutieLink" class="drawer-nav-item"><span
+                        data-i18n="footer.nav.routie">Ask Routie</span></button>
             </div>
 
             <div class="drawer-separator"></div>
@@ -2149,24 +2505,27 @@
             <div class="mobile-lang-row">
                 <span class="mobile-lang-label">Language / Wika</span>
                 <div class="lang-dropdown-container mobile-lang-container">
-                        <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu" aria-label="Language: English">
-                            <i class="ti ti-language lang-icon" aria-hidden="true"></i>
-                            <span class="lang-active">EN</span>
-                            <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
+                    <button class="mobile-lang-toggle" type="button" aria-expanded="false" aria-haspopup="menu"
+                        aria-label="Language: English">
+                        <i class="ti ti-language lang-icon" aria-hidden="true"></i>
+                        <span class="lang-active">EN</span>
+                        <ion-icon name="chevron-down-outline" class="lang-arrow" aria-hidden="true"></ion-icon>
+                    </button>
+                    <div class="lang-dropdown-menu" role="menu">
+                        <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio"
+                            aria-checked="true">
+                            <span class="lang-name">English</span>
+                            <span class="lang-code">EN</span>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
                         </button>
-                        <div class="lang-dropdown-menu" role="menu">
-                            <button class="lang-dropdown-item active" type="button" data-lang="en" role="menuitemradio" aria-checked="true">
-                                <span class="lang-name">English</span>
-                                <span class="lang-code">EN</span>
-                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
-                            </button>
-                            <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio" aria-checked="false">
-                                <span class="lang-name">Tagalog</span>
-                                <span class="lang-code">TL</span>
-                                <i class="ti ti-check lang-check" aria-hidden="true"></i>
-                            </button>
-                        </div>
+                        <button class="lang-dropdown-item" type="button" data-lang="tl" role="menuitemradio"
+                            aria-checked="false">
+                            <span class="lang-name">Tagalog</span>
+                            <span class="lang-code">TL</span>
+                            <i class="ti ti-check lang-check" aria-hidden="true"></i>
+                        </button>
                     </div>
+                </div>
             </div>
         </nav>
         <div class="drawer-footer-text">© 2026 Calzada</div>

@@ -173,7 +173,7 @@
     "photo": "/assets/places/sm-city-calamba-transport-terminal/photo.webp",
     "pano": "/assets/places/sm-city-calamba-transport-terminal/360.jpg",
     "pano_thumb": "/assets/places/sm-city-calamba-transport-terminal/360-thumb.webp",
-    "description": "Major central public transportation hub",
+    "description": "Terminal papuntang Halang at Los Baños (UPLB). Major public transport hub on the east side of SM City Calamba.",
     "full_address": "Chipeco Avenue, Brgy. Uno, Calamba City, Laguna",
     "phone": null,
     "website": null,
@@ -4087,5 +4087,33 @@
       "sun": "4:00 AM - 10:00 PM"
     },
     "coord_source": "360-gps"
+  },
+  {
+    "id": 177,
+    "slug": "sm-calamba-inner-rd-terminal",
+    "name": "SM Calamba Inner Rd Terminal",
+    "category": "terminals",
+    "barangay": "Uno",
+    "municipality": "Calamba",
+    "lat": 14.2032625,
+    "lng": 121.1547031,
+    "image_path": "/assets/places/sm-city-calamba/photo.webp",
+    "photo": "/assets/places/sm-city-calamba/photo.webp",
+    "pano": null,
+    "pano_thumb": null,
+    "description": "Terminal papuntang Real (jeeps to Tagaytay and Tanauan via Real). Located along SM City Calamba inner road / bypass road by SM Cinema.",
+    "full_address": "SM City Calamba Inner Road / Bypass Road (Cinema side), Brgy. Uno, Calamba City, Laguna",
+    "phone": null,
+    "website": null,
+    "opening_hours": {
+      "mon": "5:00 AM - 10:00 PM",
+      "tue": "5:00 AM - 10:00 PM",
+      "wed": "5:00 AM - 10:00 PM",
+      "thu": "5:00 AM - 10:00 PM",
+      "fri": "5:00 AM - 10:00 PM",
+      "sat": "5:00 AM - 10:00 PM",
+      "sun": "5:00 AM - 10:00 PM"
+    },
+    "coord_source": "osm"
   }
 ]

@@ -11,6 +11,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { getFareData, fareFactsSection, MODERN_JEEPNEY_MINIMUM } = require('./fare-info');
+const routiePlanner = require('./routie-planner');
 let fareCalc = null;
 try {
     fareCalc = require('../public/js/fare-calc.js');
@@ -20,6 +21,14 @@ let transitEngine = null;
 let transitPlanner = null;
 let transitRoutesData = null;
 let barangaysData = null;
+
+let defaultPlacesData = [];
+try {
+    const pPath = path.resolve(__dirname, 'data/places.json');
+    if (fs.existsSync(pPath)) {
+        defaultPlacesData = JSON.parse(fs.readFileSync(pPath, 'utf8'));
+    }
+} catch (_) {}
 
 try {
     transitEngine = require('../public/js/transit-engine.js');
@@ -127,6 +136,72 @@ const FAQS = [
         triggers: ['what can i post', 'ano puwede i-post', 'post limits', 'how many photos per post'],
         en: 'Approved businesses can post up to 5 photos per post with a caption of up to 500 characters. You can edit the caption or delete posts later.',
         tl: 'Puwede kang mag-post ng hanggang 5 larawan bawat post at caption na hanggang 500 characters. Puwede mong i-edit ang caption o burahin ang post kinalaunan.'
+    },
+    {
+        id: 'suggested_terminals',
+        triggers: [
+            'suggested terminals', 'suggested terminal', 'terminal choices',
+            'mga terminal sa calamba', 'saan ang mga terminal', 'saan sasakay',
+            'terminals in calamba', 'anong mga terminal', 'anong terminal',
+            'ano ang mga terminal', 'terminal sa calamba', 'inner rd terminal',
+            'sm inner rd terminal', 'sm transport terminal'
+        ],
+        en: `In Calzada, "Suggested Terminals" helps commuters choose the best boarding terminal for destinations served by multiple hubs (such as Brgy. Real and Brgy. Halang):
+
+• For Brgy. Real destinations:
+  - SM Calamba Inner Rd Terminal (Terminal papuntang Real, Cinema side) [Recommended / Fastest]
+  - Crossing Grand Terminal (North of Crossing triangle)
+  - New Calamba Transport Terminal (near CMC Avenue)
+
+• For Brgy. Halang destinations:
+  - SM City Calamba Transport Terminal (Terminal papuntang Halang, East side) [Recommended]
+  - Crossing Grand Terminal (North of Crossing triangle)
+
+Key Curated Terminals in Calamba:
+1. SM City Calamba Transport Terminal (East side): Terminal papuntang Halang at Los Baños (UPLB).
+2. SM Calamba Inner Rd Terminal (West inner road by SM Cinema): Terminal papuntang Real (jeeps to Tagaytay and Tanauan via Real).
+3. Crossing Grand Terminal: Boarding for jeeps to Real, Halang, and Sta. Rosa.
+4. New Calamba Transport Terminal (near CMC): Boarding for jeeps to Real.
+
+When using the Planner, if you are within 60 meters of any terminal, it automatically recognizes your location and starts your route there without asking.`,
+        tl: `Sa Calzada, ang "Suggested Terminals" ay tumutulong sa commuter na pumili ng pinakamabilis o pinakamalapit na sakayan para sa mga rutang may iba't ibang terminal (tulad ng papuntang Brgy. Real at Brgy. Halang):
+
+• Papuntang Brgy. Real:
+  - SM Calamba Inner Rd Terminal (Terminal papuntang Real, Cinema side) [Recommended / Pinakamabilis]
+  - Crossing Grand Terminal (Hilaga ng Crossing triangle)
+  - New Calamba Transport Terminal (malapit sa CMC Avenue)
+
+• Papuntang Brgy. Halang:
+  - SM City Calamba Transport Terminal (Terminal papuntang Halang, East side) [Recommended]
+  - Crossing Grand Terminal (Hilaga ng Crossing triangle)
+
+Pangunahing verified terminals sa Calamba:
+1. SM City Calamba Transport Terminal (East side): Terminal papuntang Halang at Los Baños (UPLB).
+2. SM Calamba Inner Rd Terminal (West inner road tabi ng SM Cinema): Terminal papuntang Real (sakayan ng jeep papuntang Tagaytay at Tanauan via Real).
+3. Crossing Grand Terminal: Sakayan ng jeep papuntang Real, Halang, at Sta. Rosa.
+4. New Calamba Transport Terminal (malapit sa CMC): Sakayan ng jeep papuntang Real.
+
+Sa Calzada Planner, kapag nasa loob ka ng 60 metro mula sa terminal, awtomatiko itong ituturing na simula ng iyong biyahe nang hindi na kailangang tanungin.`
+    },
+    {
+        id: 'terminal_real',
+        triggers: [
+            'terminal papuntang real', 'sakayan papuntang real', 'terminal to real',
+            'saan sasakay papuntang real', 'saan ang sakayan papuntang real', 'saan ang terminal papuntang real',
+            'paano sumakay papuntang real', 'saan terminal papuntang real'
+        ],
+        en: 'The primary terminal for Brgy. Real is the SM Calamba Inner Rd Terminal (located by SM Cinema on the west inner road of SM City Calamba, jeeps to Tagaytay/Tanauan via Real). You can also board at Crossing Grand Terminal (north of Crossing triangle) or New Calamba Transport Terminal (near CMC Avenue).',
+        tl: 'Ang pangunahing sakayan papuntang Brgy. Real ay ang SM Calamba Inner Rd Terminal (nasa SM Cinema side / west inner road ng SM City Calamba, sakayan ng jeep pa-Tagaytay/Tanauan via Real). Maaari ka ring sumakay sa Crossing Grand Terminal o New Calamba Transport Terminal (malapit sa CMC Avenue).'
+    },
+    {
+        id: 'terminal_halang',
+        triggers: [
+            'terminal papuntang halang', 'sakayan papuntang halang', 'terminal to halang',
+            'saan sasakay papuntang halang', 'saan ang sakayan papuntang halang', 'saan ang terminal papuntang halang',
+            'paano sumakay papuntang halang', 'saan terminal papuntang halang'
+        ],
+        en: 'The primary terminal for Brgy. Halang is the SM City Calamba Transport Terminal (located on the east side of SM City Calamba, jeeps to Halang and Los Baños/UPLB). You can also board at Crossing Grand Terminal (north of Crossing triangle).',
+        tl: 'Ang pangunahing sakayan papuntang Brgy. Halang ay ang SM City Calamba Transport Terminal (nasa east side ng SM City Calamba, sakayan ng jeep pa-Halang at Los Baños/UPLB). Maaari ka ring sumakay sa Crossing Grand Terminal (hilaga ng Crossing triangle).'
     }
 ];
 
@@ -141,17 +216,17 @@ const TERMINALS_INFO = [
     },
     {
         name: 'SM City Calamba Transport Terminal',
-        aliases: ['sm transport terminal', 'sm calamba terminal', 'sm terminal', 'sm east terminal'],
+        aliases: ['sm transport terminal', 'sm calamba transport terminal', 'sm city calamba transport terminal', 'sm calamba terminal', 'sm terminal', 'sm east terminal', 'terminal papuntang halang', 'sm terminal halang', 'sakayan papuntang halang'],
         barangay: 'Uno',
         coords: [14.202953, 121.15715],
-        note: 'Located on the east side of SM City Calamba. Boarding terminal for jeeps to Los Baños (UPLB) and Halang.'
+        note: 'Located on the east side of SM City Calamba. Terminal papuntang Halang at Los Baños (UPLB).'
     },
     {
-        name: 'Calamba–Tagaytay Terminal (SM Calamba)',
-        aliases: ['calamba tagaytay terminal', 'tagaytay terminal', 'uv terminal sm', 'sm cinema terminal'],
+        name: 'SM Calamba Inner Rd Terminal',
+        aliases: ['sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'calamba tagaytay terminal', 'tagaytay terminal', 'uv terminal sm', 'sm cinema terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
         barangay: 'Uno',
         coords: [14.2032625, 121.1547031],
-        note: 'Located on SM City Calamba west side driveway by SM Cinema / Starbucks. Boarding terminal for jeeps to Tagaytay and Tanauan via Real.'
+        note: 'Located along SM City Calamba inner road / bypass road by SM Cinema. Terminal papuntang Real (jeeps to Tagaytay and Tanauan via Real load here).'
     },
     {
         name: 'SM Calamba (Cinema side Drop-off)',
@@ -229,6 +304,10 @@ function checkScope(text) {
             if ((loc === 'tagaytay' || loc === 'tanauan') && (norm.includes('calamba') || norm.includes('sm') || norm.includes('terminal') || norm.includes('sakayan'))) {
                 continue;
             }
+            // If it's a local shop/restaurant inquiry (e.g. "Tokyo Grill", "Japan Surplus", "Manila Teachers")
+            if (/\b(grill|restaurant|resto|ramen|cafe|coffee|store|shop|surplus|bank|hotel|bbq|bakeshop)\b/i.test(norm)) {
+                continue;
+            }
             return {
                 outOfScope: true,
                 reason: 'location',
@@ -237,12 +316,15 @@ function checkScope(text) {
         }
     }
 
-    // Check for general off-topic queries (weather, coding, math, general trivia)
+    // Check for general off-topic queries (weather, coding, math, general trivia, cooking, homework)
     const offTopicPatterns = [
         /\b(weather|panahon|ulan|bagyo|forecast)\b/i,
-        /\b(python|javascript|code|programming|algorithm|sql)\b/i,
+        /\b(python|javascript|code|programming|algorithm|sql|html|css|debug|compile)\b/i,
         /\b(who is the president|sino ang presidente|celebrity|nba|basketball champion)\b/i,
-        /\b(solve|derivative|integral|square root|\d+\s*[\+\-\*\/]\s*\d+)\b/i
+        /\b(solve|derivative|integral|square root|\d+\s*[\+\-\*\/]\s*\d+)\b/i,
+        /\b(recipe|lutuin|sangkap|ingredients|how to cook|paano magluto)\b/i,
+        /\b(homework|essay|assignment|tula|poem|joke|biro|kanta|song lyrics)\b/i,
+        /\b(cryptocurrency|bitcoin|stocks|forex|investing|trading)\b/i
     ];
     for (const pat of offTopicPatterns) {
         if (pat.test(text)) {
@@ -295,6 +377,9 @@ function checkAmbiguity(text) {
 
 // ── Match Place by Name or Slug or Aliases ───────────────────────────────────────────
 function findPlaceByName(query, places) {
+    if (!places || !Array.isArray(places) || places.length === 0) {
+        places = defaultPlacesData;
+    }
     if (!query) return null;
     const qNorm = normalize(query);
     if (!qNorm) return null;
@@ -492,10 +577,27 @@ function extractRouteFromText(raw) {
 }
 
 // ── Main Knowledge Query Function ─────────────────────────────────────────────────────
-async function resolveRoutieContext({ message, route, lang, places, adminDb }) {
+async function resolveRoutieContext({ message, route, lang, places, adminDb, history, lastTrip, sessionId }) {
+    if (!places || !Array.isArray(places) || places.length === 0) {
+        places = defaultPlacesData;
+    }
     const rawText = cleanUserMessage(message);
     const routeData = route || extractRouteFromText(message);
     const userLang = lang === 'tl' ? 'tl' : (detectTagalog(rawText) ? 'tl' : 'en');
+
+    // 0. Follow-up Inquiry using previous trip (Requirement 7)
+    if (lastTrip) {
+        const followUp = routiePlanner.handleFollowUp(rawText, lastTrip, places, userLang);
+        if (followUp) {
+            return {
+                type: 'follow_up',
+                lang: userLang,
+                planResult: followUp.planResult || lastTrip,
+                directReply: followUp.reply,
+                instruction: followUp.reply
+            };
+        }
+    }
 
     // 1. Attached Route Info from the Planner UI
     if (routeData && routeData.origin && routeData.destination) {
@@ -518,42 +620,85 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb }) {
     // 2. Calamba Scope Check (Rule 5)
     const scope = checkScope(rawText);
     if (scope.outOfScope) {
+        const isTl = userLang === 'tl';
+        const replyText = scope.reason === 'location'
+            ? (isTl 
+                ? `Paumanhin po, ang sakop lamang ni Routie at ng Calzada ay ang lungsod ng Calamba, Laguna. Hindi po sakop ang ${scope.location ? scope.location.toUpperCase() : 'ibang lugar'} o mga biyahe sa labas ng aming service area. Handa po akong tumulong para sa mga sakayan at lugar sa Calamba!`
+                : `Sorry, Routie and Calzada strictly cover Calamba, Laguna only. Trips in ${scope.location ? scope.location.toUpperCase() : 'other areas'} outside our service coverage are not supported. I am glad to assist with routes and places within Calamba!`)
+            : (isTl
+                ? `Paumanhin po, ang sakop lamang ni Routie ay ang pag-commute, pamasahe sa jeep, at mga lugar sa Calamba, Laguna. Hindi po ako makakasagot sa mga usaping walang kinalaman sa biyahe o lokal na gabay sa Calamba.`
+                : `Sorry, Routie is strictly a commuting assistant for Calamba, Laguna. I cannot assist with topics outside commuting and places in Calamba.`);
+
         return {
             type: 'out_of_scope',
             lang: userLang,
             data: scope,
-            instruction: userLang === 'tl'
-                ? 'Magalang na ipaliwanag na ang sakop lamang ni Routie at ng Calzada ay ang lungsod ng Calamba, Laguna. Hindi sumasaklaw si Routie sa mga lugar sa labas ng Calamba o mga usaping walang kinalaman sa pag-commute dito. Mag-alok ng tulong para sa mga biyahe at lugar sa Calamba.'
-                : 'Politely explain that Routie and Calzada only cover Calamba, Laguna. Routie does not cover destinations outside Calamba or off-topic questions. Warmly offer assistance for places and commutes within Calamba.'
+            directReply: replyText,
+            instruction: replyText
         };
     }
 
     // 3. Ambiguity Check (Rule 4)
     const amb = checkAmbiguity(rawText);
     if (amb.isAmbiguous) {
+        const isTl = userLang === 'tl';
+        let ambReply = '';
         if (amb.subType === 'bare_keyword') {
-            return {
-                type: 'ambiguous',
-                lang: userLang,
-                data: amb,
-                instruction: userLang === 'tl'
-                    ? `Nabanggit lamang ng user ang "${amb.keyword}". Tanungin kung naghahanap sila ng direksyon o sakayan papunta rito, o kaya ay opening hours, address, o iba pa. Kung nais nilang bumiyahe, itanong kung saan sila manggagaling.`
-                    : `The user only entered "${amb.keyword}". Ask whether they are looking for directions/boarding points to get there, opening hours, address, or something else. If planning a trip, ask where they are starting from.`
-            };
+            ambReply = isTl
+                ? `Nabanggit po ninyo ang "${amb.keyword}". Naghahanap po ba kayo ng sakayan/direksyon papunta rito, o kaya ay opening hours at address? Kung nais ninyong bumiyahe, saan po kayo manggagaling?`
+                : `You mentioned "${amb.keyword}". Are you looking for directions to get there, opening hours, or address? If you are planning a trip, where will you be coming from?`;
+        } else if (amb.subType === 'missing_origin') {
+            ambReply = isTl
+                ? `Nais po ninyong pumunta sa "${amb.destination}". Saan po kayo manggagaling para maibigay ko ang tamang sakayan, jeep, at pamasahe?`
+                : `You want to go to "${amb.destination}". Where will you be starting from so I can give you the right boarding point and jeepney route?`;
         }
-        if (amb.subType === 'missing_origin') {
+
+        return {
+            type: 'ambiguous',
+            lang: userLang,
+            data: amb,
+            directReply: ambReply,
+            instruction: ambReply
+        };
+    }
+
+    // 4. Origin & Destination Route Planning (Priority over general fare inquiries)
+    const od = routiePlanner.extractOriginAndDestination(rawText) || extractOriginAndDestination(rawText);
+    if (od && od.origin && od.dest) {
+        const asksDiscount = /\b(student|estudyante|senior|pwd|discount|diskwento)\b/i.test(rawText);
+        const planRes = routiePlanner.plan_route(od.origin, od.dest, {
+            places,
+            passengerType: asksDiscount ? 'discounted' : 'regular'
+        });
+        const formattedReply = routiePlanner.formatRouteReply(planRes, userLang);
+
+        if (planRes.success) {
+            return {
+                type: 'route_plan',
+                lang: userLang,
+                planResult: planRes,
+                directReply: formattedReply,
+                instruction: formattedReply
+            };
+        } else if (planRes.reason === 'ambiguous') {
             return {
                 type: 'ambiguous',
                 lang: userLang,
-                data: amb,
-                instruction: userLang === 'tl'
-                    ? `Nais pumunta ng commuter sa "${amb.destination}", ngunit hindi sinabi kung saan sila manggagaling. Itanong kung saan ang kanilang panimulang punto (starting point) upang maibigay ang tamang sakayan at ruta.`
-                    : `The commuter wants to go to "${amb.destination}" but did not specify where they are coming from. Ask where they are starting from so you can provide the exact boarding point and route.`
+                directReply: formattedReply,
+                instruction: formattedReply
+            };
+        } else {
+            return {
+                type: 'route_not_found',
+                lang: userLang,
+                planResult: planRes,
+                directReply: formattedReply,
+                instruction: formattedReply
             };
         }
     }
 
-    // 4. FAQ Match
+    // 5. FAQ Match
     const faqMatch = matchFaq(rawText);
     if (faqMatch) {
         const answer = userLang === 'tl' ? faqMatch.tl : faqMatch.en;
@@ -561,19 +706,20 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb }) {
             type: 'faq',
             lang: userLang,
             data: { faq: faqMatch, answer },
+            directReply: answer,
             instruction: userLang === 'tl'
                 ? `Sagutin ang tanong gamit ang opisyal na FAQ ng Calzada: "${answer}". Magiliw, maikli, at huwag mag-imbento.`
                 : `Answer the question using Calzada's official FAQ: "${answer}". Keep it friendly, clear, and commuter-focused.`
         };
     }
 
-    // 5. Fare Calculation Inquiry (Rule 2)
+    // 6. Fare Calculation Inquiry (General distance or minimum fare)
     const isFareQuestion = /\b(magkano|how much|pamasahe|pasahe|fare|fares|bayad|price|cost)\b/i.test(rawText);
     const distanceMatch = rawText.match(/(\d+(?:[.,]\d+)?)\s*(?:km|kms|kilometers?|kilometres?|kilometro)\b/i);
     const asksModernJeep = /\bmodern\s*(?:jeep|jeepney|dyip)\b/i.test(rawText);
     const asksStudentDiscount = /\b(student|students|estudyante|senior|pwd|discount|diskwento)\b/i.test(rawText);
 
-    if (isFareQuestion && !extractOriginAndDestination(rawText)) {
+    if (isFareQuestion) {
         const { data: fareData } = getFareData();
         if (asksModernJeep) {
             return {
@@ -613,82 +759,6 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb }) {
                 ? `Ang minimum fare sa tradisyunal na jeep para sa unang ${fareData.baseKm} km ay ₱${minReg.toFixed(2)} (regular) at ₱${minDisc.toFixed(2)} (estudyante, senior, PWD). Tantiya ito base sa LTFRB fare guide. Para sa mas mahabang biyahe, depende ito sa distansya.`
                 : `The minimum fare for traditional jeepneys for the first ${fareData.baseKm} km is ₱${minReg.toFixed(2)} (regular) and ₱${minDisc.toFixed(2)} (student, senior, PWD). State that fares are estimates based on the LTFRB fare guide.`
         };
-    }
-
-    // 6. Origin & Destination Route Planning (Rules 1 & 2)
-    const od = extractOriginAndDestination(rawText);
-    if (od && od.origin && od.dest) {
-        const origLoc = resolveLocationCoords(od.origin, places);
-        const destLoc = resolveLocationCoords(od.dest, places);
-
-        if (!origLoc || !destLoc) {
-            const missing = !origLoc ? od.origin : od.dest;
-            return {
-                type: 'route_not_found',
-                lang: userLang,
-                data: { missingName: missing },
-                instruction: userLang === 'tl'
-                    ? `Hindi matagpuan ang "${missing}" sa ating verified data. Sabihing hindi ka sigurado dahil wala ito sa data, at imungkahi na tingnan ang Planner sa calzadaph.com/planner o mag-email sa thecalzada@gmail.com. Huwag mag-imbento ng sakayan o presyo.`
-                    : `"${missing}" is not found in our verified data. State that you're not sure because it's not in our data, and point the user to the Planner (calzadaph.com/planner) or thecalzada@gmail.com. Never invent routes, boarding points, or fares.`
-            };
-        }
-
-        // Run Transit Engine
-        let planResult = null;
-        let routeSource = 'direct';
-
-        if (transitPlanner) {
-            const directPlans = transitPlanner.plan(origLoc.coords, destLoc.coords);
-            if (directPlans && directPlans.length > 0) {
-                planResult = directPlans[0];
-            } else {
-                // Check terminal choices
-                const tc = transitPlanner.terminalChoices(origLoc.coords, destLoc.coords);
-                if (tc && tc.choices && tc.choices.length > 0) {
-                    const best = tc.choices[0];
-                    planResult = best.option;
-                    routeSource = 'terminal_choice';
-                }
-            }
-        }
-
-        if (planResult && planResult.legs && planResult.legs.length > 0) {
-            const jeepLeg = planResult.legs.find(l => l.type === 'jeep');
-            const boardName = jeepLeg && jeepLeg.board ? (jeepLeg.board.name || 'Terminal / sakayan') : 'Sakayan';
-            const routeName = jeepLeg ? jeepLeg.routeName : 'Jeepney';
-            const headsign = jeepLeg && jeepLeg.headsign ? jeepLeg.headsign : '';
-            const totalMin = planResult.totalMin;
-            const fare = planResult.fare;
-            const fareDisc = planResult.fareDisc;
-
-            return {
-                type: 'route_plan',
-                lang: userLang,
-                data: {
-                    origin: origLoc.name,
-                    destination: destLoc.name,
-                    boardPoint: boardName,
-                    routeName,
-                    headsign,
-                    totalMin,
-                    fare,
-                    fareDisc,
-                    transfers: planResult.transfers
-                },
-                instruction: userLang === 'tl'
-                    ? `Magbigay ng malinaw na commuter directions mula ${origLoc.name} papuntang ${destLoc.name}:\n- Sakayan/Boarding point: ${boardName}\n- Jeepney Route: ${routeName}${headsign ? ` (signboard / karatula: ${headsign})` : ''}\n- Estimated travel time: mga ${totalMin} minuto\n- Pamasahe: ₱${fare.toFixed(2)} regular (₱${fareDisc.toFixed(2)} student/senior/PWD)\nSabihing ang pamasahe ay tantiya base sa LTFRB fare guide. Maikli, commuter-friendly, at malinaw.`
-                    : `Provide clear commuter directions from ${origLoc.name} to ${destLoc.name}:\n- Boarding point: ${boardName}\n- Jeepney Route: ${routeName}${headsign ? ` (headsign: ${headsign})` : ''}\n- Estimated travel time: ~${totalMin} minutes\n- Fare estimate: ₱${fare.toFixed(2)} regular (₱${fareDisc.toFixed(2)} student/senior/PWD)\nState that the fare is an estimate based on the LTFRB fare guide. Keep it short and commuter-friendly.`
-            };
-        } else {
-            return {
-                type: 'route_no_direct_jeep',
-                lang: userLang,
-                data: { origin: origLoc.name, destination: destLoc.name },
-                instruction: userLang === 'tl'
-                    ? `Wala sa curated jeepney routes ng Calzada ang direktang ruta mula ${origLoc.name} papuntang ${destLoc.name}. Maaaring kailangan mag-tricycle o maglakad. Imungkahi na gamitin ang Planner sa calzadaph.com/planner para sa mapa o mag-email sa thecalzada@gmail.com. Huwag mag-imbento ng ruta.`
-                    : `No direct jeepney route between ${origLoc.name} and ${destLoc.name} is in Calzada's curated routes. Commuters may need a tricycle or walking. Advise checking the Planner at calzadaph.com/planner or emailing thecalzada@gmail.com. Never invent routes.`
-            };
-        }
     }
 
     // 7. Specific Place Details (Hours, Address, Location, Contact)

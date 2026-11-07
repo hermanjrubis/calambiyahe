@@ -119,6 +119,7 @@ function getGroqClient() {
 const { normalizeLang, fallbackReply, interpretModelOutput } = require('./chat-reply');
 const { getFareData, fareFactsSection, fareEstimateBlock } = require('./fare-info');
 const { resolveRoutieContext, buildRoutieSystemPrompt } = require('./routie-knowledge');
+const routiePlanner = require('./routie-planner');
 const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1168,22 +1169,83 @@ app.delete('/api/places/:id/rating', requireAuth, async (req, res) => {
 
 
 
+// Shared In-Memory Session Cache for Routie Conversational Routing
+const chatSessions = new Map();
+const CHAT_SESSION_TTL_MS = 60 * 60 * 1000; // 60 minutes
+
+function cleanupChatSessions() {
+    const now = Date.now();
+    for (const [id, sess] of chatSessions.entries()) {
+        if (now - sess.updatedAt > CHAT_SESSION_TTL_MS) {
+            chatSessions.delete(id);
+        }
+    }
+}
+setInterval(cleanupChatSessions, 10 * 60 * 1000);
+
+// Shared Route Planning API (Used by Planner & Routie)
+app.get('/api/plan-route', async (req, res) => {
+    const { origin, dest, destination, passenger } = req.query || {};
+    const origQ = origin || '';
+    const destQ = dest || destination || '';
+    if (!origQ || !destQ) {
+        return res.status(400).json({ error: 'Both origin and destination parameters are required.' });
+    }
+    const liveBusinesses = await getLiveBusinesses();
+    const activePlaces = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
+    const planResult = routiePlanner.plan_route(origQ, destQ, {
+        places: activePlaces,
+        passengerType: passenger || 'regular'
+    });
+    return res.json(planResult);
+});
+
+app.post('/api/plan-route', async (req, res) => {
+    const { origin, dest, destination, passenger } = req.body || {};
+    const origQ = origin || '';
+    const destQ = dest || destination || '';
+    if (!origQ || !destQ) {
+        return res.status(400).json({ error: 'Both origin and destination fields are required.' });
+    }
+    const liveBusinesses = await getLiveBusinesses();
+    const activePlaces = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
+    const planResult = routiePlanner.plan_route(origQ, destQ, {
+        places: activePlaces,
+        passengerType: passenger || 'regular'
+    });
+    return res.json(planResult);
+});
+
 app.post('/api/chat', async (req, res) => {
-    const { message, route, lang } = req.body || {};
+    const { message, route, lang, history, sessionId } = req.body || {};
     const replyLang = normalizeLang(lang);
     // Every failure still returns a usable { reply } so the widget shows a friendly message.
     const sendFallback = (status, error, kind) =>
         res.status(status).json({ error, reply: fallbackReply(kind, replyLang) });
 
-    const client = getGroqClient();
-    if (!client) {
-        console.error('GROQ_API_KEY is not configured on the server. Please check your .env file.');
-        return sendFallback(500, 'not_configured', 'unavailable');
-    }
+    const sessionKey = sessionId || req.ip || 'default';
+    const currentSession = chatSessions.get(sessionKey);
+    let lastTrip = currentSession?.lastTrip || null;
 
     try {
         const liveBusinesses = await getLiveBusinesses();
         const activePlaces = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
+
+        // If lastTrip not in session, try to find in history
+        if (!lastTrip && Array.isArray(history) && history.length > 0) {
+            for (let i = history.length - 1; i >= 0; i--) {
+                const item = history[i];
+                const text = item.text || item.content || '';
+                const od = routiePlanner.extractOriginAndDestination(text);
+                if (od && od.origin && od.dest) {
+                    const r = routiePlanner.plan_route(od.origin, od.dest, { places: activePlaces });
+                    if (r && r.success) {
+                        lastTrip = r;
+                        break;
+                    }
+                }
+            }
+        }
 
         let adminDb = null;
         try {
@@ -1195,8 +1257,40 @@ app.post('/api/chat', async (req, res) => {
             route,
             lang: replyLang,
             places: activePlaces,
-            adminDb
+            adminDb,
+            history,
+            lastTrip,
+            sessionId: sessionKey
         });
+
+        // If a route was planned or updated, save it to the session
+        if (knowledgeContext.planResult && knowledgeContext.planResult.success) {
+            chatSessions.set(sessionKey, {
+                lastTrip: knowledgeContext.planResult,
+                updatedAt: Date.now()
+            });
+        }
+
+        // Return direct verified response for route planning, follow-ups, ambiguity, out-of-scope, and FAQ queries
+        if (knowledgeContext.directReply && (
+            knowledgeContext.type === 'route_plan' ||
+            knowledgeContext.type === 'follow_up' ||
+            knowledgeContext.type === 'ambiguous' ||
+            knowledgeContext.type === 'route_not_found' ||
+            knowledgeContext.type === 'out_of_scope' ||
+            knowledgeContext.type === 'faq'
+        )) {
+            return res.json({ reply: knowledgeContext.directReply });
+        }
+
+        const client = getGroqClient();
+        if (!client) {
+            if (knowledgeContext.directReply) {
+                return res.json({ reply: knowledgeContext.directReply });
+            }
+            console.error('GROQ_API_KEY is not configured on the server. Please check your .env file.');
+            return sendFallback(500, 'not_configured', 'unavailable');
+        }
 
         const systemPrompt = buildRoutieSystemPrompt(knowledgeContext);
 

@@ -1,0 +1,226 @@
+[
+  {
+    "group": "1. In-Scope Routes & Fares",
+    "id": "R1",
+    "query": "Paano pumunta sa Letran mula Crossing Grand Terminal?",
+    "reply": "Total: ₱14.00, around 24 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 569m (~9 min).\n2. Sumakay sa SM City Calamba Transport Terminal ng jeep na Calamba – Los Baños (UPLB) (signboard: \"UPLB\"), at bumaba sa Colegio de San Juan de Letran – Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 9 minuto.\n3. Maglakad nang humigit-kumulang 391m (~6 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "description": "Provides structured route, boarding point, and exact fare"
+  },
+  {
+    "group": "1. In-Scope Routes & Fares",
+    "id": "R2",
+    "query": "Bucal papuntang SM City Calamba magkano pamasahe?",
+    "reply": "Total: ₱14.00, around 18 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 446m (~7 min).\n2. Sumakay sa Sakayan sa Highway ng jeep na Los Baños (UPLB) – Calamba (signboard: \"SM Calamba / Crossing Terminal\"), at bumaba sa SM Calamba (Cinema side). Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 11 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "description": "Provides exact ₱14 regular and ₱11.25 discount fares"
+  },
+  {
+    "group": "1. In-Scope Routes & Fares",
+    "id": "R3",
+    "query": "Direksyon mula CityMall Calamba hanggang Halang",
+    "reply": "Total: ₱14.00, around 12 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 64m (~1 min).\n2. Sumakay sa Crossing Grand Terminal ng jeep na Crossing Grand Terminal – Halang (signboard: \"Halang\"), at bumaba sa Brgy. Halang, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 9 minuto.\n3. Maglakad nang humigit-kumulang 143m (~2 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• Crossing Grand Terminal (Pinakamabilis) – mga 12 min, ₱14.00\n• SM City Calamba Transport Terminal – mga 17 min, ₱14.00",
+    "passed": true,
+    "description": "Provides directions and fare from CityMall to Halang"
+  },
+  {
+    "group": "1. In-Scope Routes & Fares",
+    "id": "R4",
+    "query": "how to get to Real from Crossing?",
+    "reply": "Total: ₱14.00, around 11 minutes, 0 transfers\n\n1. Sumakay sa Crossing Grand Terminal ng jeep na Crossing Grand Terminal – Real (signboard: \"Real\"), at bumaba sa Brgy. Real, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 6 minuto.\n2. Maglakad nang humigit-kumulang 315m (~5 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.\n\nIba pang suggested terminal para sa biyaheng ito:\n• Crossing Grand Terminal (Pinakamabilis) – mga 11 min, ₱14.00\n• New Calamba Transport Terminal – mga 15 min, ₱14.00\n• SM Calamba Inner Rd Terminal – mga 18 min, ₱14.00",
+    "passed": true,
+    "description": "English route query returns structured itinerary and fare"
+  },
+  {
+    "group": "1. In-Scope Routes & Fares",
+    "id": "R5",
+    "query": "magkano pamasahe kung senior citizen mula SM Calamba papuntang Bucal?",
+    "reply": "Total: ₱14.00, around 24 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 513m (~8 min).\n2. Sumakay sa SM City Calamba Transport Terminal ng jeep na Calamba – Los Baños (UPLB) (signboard: \"UPLB\"), at bumaba sa Brgy. Bucal, Calamba. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 9 minuto.\n3. Maglakad nang humigit-kumulang 446m (~7 min).\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "description": "Calculates discounted fare of ₱11.25 for senior citizen"
+  },
+  {
+    "group": "2. Places & Live Database",
+    "id": "P1",
+    "query": "Bukas ba ang Colegio de San Juan de Letran ngayon at anong address nito?",
+    "reply": "Hi! Para malaman ko kung bukas ba sila ngayon, pwede bang sabihin kung anong araw ngayon? 😊\n\nAng address naman nila ay Ipil-ipil St., Brgy. Bucal, Calamba City, Laguna.",
+    "passed": true,
+    "description": "Returns verified address/location for Letran Calamba"
+  },
+  {
+    "group": "2. Places & Live Database",
+    "id": "P2",
+    "query": "Saan banda ang Calamba Medical Center at anong category nito?",
+    "reply": "Nasa Calamba Crossing, Brgy. Real, Calamba City, Laguna ang Calamba Medical Center (CMC). Ito ay kategorya sa Hospitals, Clinics & Pharmacies. May 24-hour emergency room, lab, imaging, pharmacy, at cancer center pa! Kung kailangan mo ng route, pwede kang mag-check sa calzadaph.com/planner.",
+    "passed": true,
+    "description": "Returns verified hospital details for Calamba Medical Center"
+  },
+  {
+    "group": "2. Places & Live Database",
+    "id": "P3",
+    "query": "May mga coffee shops ba sa Calamba?",
+    "reply": "Oo naman! May ilang verified na coffee shops sa Calamba. Narito ang ilan:\n\n• Krav Cafe (Brgy. Halang) - Monday to Sunday: 9:15 AM - 9:30 PM\n• But First, Coffee (Brgy. Real) - Monday to Sunday: 10:00 AM - 10:00 PM\n• Kupi (Brgy. Uno) - Hours not listed\n• Aroma Caffe (Brgy. Halang) - Hours not listed\n\nPuwede mong bisitahin ang Places page sa calzadaph.com/places para sa kumpletong listahan.",
+    "passed": true,
+    "description": "Lists verified coffee shops in Calamba from database"
+  },
+  {
+    "group": "2. Places & Live Database",
+    "id": "P4",
+    "query": "May mga bangko ba sa Barangay Uno?",
+    "reply": "Oo naman! May ilang verified na bangko sa Brgy. Uno, Calamba. Narito ang ilang halimbawa:\n\n1. CARD SME Bank (8:00 AM - 4:00 PM, Mon-Fri)\n2. AUB (9:00 AM - 4:00 PM, Mon-Fri)\n3. Chinabank (9:00 AM - 4:00 PM, Mon-Fri)\n4. Landbank (8:30 AM - 3:00 PM, Mon-Fri)\n\nPwede mong bisitahin ang calzadaph.com/places para sa kumpletong listahan at mas detalyadong impormasyon.",
+    "passed": true,
+    "description": "Returns banks located in Barangay Uno"
+  },
+  {
+    "group": "2. Places & Live Database",
+    "id": "P5",
+    "query": "Ano ang opening hours ng CityMall Calamba?",
+    "reply": "Bukas ang CityMall Calamba tuwing Lunes hanggang Linggo, 9:00 AM hanggang 9:00 PM. Safe na safe na ang oras para sa iyong pagpupunta!",
+    "passed": true,
+    "description": "Returns live operating hours for CityMall Calamba"
+  },
+  {
+    "group": "3. Calzada FAQs & Commuter Policies",
+    "id": "F1",
+    "query": "Paano kinakalkula ang pamasahe sa jeep?",
+    "reply": "Sumusunod ang pamasahe sa LTFRB fare guide: may minimum base fare para sa unang 4 km, dagdag sa bawat sumunod na km, at niroround sa pinakamalapit na 25 centavos. May 20% diskwento ang mga estudyante, senior citizen, at PWD.",
+    "passed": true,
+    "description": "Answers with official LTFRB fare calculation policy"
+  },
+  {
+    "group": "3. Calzada FAQs & Commuter Policies",
+    "id": "F2",
+    "query": "Magkano ang minimum fare sa modern jeepney?",
+    "reply": "Ang minimum fare sa modern jeep ay ₱17. Tandaan lang na ito ay tantiya base sa LTFRB guidelines.",
+    "passed": true,
+    "description": "Returns modern jeepney minimum fare (₱17 based on LTFRB matrix)"
+  },
+  {
+    "group": "3. Calzada FAQs & Commuter Policies",
+    "id": "F3",
+    "query": "Libre ba gamitin ang Calzada?",
+    "reply": "Oo. Libreng-libre gamitin ang Calzada para maghanap ng lugar, tumingin ng pamasahe, at magplano ng ruta.",
+    "passed": true,
+    "description": "Confirms Calzada is completely free to use"
+  },
+  {
+    "group": "3. Calzada FAQs & Commuter Policies",
+    "id": "F4",
+    "query": "Paano ko maililista ang aking negosyo sa Calzada?",
+    "reply": "Mag-sign in, buksan ang \"Register your business\" mula sa profile menu, at punan ang pangalan ng negosyo, kategorya, address, at map pin. Isang negosyo bawat account.",
+    "passed": true,
+    "description": "Explains business registration steps on Calzada"
+  },
+  {
+    "group": "3. Calzada FAQs & Commuter Policies",
+    "id": "F5",
+    "query": "May mobile app ba ang Calzada?",
+    "reply": "Oo. Responsive ang Calzada kaya maayos itong gamitin sa kahit anong screen — desktop, laptop, tablet, o cellphone.",
+    "passed": true,
+    "description": "Explains mobile browser responsiveness"
+  },
+  {
+    "group": "4. Strict Scope Boundary Tests",
+    "id": "S1",
+    "query": "Paano pumunta sa Taguig BGC mula Makati?",
+    "reply": "Paumanhin po, ang sakop lamang ni Routie at ng Calzada ay ang lungsod ng Calamba, Laguna. Hindi po sakop ang MAKATI o mga biyahe sa labas ng aming service area. Handa po akong tumulong para sa mga sakayan at lugar sa Calamba!",
+    "passed": true,
+    "description": "Politely declines out-of-scope Metro Manila trip"
+  },
+  {
+    "group": "4. Strict Scope Boundary Tests",
+    "id": "S2",
+    "query": "Magkano pamasahe papuntang Baguio mula Pangasinan?",
+    "reply": "Paumanhin po, ang sakop lamang ni Routie at ng Calzada ay ang lungsod ng Calamba, Laguna. Hindi po sakop ang BAGUIO o mga biyahe sa labas ng aming service area. Handa po akong tumulong para sa mga sakayan at lugar sa Calamba!",
+    "passed": true,
+    "description": "Politely declines out-of-scope Northern Luzon route"
+  },
+  {
+    "group": "4. Strict Scope Boundary Tests",
+    "id": "S3",
+    "query": "Ano ang magandang recipe para sa sinigang na baboy?",
+    "reply": "Paumanhin po, ang sakop lamang ni Routie ay ang pag-commute, pamasahe sa jeep, at mga lugar sa Calamba, Laguna. Hindi po ako makakasagot sa mga usaping walang kinalaman sa biyahe o lokal na gabay sa Calamba.",
+    "passed": true,
+    "description": "Politely declines off-topic cooking recipe"
+  },
+  {
+    "group": "4. Strict Scope Boundary Tests",
+    "id": "S4",
+    "query": "Can you write a Python script for binary search?",
+    "reply": "Paumanhin po, ang sakop lamang ni Routie ay ang pag-commute, pamasahe sa jeep, at mga lugar sa Calamba, Laguna. Hindi po ako makakasagot sa mga usaping walang kinalaman sa biyahe o lokal na gabay sa Calamba.",
+    "passed": true,
+    "description": "Politely declines off-topic coding request"
+  },
+  {
+    "group": "4. Strict Scope Boundary Tests",
+    "id": "S5",
+    "query": "Ano ang lagay ng panahon ngayon sa Calamba, uulan ba?",
+    "reply": "Paumanhin po, ang sakop lamang ni Routie ay ang pag-commute, pamasahe sa jeep, at mga lugar sa Calamba, Laguna. Hindi po ako makakasagot sa mga usaping walang kinalaman sa biyahe o lokal na gabay sa Calamba.",
+    "passed": true,
+    "description": "Politely declines off-topic weather forecast"
+  },
+  {
+    "group": "5. Guardrails: Unknown Places",
+    "id": "G1",
+    "query": "Saan ang Starbucks sa Pansol, Calamba?",
+    "reply": "Hindi ko po tiyak ang eksaktong lokasyon ng Starbucks sa Pansol dahil wala pa ito sa verified data ng Calzada. Para sa pinakamainam at updated na impormasyon, maaari po ninyong gamitin ang Planner sa calzadaph.com/planner o mag-email sa thecalzada@gmail.com upang ma-verify ang detalye.",
+    "passed": true,
+    "description": "Admits Starbucks Pansol is not in verified data, links to Planner"
+  },
+  {
+    "group": "5. Guardrails: Unknown Places",
+    "id": "G2",
+    "query": "Ano ang menu at opening hours ng Hogwarts Magic Cafe sa Calamba?",
+    "reply": "Ay, hindi ko sure kung may Hogwarts Magic Cafe sa Calamba. Hindi nasa listahan natin 'yan. Para sa kumpletong listahan ng mga verified na coffee shops at cafes, pwede mong bisitahin ang calzadaph.com/places. Kung may iba ka pang tanong tungkol sa commuting, nandito lang ako!",
+    "passed": true,
+    "description": "Admits fictitious cafe does not exist, never invents"
+  },
+  {
+    "group": "5. Guardrails: Unknown Places",
+    "id": "G3",
+    "query": "Magkano pamasahe mula SM Calamba papuntang Neverland Ranch?",
+    "reply": "Pasensya na po, hindi ko sigurado dahil wala sa verified data ng Calzada ang \"Neverland Ranch\". Puwede po ninyong subukang hanapin o i-set ang ruta sa Planner sa https://calzadaph.com/planner?origin=SM%20City%20Calamba&dest=Neverland%20Ranch o mag-email sa thecalzada@gmail.com.",
+    "passed": true,
+    "description": "Does not hallucinate route to Neverland Ranch, links to Planner"
+  },
+  {
+    "group": "6. Ambiguity & Clarification",
+    "id": "A1",
+    "query": "Letran",
+    "reply": "Nabanggit po ninyo ang \"Letran\". Naghahanap po ba kayo ng sakayan/direksyon papunta rito, o kaya ay opening hours at address? Kung nais ninyong bumiyahe, saan po kayo manggagaling?",
+    "passed": true,
+    "description": "Asks clarifying question for bare place keyword"
+  },
+  {
+    "group": "6. Ambiguity & Clarification",
+    "id": "A2",
+    "query": "paano pumunta sa CityMall",
+    "reply": "Nais po ninyong pumunta sa \"CityMall\". Saan po kayo manggagaling para maibigay ko ang tamang sakayan, jeep, at pamasahe?",
+    "passed": true,
+    "description": "Asks for starting point when origin is missing"
+  },
+  {
+    "group": "6. Ambiguity & Clarification",
+    "id": "A3",
+    "query": "SM papuntang pamilihan",
+    "reply": "Aling palengke po ang inyong pupuntahan — ang Calamba Public Market (sa Crossing/Bayan) o ang Canlubang Public Market?",
+    "passed": true,
+    "description": "Clarifies between Calamba Public Market and Canlubang Public Market"
+  },
+  {
+    "group": "7. Multi-Turn Conversations",
+    "id": "M1",
+    "query": "Crossing to Bucal -> what if student ako?",
+    "reply": "Kung student, senior citizen, o PWD ka po, may 20% discount base sa LTFRB fare guide:\nAng pamasahe para sa biyaheng Crossing Grand Terminal papuntang Brgy. Bucal, Calamba ay magiging ₱11.25 (mula sa ₱14.00 regular fare sa jeep). Tantiya po ito base sa opisyal na fare guide.",
+    "passed": true,
+    "description": "Applies student discount to active trip"
+  },
+  {
+    "group": "7. Multi-Turn Conversations",
+    "id": "M2",
+    "query": "SM to Real -> how about going back?",
+    "reply": "Total: ₱14.00, around 12 minutes, 0 transfers\n\n1. Maglakad nang humigit-kumulang 316m (~5 min).\n2. Sumakay sa Sakayan sa Highway ng jeep na Calamba – Tagaytay (signboard: \"SM Calamba\"), at bumaba sa SM Calamba Inner Rd Terminal. Pamasahe: ₱14.00 (₱11.25 student/senior/PWD), mga 7 minuto.\n\nMay 20% discount para sa student, senior citizen, at PWD: ₱11.25 sa jeep.\nPaalala: Ang pamasahe sa jeep ay tantiya base sa LTFRB fare guide.",
+    "passed": true,
+    "description": "Reverses destination and origin for return trip"
+  }
+]
