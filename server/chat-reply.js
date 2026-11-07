@@ -40,10 +40,11 @@ function stripControlChars(text) {
 }
 
 // The chat shows plain text: drop markdown emphasis, headings and backticks, turn [text](url) into text and
-// remove bare URLs, so a reply can never carry a link.
+// remove bare URLs, preserving calzadaph.com URLs as plain text so the visitor can still read them.
 function stripFormatting(text) {
     return text
         .replace(/\[([^\]]+)\]\((?:https?:\/\/|www\.)[^)]*\)/gi, '$1')
+        .replace(/https?:\/\/(calzadaph\.com\S*)/gi, '$1')
         .replace(/(?:https?:\/\/|www\.)\S+/gi, '')
         .replace(/```[a-z]*\n?/gi, '')
         .replace(/[*_]{2,}([^*_]+)[*_]{2,}/g, '$1')

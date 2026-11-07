@@ -118,6 +118,7 @@ function getGroqClient() {
 
 const { normalizeLang, fallbackReply, interpretModelOutput } = require('./chat-reply');
 const { getFareData, fareFactsSection, fareEstimateBlock } = require('./fare-info');
+const { resolveRoutieContext, buildRoutieSystemPrompt } = require('./routie-knowledge');
 const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1180,26 +1181,34 @@ app.post('/api/chat', async (req, res) => {
         return sendFallback(500, 'not_configured', 'unavailable');
     }
 
-    let routeInfo = '';
-    if (route && route.origin && route.destination) {
-        routeInfo = `[ROUTE INFO]\nOrigin: ${route.origin}\nDestination: ${route.destination}\nETA: ${route.eta}\nFare: ${route.fare}\nDistance: ${route.distance}\n\n`;
-    }
-
-    // When the user names a distance, the fare is worked out here with the Planner's formula, not by the model.
-    const fullUserMessage = `${routeInfo}${fareEstimateBlock(message)}${message || ''}`;
-
     try {
+        const liveBusinesses = await getLiveBusinesses();
+        const activePlaces = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
+
+        let adminDb = null;
+        try {
+            adminDb = getFirestore();
+        } catch (_) {}
+
+        const knowledgeContext = await resolveRoutieContext({
+            message,
+            route,
+            lang: replyLang,
+            places: activePlaces,
+            adminDb
+        });
+
+        const systemPrompt = buildRoutieSystemPrompt(knowledgeContext);
+
         const chatCompletion = await callGroqWithRetry(client, [
-            { role: 'system', content: getSystemPrompt(replyLang) },
-            { role: 'user', content: fullUserMessage },
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: String(message || '') },
         ]);
 
         const choice = chatCompletion.choices && chatCompletion.choices[0];
         const { source, ...body } = interpretModelOutput(choice && choice.message && choice.message.content, {
-            lang: replyLang,
-            truncated: !!choice && choice.finish_reason === 'length',
-            labels: UI_LABEL_LISTS[replyLang],
-            maxSteps: MAX_TUTORIAL_STEPS
+            lang: knowledgeContext.lang || replyLang,
+            truncated: !!choice && choice.finish_reason === 'length'
         });
         if (source !== 'json') console.log(`Chat reply needed repair or was replaced (${source}).`);
         res.json(body);
