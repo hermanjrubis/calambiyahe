@@ -817,16 +817,136 @@
         }
 
         /* 9. Posts Feed */
-        .new-post-box {
-            padding-bottom: 32px;
-            margin-bottom: 32px;
-            border-bottom: 1px solid var(--border-color);
+        /* ====================================================
+           MODERN BUSINESS FEED & POST COMPOSER (Instagram-style)
+           ==================================================== */
+        .mb-posts-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
         }
-
+        .mb-posts-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1F69B8;
+            background: #EAF3FC;
+            padding: 5px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .mb-composer-card {
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            background: #FFFFFF;
+            padding: 18px 20px;
+            margin-bottom: 28px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .mb-composer-card:focus-within {
+            border-color: #CBD5E1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .mb-composer-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .mb-composer-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid #E2E8F0;
+            background: #F1F5F9;
+            flex-shrink: 0;
+        }
+        .mb-composer-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .mb-composer-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: #042C53;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .mb-composer-sub {
+            font-size: 12px;
+            color: #64748B;
+        }
+        .mb-composer-textarea {
+            width: 100%;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #042C53;
+            resize: vertical;
+            min-height: 72px;
+            box-sizing: border-box;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .mb-composer-textarea:focus {
+            outline: none;
+            border-color: #378ADD;
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
+        }
+        .mb-composer-textarea::placeholder {
+            color: #94A3B8;
+        }
+        .mb-post-dropzone {
+            margin-top: 12px;
+            border: 2px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 22px 16px;
+            text-align: center;
+            cursor: pointer;
+            background: #F8FAFC;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .mb-post-dropzone:hover,
+        .mb-post-dropzone.is-dragover {
+            border-color: #378ADD;
+            background: #F0F7FF;
+        }
+        .mb-dropzone-icon {
+            color: #378ADD;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mb-dropzone-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #042C53;
+        }
+        .mb-dropzone-sub {
+            font-size: 12px;
+            color: #64748B;
+        }
         .photo-strip-wrap {
             display: grid !important;
-            grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
             margin-top: 12px;
             max-width: 100%;
         }
@@ -834,9 +954,9 @@
         .photo-strip-item {
             position: relative;
             aspect-ratio: 1 / 1;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid #E2E8F0;
             background: #F1F5F9;
             min-width: 0;
         }
@@ -850,32 +970,126 @@
             content: "Cover";
             position: absolute;
             left: 6px;
-            bottom: 5px;
+            top: 6px;
+            background: rgba(31, 105, 184, 0.92);
             color: #FFFFFF;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            backdrop-filter: blur(2px);
         }
         .photo-strip-remove {
             position: absolute;
             top: 4px;
             right: 4px;
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             border: none;
-            background: rgba(4, 44, 83, 0.72);
+            background: rgba(15, 23, 42, 0.75);
             color: #FFFFFF;
             font-size: 13px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .photo-strip-remove:hover {
+            background: rgba(220, 38, 38, 0.9);
+        }
+        .photo-strip-add-btn {
+            aspect-ratio: 1 / 1;
+            border-radius: 10px;
+            border: 2px dashed #CBD5E1;
+            background: #F8FAFC;
+            color: #64748B;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .photo-strip-add-btn:hover {
+            border-color: #378ADD;
+            color: #1F69B8;
+            background: #F0F7FF;
+        }
+        .mb-composer-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #F1F5F9;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .mb-composer-tools {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .mb-tool-btn {
+            background: transparent;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 500;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .mb-tool-btn:hover {
+            background: #F8FAFC;
+            border-color: #CBD5E1;
+            color: #042C53;
+        }
+        .mb-char-count {
+            font-size: 12px;
+            color: #94A3B8;
+        }
+        .mb-composer-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .mb-feed-divider {
+            display: flex;
+            align-items: center;
+            margin: 28px 0 20px;
+            color: #64748B;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .mb-feed-divider::before,
+        .mb-feed-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #E2E8F0;
+        }
+        .mb-feed-divider span {
+            padding: 0 14px;
         }
         @media (min-width: 641px) {
             .photo-strip-wrap,
             .photo-grid,
-            .photos-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; max-width: 520px; }
+            .photos-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; max-width: 560px; }
         }
 
         /* Keep every state inside the screen width (iPhone Safari ignores overflow on body alone) */
@@ -916,75 +1130,157 @@
             cursor: pointer;
         }
 
-        .post-item {
-            padding-bottom: 32px;
-            margin-bottom: 32px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .post-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-            margin-bottom: 0;
-        }
-
-        .post-media-container {
-            width: 100%;
-            position: relative;
+        /* Post Card (Instagram Style) */
+        .post-feed-card {
+            border: 1px solid #E2E8F0;
+            border-radius: 14px;
+            background: #FFFFFF;
             overflow: hidden;
-            border-radius: 12px;
+            margin-bottom: 24px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
-
+        .post-feed-card:hover {
+            border-color: #CBD5E1;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+        .post-feed-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            gap: 10px;
+        }
+        .post-feed-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .post-feed-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #E2E8F0;
+            background: #F1F5F9;
+            flex-shrink: 0;
+        }
+        .post-feed-name-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            min-width: 0;
+        }
+        .post-feed-name {
+            font-family: 'Sora', sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #042C53;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .post-feed-meta-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #64748B;
+        }
+        .post-feed-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .post-feed-action-btn {
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #64748B;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .post-feed-action-btn:hover {
+            background: #F1F5F9;
+            color: #042C53;
+        }
+        .post-feed-action-btn.is-danger:hover {
+            background: #FEF2F2;
+            color: #DC2626;
+        }
+        .post-feed-media {
+            position: relative;
+            width: 100%;
+            background: #0F172A;
+            overflow: hidden;
+        }
         .post-media-img {
             width: 100%;
             display: block;
-            border-radius: 12px;
             object-fit: cover;
-            max-height: 600px;
+            max-height: 540px;
+            min-height: 220px;
+            background: #0F172A;
         }
-
         .post-carousel {
             position: relative;
             width: 100%;
         }
-
+        .post-carousel-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(15, 23, 42, 0.72);
+            color: #FFFFFF;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 999px;
+            backdrop-filter: blur(4px);
+            z-index: 2;
+            letter-spacing: 0.04em;
+        }
         .carousel-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            color: var(--navy-dark);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            color: #042C53;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 2;
-            transition: background 0.15s ease;
+            transition: all 0.15s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
-
         .carousel-btn:hover {
             background: #FFFFFF;
+            transform: translateY(-50%) scale(1.05);
         }
-
         .carousel-prev {
-            left: 12px;
+            left: 10px;
         }
-
         .carousel-next {
-            right: 12px;
+            right: 10px;
         }
-
         .carousel-dots {
             display: flex;
             justify-content: center;
             gap: 6px;
-            margin-top: 10px;
+            padding: 10px 0 4px;
         }
-
         .carousel-dot {
             width: 6px;
             height: 6px;
@@ -993,51 +1289,21 @@
             border: none;
             cursor: pointer;
             padding: 0;
-            transition: background 0.15s ease;
+            transition: all 0.15s ease;
         }
-
         .carousel-dot.active {
-            background: var(--primary);
+            background: #1F69B8;
+            transform: scale(1.2);
         }
-
-        .post-caption {
-            font-size: 14px;
-            color: var(--navy-dark);
-            line-height: 1.5;
-            margin-top: 12px;
+        .post-feed-content {
+            padding: 14px 16px 16px;
         }
-
-        .post-caption.empty {
-            display: none;
-        }
-
-        .post-action-row {
+        .post-interactive-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            min-height: 44px;
-            margin-top: 8px;
-            gap: 12px;
+            margin-bottom: 8px;
         }
-
-        .action-row-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-height: 44px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .action-row-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            min-height: 44px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
         .btn-like-post {
             display: inline-flex;
             align-items: center;
@@ -1045,57 +1311,69 @@
             background: transparent;
             border: none;
             padding: 0;
-            color: #6B7785;
+            color: #475569;
             font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
+            font-size: 13.5px;
+            font-weight: 600;
             cursor: pointer;
-            min-height: 44px;
-            white-space: nowrap;
-        }
-
-        .btn-like-post.liked {
-            color: var(--primary);
-        }
-
-        .post-time {
-            color: #6B7785;
-            font-size: 13px;
-            white-space: nowrap;
-        }
-
-        .post-action-btn {
-            background: transparent;
-            border: none;
-            padding: 0 4px;
-            color: #6B7785;
-            font-family: inherit;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            white-space: nowrap;
             transition: color 0.15s ease;
         }
-
-        .post-action-btn:hover {
-            color: var(--primary);
+        .btn-like-post:hover {
+            color: #E11D48;
         }
-
-        .post-action-btn.btn-delete-post:hover {
-            color: var(--danger);
+        .btn-like-post.liked {
+            color: #E11D48;
         }
-
+        .post-caption-block {
+            font-size: 13.5px;
+            line-height: 1.5;
+            color: #1E293B;
+            word-break: break-word;
+        }
+        .post-caption-author {
+            font-weight: 700;
+            color: #042C53;
+            margin-right: 6px;
+        }
         .post-edit-wrap {
             margin-top: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
         }
-
-        .posts-empty-hint {
-            font-size: 14px;
-            color: #6B7785;
-            line-height: 1.5;
+        .posts-empty-state {
+            padding: 48px 24px;
+            text-align: center;
+            background: #F8FAFC;
+            border-radius: 14px;
+            border: 1px dashed #CBD5E1;
+            margin-top: 12px;
+        }
+        .posts-empty-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #EAF3FC;
+            color: #1F69B8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        .posts-empty-title {
+            font-family: 'Sora', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: #042C53;
+            margin-bottom: 6px;
+        }
+        .posts-empty-sub {
+            font-size: 13px;
+            color: #64748B;
+            max-width: 360px;
+            margin: 0 auto;
+            line-height: 1.45;
         }
 
         .rejection-reason {
@@ -2313,8 +2591,6 @@
                                         </div>
                                     </div>
                                 </section>
-                                    </div>
-                                </section>
 
                                 <section class="mb-card">
                                     <div class="mb-card-head">
@@ -2403,43 +2679,76 @@
 
                     <!-- POSTS -->
                     <div class="mb-panel" id="mbPanelPosts" role="tabpanel" aria-labelledby="mbTabPosts" hidden>
-            <!-- Your Posts Section -->
-            <div class="mb-card" id="postsCard" style="display: none;">
-                <h2 class="section-title">Your posts <span id="postsCountLabel" class="section-count"></span></h2>
+                        <div class="mb-card" id="postsCard" style="display: none;">
+                            <div class="mb-posts-head">
+                                <div>
+                                    <h2 class="mb-card-title">Business feed <span id="postsCountLabel" class="section-count"></span></h2>
+                                    <p class="mb-card-sub">Share updates, announcements, daily menus, or events with commuters and followers</p>
+                                </div>
+                                <span class="mb-posts-badge" id="postsAllowanceBadge">--</span>
+                            </div>
 
-                <!-- New Post Form -->
-                <form id="createPostForm" class="new-post-box" novalidate>
-                    <div class="form-group">
-                        <label class="form-label">
-                            Add photos <span class="req">*</span> <span class="opt">(up to 5 photos)</span>
-                        </label>
-                        <input type="file" id="postPhotoInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
-                        <button type="button" class="btn-secondary" id="btnSelectPostPhoto">
-                            Select photos
-                        </button>
-                        <div id="postPhotosLimitNotice" class="field-hint" style="color: #D97706; display: none;">
-                            Only the first 5 photos were added.
+                            <!-- Modern Post Composer -->
+                            <form id="createPostForm" class="mb-composer-card" novalidate>
+                                <div class="mb-composer-header">
+                                    <img id="mbComposerAvatar" class="mb-composer-avatar" src="../assets/hero-places-bg.png" alt="Avatar">
+                                    <div class="mb-composer-meta">
+                                        <span class="mb-composer-name" id="mbComposerName">Your business</span>
+                                        <span class="mb-composer-sub">Create a public photo update</span>
+                                    </div>
+                                </div>
+
+                                <textarea id="postCaptionInput" class="mb-composer-textarea" rows="3" placeholder="Share what's new today! Daily specials, events, or announcements..." maxlength="500"></textarea>
+
+                                <div class="mb-composer-media-area">
+                                    <input type="file" id="postPhotoInput" accept="image/jpeg,image/png,image/webp" multiple style="display: none;">
+
+                                    <!-- Upload dropzone when no photos are attached -->
+                                    <div id="postDropzone" class="mb-post-dropzone" role="button" tabindex="0">
+                                        <div class="mb-dropzone-icon">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                                <polyline points="21 15 16 10 5 21"/>
+                                            </svg>
+                                        </div>
+                                        <span class="mb-dropzone-title">Click to upload photos or drag & drop</span>
+                                        <span class="mb-dropzone-sub">Add up to 5 photos (JPEG, PNG, WebP · Max 10MB each)</span>
+                                    </div>
+
+                                    <!-- Thumbnails strip when photos are attached -->
+                                    <div id="postThumbnailsStrip" class="photo-strip-wrap" style="display: none;"></div>
+
+                                    <div id="postPhotosLimitNotice" class="field-hint" style="color: #D97706; display: none; margin-top: 8px;">
+                                        Only up to 5 photos can be attached per post. Extra files were omitted.
+                                    </div>
+                                </div>
+
+                                <div class="mb-composer-footer">
+                                    <div class="mb-composer-tools">
+                                        <button type="button" class="mb-tool-btn" id="btnSelectPostPhoto">
+                                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                            <span id="photoCountBadge">Add photos</span>
+                                        </button>
+                                        <span class="mb-char-count" id="postCharCount">0/500</span>
+                                    </div>
+                                    <div class="mb-composer-actions">
+                                        <button type="button" class="btn-cancel" id="btnResetPostForm" style="display: none; min-height: 38px; padding: 0 14px; font-size: 13px;">Discard</button>
+                                        <button type="submit" class="btn-primary" id="btnCreatePost" disabled style="min-height: 38px; padding: 0 18px; font-size: 13.5px;">
+                                            <span id="btnCreatePostText">Publish post</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Feed Divider -->
+                            <div class="mb-feed-divider">
+                                <span>Published feed</span>
+                            </div>
+
+                            <!-- Posts Feed Container -->
+                            <div id="postsListContainer" class="posts-feed"></div>
                         </div>
-                        <div id="postThumbnailsStrip" class="photo-strip-wrap" style="display: none;"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="postCaptionInput">
-                            Caption <span class="opt">(Optional)</span>
-                        </label>
-                        <textarea id="postCaptionInput" class="form-textarea" rows="3" placeholder="Share what's new, daily specials, or upcoming events..."></textarea>
-                    </div>
-
-                    <div style="margin-top: 16px;">
-                        <button type="submit" class="btn-primary" id="btnCreatePost" disabled>
-                            <span id="btnCreatePostText">Post</span>
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Posts Feed Container -->
-                <div id="postsListContainer" class="posts-feed"></div>
-            </div>
                     </div>
                 </div>
             </div>
@@ -3121,6 +3430,21 @@
             const approvedPlanMeta = document.getElementById('approvedPlanMeta');
             if (approvedPlanMeta) {
                 approvedPlanMeta.textContent = planLine;
+            }
+
+            // Update Post Section badge and composer author
+            const postsAllowanceBadge = document.getElementById('postsAllowanceBadge');
+            if (postsAllowanceBadge) {
+                postsAllowanceBadge.textContent = limit === null
+                    ? 'Unlimited monthly posts'
+                    : `${curMonthCount} / ${limit} posts this month`;
+            }
+            const composerName = document.getElementById('mbComposerName');
+            if (composerName) composerName.textContent = activeBusiness.name || 'Your business';
+            const composerAvatar = document.getElementById('mbComposerAvatar');
+            if (composerAvatar) {
+                const avatarUrl = activeBusiness.logoUrl || activeBusiness.thumbnailUrl || activeBusiness.profilePhotoUrl || '../assets/hero-places-bg.png';
+                composerAvatar.src = avatarUrl;
             }
 
             // Header plan and the "This month" numbers
@@ -5089,16 +5413,99 @@
             return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
+        const postDropzone = document.getElementById('postDropzone');
+        const photoCountBadge = document.getElementById('photoCountBadge');
+        const postCharCount = document.getElementById('postCharCount');
+        const btnResetPostForm = document.getElementById('btnResetPostForm');
+
+        if (postCaptionInput && postCharCount) {
+            postCaptionInput.addEventListener('input', () => {
+                const len = postCaptionInput.value.length;
+                postCharCount.textContent = `${len}/500`;
+            });
+        }
+
+        if (btnResetPostForm) {
+            btnResetPostForm.addEventListener('click', () => {
+                resetPostForm();
+            });
+        }
+
+        function handleAddFiles(files) {
+            if (!files || files.length === 0) return;
+            const validFiles = Array.from(files).filter(f => f.size <= 10 * 1024 * 1024);
+            const invalidSize = Array.from(files).some(f => f.size > 10 * 1024 * 1024);
+            if (invalidSize) {
+                showBanner('One or more selected photos exceed the 10MB limit and were skipped.', 'error');
+            }
+
+            const availableSlots = 5 - selectedPostPhotoFiles.length;
+            if (availableSlots <= 0) {
+                if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'block';
+                return;
+            }
+
+            if (validFiles.length > availableSlots) {
+                if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'block';
+            } else {
+                if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'none';
+            }
+
+            const toAdd = validFiles.slice(0, availableSlots);
+            toAdd.forEach(file => {
+                selectedPostPhotoFiles.push({
+                    file,
+                    previewUrl: URL.createObjectURL(file)
+                });
+            });
+
+            if (postPhotoInput) postPhotoInput.value = '';
+            renderPhotoThumbnailsStrip();
+        }
+
+        if (postDropzone) {
+            postDropzone.addEventListener('click', () => {
+                if (postPhotoInput) postPhotoInput.click();
+            });
+            postDropzone.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    if (postPhotoInput) postPhotoInput.click();
+                }
+            });
+            postDropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                postDropzone.classList.add('is-dragover');
+            });
+            postDropzone.addEventListener('dragleave', () => {
+                postDropzone.classList.remove('is-dragover');
+            });
+            postDropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                postDropzone.classList.remove('is-dragover');
+                if (e.dataTransfer && e.dataTransfer.files) {
+                    handleAddFiles(e.dataTransfer.files);
+                }
+            });
+        }
+
         function renderPhotoThumbnailsStrip() {
             if (!postThumbnailsStrip) return;
             if (selectedPostPhotoFiles.length === 0) {
+                if (postDropzone) postDropzone.style.display = 'flex';
                 postThumbnailsStrip.style.display = 'none';
                 postThumbnailsStrip.innerHTML = '';
                 if (btnCreatePost) btnCreatePost.disabled = true;
+                if (btnResetPostForm) btnResetPostForm.style.display = 'none';
+                if (photoCountBadge) photoCountBadge.textContent = 'Add photos';
                 return;
             }
-            postThumbnailsStrip.style.display = 'flex';
+
+            if (postDropzone) postDropzone.style.display = 'none';
+            postThumbnailsStrip.style.display = 'grid';
             if (btnCreatePost) btnCreatePost.disabled = false;
+            if (btnResetPostForm) btnResetPostForm.style.display = 'inline-flex';
+            if (photoCountBadge) photoCountBadge.textContent = `${selectedPostPhotoFiles.length}/5 photos`;
 
             let html = '';
             selectedPostPhotoFiles.forEach((item, idx) => {
@@ -5106,14 +5513,24 @@
                 <div class="photo-strip-item" data-index="${idx}">
                     <img src="${item.previewUrl}" alt="Thumbnail preview ${idx + 1}" class="photo-strip-img">
                     <button type="button" class="photo-strip-remove" data-remove-index="${idx}" title="Remove photo" aria-label="Remove photo ${idx + 1}">
-                        <i class="ti ti-x"></i>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>`;
             });
+
+            if (selectedPostPhotoFiles.length < 5) {
+                html += `
+                <button type="button" class="photo-strip-add-btn" id="btnAddMorePostPhotos" aria-label="Add more photos">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <span>Add</span>
+                </button>`;
+            }
+
             postThumbnailsStrip.innerHTML = html;
 
             postThumbnailsStrip.querySelectorAll('.photo-strip-remove').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
                     const removeIdx = parseInt(btn.getAttribute('data-remove-index'), 10);
                     const removed = selectedPostPhotoFiles.splice(removeIdx, 1)[0];
                     if (removed && removed.previewUrl) {
@@ -5123,6 +5540,13 @@
                     renderPhotoThumbnailsStrip();
                 });
             });
+
+            const btnAddMore = postThumbnailsStrip.querySelector('#btnAddMorePostPhotos');
+            if (btnAddMore && postPhotoInput) {
+                btnAddMore.addEventListener('click', () => {
+                    postPhotoInput.click();
+                });
+            }
         }
 
         function resetPostForm() {
@@ -5132,8 +5556,12 @@
             selectedPostPhotoFiles = [];
             if (postPhotoInput) postPhotoInput.value = '';
             if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'none';
-            if (postCaptionInput) postCaptionInput.value = '';
+            if (postCaptionInput) {
+                postCaptionInput.value = '';
+                if (postCharCount) postCharCount.textContent = '0/500';
+            }
             if (btnCreatePost) btnCreatePost.disabled = true;
+            if (btnResetPostForm) btnResetPostForm.style.display = 'none';
             renderPhotoThumbnailsStrip();
         }
 
@@ -5143,38 +5571,7 @@
             });
 
             postPhotoInput.addEventListener('change', (e) => {
-                const files = Array.from(e.target.files || []);
-                if (files.length === 0) return;
-
-                const validFiles = files.filter(f => f.size <= 10 * 1024 * 1024);
-                const invalidSize = files.some(f => f.size > 10 * 1024 * 1024);
-                if (invalidSize) {
-                    showBanner('One or more selected photos exceed the 10MB limit and were skipped.', 'error');
-                }
-
-                const availableSlots = 5 - selectedPostPhotoFiles.length;
-                if (availableSlots <= 0) {
-                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'block';
-                    postPhotoInput.value = '';
-                    return;
-                }
-
-                if (validFiles.length > availableSlots) {
-                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'block';
-                } else {
-                    if (postPhotosLimitNotice) postPhotosLimitNotice.style.display = 'none';
-                }
-
-                const toAdd = validFiles.slice(0, availableSlots);
-                toAdd.forEach(file => {
-                    selectedPostPhotoFiles.push({
-                        file,
-                        previewUrl: URL.createObjectURL(file)
-                    });
-                });
-
-                postPhotoInput.value = '';
-                renderPhotoThumbnailsStrip();
+                handleAddFiles(e.target.files);
             });
         }
 
@@ -5296,6 +5693,11 @@
                 imgEl.src = photos[activeIdx];
             }
 
+            const badge = document.getElementById(`badge-${postId}`);
+            if (badge) {
+                badge.textContent = `${activeIdx + 1}/${photos.length}`;
+            }
+
             const dotsContainer = document.getElementById(`dots-${postId}`);
             if (dotsContainer) {
                 const dots = dotsContainer.querySelectorAll('.carousel-dot');
@@ -5316,12 +5718,22 @@
 
             if (businessPosts.length === 0) {
                 postsListContainer.innerHTML = `
-                    <div class="posts-empty-hint">
-                        You haven't published any posts yet. Add your first photo update above!
+                    <div class="posts-empty-state">
+                        <div class="posts-empty-icon">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                                <circle cx="12" cy="13" r="4"/>
+                            </svg>
+                        </div>
+                        <h3 class="posts-empty-title">No posts published yet</h3>
+                        <p class="posts-empty-sub">Share your first update above to showcase menu highlights, special promos, or store announcements to commuters on Places.</p>
                     </div>
                 `;
                 return;
             }
+
+            const authorName = activeBusiness ? activeBusiness.name : 'Your business';
+            const authorAvatar = activeBusiness ? (activeBusiness.logoUrl || activeBusiness.thumbnailUrl || activeBusiness.profilePhotoUrl || '../assets/hero-places-bg.png') : '../assets/hero-places-bg.png';
 
             let html = '';
             businessPosts.forEach(post => {
@@ -5340,11 +5752,12 @@
                     carouselMediaHtml = `
                         <div class="post-carousel">
                             <img src="${currentPhoto}" alt="Post image" class="post-media-img" id="media-img-${post.id}">
+                            <span class="post-carousel-badge" id="badge-${post.id}">${currentIdx + 1}/${photos.length}</span>
                             <button type="button" class="carousel-btn carousel-prev" data-post-id="${post.id}" aria-label="Previous photo">
-                                <i class="ti ti-chevron-left"></i>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
                             </button>
                             <button type="button" class="carousel-btn carousel-next" data-post-id="${post.id}" aria-label="Next photo">
-                                <i class="ti ti-chevron-right"></i>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                             </button>
                         </div>
                         <div class="carousel-dots" id="dots-${post.id}">
@@ -5360,34 +5773,53 @@
                 }
 
                 html += `
-                <div class="post-item" id="post-${post.id}">
-                    <div class="post-media-container">
-                        ${carouselMediaHtml}
-                    </div>
-
-                    ${post.caption ? `<p class="post-caption" id="caption-text-${post.id}">${escapeHtml(post.caption)}</p>` : `<p class="post-caption empty" id="caption-text-${post.id}" style="display:none;"></p>`}
-
-                    <div class="post-edit-wrap" id="edit-wrap-${post.id}" style="display: none;">
-                        <textarea class="form-textarea post-edit-textarea" id="edit-textarea-${post.id}" rows="3" placeholder="Write a caption..."></textarea>
-                        <div style="display: flex; gap: 8px; margin-top: 8px;">
-                            <button type="button" class="btn-primary btn-save-caption" data-post-id="${post.id}" style="padding: 6px 16px; min-height: 36px; font-size: 13px;">Save</button>
-                            <button type="button" class="btn-cancel btn-cancel-edit" data-post-id="${post.id}" style="min-height: 36px; font-size: 13px;">Cancel</button>
+                <div class="post-feed-card" id="post-${post.id}">
+                    <div class="post-feed-header">
+                        <div class="post-feed-author">
+                            <img src="${authorAvatar}" alt="Logo" class="post-feed-avatar">
+                            <div class="post-feed-name-wrap">
+                                <span class="post-feed-name">${escapeHtml(post.businessName || authorName)}</span>
+                                <span class="post-feed-meta-line">${formatPostDate(post.createdAt)}</span>
+                            </div>
+                        </div>
+                        <div class="post-feed-actions">
+                            <button type="button" class="post-feed-action-btn btn-edit-caption" data-post-id="${post.id}" title="Edit caption">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                                <span>Edit</span>
+                            </button>
+                            <button type="button" class="post-feed-action-btn is-danger btn-delete-post" data-post-id="${post.id}" title="Delete post">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <span>Delete</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="post-action-row">
-                        <div class="action-row-left">
+                    <div class="post-feed-media">
+                        ${carouselMediaHtml}
+                    </div>
+
+                    <div class="post-feed-content">
+                        <div class="post-interactive-bar">
                             <button type="button" class="btn-like-post ${post.isLiked ? 'liked' : ''}" data-post-id="${post.id}" aria-label="Like post">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="${post.isLiked ? '#378ADD' : 'none'}" stroke="${post.isLiked ? '#378ADD' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="${post.isLiked ? '#E11D48' : 'none'}" stroke="${post.isLiked ? '#E11D48' : 'currentColor'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                                 </svg>
                                 <span class="like-count">${post.likeCount || 0}</span>
                             </button>
-                            <span class="post-time">${formatPostDate(post.createdAt)}</span>
                         </div>
-                        <div class="action-row-right">
-                            <button type="button" class="post-action-btn btn-edit-caption" data-post-id="${post.id}">Edit</button>
-                            <button type="button" class="post-action-btn btn-delete-post" data-post-id="${post.id}">Delete</button>
+
+                        ${post.caption ? `
+                        <div class="post-caption-block" id="caption-text-${post.id}">
+                            <span class="post-caption-author">${escapeHtml(post.businessName || authorName)}</span>
+                            <span>${escapeHtml(post.caption)}</span>
+                        </div>` : `<div class="post-caption-block" id="caption-text-${post.id}" style="display:none;"></div>`}
+
+                        <div class="post-edit-wrap" id="edit-wrap-${post.id}" style="display: none;">
+                            <textarea class="form-textarea post-edit-textarea" id="edit-textarea-${post.id}" rows="3" placeholder="Write a caption..." maxlength="500"></textarea>
+                            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                <button type="button" class="btn-primary btn-save-caption" data-post-id="${post.id}" style="padding: 6px 16px; min-height: 36px; font-size: 13px;">Save</button>
+                                <button type="button" class="btn-cancel btn-cancel-edit" data-post-id="${post.id}" style="min-height: 36px; font-size: 13px;">Cancel</button>
+                            </div>
                         </div>
                     </div>
                 </div>
