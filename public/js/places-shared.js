@@ -1420,6 +1420,8 @@
             "opening_hours": null,
             "coord_source": "manual",
             "businessId": "PgNqZLNxfXvNlUjqIUke",
+            "logo": "https://res.cloudinary.com/xlxnx8ul/image/upload/v1792051113/calzada/businesses/PgNqZLNxfXvNlUjqIUke/4c4695783e098247.jpg",
+            "logoUrl": "https://res.cloudinary.com/xlxnx8ul/image/upload/v1792051113/calzada/businesses/PgNqZLNxfXvNlUjqIUke/4c4695783e098247.jpg",
             "plan": "plus360",
             "has360": true,
             "shoot360": "done"
@@ -3594,6 +3596,11 @@
                             const paidAtIso = rawPaid ? (typeof rawPaid.toDate === 'function' ? rawPaid.toDate().toISOString() : (rawPaid instanceof Date ? rawPaid.toISOString() : (typeof rawPaid.seconds === 'number' ? new Date(rawPaid.seconds * 1000).toISOString() : String(rawPaid)))) : null;
                             const has360 = d.plan === 'plus360' || d.plan === 'featured';
 
+                            const logo = (typeof d.logoUrl === 'string' && d.logoUrl.startsWith('https://res.cloudinary.com/'))
+                                ? d.logoUrl
+                                : (typeof d.profilePhotoUrl === 'string' && d.profilePhotoUrl.startsWith('https://res.cloudinary.com/') ? d.profilePhotoUrl : null);
+                            const photo = d.thumbnailUrl || (d.photo && !d.photo.startsWith('https://res.cloudinary.com/') ? d.photo : null);
+
                             businesses.push({
                                 id: 'biz_' + id,
                                 source: 'business',
@@ -3609,8 +3616,10 @@
                                 description: d.description || '',
                                 website: (d.socialLinks && d.socialLinks.facebook) ? d.socialLinks.facebook : null,
                                 social: d.socialLinks || null,
-                                photo: d.thumbnailUrl || d.profilePhotoUrl || null,
-                                thumbnailUrl: d.thumbnailUrl || d.profilePhotoUrl || null,
+                                photo,
+                                thumbnailUrl: d.thumbnailUrl || null,
+                                logo,
+                                logoUrl: logo,
                                 offerings: Array.isArray(d.offerings) ? d.offerings : [],
                                 openHours: d.openHours || null,
                                 plan: d.plan || 'listed',
@@ -3656,6 +3665,14 @@
                         b.lat = staticMatch.lat;
                         b.lng = staticMatch.lng;
                         b.coord_source = staticMatch.coord_source || 'manual';
+                    }
+                    if (staticMatch.photo || staticMatch.image_path) {
+                        b.photo = b.thumbnailUrl || staticMatch.photo || staticMatch.image_path;
+                        b.image_path = b.thumbnailUrl || staticMatch.image_path || staticMatch.photo;
+                    }
+                    if (staticMatch.logo || staticMatch.logoUrl) {
+                        b.logo = b.logo || staticMatch.logo || staticMatch.logoUrl;
+                        b.logoUrl = b.logo;
                     }
                     if (staticMatch.pano) {
                         b.pano = staticMatch.pano;

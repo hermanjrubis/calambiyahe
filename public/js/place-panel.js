@@ -964,7 +964,7 @@ async function initInline360Viewer(place) {
             panoUrl = `../assets/360/${encodeURIComponent(defaultFilename)}`;
         }
     } else if (place.tour360 && place.tour360.panorama) {
-        panoUrl = place.tour360.panorama;
+        panoUrl = resolvePlaceImageUrl(place.tour360.panorama);
     } else if (place.pano) {
         panoUrl = resolvePlaceImageUrl(place.pano);
     }
@@ -2257,11 +2257,11 @@ function getPlacePanel360Link(placeId, placeName) {
 /**
  * Open Place Detail Panel
  */
-// A business logo next to the name (Cloudinary only)
+// A business logo next to the name
 function setPanelLogo(url) {
     const logoEl = document.getElementById('ppLogo');
     if (!logoEl) return;
-    if (typeof url === 'string' && url.startsWith('https://res.cloudinary.com/')) {
+    if (typeof url === 'string' && (url.startsWith('https://res.cloudinary.com/') || url.startsWith('http://') || url.startsWith('https://') || url.startsWith('../assets/') || url.startsWith('/assets/'))) {
         logoEl.src = url;
         logoEl.hidden = false;
     } else {
@@ -2396,8 +2396,9 @@ window.openPlacePanel = function(placeName, optLat, optLng, openOptions) {
         if (fpMatch) {
             data = {
                 ...fpMatch,
-                photo: fpMatch.photo || fpMatch.thumbnailUrl || fpMatch.profilePhotoUrl || null,
-                image: fpMatch.photo || fpMatch.thumbnailUrl || fpMatch.profilePhotoUrl || fpMatch.image_path || '../assets/hero-places-bg.png'
+                logo: fpMatch.logo || fpMatch.logoUrl || null,
+                photo: fpMatch.photo || fpMatch.image_path || fpMatch.thumbnailUrl || fpMatch.profilePhotoUrl || null,
+                image: fpMatch.photo || fpMatch.image_path || fpMatch.thumbnailUrl || fpMatch.profilePhotoUrl || '../assets/hero-places-bg.png'
             };
         }
     }
@@ -2653,7 +2654,7 @@ async function fillRest(data, placeName, optLat, optLng) {
 
             const nameEl = document.getElementById('ppName');
             if (nameEl && match.name) nameEl.textContent = match.name;
-            setPanelLogo(match.logo);
+            setPanelLogo(match.logo || match.logoUrl || data.logo);
 
             if (planBtn && match.lat != null && (match.lng != null || match.lon != null)) {
                 planBtn.setAttribute('data-lat', match.lat);

@@ -601,6 +601,11 @@ async function getLiveBusinesses() {
             const paidAtIso = rawPaid ? (typeof rawPaid.toDate === 'function' ? rawPaid.toDate().toISOString() : (rawPaid instanceof Date ? rawPaid.toISOString() : (typeof rawPaid.seconds === 'number' ? new Date(rawPaid.seconds * 1000).toISOString() : String(rawPaid)))) : null;
             const has360 = d.plan === 'plus360' || d.plan === 'featured';
 
+            const logo = (typeof d.logoUrl === 'string' && d.logoUrl.startsWith('https://res.cloudinary.com/'))
+                ? d.logoUrl
+                : (typeof d.profilePhotoUrl === 'string' && d.profilePhotoUrl.startsWith('https://res.cloudinary.com/') ? d.profilePhotoUrl : null);
+            const photo = d.thumbnailUrl || (d.photo && !d.photo.startsWith('https://res.cloudinary.com/') ? d.photo : null);
+
             list.push({
                 id: 'biz_' + id,
                 source: 'business',
@@ -616,8 +621,10 @@ async function getLiveBusinesses() {
                 description: d.description || '',
                 website: (d.socialLinks && d.socialLinks.facebook) ? d.socialLinks.facebook : null,
                 social: d.socialLinks || null,
-                photo: d.thumbnailUrl || d.profilePhotoUrl || null,
-                logo: typeof d.logoUrl === 'string' && d.logoUrl.startsWith('https://res.cloudinary.com/') ? d.logoUrl : null,
+                photo,
+                thumbnailUrl: d.thumbnailUrl || null,
+                logo,
+                logoUrl: logo,
                 offerings: Array.isArray(d.offerings) ? d.offerings : [],
                 openHours: d.openHours || null,
                 plan: d.plan || 'listed',
@@ -678,6 +685,10 @@ function mergeBusinessesIntoPlaces(staticPlaces, businesses) {
         // Keep specific category from base if biz has generic 'establishments'
         const category = (biz.category && biz.category !== 'establishments') ? biz.category : (base.category || biz.category || 'establishments');
 
+        // Storefront photo: if static place has a verified building photo, preserve it unless business has its own storefront photo
+        const outPhoto = biz.thumbnailUrl || base.photo || base.image_path || biz.photo || null;
+        const outLogo = biz.logo || biz.logoUrl || base.logo || base.logoUrl || (typeof biz.profilePhotoUrl === 'string' && biz.profilePhotoUrl.startsWith('https://res.cloudinary.com/') ? biz.profilePhotoUrl : null);
+
         const out = {
             ...base,
             ...biz,
@@ -687,6 +698,10 @@ function mergeBusinessesIntoPlaces(staticPlaces, businesses) {
             lat: outLat,
             lng: outLng,
             category,
+            photo: outPhoto,
+            image_path: outPhoto,
+            logo: outLogo,
+            logoUrl: outLogo,
             pano: base.pano || biz.pano || null,
             pano_thumb: base.pano_thumb || biz.pano_thumb || null,
             has360: Boolean(base.pano || biz.has360 || biz.tour360?.panorama),
@@ -695,8 +710,6 @@ function mergeBusinessesIntoPlaces(staticPlaces, businesses) {
         for (const f of MERGE_FILL_FIELDS) {
             if ((out[f] == null || out[f] === '') && base[f] != null && base[f] !== '') out[f] = base[f];
         }
-        // The owner's uploaded photo beats the static one wherever the UI reads image_path
-        if (biz.photo) out.image_path = biz.photo;
         merged[idx] = out;
     }
     return [...merged, ...extra];
