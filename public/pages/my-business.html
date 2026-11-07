@@ -1290,20 +1290,24 @@
         }
 
         /* ====================================================
-           STORE LOCATIONS & BRANCHES MANAGER (Edit Profile)
+           STORE LOCATIONS & BRANCHES MANAGER (Edit Profile - Flat Modern UI)
            ==================================================== */
         .mb-loc-box {
             border: 1px solid #E2E8F0;
-            border-radius: 10px;
-            padding: 14px 16px;
-            background: #F8FAFC;
+            border-radius: 12px;
+            padding: 16px 18px;
+            background: #FFFFFF;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .mb-loc-box:hover {
+            border-color: #CBD5E1;
         }
         .mb-loc-box-head {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
         }
         .mb-loc-badge {
             display: inline-flex;
@@ -1319,9 +1323,13 @@
             border-radius: 6px;
             margin-bottom: 6px;
         }
+        .mb-loc-badge.is-main {
+            color: #1F69B8;
+            background: #EAF3FC;
+        }
         .mb-loc-title {
             font-family: 'Sora', sans-serif;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: #042C53;
             line-height: 1.35;
@@ -1330,17 +1338,26 @@
             font-size: 13px;
             color: #64748B;
             line-height: 1.45;
-            margin-top: 2px;
+            margin-top: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 14px;
+            align-items: center;
+        }
+        .mb-loc-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
         .mb-loc-actions {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
         }
         .mb-loc-btn {
             min-height: 36px;
-            padding: 0 12px;
+            padding: 0 14px;
             border-radius: 8px;
             border: 1px solid #CBD5E1;
             background: #FFFFFF;
@@ -1351,37 +1368,62 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            transition: background 0.15s ease, border-color 0.15s ease;
+            gap: 6px;
+            transition: all 0.15s ease;
         }
-        .mb-loc-btn:hover { background: #F1F5F9; border-color: #94A3B8; }
-        .mb-loc-btn.is-danger { color: #DC2626; border-color: #FECACA; background: #FEF2F2; }
-        .mb-loc-btn.is-danger:hover { background: #FEE2E2; }
+        .mb-loc-btn:hover { background: #F8FAFC; border-color: #94A3B8; }
+        .mb-loc-btn.is-danger { color: #DC2626; border-color: #FECACA; background: #FFFFFF; }
+        .mb-loc-btn.is-danger:hover { background: #FEF2F2; border-color: #F87171; }
         .mb-loc-btn.is-primary { background: #1F69B8; border-color: #1F69B8; color: #FFFFFF; }
-        .mb-loc-btn.is-primary:hover { background: #185FA5; }
+        .mb-loc-btn.is-primary:hover { background: #185FA5; border-color: #185FA5; }
+        .mb-loc-btn.is-open { background: #F1F5F9; border-color: #94A3B8; color: #475569; }
+
+        /* Flat Seamless Inline Editor (No nested background boxes!) */
         .mb-loc-editor {
-            margin-top: 12px;
-            padding: 16px;
-            border: 1px solid #CBD5E1;
-            border-radius: 10px;
-            background: #FFFFFF;
+            margin-top: 16px;
+            padding-top: 18px;
+            border-top: 1px solid #E2E8F0;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
+        }
+        #mbBranchEditorBox {
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            background: #FFFFFF;
+            padding: 18px;
+            margin-top: 12px;
         }
         .mb-loc-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 14px;
         }
         .mb-loc-map-wrap {
             position: relative;
             width: 100%;
             height: 220px;
-            border: 1px solid #CBD5E1;
-            border-radius: 8px;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
             overflow: hidden;
-            background: #EEF2F7;
+            background: #F1F5F9;
+        }
+        .mb-map-hint {
+            position: absolute;
+            bottom: 10px;
+            left: 12px;
+            z-index: 2;
+            background: rgba(4, 44, 83, 0.82);
+            backdrop-filter: blur(4px);
+            color: #FFFFFF;
+            font-size: 11.5px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            pointer-events: none;
         }
         .mb-phone-input-group {
             display: flex;
@@ -1390,17 +1432,22 @@
             border-radius: 8px;
             overflow: hidden;
             background: #FFFFFF;
-            min-height: 44px;
+            min-height: 42px;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .mb-phone-input-group:focus-within {
+            border-color: #378ADD;
+            box-shadow: 0 0 0 3px rgba(55, 138, 221, 0.12);
         }
         .mb-phone-prefix {
             display: inline-flex;
             align-items: center;
             padding: 0 12px;
-            background: #F1F5F9;
+            background: #F8FAFC;
             border-right: 1px solid #CBD5E1;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 600;
-            color: #042C53;
+            color: #475569;
             user-select: none;
         }
         .mb-phone-digits {
@@ -1412,17 +1459,98 @@
             font-size: 14px;
             color: #042C53;
             outline: none;
+            background: transparent;
         }
         .mb-branches-list {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 12px;
+        }
+        .mb-keep-branch-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            background: #FAFAFA;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .mb-keep-branch-card:hover {
+            border-color: #CBD5E1;
+            background: #F8FAFC;
+        }
+        .mb-keep-branch-check {
+            width: 17px;
+            height: 17px;
+            margin-top: 2px;
+            accent-color: #1F69B8;
+            cursor: pointer;
+        }
+        .mb-keep-branch-content {
+            min-width: 0;
+            flex: 1;
+        }
+        .mb-keep-branch-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #042C53;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mb-keep-branch-desc {
+            font-size: 12px;
+            color: #64748B;
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+        .mb-branch-empty-flat {
+            border: 1px dashed #CBD5E1;
+            border-radius: 12px;
+            padding: 24px 20px;
+            text-align: center;
+            background: #FAFCFF;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .mb-branch-empty-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: #EAF3FC;
+            color: #1F69B8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 19px;
+            margin-bottom: 2px;
+        }
+        .mb-branch-empty-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .mb-branch-empty-text strong {
+            font-size: 13.5px;
+            color: #042C53;
+        }
+        .mb-branch-empty-text span {
+            font-size: 12px;
+            color: #64748B;
+            max-width: 340px;
         }
         @media (max-width: 640px) {
             .mb-loc-grid { grid-template-columns: 1fr; }
-            .mb-loc-actions { width: 100%; }
-            .mb-loc-btn { min-height: 44px; flex: 1 1 auto; justify-content: center; }
+            .mb-loc-actions { width: 100%; margin-top: 8px; }
+            .mb-loc-btn { min-height: 40px; flex: 1 1 auto; justify-content: center; }
+            .mb-loc-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .mb-keep-branch-card { padding: 10px 12px; }
         }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css">
@@ -2015,12 +2143,12 @@
                                     </div>
                                 </section>
 
-                                <!-- STORE LOCATIONS & BRANCHES (Relocate Store / Manage Branches) -->
+                                <!-- STORE LOCATIONS & BRANCHES (Relocate Store / Manage Branches - Flat Modern Design) -->
                                 <section class="mb-card" id="mbEditLocations">
-                                    <div class="mb-card-head">
+                                    <div class="mb-card-head" style="margin-bottom: 16px;">
                                         <div>
                                             <h2 class="mb-card-title">Store locations &amp; branches</h2>
-                                            <p class="mb-card-sub" style="margin-top: 2px;">Relocate your main physical store (replacing the previous location) or add and edit additional branches in Uno, Real, or Halang.</p>
+                                            <p class="mb-card-sub" style="margin-top: 3px; margin-bottom: 0;">Relocate your main physical store or manage additional branches in Uno, Real, or Halang.</p>
                                         </div>
                                     </div>
 
@@ -2028,14 +2156,14 @@
                                     <div class="mb-loc-box" id="mbMainStoreBox">
                                         <div class="mb-loc-box-head">
                                             <div style="min-width: 0; flex: 1;">
-                                                <span class="mb-loc-badge"><i class="ti ti-map-pin"></i> Main Store</span>
+                                                <span class="mb-loc-badge is-main"><i class="ti ti-map-pin"></i> Main Store</span>
                                                 <div class="mb-loc-title" id="mbMainLocAddressText">--</div>
                                                 <div class="mb-loc-meta" id="mbMainLocMetaText">--</div>
                                             </div>
                                             <div class="mb-loc-actions">
                                                 <button type="button" class="mb-loc-btn" id="btnToggleRelocateMain">
-                                                    <i class="ti ti-Arrows-exchange"></i>
-                                                    <span>Relocate / Edit main store</span>
+                                                    <i class="ti ti-arrows-exchange"></i>
+                                                    <span>Relocate store</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -2043,19 +2171,24 @@
                                         <!-- Inline Relocate / Edit Main Store Editor -->
                                         <div class="mb-loc-editor" id="mbMainStoreEditor" hidden>
                                             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                                <strong style="font-size: 14px; color: #042C53;">Relocate or update main store location</strong>
+                                                <div>
+                                                    <strong style="font-size: 14px; color: #042C53; display: block;">Relocate main store</strong>
+                                                    <span style="font-size: 12.5px; color: #64748B;">Move your primary physical store to a new location.</span>
+                                                </div>
                                                 <button type="button" class="mb-loc-btn" id="btnMainUseCurrentLoc">
                                                     <i class="ti ti-current-location"></i>
                                                     <span>Use My Current Location</span>
                                                 </button>
                                             </div>
-                                            <p style="font-size: 12.5px; color: #64748B; margin: 0;">Click or drag the pin on the map to your new store location. Saving will replace your previous main location unless you choose to keep the previous address as a branch below.</p>
-                                            <div class="mb-loc-map-wrap" id="mbMainLocationMap"></div>
+
+                                            <div class="mb-loc-map-wrap" id="mbMainLocationMap">
+                                                <div class="mb-map-hint"><i class="ti ti-hand-finger"></i> Click or drag pin to new location</div>
+                                            </div>
 
                                             <div class="mb-loc-grid">
                                                 <div>
                                                     <label class="form-label" for="editMainBarangay" style="margin-bottom: 4px;">Barangay <span class="req">*</span></label>
-                                                    <select id="editMainBarangay" class="form-select" style="min-height: 44px;">
+                                                    <select id="editMainBarangay" class="form-select" style="min-height: 42px;">
                                                         <option value="Uno">Brgy. 1 (Poblacion Uno)</option>
                                                         <option value="Real">Brgy. Real</option>
                                                         <option value="Halang">Brgy. Halang</option>
@@ -2073,36 +2206,44 @@
                                             <div class="mb-loc-grid">
                                                 <div>
                                                     <label class="form-label" for="editMainAddress" style="margin-bottom: 4px;">House No. / Building / Street <span class="req">*</span></label>
-                                                    <input type="text" id="editMainAddress" class="form-input" maxlength="160" placeholder="e.g. Unit 2, National Hwy" style="min-height: 44px;">
+                                                    <input type="text" id="editMainAddress" class="form-input" maxlength="160" placeholder="e.g. Unit 2, National Hwy" style="min-height: 42px;">
                                                 </div>
                                                 <div>
                                                     <label class="form-label" for="editMainLandmark" style="margin-bottom: 4px;">Landmark <span class="opt">(optional)</span></label>
-                                                    <input type="text" id="editMainLandmark" class="form-input" maxlength="80" placeholder="e.g. Near SM Calamba" style="min-height: 44px;">
+                                                    <input type="text" id="editMainLandmark" class="form-input" maxlength="80" placeholder="e.g. Near SM Calamba" style="min-height: 42px;">
                                                 </div>
                                             </div>
 
-                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #042C53; cursor: pointer; user-select: none;">
-                                                <input type="checkbox" id="chkKeepOldMainAsBranch" style="width: 16px; height: 16px;">
-                                                <span>Keep previous main location as an additional branch instead of removing it</span>
+                                            <label class="mb-keep-branch-card">
+                                                <input type="checkbox" id="chkKeepOldMainAsBranch" class="mb-keep-branch-check">
+                                                <div class="mb-keep-branch-content">
+                                                    <div class="mb-keep-branch-title">
+                                                        <i class="ti ti-building-store"></i>
+                                                        <span>Keep previous address as an additional branch</span>
+                                                    </div>
+                                                    <div class="mb-keep-branch-desc">
+                                                        Check this if your old store is still operating as another branch.
+                                                    </div>
+                                                </div>
                                             </label>
 
                                             <div class="field-error-msg" id="errMainLocation" style="margin: 0;"></div>
 
-                                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
                                                 <button type="button" class="btn-cancel" id="btnCancelMainLocation">Cancel</button>
-                                                <button type="button" class="btn-primary" id="btnApplyMainLocation" style="min-height: 40px; padding: 0 16px;">Apply new location</button>
+                                                <button type="button" class="btn-primary" id="btnApplyMainLocation" style="min-height: 40px; padding: 0 18px;">Apply new location</button>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="mb-divider"></div>
+                                    <div class="mb-divider" style="margin: 20px 0;"></div>
 
                                     <!-- 2. Additional Branches Section -->
                                     <div>
                                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                                             <div>
-                                                <h3 style="font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 700; color: #042C53; margin: 0;">Additional branches <span id="mbBranchesCountLabel" style="font-weight: 500; color: #64748B; font-size: 13px;">(0 / 5)</span></h3>
-                                                <p style="font-size: 12.5px; color: #64748B; margin-top: 2px;">Include other physical branches, edit their info, or remove old locations.</p>
+                                                <h3 style="font-family: 'Sora', sans-serif; font-size: 14.5px; font-weight: 700; color: #042C53; margin: 0;">Additional branches <span id="mbBranchesCountLabel" style="font-weight: 500; color: #64748B; font-size: 13px;">(0 / 5)</span></h3>
+                                                <p style="font-size: 12.5px; color: #64748B; margin-top: 2px; margin-bottom: 0;">Add other branches or physical stores of your business in Calamba.</p>
                                             </div>
                                             <button type="button" class="mb-loc-btn is-primary" id="btnAddBranch">
                                                 <i class="ti ti-plus"></i>
@@ -2115,23 +2256,28 @@
                                         <!-- Inline Branch Add/Edit Editor -->
                                         <div class="mb-loc-editor" id="mbBranchEditorBox" hidden>
                                             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                                                <strong id="mbBranchEditorTitle" style="font-size: 14px; color: #042C53;">Add branch</strong>
+                                                <div>
+                                                    <strong id="mbBranchEditorTitle" style="font-size: 14px; color: #042C53; display: block;">Add branch</strong>
+                                                    <span style="font-size: 12.5px; color: #64748B;">Fill in branch details and pin its location on the map.</span>
+                                                </div>
                                                 <button type="button" class="mb-loc-btn" id="btnBranchUseCurrentLoc">
                                                     <i class="ti ti-current-location"></i>
                                                     <span>Use My Current Location</span>
                                                 </button>
                                             </div>
 
-                                            <div class="mb-loc-map-wrap" id="mbBranchLocationMap"></div>
+                                            <div class="mb-loc-map-wrap" id="mbBranchLocationMap">
+                                                <div class="mb-map-hint"><i class="ti ti-hand-finger"></i> Click or drag pin to branch location</div>
+                                            </div>
 
                                             <div class="mb-loc-grid">
                                                 <div>
                                                     <label class="form-label" for="branchEditName" style="margin-bottom: 4px;">Branch name <span class="req">*</span></label>
-                                                    <input type="text" id="branchEditName" class="form-input" maxlength="60" placeholder="e.g. Real Branch / Crossing Branch" style="min-height: 44px;">
+                                                    <input type="text" id="branchEditName" class="form-input" maxlength="60" placeholder="e.g. Real Branch / Crossing Branch" style="min-height: 42px;">
                                                 </div>
                                                 <div>
                                                     <label class="form-label" for="branchEditBarangay" style="margin-bottom: 4px;">Barangay <span class="req">*</span></label>
-                                                    <select id="branchEditBarangay" class="form-select" style="min-height: 44px;">
+                                                    <select id="branchEditBarangay" class="form-select" style="min-height: 42px;">
                                                         <option value="Uno">Brgy. 1 (Poblacion Uno)</option>
                                                         <option value="Real">Brgy. Real</option>
                                                         <option value="Halang">Brgy. Halang</option>
@@ -2142,11 +2288,11 @@
                                             <div class="mb-loc-grid">
                                                 <div>
                                                     <label class="form-label" for="branchEditAddress" style="margin-bottom: 4px;">House No. / Building / Street <span class="req">*</span></label>
-                                                    <input type="text" id="branchEditAddress" class="form-input" maxlength="160" placeholder="e.g. Block 4 Lot 2, Maharlika Hwy" style="min-height: 44px;">
+                                                    <input type="text" id="branchEditAddress" class="form-input" maxlength="160" placeholder="e.g. Block 4 Lot 2, Maharlika Hwy" style="min-height: 42px;">
                                                 </div>
                                                 <div>
                                                     <label class="form-label" for="branchEditLandmark" style="margin-bottom: 4px;">Landmark <span class="opt">(optional)</span></label>
-                                                    <input type="text" id="branchEditLandmark" class="form-input" maxlength="80" placeholder="e.g. Across WalterMart" style="min-height: 44px;">
+                                                    <input type="text" id="branchEditLandmark" class="form-input" maxlength="80" placeholder="e.g. Across WalterMart" style="min-height: 42px;">
                                                 </div>
                                             </div>
 
@@ -2160,11 +2306,13 @@
 
                                             <div class="field-error-msg" id="errBranchEditor" style="margin: 0;"></div>
 
-                                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap;">
+                                            <div style="display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 4px;">
                                                 <button type="button" class="btn-cancel" id="btnCancelBranchEditor">Cancel</button>
-                                                <button type="button" class="btn-primary" id="btnSaveBranchEditor" style="min-height: 40px; padding: 0 16px;">Save branch</button>
+                                                <button type="button" class="btn-primary" id="btnSaveBranchEditor" style="min-height: 40px; padding: 0 18px;">Save branch</button>
                                             </div>
                                         </div>
+                                    </div>
+                                </section>
                                     </div>
                                 </section>
 
@@ -3649,16 +3797,21 @@
             const addrEl = document.getElementById('mbMainLocAddressText');
             const metaEl = document.getElementById('mbMainLocMetaText');
             if (addrEl) {
-                addrEl.textContent = `${currentMainLocationState.address || 'Address not set'}, Brgy. ${currentMainLocationState.barangay}, Calamba`;
+                addrEl.textContent = `${currentMainLocationState.address || 'Address not set'}, Brgy. ${currentMainLocationState.barangay || 'Real'}, Calamba`;
             }
             if (metaEl) {
                 const bits = [];
-                if (currentMainLocationState.landmark) bits.push(`Landmark: ${currentMainLocationState.landmark}`);
-                if (currentMainLocationState.contactNumber) bits.push(`Tel: ${currentMainLocationState.contactNumber}`);
-                if (currentMainLocationState.location) {
-                    bits.push(`Pin: ${currentMainLocationState.location.lat.toFixed(5)}, ${currentMainLocationState.location.lng.toFixed(5)}`);
+                bits.push(`<span><i class="ti ti-map-pin" style="color:#1F69B8;"></i> Brgy. ${escapeHtml(currentMainLocationState.barangay || 'Real')}</span>`);
+                if (currentMainLocationState.contactNumber) {
+                    bits.push(`<span><i class="ti ti-phone"></i> ${escapeHtml(currentMainLocationState.contactNumber)}</span>`);
                 }
-                metaEl.textContent = bits.join(' · ') || 'Primary store location';
+                if (currentMainLocationState.landmark) {
+                    bits.push(`<span><i class="ti ti-flag"></i> ${escapeHtml(currentMainLocationState.landmark)}</span>`);
+                }
+                if (currentMainLocationState.location) {
+                    bits.push(`<span><i class="ti ti-crosshair"></i> ${currentMainLocationState.location.lat.toFixed(4)}, ${currentMainLocationState.location.lng.toFixed(4)}</span>`);
+                }
+                metaEl.innerHTML = bits.join('') || 'Primary store location';
             }
 
             const countLabel = document.getElementById('mbBranchesCountLabel');
@@ -3669,31 +3822,44 @@
             const listEl = document.getElementById('mbBranchesList');
             if (!listEl) return;
             if (!currentBranchesState.length) {
-                listEl.innerHTML = `<div style="font-size: 13px; color: #64748B; padding: 10px 12px; border: 1px dashed #CBD5E1; border-radius: 8px; background: #F8FAFC;">No additional branches added yet. Click <strong>Add branch</strong> if your business has another physical store.</div>`;
+                listEl.innerHTML = `
+                    <div class="mb-branch-empty-flat">
+                        <div class="mb-branch-empty-icon"><i class="ti ti-building-store"></i></div>
+                        <div class="mb-branch-empty-text">
+                            <strong>No additional branches yet</strong>
+                            <span>If your business has other physical stores in Calamba, add them here.</span>
+                        </div>
+                        <button type="button" class="mb-loc-btn is-primary" id="btnAddBranchEmpty" style="margin-top: 4px;">
+                            <i class="ti ti-plus"></i>
+                            <span>Add branch</span>
+                        </button>
+                    </div>
+                `;
                 return;
             }
             listEl.innerHTML = currentBranchesState.map((b, idx) => {
-                const metaBits = [`Brgy. ${b.barangay}`];
-                if (b.landmark) metaBits.push(`Landmark: ${b.landmark}`);
-                if (b.contactNumber) metaBits.push(b.contactNumber);
-                if (b.location) metaBits.push(`Pin: ${b.location.lat.toFixed(5)}, ${b.location.lng.toFixed(5)}`);
+                const metaBits = [];
+                metaBits.push(`<span><i class="ti ti-map-pin" style="color:#1F69B8;"></i> Brgy. ${escapeHtml(b.barangay)}</span>`);
+                if (b.contactNumber) metaBits.push(`<span><i class="ti ti-phone"></i> ${escapeHtml(b.contactNumber)}</span>`);
+                if (b.landmark) metaBits.push(`<span><i class="ti ti-flag"></i> ${escapeHtml(b.landmark)}</span>`);
+                if (b.location) metaBits.push(`<span><i class="ti ti-crosshair"></i> ${b.location.lat.toFixed(4)}, ${b.location.lng.toFixed(4)}</span>`);
                 return `
                     <div class="mb-loc-box" data-branch-idx="${idx}">
                         <div class="mb-loc-box-head">
                             <div style="min-width: 0; flex: 1;">
-                                <span class="mb-loc-badge" style="background:#F1F5F9;color:#042C53;"><i class="ti ti-building-store"></i> ${escapeHtml(b.name)}</span>
+                                <span class="mb-loc-badge" style="background:#F1F5F9;color:#334155;"><i class="ti ti-building-store"></i> ${escapeHtml(b.name)}</span>
                                 <div class="mb-loc-title">${escapeHtml(b.address)}</div>
-                                <div class="mb-loc-meta">${escapeHtml(metaBits.join(' · '))}</div>
+                                <div class="mb-loc-meta">${metaBits.join('')}</div>
                             </div>
                             <div class="mb-loc-actions">
-                                <button type="button" class="mb-loc-btn" data-branch-action="edit" data-branch-idx="${idx}">
-                                    <i class="ti ti-pencil"></i><span>Edit info</span>
+                                <button type="button" class="mb-loc-btn" data-branch-action="edit" data-branch-idx="${idx}" title="Edit this branch's address or pin">
+                                    <i class="ti ti-pencil"></i><span>Edit</span>
                                 </button>
-                                <button type="button" class="mb-loc-btn" data-branch-action="promote" data-branch-idx="${idx}" title="Make this your new Main Store and remove the previous main store location">
-                                    <i class="ti ti-map-pin-share"></i><span>Set as main &amp; remove previous</span>
+                                <button type="button" class="mb-loc-btn" data-branch-action="promote" data-branch-idx="${idx}" title="Set this branch as your main store">
+                                    <i class="ti ti-arrows-exchange"></i><span>Set as main</span>
                                 </button>
-                                <button type="button" class="mb-loc-btn is-danger" data-branch-action="remove" data-branch-idx="${idx}">
-                                    <i class="ti ti-trash"></i><span>Remove</span>
+                                <button type="button" class="mb-loc-btn is-danger" data-branch-action="remove" data-branch-idx="${idx}" title="Remove this branch">
+                                    <i class="ti ti-trash"></i><span>Delete</span>
                                 </button>
                             </div>
                         </div>
@@ -3784,6 +3950,11 @@
             const brEd = document.getElementById('mbBranchEditorBox');
             if (mainEd) mainEd.hidden = true;
             if (brEd) brEd.hidden = true;
+            const toggleBtn = document.getElementById('btnToggleRelocateMain');
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="ti ti-arrows-exchange"></i><span>Relocate store</span>';
+                toggleBtn.classList.remove('is-open');
+            }
             renderLocationsAndBranchesUI();
             bindLocationsAndBranchesEvents();
         }
@@ -3794,6 +3965,7 @@
             sec.dataset.bound = '1';
 
             const mainEditor = document.getElementById('mbMainStoreEditor');
+            const branchEditorBox = document.getElementById('mbBranchEditorBox');
             const editMainBarangay = document.getElementById('editMainBarangay');
             const editMainContactDigits = document.getElementById('editMainContactDigits');
             const editMainAddress = document.getElementById('editMainAddress');
@@ -3801,15 +3973,31 @@
             const chkKeepOldMain = document.getElementById('chkKeepOldMainAsBranch');
             const errMainLocation = document.getElementById('errMainLocation');
 
+            function setRelocateEditorOpen(open) {
+                if (!mainEditor) return;
+                mainEditor.hidden = !open;
+                const toggleBtn = document.getElementById('btnToggleRelocateMain');
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = open 
+                        ? '<i class="ti ti-x"></i><span>Cancel relocation</span>' 
+                        : '<i class="ti ti-arrows-exchange"></i><span>Relocate store</span>';
+                    toggleBtn.classList.toggle('is-open', open);
+                }
+                if (open && branchEditorBox) {
+                    branchEditorBox.hidden = true;
+                    editingBranchIndex = -1;
+                }
+            }
+
             editMainContactDigits?.addEventListener('input', () => {
                 editMainContactDigits.value = editMainContactDigits.value.replace(/\D/g, '').slice(0, 10);
             });
 
             document.getElementById('btnToggleRelocateMain')?.addEventListener('click', () => {
                 if (!mainEditor || !currentMainLocationState) return;
-                const opening = mainEditor.hidden;
-                mainEditor.hidden = !opening;
-                if (!opening) return;
+                const willOpen = mainEditor.hidden;
+                setRelocateEditorOpen(willOpen);
+                if (!willOpen) return;
 
                 if (editMainBarangay) editMainBarangay.value = currentMainLocationState.barangay || 'Real';
                 if (editMainContactDigits) editMainContactDigits.value = extractTenPhoneDigits(currentMainLocationState.contactNumber);
@@ -3820,11 +4008,12 @@
 
                 mainEditorPin = { ...(currentMainLocationState.location || BARANGAY_CENTERS[currentMainLocationState.barangay || 'Real']) };
                 setTimeout(() => {
-                    ensureInteractivePinMap('mbMainLocationMap', mainEditorPin, (newPin) => {
+                    const inst = ensureInteractivePinMap('mbMainLocationMap', mainEditorPin, (newPin) => {
                         mainEditorPin = newPin;
                         reverseGeocodePin(newPin.lat, newPin.lng, editMainAddress, editMainBarangay);
                     });
-                }, 40);
+                    if (inst?.map) inst.map.resize();
+                }, 50);
             });
 
             editMainBarangay?.addEventListener('change', () => {
@@ -3859,7 +4048,7 @@
             });
 
             document.getElementById('btnCancelMainLocation')?.addEventListener('click', () => {
-                if (mainEditor) mainEditor.hidden = true;
+                setRelocateEditorOpen(false);
             });
 
             document.getElementById('btnApplyMainLocation')?.addEventListener('click', () => {
@@ -3902,13 +4091,12 @@
                     location: { lat: Number(pin.lat.toFixed(6)), lng: Number(pin.lng.toFixed(6)) }
                 };
 
-                if (mainEditor) mainEditor.hidden = true;
+                setRelocateEditorOpen(false);
                 renderLocationsAndBranchesUI();
                 updateSaveButtonState();
             });
 
             // ---- Additional Branches Events ----
-            const branchEditorBox = document.getElementById('mbBranchEditorBox');
             const branchEditorTitle = document.getElementById('mbBranchEditorTitle');
             const branchEditName = document.getElementById('branchEditName');
             const branchEditBarangay = document.getElementById('branchEditBarangay');
@@ -3923,6 +4111,9 @@
 
             function openBranchEditor(idx) {
                 if (!branchEditorBox) return;
+                // Close main store relocate editor if open
+                setRelocateEditorOpen(false);
+
                 editingBranchIndex = idx;
                 const existing = idx >= 0 ? currentBranchesState[idx] : null;
                 if (branchEditorTitle) branchEditorTitle.textContent = existing ? `Edit branch: ${existing.name}` : 'Add another branch';
@@ -3938,11 +4129,13 @@
                     : { ...BARANGAY_CENTERS[branchEditBarangay?.value || 'Real'] };
                 branchEditorBox.hidden = false;
                 setTimeout(() => {
-                    ensureInteractivePinMap('mbBranchLocationMap', branchEditorPin, (newPin) => {
+                    const inst = ensureInteractivePinMap('mbBranchLocationMap', branchEditorPin, (newPin) => {
                         branchEditorPin = newPin;
                         reverseGeocodePin(newPin.lat, newPin.lng, branchEditAddress, branchEditBarangay);
                     });
-                }, 40);
+                    if (inst?.map) inst.map.resize();
+                    branchEditorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }, 50);
             }
 
             document.getElementById('btnAddBranch')?.addEventListener('click', () => {
@@ -4034,6 +4227,10 @@
             });
 
             document.getElementById('mbBranchesList')?.addEventListener('click', (e) => {
+                if (e.target.closest('#btnAddBranchEmpty')) {
+                    if (currentBranchesState.length < 5) openBranchEditor(-1);
+                    return;
+                }
                 const btn = e.target.closest('[data-branch-action]');
                 if (!btn) return;
                 const action = btn.getAttribute('data-branch-action');
@@ -4058,7 +4255,7 @@
                     };
                     currentBranchesState.splice(idx, 1);
                     if (branchEditorBox) branchEditorBox.hidden = true;
-                    if (mainEditor) mainEditor.hidden = true;
+                    setRelocateEditorOpen(false);
                     renderLocationsAndBranchesUI();
                     updateSaveButtonState();
                 }
