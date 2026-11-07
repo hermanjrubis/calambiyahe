@@ -229,7 +229,7 @@ function resolvePlace(rawQuery, places = []) {
         const smPlace = places.find(p => p.name === 'SM City Calamba' || p.slug === 'sm-city-calamba');
         return {
             name: 'SM City Calamba',
-            coords: [14.203297, 121.154669],
+            coords: smPlace?.lat != null && smPlace?.lng != null ? [Number(smPlace.lat), Number(smPlace.lng)] : [14.203928, 121.154516],
             barangay: 'Uno',
             place: smPlace,
             outsideCalamba: false

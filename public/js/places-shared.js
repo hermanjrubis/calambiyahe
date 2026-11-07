@@ -4124,14 +4124,14 @@
         "category": "malls",
         "barangay": "Uno",
         "municipality": "Calamba",
-        "lat": 14.203278,
-        "lng": 121.157667,
+        "lat": 14.203928,
+        "lng": 121.154516,
         "image_path": "../assets/places/sm-city-calamba/photo.webp",
         "photo": "../assets/places/sm-city-calamba/photo.webp",
         "pano": "../assets/places/sm-city-calamba/360.jpg?v=2",
         "pano_thumb": "../assets/places/sm-city-calamba/360-thumb.webp?v=2",
         "description": "SM shopping mall beside the SM City Calamba Transport Terminal.",
-        "full_address": "Brgy. Uno, Calamba City, Laguna",
+        "full_address": "National Highway, Brgy. Uno, Calamba City, Laguna",
         "phone": "(049) 530 0070",
         "website": "https://www.smsupermalls.com/mall-directory/sm-city-calamba/",
         "opening_hours": {
@@ -4143,7 +4143,7 @@
             "sat": "10:00 AM - 10:00 PM",
             "sun": "10:00 AM - 10:00 PM"
         },
-        "coord_source": "360-gps"
+        "coord_source": "osm"
     },
     {
         "id": "all-day-cafe-all-wash",

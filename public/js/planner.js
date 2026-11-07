@@ -1304,7 +1304,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const CALAMBA_PLACES_RAW = [
             // Malls
-            { id: 'sm-calamba', name: 'SM City Calamba', category: 'malls', defaultLat: 14.203928, defaultLng: 121.1545159, full_address: 'National Road, Brgy. Real, Calamba City Triangle, 4027 Laguna' },
+            { id: 'sm-calamba', slug: 'sm-city-calamba', name: 'SM City Calamba', category: 'malls', defaultLat: 14.203928, defaultLng: 121.154516, full_address: 'National Highway, Brgy. Uno, Calamba City, Laguna', image_path: '../assets/places/sm-city-calamba/photo.webp' },
             { id: 'citymall-calamba', name: 'CityMall Calamba', category: 'malls', full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/citymall-calamba/citymall-calamba-1.webp' },
             { id: 'puregold-halang', name: 'Puregold – Halang, Calamba', category: 'malls', full_address: 'National Highway, Brgy. Halang, Calamba City, Laguna', image_path: '../assets/places/puregold-halang-calamba/puregold-halang-calamba-1.webp' },
             { id: 'south-supermarket', name: 'South Supermarket', category: 'malls', full_address: 'Manila S Rd, Calamba, 4027 Laguna' },
@@ -9852,6 +9852,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         "rsm lutong bahay": "rsm-lutong-bahay",
                         "saint benilde international school (calamba), inc.": "saint-benilde",
                         "saint benilde international school": "saint-benilde",
+                        "sm": "sm-city-calamba",
+                        "sm city": "sm-city-calamba",
+                        "sm mall": "sm-city-calamba",
+                        "sm calamba": "sm-city-calamba",
+                        "sm city calamba": "sm-city-calamba",
+                        "sm-calamba": "sm-city-calamba",
+                        "sm-city-calamba": "sm-city-calamba",
                         "sm city calamba transport terminal": "sm-transport-term",
                         "sm transport terminal": "sm-transport-term",
                         "sm calamba inner rd terminal": "sm-calamba-inner-rd-terminal",
