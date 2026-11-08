@@ -3,7 +3,7 @@
   "framework": null,
   "functions": {
     "api/index.js": {
-      "excludeFiles": "{public/**,scripts/**,scratch/**}"
+      "excludeFiles": "{public/assets/**,public/css/**,public/pages/**,public/uploads/**,public/vendor/**,scripts/**,scratch/**}"
     }
   },
   "trailingSlash": false,
