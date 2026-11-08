@@ -13,8 +13,10 @@
 
 'use strict';
 
-// Speed vs free-flow (TomTom relative traffic_level, 0..1). Confirm with scripts/spike-vector-flow.mjs.
-const THRESHOLDS = { normal: 0.75, slow: 0.40, heavy: 0.20 };
+// Speed vs free-flow (TomTom relative traffic_level, 0..1). Set Nov 8 against Google Maps live
+// traffic on the same roads: TomTom's free-flow on the National Highway is high, so 0.75/0.40/0.20
+// painted roads orange that Google showed green or yellow. One class lower matches better.
+const THRESHOLDS = { normal: 0.50, slow: 0.30, heavy: 0.15 };
 const SAMPLE_STEP_M = 10;        // one matched point every 10 m of jeep path
 const MAX_MATCH_M = 25;          // a road shape farther than this from the jeep path is not its road
 const MAX_BEARING_DIFF = 45;     // one_side shapes must run within 45° of the jeep's direction

@@ -24,7 +24,7 @@ const path = [pt(0, 0), pt(500, 0), pt(1000, 0)];
 
 // 1. Two one_side shapes on the same road, opposite directions, different traffic
 {
-    const eastbound = { lines: [[pt(-50, -3), pt(1050, -3)]], props: { traffic_level: 0.3, traffic_road_coverage: 'one_side' } };
+    const eastbound = { lines: [[pt(-50, -3), pt(1050, -3)]], props: { traffic_level: 0.2, traffic_road_coverage: 'one_side' } };
     const westbound = { lines: [[pt(1050, 3), pt(-50, 3)]], props: { traffic_level: 0.9, traffic_road_coverage: 'one_side' } };
     const r = TM.matchSlice(path, [westbound, eastbound]);
     check('one_side: picks the shape running the jeep direction (heavy)', r.stretches.length === 1 && r.stretches[0].cls === 'heavy', r.stretches);
@@ -86,8 +86,8 @@ const path = [pt(0, 0), pt(500, 0), pt(1000, 0)];
 }
 
 // 7. classify thresholds
-check('classify 0.75 normal / 0.5 slow / 0.3 heavy / 0.1 stopped',
-    TM.classify(0.75) === 'normal' && TM.classify(0.5) === 'slow' && TM.classify(0.3) === 'heavy' && TM.classify(0.1) === 'stopped');
+check('classify 0.5 normal / 0.4 slow / 0.2 heavy / 0.1 stopped',
+    TM.classify(0.5) === 'normal' && TM.classify(0.4) === 'slow' && TM.classify(0.2) === 'heavy' && TM.classify(0.1) === 'stopped');
 check('classify null = unknown, closure = stopped', TM.classify(null) === 'unknown' && TM.classify(0.9, true) === 'stopped');
 
 // 8. Client: toTravel both directions
