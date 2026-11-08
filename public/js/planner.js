@@ -7757,6 +7757,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalWalkCoordinates: lastItineraryStops?.finalWalkCoordinates || (window.finalWalkRouteGeojson?.coordinates) || null,
                 activeRouteSteps: steps,
                 lastItineraryStops,
+                // Trip with a transfer: the next jeep and the walk after it, as the itinerary shows them
+                transfer: (pendingTransfer && selectedMode !== 'walking') ? {
+                    boardName: pendingTransfer.boardName,
+                    via: pendingTransfer.via || null,
+                    via_tl: pendingTransfer.via_tl || null,
+                    waitMin: pendingTransfer.waitMin || 0,
+                    extraMin: pendingTransfer.extraMin || 0,
+                    finalWalkM: pendingTransfer.finalWalkM || 0,
+                    finalWalkMin: pendingTransfer.finalWalkMin || 0,
+                    jeepCoords: Array.isArray(pendingTransfer.jeep.coords) ? pendingTransfer.jeep.coords : [],
+                    finalWalkCoords: (pendingTransfer.finalWalk && Array.isArray(pendingTransfer.finalWalk.coordinates)) ? pendingTransfer.finalWalk.coordinates : [],
+                    finalWalkSteps: (pendingTransfer.finalWalk && Array.isArray(pendingTransfer.finalWalk.steps))
+                        ? pendingTransfer.finalWalk.steps.map(s => ({ ...s, mode: 'foot' })) : [],
+                    jeep: {
+                        headsign: pendingTransfer.jeep.headsign || null,
+                        signboard: pendingTransfer.jeep.signboard || null,
+                        distM: pendingTransfer.jeep.distM || 0,
+                        min: pendingTransfer.jeep.min || 0,
+                        fare: pendingTransfer.jeep.fare || 0,
+                        alightName: pendingTransfer.jeep.alightName || null
+                    }
+                } : null,
                 map
             };
         };
