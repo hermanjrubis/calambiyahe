@@ -505,7 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const drawerRoutieLink = document.getElementById('drawerRoutieLink');
 
     let inactivityTimer;
-    const INACTIVITY_LIMIT = 120000;
+    // Routie closes after 5 minutes with no click, typing, scrolling or voice in the chat. Nothing is lost:
+    // the conversation stays (same session id and history) and shows again when the chat is reopened.
+    const INACTIVITY_LIMIT = 5 * 60 * 1000;
 
     // === ROUTIE ATTENTION WIGGLE ANIMATION ===
     let routieAttentionInterval = null;
@@ -687,18 +689,35 @@ document.addEventListener('DOMContentLoaded', () => {
     function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
         if (chatWindow && chatWindow.classList.contains('open')) {
-            inactivityTimer = setTimeout(() => {
-                const cancelBtn = document.getElementById('voiceCancelBtn') || document.getElementById('cancelMicBtn');
-                if (cancelBtn) cancelBtn.click();
-                addMessage(window.t('js.session_ended'), false);
-                closeChat();
-            }, INACTIVITY_LIMIT);
+            inactivityTimer = setTimeout(onChatInactive, INACTIVITY_LIMIT);
         }
+    }
+
+    function onChatInactive() {
+        // Still waiting for Routie's reply, or Routie is still writing it: that is not the user being away
+        if (typingIndicatorEl || currentTypingState || isTranscribing) {
+            resetInactivityTimer();
+            return;
+        }
+        const cancelBtn = document.getElementById('voiceCancelBtn') || document.getElementById('cancelMicBtn');
+        if (cancelBtn) cancelBtn.click();
+        // Say so once (not again if the last message is already this notice)
+        const notice = window.t('js.session_ended');
+        const lastText = chatMessages && chatMessages.lastElementChild ? chatMessages.lastElementChild.textContent || '' : '';
+        if (!lastText.includes(notice)) addMessage(notice, false, true, false);
+        closeChat();
     }
 
     if (chatWindow) {
         chatWindow.addEventListener('click', resetInactivityTimer);
         chatWindow.addEventListener('input', resetInactivityTimer);
+        chatWindow.addEventListener('keydown', resetInactivityTimer);
+        chatWindow.addEventListener('touchstart', resetInactivityTimer, { passive: true });
+        chatWindow.addEventListener('wheel', resetInactivityTimer, { passive: true });
+    }
+    // Reading a long answer counts as activity
+    if (chatMessages) {
+        chatMessages.addEventListener('scroll', resetInactivityTimer, { passive: true });
     }
 
     const openChat = (e) => {

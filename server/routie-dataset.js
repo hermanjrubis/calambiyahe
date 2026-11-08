@@ -73,13 +73,35 @@ function allFaqs(baseFaqs) {
     return list;
 }
 
+// Business-owner questions (routie-faqs-extra.js BUSINESS_INTENT): the FAQ id for the topic, or null
+const bizIntent = extra.BUSINESS_INTENT || null;
+const bizOwner = bizIntent ? bizIntent.owner.map((p) => new RegExp(p, 'i')) : [];
+function businessFaqId(text) {
+    if (!bizIntent) return null;
+    let t = padded(normalizeText(text));
+    for (const phrase of bizIntent.notOwner || []) t = t.split(padded(normalizeText(phrase))).join(' ');
+    if (!bizOwner.some((re) => re.test(t))) return null;
+    for (const topic of bizIntent.topics) {
+        if (topic.any.some((w) => t.includes(padded(normalizeText(w))))) return topic.faq;
+    }
+    return bizIntent.fallback;
+}
+
+const BUSINESS_FAQ_IDS = /^(business_|view_360$)/;
 function matchFaq(text, baseFaqs) {
     const t = padded(normalizeText(text));
+    const list = allFaqs(baseFaqs);
     let best = null, bestLen = 0;
-    for (const f of allFaqs(baseFaqs)) {
+    for (const f of list) {
         for (const trig of f._triggers) {
             if (trig.length > bestLen && t.includes(padded(trig))) { best = f; bestLen = trig.length; }
         }
+    }
+    // An owner asking about their business: a business trigger that matched wins, else the topic's answer
+    const bizId = businessFaqId(text);
+    if (bizId && !(best && BUSINESS_FAQ_IDS.test(best.id))) {
+        const biz = list.find((f) => f.id === bizId);
+        if (biz) return biz;
     }
     return best;
 }
@@ -138,4 +160,4 @@ function placesForCategory(hit, places) {
     return { list: places.filter(inCats), closest: true };
 }
 
-module.exports = { normalizeText, allFaqs, matchFaq, findAlias, aliasFor, fareVars, detectCategory, placesForCategory };
+module.exports = { normalizeText, allFaqs, matchFaq, businessFaqId, findAlias, aliasFor, fareVars, detectCategory, placesForCategory };

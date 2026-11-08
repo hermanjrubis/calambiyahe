@@ -413,6 +413,24 @@ const FAQS_EXTRA = [
         ],
         en: 'After you register, your business is Pending while the team reviews it. It can come back as Needs changes (fix the details and resubmit), Rejected (you never pay), or Awaiting payment. After you upload your GCash receipt it is in Payment review, and once the payment is verified it is Approved and live on the map and Places, where you can post in Updates. You get an email at every step, and the status is always on your My Business page.',
         tl: 'Pagkatapos magrehistro, Pending ang negosyo mo habang nire-review ng team. Puwede itong bumalik bilang Needs changes (ayusin ang detalye at i-submit ulit), Rejected (hindi ka magbabayad), o Awaiting payment. Pagka-upload ng resibo sa GCash, nasa Payment review ito, at kapag na-verify ang bayad, Approved na ito at makikita sa mapa at Places, at puwede ka nang mag-post sa Updates. May email ka sa bawat hakbang, at laging nasa My Business page ang status.'
+    },
+    {
+        id: 'business_get_listed',
+        source: 'business-model-and-plans.md owner flow; plans-config.js; validation-plan decision 4 (registration pin inside coverage); i18n nav.user.register_business',
+        triggers: [
+            'makita ang business ko', 'makita business ko', 'makita ang negosyo ko', 'ipakita ang business ko',
+            'ipakita ang negosyo ko', 'ilagay ang business ko', 'ilagay ang negosyo ko', 'get my business listed',
+            'put my business on calzada', 'show my business on calzada', 'add my business to the map', 'business owner'
+        ],
+        en: 'Here is how to get your business on Calzada: 1) Sign in. 2) Open "Register your business" from your profile menu and fill in the form: business name, category, address and map pin. The business must be in Brgy. Uno, Real or Halang. 3) Pick a plan (calzadaph.com/plans): Listed ₱59, Listed + 360 ₱199 or Featured ₱299, a one-time payment with no monthly charges. 4) The Calzada team reviews it, and you get an email at every step. 5) Once approved, pay with GCash and upload the receipt on your My Business page. 6) After the payment is verified, your business appears on the map and in Places, and you can post updates.',
+        tl: 'Ganito para makita ang negosyo mo sa Calzada: 1) Mag-sign in. 2) Buksan ang "Register your business" sa profile menu at punan ang form: pangalan ng negosyo, kategorya, address, at map pin. Dapat nasa Brgy. Uno, Real, o Halang ang negosyo. 3) Pumili ng plan (calzadaph.com/plans): Listed ₱59, Listed + 360 ₱199, o Featured ₱299, isang beses lang ang bayad at walang buwanang singil. 4) Ire-review ito ng Calzada team, at may email ka sa bawat hakbang. 5) Kapag approved na, magbayad sa GCash at i-upload ang resibo sa My Business page. 6) Pagka-verify ng bayad, lalabas na ang negosyo mo sa mapa at sa Places, at puwede ka nang mag-post ng updates.'
+    },
+    {
+        id: 'business_remove',
+        source: 'Not in Calzada data (no self-service removal documented). Honest answer with the admin email.',
+        triggers: ['delete my business', 'remove my business', 'tanggalin ang business ko', 'burahin ang business ko', 'alisin ang negosyo ko', 'unlist my business'],
+        en: 'I don\'t have the steps for removing a business listing yet. Please email thecalzada@gmail.com from the email address of the account that registered the business, and the team will help you.',
+        tl: 'Wala pa akong hakbang para tanggalin ang isang business listing. Mag-email po sa thecalzada@gmail.com gamit ang email ng account na nagrehistro ng negosyo, at tutulungan kayo ng team.'
     }
 ];
 
@@ -452,4 +470,39 @@ const FAQ_TRIGGER_FIXES = {
     ]
 };
 
-module.exports = { FAQS_EXTRA, FAQ_TRIGGER_FIXES };
+
+// Business-owner questions phrased in many ways ("may business ako...", "negosyo ko", "my shop", "I own a cafe").
+// When a message is about the user's own business, the topic words pick the answer; the first topic that matches wins.
+// All patterns run on the normalized text (lowercase, no punctuation) padded with spaces.
+const BUSINESS_NOUNS = 'business|negosyo|shop|store|tindahan|resto|restaurant|restawran|karinderya|carinderia|cafe|kapehan|coffee shop|salon|clinic|botika|pharmacy|bakery|panaderya|stall|puwesto|pwesto|kainan|establishment|listing|branch|hotel|apartelle';
+const BUSINESS_INTENT = {
+    owner: [
+        `\\b(?:${BUSINESS_NOUNS})\\s+(?:ko|namin|natin|nmin)\\b`,
+        `\\b(?:my|our|aking|ming|naming)\\s+(?:own\\s+)?(?:${BUSINESS_NOUNS})\\b`,
+        `\\b(?:may|meron|mayroon)\\s+(?:akong|kaming|ako ng|kami ng)?\\s*(?:${BUSINESS_NOUNS})\\s+(?:ako|kami)\\b`,
+        `\\b(?:may|meron|mayroon)\\s+(?:akong|kaming)\\s+(?:${BUSINESS_NOUNS})\\b`,
+        '\\b(?:i|we)\\s+(?:own|have|run|manage)\\s+(?:a|an)\\s+',
+        '\\b(?:business owner|owner ako|may ari|mayari|negosyante)\\b',
+        '\\b(?:advertise|i advertise|promote|ipromote|i promote|magpa feature|magpafeature|i feature|ifeature|magpalista|magpa lista|magpa list)\\b',
+        '\\b(?:mag upgrade|upgrade (?:my|ng|ang) (?:plan|listing)|upgrade to featured)\\b',
+        '\\b(?:post|posts|listing|application|registration|promo)\\s+(?:ko|namin)\\b',
+        '\\b(?:my|our)\\s+(?:post|posts|listing|application|registration|promo)\\b',
+        '\\b(?:ma approve|maapprove|na approve|approval ng|another branch|isa pang branch|add a branch|paano mag post|how (?:do i|to) post|mag post ng)\\b'
+    ],
+    topics: [
+        { faq: 'business_remove', any: ['tanggalin', 'burahin', 'alisin', 'delete', 'remove', 'unlist'] },
+        { faq: 'business_register', any: ['branch', 'branches', 'sangay', 'another business', 'isa pang business', 'dalawang business', 'second business', 'two businesses'] },
+        { faq: 'business_payment', any: ['gcash', 'cash', 'card', 'credit card', 'bank transfer', 'resibo', 'receipt', 'reference', 'refund', 'nagbayad', 'magbayad', 'bayaran', 'payment', 'pay'] },
+        { faq: 'business_plans', any: ['magkano', 'how much', 'presyo', 'price', 'prices', 'cost', 'fee', 'fees', 'plan', 'plans', 'featured', 'feature', 'magpa feature', 'i feature', 'upgrade', 'add on', 'add ons', 'pin a post', 'i pin', 'naka pin', 'monthly', 'buwan buwan', 'mura'] },
+        { faq: 'business_status', any: ['approve', 'approved', 'approval', 'ma approve', 'pending', 'status', 'gaano katagal', 'how long', 'kailan lalabas', 'when will', 'reject', 'rejected', 'na reject', 'needs changes', 'review', 'nirereview'] },
+        { faq: 'business_edit', any: ['edit', 'palitan', 'baguhin', 'change', 'i update', 'iupdate', 'address', 'pangalan', 'name', 'photo', 'litrato', 'larawan', 'picture', 'description', 'social', 'links', 'logo', 'pin'] },
+        { faq: 'business_updates_feed', any: ['makakakita', 'makikita ang post', 'who will see', 'who sees', 'feed', 'lalabas ang post'] },
+        { faq: 'business_post_limits', any: ['post', 'posts', 'promo', 'promos', 'announcement', 'anunsyo', 'caption', 'photos per post'] },
+        { faq: 'view_360', any: ['360', 'virtual tour'] }
+    ],
+    // Phrases that look like ownership but are not ("my business card", "business trip ko")
+    notOwner: ['business card', 'business cards', 'business trip', 'business class'],
+    fallback: 'business_get_listed'
+};
+
+module.exports = { FAQS_EXTRA, FAQ_TRIGGER_FIXES, BUSINESS_INTENT };
