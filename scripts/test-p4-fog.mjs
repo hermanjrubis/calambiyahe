@@ -9,7 +9,7 @@
  *    - Area: ~3.65 km² (via turf.area)
  *    - Polygons: 1 (single contiguous boundary of Uno, Real, Halang)
  *    - BBox: ~[121.1400, 14.1862, 121.1835, 14.2099]
- *    - Outliers (3): CityMall Calamba, Letran, Coca-Cola Distribution Center
+ *    - Outliers: none (places outside Uno / Real / Halang are not listed)
  * 2. fog-clouds.png texture validation:
  *    - Exists, size > 0 and < 40 KB
  * 3. Scope module unit checks:
@@ -186,10 +186,10 @@ async function runFogTests() {
     report(placesOutside.length === 0, `0 places outside official coverage area (actual: ${placesOutside.length})`);
 
     const outlierNames = (coverageJson.outliers || []).map(o => o.name);
-    report(outlierNames.some(n => n.includes('CityMall')), 'Outliers include CityMall Calamba');
-    report(outlierNames.some(n => n.includes('Letran')), 'Outliers include Colegio de San Juan de Letran');
-    report(outlierNames.some(n => n.includes('Coca-Cola')), 'Outliers include Coca-Cola Distribution Center');
-    report(outlierNames.length === 3, `Exactly 3 outliers identified (${outlierNames.length})`);
+    // Places outside Uno / Real / Halang were taken off the Places list (Nov 8): no outliers left
+    report(outlierNames.length === 0, `No outliers listed (${outlierNames.length})`);
+    const otherBarangays = places.filter(p => !['Uno', 'Real', 'Halang'].includes(p.barangay)).map(p => p.name);
+    report(otherBarangays.length === 0, `Every listed place is in Uno, Real or Halang (others: ${otherBarangays.join(', ') || 'none'})`);
 
     // --- TEST 2: fog-clouds.png Texture Validation ---
     console.log('\n--- TEST 2: fog-clouds.png Seamless Texture ---');

@@ -85,34 +85,6 @@
      */
     const FALLBACK_PLACES = [
     {
-        "id": "citymall-calamba",
-        "slug": "citymall-calamba",
-        "name": "CityMall Calamba",
-        "category": "malls",
-        "barangay": "Lecheria",
-        "municipality": "Calamba",
-        "lat": 14.198682,
-        "lng": 121.160298,
-        "image_path": "../assets/places/citymall-calamba/photo.webp",
-        "photo": "../assets/places/citymall-calamba/photo.webp",
-        "pano": "../assets/places/citymall-calamba/360.jpg",
-        "pano_thumb": "../assets/places/citymall-calamba/360-thumb.webp",
-        "description": "Commercial shopping center along National Highway",
-        "full_address": "National Highway, Brgy. Lecheria, Calamba City, Laguna",
-        "phone": "(049) 545 4332",
-        "website": "https://citymall.com.ph",
-        "opening_hours": {
-            "mon": "9:00 AM - 9:00 PM",
-            "tue": "9:00 AM - 9:00 PM",
-            "wed": "9:00 AM - 9:00 PM",
-            "thu": "9:00 AM - 9:00 PM",
-            "fri": "9:00 AM - 9:00 PM",
-            "sat": "9:00 AM - 9:00 PM",
-            "sun": "9:00 AM - 9:00 PM"
-        },
-        "coord_source": "osm"
-    },
-    {
         "id": "puregold-halang",
         "slug": "puregold-halang",
         "name": "Puregold – Halang, Calamba",
@@ -196,34 +168,6 @@
         },
         "coord_source": "osm",
         "social": "https://www.facebook.com/sbis.edu.ph/"
-    },
-    {
-        "id": "letran-calamba",
-        "slug": "letran-calamba",
-        "name": "Colegio de San Juan de Letran – Calamba",
-        "category": "schools",
-        "barangay": "Bucal",
-        "municipality": "Calamba",
-        "lat": 14.188802,
-        "lng": 121.16581,
-        "image_path": "../assets/places/letran-calamba/photo.webp",
-        "photo": "../assets/places/letran-calamba/photo.webp",
-        "pano": "../assets/places/letran-calamba/360.jpg",
-        "pano_thumb": "../assets/places/letran-calamba/360-thumb.webp",
-        "description": "Catholic higher education institution in Bucal",
-        "full_address": "Ipil-ipil St., Brgy. Bucal, Calamba City, Laguna",
-        "phone": "(049) 545 5453 / 0961 747 7414",
-        "website": "https://www.letran-calamba.edu.ph",
-        "opening_hours": {
-            "mon": "8:00 AM - 5:00 PM",
-            "tue": "8:00 AM - 5:00 PM",
-            "wed": "8:00 AM - 5:00 PM",
-            "thu": "8:00 AM - 5:00 PM",
-            "fri": "8:00 AM - 5:00 PM",
-            "sat": "Closed",
-            "sun": "Closed"
-        },
-        "coord_source": "osm"
     },
     {
         "id": "halang-elementary",
@@ -1839,25 +1783,6 @@
             "sun": "Open 24 hours"
         },
         "coord_source": "osm"
-    },
-    {
-        "id": "coca-cola-europacific-aboitiz-calamba-distribution-center",
-        "slug": "coca-cola-europacific-aboitiz-calamba-distribution-center",
-        "name": "Coca-Cola Europacific Aboitiz – Calamba Distribution Center",
-        "category": "establishments",
-        "barangay": "Lecheria",
-        "municipality": "Calamba",
-        "lat": 14.2000234,
-        "lng": 121.161275,
-        "image_path": "../assets/places/coca-cola-europacific-aboitiz-calamba-distribution-center/photo.webp",
-        "photo": "../assets/places/coca-cola-europacific-aboitiz-calamba-distribution-center/photo.webp",
-        "pano": null,
-        "pano_thumb": null,
-        "description": "",
-        "full_address": "Chipeco Avenue Extension, Brgy. Lecheria, Calamba City, Laguna",
-        "phone": null,
-        "website": null,
-        "opening_hours": null
     },
     {
         "id": "dverde",

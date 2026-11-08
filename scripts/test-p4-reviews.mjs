@@ -184,7 +184,7 @@ async function runReviewsTests() {
     const user2Uid = 'reviewer_test_user_2';
     const user2Token = createEmulatorToken(user2Uid);
 
-    const placeId = '1'; // CityMall Calamba
+    const placeId = '174'; // SM City Calamba
     const bizId = 'biz_p4_test_rev';
 
     try {
@@ -219,7 +219,7 @@ async function runReviewsTests() {
             window.localStorage.setItem('calzada_use_emulator', '1');
         });
 
-        await page1.goto('http://127.0.0.1:5000/pages/places.html?emulator=1&place=CityMall%20Calamba', { waitUntil: 'domcontentloaded' });
+        await page1.goto('http://127.0.0.1:5000/pages/places.html?emulator=1&place=SM%20City%20Calamba', { waitUntil: 'domcontentloaded' });
         await page1.waitForSelector('.reviews-block-root', { timeout: 15000 });
         await page1.waitForTimeout(500);
 
@@ -232,7 +232,7 @@ async function runReviewsTests() {
             const p = document.getElementById('placePanel');
             return p && (p.classList.contains('active') || p.classList.contains('open') || window.getComputedStyle(p).display !== 'none');
         });
-        report(panelVisible, 'Place panel opened for CityMall Calamba');
+        report(panelVisible, 'Place panel opened for SM City Calamba');
 
         // Check empty summary state
         const emptySummaryInfo = await page1.evaluate(() => {
@@ -273,7 +273,7 @@ async function runReviewsTests() {
         report(rateCardInfo && rateCardInfo.cardRadius === '12px' && (rateCardInfo.cardShadow === 'none' || rateCardInfo.cardShadow.includes('0px 0px 0px')), 'Flat white card (12px radius, no drop shadow)');
         report(rateCardInfo && rateCardInfo.starCount === 5, 'Five stars rendered');
         report(rateCardInfo && rateCardInfo.starWidth >= 40 && rateCardInfo.starHeight >= 40, `44px tap targets for stars (measured ${rateCardInfo?.starWidth}x${rateCardInfo?.starHeight})`);
-        report(rateCardInfo && rateCardInfo.promptText.includes('CityMall'), `Prompt says "How was CityMall...": "${rateCardInfo?.promptText}"`);
+        report(rateCardInfo && rateCardInfo.promptText.includes('SM City Calamba'), `Prompt says "How was SM City Calamba...": "${rateCardInfo?.promptText}"`);
 
         // ----------------------------------------------------
         // TEST 2: Interactive Composer & Posting Review
@@ -370,7 +370,7 @@ async function runReviewsTests() {
         });
 
         // Navigate to places page signed out
-        await pageGuest.goto('http://127.0.0.1:5000/pages/places.html?emulator=1&place=CityMall%20Calamba', { waitUntil: 'domcontentloaded' });
+        await pageGuest.goto('http://127.0.0.1:5000/pages/places.html?emulator=1&place=SM%20City%20Calamba', { waitUntil: 'domcontentloaded' });
         await pageGuest.waitForSelector('.reviews-block-root', { timeout: 15000 });
         await pageGuest.waitForTimeout(800);
 
@@ -393,7 +393,7 @@ async function runReviewsTests() {
         report(pendingSession && pendingSession.rating === 4, `sessionStorage has pending rating of 4 stars (${pendingSession?.rating})`);
 
         // Navigate back to redirect target and authenticate user2
-        await pageGuest.goto('http://127.0.0.1:5000/pages/places.html?emulator=1&place=CityMall%20Calamba', { waitUntil: 'domcontentloaded' });
+        await pageGuest.goto('http://127.0.0.1:5000/pages/places.html?emulator=1&place=SM%20City%20Calamba', { waitUntil: 'domcontentloaded' });
         await pageGuest.waitForSelector('.reviews-block-root', { timeout: 15000 });
         await loginInBrowser(pageGuest, user2Token);
         await pageGuest.waitForSelector('#rateComposer:not([style*="none"])', { timeout: 10000 }).catch(() => {});
@@ -492,7 +492,7 @@ async function runReviewsTests() {
 
             const mockTrip = {
                 destId: '1',
-                destName: 'CityMall Calamba',
+                destName: 'SM City Calamba',
                 originLabel: 'SM City Calamba',
                 startedAt: Date.now() - 600000,
                 arrivedAt: Date.now(),
@@ -518,7 +518,7 @@ async function runReviewsTests() {
         });
 
         report(ticketPromptResult && ticketPromptResult.starsCount === 5, 'Arrival ticket renders 5 rating stars');
-        report(ticketPromptResult && ticketPromptResult.promptText.includes('CityMall'), `Arrival ticket prompt: "${ticketPromptResult?.promptText}"`);
+        report(ticketPromptResult && ticketPromptResult.promptText.includes('SM City Calamba'), `Arrival ticket prompt: "${ticketPromptResult?.promptText}"`);
         report(ticketPromptResult && ticketPromptResult.starWidth >= 40 && ticketPromptResult.starHeight >= 40, `Ticket stars have 44px tap targets (${ticketPromptResult?.starWidth}x${ticketPromptResult?.starHeight})`);
 
     } catch (err) {

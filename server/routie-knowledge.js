@@ -342,8 +342,8 @@ function checkAmbiguity(text) {
     const t = text.trim();
     const norm = normalize(t);
 
-    // Bare keywords like just "SM", "Letran", "CityMall", "Crossing", "Puregold"
-    const bareKeywords = ['sm', 'sm calamba', 'sm city calamba', 'letran', 'citymall', 'crossing', 'puregold', 'jollibee',
+    // Bare keywords like just "SM", "Crossing", "Puregold"
+    const bareKeywords = ['sm', 'sm calamba', 'sm city calamba', 'crossing', 'puregold', 'jollibee',
         'real', 'halang', 'uno', 'brgy real', 'brgy halang', 'brgy uno', 'barangay real', 'barangay halang', 'barangay uno'];
     if (bareKeywords.includes(norm)) {
         return {
