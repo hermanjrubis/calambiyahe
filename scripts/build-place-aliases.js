@@ -26,10 +26,8 @@ const RESERVED = new Set([
 // before they are used (they are stored but not loaded until moved to common).
 const CURATED = {
     'sm-city-calamba': { common: ['sm', 'sm calamba', 'sm city', 'sm mall', 'sm kalamba', 'sm city calamba'], confirm: ['esem'] },
-    'citymall-calamba': { common: ['citymall', 'city mall', 'city mall calamba'], confirm: ['citymall lecheria'] },
     'puregold-halang': { common: ['puregold halang'], confirm: [] },
     'sti-calamba': { common: ['sti', 'sti calamba', 'sti college', 'sti college calamba'], confirm: [] },
-    'letran-calamba': { common: ['letran', 'letran calamba', 'san juan de letran', 'colegio de san juan de letran'], confirm: ['csjl'] },
     'saint-benilde': { common: ['saint benilde real', 'st benilde real'], confirm: ['sbis', 'sbis real'] },
     'saint-benilde-crossing': { common: ['saint benilde crossing', 'st benilde crossing', 'benilde crossing campus', 'saint benilde crossing campus'], confirm: ['sbis crossing'] },
     'jollibee-real': { common: ['jollibee real', 'jabee real'], confirm: [] },
@@ -95,7 +93,6 @@ const CURATED = {
     'amsi-doctors-medical-center': { common: ['amsi', 'amsi hospital', 'amsi doctors'], confirm: [] },
     'pamana-medical-center': { common: ['pamana medical', 'pamana hospital', 'pamana medical center'], confirm: [] },
     'laguna-diagnostic-center-multi-specialty-clinic': { common: ['laguna diagnostic', 'laguna diagnostic center'], confirm: ['ldc'] },
-    'coca-cola-europacific-aboitiz-calamba-distribution-center': { common: ['coca cola calamba', 'coca cola distribution center'], confirm: ['coke plant'] },
     'kia-calamba-gateway': { common: ['kia calamba', 'kia gateway'], confirm: [] },
     'jetour-calamba': { common: ['jetour'], confirm: [] },
     'but-first-coffee': { common: ['but first coffee'], confirm: [] },

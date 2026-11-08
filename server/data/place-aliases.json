@@ -2,19 +2,6 @@
  "about": "Other names for the places in server/data/places.json, keyed by slug, used by Routie to find a place in a message. All text is normalized (lowercase, no accents, \"&\" -> \"and\", apostrophes removed, other punctuation -> space). \"aliases\" are safe to use: the official name, the name without its branch or \"Calamba\", well-known short forms. \"confirm\" are local nicknames Drei has not confirmed yet: they are NOT loaded until moved into \"aliases\". \"ambiguous\" maps a short name to every place it could mean: Routie asks which one. Rebuild after places.json changes and re-run scripts/test-routie.mjs (it checks every slug exists and no alias is listed twice).",
  "generated": "2026-11-08",
  "places": {
-  "citymall-calamba": {
-   "name": "CityMall Calamba",
-   "barangay": "Lecheria",
-   "aliases": [
-    "city mall calamba",
-    "citymall calamba",
-    "city mall",
-    "citymall"
-   ],
-   "confirm": [
-    "citymall lecheria"
-   ]
-  },
   "puregold-halang": {
    "name": "Puregold – Halang, Calamba",
    "barangay": "Halang",
@@ -50,20 +37,6 @@
    "confirm": [
     "sbis",
     "sbis real"
-   ]
-  },
-  "letran-calamba": {
-   "name": "Colegio de San Juan de Letran – Calamba",
-   "barangay": "Bucal",
-   "aliases": [
-    "colegio de san juan de letran calamba",
-    "colegio de san juan de letran",
-    "san juan de letran",
-    "letran calamba",
-    "letran"
-   ],
-   "confirm": [
-    "csjl"
    ]
   },
   "halang-elementary": {
@@ -665,20 +638,6 @@
    ],
    "confirm": [
     "bk"
-   ]
-  },
-  "coca-cola-europacific-aboitiz-calamba-distribution-center": {
-   "name": "Coca-Cola Europacific Aboitiz – Calamba Distribution Center",
-   "barangay": "Lecheria",
-   "aliases": [
-    "coca cola europacific aboitiz calamba distribution center",
-    "coca cola europacific aboitiz distribution center",
-    "coca cola distribution center",
-    "coca cola europacific aboitiz",
-    "coca cola calamba"
-   ],
-   "confirm": [
-    "coke plant"
    ]
   },
   "dverde": {

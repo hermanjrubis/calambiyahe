@@ -5,20 +5,7 @@
     "Real",
     "Halang"
   ],
-  "outliers": [
-    {
-      "name": "CityMall Calamba",
-      "barangay": "Lecheria"
-    },
-    {
-      "name": "Colegio de San Juan de Letran – Calamba",
-      "barangay": "Bucal"
-    },
-    {
-      "name": "Coca-Cola Europacific Aboitiz – Calamba Distribution Center",
-      "barangay": "Lecheria"
-    }
-  ],
+  "outliers": [],
   "area": {
     "type": "FeatureCollection",
     "features": [

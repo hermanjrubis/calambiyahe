@@ -70,8 +70,8 @@ assert(pairsTested === 90, `Generated and evaluated exactly 90 O/D pairs (tested
 assert(regressionOk, 'All 90 O/D pairs produced identical times, fares, costs, and tags between plan() and retime(options, {})');
 
 console.log('\n--- Test 2: Heavy-traffic leg raises totalMin and can change ranking ---');
-// Route: CityMall Calamba -> Jollibee - Real (has 2 options: direct & transfer/alternative)
-const cm = places.find(p => p.name.includes('CityMall'));
+// Route: Puregold Halang -> Jollibee - Real (has 2 options: direct & transfer/alternative)
+const cm = places.find(p => p.name.includes('Puregold'));
 const jr = places.find(p => p.name.includes('Jollibee – Real') || p.name.includes('Jollibee - Real'));
 const sm = places.find(p => p.name.includes('SM City Calamba'));
 
