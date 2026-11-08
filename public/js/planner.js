@@ -497,34 +497,70 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const initTrafficMapLayer = () => {
-            if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic')) return;
-            map.addSource('calzada-traffic', {
-                type: 'raster',
-                tiles: ['/api/traffic/tile/{z}/{x}/{y}.png'],
-                tileSize: 256,
-                bounds: [121.140022, 14.186224, 121.183498, 14.209970],
-                minzoom: 12,
-                maxzoom: 18,
-                attribution: '© TomTom'
-            });
+        const computeTrafficBounds = () => {
+            // Coverage bbox padded by 2 km (matching server PADDED_BBOX at ~14.2° N)
+            const coveragePaddedBbox = [
+                121.140022 - 0.018525,
+                14.186224 - 0.018087,
+                121.183498 + 0.018525,
+                14.209970 + 0.018087
+            ];
+            const T = window.CalzadaTransit;
+            if (!T || typeof T.routesBbox !== 'function') {
+                console.warn('[traffic] CalzadaTransit.routesBbox missing or not ready, falling back to padded coverage bbox');
+                return coveragePaddedBbox;
+            }
+            try {
+                const b = T.routesBbox(1.5);
+                if (b && Array.isArray(b) && b.length === 4) return b;
+            } catch (err) {
+                console.warn('[traffic] Failed to compute routesBbox, falling back to padded coverage bbox:', err);
+            }
+            return coveragePaddedBbox;
+        };
 
-            const beforeId = getRouteInsertionBeforeId();
-            map.addLayer({
-                id: 'calzada-traffic-layer',
-                type: 'raster',
-                source: 'calzada-traffic',
-                layout: {
-                    visibility: isTrafficLayerActive() ? 'visible' : 'none'
-                },
-                paint: {
-                    'raster-opacity': 0.85
+        let isInitializingTraffic = false;
+        const initTrafficMapLayer = async () => {
+            if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic') || isInitializingTraffic) return;
+            isInitializingTraffic = true;
+            try {
+                const T = window.CalzadaTransit;
+                if (T && typeof T.load === 'function' && !T.isReady()) {
+                    try {
+                        await T.load();
+                    } catch (_) { /* fallback handled in computeTrafficBounds */ }
                 }
-            }, beforeId);
+                if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic')) return;
+                const bounds = computeTrafficBounds();
+                map.addSource('calzada-traffic', {
+                    type: 'raster',
+                    tiles: ['/api/traffic/tile/{z}/{x}/{y}.png'],
+                    tileSize: 256,
+                    bounds,
+                    minzoom: 12,
+                    maxzoom: 18,
+                    attribution: '© TomTom'
+                });
 
-            if (isTrafficLayerActive()) {
-                setTomTomAttribution(true);
-                startTrafficTileRefresh();
+                const beforeId = getRouteInsertionBeforeId();
+                map.addLayer({
+                    id: 'calzada-traffic-layer',
+                    type: 'raster',
+                    source: 'calzada-traffic',
+                    layout: {
+                        visibility: isTrafficLayerActive() ? 'visible' : 'none'
+                    },
+                    paint: {
+                        'raster-opacity': 0.85
+                    }
+                }, beforeId);
+
+                if (isTrafficLayerActive()) {
+                    setTomTomAttribution(true);
+                    startTrafficTileRefresh();
+                }
+            } finally {
+                isInitializingTraffic = false;
             }
         };
 
@@ -9191,6 +9227,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (mapInstance && mapInstance.getLayer('calzada-traffic-layer')) {
                             mapInstance.setLayoutProperty('calzada-traffic-layer', 'visibility', newState ? 'visible' : 'none');
+                        } else if (newState) {
+                            initTrafficMapLayer();
                         }
                         setTomTomAttribution(newState);
                         if (newState) {

@@ -224,6 +224,134 @@ function createMockTileBuffer() {
 }
 const MOCK_TILE_PNG = createMockTileBuffer();
 
+// Transparent 256x256 PNG for unserved areas inside the overall route bbox (no upstream call, no 404 console flood)
+function createTransparentTileBuffer() {
+    const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+    function chunk(type, data) {
+        const len = Buffer.alloc(4);
+        len.writeUInt32BE(data.length);
+        const t = Buffer.from(type, 'ascii');
+        const body = Buffer.concat([t, data]);
+        const crc = Buffer.alloc(4);
+        const crcVal = typeof zlib.crc32 === 'function' ? zlib.crc32(body) : 0;
+        crc.writeUInt32BE(crcVal);
+        return Buffer.concat([len, body, crc]);
+    }
+    const ihdr = Buffer.alloc(13);
+    ihdr.writeUInt32BE(256, 0);
+    ihdr.writeUInt32BE(256, 4);
+    ihdr.writeUInt8(8, 8);
+    ihdr.writeUInt8(6, 9); // RGBA
+    ihdr.writeUInt8(0, 10);
+    ihdr.writeUInt8(0, 11);
+    ihdr.writeUInt8(0, 12);
+    const rawRow = Buffer.alloc(1 + 256 * 4); // all zeroes = 100% transparent RGBA
+    const rawData = Buffer.concat(Array(256).fill(rawRow));
+    const compressed = zlib.deflateSync(rawData);
+    return Buffer.concat([signature, chunk('IHDR', ihdr), chunk('IDAT', compressed), chunk('IEND', Buffer.alloc(0))]);
+}
+const TRANSPARENT_TILE_PNG = createTransparentTileBuffer();
+
+// Memory cache for route corridor & allowed tile calculations
+let allowedAreaCache = null;
+
+function getAllowedAreaData() {
+    if (allowedAreaCache) return allowedAreaCache;
+
+    const baseBbox = coverageData.bbox || [121.140022, 14.186224, 121.183498, 14.209970];
+    const coveragePaddedBbox = [
+        baseBbox[0] - 0.018525, // minLng
+        baseBbox[1] - 0.018087, // minLat
+        baseBbox[2] + 0.018525, // maxLng
+        baseBbox[3] + 0.018087  // maxLat
+    ];
+
+    let minLat = baseBbox[1], maxLat = baseBbox[3], minLng = baseBbox[0], maxLng = baseBbox[2];
+    const sampledPoints = [];
+
+    (transitRoutesData.routes || []).forEach((r) => {
+        const precision = r.precision || transitRoutesData.polylinePrecision || 5;
+        const pts = decodePolyline(r.polyline || '', precision);
+        if (pts.length < 2) return;
+        const cum = [0];
+        for (let i = 1; i < pts.length; i++) {
+            cum.push(cum[i - 1] + haversineM(pts[i - 1], pts[i]));
+        }
+        const len = cum[cum.length - 1];
+
+        // Sample every ~200 m along route
+        for (let d = 0; d < len; d += 200) {
+            for (let i = 1; i < cum.length; i++) {
+                if (cum[i] >= d) {
+                    const seg = cum[i] - cum[i - 1] || 1;
+                    const t = Math.max(0, Math.min(1, (d - cum[i - 1]) / seg));
+                    const a = pts[i - 1], b = pts[i];
+                    sampledPoints.push([a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])]);
+                    break;
+                }
+            }
+        }
+        sampledPoints.push(pts[pts.length - 1].slice());
+
+        pts.forEach(([lat, lng]) => {
+            if (lat < minLat) minLat = lat;
+            if (lat > maxLat) maxLat = lat;
+            if (lng < minLng) minLng = lng;
+            if (lng > maxLng) maxLng = lng;
+        });
+    });
+
+    const midLat = (minLat + maxLat) / 2;
+    const latPad = 1500 / (6371000 * Math.PI / 180);
+    const lngPad = 1500 / (6371000 * Math.PI / 180 * Math.cos((midLat * Math.PI) / 180));
+    const routesOverallPaddedBbox = [
+        minLng - lngPad,
+        minLat - latPad,
+        maxLng + lngPad,
+        maxLat + latPad
+    ];
+
+    allowedAreaCache = {
+        coveragePaddedBbox,
+        sampledPoints,
+        routesOverallPaddedBbox,
+        tileAllowedCache: new Map()
+    };
+
+    return allowedAreaCache;
+}
+
+function isTileAllowed(z, x, y) {
+    const area = getAllowedAreaData();
+    const key = `${z}:${x}:${y}`;
+    if (area.tileAllowedCache.has(key)) {
+        return area.tileAllowedCache.get(key);
+    }
+
+    if (tileIntersectsBbox(z, x, y, area.coveragePaddedBbox)) {
+        area.tileAllowedCache.set(key, true);
+        return true;
+    }
+
+    const tileMinLng = tileToLon(x, z);
+    const tileMaxLng = tileToLon(x + 1, z);
+    const tileMinLat = tileToLat(y + 1, z);
+    const tileMaxLat = tileToLat(y, z);
+
+    for (let i = 0; i < area.sampledPoints.length; i++) {
+        const pt = area.sampledPoints[i];
+        const clampLat = Math.max(tileMinLat, Math.min(tileMaxLat, pt[0]));
+        const clampLng = Math.max(tileMinLng, Math.min(tileMaxLng, pt[1]));
+        if (haversineM(pt, [clampLat, clampLng]) <= 1500) {
+            area.tileAllowedCache.set(key, true);
+            return true;
+        }
+    }
+
+    area.tileAllowedCache.set(key, false);
+    return false;
+}
+
 // Mock fixtures loaded lazily only when TRAFFIC_MOCK=1 (never in production/Vercel)
 let mockFixtures = null;
 function getMockFixtures() {
@@ -292,9 +420,19 @@ function createTrafficRouter({ adminDb } = {}) {
             return res.status(404).send('Invalid tile coordinates');
         }
 
-        // Coverage bbox check (padded 2 km)
-        if (!tileIntersectsBbox(z, x, y, PADDED_BBOX)) {
+        const area = getAllowedAreaData();
+
+        // Outside the routes' overall bbox (+1.5 km): 404
+        if (!tileIntersectsBbox(z, x, y, area.routesOverallPaddedBbox)) {
             return res.status(404).send('Tile outside coverage bounding box');
+        }
+
+        // Inside the routes' overall bbox, but not allowed (e.g. over the lake, far from any route):
+        // return transparent 256x256 PNG with s-maxage=86400, no TomTom call
+        if (!isTileAllowed(z, x, y)) {
+            res.setHeader('Content-Type', 'image/png');
+            res.setHeader('Cache-Control', 'public, s-maxage=86400');
+            return res.send(TRANSPARENT_TILE_PNG);
         }
 
         res.setHeader('Content-Type', 'image/png');
@@ -535,10 +673,18 @@ function createTrafficRouter({ adminDb } = {}) {
 module.exports = {
     createTrafficRouter,
     PADDED_BBOX,
+    getAllowedAreaData,
+    isTileAllowed,
     tileIntersectsBbox,
+    tileToLon,
+    tileToLat,
+    decodePolyline,
+    haversineM,
     getPreparedRoute,
     sliceRoutePath,
     simplifySupportingPoints,
     trimPrivateRanges,
-    createMockTileBuffer
+    createMockTileBuffer,
+    createTransparentTileBuffer,
+    TRANSPARENT_TILE_PNG
 };

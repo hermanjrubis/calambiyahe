@@ -3,13 +3,14 @@
 
 import http from 'http';
 import express from 'express';
+import fs from 'fs';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const { createTrafficRouter, trimPrivateRanges } = require(path.join(here, '..', 'server', 'traffic.js'));
+const { createTrafficRouter, trimPrivateRanges, TRANSPARENT_TILE_PNG, haversineM, decodePolyline } = require(path.join(here, '..', 'server', 'traffic.js'));
 
 process.env.TRAFFIC_MOCK = '1';
 
@@ -67,6 +68,41 @@ server.listen(0, '127.0.0.1', async () => {
         assert(validTile.headers['content-type'] === 'image/png', `Tile content-type is image/png (got ${validTile.headers['content-type']})`);
         assert(validTile.headers['cache-control'] === 'public, s-maxage=120, max-age=60', `Tile Cache-Control header matches spec (got ${validTile.headers['cache-control']})`);
         assert(validTile.buffer.length > 50, `Tile payload has valid byte length (${validTile.buffer.length} bytes)`);
+
+        // 1b. Corridor tile: z15 tile over starosa-calamba near Banlic/Cabuyao (14.237683, 121.133406) -> allowed (mock tile, 200)
+        // lon2tile(121.133406, 15) = 27409, lat2tile(14.237683, 15) = 15074
+        const banlicTile = await req('/api/traffic/tile/15/27409/15074.png');
+        assert(banlicTile.status === 200, `Banlic corridor tile returns 200 (got ${banlicTile.status})`);
+        assert(banlicTile.headers['content-type'] === 'image/png', `Banlic tile is image/png (got ${banlicTile.headers['content-type']})`);
+        assert(banlicTile.headers['cache-control'] === 'public, s-maxage=120, max-age=60', `Banlic tile Cache-Control is s-maxage=120 (got ${banlicTile.headers['cache-control']})`);
+        assert(banlicTile.buffer.length > 50, `Banlic tile payload is non-empty (${banlicTile.buffer.length} bytes)`);
+
+        // 1c. Lake tile: z15 tile over Laguna de Bay at about 14.25, 121.21 -> transparent placeholder (200, s-maxage=86400, no upstream call)
+        // First confirm it is more than 1.5 km from every route path:
+        const routesData = JSON.parse(fs.readFileSync(path.join(here, '..', 'public', 'data', 'transit-routes.json'), 'utf8'));
+        const lakeCoord = [14.25, 121.21];
+        let minLakeDistM = Infinity;
+        routesData.routes.forEach((r) => {
+            const precision = r.precision || routesData.polylinePrecision || 5;
+            const pts = decodePolyline(r.polyline || '', precision);
+            pts.forEach((pt) => {
+                const d = haversineM(lakeCoord, pt);
+                if (d < minLakeDistM) minLakeDistM = d;
+            });
+        });
+        assert(minLakeDistM > 1500, `Laguna de Bay point is > 1.5 km from every route (${Math.round(minLakeDistM)}m)`);
+
+        // lon2tile(121.21, 15) = 27416, lat2tile(14.25, 15) = 15073
+        const lakeTile = await req('/api/traffic/tile/15/27416/15073.png');
+        assert(lakeTile.status === 200, `Lake tile returns 200 transparent placeholder (got ${lakeTile.status})`);
+        assert(lakeTile.headers['content-type'] === 'image/png', `Lake tile is image/png (got ${lakeTile.headers['content-type']})`);
+        assert(lakeTile.headers['cache-control'] === 'public, s-maxage=86400', `Lake tile Cache-Control is s-maxage=86400 (got ${lakeTile.headers['cache-control']})`);
+        assert(lakeTile.buffer.equals(TRANSPARENT_TILE_PNG), 'Lake tile matches transparent PNG placeholder buffer');
+
+        // 1d. Tile far outside: Manila (14.5995, 120.9842) at z15 -> 404
+        // lon2tile(120.9842, 15) = 27396, lat2tile(14.5995, 15) = 15040
+        const manilaTile = await req('/api/traffic/tile/15/27396/15040.png');
+        assert(manilaTile.status === 404, `Manila tile outside routes' overall bbox returns 404 (got ${manilaTile.status})`);
 
         // 2. Out-of-bounds tile (zoom < 12)
         const lowZoom = await req('/api/traffic/tile/11/1000/1000.png');

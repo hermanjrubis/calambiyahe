@@ -531,7 +531,27 @@
             return s ? s.pos : null;
         }
 
-        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, legKey, retime, retimeOption };
+        // Overall bounding box of all curated route paths, padded by padKm (default 1.5 km)
+        function routesBbox(padKm = 1.5) {
+            let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+            routes.forEach((r) => {
+                (r.pts || []).forEach(([lat, lng]) => {
+                    if (lat < minLat) minLat = lat;
+                    if (lat > maxLat) maxLat = lat;
+                    if (lng < minLng) minLng = lng;
+                    if (lng > maxLng) maxLng = lng;
+                });
+            });
+            if (!Number.isFinite(minLat)) {
+                return [121.091782, 14.108957, 121.260516, 14.309983];
+            }
+            const midLat = (minLat + maxLat) / 2;
+            const latPad = (padKm * 1000) / (6371000 * Math.PI / 180);
+            const lngPad = (padKm * 1000) / (6371000 * Math.PI / 180 * Math.cos((midLat * Math.PI) / 180));
+            return [minLng - lngPad, minLat - latPad, maxLng + lngPad, maxLat + latPad];
+        }
+
+        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, legKey, retime, retimeOption, routesBbox };
     }
 
     // Same trip on different routes: one card
@@ -710,11 +730,13 @@
     }
 
     return {
-        VERSION: '1.6.2',
+        VERSION: '1.6.3',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
         stops: () => (planner ? planner.stops : {}),
+        routes: () => (planner ? planner.routes : []),
+        routesBbox: (padKm = 1.5) => (planner ? planner.routesBbox(padKm) : null),
         areaOf: (p) => (planner ? planner.areaOf(p) : null),
         noJeepAreaOf: (p) => (planner ? planner.noJeepAreaOf(p) : null),
         roadBoardingOk: (p) => (planner ? planner.roadBoardingOk(p) : true),
