@@ -14594,6 +14594,12 @@ button.feature-link-btn {
     transform: translateY(-3px);
 }
 
+.planner-shot picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
 .planner-shot img {
     display: block;
     width: 100%;
@@ -15008,5 +15014,10 @@ button.feature-link-btn {
     .planner-shot {
         width: calc(100% - 16px);
         height: calc(100% - 16px);
+    }
+
+    /* Phones get the phone screenshot (planner-route-preview-mobile.webp, <picture> in index.html) */
+    .planner-shot img {
+        object-position: 50% 45%;
     }
 }
