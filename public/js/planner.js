@@ -528,11 +528,23 @@ document.addEventListener('DOMContentLoaded', () => {
             'walk-route-casing',
             'walk-route-layer',
             'route-connector-casing',
-            'route-connector-layer'
+            'route-connector-layer',
+            'transit-route-halo',
+            'next-transit-route-halo',
+            'tl-cur-a', 'tl-cur-b', 'tl-cur-closed',
+            'tl-next-a', 'tl-next-b', 'tl-next-closed',
+            'transit-route-chev',
+            'next-transit-route-chev'
         ];
 
+        // The style's layer list exists once the style has loaded, even while a GeoJSON source is still
+        // updating (isStyleLoaded() is false then, which used to drop the heatmap on top of the route).
+        const styleLayersReady = () => {
+            try { return !!(map && map.getStyle() && Array.isArray(map.getStyle().layers)); } catch (_) { return false; }
+        };
+
         const getTrafficInsertionBeforeId = () => {
-            if (!map || !map.isStyleLoaded()) return undefined;
+            if (!styleLayersReady()) return undefined;
             const layers = map.getStyle().layers;
             if (!layers) return undefined;
             // Insert before the lowest existing route/walk layer
@@ -546,7 +558,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         const ensureTrafficBelowRouteLayers = () => {
-            if (!map || !map.isStyleLoaded() || !map.getLayer('calzada-traffic-layer')) return;
+            if (!styleLayersReady() || !map.getLayer('calzada-traffic-layer')) return;
             const layers = map.getStyle().layers;
             if (!layers) return;
             let trafficIdx = -1;
@@ -569,7 +581,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let isInitializingTraffic = false;
         const initTrafficMapLayer = async () => {
-            if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic') || isInitializingTraffic) return;
+            if (!styleLayersReady() || map.getSource('calzada-traffic') || isInitializingTraffic) return;
             isInitializingTraffic = true;
             try {
                 const T = window.CalzadaTransit;
@@ -578,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await T.load();
                     } catch (_) { /* fallback handled in computeTrafficBounds */ }
                 }
-                if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic')) return;
+                if (!styleLayersReady() || map.getSource('calzada-traffic')) return;
                 const bounds = computeTrafficBounds();
                 map.addSource('calzada-traffic', {
                     type: 'raster',
@@ -705,6 +717,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }, beforeId);
             }
 
+            // Traffic colours on the jeep lines (halo, coloured overlay, closed dashes, direction chevrons)
+            try { initTrafficLineLayers(beforeId); } catch (e) { console.warn('[traffic-line] layers not added:', e); }
+
             if (!map.getSource('walk-route')) {
                 map.addSource('walk-route', {
                     type: 'geojson',
@@ -775,6 +790,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const updateRouteSource = (sourceId, coordsLngLat) => {
             initRouteLayers();
+            if (TRAFFIC_OVERLAYS[sourceId]) {
+                // Only a plain [lng,lat] line can carry traffic colours
+                trafficOverlayData[sourceId] = (Array.isArray(coordsLngLat) && coordsLngLat.length >= 2 && Array.isArray(coordsLngLat[0]) && typeof coordsLngLat[0][0] === 'number')
+                    ? coordsLngLat : null;
+            }
+            if (sourceId === 'walk-route' && (!coordsLngLat || coordsLngLat.length === 0)) clearCrossingMarkers();
             const src = map.getSource(sourceId);
             if (!src) {
                 pendingRouteData[sourceId] = coordsLngLat;
@@ -805,6 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
+            if (TRAFFIC_OVERLAYS[sourceId]) syncTrafficOverlay(sourceId);
         };
 
         const updateRouteConnectors = (features) => {
@@ -820,6 +842,516 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             window._calzadaRouteConnectors = features || [];
         };
+
+        // ── Traffic-coloured jeep line (js/traffic-colors.js, GET /api/traffic/leg-colors) ──
+        // Each jeep line (transit-route = the jeep now, next-transit-route = the next jeep of a
+        // transfer) gets an overlay with the same geometry, coloured per stretch with line-gradient.
+        // No data, a failed call or a line that is not one of the planned jeep legs: the overlay is
+        // hidden and the plain jeep line shows. Walk lines are never coloured.
+        const TRAFFIC_OVERLAYS = {
+            'transit-route': {
+                id: 'tl-cur', normal: '#378ADD', jam: true,
+                width: ['interpolate', ['linear'], ['zoom'], 11, 4, 14, 6, 17, 9, 19, 12]
+            },
+            'next-transit-route': {
+                id: 'tl-next', normal: '#8DB8E8', jam: false,
+                width: ['interpolate', ['linear'], ['zoom'], 11, 3, 14, 4.5, 17, 7, 19, 10]
+            }
+        };
+        const TL_JAM_MIN_ZOOM = 14;
+
+        const tlText = (key, en, params) => {
+            let s = (typeof t === 'function') ? t(key, params) : null;
+            if (!s || s === key) {
+                s = en;
+                Object.entries(params || {}).forEach(([k, v]) => { s = s.replace(new RegExp(`\\{${k}\\}`, 'g'), v); });
+            }
+            return s;
+        };
+        // Distance in metres between two [lng, lat]
+        const tlDistM = (a, b) => {
+            const R = 6371000, toR = Math.PI / 180;
+            const dLat = (b[1] - a[1]) * toR, dLng = (b[0] - a[0]) * toR;
+            const s = Math.sin(dLat / 2) ** 2 + Math.cos(a[1] * toR) * Math.cos(b[1] * toR) * Math.sin(dLng / 2) ** 2;
+            return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+        };
+        const tlLineLength = (coords) => {
+            let m = 0;
+            for (let i = 1; i < coords.length; i++) m += tlDistM(coords[i - 1], coords[i]);
+            return m;
+        };
+        // Part of a [lng,lat] line between travel metres sA..sB, the line starting at travel metre w0
+        const tlSliceLine = (coords, w0, sA, sB) => {
+            const out = [];
+            let acc = w0;
+            for (let i = 1; i < coords.length; i++) {
+                const a = coords[i - 1], b = coords[i];
+                const d = tlDistM(a, b);
+                const lo = Math.max(sA, acc), hi = Math.min(sB, acc + d);
+                if (hi > lo && d > 0) {
+                    const p = (s) => [a[0] + ((s - acc) / d) * (b[0] - a[0]), a[1] + ((s - acc) / d) * (b[1] - a[1])];
+                    if (!out.length) out.push(p(lo));
+                    out.push(p(hi));
+                }
+                acc += d;
+            }
+            return out.length >= 2 ? out : null;
+        };
+
+        // Planned jeep legs of the shown option: { routeId, boardPos, alightPos, dir, L, fromM, toM, endLngLat, travel, updated }
+        let trafficLegCtxs = [];
+        let trafficLegsToken = 0;
+        const trafficOverlayData = {};     // sourceId -> last drawn [lng,lat] line (or null)
+        const trafficOverlayActive = {};   // overlay id -> 'a' | 'b'
+        let trafficJamMarker = null;
+        let trafficJamZoomBound = false;
+        const legColorsCache = new Map();  // key -> { data, expiresAt }
+
+        const TL_GRADIENT_FLAT = (c) => ['interpolate', ['linear'], ['line-progress'], 0, c, 1, c];
+
+        const ensureChevronImage = () => {
+            if (!map || map.hasImage('cz-chevron')) return;
+            const size = 32;
+            const cv = document.createElement('canvas');
+            cv.width = size; cv.height = size;
+            const cx = cv.getContext('2d');
+            cx.strokeStyle = '#FFFFFF';
+            cx.lineWidth = 4;
+            cx.lineCap = 'round';
+            cx.lineJoin = 'round';
+            cx.beginPath();
+            cx.moveTo(12, 9); cx.lineTo(20, 16); cx.lineTo(12, 23);
+            cx.stroke();
+            // A plain white image (an SDF image would need a distance field, not this alpha shape)
+            map.addImage('cz-chevron', cx.getImageData(0, 0, size, size), { pixelRatio: 2 });
+        };
+
+        // Halo under each jeep line, the traffic overlays above it, chevrons on top (called by initRouteLayers)
+        const initTrafficLineLayers = (beforeId) => {
+            ensureChevronImage();
+            Object.entries(TRAFFIC_OVERLAYS).forEach(([srcId, ov]) => {
+                const casingId = srcId === 'transit-route' ? 'transit-route-casing' : 'next-transit-route-casing';
+                if (!map.getLayer(`${srcId}-halo`) && map.getLayer(casingId)) {
+                    map.addLayer({
+                        id: `${srcId}-halo`,
+                        type: 'line',
+                        source: srcId,
+                        layout: { 'line-join': 'round', 'line-cap': 'round' },
+                        paint: {
+                            'line-color': 'rgba(15, 23, 42, 0.22)',
+                            'line-width': srcId === 'transit-route'
+                                ? ['interpolate', ['linear'], ['zoom'], 11, 8.5, 14, 11, 17, 14.5, 19, 18.5]
+                                : ['interpolate', ['linear'], ['zoom'], 11, 7.5, 14, 9.5, 17, 12.5, 19, 16.5]
+                        }
+                    }, casingId);
+                }
+                if (!map.getSource(ov.id)) {
+                    map.addSource(ov.id, { type: 'geojson', lineMetrics: true, data: { type: 'FeatureCollection', features: [] } });
+                    ['a', 'b'].forEach((k) => {
+                        map.addLayer({
+                            id: `${ov.id}-${k}`,
+                            type: 'line',
+                            source: ov.id,
+                            layout: { 'line-join': 'round', 'line-cap': 'round' },
+                            paint: {
+                                'line-width': ov.width,
+                                'line-gradient': TL_GRADIENT_FLAT(ov.normal),
+                                'line-opacity': 0,
+                                'line-opacity-transition': { duration: 300, delay: 0 }
+                            }
+                        }, beforeId);
+                    });
+                }
+                if (!map.getSource(`${ov.id}-closed`)) {
+                    map.addSource(`${ov.id}-closed`, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+                    map.addLayer({
+                        id: `${ov.id}-closed`,
+                        type: 'line',
+                        source: `${ov.id}-closed`,
+                        layout: { 'line-join': 'round', 'line-cap': 'butt' },
+                        paint: {
+                            'line-color': '#FFFFFF',
+                            'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1, 14, 1.6, 17, 2.4, 19, 3.2],
+                            'line-dasharray': [2, 2]
+                        }
+                    }, beforeId);
+                }
+                if (!map.getLayer(`${srcId}-chev`)) {
+                    map.addLayer({
+                        id: `${srcId}-chev`,
+                        type: 'symbol',
+                        source: srcId,
+                        minzoom: TL_JAM_MIN_ZOOM,
+                        layout: {
+                            'symbol-placement': 'line',
+                            'symbol-spacing': 80,
+                            'icon-image': 'cz-chevron',
+                            'icon-size': ['interpolate', ['linear'], ['zoom'], 14, 0.7, 17, 0.9, 19, 1.1],
+                            'icon-rotation-alignment': 'map',
+                            'icon-allow-overlap': true,
+                            'icon-ignore-placement': true
+                        },
+                        paint: { 'icon-opacity': 0.95 }
+                    }, beforeId);
+                }
+            });
+            // Data drawn before a style reload
+            Object.keys(TRAFFIC_OVERLAYS).forEach((srcId) => syncTrafficOverlay(srcId));
+            ensureTrafficBelowRouteLayers();
+        };
+
+        const hideTrafficOverlay = (srcId) => {
+            const ov = TRAFFIC_OVERLAYS[srcId];
+            if (!ov || !map) return;
+            ['a', 'b'].forEach((k) => { if (map.getLayer(`${ov.id}-${k}`)) map.setPaintProperty(`${ov.id}-${k}`, 'line-opacity', 0); });
+            const cs = map.getSource(`${ov.id}-closed`);
+            if (cs) cs.setData({ type: 'FeatureCollection', features: [] });
+            if (ov.jam) removeTrafficJamMarker();
+            updateRouteColorsLegend();
+        };
+
+        const removeTrafficJamMarker = () => {
+            if (trafficJamMarker) { trafficJamMarker.remove(); trafficJamMarker = null; }
+        };
+
+        const syncJamMarkerZoom = () => {
+            if (!trafficJamMarker || !map) return;
+            const el = trafficJamMarker.getElement();
+            el.style.display = map.getZoom() >= TL_JAM_MIN_ZOOM ? '' : 'none';
+        };
+
+        const showTrafficJamMarker = (lngLat, jam) => {
+            removeTrafficJamMarker();
+            const el = document.createElement('div');
+            el.className = 'cz-jam-label';
+            const sw = document.createElement('span');
+            sw.className = 'cz-jam-swatch';
+            sw.style.background = window.CalzadaTrafficLine.COLORS[jam.cls] || window.CalzadaTrafficLine.COLORS.heavy;
+            const txt = document.createElement('span');
+            txt.className = 'cz-jam-text';
+            const b = document.createElement('b');
+            b.textContent = jam.cls === 'stopped'
+                ? tlText('planner.tl.stopped', 'Nearly stopped')
+                : tlText('planner.tl.heavy', 'Heavy traffic');
+            b.style.color = jam.cls === 'stopped' ? '#B42318' : '#C2410C';
+            const sub = document.createElement('span');
+            sub.textContent = tlText('planner.tl.of_ride', '{m} m of the ride', { m: window.CalzadaTrafficLine.roundM(jam.lengthM) });
+            txt.append(b, sub);
+            el.append(sw, txt);
+            trafficJamMarker = new maplibregl.Marker({ element: el, anchor: 'left', offset: [14, 0] }).setLngLat(lngLat).addTo(map);
+            if (!trafficJamZoomBound) { map.on('zoom', syncJamMarkerZoom); trafficJamZoomBound = true; }
+            syncJamMarkerZoom();
+        };
+
+        // The planned leg this drawn line belongs to: same end point, not longer than the leg
+        const findTrafficCtxForLine = (coords) => {
+            if (!coords || coords.length < 2) return null;
+            const end = coords[coords.length - 1];
+            const len = tlLineLength(coords);
+            let best = null, bestD = Infinity;
+            trafficLegCtxs.forEach((c) => {
+                if (!c.endLngLat) return;
+                const d = tlDistM(end, c.endLngLat);
+                if (d <= 30 && len <= c.L + 40 && d < bestD) { best = c; bestD = d; }
+            });
+            return best ? { ctx: best, len } : null;
+        };
+
+        function syncTrafficOverlay(srcId) {
+            const ov = TRAFFIC_OVERLAYS[srcId];
+            const TLX = window.CalzadaTrafficLine;
+            if (!ov || !map || !TLX || !map.getSource(ov.id)) return;
+            const coords = trafficOverlayData[srcId];
+            const hit = coords ? findTrafficCtxForLine(coords) : null;
+            if (!hit || !hit.ctx.travel) { hideTrafficOverlay(srcId); return; }
+            const { ctx, len } = hit;
+            const w1 = ctx.L;
+            const w0 = Math.max(0, ctx.L - len);
+            const expr = TLX.gradientExpr(ctx.travel, w0, w1, ov.normal);
+            if (!expr) { hideTrafficOverlay(srcId); return; }
+
+            map.getSource(ov.id).setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+            const prev = trafficOverlayActive[ov.id] || 'b';
+            const next = prev === 'a' ? 'b' : 'a';
+            map.setPaintProperty(`${ov.id}-${next}`, 'line-gradient', expr);
+            map.setPaintProperty(`${ov.id}-${next}`, 'line-opacity', 1);
+            map.setPaintProperty(`${ov.id}-${prev}`, 'line-opacity', 0);
+            trafficOverlayActive[ov.id] = next;
+
+            const closedFeatures = [];
+            ctx.travel.forEach((st) => {
+                if (!st.closed) return;
+                const part = tlSliceLine(coords, w0, Math.max(w0, st.s0), Math.min(w1, st.s1));
+                if (part) closedFeatures.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: part } });
+            });
+            map.getSource(`${ov.id}-closed`).setData({ type: 'FeatureCollection', features: closedFeatures });
+
+            if (ov.jam) {
+                const jam = TLX.jamInfo(ctx.travel, w0, w1).longest;
+                const at = jam ? TLX.pointAlong(coords, w0, (jam.s0 + jam.s1) / 2, tlDistM) : null;
+                if (at) showTrafficJamMarker(at, jam); else removeTrafficJamMarker();
+            }
+            updateRouteColorsLegend();
+        }
+
+        // Desktop legend for the line colours, only while a coloured line shows
+        let routeColorsLegendEl = null;
+        function updateRouteColorsLegend() {
+            if (!map) return;
+            const anyShown = Object.values(TRAFFIC_OVERLAYS).some((ov) => ['a', 'b'].some((k) => map.getLayer(`${ov.id}-${k}`) && map.getPaintProperty(`${ov.id}-${k}`, 'line-opacity') > 0));
+            if (!anyShown) { if (routeColorsLegendEl) routeColorsLegendEl.style.display = 'none'; return; }
+            if (!routeColorsLegendEl) {
+                const C = window.CalzadaTrafficLine.COLORS;
+                routeColorsLegendEl = document.createElement('div');
+                routeColorsLegendEl.className = 'cz-route-colors-legend';
+                const h = document.createElement('div');
+                h.className = 'cz-rcl-title';
+                h.dataset.tlKey = 'planner.tl.legend';
+                routeColorsLegendEl.appendChild(h);
+                [['normal', C.normal, 'Normal'], ['slow', C.slow, 'Slow'], ['heavy', C.heavy, 'Heavy'], ['stopped', C.stopped, 'Nearly stopped']].forEach(([k, color, en]) => {
+                    const row = document.createElement('div');
+                    row.className = 'cz-rcl-row';
+                    const sw = document.createElement('span');
+                    sw.className = 'cz-rcl-swatch';
+                    sw.style.background = color;
+                    const lab = document.createElement('span');
+                    lab.dataset.tlKey = `planner.tl.${k}`;
+                    lab.dataset.tlEn = en;
+                    row.append(sw, lab);
+                    routeColorsLegendEl.appendChild(row);
+                });
+                map.getContainer().appendChild(routeColorsLegendEl);
+            }
+            routeColorsLegendEl.querySelectorAll('[data-tl-key]').forEach((n) => {
+                n.textContent = tlText(n.dataset.tlKey, n.dataset.tlEn || 'Route colours · TomTom');
+            });
+            routeColorsLegendEl.style.display = '';
+        }
+
+        async function fetchLegColors(ctx) {
+            const f = Math.round(ctx.fromM / 50) * 50;
+            const tt = Math.round(ctx.toM / 50) * 50;
+            const key = `${ctx.routeId}:${f}:${tt}${ctx.dir === -1 ? ':r' : ''}`;
+            const now = Date.now();
+            const c = legColorsCache.get(key);
+            if (c && now < c.expiresAt) return c.data;
+            const url = `/api/traffic/leg-colors?route=${encodeURIComponent(ctx.routeId)}&from=${f}&to=${tt}${ctx.dir === -1 ? '&dir=r' : ''}`;
+            let data;
+            try {
+                const res = await fetch(url);
+                data = res.ok ? await res.json() : { live: false, reason: `http_${res.status}` };
+            } catch (_) {
+                data = { live: false, reason: 'fetch_failed' };
+            }
+            if (!data || !data.live) console.info(`[traffic-line] ${key}: plain line (${data && data.reason ? data.reason : 'no data'})`);
+            legColorsCache.set(key, { data, expiresAt: now + 2 * 60 * 1000 });
+            return data;
+        }
+
+        // Called when an option is shown: remember its jeep legs, then colour them when data arrives
+        async function setTrafficLegs(opt) {
+            const token = ++trafficLegsToken;
+            const TLX = window.CalzadaTrafficLine;
+            trafficLegCtxs = [];
+            if (!opt || !Array.isArray(opt.legs) || !TLX) { Object.keys(TRAFFIC_OVERLAYS).forEach(hideTrafficOverlay); return; }
+            trafficLegCtxs = opt.legs.filter((l) => l.type === 'jeep' && Array.isArray(l.coords) && l.coords.length >= 2
+                && Number.isFinite(l.boardPos) && Number.isFinite(l.alightPos)).map((l) => {
+                const end = l.coords[l.coords.length - 1];
+                return {
+                    routeId: l.routeId,
+                    boardPos: l.boardPos,
+                    alightPos: l.alightPos,
+                    dir: l.alightPos < l.boardPos ? -1 : 1,
+                    L: Math.abs(l.alightPos - l.boardPos),
+                    fromM: Math.min(l.boardPos, l.alightPos),
+                    toM: Math.max(l.boardPos, l.alightPos),
+                    endLngLat: [end[1], end[0]],
+                    travel: null,
+                    updated: null,
+                    leg: l
+                };
+            });
+            Object.keys(TRAFFIC_OVERLAYS).forEach((srcId) => syncTrafficOverlay(srcId));
+            await refreshTrafficLegColors(token);
+        }
+
+        async function refreshTrafficLegColors(token) {
+            const TLX = window.CalzadaTrafficLine;
+            const ctxs = trafficLegCtxs;
+            if (!ctxs.length || !TLX) return;
+            const results = await Promise.all(ctxs.map((c) => fetchLegColors(c)));
+            if (token !== undefined && token !== trafficLegsToken) return;
+            results.forEach((data, i) => {
+                const c = ctxs[i];
+                if (data && data.live && Array.isArray(data.stretches)) {
+                    c.travel = TLX.toTravel(data.stretches, c.boardPos, c.alightPos);
+                    c.updated = data.updated || null;
+                } else {
+                    c.travel = null;
+                }
+            });
+            Object.keys(TRAFFIC_OVERLAYS).forEach((srcId) => syncTrafficOverlay(srcId));
+            // The ride strip in the route card and the itinerary
+            if (typeof window._calzadaTrafficLineChanged === 'function') window._calzadaTrafficLineChanged();
+        }
+
+        // Ride strip data for a jeep leg of the shown option (planner-transit.js and the itinerary)
+        window._calzadaRideStrip = (leg) => {
+            const TLX = window.CalzadaTrafficLine;
+            if (!TLX || !leg) return null;
+            const c = trafficLegCtxs.find((x) => x.leg === leg || (x.routeId === leg.routeId && x.boardPos === leg.boardPos && x.alightPos === leg.alightPos));
+            if (!c || !c.travel) return null;
+            const jam = TLX.jamInfo(c.travel);
+            return {
+                segments: TLX.stripSegments(c.travel, c.L, '#378ADD'),
+                km: c.L / 1000,
+                jamM: jam.totalM,
+                closed: jam.closed,
+                updatedMin: c.updated ? TLX.minutesAgo(c.updated) : null
+            };
+        };
+
+
+        // ── Walking details: crossing markers on the walk lines ──
+        // Footbridge ends and the stoplight / pedestrian-lane crossings the walk uses, from the walk
+        // graph's steps (walk: 'footbridge' | 'cross', crossing 's' signal, 'z' lane).
+        let crossingMarkers = [];
+        const STAIRS_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h5v-5h5v-5h5V5"/></svg>';
+        const CROSSWALK_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M5 4v16M10 4v16M15 4v16M20 4v16"/></svg>';
+        function clearCrossingMarkers() {
+            crossingMarkers.forEach((m) => { try { m.remove(); } catch (_) { /* gone */ } });
+            crossingMarkers = [];
+        }
+        function crossingMarkerEl(kind, label) {
+            const el = document.createElement('div');
+            el.className = 'cz-cross-marker';
+            const dot = document.createElement('span');
+            dot.className = 'cz-cross-dot';
+            dot.innerHTML = kind === 'footbridge' ? STAIRS_SVG : CROSSWALK_SVG;
+            el.appendChild(dot);
+            if (label) {
+                const lab = document.createElement('span');
+                lab.className = 'cz-cross-label';
+                lab.textContent = label;
+                el.appendChild(lab);
+            }
+            el.setAttribute('role', 'img');
+            el.setAttribute('aria-label', label || (kind === 'footbridge' ? 'Footbridge' : 'Crossing'));
+            return el;
+        }
+        function drawCrossingMarkers(stepLists) {
+            clearCrossingMarkers();
+            if (!map) return;
+            const seen = new Set();
+            const add = (lngLat, kind, label) => {
+                if (!Array.isArray(lngLat) || lngLat.length < 2) return;
+                const k = `${kind}:${lngLat[0].toFixed(5)},${lngLat[1].toFixed(5)}`;
+                if (seen.has(k)) return;
+                seen.add(k);
+                const m = new maplibregl.Marker({ element: crossingMarkerEl(kind, label), anchor: 'left', offset: [-11, 0] })
+                    .setLngLat(lngLat).addTo(map);
+                crossingMarkers.push(m);
+            };
+            const bridgeLabel = tlText('planner.walk.footbridge_marker', 'Footbridge · stairs');
+            (stepLists || []).forEach((steps) => {
+                if (!Array.isArray(steps)) return;
+                steps.forEach((st, i) => {
+                    const loc = st && st.maneuver && st.maneuver.location;
+                    if (st.walk === 'footbridge') {
+                        add(loc, 'footbridge', bridgeLabel);
+                        const nxt = steps[i + 1] && steps[i + 1].maneuver && steps[i + 1].maneuver.location;
+                        add(nxt, 'footbridge', null);
+                    } else if (st.walk === 'cross' && (st.crossing === 's' || st.crossing === 'z')) {
+                        add(loc, 'cross', null);
+                    }
+                });
+            });
+        }
+
+        // ── "Mas mabilis maglakad": walking from here beats the jammed jeep (last jeep only) ──
+        let walkHintDismissed = false;
+        let walkHintEl = null;
+        let walkHintBusy = false;
+        function hideWalkHint() {
+            if (walkHintEl) { walkHintEl.remove(); walkHintEl = null; }
+            const src = map && map.getSource('walk-hint');
+            if (src) src.setData({ type: 'FeatureCollection', features: [] });
+        }
+        function drawWalkHintLine(coordsLatLng) {
+            if (!map || !map.isStyleLoaded()) return;
+            if (!map.getSource('walk-hint')) {
+                map.addSource('walk-hint', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+                const before = map.getLayer('route-connector-casing') ? 'route-connector-casing' : undefined;
+                map.addLayer({ id: 'walk-hint-casing', type: 'line', source: 'walk-hint', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: WALK_DOTS_CASING_PAINT }, before);
+                map.addLayer({ id: 'walk-hint-layer', type: 'line', source: 'walk-hint', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: WALK_DOTS_PAINT }, before);
+            }
+            map.getSource('walk-hint').setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coordsLatLng.map((c) => [c[1], c[0]]) } });
+        }
+        function showWalkHint(info) {
+            hideWalkHint();
+            const el = document.createElement('div');
+            el.className = 'cz-walk-hint';
+            el.setAttribute('role', 'status');
+            const title = document.createElement('div');
+            title.className = 'cz-walk-hint-title';
+            title.textContent = tlText('planner.walkhint.title', 'Walking is faster');
+            const body = document.createElement('div');
+            body.className = 'cz-walk-hint-body';
+            body.textContent = tlText('planner.walkhint.body', 'Get off here and walk: {w} min · {m} m. By jeep: about {j} min, heavy traffic ahead.',
+                { w: info.walkMin, m: window.CalzadaTrafficLine.roundM(info.walk.distance), j: info.rideRemainingMin });
+            const row = document.createElement('div');
+            row.className = 'cz-walk-hint-actions';
+            const show = document.createElement('button');
+            show.type = 'button';
+            show.className = 'cz-walk-hint-primary';
+            show.textContent = tlText('planner.walkhint.show', 'Show the walk');
+            const stay = document.createElement('button');
+            stay.type = 'button';
+            stay.className = 'cz-walk-hint-secondary';
+            stay.textContent = tlText('planner.walkhint.stay', 'Stay on the jeep');
+            show.addEventListener('click', () => {
+                drawWalkHintLine(info.walk.coordinates);
+                body.textContent = tlText('planner.walkhint.next_step', 'Get off and walk {m} m', { m: window.CalzadaTrafficLine.roundM(info.walk.distance) });
+                show.remove();
+                stay.textContent = tlText('planner.walkhint.close', 'Hide');
+            });
+            stay.addEventListener('click', () => { walkHintDismissed = true; hideWalkHint(); });
+            row.append(show, stay);
+            el.append(title, body, row);
+            document.body.appendChild(el);
+            walkHintEl = el;
+        }
+        async function maybeShowWalkHint() {
+            const TLX = window.CalzadaTrafficLine, T = window.CalzadaTransit;
+            if (!TLX || !T || !isTrackingArrival || walkHintDismissed || walkHintBusy) return;
+            // Last jeep only: on the jeep leg with no transfer ahead
+            if (activeLegIndex !== 1 || pendingTransfer || !selectedCoords.destination) { hideWalkHint(); return; }
+            const coords = trafficOverlayData['transit-route'];
+            const hit = coords ? findTrafficCtxForLine(coords) : null;
+            if (!hit || !hit.ctx.travel) { hideWalkHint(); return; }
+            const { ctx, len } = hit;
+            const w0 = Math.max(0, ctx.L - len);
+            const aheadJamM = TLX.jamInfo(ctx.travel, w0, ctx.L).totalM;
+            if (aheadJamM < TLX.HINT.JAM_AHEAD_M) { hideWalkHint(); return; }
+            // Get off where the rider is now, or after a part where the jeep lets no one off
+            const route = (T.routes() || []).find((r) => r.id === ctx.routeId);
+            const pos = TLX.allowedAlightPos(ctx.boardPos + ctx.dir * w0, route ? route.closedM : [], ctx.dir, ctx.alightPos);
+            if (pos == null) { hideWalkHint(); return; }
+            const getOff = TLX.pointAlong(coords, w0, Math.abs(pos - ctx.boardPos), tlDistM);
+            if (!getOff) { hideWalkHint(); return; }
+            walkHintBusy = true;
+            try {
+                const walk = await walkOnGraph([getOff[1], getOff[0]], selectedCoords.destination);
+                if (!walk || !isTrackingArrival || walkHintDismissed) { hideWalkHint(); return; }
+                const walkMin = Math.max(1, Math.round((walk.distance / 1000 / WALK_SPEED_KPH) * 60));
+                const rideRemainingMin = Math.round(cachedRemainingSeconds / 60);
+                const ok = TLX.walkHintOk({ isLastJeep: true, aheadJamM, walkM: walk.distance, walkMin, rideRemainingMin });
+                if (ok) { if (!walkHintEl) showWalkHint({ walk, walkMin, rideRemainingMin }); }
+                else hideWalkHint();
+            } finally {
+                walkHintBusy = false;
+            }
+        }
 
         // NATIONAL_HIGHWAY_COORDS removed — OSRM handles road routing universally.
 
@@ -3807,11 +4339,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // ── Traffic leg fetching & in-memory cache (5 min TTL) ──
         const trafficLegCache = new Map();
 
-        async function fetchLegTraffic(routeId, fromM, toM) {
+        // dir -1: the jeep rides its route's path backwards (other side of the road, other traffic)
+        async function fetchLegTraffic(routeId, fromM, toM, dir) {
             const T = window.CalzadaTransit;
             const key = (T && typeof T.legKey === 'function')
-                ? T.legKey(routeId, fromM, toM)
-                : `${routeId}:${Math.round(fromM / 50) * 50}:${Math.round(toM / 50) * 50}`;
+                ? T.legKey(routeId, fromM, toM, dir)
+                : `${routeId}:${Math.round(fromM / 50) * 50}:${Math.round(toM / 50) * 50}${dir === -1 ? ':r' : ''}`;
             const now = Date.now();
             const cached = trafficLegCache.get(key);
             if (cached && now < cached.expiresAt) {
@@ -3819,7 +4352,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const f = Math.round(Number(fromM) / 50) * 50;
             const t = Math.round(Number(toM) / 50) * 50;
-            const url = `/api/traffic/leg?route=${encodeURIComponent(routeId)}&from=${f}&to=${t}`;
+            const url = `/api/traffic/leg?route=${encodeURIComponent(routeId)}&from=${f}&to=${t}${dir === -1 ? '&dir=r' : ''}`;
             try {
                 const res = await fetch(url);
                 if (!res.ok) {
@@ -3838,9 +4371,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const results = {};
             const promises = legs.map(async (leg) => {
                 const key = (T && typeof T.legKey === 'function')
-                    ? T.legKey(leg.routeId, leg.fromM, leg.toM)
-                    : `${leg.routeId}:${Math.round(leg.fromM / 50) * 50}:${Math.round(leg.toM / 50) * 50}`;
-                const data = await fetchLegTraffic(leg.routeId, leg.fromM, leg.toM);
+                    ? T.legKey(leg.routeId, leg.fromM, leg.toM, leg.dir)
+                    : `${leg.routeId}:${Math.round(leg.fromM / 50) * 50}:${Math.round(leg.toM / 50) * 50}${leg.dir === -1 ? ':r' : ''}`;
+                const data = await fetchLegTraffic(leg.routeId, leg.fromM, leg.toM, leg.dir);
                 results[key] = data;
             });
             await Promise.all(promises);
@@ -3848,8 +4381,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         let trafficNavTimer = null;
+        let trafficLineTimer = null;
         function startTrafficNavTracking() {
             stopTrafficNavTracking();
+            walkHintDismissed = false;
+            // Traffic colours of the road ahead, and the walk-is-faster check, every 3 min
+            const lineTick = () => {
+                if (!isTrackingArrival) return;
+                refreshTrafficLegColors().then(() => maybeShowWalkHint()).catch((e) => console.warn('[traffic-line] refresh failed:', e));
+            };
+            trafficLineTimer = setInterval(lineTick, 3 * 60 * 1000);
+            setTimeout(lineTick, 15 * 1000);
             trafficNavTimer = setInterval(async () => {
                 if (!isTrackingArrival || !transitOptions || !transitOptions[transitSelected]) return;
                 const currentOpt = transitOptions[transitSelected];
@@ -3866,7 +4408,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const toM = Math.round(Math.max(currentM, alightM));
                 if (toM - fromM < 300) return;
 
-                const data = await fetchLegTraffic(jeepLeg.routeId, fromM, toM);
+                const data = await fetchLegTraffic(jeepLeg.routeId, fromM, toM, T.legDir ? T.legDir(jeepLeg) : 1);
                 if (data && data.live) {
                     const totalJeepSec = T.jeepSecFromTraffic ? T.jeepSecFromTraffic(data, toM - fromM) : null;
                     if (totalJeepSec != null) {
@@ -3883,6 +4425,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(trafficNavTimer);
                 trafficNavTimer = null;
             }
+            if (trafficLineTimer) {
+                clearInterval(trafficLineTimer);
+                trafficLineTimer = null;
+            }
+            hideWalkHint();
         }
 
         // true when curated routes handled the trip (options shown, first jeep routed)
@@ -3907,10 +4454,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 opts.forEach(opt => {
                     (opt.legs || []).forEach(leg => {
                         if (leg.type === 'jeep' && Number.isFinite(leg.fromM) && Number.isFinite(leg.toM)) {
-                            const k = T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
+                            const k = T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM, T.legDir ? T.legDir(leg) : 1) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
                             if (!seenLegKeys.has(k)) {
                                 seenLegKeys.add(k);
-                                uniqueLegs.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM });
+                                uniqueLegs.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM, dir: T.legDir ? T.legDir(leg) : 1 });
                             }
                         }
                     });
@@ -4023,10 +4570,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (c.option && c.option.legs) {
                     c.option.legs.forEach(leg => {
                         if (leg.type === 'jeep' && Number.isFinite(leg.fromM) && Number.isFinite(leg.toM)) {
-                            const k = T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
+                            const k = T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM, T.legDir ? T.legDir(leg) : 1) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
                             if (!seenLegKeys.has(k)) {
                                 seenLegKeys.add(k);
-                                uniqueLegs.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM });
+                                uniqueLegs.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM, dir: T.legDir ? T.legDir(leg) : 1 });
                             }
                         }
                     });
@@ -4456,6 +5003,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await finalizeJeepneyRoute(wRes, tRes, straightDistM);
             if (token !== transitApplyToken) return;
             drawTransitMarkers();
+            setTrafficLegs(opt);
 
             // The selected card shows the same total as the summary (real walks instead of estimates)
             const fw = getFinalWalkInfo();
@@ -5869,6 +6417,10 @@ document.addEventListener('DOMContentLoaded', () => {
             updateRouteSource('transit-route', isWalkOnly ? [] : transitLngLat);
             updateRouteSource('completed-route', []);
             applyRouteLineColors();
+            drawCrossingMarkers([
+                walkRouteGeojson && walkRouteGeojson.steps,
+                isWalkOnly ? null : (transitRouteGeojson?.finalWalk?.steps || window.finalWalkRouteGeojson?.steps)
+            ]);
 
             if (!isWalkOnly && transitCoords && transitCoords.length > 1) {
                 // Boarding point marker
@@ -6193,7 +6745,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // 4. Jeepney Leg Row
             // Signboard only when the route data has one; a curated route without one shows where it goes
             const isTl = transitLang() === 'tl';
-            const jeepContentHtml = (min, km, fare, signboard, headsign, noteText) => {
+            // Ride strip (traffic along the ride) for the jeep line with these [lat,lng] coordinates
+            const rideStripFor = (coordsLatLng, fromName, toName) => {
+                try {
+                    if (!Array.isArray(coordsLatLng) || coordsLatLng.length < 2 || !window.CalzadaTransitUI || !window.CalzadaTransitUI.rideStripHtml) return '';
+                    const hit = findTrafficCtxForLine(coordsLatLng.map((c) => [c[1], c[0]]));
+                    const strip = hit && window._calzadaRideStrip(hit.ctx.leg);
+                    return strip && strip.segments.length ? window.CalzadaTransitUI.rideStripHtml(strip, fromName, toName) : '';
+                } catch (_) { return ''; }
+            };
+            const jeepContentHtml = (min, km, fare, signboard, headsign, noteText, stripHtml) => {
                 const signLine = signboard
                     ? `<div class="timeline-signboard">${escapeHtml((t('planner.signboard') || 'Signboard') + ': ' + signboard)}</div>`
                     : '';
@@ -6213,12 +6774,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                         <span class="timeline-jeep-fare">${formatPeso(fare)}</span>
                     </div>
-                    ${signLine}${headLine}${noteLine}
+                    ${signLine}${headLine}${noteLine}${stripHtml || ''}
                 </div>
             `;
             };
             const curatedHeadsign = transitRouteGeojson?.curated ? transitRouteGeojson.headsign : null;
-            const jeepHtml = jeepContentHtml(currentTransitDur, currentTransitDist, currentFare, signboardName, curatedHeadsign, null);
+            const jeepHtml = jeepContentHtml(currentTransitDur, currentTransitDist, currentFare, signboardName, curatedHeadsign, null,
+                isTrackingArrival ? '' : rideStripFor(transitRouteGeojson?.coordinates, boardAt, alightAt));
             container.appendChild(createLegRow({ type: 'jeepney', contentHtml: jeepHtml }));
 
             // Trip with a transfer: get off, (walk), next jeep, (walk), destination
@@ -6277,7 +6839,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const recomputeNote = isTl ? `Ire-recompute ang ruta pagdating mo rito` : `The route is re-computed when you get here`;
                 container.appendChild(createLegRow({
                     type: 'jeepney',
-                    contentHtml: jeepContentHtml(x.jeep.min, x.jeep.distM / 1000, x.jeep.fare, x.jeep.signboard, x.jeep.headsign, recomputeNote)
+                    contentHtml: jeepContentHtml(x.jeep.min, x.jeep.distM / 1000, x.jeep.fare, x.jeep.signboard, x.jeep.headsign, recomputeNote,
+                        isTrackingArrival ? '' : rideStripFor(x.jeep.coords, x.boardName, x.jeep.alightName))
                 }));
                 const alight2 = new Date(changeTime.getTime() + (x.waitMin + x.jeep.min) * 60 * 1000);
                 if (x.finalWalkM > 0) {
@@ -7133,6 +7696,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         window._calzadaExecuteRouteQuery = executeRouteQuery;
         window._calzadaUpdateSummaryRow = updateSummaryRow;
+        // Traffic colours of the shown option arrived or changed (js/traffic-colors.js)
+        window._calzadaTrafficLineChanged = () => {
+            if (window.CalzadaTransitUI && window.CalzadaTransitUI.refreshRideStrips) window.CalzadaTransitUI.refreshRideStrips();
+            if (!isTrackingArrival && transitRouteGeojson && selectedMode !== 'walking') {
+                try { renderItinerary(); } catch (e) { console.warn('[traffic-line] itinerary refresh failed:', e); }
+            }
+        };
+        window._calzadaWalkHintCheck = maybeShowWalkHint;
         window._calzadaRenderItinerary = renderItinerary;
 
         window._calzadaGetRouteExportData = () => {

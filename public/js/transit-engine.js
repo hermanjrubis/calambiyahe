@@ -628,11 +628,19 @@
         return clampedPublicJeepSec + privateSec;
     }
 
-    // Cache key for leg traffic: 50m rounding matching server/traffic.js
-    function legKey(routeId, fromM, toM) {
+    // Cache key for leg traffic: 50m rounding matching server/traffic.js. dir -1 = the jeep rides the
+    // path backwards (other side of the road, other traffic), keyed apart with ':r'.
+    function legKey(routeId, fromM, toM, dir) {
         const f = Math.round(Number(fromM) / 50) * 50;
         const t = Math.round(Number(toM) / 50) * 50;
-        return `${routeId}:${f}:${t}`;
+        return `${routeId}:${f}:${t}${dir === -1 ? ':r' : ''}`;
+    }
+
+    // Riding direction of a jeep leg along its route's path: 1 forward, -1 backwards
+    function legDir(leg) {
+        if (!leg) return 1;
+        if (Number.isFinite(leg.boardPos) && Number.isFinite(leg.alightPos)) return leg.alightPos < leg.boardPos ? -1 : 1;
+        return leg.dir === -1 ? -1 : 1;
     }
 
     // Retimes a single option given a map or object of legKey -> traffic result
@@ -648,7 +656,7 @@
             if (copy.alsoHeadsigns) copy.alsoHeadsigns = [...copy.alsoHeadsigns];
             if (copy.alsoRoutes) copy.alsoRoutes = [...copy.alsoRoutes];
 
-            const key = legKey(copy.routeId, copy.fromM, copy.toM);
+            const key = legKey(copy.routeId, copy.fromM, copy.toM, legDir(copy));
             const tData = trafficByKey ? (trafficByKey instanceof Map ? trafficByKey.get(key) : trafficByKey[key]) : null;
 
             if (tData && tData.live === true) {
@@ -730,7 +738,7 @@
     }
 
     return {
-        VERSION: '1.6.3',
+        VERSION: '1.6.4',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
@@ -751,6 +759,7 @@
         walkMin,
         rideMin,
         legKey,
+        legDir,
         jeepSecFromTraffic,
         retime,
         retimeOption,

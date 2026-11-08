@@ -51,7 +51,13 @@
             autoRideBody: 'Your route now follows this jeep.',
             autoBefore: (n) => `Before: ${n}`,
             trafficDelay: (n) => `Traffic: +${n} min`,
-            trafficNotice: (n) => `Includes traffic (TomTom) · updated ${n} min ago`
+            trafficNotice: (n) => `Includes traffic (TomTom) · updated ${n} min ago`,
+            rideTitle: (km) => `Jeep ride · ${km} km`,
+            rideUpdated: (n) => (n < 1 ? 'Updated just now' : `Updated ${n} min ago`),
+            heavyOn: (m) => `Heavy on about ${m} m of the ride`,
+            roadClosed: 'Road closed on this route',
+            rideAria: 'Traffic along the ride',
+            cls: { normal: 'normal', slow: 'slow', heavy: 'heavy', stopped: 'nearly stopped' }
         },
         tl: {
             ways: (n) => `${n} paraan`,
@@ -87,7 +93,13 @@
             autoRideBody: 'Inilipat na namin ang ruta mo sa jeep na ito.',
             autoBefore: (n) => `Dati: ${n}`,
             trafficDelay: (n) => `May trapiko: +${n} min`,
-            trafficNotice: (n) => `Kasama ang trapiko (TomTom) · ${n} min ang nakalipas`
+            trafficNotice: (n) => `Kasama ang trapiko (TomTom) · ${n} min ang nakalipas`,
+            rideTitle: (km) => `Biyahe sa jeep · ${km} km`,
+            rideUpdated: (n) => (n < 1 ? 'Na-update ngayon lang' : `Na-update ${n} min ang nakalipas`),
+            heavyOn: (m) => `Masikip sa ~${m} m ng biyahe`,
+            roadClosed: 'Sarado ang daan sa ruta',
+            rideAria: 'Trapiko sa biyahe',
+            cls: { normal: 'maluwag', slow: 'mabagal', heavy: 'masikip', stopped: 'halos hindi gumagalaw' }
         }
     };
     const lang = () => {
@@ -121,6 +133,70 @@
         if (!ref) return null;
         if (lang() === 'tl' && ref.name_tl) return ref.name_tl;
         return ref.name || null;
+    }
+
+
+    // ── Ride strip: traffic along one jeep ride (data from planner.js / js/traffic-colors.js) ──
+    // strip = { segments: [{ pct, cls, color }], km, jamM, closed, updatedMin }
+    const roundM = (m) => Math.max(50, Math.round(m / 50) * 50);
+    function rideStripEl(strip, fromName, toName) {
+        const t = L();
+        const box = el('span', 'czt-ride');
+        const head = el('span', 'czt-ride-head');
+        head.appendChild(el('span', 'czt-ride-title', t.rideTitle(strip.km.toFixed(1))));
+        if (strip.updatedMin != null) head.appendChild(el('span', 'czt-ride-upd', t.rideUpdated(strip.updatedMin)));
+        box.appendChild(head);
+        const bar = el('span', 'czt-ride-bar');
+        bar.setAttribute('role', 'img');
+        bar.setAttribute('aria-label', t.rideAria + ': ' + strip.segments.map((s) => `${t.cls[s.cls] || s.cls} ${Math.round(s.pct)}%`).join(', '));
+        strip.segments.forEach((s) => {
+            const seg = el('span', 'czt-ride-seg');
+            seg.style.width = s.pct + '%';
+            seg.style.background = s.color;
+            bar.appendChild(seg);
+        });
+        box.appendChild(bar);
+        // Both ends named, or none: a lone name under one end reads like a mistake
+        if (fromName && toName) {
+            const ends = el('span', 'czt-ride-ends');
+            ends.appendChild(el('span', null, fromName || ''));
+            ends.appendChild(el('span', null, toName || ''));
+            box.appendChild(ends);
+        }
+        if (strip.closed) box.appendChild(el('span', 'czt-ride-note czt-ride-note--closed', t.roadClosed));
+        else if (strip.jamM >= 200) box.appendChild(el('span', 'czt-ride-note', t.heavyOn(roundM(strip.jamM))));
+        return box;
+    }
+
+    // Strips for every jeep ride of an option (only the selected card carries them)
+    function appendRideStrips(parent, opt) {
+        if (!opt || typeof window._calzadaRideStrip !== 'function') return;
+        parent.querySelectorAll('.czt-ride').forEach((n) => n.remove());
+        (opt.legs || []).filter((l) => l.type === 'jeep').forEach((leg) => {
+            const strip = window._calzadaRideStrip(leg);
+            if (strip && strip.segments.length) parent.appendChild(rideStripEl(strip, stopLabel(leg.board), stopLabel(leg.alight)));
+        });
+    }
+
+    // Traffic colours arrived or changed: update the selected card in place (no re-render, so the
+    // times the planner set with setOptionActual stay)
+    function refreshRideStrips() {
+        if (container && document.body.contains(container) && current.options.length) {
+            const card = container.querySelector('.czt-opt.is-selected');
+            if (card) appendRideStrips(card, current.options[current.selected]);
+        }
+        if (currentTerm.tc && termBox && document.body.contains(termBox)) {
+            const card = termBox.querySelector('.czt-term.is-selected .czt-term-body');
+            const c = currentTerm.tc.choices[currentTerm.selected];
+            if (card && c) appendRideStrips(card, c.option);
+        }
+    }
+
+    // HTML for the itinerary's jeep row (planner.js builds that row as a string)
+    function rideStripHtml(strip, fromName, toName) {
+        const wrap = document.createElement('div');
+        wrap.appendChild(rideStripEl(strip, fromName, toName));
+        return wrap.innerHTML;
     }
 
     // ── Options list ────────────────────────────────────────────────────────────
@@ -232,6 +308,7 @@
             delayEl.textContent = t.trafficDelay(opt.traffic.delayMin);
             card.appendChild(delayEl);
         }
+        if (selected) appendRideStrips(card, opt);
         return card;
     }
 
@@ -382,6 +459,7 @@
             delayEl.textContent = t.trafficDelay(opt.traffic.delayMin);
             body.appendChild(delayEl);
         }
+        if (selected) appendRideStrips(body, opt);
 
         card.appendChild(body);
         return card;
@@ -597,6 +675,7 @@
 
     window.CalzadaTransitUI = {
         renderOptions, setOptionActual, hideOptions, showTransfer, hideTransfer, fmtDur, headsignText, stopLabel,
-        renderTerminalChoices, hideTerminalChoices, showAutoSwitch, hideAutoSwitch
+        renderTerminalChoices, hideTerminalChoices, showAutoSwitch, hideAutoSwitch,
+        refreshRideStrips, rideStripHtml
     };
 })();

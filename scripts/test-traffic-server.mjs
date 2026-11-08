@@ -171,6 +171,40 @@ server.listen(0, '127.0.0.1', async () => {
         const shortPublicJson = JSON.parse(shortPublicLeg.body);
         assert(shortPublicJson.live === false && shortPublicJson.reason === 'too_short', "Server returns live: false, reason: 'too_short' when public part < 300m");
 
+        // 14. Riding direction: dir=r is its own leg (other side of the road)
+        console.log('\n--- Direction (dir=r) ---');
+        const revLeg = JSON.parse((await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=2150&dir=r')).body);
+        assert(revLeg.live === true && revLeg.dir === -1 && revLeg.privateM === 625, `dir=r leg answers with dir -1 and the same private trim (dir ${revLeg.dir}, privateM ${revLeg.privateM})`);
+        assert(revLeg.travelSec !== 900, `dir=r does not reuse the forward fixture (travelSec ${revLeg.travelSec})`);
+        const fwdLeg = JSON.parse((await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=2150')).body);
+        assert(fwdLeg.dir === 1, 'forward leg answers with dir 1');
+
+        // 15. /leg-colors
+        console.log('\n--- Leg colours ---');
+        const lc = await req('/api/traffic/leg-colors?route=calamba-tanauan&from=0&to=2150');
+        const lcJson = JSON.parse(lc.body);
+        assert(lc.status === 200 && lcJson.live === true, 'leg-colors returns live: true in mock mode');
+        assert((lc.headers['cache-control'] || '').includes('s-maxage=120'), `leg-colors Cache-Control s-maxage=120 (got ${lc.headers['cache-control']})`);
+        const st = lcJson.stretches || [];
+        assert(st.length > 2 && st[0].fromM === 0 && st[0].toM === 625 && st[0].cls === 'unknown', 'leg-colors: SM driveway (privateM 0-625) is unknown');
+        const tiles = st.every((s, i) => i === 0 || Math.abs(s.fromM - st[i - 1].toM) <= 1);
+        assert(tiles && st[st.length - 1].toM === 2150, 'leg-colors: stretches tile 0..2150 without gaps');
+        assert(st.some((s) => s.cls === 'heavy') && st.some((s) => s.cls === 'stopped'), 'leg-colors: mock has heavy and stopped stretches');
+        const lcRev = JSON.parse((await req('/api/traffic/leg-colors?route=calamba-tanauan&from=0&to=2150&dir=r')).body);
+        const rs = lcRev.stretches || [];
+        assert(lcRev.dir === -1 && rs[rs.length - 1].cls === 'normal' && rs[rs.length - 2].cls === 'slow', 'leg-colors dir=r: travel order runs from the high-position end');
+        const fix = JSON.parse((await req('/api/traffic/leg-colors?route=crossing-halang&from=0&to=1550')).body);
+        assert(fix.live === true && fix.stretches.some((s) => s.closed === true), 'leg-colors fixture with a closed stretch');
+        const low = JSON.parse((await req('/api/traffic/leg-colors?route=crossing-real&from=0&to=1750')).body);
+        assert(low.live === false && low.reason === 'low_match', 'leg-colors low_match fixture -> live: false');
+        const bud = JSON.parse((await req('/api/traffic/leg-colors?route=newtranspo-real&from=0&to=1900')).body);
+        assert(bud.live === false && bud.reason === 'budget', 'leg-colors budget fixture -> live: false');
+        const lcShort = JSON.parse((await req('/api/traffic/leg-colors?route=calamba-tanauan&from=0&to=700')).body);
+        assert(lcShort.live === false && lcShort.reason === 'too_short', 'leg-colors public part < 100 m -> too_short');
+        assert((await req('/api/traffic/leg-colors?route=nope&from=0&to=1000')).status === 400, 'leg-colors unknown route -> 400');
+        assert((await req('/api/traffic/leg-colors?route=calamba-tanauan&from=0')).status === 400, 'leg-colors missing to -> 400');
+        assert((await req('/api/traffic/leg-colors?route=calamba-tanauan&from=1000&to=500')).status === 400, 'leg-colors reversed from/to -> 400');
+
         console.log(`\n========================================`);
         console.log(`Server Tests Summary: ${passed} passed, ${failed} failed`);
         console.log(`========================================`);

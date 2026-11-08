@@ -8932,3 +8932,221 @@ body.cz-route-busy .segment-btn[data-mode] {
 body.navigation-active .calzada-traffic-ctrl {
     display: none !important;
 }
+/* ── Traffic-coloured jeep line: ride strip, jam label, legend (js/traffic-colors.js) ── */
+.czt-ride {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #E2E8F0;
+    text-align: left;
+    font-family: 'Outfit', sans-serif;
+}
+.czt-ride-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748B;
+}
+.czt-ride-title {
+    font-weight: 600;
+    color: #334155;
+}
+.czt-ride-bar {
+    display: flex;
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #E2E8F0;
+}
+.czt-ride-seg {
+    display: block;
+    height: 100%;
+}
+.czt-ride-ends {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 11px;
+    color: #64748B;
+}
+.czt-ride-ends span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 48%;
+}
+.czt-ride-ends span:last-child {
+    text-align: right;
+}
+.czt-ride-note {
+    font-size: 12px;
+    font-weight: 500;
+    color: #B45309;
+}
+.czt-ride-note--closed {
+    color: #B42318;
+}
+.timeline-jeep-content .czt-ride {
+    margin-top: 8px;
+}
+
+.cz-jam-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    pointer-events: none;
+    white-space: nowrap;
+}
+.cz-jam-swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+.cz-jam-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+.cz-jam-text b {
+    font-size: 12px;
+    font-weight: 700;
+}
+.cz-jam-text span {
+    font-size: 11px;
+    color: #475569;
+}
+
+.cz-route-colors-legend {
+    position: absolute;
+    left: 404px;
+    bottom: 76px;
+    z-index: 540;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 12px;
+    color: #334155;
+}
+.cz-rcl-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+}
+.cz-rcl-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cz-rcl-swatch {
+    width: 18px;
+    height: 5px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+@media (max-width: 1023px) {
+    .cz-route-colors-legend {
+        display: none !important;
+    }
+}
+body.navigation-active .cz-route-colors-legend {
+    display: none !important;
+}
+
+/* Walk lines: footbridge ends and crossings the walk uses */
+.cz-cross-marker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+.cz-cross-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.cz-cross-label {
+    padding: 3px 8px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 11px;
+    color: #475569;
+    white-space: nowrap;
+}
+
+/* "Mas mabilis maglakad" card during a jammed ride */
+.cz-walk-hint {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+    max-width: 420px;
+    margin: 0 auto;
+    z-index: 1400;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px 16px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+}
+.cz-walk-hint-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0F172A;
+}
+.cz-walk-hint-body {
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.4;
+}
+.cz-walk-hint-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.cz-walk-hint-primary,
+.cz-walk-hint-secondary {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.cz-walk-hint-primary {
+    border: none;
+    background: #1F6FC5;
+    color: #FFFFFF;
+}
+.cz-walk-hint-secondary {
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #334155;
+}

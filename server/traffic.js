@@ -6,13 +6,19 @@
  *
  * Endpoints:
  *   GET /api/traffic/tile/:z/:x/:y.png - Proxies TomTom Traffic Flow raster tiles
- *   GET /api/traffic/leg?route=<routeId>&from=<m>&to=<m> - Evaluates traffic along jeep path
+ *   GET /api/traffic/leg?route=<routeId>&from=<m>&to=<m>[&dir=r] - Evaluates traffic along jeep path
+ *   GET /api/traffic/leg-colors?route=<routeId>&from=<m>&to=<m>[&dir=r] - Traffic class per stretch of
+ *       the jeep path (vector flow tiles, map-matched in server/traffic-match.js)
+ *
+ * dir=r: the jeep rides the route's path backwards (alight position < board position). Traffic is
+ * direction-specific, so the slice is sent to TomTom in riding order.
  */
 
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const zlib = require('zlib');
+const TM = require('./traffic-match');
 
 // Load transit routes and coverage data
 const routesPath = path.resolve(__dirname, '../public/data/transit-routes.json');
@@ -372,23 +378,29 @@ function getManilaDateKey() {
 }
 
 /**
- * Check and increment daily TomTom routing budget in Firestore.
- * Returns true if call is permitted under budget, false if budget exceeded.
+ * Check and increment a daily TomTom budget in Firestore (trafficUsage/{YYYY-MM-DD}).
+ * field 'count' = routing calls (TRAFFIC_DAILY_BUDGET), 'vectorTiles' = vector flow tiles
+ * (TRAFFIC_TILE_DAILY_BUDGET). Returns true if `amount` more calls fit, false if over budget.
  */
-async function checkAndIncrementBudget(adminDb) {
+async function checkAndIncrementBudget(adminDb, opts = {}) {
     const db = typeof adminDb === 'function' ? adminDb() : adminDb;
     if (!db) return true;
+    const field = opts.field || 'count';
+    const amount = Math.max(1, opts.amount || 1);
+    const budget = parseInt(
+        field === 'vectorTiles' ? (process.env.TRAFFIC_TILE_DAILY_BUDGET || '3000') : (process.env.TRAFFIC_DAILY_BUDGET || '600'),
+        10
+    );
     const dateKey = getManilaDateKey();
-    const budget = parseInt(process.env.TRAFFIC_DAILY_BUDGET || '600', 10);
     const docRef = db.collection('trafficUsage').doc(dateKey);
     try {
         const allowed = await db.runTransaction(async (t) => {
             const doc = await t.get(docRef);
-            const count = (doc.exists && doc.data() && doc.data().count) || 0;
-            if (count >= budget) {
+            const count = (doc.exists && doc.data() && doc.data()[field]) || 0;
+            if (count + amount > budget) {
                 return false;
             }
-            t.set(docRef, { count: count + 1, updatedAt: new Date().toISOString() }, { merge: true });
+            t.set(docRef, { [field]: count + amount, updatedAt: new Date().toISOString() }, { merge: true });
             return true;
         });
         return allowed;
@@ -396,6 +408,89 @@ async function checkAndIncrementBudget(adminDb) {
         console.error('[traffic] Firestore budget tracking error:', err.message);
         return true;
     }
+}
+
+// Riding direction from the query: 'r' (or -1) = backwards along the route's path
+function parseDir(v) {
+    return v === 'r' || v === '-1' || v === -1 ? -1 : 1;
+}
+
+// Shared validation for /leg and /leg-colors. Returns { error } or the parsed leg.
+function parseLegQuery(query, minLenM) {
+    const { route: routeId, from, to } = query;
+    if (!routeId) return { error: 'missing_route_id' };
+    const preparedRoute = getPreparedRoute(routeId);
+    if (!preparedRoute) return { error: 'unknown_route' };
+    const fromNum = Number(from);
+    const toNum = Number(to);
+    if (!Number.isFinite(fromNum) || !Number.isFinite(toNum)) return { error: 'invalid_from_to_numbers' };
+    const fromRounded = Math.round(fromNum / 50) * 50;
+    const toRounded = Math.round(toNum / 50) * 50;
+    if (toRounded <= fromRounded || (toRounded - fromRounded) < minLenM) return { error: 'invalid_range_or_too_short' };
+    if (fromRounded < 0 || toRounded > (preparedRoute.len + 50)) return { error: 'out_of_path_bounds' };
+    const dir = parseDir(query.dir);
+    const legKey = `${routeId}:${fromRounded}:${toRounded}${dir === -1 ? ':r' : ''}`;
+    return { routeId, preparedRoute, fromRounded, toRounded, dir, legKey };
+}
+
+// ── Vector flow tiles (for /leg-colors) ──
+const VECTOR_ZOOM = 15;
+const MAX_VECTOR_TILES = 24;          // per request; longer legs fall back to the plain blue line
+const VECTOR_TILE_TTL_MS = 2 * 60 * 1000;
+const vectorTileCache = new Map();    // 'z/x/y' -> { expiresAt, features }
+
+function vectorTileUrl(z, x, y, apiKey) {
+    // Road types 0-6 (motorway .. local road); 'none' leaves TomTom's per-zoom default
+    const roadTypes = process.env.TRAFFIC_VECTOR_ROAD_TYPES || '[0,1,2,3,4,5,6]';
+    const rt = roadTypes === 'none' ? '' : `&roadTypes=${encodeURIComponent(roadTypes)}`;
+    return `https://api.tomtom.com/traffic/map/4/tile/flow/relative/${z}/${x}/${y}.pbf?key=${encodeURIComponent(apiKey)}${rt}`;
+}
+
+// Decoded features of one tile: [{ lines: [[ [lat,lng], ... ]], props }]
+function decodeVectorTile(buf, z, x, y) {
+    const { VectorTile } = require('@mapbox/vector-tile');
+    const Pbf = require('pbf');
+    let data = buf;
+    if (data.length > 2 && data[0] === 0x1f && data[1] === 0x8b) data = zlib.gunzipSync(data);
+    const tile = new VectorTile(new Pbf(data));
+    const out = [];
+    Object.keys(tile.layers).forEach((name) => {
+        const layer = tile.layers[name];
+        for (let i = 0; i < layer.length; i++) {
+            const f = layer.feature(i);
+            const gj = f.toGeoJSON(x, y, z);
+            const g = gj && gj.geometry;
+            if (!g) continue;
+            let lines = [];
+            if (g.type === 'LineString') lines = [g.coordinates];
+            else if (g.type === 'MultiLineString') lines = g.coordinates;
+            else continue;
+            out.push({ lines: lines.map((l) => l.map((c) => [c[1], c[0]])), props: f.properties || {} });
+        }
+    });
+    return out;
+}
+
+function fetchBuffer(url, timeoutMs) {
+    return new Promise((resolve) => {
+        const req = https.get(url, (r) => {
+            if (r.statusCode !== 200) {
+                r.resume();
+                return resolve({ ok: false, status: r.statusCode });
+            }
+            const chunks = [];
+            r.on('data', (c) => chunks.push(c));
+            r.on('end', () => resolve({ ok: true, buf: Buffer.concat(chunks) }));
+        });
+        req.on('error', (err) => resolve({ ok: false, error: err.message }));
+        req.setTimeout(timeoutMs, () => { req.destroy(); resolve({ ok: false, error: 'timeout' }); });
+    });
+}
+
+// Deterministic stretches for TRAFFIC_MOCK=1 (no fixture): normal, slow, heavy, stopped, heavy, normal
+function mockStretches(publicLenM) {
+    const cuts = [[0, 0.3, 'normal'], [0.3, 0.45, 'slow'], [0.45, 0.6, 'heavy'], [0.6, 0.72, 'stopped'], [0.72, 0.85, 'heavy'], [0.85, 1, 'normal']];
+    return cuts.map(([a, b, cls]) => ({ s0: Math.round(a * publicLenM), s1: Math.round(b * publicLenM), cls, closed: false }));
 }
 
 /**
@@ -473,39 +568,14 @@ function createTrafficRouter({ adminDb } = {}) {
 
     // 2. GET /api/traffic/leg?route=<routeId>&from=<m>&to=<m>
     router.get('/leg', async (req, res) => {
-        const { route: routeId, from, to } = req.query;
-
-        if (!routeId) {
-            return res.status(400).json({ error: 'missing_route_id' });
+        const q = parseLegQuery(req.query, 300);
+        if (q.error) {
+            return res.status(400).json({ error: q.error });
         }
-
-        const preparedRoute = getPreparedRoute(routeId);
-        if (!preparedRoute) {
-            return res.status(400).json({ error: 'unknown_route' });
-        }
-
-        const fromNum = Number(from);
-        const toNum = Number(to);
-
-        if (!Number.isFinite(fromNum) || !Number.isFinite(toNum)) {
-            return res.status(400).json({ error: 'invalid_from_to_numbers' });
-        }
-
-        // Round both to nearest 50 m on the server
-        const fromRounded = Math.round(fromNum / 50) * 50;
-        const toRounded = Math.round(toNum / 50) * 50;
-
-        if (toRounded <= fromRounded || (toRounded - fromRounded) < 300) {
-            return res.status(400).json({ error: 'invalid_range_or_too_short' });
-        }
-
-        if (fromRounded < 0 || toRounded > (preparedRoute.len + 50)) {
-            return res.status(400).json({ error: 'out_of_path_bounds' });
-        }
+        const { routeId, preparedRoute, fromRounded, toRounded, dir, legKey } = q;
 
         res.setHeader('Cache-Control', 'public, s-maxage=300');
 
-        const legKey = `${routeId}:${fromRounded}:${toRounded}`;
         const isMock = process.env.TRAFFIC_MOCK === '1';
 
         // Check for private ranges touching the START or END of the slice
@@ -523,6 +593,7 @@ function createTrafficRouter({ adminDb } = {}) {
                     ...fix,
                     fromM: fromRounded,
                     toM: toRounded,
+                    dir,
                     privateM: fix.privateM !== undefined ? fix.privateM : trimmedM,
                     updated: fix.updated || new Date().toISOString()
                 });
@@ -537,6 +608,7 @@ function createTrafficRouter({ adminDb } = {}) {
                 routeId,
                 fromM: fromRounded,
                 toM: toRounded,
+                dir,
                 lengthM,
                 travelSec,
                 noTrafficSec,
@@ -562,7 +634,9 @@ function createTrafficRouter({ adminDb } = {}) {
         }
 
         // Cut public slice of route
+        // In riding order: a jeep riding the path backwards meets the other side of the road
         const slicePoints = sliceRoutePath(preparedRoute, effFrom, effTo);
+        if (dir === -1) slicePoints.reverse();
         if (slicePoints.length < 2) {
             return res.json({ live: false, reason: 'insufficient_slice_points' });
         }
@@ -652,6 +726,7 @@ function createTrafficRouter({ adminDb } = {}) {
                 routeId,
                 fromM: fromRounded,
                 toM: toRounded,
+                dir,
                 lengthM,
                 travelSec,
                 noTrafficSec,
@@ -663,6 +738,112 @@ function createTrafficRouter({ adminDb } = {}) {
             });
         } catch (err) {
             console.error('[traffic] Unexpected routing handler error:', err.message);
+            return res.json({ live: false, reason: 'server_error' });
+        }
+    });
+
+    // 3. GET /api/traffic/leg-colors?route=<routeId>&from=<m>&to=<m>[&dir=r]
+    //    { live, routeId, fromM, toM, dir, matchedPct, stretches: [{ fromM, toM, cls, closed }], updated }
+    //    cls: normal | slow | heavy | stopped | unknown (unknown and the SM driveway draw as normal)
+    router.get('/leg-colors', async (req, res) => {
+        const q = parseLegQuery(req.query, 100);
+        if (q.error) {
+            return res.status(400).json({ error: q.error });
+        }
+        const { routeId, preparedRoute, fromRounded, toRounded, dir, legKey } = q;
+        res.setHeader('Cache-Control', 'public, s-maxage=120');
+
+        const { effFrom, effTo, publicLenM } = trimPrivateRanges(preparedRoute.privateM, fromRounded, toRounded);
+        const privateParts = [];
+        if (effFrom > fromRounded) privateParts.push([fromRounded, effFrom]);
+        if (effTo < toRounded) privateParts.push([effTo, toRounded]);
+        if (publicLenM < 100) {
+            return res.json({ live: false, reason: 'too_short' });
+        }
+        const pubStartPos = dir === 1 ? effFrom : effTo;
+        const done = (matchedPct, travelStretches) => res.json({
+            live: true,
+            routeId,
+            fromM: fromRounded,
+            toM: toRounded,
+            dir,
+            matchedPct,
+            stretches: TM.toRouteStretches(travelStretches, pubStartPos, dir, privateParts),
+            updated: new Date().toISOString()
+        });
+
+        if (process.env.TRAFFIC_MOCK === '1') {
+            const fixtures = getMockFixtures();
+            const fix = fixtures[`colors:${legKey}`];
+            if (fix) {
+                if (fix.live === false) return res.json(fix);
+                return res.json({ ...fix, routeId, fromM: fromRounded, toM: toRounded, dir, updated: fix.updated || new Date().toISOString() });
+            }
+            return done(100, mockStretches(publicLenM));
+        }
+
+        const apiKey = process.env.TOMTOM_API_KEY;
+        if (!apiKey) {
+            console.warn('[traffic] TOMTOM_API_KEY not configured');
+            return res.json({ live: false, reason: 'api_key_missing' });
+        }
+
+        try {
+            const travelPts = sliceRoutePath(preparedRoute, effFrom, effTo);
+            if (dir === -1) travelPts.reverse();
+            const samples = TM.samplePath(travelPts);
+            const tiles = TM.tilesForSamples(samples, VECTOR_ZOOM);
+            if (tiles.length > MAX_VECTOR_TILES) {
+                console.warn(`[traffic] leg-colors ${legKey}: ${tiles.length} tiles, over ${MAX_VECTOR_TILES}`);
+                return res.json({ live: false, reason: 'too_long' });
+            }
+
+            const now = Date.now();
+            const missing = tiles.filter((t) => {
+                const c = vectorTileCache.get(`${t.z}/${t.x}/${t.y}`);
+                return !c || c.expiresAt < now;
+            });
+            if (missing.length) {
+                const underBudget = await checkAndIncrementBudget(adminDb, { field: 'vectorTiles', amount: missing.length });
+                if (!underBudget) {
+                    console.warn(`[traffic] Daily vector tile budget reached for ${getManilaDateKey()}`);
+                    return res.json({ live: false, reason: 'budget' });
+                }
+                const results = await Promise.all(missing.map(async (t) => {
+                    const r = await fetchBuffer(vectorTileUrl(t.z, t.x, t.y, apiKey), 4000);
+                    if (!r.ok) return { t, error: r.status ? `upstream_${r.status}` : (r.error || 'upstream_error') };
+                    try {
+                        return { t, features: decodeVectorTile(r.buf, t.z, t.x, t.y) };
+                    } catch (e) {
+                        return { t, error: 'decode_error' };
+                    }
+                }));
+                const failed = results.find((r) => r.error);
+                if (failed) {
+                    console.error(`[traffic] leg-colors ${legKey}: tile ${failed.t.z}/${failed.t.x}/${failed.t.y} ${failed.error}`);
+                    return res.json({ live: false, reason: failed.error });
+                }
+                results.forEach((r) => vectorTileCache.set(`${r.t.z}/${r.t.x}/${r.t.y}`, { expiresAt: now + VECTOR_TILE_TTL_MS, features: r.features }));
+                if (vectorTileCache.size > 400) {
+                    // drop the oldest entries
+                    const keys = Array.from(vectorTileCache.keys()).slice(0, vectorTileCache.size - 400);
+                    keys.forEach((k) => vectorTileCache.delete(k));
+                }
+            }
+
+            const features = [];
+            tiles.forEach((t) => {
+                const c = vectorTileCache.get(`${t.z}/${t.x}/${t.y}`);
+                if (c) features.push(...c.features);
+            });
+            const result = TM.matchSlice(travelPts, features);
+            if (result.matchedPct < TM.MIN_MATCHED_PCT) {
+                console.warn(`[traffic] leg-colors ${legKey}: only ${result.matchedPct}% of the path matched a TomTom road`);
+                return res.json({ live: false, reason: 'low_match', matchedPct: result.matchedPct });
+            }
+            return done(result.matchedPct, result.stretches);
+        } catch (err) {
+            console.error('[traffic] leg-colors handler error:', err.message);
             return res.json({ live: false, reason: 'server_error' });
         }
     });
@@ -684,6 +865,11 @@ module.exports = {
     sliceRoutePath,
     simplifySupportingPoints,
     trimPrivateRanges,
+    parseLegQuery,
+    parseDir,
+    decodeVectorTile,
+    vectorTileUrl,
+    mockStretches,
     createMockTileBuffer,
     createTransparentTileBuffer,
     TRANSPARENT_TILE_PNG

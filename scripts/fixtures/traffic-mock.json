@@ -99,6 +99,44 @@
   "newtranspo-real:0:1900": {
     "live": false,
     "reason": "budget"
+  },
+  "colors:crossing-real:0:1750": {
+    "live": false,
+    "reason": "low_match",
+    "matchedPct": 42
+  },
+  "colors:newtranspo-real:0:1900": {
+    "live": false,
+    "reason": "budget"
+  },
+  "colors:crossing-halang:0:1550": {
+    "live": true,
+    "matchedPct": 96,
+    "stretches": [
+      {
+        "fromM": 0,
+        "toM": 300,
+        "cls": "normal",
+        "closed": false
+      },
+      {
+        "fromM": 300,
+        "toM": 700,
+        "cls": "heavy",
+        "closed": false
+      },
+      {
+        "fromM": 700,
+        "toM": 1000,
+        "cls": "stopped",
+        "closed": true
+      },
+      {
+        "fromM": 1000,
+        "toM": 1550,
+        "cls": "normal",
+        "closed": false
+      }
+    ]
   }
 }
-

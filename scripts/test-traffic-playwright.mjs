@@ -226,7 +226,8 @@ server.listen(0, '127.0.0.1', async () => {
             await pageTrafficFirst.click('#trafficToggleBtn');
             await pageTrafficFirst.waitForFunction(() => window.map && window.map.getLayer('calzada-traffic-layer'), { timeout: 10000 });
             await pageTrafficFirst.goto(routeUrl, { waitUntil: 'domcontentloaded' });
-            await pageTrafficFirst.waitForFunction(() => window.map && window.map.getLayer('transit-route-layer'), { timeout: 15000 });
+            // The heatmap is added after the route data loads (async), so wait for both
+            await pageTrafficFirst.waitForFunction(() => window.map && window.map.getLayer('transit-route-layer') && window.map.getLayer('calzada-traffic-layer'), { timeout: 15000 });
             await verifyLayerOrder(pageTrafficFirst, `${vp.name} [Scenario 2: Traffic ON before Plan]`);
 
             // 7. Layer Order Verification: After style reload
