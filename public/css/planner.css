@@ -8834,15 +8834,17 @@ body.cz-route-busy .segment-btn[data-mode] {
     z-index: 100;
 }
 
+/* Below the top bar (which wraps to two rows on phones and tablets), lined up with its right edge.
+   planner.js measures the bar and sets --cz-traffic-top / --cz-traffic-right; these are fallbacks. */
 .maplibregl-ctrl-top-right .calzada-traffic-ctrl {
-    margin-top: 72px !important;
-    margin-right: 16px !important;
+    margin-top: var(--cz-traffic-top, 72px) !important;
+    margin-right: var(--cz-traffic-right, 16px) !important;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
     .maplibregl-ctrl-top-right .calzada-traffic-ctrl {
-        margin-top: 96px !important;
-        margin-right: 12px !important;
+        margin-top: var(--cz-traffic-top, 128px) !important;
+        margin-right: var(--cz-traffic-right, 12px) !important;
     }
 }
 
@@ -8989,6 +8991,9 @@ body.navigation-active .calzada-traffic-ctrl {
 }
 .czt-ride-note--closed {
     color: #B42318;
+}
+.czt-ride-note--clear {
+    color: #475569;
 }
 .timeline-jeep-content .czt-ride {
     margin-top: 8px;

@@ -56,6 +56,7 @@
             rideUpdated: (n) => (n < 1 ? 'Updated just now' : `Updated ${n} min ago`),
             heavyOn: (m) => `Heavy on about ${m} m of the ride`,
             roadClosed: 'Road closed on this route',
+            rideClear: 'Clear road right now',
             rideAria: 'Traffic along the ride',
             cls: { normal: 'normal', slow: 'slow', heavy: 'heavy', stopped: 'nearly stopped' }
         },
@@ -98,6 +99,7 @@
             rideUpdated: (n) => (n < 1 ? 'Na-update ngayon lang' : `Na-update ${n} min ang nakalipas`),
             heavyOn: (m) => `Masikip sa ~${m} m ng biyahe`,
             roadClosed: 'Sarado ang daan sa ruta',
+            rideClear: 'Maluwag ang daan ngayon',
             rideAria: 'Trapiko sa biyahe',
             cls: { normal: 'maluwag', slow: 'mabagal', heavy: 'masikip', stopped: 'halos hindi gumagalaw' }
         }
@@ -165,6 +167,8 @@
         }
         if (strip.closed) box.appendChild(el('span', 'czt-ride-note czt-ride-note--closed', t.roadClosed));
         else if (strip.jamM >= 200) box.appendChild(el('span', 'czt-ride-note', t.heavyOn(roundM(strip.jamM))));
+        // All of the ride flows normally: say so, since the line itself just stays blue
+        else if (strip.segments.length && strip.segments.every((s) => s.cls === 'normal')) box.appendChild(el('span', 'czt-ride-note czt-ride-note--clear', t.rideClear));
         return box;
     }
 

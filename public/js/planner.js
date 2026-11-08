@@ -4968,8 +4968,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const last = legs[legs.length - 1];
                 const xWalk = rest[0] && rest[0].type === 'walk' ? rest[0] : null;
                 const j2End = j2.coords[j2.coords.length - 1];
-                const finalWalkM = last.type === 'walk' ? last.distM : 0;
-                const finalWalkMin = finalWalkM > 0 ? last.min : 0;
+                let finalWalkM = last.type === 'walk' ? last.distM : 0;
+                let finalWalkMin = finalWalkM > 0 ? last.min : 0;
+                // The walk after the next jeep, drawn like the first jeep's last walk (drawRoutes)
+                let finalWalk = null;
+                if (getHaversineDist(j2End[0], j2End[1], dPt[0], dPt[1]) * 1000 > 25) {
+                    const r = await footOrLine(j2End, dPt);
+                    if (token !== transitApplyToken) return;
+                    finalWalk = { coordinates: r.coordinates, distance: r.distance, duration: r.duration, steps: r.steps || [] };
+                    if (!r.approximate && Number.isFinite(r.distance) && r.distance > 0) {
+                        finalWalkM = Math.round(r.distance);
+                        finalWalkMin = Math.max(1, Math.round(r.duration / 60));
+                    }
+                }
                 const waitMin = (window.CalzadaTransit && window.CalzadaTransit.constants.TRANSFER_EXTRA_MIN) || 2;
                 pendingTransfer = {
                     hubName: alightName,
@@ -4992,6 +5003,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     finalWalkM,
                     finalWalkMin,
+                    finalWalk,
                     waitMin,
                     extraMin: waitMin + j2.min + finalWalkMin
                 };
@@ -6404,14 +6416,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? finalWalkCoords.map(c => [c[1], c[0]])
                 : [];
 
-            let walkRouteData = walkLngLat;
-            if (finalWalkLngLat.length >= 2) {
-                if (walkLngLat.length >= 2) {
-                    walkRouteData = [walkLngLat, finalWalkLngLat];
-                } else {
-                    walkRouteData = finalWalkLngLat;
-                }
-            }
+            // With a transfer: the walk after the next jeep to the destination
+            const xferWalk = (!isWalkOnly && pendingTransfer && pendingTransfer.finalWalk
+                && Array.isArray(pendingTransfer.finalWalk.coordinates) && pendingTransfer.finalWalk.coordinates.length >= 2)
+                ? pendingTransfer.finalWalk : null;
+            const xferWalkLngLat = xferWalk ? xferWalk.coordinates.map(c => [c[1], c[0]]) : [];
+
+            const walkLines = [walkLngLat, finalWalkLngLat, xferWalkLngLat].filter(l => l.length >= 2);
+            const walkRouteData = walkLines.length > 1 ? walkLines : (walkLines[0] || walkLngLat);
 
             updateRouteSource('walk-route', walkRouteData);
             updateRouteSource('transit-route', isWalkOnly ? [] : transitLngLat);
@@ -6419,7 +6431,8 @@ document.addEventListener('DOMContentLoaded', () => {
             applyRouteLineColors();
             drawCrossingMarkers([
                 walkRouteGeojson && walkRouteGeojson.steps,
-                isWalkOnly ? null : (transitRouteGeojson?.finalWalk?.steps || window.finalWalkRouteGeojson?.steps)
+                isWalkOnly ? null : (transitRouteGeojson?.finalWalk?.steps || window.finalWalkRouteGeojson?.steps),
+                xferWalk ? xferWalk.steps : null
             ]);
 
             if (!isWalkOnly && transitCoords && transitCoords.length > 1) {
@@ -6464,11 +6477,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const pathEndPt = (finalWalkCoords && finalWalkCoords.length > 0)
+            let pathEndPt = (finalWalkCoords && finalWalkCoords.length > 0)
                 ? finalWalkCoords[finalWalkCoords.length - 1]
                 : ((transitCoords && transitCoords.length > 0) ? transitCoords[transitCoords.length - 1] : (safeWalkCoords && safeWalkCoords.length > 0 ? safeWalkCoords[safeWalkCoords.length - 1] : null));
-            // With a transfer the drawn part ends at the next jeep's stop, not near the destination
-            if (selectedCoords.destination && pathEndPt && !pendingTransfer) {
+            // With a transfer the drawn trip ends after the next jeep: at its walk's end, or where it drops off
+            if (pendingTransfer && !isWalkOnly) {
+                const j2c = pendingTransfer.jeep && pendingTransfer.jeep.coords;
+                pathEndPt = xferWalk ? xferWalk.coordinates[xferWalk.coordinates.length - 1]
+                    : (Array.isArray(j2c) && j2c.length ? j2c[j2c.length - 1] : null);
+            }
+            if (selectedCoords.destination && pathEndPt) {
                 const endDistM = getHaversineDist(pathEndPt[0], pathEndPt[1], selectedCoords.destination[0], selectedCoords.destination[1]) * 1000;
                 if (endDistM > 10) {
                     connectorFeatures.push({
@@ -6492,6 +6510,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectedCoords.destination) bounds.extend(toLngLat(selectedCoords.destination));
             walkLngLat.forEach(pt => bounds.extend(pt));
             if (finalWalkLngLat.length) finalWalkLngLat.forEach(pt => bounds.extend(pt));
+            xferWalkLngLat.forEach(pt => bounds.extend(pt));
             transitLngLat.forEach(pt => bounds.extend(pt));
             if (!bounds.isEmpty()) {
                 fitRoutePreviewBounds(300);
@@ -9870,6 +9889,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
 
                     container.append(trafficBtn, legendCard);
+
+                    // Sit 8px below the top bar (two rows on phones and tablets) and line up with its
+                    // right edge; the bar is fixed above the map, so a set margin hid the chip under it.
+                    const placeBelowTopBar = () => {
+                        const bar = document.getElementById('mapTopBar');
+                        const mc = mapInstance && mapInstance.getContainer();
+                        if (!bar || !mc) return;
+                        const b = bar.getBoundingClientRect();
+                        const m = mc.getBoundingClientRect();
+                        if (!(b.height > 0)) {
+                            container.style.removeProperty('--cz-traffic-top');
+                            container.style.removeProperty('--cz-traffic-right');
+                            return;
+                        }
+                        container.style.setProperty('--cz-traffic-top', `${Math.max(8, Math.round(b.bottom - m.top + 8))}px`);
+                        container.style.setProperty('--cz-traffic-right', `${Math.max(8, Math.round(m.right - b.right))}px`);
+                    };
+                    requestAnimationFrame(placeBelowTopBar);
+                    window.addEventListener('resize', placeBelowTopBar);
+                    if (typeof ResizeObserver !== 'undefined') {
+                        const bar = document.getElementById('mapTopBar');
+                        if (bar) new ResizeObserver(placeBelowTopBar).observe(bar);
+                    }
+                    if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeBelowTopBar).catch(() => {});
 
                     if (isTrafficLayerActive()) {
                         setTomTomAttribution(true);

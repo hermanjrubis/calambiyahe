@@ -158,7 +158,65 @@ try {
         assert(!!closed.note, `${vp.name}: strip says the road is closed ("${closed.note}")`);
         await page3.close();
 
+        // All clear: the line stays blue, so the strip says the road is clear
+        const page4 = await preparePage(context);
+        await page4.route('**/api/traffic/leg-colors**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({
+            live: true, routeId: 'calamba-tanauan', fromM: 0, toM: 2150, dir: 1, matchedPct: 98, updated: new Date().toISOString(),
+            stretches: [{ fromM: 0, toM: 625, cls: 'unknown', closed: false }, { fromM: 625, toM: 2150, cls: 'normal', closed: false }]
+        }) }));
+        await page4.goto(routeUrl, { waitUntil: 'domcontentloaded' });
+        await page4.waitForFunction(() => window.map && window.map.getLayer('transit-route-layer'), { timeout: 20000 });
+        await page4.waitForFunction(() => document.querySelector('.czt-ride'), { timeout: 15000 }).catch(() => {});
+        const clearNote = await page4.evaluate(() => { const n = document.querySelector('.czt-ride-note--clear'); return n ? n.textContent : null; });
+        assert(!!clearNote, `${vp.name}: all-clear ride says so ("${clearNote}")`);
+        await page4.close();
+
         await context.close();
+    }
+
+    // Transfer trip (Lawa -> Real, two jeeps): the walk after the second jeep reaches the destination,
+    // also after picking another terminal. Traffic button sits below the top bar, not under it.
+    console.log('\n=== Transfer: last walk, Traffic button ===');
+    const DEST = [14.1905, 121.1450];
+    const xferUrl = `${base}?origLat=14.2190&origLng=121.1330&originName=Lawa&destLat=${DEST[0]}&destLng=${DEST[1]}&destName=Real`;
+    const lastWalkEnd = (page) => page.evaluate(() => {
+        const s = window.map.getSource('walk-route');
+        const d = s && s._data;
+        const g = d && (d.geometry || (d.features && d.features[0] && d.features[0].geometry));
+        if (!g) return null;
+        const lines = g.type === 'MultiLineString' ? g.coordinates : [g.coordinates];
+        const last = lines[lines.length - 1];
+        // The walk graph ends at the nearest footpath; the dashed connector covers the rest to the pin
+        const c = window.map.getSource('route-connector');
+        const feats = (c && c._data && c._data.features) || [];
+        const dc = feats.find((f) => f.properties && f.properties.role === 'dest-connector');
+        return { lines: lines.length, end: last[last.length - 1], conn: dc ? dc.geometry.coordinates : null };
+    });
+    const reachesDest = (w) => !!w && (distM(w.end, DEST) < 30
+        || (!!w.conn && distM(w.conn[0], [w.end[1], w.end[0]]) < 1 && distM(w.conn[1], DEST) < 1));
+    const distM = (a, b) => Math.hypot((a[0] - b[1]) * 107900, (a[1] - b[0]) * 110600);
+    for (const vp of [{ name: 'Phone 390x844', width: 390, height: 844 }, { name: 'Tablet 768x1024', width: 768, height: 1024 }]) {
+        const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+        const pg = await preparePage(ctx);
+        await pg.goto(xferUrl, { waitUntil: 'domcontentloaded' });
+        await pg.waitForFunction(() => window.map && window.map.getSource('next-transit-route') && document.querySelector('.czt-term'), { timeout: 20000 });
+        await pg.waitForTimeout(4000);
+        let w = await lastWalkEnd(pg);
+        assert(w && w.lines >= 2 && reachesDest(w), `${vp.name}: last walk after the second jeep drawn to the destination (${w ? `${w.lines} lines, walk ends ${Math.round(distM(w.end, DEST))} m away${w.conn ? ', connector to the pin' : ''}` : 'none'})`);
+        await pg.locator('.czt-term').nth(2).click();
+        await pg.waitForTimeout(3500);
+        w = await lastWalkEnd(pg);
+        assert(reachesDest(w), `${vp.name}: last walk still drawn after picking another terminal (${w ? `${w.lines} lines, ${Math.round(distM(w.end, DEST))} m${w.conn ? ' + connector' : ''}` : 'none'})`);
+        const pos = await pg.evaluate(() => {
+            const b = document.getElementById('mapTopBar').getBoundingClientRect();
+            const c = document.getElementById('trafficToggleBtn').getBoundingClientRect();
+            const hit = document.elementFromPoint(c.left + c.width / 2, c.top + c.height / 2);
+            return { barBottom: b.bottom, barRight: b.right, top: c.top, right: c.right, onTop: !!hit && !!hit.closest('#trafficToggleBtn') };
+        });
+        assert(pos.top >= pos.barBottom && pos.onTop, `${vp.name}: Traffic button below the top bar and tappable (top ${Math.round(pos.top)}, bar ${Math.round(pos.barBottom)})`);
+        assert(Math.abs(pos.right - pos.barRight) <= 1, `${vp.name}: Traffic button lined up with the top bar's right edge`);
+        await pg.screenshot({ path: path.join(scratch, `traffic-line-transfer-${vp.width}.png`) });
+        await ctx.close();
     }
 
     // Crossing markers: a walk over the Crossing footbridge (walk graph), drawn through the planner
