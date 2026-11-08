@@ -52,6 +52,20 @@ try {
 }
 
 const { getFareData } = require('./fare-info');
+const routieDataset = require('./routie-dataset');
+
+function haversineDistM(a, b) {
+    if (transitEngine && typeof transitEngine.haversineM === 'function') {
+        return transitEngine.haversineM(a, b);
+    }
+    if (!a || !b) return Infinity;
+    const R = 6371000;
+    const toRad = deg => (deg * Math.PI) / 180;
+    const dLat = toRad(b[0] - a[0]);
+    const dLng = toRad(b[1] - a[1]);
+    const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a[0])) * Math.cos(toRad(b[0])) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(s)));
+}
 
 // ── Known Terminals in Calamba ──────────────────────────────────────────
 const KNOWN_TERMINALS = [
@@ -220,6 +234,23 @@ function resolvePlace(rawQuery, places = []) {
                     question_en: amb.question_en
                 };
             }
+        }
+    }
+
+    // 1b. Place aliases (server/data/place-aliases.json): the whole query is a known alias
+    const aliasHit = routieDataset.aliasFor(cleanQ);
+    if (aliasHit && aliasHit.ambiguous) {
+        const choices = aliasHit.ambiguous.map(slug => places.find(p => p.slug === slug)).filter(Boolean).map(p => `${p.name} (Brgy. ${p.barangay})`);
+        return {
+            isAmbiguous: true, term: aliasHit.alias, choices,
+            question_tl: `Alin po ang tinutukoy ninyo: ${choices.join(', o ')}?`,
+            question_en: `Which one do you mean: ${choices.join(', or ')}?`
+        };
+    }
+    if (aliasHit && aliasHit.slug && !['sm-city-calamba'].includes(aliasHit.slug)) {
+        const p = places.find(x => x.slug === aliasHit.slug);
+        if (p && p.lat != null && p.lng != null) {
+            return { name: p.name, coords: [Number(p.lat), Number(p.lng)], barangay: p.barangay, place: p, outsideCalamba: false };
         }
     }
 
@@ -425,7 +456,7 @@ function plan_route(originInput, destInput, options = {}) {
             missingName: missing,
             originUnderstood: validOrigName,
             destUnderstood: validDestName,
-            plannerUrl: `https://calzadaph.com/planner?origin=${encodeURIComponent(validOrigName)}&dest=${encodeURIComponent(validDestName)}`
+            plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(validOrigName)}&dest=${encodeURIComponent(validDestName)}`
         };
     }
 
@@ -602,12 +633,48 @@ function plan_route(originInput, destInput, options = {}) {
                 walkMin: c.walkMin
             }));
         }
+    }
 
-        if (!planOption) {
-            const directOpts = transitPlanner.plan(originResolved.coords, destResolved.coords);
-            if (directOpts && directOpts.length > 0) {
-                planOption = directOpts[0];
-            }
+    // Short trips: under 800m straight-line distance without terminal choices -> walk only, no jeep
+    if (!suggestedTerminals && originResolved.coords && destResolved.coords) {
+        const straightDistM = haversineDistM(originResolved.coords, destResolved.coords);
+        if (straightDistM < 800) {
+            const walkDistM = Math.round(straightDistM * 1.25);
+            const walkMin = Math.max(1, Math.round((walkDistM / 1000 / 4.0) * 60));
+            return {
+                success: true,
+                isWalkOnly: true,
+                origin: originResolved,
+                destination: destResolved,
+                summary: {
+                    totalFare: 0,
+                    totalFareDiscounted: 0,
+                    totalMinutes: walkMin,
+                    totalDistanceM: walkDistM,
+                    walkingDistanceM: walkDistM,
+                    transfers: 0
+                },
+                legs: [
+                    {
+                        step: 1,
+                        type: 'walk',
+                        title: `Lakad (${walkDistM} m, ~${walkMin} min)`,
+                        instruction_tl: `Maglakad nang humigit-kumulang ${walkDistM} m (~${walkMin} min).`,
+                        instruction_en: `Walk about ${walkDistM} m (~${walkMin} min).`,
+                        distanceM: walkDistM,
+                        minutes: walkMin,
+                        fare: 0
+                    }
+                ],
+                plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`
+            };
+        }
+    }
+
+    if (transitPlanner && !planOption) {
+        const directOpts = transitPlanner.plan(originResolved.coords, destResolved.coords);
+        if (directOpts && directOpts.length > 0) {
+            planOption = directOpts[0];
         }
     }
 
@@ -617,7 +684,7 @@ function plan_route(originInput, destInput, options = {}) {
             reason: 'no_route',
             originUnderstood: originResolved.name,
             destUnderstood: destResolved.name,
-            plannerUrl: `https://calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`
+            plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`
         };
     }
 
@@ -645,14 +712,15 @@ function plan_route(originInput, destInput, options = {}) {
             const alightName = leg.alight?.name || destResolved.name;
             const distM = Math.round(leg.distM || 0);
             const headsign = leg.headsign || '';
-            const signboard = leg.signboard || headsign || leg.routeName;
+            // Only a recorded signboard (transit-routes.json); never the headsign or route name in its place
+            const signboard = leg.signboard || null;
 
             formattedLegs.push({
                 step: stepNum++,
                 type: 'jeep',
                 title: `Jeep: ${leg.routeName}`,
-                instruction_tl: `Sumakay sa ${boardName} ng jeep na may karatulang "${signboard}" papuntang ${alightName}.`,
-                instruction_en: `Board at ${boardName} on the "${signboard}" jeep towards ${alightName}.`,
+                instruction_tl: signboard ? `Sumakay sa ${boardName} ng jeep na may karatulang "${signboard}" papuntang ${alightName}.` : `Sumakay sa ${boardName} ng jeep na ${leg.routeName} papuntang ${alightName}.`,
+                instruction_en: signboard ? `Board at ${boardName} on the "${signboard}" jeep towards ${alightName}.` : `Board at ${boardName} on the ${leg.routeName} jeep towards ${alightName}.`,
                 routeName: leg.routeName,
                 headsign,
                 signboard,
@@ -706,9 +774,18 @@ function formatRouteReply(planRes, lang = 'tl') {
             const dest = planRes.destUnderstood;
             const url = planRes.plannerUrl;
             return isTl
-                ? `Wala sa curated jeepney routes ng Calzada ang direktang ruta mula ${orig} papuntang ${dest}. Maaaring kailangan mag-tricycle o maglakad. Paki-check po ang Planner sa ${url} para sa detalyadong mapa.`
-                : `No direct jeepney route between ${orig} and ${dest} was found in Calzada's curated routes. You may need a tricycle or walking. Please check the Planner at ${url} for the map.`;
+                ? `Wala sa curated jeepney routes ng Calzada ang direktang ruta mula ${orig} papuntang ${dest}. Maaaring lakad ito o biyaheng may transfer. Paki-check po ang Planner sa ${url} para sa detalyadong mapa.`
+                : `No direct jeepney route between ${orig} and ${dest} was found in Calzada's curated routes. It may be a walk, or a trip with a transfer. Please check the Planner at ${url} for the map.`;
         }
+    }
+
+    if (planRes.isWalkOnly) {
+        const leg = (planRes.legs && planRes.legs[0]) || {};
+        const dist = leg.distanceM != null ? leg.distanceM : Math.round(planRes.summary?.walkingDistanceM || 0);
+        const mins = leg.minutes != null ? leg.minutes : Math.round(planRes.summary?.totalMinutes || 1);
+        return isTl
+            ? `Maglakad nang humigit-kumulang ${dist} m (~${mins} min). Mas mainam maglakad para sa biyaheng ito.`
+            : `Walk about ${dist} m (~${mins} min). Walking is better for this trip.`;
     }
 
     const { summary, legs, origin, destination, outsideNote_tl, outsideNote_en } = planRes;
@@ -725,8 +802,8 @@ function formatRouteReply(planRes, lang = 'tl') {
         }
         if (l.type === 'jeep') {
             return isTl
-                ? `${l.step}. Sumakay sa ${l.board} ng jeep na ${l.routeName} (signboard: "${l.signboard}"), at bumaba sa ${l.alight}. Pamasahe: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), mga ${l.minutes} minuto.`
-                : `${l.step}. Board at ${l.board} on the ${l.routeName} jeep (signboard: "${l.signboard}"), and alight at ${l.alight}. Fare: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), ~${l.minutes} minutes.`;
+                ? `${l.step}. Sumakay sa ${l.board} ng jeep na ${l.routeName}${l.signboard ? ` (signboard: "${l.signboard}")` : ''}, at bumaba sa ${l.alight}. Pamasahe: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), mga ${l.minutes} minuto.`
+                : `${l.step}. Board at ${l.board} on the ${l.routeName} jeep${l.signboard ? ` (signboard: "${l.signboard}")` : ''}, and alight at ${l.alight}. Fare: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), ~${l.minutes} minutes.`;
         }
         if (l.type === 'tricycle') {
             return isTl
@@ -807,6 +884,16 @@ function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl') {
         const origName = lastTrip.origin.name || 'Origin';
         const destName = lastTrip.destination.name || 'Destination';
 
+        // A walk-only trip has no fare, so there is no discount to compute
+        if (lastTrip.isWalkOnly) {
+            return {
+                type: 'student_discount',
+                reply: isTl
+                    ? `Lakad lang ang biyaheng ${origName} papuntang ${destName}, kaya walang pamasahe. Ang 20% discount ng student, senior citizen, at PWD ay para sa pamasahe sa jeep.`
+                    : `The trip from ${origName} to ${destName} is a walk, so there is no fare. The 20% student, senior citizen, and PWD discount applies to jeepney fares.`
+            };
+        }
+
         const reply = isTl
             ? `Kung student, senior citizen, o PWD ka po, may 20% discount base sa LTFRB fare guide:
 Ang pamasahe para sa biyaheng ${origName} papuntang ${destName} ay magiging ₱${discFare.toFixed(2)} (mula sa ₱${regFare.toFixed(2)} regular fare sa jeep). Tantiya po ito base sa opisyal na fare guide.`
@@ -825,11 +912,10 @@ The jeepney fare from ${origName} to ${destName} will be ₱${discFare.toFixed(2
         const origName = lastTrip.origin.name;
         const destName = lastTrip.destination.name;
 
+        // Calzada has no tricycle fares (jeepney and walking only): never quote a number here.
         const reply = isTl
-            ? `Kung mag-tricycle po mula ${origName} papuntang ${destName}:
-Karaniwang mas mahal ang tricycle kaysa sa jeep (humigit-kumulang ₱50 hanggang ₱80+ para sa special trip depende sa layo at TODA terminal), ngunit mas mabilis at ihahatid ka nang direkta sa destinasyon nang walang transfer. Paalala: Ang pamasahe sa tricycle ay lokal na tantiya at hindi sakop ng LTFRB jeepney tariff.`
-            : `If you take a tricycle from ${origName} to ${destName}:
-Tricycles are typically more expensive than jeepneys (around ₱50 to ₱80+ for a special trip depending on distance and the local TODA terminal), but they provide direct point-to-point travel without transfers. Note that tricycle fares are local estimates and not regulated by the LTFRB jeepney tariff.`;
+            ? `Jeep at paglalakad lang ang sakop ng Calzada, kaya wala akong pamasahe ng tricycle mula ${origName} papuntang ${destName}. Maaaring iba-iba ang pamasahe sa tricycle depende sa ruta, kaya magtanong muna sa drayber bago sumakay.`
+            : `Calzada covers jeepney rides and walking only, so I don't have a tricycle fare from ${origName} to ${destName}. Tricycle fares can differ per route, so please ask the driver before you ride.`;
 
         return {
             type: 'tricycle_inquiry',

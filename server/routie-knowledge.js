@@ -12,6 +12,7 @@ const fs = require('fs');
 
 const { getFareData, fareFactsSection, MODERN_JEEPNEY_MINIMUM } = require('./fare-info');
 const routiePlanner = require('./routie-planner');
+const routieDataset = require('./routie-dataset');
 let fareCalc = null;
 try {
     fareCalc = require('../public/js/fare-calc.js');
@@ -283,6 +284,8 @@ function detectTagalog(text) {
         ' galing ', ' mula ', ' papunta ', ' papuntang ', ' byahe ', ' biyahe ',
         ' pamasahe ', ' pasahe ', ' sakay ', ' sakayan ', ' babaan ', ' oras ',
         ' bukas ', ' libre ', ' kainan ', ' tindahan ', ' kamusta ', ' kumusta ',
+        ' sino ', ' anong ', ' alin ', ' ilan ', ' gaano ', ' pwede ', ' puwede ', ' kailangan ', ' wala ', ' walang ',
+        ' nakalimutan ', ' burahin ', ' palitan ', ' magbayad ', ' marunong ', ' lang ', ' naman ', ' ngayon ',
         ' salamat ', ' sige ', ' ako ', ' ikaw ', ' kami ', ' dito ', ' doon '
     ];
     let score = 0;
@@ -341,7 +344,8 @@ function checkAmbiguity(text) {
     const norm = normalize(t);
 
     // Bare keywords like just "SM", "Letran", "CityMall", "Crossing", "Puregold"
-    const bareKeywords = ['sm', 'sm calamba', 'sm city calamba', 'letran', 'citymall', 'crossing', 'puregold', 'jollibee'];
+    const bareKeywords = ['sm', 'sm calamba', 'sm city calamba', 'letran', 'citymall', 'crossing', 'puregold', 'jollibee',
+        'real', 'halang', 'uno', 'brgy real', 'brgy halang', 'brgy uno', 'barangay real', 'barangay halang', 'barangay uno'];
     if (bareKeywords.includes(norm)) {
         return {
             isAmbiguous: true,
@@ -354,7 +358,8 @@ function checkAmbiguity(text) {
     // e.g. "paano pumunta sa SM Calamba?", "directions to Letran", "papunta sa CityMall"
     const destOnlyPatterns = [
         /^(?:paano\s+(?:ba\s+)?pumunta\s+(?:sa\s+)?|how\s+(?:do\s+i\s+)?get\s+to\s+|directions?\s+to\s+|papunta(?:ng)?\s+(?:sa\s+)?)(.+)$/i,
-        /^(?:sakayan\s+papunta(?:ng)?\s+(?:sa\s+)?|anong\s+jeep\s+papunta(?:ng)?\s+(?:sa\s+)?)(.+)$/i
+        /^(?:sakayan\s+papunta(?:ng)?\s+(?:sa\s+)?|anong\s+jeep\s+papunta(?:ng)?\s+(?:sa\s+)?)(.+)$/i,
+        /^(?:(?:the\s+)?(?:cheapest|fastest|best|quickest)\s+way\s+to\s+|pinakamura(?:ng)?\s+(?:paraan\s+)?papunta(?:ng)?\s+(?:sa\s+)?)(.+)$/i
     ];
 
     for (const pat of destOnlyPatterns) {
@@ -384,42 +389,28 @@ function findPlaceByName(query, places) {
     const qNorm = normalize(query);
     if (!qNorm) return null;
 
-    // Special aliases
-    if (qNorm === 'sm' || qNorm === 'sm calamba' || qNorm === 'sm city') {
-        const sm = places.find(p => p.name === 'SM City Calamba' || p.slug === 'sm-city-calamba');
-        if (sm) return sm;
+    // Aliases (server/data/place-aliases.json): the longest alias found as a whole phrase.
+    // Ambiguous names (e.g. "jollibee") return null here; resolveRoutieContext asks which one.
+    const hit = routieDataset.findAlias(query);
+    if (hit && hit.slug) {
+        const p = places.find(x => x.slug === hit.slug);
+        if (p) return p;
     }
-    if (qNorm === 'citymall') {
-        const cm = places.find(p => p.slug === 'citymall-calamba' || p.name.toLowerCase().includes('citymall'));
-        if (cm) return cm;
-    }
-    if (qNorm.includes('letran')) {
-        const let_ = places.find(p => p.name.toLowerCase().includes('letran'));
-        if (let_) return let_;
-    }
-    if (qNorm.includes('cmc') || qNorm.includes('calamba medical center')) {
-        const cmc = places.find(p => p.name.toLowerCase().includes('calamba medical center'));
-        if (cmc) return cmc;
-    }
-    if (qNorm.includes('city hall')) {
-        const ch = places.find(p => p.name.toLowerCase().includes('city hall'));
-        if (ch) return ch;
-    }
-    if (qNorm.includes('sti')) {
-        const sti = places.find(p => p.name.toLowerCase().includes('sti college'));
-        if (sti) return sti;
-    }
+    if (hit && hit.ambiguous) return null;
 
     // Exact match on name or slug
     let found = places.find(p => normalize(p.name) === qNorm || (p.slug && normalize(p.slug) === qNorm));
     if (found) return found;
 
-    // Substring match
-    found = places.find(p => normalize(p.name).includes(qNorm) || (p.slug && normalize(p.slug).includes(qNorm)));
-    if (found) return found;
+    // Whole-word substring match, only for queries of 4+ characters ("ok" must not find "Andok's")
+    const pad = (x) => ` ${x} `;
+    if (qNorm.length >= 4) {
+        found = places.find(p => pad(normalize(p.name)).includes(pad(qNorm)));
+        if (found) return found;
+    }
 
-    // Reverse substring (if place name is inside query, e.g. "hours ng Tranquility Serviced Homes")
-    found = places.find(p => qNorm.includes(normalize(p.name)));
+    // Reverse: the full place name inside the query (e.g. "hours ng Tranquility Serviced Homes")
+    found = places.find(p => pad(qNorm).includes(pad(normalize(p.name))));
     return found || null;
 }
 
@@ -480,16 +471,8 @@ function extractOriginAndDestination(text) {
 
 // ── Match FAQs ────────────────────────────────────────────────────────────────────────
 function matchFaq(text) {
-    const norm = normalize(text);
-    for (const faq of FAQS) {
-        for (const trigger of faq.triggers) {
-            const trigNorm = normalize(trigger);
-            if (norm.includes(trigNorm) || trigNorm.includes(norm)) {
-                return faq;
-            }
-        }
-    }
-    return null;
+    // Whole-phrase triggers, longest match wins (server/routie-dataset.js)
+    return routieDataset.matchFaq(text, FAQS);
 }
 
 // ── Format Opening Hours nicely ───────────────────────────────────────────────────────
@@ -662,8 +645,36 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
         };
     }
 
+    // 3b. Short thanks / ok: answer before any place lookup ("ok" is not Andok's)
+    if (/^(?:ok(?:ay)?|sige|salamat(?:\s+po)?|thank\s*(?:you|s)|ty|got\s+it|ayos)(?:[\s,.!]+(?:po|salamat|thanks?|thank you|routie))*[\s.!]*$/i.test(rawText.trim())) {
+        return {
+            type: 'acknowledgement',
+            lang: userLang,
+            instruction: userLang === 'tl'
+                ? 'Sumagot ng maikli at masiglang pasasalamat o "Walang anuman! Ingat sa biyahe!" nang isa o dalawang pangungusap lamang.'
+                : 'Reply with a short, warm "You\'re welcome! Safe travels!" in just one sentence.'
+        };
+    }
+
     // 4. Origin & Destination Route Planning (Priority over general fare inquiries)
-    const od = routiePlanner.extractOriginAndDestination(rawText) || extractOriginAndDestination(rawText);
+    const odCandidates = [routiePlanner.extractOriginAndDestination(rawText), extractOriginAndDestination(rawText)]
+        .filter(x => x && x.origin && x.dest)
+        .map(x => ({ origin: x.origin.replace(/^(?:the\s+)?(?:distance|layo|fare|pamasahe|pasahe|travel\s+time|oras)\s+(?:from|mula|galing)?\s*/i, '').trim(), dest: x.dest }));
+    const GENERIC = /^(?:the\s+|ang\s+)?(?:terminal|terminals|sakayan|jeep|jeepney|jeeps|dyip|babaan|place|lugar|here|dito|there|doon)$/i;
+    const known = (q) => {
+        if (GENERIC.test(String(q).trim())) return false;
+        const r = routiePlanner.resolvePlace(q, places);
+        return r && (r.isAmbiguous || r.found !== false);
+    };
+    // 1) Both ends known (place, alias, terminal, area): plan it.
+    // 2) Else, if a FAQ matches ("terminal papuntang halang", "anong signboard ng jeep papuntang SM"), the FAQ answers.
+    // 3) Else, a parse with one known end and no generic word ("SM to Tokyo Grill") gets the "not in our data" reply.
+    const notGeneric = (x) => !GENERIC.test(String(x.origin).trim()) && !GENERIC.test(String(x.dest).trim());
+    let od = odCandidates.find(x => notGeneric(x) && known(x.origin) && known(x.dest)) || null;
+    const hasKmFare = /\b(magkano|how much|pamasahe|pasahe|fare|fares|bayad|price|cost)\b/i.test(rawText)
+        && /(\d+(?:[.,]\d+)?)\s*(?:km|kms|kilometers?|kilometres?|kilometro)\b/i.test(rawText);
+    const earlyFaq = od || hasKmFare ? null : matchFaq(rawText);
+    if (!od && !earlyFaq) od = odCandidates.find(x => notGeneric(x) && (known(x.origin) || known(x.dest))) || null;
     if (od && od.origin && od.dest) {
         const asksDiscount = /\b(student|estudyante|senior|pwd|discount|diskwento)\b/i.test(rawText);
         const planRes = routiePlanner.plan_route(od.origin, od.dest, {
@@ -698,8 +709,8 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
         }
     }
 
-    // 5. FAQ Match
-    const faqMatch = matchFaq(rawText);
+    // 5. FAQ Match (skipped for "magkano ang 5 km": the fare step computes it)
+    const faqMatch = earlyFaq || (hasKmFare ? null : matchFaq(rawText));
     if (faqMatch) {
         const answer = userLang === 'tl' ? faqMatch.tl : faqMatch.en;
         return {
@@ -762,6 +773,16 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
     }
 
     // 7. Specific Place Details (Hours, Address, Location, Contact)
+    const aliasHit = routieDataset.findAlias(rawText);
+    if (aliasHit && aliasHit.ambiguous) {
+        const choices = aliasHit.ambiguous.map(slug => places.find(p => p.slug === slug)).filter(Boolean)
+            .map(p => `${p.name} (Brgy. ${p.barangay})`);
+        const isTl = userLang === 'tl';
+        const reply = isTl
+            ? `Alin po ang tinutukoy ninyo: ${choices.join(', o ')}?`
+            : `Which one do you mean: ${choices.join(', or ')}?`;
+        return { type: 'ambiguous', lang: userLang, data: { subType: 'alias', alias: aliasHit.alias, choices }, directReply: reply, instruction: reply };
+    }
     const matchedPlace = findPlaceByName(rawText, places);
     if (matchedPlace) {
         const hoursFormatted = formatOpeningHours(matchedPlace.opening_hours || matchedPlace.openHours);

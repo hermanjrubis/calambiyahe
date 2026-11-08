@@ -1,0 +1,1697 @@
+{
+ "about": "Other names for the places in server/data/places.json, keyed by slug, used by Routie to find a place in a message. All text is normalized (lowercase, no accents, \"&\" -> \"and\", apostrophes removed, other punctuation -> space). \"aliases\" are safe to use: the official name, the name without its branch or \"Calamba\", well-known short forms. \"confirm\" are local nicknames Drei has not confirmed yet: they are NOT loaded until moved into \"aliases\". \"ambiguous\" maps a short name to every place it could mean: Routie asks which one. Rebuild after places.json changes and re-run scripts/test-routie.mjs (it checks every slug exists and no alias is listed twice).",
+ "generated": "2026-11-08",
+ "places": {
+  "citymall-calamba": {
+   "name": "CityMall Calamba",
+   "barangay": "Lecheria",
+   "aliases": [
+    "city mall calamba",
+    "citymall calamba",
+    "city mall",
+    "citymall"
+   ],
+   "confirm": [
+    "citymall lecheria"
+   ]
+  },
+  "puregold-halang": {
+   "name": "Puregold – Halang, Calamba",
+   "barangay": "Halang",
+   "aliases": [
+    "puregold halang calamba",
+    "puregold halang",
+    "puregold"
+   ],
+   "confirm": []
+  },
+  "sti-calamba": {
+   "name": "STI College - Calamba",
+   "barangay": "Uno",
+   "aliases": [
+    "sti college calamba",
+    "sti calamba",
+    "sti college",
+    "sti"
+   ],
+   "confirm": []
+  },
+  "saint-benilde": {
+   "name": "Saint Benilde International School (Calamba), Inc.",
+   "barangay": "Real",
+   "aliases": [
+    "saint benilde international school calamba inc",
+    "st benilde international school calamba inc",
+    "saint benilde international school inc",
+    "st benilde international school inc",
+    "saint benilde real",
+    "st benilde real"
+   ],
+   "confirm": [
+    "sbis",
+    "sbis real"
+   ]
+  },
+  "letran-calamba": {
+   "name": "Colegio de San Juan de Letran – Calamba",
+   "barangay": "Bucal",
+   "aliases": [
+    "colegio de san juan de letran calamba",
+    "colegio de san juan de letran",
+    "san juan de letran",
+    "letran calamba",
+    "letran"
+   ],
+   "confirm": [
+    "csjl"
+   ]
+  },
+  "halang-elementary": {
+   "name": "Halang Elementary School",
+   "barangay": "Halang",
+   "aliases": [
+    "halang elementary school",
+    "halang elementary",
+    "halang elem",
+    "halang es"
+   ],
+   "confirm": []
+  },
+  "sm-transport-term": {
+   "name": "SM City Calamba Transport Terminal",
+   "barangay": "Uno",
+   "aliases": [
+    "sm city calamba transport terminal",
+    "sm calamba transport terminal",
+    "sm city transport terminal",
+    "sm transport terminal",
+    "sm terminal"
+   ],
+   "confirm": []
+  },
+  "jollibee-real": {
+   "name": "Jollibee – Real, Calamba City",
+   "barangay": "Real",
+   "aliases": [
+    "jollibee real calamba city",
+    "jollibee real",
+    "jabee real"
+   ],
+   "confirm": []
+  },
+  "uncle-johns": {
+   "name": "Uncle John's",
+   "barangay": "Uno",
+   "aliases": [
+    "uncle johns"
+   ],
+   "confirm": []
+  },
+  "ding-hao": {
+   "name": "Ding Hao",
+   "barangay": "Uno",
+   "aliases": [
+    "ding hao"
+   ],
+   "confirm": []
+  },
+  "teng-tengs": {
+   "name": "Teng-Teng's",
+   "barangay": "Uno",
+   "aliases": [
+    "teng tengs"
+   ],
+   "confirm": []
+  },
+  "mariz-food-town": {
+   "name": "Mariz Food Town",
+   "barangay": "Uno",
+   "aliases": [
+    "mariz food town"
+   ],
+   "confirm": []
+  },
+  "ton-tons-sisig": {
+   "name": "Ton-Ton's Sisig",
+   "barangay": "Uno",
+   "aliases": [
+    "ton tons sisig",
+    "tonton sisig",
+    "ton tons"
+   ],
+   "confirm": []
+  },
+  "mang-inasal-halang": {
+   "name": "Mang Inasal – Halang, Calamba",
+   "barangay": "Halang",
+   "aliases": [
+    "mang inasal halang calamba",
+    "mang inasal halang"
+   ],
+   "confirm": []
+  },
+  "creekside-halang": {
+   "name": "Creekside Halang",
+   "barangay": "Halang",
+   "aliases": [
+    "creekside halang"
+   ],
+   "confirm": []
+  },
+  "dear-hotpot": {
+   "name": "Dear Hotpot – Unlimited Japanese Hotpot",
+   "barangay": "Halang",
+   "aliases": [
+    "dear hotpot unlimited japanese hotpot",
+    "dear hotpot"
+   ],
+   "confirm": []
+  },
+  "d-fresco": {
+   "name": "D' Fresco",
+   "barangay": "Halang",
+   "aliases": [
+    "d fresco"
+   ],
+   "confirm": []
+  },
+  "rsm-lutong-bahay": {
+   "name": "RSM Lutong Bahay – Real, Calamba",
+   "barangay": "Real",
+   "aliases": [
+    "rsm lutong bahay real calamba",
+    "rsm lutong bahay real",
+    "rsm lutong bahay"
+   ],
+   "confirm": []
+  },
+  "krav-cafe": {
+   "name": "Krav Cafe",
+   "barangay": "Halang",
+   "aliases": [
+    "krav cafe",
+    "krav"
+   ],
+   "confirm": []
+  },
+  "card-sme-bank": {
+   "name": "CARD SME Bank – Calamba Branch",
+   "barangay": "Uno",
+   "aliases": [
+    "card sme bank calamba branch",
+    "card sme bank branch",
+    "card sme bank",
+    "card sme"
+   ],
+   "confirm": []
+  },
+  "wilcon-depot": {
+   "name": "Wilcon Depot Calamba",
+   "barangay": "Halang",
+   "aliases": [
+    "wilcon depot calamba",
+    "wilcon depot",
+    "wilcon"
+   ],
+   "confirm": []
+  },
+  "barangay-uno-hall": {
+   "name": "Barangay Uno Hall, Calamba City",
+   "barangay": "Uno",
+   "aliases": [
+    "barangay uno hall calamba city",
+    "barangay uno hall",
+    "uno barangay hall",
+    "brgy uno hall"
+   ],
+   "confirm": []
+  },
+  "rj-auto-shop": {
+   "name": "RJ Auto Shop",
+   "barangay": "Uno",
+   "aliases": [
+    "rj auto shop"
+   ],
+   "confirm": []
+  },
+  "news-star": {
+   "name": "News Star",
+   "barangay": "Uno",
+   "aliases": [
+    "news star"
+   ],
+   "confirm": []
+  },
+  "d-and-q": {
+   "name": "D & A",
+   "barangay": "Uno",
+   "aliases": [
+    "d and a"
+   ],
+   "confirm": []
+  },
+  "morales-bercasio": {
+   "name": "Morales Bercasio",
+   "barangay": "Uno",
+   "aliases": [
+    "morales bercasio"
+   ],
+   "confirm": []
+  },
+  "7-eleven": {
+   "name": "7-Eleven",
+   "barangay": "Uno",
+   "aliases": [
+    "seven eleven",
+    "7 eleven",
+    "711"
+   ],
+   "confirm": []
+  },
+  "abjr-paint-center": {
+   "name": "ABJR Paint Center",
+   "barangay": "Uno",
+   "aliases": [
+    "abjr paint center"
+   ],
+   "confirm": []
+  },
+  "aqe-pharmacy": {
+   "name": "AQE Pharmacy",
+   "barangay": "Uno",
+   "aliases": [
+    "aqe pharmacy"
+   ],
+   "confirm": []
+  },
+  "aub": {
+   "name": "AUB",
+   "barangay": "Uno",
+   "aliases": [
+    "asia united bank",
+    "aub"
+   ],
+   "confirm": []
+  },
+  "bernice-beas-canteen": {
+   "name": "Bernice & Bea's Canteen",
+   "barangay": "Uno",
+   "aliases": [
+    "bernice and beas canteen"
+   ],
+   "confirm": []
+  },
+  "bigstop": {
+   "name": "Bigstop",
+   "barangay": "Uno",
+   "aliases": [],
+   "confirm": []
+  },
+  "bodega-sale-ni-aling-nena": {
+   "name": "Bodega Sale ni Aling Nena",
+   "barangay": "Uno",
+   "aliases": [
+    "bodega sale ni aling nena"
+   ],
+   "confirm": []
+  },
+  "calamba-executive-center": {
+   "name": "Calamba Executive Center",
+   "barangay": "Uno",
+   "aliases": [
+    "calamba executive center",
+    "calamba executive"
+   ],
+   "confirm": []
+  },
+  "card-indogrosir": {
+   "name": "CARD Indogrosir",
+   "barangay": "Uno",
+   "aliases": [
+    "card indogrosir"
+   ],
+   "confirm": []
+  },
+  "chinabank": {
+   "name": "Chinabank",
+   "barangay": "Uno",
+   "aliases": [
+    "chinabank crossing",
+    "chinabank"
+   ],
+   "confirm": []
+  },
+  "clarisse-kitchen": {
+   "name": "Clarisse Kitchen",
+   "barangay": "Uno",
+   "aliases": [
+    "clarisse kitchen"
+   ],
+   "confirm": []
+  },
+  "crossing-elementary-school": {
+   "name": "Crossing Elementary School",
+   "barangay": "Uno",
+   "aliases": [
+    "crossing elementary school",
+    "crossing elementary",
+    "crossing elem",
+    "crossing es"
+   ],
+   "confirm": []
+  },
+  "daikin-authorized-dealer": {
+   "name": "Daikin Authorized Dealer",
+   "barangay": "Uno",
+   "aliases": [
+    "daikin authorized dealer"
+   ],
+   "confirm": []
+  },
+  "dali-everyday-grocery": {
+   "name": "Dali Everyday Grocery",
+   "barangay": "Uno",
+   "aliases": [],
+   "confirm": []
+  },
+  "dulo-kitchen-grill": {
+   "name": "Dulo Kitchen + Grill",
+   "barangay": "Uno",
+   "aliases": [
+    "dulo kitchen and grill",
+    "dulo kitchen grill",
+    "dulo kitchen"
+   ],
+   "confirm": []
+  },
+  "dboxx": {
+   "name": "D'Boxx",
+   "barangay": "Uno",
+   "aliases": [
+    "dboxx"
+   ],
+   "confirm": []
+  },
+  "green-glass-hotel": {
+   "name": "Green Glass Hotel",
+   "barangay": "Uno",
+   "aliases": [
+    "green glass hotel",
+    "green glass"
+   ],
+   "confirm": []
+  },
+  "herrera-pharmacy": {
+   "name": "Herrera Pharmacy",
+   "barangay": "Uno",
+   "aliases": [
+    "herrera pharmacy"
+   ],
+   "confirm": []
+  },
+  "hm-transport-inc": {
+   "name": "HM Transport Inc.",
+   "barangay": "Uno",
+   "aliases": [
+    "hm transport inc",
+    "hm transport",
+    "hm bus"
+   ],
+   "confirm": []
+  },
+  "jenny-canteen": {
+   "name": "Jenny Canteen",
+   "barangay": "Uno",
+   "aliases": [
+    "jenny canteen"
+   ],
+   "confirm": []
+  },
+  "jlt-fashion-boutique": {
+   "name": "JLT Fashion Boutique",
+   "barangay": "Uno",
+   "aliases": [
+    "jlt fashion boutique"
+   ],
+   "confirm": []
+  },
+  "julita-building-1": {
+   "name": "Julita Building 1",
+   "barangay": "Uno",
+   "aliases": [
+    "julita building 1"
+   ],
+   "confirm": []
+  },
+  "just-print": {
+   "name": "Just Print",
+   "barangay": "Uno",
+   "aliases": [
+    "just print"
+   ],
+   "confirm": []
+  },
+  "kuda-electric-bicycle": {
+   "name": "Kuda Electric Bicycle",
+   "barangay": "Uno",
+   "aliases": [
+    "kuda electric bicycle"
+   ],
+   "confirm": []
+  },
+  "landbank": {
+   "name": "Landbank",
+   "barangay": "Uno",
+   "aliases": [
+    "land bank",
+    "landbank"
+   ],
+   "confirm": [
+    "lbp"
+   ]
+  },
+  "lbc": {
+   "name": "LBC",
+   "barangay": "Uno",
+   "aliases": [
+    "lbc express",
+    "lbc"
+   ],
+   "confirm": []
+  },
+  "laguna-diagnostic-center-multi-specialty-clinic": {
+   "name": "Laguna Diagnostic Center & Multi-Specialty Clinic",
+   "barangay": "Uno",
+   "aliases": [
+    "laguna diagnostic center and multi specialty clinic",
+    "laguna diagnostic center",
+    "laguna diagnostic"
+   ],
+   "confirm": [
+    "ldc"
+   ]
+  },
+  "lli-bus-terminal": {
+   "name": "LLI Bus Terminal",
+   "barangay": "Uno",
+   "aliases": [
+    "lli bus terminal",
+    "lli terminal",
+    "lli bus",
+    "lli"
+   ],
+   "confirm": []
+  },
+  "mb-parking": {
+   "name": "Morales-Bercasio Commercial Center Parking",
+   "barangay": "Uno",
+   "aliases": [
+    "morales bercasio commercial center parking",
+    "morales bercasio parking",
+    "mb parking"
+   ],
+   "confirm": []
+  },
+  "philippine-womens-university-calamba": {
+   "name": "Philippine Women's University – Calamba",
+   "barangay": "Uno",
+   "aliases": [
+    "philippine womens university calamba",
+    "philippine womens university",
+    "philippine womens",
+    "pwu calamba",
+    "pwu"
+   ],
+   "confirm": []
+  },
+  "pitcrew": {
+   "name": "Pitcrew",
+   "barangay": "Uno",
+   "aliases": [],
+   "confirm": []
+  },
+  "pllc-enterprise-e-bike": {
+   "name": "PLLC Enterprise e-Bike",
+   "barangay": "Uno",
+   "aliases": [
+    "pllc enterprise e bike"
+   ],
+   "confirm": []
+  },
+  "raf-and-sha-fashion": {
+   "name": "Raf and Sha Fashion",
+   "barangay": "Uno",
+   "aliases": [
+    "raf and sha fashion"
+   ],
+   "confirm": []
+  },
+  "rcbc": {
+   "name": "RCBC",
+   "barangay": "Uno",
+   "aliases": [
+    "rcbc"
+   ],
+   "confirm": []
+  },
+  "rural-bank-of-bay-inc": {
+   "name": "Rural Bank of Bay, Inc.",
+   "barangay": "Uno",
+   "aliases": [
+    "rural bank of bay inc",
+    "rural bank of bay",
+    "rural bank"
+   ],
+   "confirm": []
+  },
+  "saint-rose-transit": {
+   "name": "Saint Rose Transit",
+   "barangay": "Uno",
+   "aliases": [
+    "saint rose transit",
+    "st rose transit"
+   ],
+   "confirm": []
+  },
+  "smiles-hotel": {
+   "name": "Smiles Hotel",
+   "barangay": "Uno",
+   "aliases": [
+    "smiles hotel"
+   ],
+   "confirm": []
+  },
+  "south-supermarket": {
+   "name": "South Supermarket",
+   "barangay": "Uno",
+   "aliases": [
+    "south supermarket"
+   ],
+   "confirm": []
+  },
+  "studio-8-hair-beauty-salon": {
+   "name": "Studio 8 Hair & Beauty Salon",
+   "barangay": "Uno",
+   "aliases": [
+    "studio 8 hair and beauty salon"
+   ],
+   "confirm": []
+  },
+  "suerte-motoplaza": {
+   "name": "Suerte Motoplaza",
+   "barangay": "Uno",
+   "aliases": [
+    "suerte motoplaza"
+   ],
+   "confirm": []
+  },
+  "sungold-upholstery-supply": {
+   "name": "Sungold Upholstery Supply",
+   "barangay": "Uno",
+   "aliases": [
+    "sungold upholstery supply"
+   ],
+   "confirm": []
+  },
+  "tranquility-serviced-homes": {
+   "name": "Tranquility Serviced Homes",
+   "barangay": "Uno",
+   "aliases": [
+    "tranquility serviced homes"
+   ],
+   "confirm": []
+  },
+  "2go": {
+   "name": "2GO",
+   "barangay": "Halang",
+   "aliases": [
+    "2go"
+   ],
+   "confirm": []
+  },
+  "amsi-doctors-medical-center": {
+   "name": "AMSI Doctors Medical Center",
+   "barangay": "Halang",
+   "aliases": [
+    "amsi doctors medical center",
+    "amsi hospital",
+    "amsi doctors",
+    "amsi"
+   ],
+   "confirm": []
+  },
+  "angels-pizza": {
+   "name": "Angel's Pizza",
+   "barangay": "Halang",
+   "aliases": [
+    "angels pizza"
+   ],
+   "confirm": []
+  },
+  "army-navy": {
+   "name": "Army Navy",
+   "barangay": "Halang",
+   "aliases": [
+    "army navy"
+   ],
+   "confirm": []
+  },
+  "burger-king": {
+   "name": "Burger King",
+   "barangay": "Halang",
+   "aliases": [
+    "burger king halang",
+    "burger king"
+   ],
+   "confirm": [
+    "bk"
+   ]
+  },
+  "coca-cola-europacific-aboitiz-calamba-distribution-center": {
+   "name": "Coca-Cola Europacific Aboitiz – Calamba Distribution Center",
+   "barangay": "Lecheria",
+   "aliases": [
+    "coca cola europacific aboitiz calamba distribution center",
+    "coca cola europacific aboitiz distribution center",
+    "coca cola distribution center",
+    "coca cola europacific aboitiz",
+    "coca cola calamba"
+   ],
+   "confirm": [
+    "coke plant"
+   ]
+  },
+  "dverde": {
+   "name": "D'Verde",
+   "barangay": "Halang",
+   "aliases": [
+    "dverde"
+   ],
+   "confirm": []
+  },
+  "ez-wash": {
+   "name": "EZ Wash",
+   "barangay": "Halang",
+   "aliases": [
+    "ez wash"
+   ],
+   "confirm": []
+  },
+  "go-clinic": {
+   "name": "Go Clinic",
+   "barangay": "Halang",
+   "aliases": [
+    "go clinic"
+   ],
+   "confirm": []
+  },
+  "laguna-provincial-capitol": {
+   "name": "Laguna Provincial Capitol",
+   "barangay": "Halang",
+   "aliases": [
+    "laguna provincial capitol",
+    "provincial capitol",
+    "laguna capitol",
+    "kapitolyo",
+    "capitol"
+   ],
+   "confirm": []
+  },
+  "lola-nenas": {
+   "name": "Lola Nena's",
+   "barangay": "Halang",
+   "aliases": [
+    "lola nenas"
+   ],
+   "confirm": []
+  },
+  "margimel-commercial-complex": {
+   "name": "Margimel Commercial Complex",
+   "barangay": "Halang",
+   "aliases": [
+    "margimel commercial complex"
+   ],
+   "confirm": []
+  },
+  "mcdonalds": {
+   "name": "McDonald's",
+   "barangay": "Halang",
+   "aliases": [
+    "mcdonalds halang",
+    "mcdo halang",
+    "mc donalds",
+    "mcdonalds",
+    "mcdo"
+   ],
+   "confirm": []
+  },
+  "mr-diy": {
+   "name": "Mr. DIY",
+   "barangay": "Halang",
+   "aliases": [
+    "mister diy",
+    "mr diy"
+   ],
+   "confirm": []
+  },
+  "pamana-medical-center": {
+   "name": "Pamana Medical Center",
+   "barangay": "Halang",
+   "aliases": [
+    "pamana medical center",
+    "pamana hospital",
+    "pamana medical"
+   ],
+   "confirm": []
+  },
+  "safc-calamba": {
+   "name": "SAFC – Calamba",
+   "barangay": "Halang",
+   "aliases": [
+    "safc calamba",
+    "safc"
+   ],
+   "confirm": []
+  },
+  "saint-john-paul-colleges": {
+   "name": "Saint John & Paul Colleges",
+   "barangay": "Halang",
+   "aliases": [
+    "saint john and paul colleges",
+    "st john and paul colleges",
+    "st john paul colleges",
+    "saint john and paul",
+    "st john and paul"
+   ],
+   "confirm": [
+    "sjpc"
+   ]
+  },
+  "shakeys": {
+   "name": "Shakey's",
+   "barangay": "Halang",
+   "aliases": [
+    "shakeys halang",
+    "shakeys"
+   ],
+   "confirm": []
+  },
+  "yellow-cab-pizza-co": {
+   "name": "Yellow Cab Pizza Co.",
+   "barangay": "Halang",
+   "aliases": [
+    "yellow cab pizza co",
+    "yellow cab pizza",
+    "yellow cab"
+   ],
+   "confirm": []
+  },
+  "but-first-coffee": {
+   "name": "But First, Coffee",
+   "barangay": "Real",
+   "aliases": [
+    "but first coffee"
+   ],
+   "confirm": []
+  },
+  "calamba-city-hall": {
+   "name": "Calamba City Hall",
+   "barangay": "Real",
+   "aliases": [
+    "city hall ng calamba",
+    "calamba city hall",
+    "city hall"
+   ],
+   "confirm": [
+    "munisipyo"
+   ]
+  },
+  "hotel-marciano": {
+   "name": "Hotel Marciano",
+   "barangay": "Real",
+   "aliases": [
+    "hotel marciano",
+    "marciano"
+   ],
+   "confirm": []
+  },
+  "jaydens-kitchen": {
+   "name": "Jayden's Kitchen",
+   "barangay": "Real",
+   "aliases": [
+    "jaydens kitchen"
+   ],
+   "confirm": []
+  },
+  "lynville-land-development-corp": {
+   "name": "Lynville Land Development Corp.",
+   "barangay": "Real",
+   "aliases": [
+    "lynville land development corp",
+    "lynville land development"
+   ],
+   "confirm": []
+  },
+  "marcelita-building": {
+   "name": "Marcelita Building",
+   "barangay": "Real",
+   "aliases": [
+    "marcelita building"
+   ],
+   "confirm": []
+  },
+  "rizal-monument": {
+   "name": "Rizal Monument",
+   "barangay": "Real",
+   "aliases": [
+    "monumento ni rizal",
+    "rizal monument",
+    "rizal statue"
+   ],
+   "confirm": [
+    "bantayog ni rizal"
+   ]
+  },
+  "jose-rizal-coliseum": {
+   "name": "Jose Rizal Coliseum",
+   "barangay": "Real",
+   "aliases": [
+    "jose rizal coliseum",
+    "rizal coliseum",
+    "coliseum"
+   ],
+   "confirm": []
+  },
+  "barangay-real-hall": {
+   "name": "Barangay Real Hall",
+   "barangay": "Real",
+   "aliases": [
+    "barangay real hall",
+    "real barangay hall",
+    "brgy real hall"
+   ],
+   "confirm": []
+  },
+  "barangay-halang-hall": {
+   "name": "Barangay Halang Hall (Multi-Purpose Building)",
+   "barangay": "Halang",
+   "aliases": [
+    "barangay halang hall multi purpose building",
+    "halang multi purpose building",
+    "barangay halang hall",
+    "halang barangay hall",
+    "brgy halang hall"
+   ],
+   "confirm": []
+  },
+  "kupi": {
+   "name": "Kupi",
+   "barangay": "Uno",
+   "aliases": [
+    "kupi coffee",
+    "kupi cafe"
+   ],
+   "confirm": []
+  },
+  "spex-appeal": {
+   "name": "Spex Appeal",
+   "barangay": "Uno",
+   "aliases": [
+    "spex appeal"
+   ],
+   "confirm": []
+  },
+  "citi-apartelle": {
+   "name": "Citi Apartelle",
+   "barangay": "Uno",
+   "aliases": [
+    "citi apartelle"
+   ],
+   "confirm": []
+  },
+  "jenmars-pansitan": {
+   "name": "JenMar's Pansitan",
+   "barangay": "Uno",
+   "aliases": [
+    "jenmars pansitan"
+   ],
+   "confirm": []
+  },
+  "olene-food-house": {
+   "name": "Olene Food House",
+   "barangay": "Uno",
+   "aliases": [
+    "olene food house"
+   ],
+   "confirm": []
+  },
+  "plater-buddys": {
+   "name": "Plater Buddy's",
+   "barangay": "Uno",
+   "aliases": [
+    "plater buddys"
+   ],
+   "confirm": []
+  },
+  "alx-building": {
+   "name": "ALX Building",
+   "barangay": "Halang",
+   "aliases": [
+    "alx building"
+   ],
+   "confirm": []
+  },
+  "aroma-caffe": {
+   "name": "Aroma Caffe",
+   "barangay": "Halang",
+   "aliases": [
+    "aroma caffe"
+   ],
+   "confirm": []
+  },
+  "autogarage-auto-care-center": {
+   "name": "AutoGarage Auto Care Center",
+   "barangay": "Halang",
+   "aliases": [
+    "autogarage auto care center"
+   ],
+   "confirm": []
+  },
+  "axismeg-gas-station": {
+   "name": "Axismeg Gas Station",
+   "barangay": "Halang",
+   "aliases": [
+    "axismeg gas station"
+   ],
+   "confirm": []
+  },
+  "btc-samgyup-wings": {
+   "name": "BTC Samgyup Wings – Unlimited Korean Grill",
+   "barangay": "Halang",
+   "aliases": [
+    "btc samgyup wings unlimited korean grill",
+    "btc samgyup wings",
+    "btc samgyup",
+    "btc"
+   ],
+   "confirm": []
+  },
+  "china-bank-savings": {
+   "name": "China Bank Savings – Calamba",
+   "barangay": "Halang",
+   "aliases": [
+    "china bank savings calamba",
+    "china bank savings",
+    "chinabank savings"
+   ],
+   "confirm": [
+    "cbs halang"
+   ]
+  },
+  "co-executives": {
+   "name": "Co. Executives",
+   "barangay": "Halang",
+   "aliases": [
+    "co executives"
+   ],
+   "confirm": []
+  },
+  "liporada-dental-clinic": {
+   "name": "Liporada Dental Clinic",
+   "barangay": "Halang",
+   "aliases": [
+    "liporada dental clinic"
+   ],
+   "confirm": []
+  },
+  "dynasty-building": {
+   "name": "Dynasty Building",
+   "barangay": "Halang",
+   "aliases": [
+    "dynasty building"
+   ],
+   "confirm": []
+  },
+  "dali-everyday-grocery-halang": {
+   "name": "Dali Everyday Grocery – Halang",
+   "barangay": "Halang",
+   "aliases": [
+    "dali everyday grocery halang"
+   ],
+   "confirm": []
+  },
+  "alpha-family-tiles-depot": {
+   "name": "Alpha Family Tiles Depot",
+   "barangay": "Halang",
+   "aliases": [
+    "alpha family tiles depot"
+   ],
+   "confirm": []
+  },
+  "hk-building-ii": {
+   "name": "HK Building II",
+   "barangay": "Halang",
+   "aliases": [
+    "hk building ii"
+   ],
+   "confirm": []
+  },
+  "kfc-halang": {
+   "name": "KFC",
+   "barangay": "Halang",
+   "aliases": [
+    "kfc halang",
+    "kfc"
+   ],
+   "confirm": []
+  },
+  "lambac-coffee-roastery": {
+   "name": "Lambac Coffee Roastery",
+   "barangay": "Halang",
+   "aliases": [
+    "lambac coffee roastery",
+    "lambac coffee",
+    "lambac"
+   ],
+   "confirm": []
+  },
+  "laong-laan-restaurant": {
+   "name": "Laong Laan Restaurant",
+   "barangay": "Halang",
+   "aliases": [
+    "laong laan restaurant"
+   ],
+   "confirm": []
+  },
+  "ojs-brew": {
+   "name": "OJ's Brew",
+   "barangay": "Halang",
+   "aliases": [
+    "ojs brew"
+   ],
+   "confirm": []
+  },
+  "pipols-synergy": {
+   "name": "Pipols Synergy Management Services Inc.",
+   "barangay": "Halang",
+   "aliases": [
+    "pipols synergy management services inc",
+    "pipols synergy management services"
+   ],
+   "confirm": []
+  },
+  "ramen-grill-station": {
+   "name": "Ramen & Grill Station",
+   "barangay": "Halang",
+   "aliases": [
+    "ramen and grill station",
+    "ramen grill station",
+    "ramen and grill"
+   ],
+   "confirm": []
+  },
+  "shiprito-foodhub": {
+   "name": "Shiprito Foodhub",
+   "barangay": "Halang",
+   "aliases": [
+    "shiprito foodhub"
+   ],
+   "confirm": []
+  },
+  "tara-kape": {
+   "name": "Tara Kape",
+   "barangay": "Halang",
+   "aliases": [
+    "tara kape"
+   ],
+   "confirm": []
+  },
+  "tita-chus-events-place": {
+   "name": "Tita Chu's Events Place",
+   "barangay": "Halang",
+   "aliases": [
+    "tita chus events place"
+   ],
+   "confirm": []
+  },
+  "tita-chus-lutong-bahay": {
+   "name": "Tita Chu's Lutong Bahay",
+   "barangay": "Halang",
+   "aliases": [
+    "tita chus lutong bahay"
+   ],
+   "confirm": []
+  },
+  "stars-hollow-cafe": {
+   "name": "Stars Hollow Cafe",
+   "barangay": "Halang",
+   "aliases": [
+    "stars hollow cafe"
+   ],
+   "confirm": []
+  },
+  "meat-here": {
+   "name": "Meat Here Unlimited Korean BBQ",
+   "barangay": "Halang",
+   "aliases": [
+    "meat here unlimited korean bbq",
+    "meat here korean bbq",
+    "meat here"
+   ],
+   "confirm": []
+  },
+  "bebylyns-halo-halo": {
+   "name": "Bebylyn's Halo-Halo",
+   "barangay": "Real",
+   "aliases": [
+    "bebylyns halo halo"
+   ],
+   "confirm": []
+  },
+  "ototech-car-service": {
+   "name": "Ototech Car Service",
+   "barangay": "Real",
+   "aliases": [
+    "ototech car service"
+   ],
+   "confirm": []
+  },
+  "chicken-joo-halang": {
+   "name": "Chicken Joo – Halang",
+   "barangay": "Halang",
+   "aliases": [
+    "chicken joo halang",
+    "chicken joo"
+   ],
+   "confirm": []
+  },
+  "piece-of-cheesecake-by-michelle": {
+   "name": "Piece of Cheesecake by Michelle",
+   "barangay": "Uno",
+   "aliases": [
+    "piece of cheesecake by michelle"
+   ],
+   "confirm": []
+  },
+  "planbank-calamba": {
+   "name": "Planbank – Calamba",
+   "barangay": "Halang",
+   "aliases": [
+    "planbank calamba",
+    "planbank"
+   ],
+   "confirm": []
+  },
+  "tudings-original-porkchop-haus": {
+   "name": "Tuding's Original Porkchop Haus",
+   "barangay": "Real",
+   "aliases": [
+    "tudings original porkchop haus",
+    "tudings porkchop",
+    "tudings"
+   ],
+   "confirm": []
+  },
+  "mse-minerva-tirehaus": {
+   "name": "MSE Minerva Tirehaus (Dunlop Tires)",
+   "barangay": "Real",
+   "aliases": [
+    "mse minerva tirehaus dunlop tires",
+    "mse minerva tirehaus",
+    "dunlop tires"
+   ],
+   "confirm": []
+  },
+  "ipponyari": {
+   "name": "Ipponyari",
+   "barangay": "Real",
+   "aliases": [
+    "ipponyari"
+   ],
+   "confirm": []
+  },
+  "melgian-sweets": {
+   "name": "Melgian Sweets",
+   "barangay": "Real",
+   "aliases": [
+    "melgian sweets"
+   ],
+   "confirm": []
+  },
+  "jetour-calamba": {
+   "name": "Jetour Calamba",
+   "barangay": "Real",
+   "aliases": [
+    "jetour calamba",
+    "jetour"
+   ],
+   "confirm": []
+  },
+  "silvinas-cafe": {
+   "name": "Silvinas Café",
+   "barangay": "Real",
+   "aliases": [
+    "silvinas cafe"
+   ],
+   "confirm": []
+  },
+  "miczilla-ktv-lounge": {
+   "name": "Miczilla KTV Lounge",
+   "barangay": "Real",
+   "aliases": [
+    "miczilla ktv lounge"
+   ],
+   "confirm": []
+  },
+  "iseven-manpower-services": {
+   "name": "iSeven Manpower Services",
+   "barangay": "Real",
+   "aliases": [
+    "iseven manpower services"
+   ],
+   "confirm": []
+  },
+  "sizzlers-real": {
+   "name": "Sizzlers",
+   "barangay": "Real",
+   "aliases": [
+    "sizzlers"
+   ],
+   "confirm": []
+  },
+  "aa-gadgets": {
+   "name": "A&A Gadgets",
+   "barangay": "Real",
+   "aliases": [
+    "a and a gadgets"
+   ],
+   "confirm": []
+  },
+  "agape-cafe": {
+   "name": "Agape Café",
+   "barangay": "Real",
+   "aliases": [
+    "agape cafe"
+   ],
+   "confirm": []
+  },
+  "philhealth-lhio-calamba": {
+   "name": "PhilHealth Local Health Insurance Office – Calamba",
+   "barangay": "Real",
+   "aliases": [
+    "philhealth local health insurance office calamba",
+    "philhealth local health insurance office",
+    "philhealth calamba",
+    "philhealth office",
+    "philhealth"
+   ],
+   "confirm": []
+  },
+  "meralco-calamba": {
+   "name": "Meralco – Calamba",
+   "barangay": "Real",
+   "aliases": [
+    "meralco calamba",
+    "meralco office",
+    "meralco"
+   ],
+   "confirm": []
+  },
+  "flight-deck-cafe": {
+   "name": "Flight Deck Café",
+   "barangay": "Real",
+   "aliases": [
+    "flight deck cafe"
+   ],
+   "confirm": []
+  },
+  "walters-bakery": {
+   "name": "Walter's Bakery",
+   "barangay": "Real",
+   "aliases": [
+    "walters bakery",
+    "walters"
+   ],
+   "confirm": []
+  },
+  "hk-cafe": {
+   "name": "HK Cafe",
+   "barangay": "Uno",
+   "aliases": [
+    "hk cafe"
+   ],
+   "confirm": []
+  },
+  "el-diente-dental-clinic": {
+   "name": "El Diente Dental Clinic",
+   "barangay": "Uno",
+   "aliases": [
+    "el diente dental clinic"
+   ],
+   "confirm": []
+  },
+  "gear-1-driving-school": {
+   "name": "Gear-1 Driving School",
+   "barangay": "Uno",
+   "aliases": [
+    "gear 1 driving school"
+   ],
+   "confirm": []
+  },
+  "asian-pension-loan": {
+   "name": "Asian Pension Loan Corporation",
+   "barangay": "Uno",
+   "aliases": [
+    "asian pension loan corporation",
+    "asian pension loan"
+   ],
+   "confirm": []
+  },
+  "hayop-kalinga-vet": {
+   "name": "Hayop Kalinga Veterinary Clinic",
+   "barangay": "Uno",
+   "aliases": [
+    "hayop kalinga veterinary clinic"
+   ],
+   "confirm": []
+  },
+  "jrs-express-crossing": {
+   "name": "JRS Express – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "jrs express calamba crossing",
+    "jrs express crossing",
+    "jrs express",
+    "jrs"
+   ],
+   "confirm": []
+  },
+  "everfirst-crossing": {
+   "name": "EverFirst – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "everfirst calamba crossing",
+    "everfirst crossing",
+    "everfirst"
+   ],
+   "confirm": []
+  },
+  "western-union-crossing": {
+   "name": "Western Union – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "western union calamba crossing",
+    "western union crossing",
+    "western union"
+   ],
+   "confirm": []
+  },
+  "syntaxone-technologies": {
+   "name": "SyntaxOne Technologies Inc.",
+   "barangay": "Uno",
+   "aliases": [
+    "syntaxone technologies inc",
+    "syntaxone technologies"
+   ],
+   "confirm": []
+  },
+  "68-avenue-salon": {
+   "name": "68 Avenue Salon",
+   "barangay": "Uno",
+   "aliases": [
+    "68 avenue salon"
+   ],
+   "confirm": []
+  },
+  "a-circles-grocery": {
+   "name": "A Circles Grocery",
+   "barangay": "Uno",
+   "aliases": [
+    "a circles grocery"
+   ],
+   "confirm": []
+  },
+  "why-chicken-crossing": {
+   "name": "Why Chicken – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "why chicken calamba crossing",
+    "why chicken crossing",
+    "why chicken"
+   ],
+   "confirm": []
+  },
+  "macks-restaurant": {
+   "name": "Mack's Restaurant",
+   "barangay": "Uno",
+   "aliases": [
+    "macks restaurant"
+   ],
+   "confirm": []
+  },
+  "shop-a-lot-crossing": {
+   "name": "Shop A Lot – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "shop a lot calamba crossing",
+    "shop a lot crossing",
+    "shop a lot",
+    "shopalot"
+   ],
+   "confirm": []
+  },
+  "mercury-drug-crossing": {
+   "name": "Mercury Drug – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "mercury drug calamba crossing",
+    "mercury drug crossing",
+    "mercury drug"
+   ],
+   "confirm": []
+  },
+  "andoks-crossing": {
+   "name": "Andok's – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "andoks calamba crossing",
+    "andoks crossing",
+    "andoks"
+   ],
+   "confirm": []
+  },
+  "kia-calamba-gateway": {
+   "name": "Kia Calamba (Gateway)",
+   "barangay": "Uno",
+   "aliases": [
+    "kia calamba gateway",
+    "kia calamba",
+    "kia gateway"
+   ],
+   "confirm": []
+  },
+  "eastwest-bank-crossing": {
+   "name": "EastWest Bank – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "eastwest bank calamba crossing",
+    "eastwest bank crossing",
+    "east west bank",
+    "eastwest bank",
+    "eastwest"
+   ],
+   "confirm": []
+  },
+  "jollibee-calamba-crossing": {
+   "name": "Jollibee – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "jollibee calamba crossing",
+    "jollibee crossing",
+    "jabee crossing"
+   ],
+   "confirm": []
+  },
+  "mang-inasal-calamba-crossing": {
+   "name": "Mang Inasal – Calamba Crossing",
+   "barangay": "Uno",
+   "aliases": [
+    "mang inasal calamba crossing",
+    "mang inasal crossing"
+   ],
+   "confirm": []
+  },
+  "astrotel-calamba": {
+   "name": "Astrotel Calamba",
+   "barangay": "Uno",
+   "aliases": [
+    "astrotel calamba",
+    "astrotel"
+   ],
+   "confirm": []
+  },
+  "korean-rtw-store": {
+   "name": "Korean RTW Store",
+   "barangay": "Uno",
+   "aliases": [
+    "korean rtw store"
+   ],
+   "confirm": []
+  },
+  "saint-benilde-crossing": {
+   "name": "Saint Benilde International School (Calamba) – Crossing Campus",
+   "barangay": "Real",
+   "aliases": [
+    "saint benilde international school calamba crossing campus",
+    "st benilde international school calamba crossing campus",
+    "saint benilde international school crossing campus",
+    "st benilde international school crossing campus",
+    "saint benilde crossing campus",
+    "benilde crossing campus",
+    "saint benilde crossing",
+    "st benilde crossing"
+   ],
+   "confirm": [
+    "sbis crossing"
+   ]
+  },
+  "calamba-medical-center": {
+   "name": "Calamba Medical Center (CMC)",
+   "barangay": "Real",
+   "aliases": [
+    "calamba medical center cmc",
+    "calamba medical center",
+    "medical center cmc",
+    "calamba medical",
+    "cmc hospital",
+    "cmc"
+   ],
+   "confirm": []
+  },
+  "seattles-best-coffee-cmc": {
+   "name": "Seattle's Best Coffee – CMC",
+   "barangay": "Real",
+   "aliases": [
+    "seattles best coffee cmc",
+    "seattles best coffee",
+    "seattles best cmc",
+    "seattles best"
+   ],
+   "confirm": [
+    "sbc cmc"
+   ]
+  },
+  "sm-city-calamba": {
+   "name": "SM City Calamba",
+   "barangay": "Uno",
+   "aliases": [
+    "sm city calamba",
+    "sm calamba",
+    "sm kalamba",
+    "sm city",
+    "sm mall",
+    "sm"
+   ],
+   "confirm": [
+    "esem"
+   ]
+  },
+  "all-day-cafe-all-wash": {
+   "name": "All Day Cafe & All Wash",
+   "barangay": "Real",
+   "aliases": [
+    "all day cafe and all wash"
+   ],
+   "confirm": []
+  },
+  "new-calamba-transport-terminal": {
+   "name": "New Calamba Transport Management Phil's Corporation Terminal",
+   "barangay": "Real",
+   "aliases": [
+    "new calamba transport management phils corporation terminal",
+    "new transport management phils corporation terminal",
+    "new calamba transport terminal",
+    "new calamba terminal",
+    "cmc terminal"
+   ],
+   "confirm": [
+    "nct"
+   ]
+  },
+  "sm-calamba-inner-rd-terminal": {
+   "name": "SM Calamba Inner Rd Terminal",
+   "barangay": "Uno",
+   "aliases": [
+    "sm calamba inner rd terminal",
+    "sm inner road terminal",
+    "sm inner rd terminal",
+    "inner road terminal",
+    "inner rd terminal",
+    "tagaytay terminal"
+   ],
+   "confirm": []
+  }
+ },
+ "ambiguous": {
+  "jollibee": [
+   "jollibee-real",
+   "jollibee-calamba-crossing"
+  ],
+  "jabee": [
+   "jollibee-real",
+   "jollibee-calamba-crossing"
+  ],
+  "mang inasal": [
+   "mang-inasal-halang",
+   "mang-inasal-calamba-crossing"
+  ],
+  "saint benilde": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ],
+  "st benilde": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ],
+  "benilde": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ],
+  "dali": [
+   "dali-everyday-grocery",
+   "dali-everyday-grocery-halang"
+  ],
+  "dali grocery": [
+   "dali-everyday-grocery",
+   "dali-everyday-grocery-halang"
+  ],
+  "dali everyday grocery": [
+   "dali-everyday-grocery",
+   "dali-everyday-grocery-halang"
+  ],
+  "china bank": [
+   "chinabank",
+   "china-bank-savings"
+  ],
+  "tita chus": [
+   "tita-chus-lutong-bahay",
+   "tita-chus-events-place"
+  ],
+  "saint benilde international school calamba": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ],
+  "saint benilde international school": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ],
+  "st benilde international school calamba": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ],
+  "st benilde international school": [
+   "saint-benilde",
+   "saint-benilde-crossing"
+  ]
+ }
+}
