@@ -46,9 +46,59 @@ function assert(condition, message) {
     }
 }
 
+const ROUTE_LAYER_IDS = [
+    'completed-route-layer',
+    'next-transit-route-casing',
+    'next-transit-route-layer',
+    'transit-route-casing',
+    'transit-route-layer',
+    'walk-route-casing',
+    'walk-route-layer',
+    'route-connector-casing',
+    'route-connector-layer'
+];
+
+async function verifyLayerOrder(page, contextDesc) {
+    const layerInfo = await page.evaluate((expectedRouteIds) => {
+        if (!window.map || !window.map.getStyle()) return null;
+        const layers = window.map.getStyle().layers || [];
+        const trafficIdx = layers.findIndex(l => l.id === 'calzada-traffic-layer');
+        const presentRouteLayers = layers
+            .map((l, idx) => ({ id: l.id, index: idx, type: l.type }))
+            .filter(l => expectedRouteIds.includes(l.id));
+        return {
+            totalLayers: layers.length,
+            trafficIdx,
+            presentRouteLayers,
+            allRelevant: layers
+                .map((l, idx) => ({ id: l.id, index: idx, type: l.type }))
+                .filter(l => l.id === 'calzada-traffic-layer' || expectedRouteIds.includes(l.id))
+        };
+    }, ROUTE_LAYER_IDS);
+
+    assert(layerInfo !== null, `${contextDesc}: Map style layers retrieved`);
+    assert(layerInfo.trafficIdx !== -1, `${contextDesc}: calzada-traffic-layer is present in map style (index: ${layerInfo.trafficIdx})`);
+    assert(layerInfo.presentRouteLayers.length > 0, `${contextDesc}: Route/walk layers are present (count: ${layerInfo.presentRouteLayers.length})`);
+
+    console.log(`\nStyle Layer Order (${contextDesc}):`);
+    layerInfo.allRelevant.forEach(l => {
+        console.log(`  [index ${l.index}] ${l.id} (${l.type})`);
+    });
+
+    let allAbove = true;
+    for (const r of layerInfo.presentRouteLayers) {
+        if (layerInfo.trafficIdx >= r.index) {
+            allAbove = false;
+            console.error(`ERROR: traffic index (${layerInfo.trafficIdx}) >= ${r.id} index (${r.index})`);
+        }
+    }
+    assert(allAbove, `${contextDesc}: calzada-traffic-layer (index ${layerInfo.trafficIdx}) is below ALL route/walk layers`);
+}
+
 server.listen(0, '127.0.0.1', async () => {
     const port = server.address().port;
     const baseUrl = `http://127.0.0.1:${port}/pages/planner.html`;
+    const routeUrl = `${baseUrl}?origLat=14.203928&origLng=121.154516&originName=SM+City+Calamba&destLat=14.195495&destLng=121.143531&destName=Jollibee+-+Real`;
 
     console.log(`Test server running at ${baseUrl}`);
     const browser = await chromium.launch({ headless: true });
@@ -78,7 +128,7 @@ server.listen(0, '127.0.0.1', async () => {
             });
 
             await page.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-            await page.waitForTimeout(1000);
+            await page.waitForFunction(() => window.map && window.map.isStyleLoaded(), { timeout: 15000 });
 
             // 1. Toggle button presence
             const toggleBtn = page.locator('#trafficToggleBtn');
@@ -99,7 +149,8 @@ server.listen(0, '127.0.0.1', async () => {
             assert(legendText.includes('Maluwag') || legendText.includes('Free-flowing'), `${vp.name}: Legend card contains status labels`);
 
             // 3. Tile requests check: tiles should be requested only at zoom >= 12
-            await page.waitForTimeout(1000);
+            await page.waitForFunction(() => window.map && window.map.getLayer('calzada-traffic-layer'), { timeout: 10000 });
+            await page.waitForTimeout(1500);
             assert(tileRequests.length > 0, `${vp.name}: Traffic tiles requested after toggle ON (count: ${tileRequests.length})`);
             const allZoomGe12 = tileRequests.every(u => {
                 const match = u.match(/\/tile\/(\d+)\//);
@@ -158,6 +209,36 @@ server.listen(0, '127.0.0.1', async () => {
             assert(result.traffic.delayMin >= 3, `${vp.name}: Option has traffic delayMin >= 3 (+${result.traffic.delayMin} min)`);
             assert(result.traffic.used === true, `${vp.name}: Option traffic.used === true`);
 
+            // 5. Layer Order Verification: Plan SM City Calamba -> Jollibee Real, then turn Traffic ON
+            console.log(`\n--- Scenario 1 on ${vp.name}: Plan SM City Calamba -> Jollibee Real, then turn Traffic ON ---`);
+            const pagePlanFirst = await context.newPage();
+            await pagePlanFirst.goto(routeUrl, { waitUntil: 'domcontentloaded' });
+            await pagePlanFirst.waitForFunction(() => window.map && window.map.getLayer('transit-route-layer'), { timeout: 15000 });
+            await pagePlanFirst.click('#trafficToggleBtn');
+            await pagePlanFirst.waitForFunction(() => window.map && window.map.getLayer('calzada-traffic-layer'), { timeout: 10000 });
+            await verifyLayerOrder(pagePlanFirst, `${vp.name} [Scenario 1: Plan then Traffic ON]`);
+
+            // 6. Layer Order Verification: Traffic turned ON BEFORE planning
+            console.log(`\n--- Scenario 2 on ${vp.name}: Traffic turned ON BEFORE planning ---`);
+            const pageTrafficFirst = await context.newPage();
+            await pageTrafficFirst.goto(baseUrl, { waitUntil: 'domcontentloaded' });
+            await pageTrafficFirst.waitForFunction(() => window.map && window.map.isStyleLoaded(), { timeout: 15000 });
+            await pageTrafficFirst.click('#trafficToggleBtn');
+            await pageTrafficFirst.waitForFunction(() => window.map && window.map.getLayer('calzada-traffic-layer'), { timeout: 10000 });
+            await pageTrafficFirst.goto(routeUrl, { waitUntil: 'domcontentloaded' });
+            await pageTrafficFirst.waitForFunction(() => window.map && window.map.getLayer('transit-route-layer'), { timeout: 15000 });
+            await verifyLayerOrder(pageTrafficFirst, `${vp.name} [Scenario 2: Traffic ON before Plan]`);
+
+            // 7. Layer Order Verification: After style reload
+            console.log(`\n--- Scenario 3 on ${vp.name}: After a style reload ---`);
+            await pageTrafficFirst.evaluate(() => {
+                window.map.setStyle(window.map.getStyle());
+            });
+            await pageTrafficFirst.waitForFunction(() => window.map && window.map.getLayer('calzada-traffic-layer') && window.map.getLayer('transit-route-layer'), { timeout: 15000 });
+            await verifyLayerOrder(pageTrafficFirst, `${vp.name} [Scenario 3: After style reload]`);
+
+            await pagePlanFirst.close();
+            await pageTrafficFirst.close();
             await context.close();
         }
 

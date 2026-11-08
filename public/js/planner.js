@@ -519,6 +519,54 @@ document.addEventListener('DOMContentLoaded', () => {
             return coveragePaddedBbox;
         };
 
+        const ROUTE_LAYER_IDS = [
+            'completed-route-layer',
+            'next-transit-route-casing',
+            'next-transit-route-layer',
+            'transit-route-casing',
+            'transit-route-layer',
+            'walk-route-casing',
+            'walk-route-layer',
+            'route-connector-casing',
+            'route-connector-layer'
+        ];
+
+        const getTrafficInsertionBeforeId = () => {
+            if (!map || !map.isStyleLoaded()) return undefined;
+            const layers = map.getStyle().layers;
+            if (!layers) return undefined;
+            // Insert before the lowest existing route/walk layer
+            for (let i = 0; i < layers.length; i++) {
+                if (ROUTE_LAYER_IDS.includes(layers[i].id)) {
+                    return layers[i].id;
+                }
+            }
+            // If none exist yet, use getRouteInsertionBeforeId()
+            return getRouteInsertionBeforeId();
+        };
+
+        const ensureTrafficBelowRouteLayers = () => {
+            if (!map || !map.isStyleLoaded() || !map.getLayer('calzada-traffic-layer')) return;
+            const layers = map.getStyle().layers;
+            if (!layers) return;
+            let trafficIdx = -1;
+            let lowestRouteIdx = Infinity;
+            let lowestRouteId = null;
+            for (let i = 0; i < layers.length; i++) {
+                if (layers[i].id === 'calzada-traffic-layer') {
+                    trafficIdx = i;
+                } else if (ROUTE_LAYER_IDS.includes(layers[i].id)) {
+                    if (i < lowestRouteIdx) {
+                        lowestRouteIdx = i;
+                        lowestRouteId = layers[i].id;
+                    }
+                }
+            }
+            if (trafficIdx !== -1 && lowestRouteIdx !== Infinity && trafficIdx > lowestRouteIdx) {
+                map.moveLayer('calzada-traffic-layer', lowestRouteId);
+            }
+        };
+
         let isInitializingTraffic = false;
         const initTrafficMapLayer = async () => {
             if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic') || isInitializingTraffic) return;
@@ -542,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     attribution: '© TomTom'
                 });
 
-                const beforeId = getRouteInsertionBeforeId();
+                const beforeId = getTrafficInsertionBeforeId();
                 map.addLayer({
                     id: 'calzada-traffic-layer',
                     type: 'raster',
@@ -554,6 +602,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         'raster-opacity': 0.85
                     }
                 }, beforeId);
+
+                ensureTrafficBelowRouteLayers();
 
                 if (isTrafficLayerActive()) {
                     setTomTomAttribution(true);
@@ -701,6 +751,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             routeLayersInitialized = true;
+            ensureTrafficBelowRouteLayers();
 
             // Replay route lines that were drawn before the style finished loading
             Object.keys(pendingRouteData).forEach(id => {
@@ -719,6 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
         map.on('style.load', () => {
             routeLayersInitialized = false;
             initRouteLayers();
+            ensureTrafficBelowRouteLayers();
         });
 
         const updateRouteSource = (sourceId, coordsLngLat) => {
