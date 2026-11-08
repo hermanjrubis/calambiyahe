@@ -368,7 +368,7 @@ function getMockFixtures() {
         if (fs.existsSync(fixPath)) {
             mockFixtures = JSON.parse(fs.readFileSync(fixPath, 'utf8'));
         }
-    } catch (_) {}
+    } catch (_) { }
     return mockFixtures;
 }
 
@@ -441,7 +441,7 @@ const vectorTileCache = new Map();    // 'z/x/y' -> { expiresAt, features }
 
 function vectorTileUrl(z, x, y, apiKey) {
     // Road types 0-6 (motorway .. local road); 'none' leaves TomTom's per-zoom default
-    const roadTypes = process.env.TRAFFIC_VECTOR_ROAD_TYPES || '[0,1,2,3,4,5,6]';
+    const roadTypes = process.env.TRAFFIC_VECTOR_ROAD_TYPES || 'none';
     const rt = roadTypes === 'none' ? '' : `&roadTypes=${encodeURIComponent(roadTypes)}`;
     return `https://api.tomtom.com/traffic/map/4/tile/flow/relative/${z}/${x}/${y}.pbf?key=${encodeURIComponent(apiKey)}${rt}`;
 }
