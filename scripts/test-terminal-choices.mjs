@@ -80,7 +80,7 @@ check('Cabuyao -> Lynville (Sta. Rosa jeep passes it): no choice', P.terminalCho
 const rn = P.routeNear([14.20207, 121.15222], 40).map((r) => r.routeId);
 check('routeNear on Real Road finds crossing-real', rn.includes('crossing-real'), rn.join(','));
 
-// No jeepney leaves the poblacion (Barangay 2–7, San Jose, San Juan) toward Uno / Real / Halang
+// No jeepney passes through the poblacion (Barangay 2–7, San Jose, San Juan); to Uno it stays a walk
 const BRGY3 = [14.2082, 121.1628], BRGY5 = [14.2096, 121.1665], SAN_JUAN = [14.2165, 121.1744];
 check('noJeepAreaOf Barangay 3', P.noJeepAreaOf(BRGY3) === 'Barangay 3');
 check('noJeepAreaOf Barangay 5', P.noJeepAreaOf(BRGY5) === 'Barangay 5');
@@ -88,9 +88,52 @@ check('noJeepAreaOf SM City Calamba (Uno) = null', P.noJeepAreaOf(SM) === null);
 check('noJeepAreaOf Lecheria (jeeps on Chipeco Ave) = null', P.noJeepAreaOf([14.2018, 121.1707]) === null);
 check('Barangay 3 -> SM City Calamba (Uno): no jeep option', P.plan(BRGY3, SM).length === 0 && P.terminalChoices(BRGY3, SM) === null);
 check('Barangay 5 -> Jollibee Crossing (Uno): no jeep option', P.plan(BRGY5, JOLLIBEE_CROSSING).length === 0 && P.terminalChoices(BRGY5, JOLLIBEE_CROSSING) === null);
-[[BRGY3, JOLLIBEE_REAL, 'Barangay 3 -> Jollibee Real'], [BRGY5, CHICKEN_JOO, 'Barangay 5 -> Chicken Joo'], [SAN_JUAN, JOLLIBEE_REAL, 'San Juan -> Jollibee Real']].forEach(([o, d, label]) => {
-    check(`${label}: no jeep option (walk)`, P.plan(o, d).length === 0 && P.terminalChoices(o, d) === null);
-});
+// Engine 1.7.0: from the poblacion the user walks to a terminal and rides from there (Real / Halang: the picker)
+const firstJeep = (opt) => opt.legs.find((l) => l.type === 'jeep');
+const walksToTerminal = (tcx) => !!tcx && tcx.choices.every((c) => c.option.legs[0].type === 'walk'
+    && firstJeep(c.option).board.stopId === c.stopId && c.option.legs.filter((l) => l.type === 'jeep').length === 1);
+const b3Real = P.terminalChoices(BRGY3, JOLLIBEE_REAL);
+check('Barangay 3 -> Jollibee Real: 3 terminals to walk to', b3Real && b3Real.choices.length === 3 && b3Real.area === 'Real', names(b3Real));
+check('Barangay 3 -> Jollibee Real: walk, then one jeep from the picked terminal', walksToTerminal(b3Real));
+const b5Halang = P.terminalChoices(BRGY5, CHICKEN_JOO);
+check('Barangay 5 -> Chicken Joo Halang: 2 terminals, SM Transport Terminal recommended', b5Halang && b5Halang.choices.length === 2 && b5Halang.choices[0].stopId === 'sm-transport-terminal', names(b5Halang));
+check('Barangay 5 -> Chicken Joo Halang: walk, then one jeep from the picked terminal', walksToTerminal(b5Halang));
+check('San Juan -> Jollibee Real: terminals over 2.5 km away, walk', P.plan(SAN_JUAN, JOLLIBEE_REAL).length === 0 && P.terminalChoices(SAN_JUAN, JOLLIBEE_REAL) === null);
+// Other places a terminal's jeep reaches (no picker): plan() boards at that terminal
+const b3Uplb = P.plan(BRGY3, [14.1675, 121.2433]);
+check('Barangay 3 -> UPLB: walk to SM Transport Terminal, then the UPLB jeep', b3Uplb.length > 0 && b3Uplb.every((o) => firstJeep(o).board.stopId === 'sm-transport-terminal'),
+    b3Uplb.map((o) => `${firstJeep(o).routeId}@${firstJeep(o).board.stopId}`).join(' | '));
+// Every poblacion -> anywhere option: boards at a listed stop, the terminal is nearer than the destination,
+// and the trip beats walking all the way by MUCH_FASTER_MIN (5 min)
+{
+    const rings = areas.noJeepFrom.map((f) => f.geometry.coordinates[0]);
+    const inside = (p, ring) => { let c = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > p[0]) !== (yj > p[0]) && p[1] < ((xj - xi) * (p[0] - yi)) / (yj - yi) + xi) c = !c; } return c; };
+    const origins = [];
+    for (let la = 14.200; la <= 14.225; la += 0.0015) for (let lo = 121.155; lo <= 121.185; lo += 0.0015) if (rings.some((r) => inside([la, lo], r))) origins.push([la, lo]);
+    const dests = [];
+    for (let la = 14.120; la <= 14.235; la += 0.006) for (let lo = 121.120; lo <= 121.250; lo += 0.006) dests.push([la, lo]);
+    let n = 0, jeep = 0, picker = 0, bad = [];
+    origins.forEach((o) => dests.forEach((d) => {
+        n++;
+        const tcx = P.terminalChoices(o, d);
+        const opts = P.plan(o, d);
+        if (tcx) picker++;
+        if (opts.length) jeep++;
+        const walkAll = T.walkMin(T.haversineM(o, d) * 1.25);
+        // The picker lists every terminal of the area; only its recommended one must be nearer than the destination
+        [...opts, ...(tcx ? tcx.choices.map((c) => c.option) : [])].forEach((opt) => {
+            if (!firstJeep(opt).board.stopId) bad.push('road boarding');
+        });
+        [...opts, ...(tcx ? [tcx.choices[0].option] : [])].forEach((opt) => {
+            const j = firstJeep(opt);
+            if (j.board.stopId && T.haversineM(o, j.board.pt) >= T.haversineM(o, d)) bad.push('terminal past the destination');
+        });
+        opts.forEach((opt) => { if (opt.totalMin + 5 > walkAll) bad.push(`not faster than walking (${opt.totalMin} vs ${walkAll} min)`); });
+        if (P.areaOf(d) === 'Uno' && (opts.length || tcx)) bad.push('jeep to Uno');
+    }));
+    check('poblacion grid: every jeep boards at a terminal (the recommended one nearer than the destination), saves 5+ min, none to Uno', bad.length === 0,
+        `${origins.length} origins x ${dests.length} destinations = ${n}; picker ${picker}, jeep options ${jeep}${bad.length ? '; ' + [...new Set(bad)].join(', ') : ''}`);
+}
 // Calamba Crossing / SM (Uno): jeeps are boarded only at terminals, never on the road there
 const JP_RIZAL_PAST_JUNCTION = [14.2066, 121.1562], NH_AT_SAMPAGUITA = [14.2039194, 121.1572045];
 check('no road boarding on J.P. Rizal past the Crossing junction', P.roadBoardingOk(JP_RIZAL_PAST_JUNCTION) === false);

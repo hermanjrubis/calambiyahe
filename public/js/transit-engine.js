@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.6.0)
+ * Calzada transit engine (v1.7.0)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -10,9 +10,10 @@
  * (Real, Halang), terminalChoices() gives one option per terminal the user can board at,
  * the balanced-best one marked recommended. Barangay boundaries: /data/barangays.json.
  *
- * No jeepney from the poblacion (1.5.0): barangays listed under noJeepFrom in /data/barangays.json
- * (Barangay 2–7, San Jose, San Juan) have no jeepney into the coverage area. From there plan() and
- * terminalChoices() give nothing and the planner shows the walk.
+ * No jeepney from the poblacion (1.5.0, 1.7.0): barangays listed under noJeepFrom in /data/barangays.json
+ * (Barangay 2–7, San Jose, San Juan) have no jeepney passing through. From there a trip walks to a
+ * terminal and rides from it: terminalChoices() for Real / Halang, plan() for other places a jeep from
+ * a terminal reaches. Only when that saves real time over walking; otherwise the planner shows the walk.
  *
  * No boarding on the road at Calamba Crossing / SM (1.5.1): in Uno a jeep is boarded only at a terminal
  * or listed stop (roadBoardingOk); along the road elsewhere it can still be flagged down.
@@ -310,9 +311,10 @@
             if (!origin || !dest) return [];
             const found = [];
             const force = boardStopId || null;
-            // No jeepney leaves the barangays listed under noJeepFrom (the poblacion Barangay 2–7, San Jose,
-            // San Juan) toward Uno, Real or Halang: from there the trip is a walk (the planner walks it)
-            if (noJeepAreaOf(origin)) return [];
+            // No jeepney passes through the barangays listed under noJeepFrom (the poblacion Barangay 2–7,
+            // San Jose, San Juan): from there the user walks to a terminal and rides from it
+            const noJeepFrom = !!noJeepAreaOf(origin);
+            if (noJeepFrom && !force) return planFromTerminals(origin, dest);
 
             // The picked terminal on route r in direction dir, as a board point, or null
             const forcedBoard = (r, dir) => {
@@ -359,7 +361,8 @@
                     // One transfer: get off A at a stop where it lets passengers off, take B where it loads.
                     // With a picked terminal (a user coming from farther away): B loads at that terminal,
                     // and getting off there is allowed for this trip even where it is no transfer stop.
-                    if (A.terminalOnly) return;
+                    // From the poblacion there is no first jeep near the origin to change from
+                    if (A.terminalOnly || noJeepFrom) return;
                     const b = boardNear(A, origin, dirA, roadBoardingOk);
                     if (b.walkM > MAX_ACCESS_WALK_M) return;
                     A.stopPos.forEach((sA) => {
@@ -398,6 +401,22 @@
             // A picked terminal: its options, best first (the walk there is the user's choice)
             if (force) return mergeTwins(found.sort((a, b) => a.cost - b.cost || a.totalMin - b.totalMin));
             return rank(found.filter((o) => o.walkM <= maxWalk));
+        }
+
+        // From a no-jeepney barangay: walk to a terminal, then the jeep that loads there. Kept only when
+        // the terminal is nearer than the destination and the trip beats walking all the way by
+        // MUCH_FASTER_MIN; otherwise [] and the planner walks it.
+        function planFromTerminals(origin, dest) {
+            const straight = haversineM(origin, dest);
+            const walkAllMin = walkMin(straight * WALK_FACTOR);
+            const found = [];
+            boardingStops().forEach((st) => {
+                if (haversineM(origin, st.pt) >= straight) return;
+                plan(origin, dest, st.id).forEach((o) => {
+                    if (o.totalMin + MUCH_FASTER_MIN <= walkAllMin) found.push({ ...o, tags: [] });
+                });
+            });
+            return rank(found);
         }
 
         // ── Terminal choice (destinations in Real / Halang) ──
@@ -487,8 +506,9 @@
             });
             if (choices.length < 2) return null;
             choices.sort((a, b) => a.option.cost - b.option.cost || a.option.totalMin - b.option.totalMin);
-            // A jeep on the road right by the user beats every terminal (e.g. already on Real Road): no choice
-            const usual = plan(origin, dest)[0];
+            // A jeep on the road right by the user beats every terminal (e.g. already on Real Road): no choice.
+            // From the poblacion the usual plan boards at these same terminals, so it is no rival.
+            const usual = noJeepAreaOf(origin) ? null : plan(origin, dest)[0];
             if (usual && usual.totalMin + MUCH_FASTER_MIN < choices[0].option.totalMin) return null;
             // ... or cheaper and about as fast (e.g. one jeep straight there, no terminal at all): no choice
             if (usual && usual.fare < choices[0].option.fare && usual.totalMin <= choices[0].option.totalMin + 10) return null;
@@ -738,7 +758,7 @@
     }
 
     return {
-        VERSION: '1.6.4',
+        VERSION: '1.7.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),

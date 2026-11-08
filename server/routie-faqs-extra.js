@@ -133,14 +133,14 @@ const FAQS_EXTRA = [
     },
     {
         id: 'walk_only_trips',
-        source: 'no-jeep-areas.md (noJeepFrom, NO_ROAD_BOARDING_AREAS Uno); transit-engine.js MIN_RIDE_M 400, MAX_ACCESS_WALK_M 1200',
+        source: 'no-jeep-areas.md (noJeepFrom: walk to a terminal, engine 1.7.0; NO_ROAD_BOARDING_AREAS Uno); transit-engine.js MIN_RIDE_M 400, MAX_ACCESS_WALK_M 1200',
         triggers: [
             'walang jeep', 'bakit lakad lang', 'bakit walang jeep', 'why walk only', 'why no jeepney', 'why no jeep',
             'why is it walking only', 'lakad lang ba', 'walking only', 'bakit maglalakad', 'no jeep option',
             'saan pwede pumara', 'pwede bang pumara kahit saan', 'can i flag a jeep anywhere'
         ],
-        en: 'Some trips are walk-only on purpose. Around Crossing and SM, jeepneys load only at the terminals, not on the road, so for short trips there walking is better. No jeepney goes from the poblacion barangays (Barangay 2 to 7, San Jose and San Juan) toward Uno, Real or Halang, so trips from there are a walk. Rides shorter than about 400 m are not suggested, and the walk to a jeep is kept under about 1.2 km.',
-        tl: 'Sinadya ang ilang biyaheng lakad lang. Sa Crossing at SM, sa terminal lang nagsasakay ang jeep, hindi sa kalsada, kaya mas mainam maglakad para sa maiikling biyahe roon. Walang jeep mula sa mga barangay sa poblacion (Barangay 2 hanggang 7, San Jose, at San Juan) papuntang Uno, Real, o Halang, kaya lakad ang biyahe mula roon. Hindi na iminumungkahi ang sakay na mas maikli sa mga 400 m, at hindi lalampas sa mga 1.2 km ang lakad papunta sa jeep.'
+        en: 'Some trips are walk-only on purpose. Around Crossing and SM, jeepneys load only at the terminals, not on the road, so for short trips there walking is better. No jeepney passes through the poblacion barangays (Barangay 2 to 7, San Jose and San Juan). From there, a trip to Real or Halang starts with a walk to a terminal at Crossing or SM, and you pick where to board; a trip to Uno is a walk. Rides shorter than about 400 m are not suggested, and the walk to a jeep is kept under about 1.2 km.',
+        tl: 'Sinadya ang ilang biyaheng lakad lang. Sa Crossing at SM, sa terminal lang nagsasakay ang jeep, hindi sa kalsada, kaya mas mainam maglakad para sa maiikling biyahe roon. Walang jeep na dumadaan sa mga barangay sa poblacion (Barangay 2 hanggang 7, San Jose, at San Juan). Mula roon, ang biyahe papuntang Real o Halang ay nagsisimula sa lakad papunta sa isang terminal sa Crossing o SM, at ikaw ang pipili kung saan sasakay; lakad naman ang biyahe papuntang Uno. Hindi na iminumungkahi ang sakay na mas maikli sa mga 400 m, at hindi lalampas sa mga 1.2 km ang lakad papunta sa jeep.'
     },
     {
         id: 'crossing_the_highway',
