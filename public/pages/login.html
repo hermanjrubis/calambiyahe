@@ -162,6 +162,7 @@
                                 <ion-icon name="eye-off-outline" class="btn-toggle-pass"
                                     onclick="togglePassword('loginPass')" role="button" aria-label="Toggle password visibility"></ion-icon>
                             </div>
+                            <p id="passGoogleHint" class="auth-field-hint">Signed up with Google? Use “Sign in with Google” below.</p>
                             <p id="loginError" class="auth-error-text"></p>
 
                             <div class="auth-options">
@@ -379,6 +380,17 @@
         // two steps can switch to each other.
         const passTitle = document.getElementById('passTitle');
         const passNotice = document.getElementById('passNotice');
+        const passGoogleHint = document.getElementById('passGoogleHint');
+
+        const updatePassGoogleHint = () => {
+            if (passGoogleHint) {
+                passGoogleHint.textContent = pageLang() === 'tl'
+                    ? 'Sa Google ka nag-sign up? Gamitin ang “Mag-sign in gamit ang Google” sa ibaba.'
+                    : 'Signed up with Google? Use “Sign in with Google” below.';
+            }
+        };
+        updatePassGoogleHint();
+        window.addEventListener('calzada_lang_changed', updatePassGoogleHint);
 
         const setPassNotice = (message) => {
             if (!passNotice) return;
@@ -393,6 +405,7 @@
             loginPass.value = '';
             hideAllErrors();
             setPassNotice(notice);
+            updatePassGoogleHint();
             showStep('password');
             setTimeout(() => loginPass.focus(), 50);
         };
@@ -563,25 +576,6 @@
         // STEP 1: Handle Email Submission
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        const isGoogleOnlyAccount = async (email) => {
-            try {
-                const res = await fetch('/api/auth/signin-hint', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email }),
-                    credentials: 'same-origin'
-                });
-                const data = await res.json();
-                return Boolean(data && data.googleOnly);
-            } catch (_) {
-                return false;
-            }
-        };
-
-        const googleOnlyMsg = () => pageLang() === 'tl'
-            ? 'Sa Google naka-sign in ang email na ito. I-click ang "Mag-sign in gamit ang Google" sa ibaba.'
-            : 'This email signs in with Google. Click "Sign in with Google" below.';
-
         formEmail.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideError(emailError);
@@ -612,19 +606,9 @@
                     methods = [];
                 }
 
-                const googleOnly = (methods.length > 0 && !methods.includes('password') && methods.includes('google.com'))
-                    || await isGoogleOnlyAccount(email);
-
-                if (googleOnly) {
-                    // Known Google-only account: a password won't work
-                    currentEmail = email;
-                    showError(emailError, googleOnlyMsg());
-                    if (googleLoginBtn) googleLoginBtn.focus();
-                } else {
-                    // Known account -> "Welcome Back!"; unknown (lookup hidden by Firebase) -> "Sign in"
-                    // with a "Create an account" link right under the button.
-                    goToPassword(email, { known: methods.length > 0 });
-                }
+                // Known account -> "Welcome Back!"; unknown (lookup hidden by Firebase) -> "Sign in"
+                // with a "Create an account" link right under the button.
+                goToPassword(email, { known: methods.length > 0 });
             } catch (err) {
                 let msg = err.message || "Failed to check email. Please try again.";
                 if (err.code === 'auth/invalid-email') {
@@ -665,16 +649,9 @@
                 setPassNotice('');
                 let msg = err.message;
                 if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-login-credentials') {
-                    if (await isGoogleOnlyAccount(currentEmail)) {
-                        showError(loginError, googleOnlyMsg());
-                        loginSubmitBtn.innerText = originalText;
-                        loginSubmitBtn.disabled = false;
-                        if (googleLoginBtn) googleLoginBtn.focus();
-                        return;
-                    }
                     msg = pageLang() === 'tl'
-                        ? 'Maling password. Subukan ulit o i-click ang "Nakalimutan ang password?"'
-                        : 'Incorrect password. Please try again or click "Forgot Password?"';
+                        ? 'Hindi tugma ang password. Subukan ulit, gamitin ang “Mag-sign in gamit ang Google” kung sa Google ka nag-sign up, o i-reset ang password.'
+                        : 'That password didn\'t work. Try again, use “Sign in with Google” if you signed up with Google, or reset your password.';
                 } else if (err.code === 'auth/user-disabled') {
                     msg = "This account has been disabled. Please contact support.";
                 } else if (err.code === 'auth/too-many-requests') {
@@ -753,30 +730,12 @@
                 window.location.href = getSafeRedirectUrl();
             } catch (err) {
                 if (err.code === 'auth/email-already-in-use') {
-                    // Existing account: try signing in with the password they just typed
-                    try {
-                        const existing = await signInWithEmailAndPassword(auth, emailToUse, pass);
-                        logActivity(existing.user.uid, "login", "email"); // fire-and-forget
-                        await afterPasswordSignIn(existing.user);
-                        window.location.href = getSafeRedirectUrl();
-                        return;
-                    } catch (_) {
-                        const googleOnly = await isGoogleOnlyAccount(emailToUse);
-                        regSubmitBtn.innerText = originalText;
-                        regSubmitBtn.disabled = false;
-                        if (googleOnly) {
-                            showError(regError, googleOnlyMsg());
-                            googleLoginBtn?.focus();
-                            return;
-                        }
-                        goToPassword(emailToUse, {
-                            known: true,
-                            notice: pageLang() === 'tl'
-                                ? 'May account na ang email na ito. Ilagay ang iyong password para mag-sign in.'
-                                : 'This email already has an account. Enter your password to sign in.'
-                        });
-                        return;
-                    }
+                    regSubmitBtn.innerText = originalText;
+                    regSubmitBtn.disabled = false;
+                    showError(regError, pageLang() === 'tl'
+                        ? 'Hindi magagamit ang email na ito sa bagong account. Kung sa iyo ito, mag-sign in gamit ang password o Google.'
+                        : 'This email can\'t be used to create a new account. If it\'s yours, sign in with your password or with Google.');
+                    return;
                 }
                 let msg = err.message;
                 if (err.code === 'auth/weak-password' || err.code === 'auth/password-does-not-meet-requirements') {
