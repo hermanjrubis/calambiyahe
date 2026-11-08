@@ -1,0 +1,618 @@
+{
+  "about": "Words people use for kinds of places, so Routie can list them. Matching is on whole words or phrases after normalizing (lowercase, no accents or punctuation); the longest match wins. 'categories' maps a word to a places.json category. 'kinds' are narrower: a place counts when its category is in 'cats' (or any category when 'cats' is empty) and its name matches 'namePattern' (a regular expression, tested on the normalized name). Add words here; run node scripts/test-routie.mjs after. Never add a kind that has no place in places.json: Routie would answer with the closest category instead.",
+  "categories": {
+    "eateries": [
+      "kainan",
+      "kakainan",
+      "makakainan",
+      "pwedeng kainan",
+      "saan kakain",
+      "where to eat",
+      "places to eat",
+      "food",
+      "eatery",
+      "eateries",
+      "restaurant",
+      "restaurants",
+      "resto",
+      "restawran",
+      "restoran",
+      "ulam",
+      "ulamang",
+      "kumain",
+      "makakain",
+      "pagkain",
+      "breakfast",
+      "almusal",
+      "lunch",
+      "tanghalian",
+      "dinner",
+      "hapunan",
+      "merienda",
+      "meryenda"
+    ],
+    "coffee": [
+      "kapehan",
+      "kapihan",
+      "kape",
+      "coffee",
+      "coffee shop",
+      "coffee shops",
+      "cafe",
+      "cafes",
+      "caffe",
+      "coffeeshop",
+      "tambayan",
+      "study cafe",
+      "study spot",
+      "aral spot"
+    ],
+    "malls": [
+      "mall",
+      "malls",
+      "shopping center",
+      "shopping mall",
+      "supermarkets",
+      "pamilihan"
+    ],
+    "schools": [
+      "school",
+      "schools",
+      "paaralan",
+      "eskwelahan",
+      "eskuwelahan",
+      "eskwela",
+      "college",
+      "colleges",
+      "kolehiyo",
+      "university",
+      "unibersidad",
+      "elementary",
+      "elementarya",
+      "high school",
+      "hayskul",
+      "driving school"
+    ],
+    "terminals": [
+      "terminal",
+      "terminals",
+      "sakayan",
+      "transport terminal",
+      "bus terminal",
+      "bus station",
+      "istasyon",
+      "paradahan",
+      "parking",
+      "paradahan ng sasakyan"
+    ],
+    "health": [
+      "clinic",
+      "clinics",
+      "klinika",
+      "pagamutan",
+      "doktor",
+      "doctor"
+    ],
+    "banks": [
+      "bank",
+      "banks",
+      "bangko",
+      "atm",
+      "atms",
+      "withdraw",
+      "mag withdraw",
+      "magwithdraw",
+      "loan",
+      "pautang"
+    ],
+    "hotels": [
+      "hotel",
+      "hotels",
+      "stay",
+      "stays",
+      "places to stay",
+      "place to stay",
+      "matutuluyan",
+      "tutuluyan",
+      "matutulugan",
+      "motel",
+      "inn",
+      "apartelle",
+      "pension",
+      "pension house",
+      "transient",
+      "transient house",
+      "lodging",
+      "staycation"
+    ],
+    "government": [
+      "city hall",
+      "barangay hall",
+      "brgy hall",
+      "government",
+      "gobyerno",
+      "government office",
+      "opisina ng gobyerno",
+      "landmark",
+      "landmarks",
+      "monumento",
+      "monument",
+      "pasyalan",
+      "tourist spot",
+      "tourist spots",
+      "historical"
+    ],
+    "establishments": [
+      "shop",
+      "shops",
+      "services",
+      "tindahan",
+      "store",
+      "stores",
+      "auto shop"
+    ]
+  },
+  "kinds": [
+    {
+      "id": "karinderya",
+      "label_en": "karinderya-style eateries (canteens and home-cooked meals)",
+      "label_tl": "karinderya / lutong-bahay",
+      "terms": [
+        "karinderya",
+        "karinderia",
+        "carinderia",
+        "carinderya",
+        "karinderyas",
+        "carinderias",
+        "turo turo",
+        "turoturo",
+        "lutong bahay",
+        "home cooked",
+        "home cooked meals",
+        "canteen",
+        "kantina",
+        "kantin",
+        "budget meal",
+        "budget meals",
+        "murang kainan",
+        "murang ulam",
+        "tipid na kainan",
+        "silog",
+        "silogan",
+        "tapsihan",
+        "pansitan",
+        "food house",
+        "food court"
+      ],
+      "cats": [
+        "eateries"
+      ],
+      "namePattern": "canteen|lutong bahay|food house|food town|foodhub|pansitan|karinderya|carinderia"
+    },
+    {
+      "id": "fastfood",
+      "label_en": "fast-food restaurants",
+      "label_tl": "fast food",
+      "terms": [
+        "fast food",
+        "fastfood",
+        "fast food chain",
+        "fast food chains",
+        "drive thru",
+        "drive through"
+      ],
+      "cats": [
+        "eateries"
+      ],
+      "namePattern": "jollibee|mcdonald|kfc|burger king|mang inasal|shakey|yellow cab|angels pizza|army navy|why chicken|andoks|chicken joo"
+    },
+    {
+      "id": "korean",
+      "label_en": "Korean BBQ and samgyupsal",
+      "label_tl": "samgyupan / Korean BBQ",
+      "terms": [
+        "samgyup",
+        "samgyupan",
+        "samgyupsal",
+        "korean bbq",
+        "korean grill",
+        "korean food",
+        "korean restaurant",
+        "unli samgyup",
+        "unli meat",
+        "unli korean"
+      ],
+      "cats": [],
+      "namePattern": "samgyup|korean|meat here"
+    },
+    {
+      "id": "grill",
+      "label_en": "grills and inasal",
+      "label_tl": "ihawan / inasal",
+      "terms": [
+        "ihawan",
+        "inihaw",
+        "grill",
+        "grilled",
+        "bbq",
+        "barbecue",
+        "barbeque",
+        "inasal",
+        "ihaw"
+      ],
+      "cats": [],
+      "namePattern": "grill|inasal|ihaw|bbq|samgyup|meat here"
+    },
+    {
+      "id": "sisig",
+      "label_en": "sisig places",
+      "label_tl": "sisigan",
+      "terms": [
+        "sisig",
+        "sisigan"
+      ],
+      "cats": [],
+      "namePattern": "sisig"
+    },
+    {
+      "id": "pizza",
+      "label_en": "pizza places",
+      "label_tl": "pizza",
+      "terms": [
+        "pizza",
+        "pizzeria",
+        "pizza place"
+      ],
+      "cats": [],
+      "namePattern": "pizza|shakey"
+    },
+    {
+      "id": "japanese",
+      "label_en": "ramen and hotpot",
+      "label_tl": "ramen / hotpot",
+      "terms": [
+        "ramen",
+        "ramenan",
+        "hotpot",
+        "hot pot",
+        "shabu shabu",
+        "japanese food",
+        "japanese restaurant"
+      ],
+      "cats": [],
+      "namePattern": "ramen|hotpot"
+    },
+    {
+      "id": "sweets",
+      "label_en": "bakeries and dessert places",
+      "label_tl": "panaderya / panghimagas",
+      "terms": [
+        "bakery",
+        "bakeshop",
+        "panaderya",
+        "tinapay",
+        "pandesal",
+        "dessert",
+        "desserts",
+        "panghimagas",
+        "cake",
+        "cakes",
+        "cheesecake",
+        "halo halo",
+        "sweets",
+        "matamis"
+      ],
+      "cats": [],
+      "namePattern": "bakery|bakeshop|sweets|cheesecake|halo halo"
+    },
+    {
+      "id": "pharmacy",
+      "label_en": "pharmacies",
+      "label_tl": "botika",
+      "terms": [
+        "pharmacy",
+        "pharmacies",
+        "botika",
+        "parmasya",
+        "drugstore",
+        "drug store",
+        "gamot",
+        "bili ng gamot"
+      ],
+      "cats": [
+        "health"
+      ],
+      "namePattern": "pharmacy|drug"
+    },
+    {
+      "id": "hospital",
+      "label_en": "hospitals and medical centers",
+      "label_tl": "ospital",
+      "terms": [
+        "hospital",
+        "hospitals",
+        "ospital",
+        "emergency room",
+        "emergency",
+        "medical center"
+      ],
+      "cats": [
+        "health"
+      ],
+      "namePattern": "medical center|hospital"
+    },
+    {
+      "id": "dental",
+      "label_en": "dental clinics",
+      "label_tl": "dentista",
+      "terms": [
+        "dentist",
+        "dentista",
+        "dental",
+        "dental clinic",
+        "ngipin",
+        "bunot"
+      ],
+      "cats": [
+        "health"
+      ],
+      "namePattern": "dental|diente"
+    },
+    {
+      "id": "vet",
+      "label_en": "veterinary clinics",
+      "label_tl": "beterinaryo",
+      "terms": [
+        "vet",
+        "veterinary",
+        "veterinarian",
+        "beterinaryo",
+        "beterinaryo clinic",
+        "pet clinic",
+        "animal clinic"
+      ],
+      "cats": [
+        "health"
+      ],
+      "namePattern": "vet|hayop"
+    },
+    {
+      "id": "lab",
+      "label_en": "diagnostic and laboratory clinics",
+      "label_tl": "laboratoryo",
+      "terms": [
+        "laboratory",
+        "laboratoryo",
+        "lab test",
+        "diagnostic",
+        "x ray",
+        "xray",
+        "check up",
+        "checkup"
+      ],
+      "cats": [
+        "health"
+      ],
+      "namePattern": "diagnostic|clinic|medical"
+    },
+    {
+      "id": "remittance",
+      "label_en": "remittance, money transfer and couriers",
+      "label_tl": "padala",
+      "terms": [
+        "padala",
+        "pera padala",
+        "remittance",
+        "money transfer",
+        "western union",
+        "courier",
+        "kargamento",
+        "mag padala",
+        "magpadala",
+        "send package",
+        "shipping",
+        "parcel"
+      ],
+      "cats": [],
+      "namePattern": "western union|lbc|jrs|2go|everfirst"
+    },
+    {
+      "id": "grocery",
+      "label_en": "groceries and convenience stores",
+      "label_tl": "groserya / tindahan",
+      "terms": [
+        "grocery",
+        "groserya",
+        "grocery store",
+        "convenience store",
+        "sari sari",
+        "sari sari store",
+        "supermarket",
+        "bilihan ng pagkain",
+        "mamalengke"
+      ],
+      "cats": [],
+      "namePattern": "grocery|supermarket|indogrosir|puregold|shop a lot|bodega|7 eleven|dali"
+    },
+    {
+      "id": "hardware",
+      "label_en": "hardware and home supply stores",
+      "label_tl": "hardware",
+      "terms": [
+        "hardware",
+        "hardware store",
+        "construction supply",
+        "home depot",
+        "pintura",
+        "paint",
+        "tiles",
+        "tiles store",
+        "gamit sa bahay",
+        "home improvement"
+      ],
+      "cats": [],
+      "namePattern": "hardware|depot|diy|paint|tiles|upholstery"
+    },
+    {
+      "id": "auto",
+      "label_en": "auto and motorcycle services",
+      "label_tl": "talyer / vulcanizing",
+      "terms": [
+        "talyer",
+        "auto repair",
+        "car repair",
+        "car service",
+        "mekaniko",
+        "mechanic",
+        "vulcanizing",
+        "vulcanizing shop",
+        "tire",
+        "tires",
+        "gulong",
+        "change oil",
+        "motor shop",
+        "motorcycle shop",
+        "car dealer",
+        "e bike",
+        "ebike"
+      ],
+      "cats": [],
+      "namePattern": "auto|car service|tire|tirehaus|motoplaza|pitcrew|kia|jetour|e bike|electric bicycle"
+    },
+    {
+      "id": "gas",
+      "label_en": "gas stations",
+      "label_tl": "gasolinahan",
+      "terms": [
+        "gas station",
+        "gasolinahan",
+        "gasolina",
+        "petrol",
+        "petrol station",
+        "magpa gas",
+        "gas up"
+      ],
+      "cats": [],
+      "namePattern": "gas station"
+    },
+    {
+      "id": "salon",
+      "label_en": "salons",
+      "label_tl": "salon / parlor",
+      "terms": [
+        "salon",
+        "parlor",
+        "parlour",
+        "beauty salon",
+        "hair salon",
+        "gupit",
+        "magpagupit",
+        "haircut",
+        "barbero",
+        "barber",
+        "barbershop",
+        "rebond",
+        "manicure",
+        "pedicure"
+      ],
+      "cats": [],
+      "namePattern": "salon|beauty"
+    },
+    {
+      "id": "print",
+      "label_en": "printing shops",
+      "label_tl": "printing",
+      "terms": [
+        "print",
+        "printing",
+        "pa print",
+        "magpa print",
+        "printing shop",
+        "photocopy",
+        "xerox",
+        "pa xerox",
+        "tarpaulin"
+      ],
+      "cats": [],
+      "namePattern": "print"
+    },
+    {
+      "id": "ktv",
+      "label_en": "KTV and videoke",
+      "label_tl": "KTV / videoke",
+      "terms": [
+        "ktv",
+        "videoke",
+        "karaoke",
+        "kantahan",
+        "bar"
+      ],
+      "cats": [],
+      "namePattern": "ktv"
+    },
+    {
+      "id": "events",
+      "label_en": "events places",
+      "label_tl": "events place",
+      "terms": [
+        "events place",
+        "event venue",
+        "venue",
+        "function hall",
+        "party venue",
+        "pagdausan",
+        "handaan"
+      ],
+      "cats": [],
+      "namePattern": "events place|coliseum|executive center"
+    },
+    {
+      "id": "fashion",
+      "label_en": "clothing and fashion shops",
+      "label_tl": "damit / ukay",
+      "terms": [
+        "clothes",
+        "clothing",
+        "damit",
+        "fashion",
+        "boutique",
+        "rtw",
+        "ready to wear",
+        "bilihan ng damit"
+      ],
+      "cats": [],
+      "namePattern": "fashion|boutique|rtw|army navy"
+    },
+    {
+      "id": "gadgets",
+      "label_en": "gadget and phone shops",
+      "label_tl": "gadget / cellphone",
+      "terms": [
+        "gadget",
+        "gadgets",
+        "cellphone shop",
+        "phone shop",
+        "cellphone store",
+        "gadget store",
+        "accessories"
+      ],
+      "cats": [],
+      "namePattern": "gadget"
+    },
+    {
+      "id": "optical",
+      "label_en": "eyewear shops",
+      "label_tl": "salamin sa mata",
+      "terms": [
+        "eyeglasses",
+        "salamin sa mata",
+        "optical",
+        "optical shop",
+        "optometrist",
+        "salamin"
+      ],
+      "cats": [],
+      "namePattern": "spex|optical"
+    }
+  ]
+}

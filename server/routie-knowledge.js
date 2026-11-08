@@ -560,6 +560,76 @@ function extractRouteFromText(raw) {
 }
 
 // ── Main Knowledge Query Function ─────────────────────────────────────────────────────
+// ── Places of a kind ("karinderya", "kapehan sa Halang", "botika malapit sa SM") ─────────────────
+const NEAR_RE = /\b(?:malapit\s+(?:sa|kay)|malapit|near(?:\s+to)?|nearby|around|close\s+to|katabi\s+ng|tabi\s+ng|beside|sa\s+may)\s+(.+)$/i;
+const metresBetween = (a, b) => {
+    const R = 6371000, t = (d) => d * Math.PI / 180;
+    const x = Math.sin(t(b[0] - a[0]) / 2) ** 2 + Math.cos(t(a[0])) * Math.cos(t(b[0])) * Math.sin(t(b[1] - a[1]) / 2) ** 2;
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(x)));
+};
+function barangayIn(text) {
+    const t = ` ${routieDataset.normalizeText(text)} `;
+    return ['real', 'halang', 'uno', 'lecheria', 'bucal'].find(b => t.includes(` ${b} `)) || null;
+}
+// anchor: { name, coords } to sort by distance, or null
+function categoryContext(hit, places, rawText, userLang, anchor) {
+    const isTl = userLang === 'tl';
+    const { list, closest } = routieDataset.placesForCategory(hit, places);
+    const label = hit.kind ? (isTl ? hit.kind.label_tl : hit.kind.label_en) : (CATEGORY_MAP[hit.cat] || hit.cat);
+    let matching = list.filter(p => p.lat != null && p.lng != null || !anchor);
+    let note = '';
+    if (anchor) {
+        matching = matching
+            .map(p => ({ p, m: metresBetween(anchor.coords, [Number(p.lat), Number(p.lng)]) }))
+            .sort((a, b) => a.m - b.m)
+            .map(x => ({ ...x.p, _m: x.m }));
+        // Within walking distance (1.2 km) first; when nothing is that close, the 3 nearest
+        const close = matching.filter(p => p._m <= 1200);
+        matching = close.length ? close : matching.slice(0, 3);
+    } else {
+        const brgy = barangayIn(rawText);
+        if (brgy) {
+            const sub = matching.filter(p => (p.barangay || '').toLowerCase() === brgy);
+            if (sub.length) matching = sub;
+            else if (matching.length) note = isTl ? `Walang nakalistang ganito sa Brgy. ${brgy[0].toUpperCase() + brgy.slice(1)}; ito ang mga nasa ibang barangay.` : `None is listed in Brgy. ${brgy[0].toUpperCase() + brgy.slice(1)}; these are in other barangays.`;
+        }
+    }
+    const top = matching.slice(0, 5).map(p => ({
+        name: p.name,
+        barangay: p.barangay,
+        address: p.full_address || p.address || `Brgy. ${p.barangay}`,
+        hours: formatOpeningHours(p.opening_hours || p.openHours),
+        distanceM: p._m != null ? Math.round(p._m / 10) * 10 : undefined
+    }));
+    if (!top.length) return null;
+    // "Tokyo Grill", "Mang Juan Karinderya": a capitalized name before the word is a specific place not in our list
+    const named = hit.term && rawText.match(new RegExp(`((?:[A-Z][\\w'\u2019.&-]*\\s+){1,3})${hit.term.split(' ').join('\\s+')}\\b`, 'i'));
+    const skipWords = /^(may|meron|saan|nasaan|asan|ano|anong|paano|alam|kilala|where|wheres|what|is|are|any|the|a|an|ang|si|sa|ng|mga|po|ba|hello|hi|hey|routie|calamba|calzada|i|do|you|know|find|try|about|near|malapit)$/i;
+    if (named) {
+        // The run of capitalized words right before the term, e.g. "Nasaan ang Tokyo Grill" -> "Tokyo"
+        const words = [];
+        for (const w of named[1].trim().split(/\s+/).reverse()) {
+            if (skipWords.test(w) || !/^[A-Z]/.test(w)) break;
+            words.unshift(w);
+        }
+        const raw = rawText.slice(named.index + named[0].length - hit.term.length, named.index + named[0].length);
+        if (words.length && /^[A-Z]/.test(raw)) {
+            const asked = `${words.join(' ')} ${raw}`;
+            note = (isTl ? `Hindi nakalista sa Calzada ang "${asked}"; sabihin muna ito, tapos ialok ang mga ito.` : `"${asked}" is not in Calzada's list; say that first, then offer these.`) + (note ? ' ' + note : '');
+        }
+    }
+    if (closest) note = (isTl ? `Walang nakalistang ${label} sa Calzada; ito ang pinakamalapit na uri.` : `Calzada has no ${label} listed; these are the closest kind.`) + (note ? ' ' + note : '');
+    const line = (p) => `• ${p.name} (Brgy. ${p.barangay || 'Calamba'}${p.distanceM != null ? `, ~${p.distanceM} m ${isTl ? 'mula sa' : 'from'} ${anchor.name}` : ''} - ${p.hours})`;
+    return {
+        type: 'category_places',
+        lang: userLang,
+        data: { categoryName: label, kind: hit.kind ? hit.kind.id : hit.cat, anchor: anchor ? anchor.name : null, places: top },
+        instruction: isTl
+            ? `Ilista ang mga verified na ${label} sa Calzada database${anchor ? ` na malapit sa ${anchor.name}` : ''}:\n${top.map(line).join('\n')}\n${note ? note + '\n' : ''}Huwag magdagdag ng lugar na wala sa listahang ito. Puwede silang mag-plan ng ruta sa calzadaph.com/planner.`
+            : `List these verified ${label} from Calzada's database${anchor ? ` near ${anchor.name}` : ''}:\n${top.map(line).join('\n')}\n${note ? note + '\n' : ''}Do not add places that are not on this list. They can plan a route at calzadaph.com/planner.`
+    };
+}
+
 async function resolveRoutieContext({ message, route, lang, places, adminDb, history, lastTrip, sessionId }) {
     if (!places || !Array.isArray(places) || places.length === 0) {
         places = defaultPlacesData;
@@ -783,7 +853,34 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
             : `Which one do you mean: ${choices.join(', or ')}?`;
         return { type: 'ambiguous', lang: userLang, data: { subType: 'alias', alias: aliasHit.alias, choices }, directReply: reply, instruction: reply };
     }
-    const matchedPlace = findPlaceByName(rawText, places);
+    // A kind of place ("karinderya", "kapehan") near a named place, unless the name itself has the word
+    // ("Kupi Coffee", "Calamba City Hall" are the place, not "coffee near Kupi")
+    const catHit = routieDataset.detectCategory(rawText)
+        || (detectCategoryQuery(rawText) ? { term: '', cat: detectCategoryQuery(rawText) } : null);
+    const namedPlace = findPlaceByName(rawText, places);
+    if (catHit) {
+        const nameHasTerm = namedPlace && catHit.term
+            && ` ${routieDataset.normalizeText(namedPlace.name)} `.includes(` ${catHit.term} `)
+            || (namedPlace && aliasHit && aliasHit.alias && ` ${aliasHit.alias} `.includes(` ${catHit.term} `));
+        if (!namedPlace || !nameHasTerm) {
+            let anchor = null;
+            if (namedPlace && namedPlace.lat != null) {
+                anchor = { name: namedPlace.name, coords: [Number(namedPlace.lat), Number(namedPlace.lng)] };
+            } else {
+                const near = rawText.replace(/[?.!]+$/, '').match(NEAR_RE)
+                    || rawText.replace(/[?.!]+$/, '').match(/\b(?:sa|in|at)\s+((?:(?!\b(?:sa|in|at)\b).)+)$/i);
+                const cityWide = near && /^(?:calamba(?:\s+city)?(?:\s+laguna)?|laguna|dito|here|calzada|the city|lungsod)$/i
+                    .test(routieDataset.normalizeText(near[1]));
+                if (near && !cityWide && !barangayIn(near[1])) {
+                    const r = routiePlanner.resolvePlace(near[1], places);
+                    if (r && !r.isAmbiguous && r.found !== false && Array.isArray(r.coords)) anchor = { name: r.name, coords: r.coords };
+                }
+            }
+            const ctx = categoryContext(catHit, places, rawText, userLang, anchor);
+            if (ctx) return ctx;
+        }
+    }
+    const matchedPlace = namedPlace;
     if (matchedPlace) {
         const hoursFormatted = formatOpeningHours(matchedPlace.opening_hours || matchedPlace.openHours);
         const address = matchedPlace.full_address || matchedPlace.address || `Brgy. ${matchedPlace.barangay || 'Calamba City'}`;
@@ -809,35 +906,9 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
     }
 
     // 8. Category / Barangay Place Search
-    const cat = detectCategoryQuery(rawText);
-    if (cat) {
-        let matching = places.filter(p => p.category === cat);
-        // Filter by barangay if mentioned
-        for (const [bKey, bVal] of Object.entries(CALAMBA_AREAS)) {
-            if (rawText.toLowerCase().includes(bKey)) {
-                const sub = matching.filter(p => (p.barangay || '').toLowerCase().includes(bKey));
-                if (sub.length > 0) matching = sub;
-                break;
-            }
-        }
-
-        const topMatches = matching.slice(0, 4).map(p => ({
-            name: p.name,
-            barangay: p.barangay,
-            address: p.full_address || p.address || `Brgy. ${p.barangay}`,
-            hours: formatOpeningHours(p.opening_hours || p.openHours)
-        }));
-
-        if (topMatches.length > 0) {
-            return {
-                type: 'category_places',
-                lang: userLang,
-                data: { categoryName: CATEGORY_MAP[cat] || cat, places: topMatches },
-                instruction: userLang === 'tl'
-                    ? `Ilista ang ilan sa mga verified na ${CATEGORY_MAP[cat] || cat} sa Calzada database:\n${topMatches.map(p => `• ${p.name} (Brgy. ${p.barangay || 'Calamba'} - ${p.hours})`).join('\n')}\nSabihin na puwede nilang bisitahin ang Places page (calzadaph.com/places) para sa kumpletong listahan.`
-                    : `List some verified ${CATEGORY_MAP[cat] || cat} from Calzada's database:\n${topMatches.map(p => `• ${p.name} (Brgy. ${p.barangay || 'Calamba'} - ${p.hours})`).join('\n')}\nMention they can check the Places page (calzadaph.com/places) to explore all places.`
-            };
-        }
+    if (catHit) {
+        const ctx = categoryContext(catHit, places, rawText, userLang, null);
+        if (ctx) return ctx;
     }
 
     // 9. Business Updates / Posts Lookup (from Firestore)

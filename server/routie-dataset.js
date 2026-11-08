@@ -102,4 +102,40 @@ function aliasFor(query) {
     return e.slug ? { slug: e.slug, alias: e.alias } : { ambiguous: e.ambiguous, alias: e.alias };
 }
 
-module.exports = { normalizeText, allFaqs, matchFaq, findAlias, aliasFor, fareVars };
+// ── Kinds of places (server/data/category-terms.json) ───────────────────────────────────────
+// "karinderya", "kapehan", "botika", "talyer" ... -> a category, or a narrower kind matched on place names.
+let catDoc = { categories: {}, kinds: [] };
+try {
+    catDoc = JSON.parse(fs.readFileSync(path.join(__dirname, 'data/category-terms.json'), 'utf8'));
+} catch (err) {
+    try { catDoc = require('./data/category-terms.json'); } catch (_) { console.error('category-terms.json not loaded:', err.message); }
+}
+const termIndex = [];   // [{ term, cat } | { term, kind }], longest first; a kind wins a tie with a category
+for (const [cat, terms] of Object.entries(catDoc.categories || {})) for (const t of terms) termIndex.push({ term: normalizeText(t), cat, rank: 0 });
+for (const kind of catDoc.kinds || []) {
+    let re = null;
+    try { re = new RegExp(kind.namePattern, 'i'); } catch (err) { console.error(`category-terms.json kind ${kind.id}: bad namePattern`); continue; }
+    const k = { ...kind, re };
+    for (const t of kind.terms || []) termIndex.push({ term: normalizeText(t), kind: k, rank: 1 });
+}
+termIndex.sort((a, b) => b.term.length - a.term.length || b.rank - a.rank);
+
+/** The kind of place a message asks for: { term, cat } or { term, kind } (kind.cats, kind.re, labels), or null. */
+function detectCategory(text) {
+    const t = padded(normalizeText(text));
+    for (const e of termIndex) if (e.term && t.includes(padded(e.term))) return e.kind ? { term: e.term, kind: e.kind } : { term: e.term, cat: e.cat };
+    return null;
+}
+
+/** Places for a detectCategory() hit. closest: true when a kind had no match and its categories were used instead. */
+function placesForCategory(hit, places) {
+    if (!hit) return { list: [], closest: false };
+    if (hit.cat) return { list: places.filter(p => p.category === hit.cat), closest: false };
+    const cats = hit.kind.cats || [];
+    const inCats = (p) => !cats.length || cats.includes(p.category);
+    const list = places.filter(p => inCats(p) && hit.kind.re.test(normalizeText(p.name)));
+    if (list.length || !cats.length) return { list, closest: false };
+    return { list: places.filter(inCats), closest: true };
+}
+
+module.exports = { normalizeText, allFaqs, matchFaq, findAlias, aliasFor, fareVars, detectCategory, placesForCategory };

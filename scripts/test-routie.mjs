@@ -121,6 +121,24 @@ for (const f of allFaqs) {
         if (barangayWords.has(n)) dataFails.push(`FAQ ${f.id}: trigger "${t}" is a barangay/area name`);
     }
 }
+// Kinds of places (server/data/category-terms.json): every kind must match at least one place, and no word is used twice
+try {
+    const cat = JSON.parse(fs.readFileSync(path.join(ROOT, 'server/data/category-terms.json'), 'utf8'));
+    const seenTerm = new Map();
+    const note = (t, where) => { const n = norm(t); if (seenTerm.has(n) && seenTerm.get(n) !== where) dataFails.push(`category-terms.json: "${t}" is in ${seenTerm.get(n)} and ${where}`); seenTerm.set(n, where); };
+    for (const [c, terms] of Object.entries(cat.categories || {})) {
+        if (!places.some((p) => p.category === c)) dataFails.push(`category-terms.json: no place has category ${c}`);
+        for (const t of terms) note(t, `category ${c}`);
+    }
+    for (const k of cat.kinds || []) {
+        let re; try { re = new RegExp(k.namePattern, 'i'); } catch (_) { dataFails.push(`category-terms.json kind ${k.id}: bad namePattern`); continue; }
+        const hits = places.filter((p) => (!k.cats || !k.cats.length || k.cats.includes(p.category)) && re.test(norm(p.name)));
+        if (!hits.length) dataFails.push(`category-terms.json kind ${k.id}: no place matches "${k.namePattern}"`);
+        for (const t of k.terms || []) note(t, `kind ${k.id}`);
+    }
+} catch (err) {
+    if (err.code !== 'ENOENT') dataFails.push(`category-terms.json: ${err.message}`);
+}
 // Plan prices in the business_plans answer must match public/js/plans-config.js
 try {
     const cfg = fs.readFileSync(path.join(ROOT, 'public/js/plans-config.js'), 'utf8');
