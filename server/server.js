@@ -567,6 +567,17 @@ const requireAuth = createAuthMiddleware();
 require('./password-reset').registerPasswordReset(app);
 // Daily data retention: route history, sign-in records, email log and feedback older than 12 months; expired reset throttles
 require('./data-retention').registerDataRetention(app);
+// Traffic: GET /api/traffic/tile/:z/:x/:y.png and GET /api/traffic/leg
+const { createTrafficRouter } = require('./traffic');
+app.use('/api/traffic', createTrafficRouter({
+    adminDb: () => {
+        try {
+            return getFirestore();
+        } catch (_) {
+            return null;
+        }
+    }
+}));
 
 let approvedBusinessesCache = null;
 let approvedBusinessesCacheTime = 0;

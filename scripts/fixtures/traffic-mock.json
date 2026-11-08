@@ -1,0 +1,104 @@
+{
+  "calamba-tanauan:0:2150": {
+    "live": true,
+    "routeId": "calamba-tanauan",
+    "fromM": 0,
+    "toM": 2150,
+    "lengthM": 1525,
+    "travelSec": 900,
+    "noTrafficSec": 325,
+    "historicSec": 450,
+    "liveSec": 900,
+    "delaySec": 575,
+    "privateM": 625,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "calamba-tanauan:0:2200": {
+    "live": true,
+    "routeId": "calamba-tanauan",
+    "fromM": 0,
+    "toM": 2200,
+    "lengthM": 1575,
+    "travelSec": 900,
+    "noTrafficSec": 325,
+    "historicSec": 450,
+    "liveSec": 900,
+    "delaySec": 575,
+    "privateM": 625,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "crossing-halang:0:1500": {
+    "live": true,
+    "routeId": "crossing-halang",
+    "fromM": 0,
+    "toM": 1500,
+    "lengthM": 1516,
+    "travelSec": 240,
+    "noTrafficSec": 220,
+    "historicSec": 240,
+    "liveSec": 240,
+    "delaySec": 20,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "crossing-halang:0:1550": {
+    "live": true,
+    "routeId": "crossing-halang",
+    "fromM": 0,
+    "toM": 1550,
+    "lengthM": 1516,
+    "travelSec": 240,
+    "noTrafficSec": 220,
+    "historicSec": 240,
+    "liveSec": 240,
+    "delaySec": 20,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "crossing-halang:0:2550": {
+    "live": true,
+    "routeId": "crossing-halang",
+    "fromM": 0,
+    "toM": 2550,
+    "lengthM": 2545,
+    "travelSec": 413,
+    "noTrafficSec": 340,
+    "historicSec": 413,
+    "liveSec": 413,
+    "delaySec": 0,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "crossing-real:0:1750": {
+    "live": true,
+    "routeId": "crossing-real",
+    "fromM": 0,
+    "toM": 1750,
+    "lengthM": 1752,
+    "travelSec": 310,
+    "noTrafficSec": 270,
+    "historicSec": 310,
+    "liveSec": 310,
+    "delaySec": 40,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "calamba-halang:0:1000": {
+    "live": true,
+    "routeId": "calamba-halang",
+    "fromM": 0,
+    "toM": 1000,
+    "lengthM": 1000,
+    "travelSec": 160,
+    "noTrafficSec": 150,
+    "historicSec": 160,
+    "liveSec": 160,
+    "delaySec": 10,
+    "updated": "2026-11-08T11:10:00.000Z"
+  },
+  "starosa-calamba:0:1000": {
+    "live": false,
+    "reason": "path_mismatch"
+  },
+  "newtranspo-real:0:1900": {
+    "live": false,
+    "reason": "budget"
+  }
+}
+

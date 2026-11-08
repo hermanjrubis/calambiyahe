@@ -181,8 +181,8 @@ const FAQS_EXTRA = [
             'anong mga ruta', 'mga ruta ng jeep', 'jeepney routes', 'jeep routes', 'what routes', 'list of routes',
             'saan pumupunta ang jeep', 'which routes do you have', 'anong ruta ang meron'
         ],
-        en: 'Calzada knows these jeepney routes: Sta. Rosa (Balibago) to SM Calamba and back; Los Baños (UPLB) to SM Calamba; SM Calamba to Halang and back; Calamba to Tagaytay and Calamba to Tanauan, both passing Real; and jeeps to Real from Crossing Grand Terminal and from New Calamba Transport Terminal, and to Halang from Crossing Grand Terminal. Tell me where you\'re coming from and going, and I\'ll pick the right one.',
-        tl: 'Ito ang mga rutang alam ng Calzada: Sta. Rosa (Balibago) papuntang SM Calamba at pabalik; Los Baños (UPLB) papuntang SM Calamba; SM Calamba papuntang Halang at pabalik; Calamba papuntang Tagaytay at Calamba papuntang Tanauan, na parehong dumadaan sa Real; at mga jeep papuntang Real mula Crossing Grand Terminal at New Calamba Transport Terminal, at papuntang Halang mula Crossing Grand Terminal. Sabihin mo kung saan ka manggagaling at pupunta, at pipiliin ko ang tamang sakay.'
+        en: 'Calzada knows these jeepney routes: Sta. Rosa (Balibago) to SM Calamba and back; Los Baños (UPLB) to SM Calamba; SM Calamba to Halang and back; Calamba to Tanauan, passing Real; and jeeps to Real from Crossing Grand Terminal and from New Calamba Transport Terminal, and to Halang from Crossing Grand Terminal. Tell me where you\'re coming from and going, and I\'ll pick the right one.',
+        tl: 'Ito ang mga rutang alam ng Calzada: Sta. Rosa (Balibago) papuntang SM Calamba at pabalik; Los Baños (UPLB) papuntang SM Calamba; SM Calamba papuntang Halang at pabalik; Calamba papuntang Tanauan, na dumadaan sa Real; at mga jeep papuntang Real mula Crossing Grand Terminal at New Calamba Transport Terminal, at papuntang Halang mula Crossing Grand Terminal. Sabihin mo kung saan ka manggagaling at pupunta, at pipiliin ko ang tamang sakay.'
     },
     {
         id: 'sm_drop_off',
@@ -196,24 +196,23 @@ const FAQS_EXTRA = [
     },
     {
         id: 'terminal_tagaytay',
-        source: 'transit-routes.json calamba-tagaytay (boards calamba-tagaytay-terminal, flow verified by Drei Oct 21)',
+        source: 'SM Calamba Inner Rd Terminal check (jeeps to Tanauan only, no Tagaytay jeep exists; Google: "Calamba-Tagaytay Terminal")',
         triggers: [
             'sakayan papuntang tagaytay', 'terminal papuntang tagaytay', 'saan sasakay papuntang tagaytay',
             'terminal to tagaytay', 'jeep terminal to tagaytay', 'where to ride to tagaytay'
         ],
-        en: 'Jeeps to Tagaytay load at the SM Calamba Inner Rd Terminal, by SM Cinema on SM City Calamba\'s west inner road. They go around SM, out to the National Highway at Crossing, then down Real Road past Real.',
-        tl: 'Sa SM Calamba Inner Rd Terminal nagsasakay ang mga jeep papuntang Tagaytay, tabi ng SM Cinema sa west inner road ng SM City Calamba. Umiikot ito sa SM, lalabas sa National Highway sa Crossing, tapos bababa sa Real Road lampas ng Real.'
+        en: 'There is no Tagaytay-bound jeep route in Calzada. Jeeps at the SM Calamba Inner Rd Terminal (by SM Cinema on SM City Calamba\'s west side) go to Tanauan, Batangas only, passing Real.',
+        tl: 'Walang rutang jeep papuntang Tagaytay sa Calzada. Ang mga jeep sa SM Calamba Inner Rd Terminal (tabi ng SM Cinema sa west side ng SM City Calamba) ay papuntang Tanauan, Batangas lamang, na dumadaan sa Real.'
     },
     {
         id: 'terminal_tanauan',
-        needsConfirm: true, // transit-routes.json: Tanauan loading point "assumed ... (to confirm)"
-        source: 'transit-routes.json calamba-tanauan (boarding assumed)',
+        source: 'transit-routes.json calamba-tanauan (boards calamba-tagaytay-terminal)',
         triggers: [
             'sakayan papuntang tanauan', 'terminal papuntang tanauan', 'saan sasakay papuntang tanauan',
-            'terminal to tanauan', 'where to ride to tanauan'
+            'terminal to tanauan', 'where to ride to tanauan', 'jeep papuntang tanauan', 'jeep to tanauan'
         ],
-        en: 'Jeeps to Tanauan load at the SM Calamba Inner Rd Terminal, by SM Cinema on SM City Calamba\'s west inner road, and pass Real on the way.',
-        tl: 'Sa SM Calamba Inner Rd Terminal nagsasakay ang mga jeep papuntang Tanauan, tabi ng SM Cinema sa west inner road ng SM City Calamba, at dumadaan ito sa Real.'
+        en: 'Jeeps to Tanauan load at SM Calamba Inner Rd Terminal, west side of SM next to the Cinema drop-off, and pass Real.',
+        tl: 'Sa SM Calamba Inner Rd Terminal nagsasakay ang mga jeep papuntang Tanauan, sa west side ng SM tabi ng Cinema drop-off, at dumadaan sa Real.'
     },
     {
         id: 'terminal_uplb',

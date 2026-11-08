@@ -1,0 +1,149 @@
+// scripts/test-traffic-server.mjs
+// Test suite for traffic server endpoints with TRAFFIC_MOCK=1
+
+import http from 'http';
+import express from 'express';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const here = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
+const { createTrafficRouter, trimPrivateRanges } = require(path.join(here, '..', 'server', 'traffic.js'));
+
+process.env.TRAFFIC_MOCK = '1';
+
+const app = express();
+// Simulate server.js middleware
+app.use('/api', (req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+});
+app.use('/api/traffic', createTrafficRouter());
+
+const server = http.createServer(app);
+
+let passed = 0;
+let failed = 0;
+
+function assert(condition, message) {
+    if (condition) {
+        console.log(`PASS  ${message}`);
+        passed++;
+    } else {
+        console.error(`FAIL  ${message}`);
+        failed++;
+    }
+}
+
+function req(path) {
+    return new Promise((resolve, reject) => {
+        const addr = server.address();
+        const url = `http://127.0.0.1:${addr.port}${path}`;
+        http.get(url, (res) => {
+            let data = [];
+            res.on('data', chunk => data.push(chunk));
+            res.on('end', () => {
+                const body = Buffer.concat(data);
+                resolve({
+                    status: res.statusCode,
+                    headers: res.headers,
+                    body: body.toString('utf8'),
+                    buffer: body
+                });
+            });
+        }).on('error', reject);
+    });
+}
+
+server.listen(0, '127.0.0.1', async () => {
+    try {
+        console.log('--- Endpoint Tests with TRAFFIC_MOCK=1 ---');
+
+        // 1. Valid Tile
+        // Coverage bbox center: lng ~121.155, lat ~14.195. At z=14: x=13705, y=7539
+        const validTile = await req('/api/traffic/tile/14/13705/7539.png');
+        assert(validTile.status === 200, `Valid tile returns 200 (got ${validTile.status})`);
+        assert(validTile.headers['content-type'] === 'image/png', `Tile content-type is image/png (got ${validTile.headers['content-type']})`);
+        assert(validTile.headers['cache-control'] === 'public, s-maxage=120, max-age=60', `Tile Cache-Control header matches spec (got ${validTile.headers['cache-control']})`);
+        assert(validTile.buffer.length > 50, `Tile payload has valid byte length (${validTile.buffer.length} bytes)`);
+
+        // 2. Out-of-bounds tile (zoom < 12)
+        const lowZoom = await req('/api/traffic/tile/11/1000/1000.png');
+        assert(lowZoom.status === 404, `Low zoom (< 12) returns 404 (got ${lowZoom.status})`);
+
+        // 3. Out-of-bounds tile (outside Calzada coverage bbox)
+        const outBbox = await req('/api/traffic/tile/14/100/100.png');
+        assert(outBbox.status === 404, `Out-of-bounds bbox tile returns 404 (got ${outBbox.status})`);
+
+        // 4. Valid leg endpoint
+        const validLeg = await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=2150');
+        assert(validLeg.status === 200, `Valid leg returns 200 (got ${validLeg.status})`);
+        assert(validLeg.headers['cache-control'] === 'public, s-maxage=300', `Leg Cache-Control header matches spec (got ${validLeg.headers['cache-control']})`);
+        const legJson = JSON.parse(validLeg.body);
+        assert(legJson.live === true, 'Leg json has live: true');
+        assert(legJson.routeId === 'calamba-tanauan', `Leg routeId matches (got ${legJson.routeId})`);
+        assert(legJson.fromM === 0 && legJson.toM === 2150, `Leg fromM/toM rounded properly (${legJson.fromM} -> ${legJson.toM})`);
+
+        // 5. Unknown routeId -> 400
+        const unknownRoute = await req('/api/traffic/leg?route=fake-route-id&from=0&to=1000');
+        assert(unknownRoute.status === 400, `Unknown routeId returns 400 (got ${unknownRoute.status})`);
+
+        // 6. Bad from/to (to <= from) -> 400
+        const badRange = await req('/api/traffic/leg?route=calamba-tanauan&from=1000&to=500');
+        assert(badRange.status === 400, `Reversed from/to returns 400 (got ${badRange.status})`);
+
+        // 7. Bad from/to (ride < 300m) -> 400
+        const tooShort = await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=150');
+        assert(tooShort.status === 400, `Ride < 300m returns 400 (got ${tooShort.status})`);
+
+        // 8. Missing route -> 400
+        const missingRoute = await req('/api/traffic/leg?from=0&to=1000');
+        assert(missingRoute.status === 400, `Missing routeId returns 400 (got ${missingRoute.status})`);
+
+        // 9. Path mismatch mock fixture
+        const mismatchLeg = await req('/api/traffic/leg?route=starosa-calamba&from=0&to=1000');
+        const mismatchJson = JSON.parse(mismatchLeg.body);
+        assert(mismatchJson.live === false && mismatchJson.reason === 'path_mismatch', `path_mismatch fixture returned live: false, reason: path_mismatch`);
+
+        // 10. Budget mock fixture
+        const budgetLeg = await req('/api/traffic/leg?route=newtranspo-real&from=0&to=1900');
+        const budgetJson = JSON.parse(budgetLeg.body);
+        assert(budgetJson.live === false && budgetJson.reason === 'budget', `budget fixture returned live: false, reason: budget`);
+
+        // 11. trimPrivateRanges Unit Tests
+        console.log('\n--- PrivateM Trim Tests ---');
+        const trimStart = trimPrivateRanges([[0, 625]], 0, 2150);
+        assert(trimStart.effFrom === 625 && trimStart.effTo === 2150 && trimStart.publicLenM === 1525 && trimStart.trimmedM === 625, 'trimPrivateRanges trims start touching privateM');
+
+        const trimEnd = trimPrivateRanges([[1000, 1500]], 0, 1400);
+        assert(trimEnd.effFrom === 0 && trimEnd.effTo === 1000 && trimEnd.publicLenM === 1000 && trimEnd.trimmedM === 400, 'trimPrivateRanges trims end touching privateM');
+
+        const trimMiddle = trimPrivateRanges([[500, 800]], 0, 1500);
+        assert(trimMiddle.effFrom === 0 && trimMiddle.effTo === 1500 && trimMiddle.publicLenM === 1500 && trimMiddle.trimmedM === 0, 'trimPrivateRanges does NOT trim private range in the middle');
+
+        const trimTooShortRange = trimPrivateRanges([[0, 625]], 0, 800);
+        assert(trimTooShortRange.publicLenM === 175 && trimTooShortRange.publicLenM < 300, 'trimPrivateRanges detects public part < 300m');
+
+        // 12. Server endpoint with trimmed start (calamba-tanauan 0 -> 2150)
+        const trimmedLeg = await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=2150');
+        const trimmedJson = JSON.parse(trimmedLeg.body);
+        assert(trimmedJson.live === true && trimmedJson.privateM === 625 && trimmedJson.lengthM === 1525, 'Server returns privateM: 625 and public lengthM: 1525 for calamba-tanauan');
+
+        // 13. Server endpoint with public part < 300m -> live: false, reason: 'too_short'
+        const shortPublicLeg = await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=800');
+        const shortPublicJson = JSON.parse(shortPublicLeg.body);
+        assert(shortPublicJson.live === false && shortPublicJson.reason === 'too_short', "Server returns live: false, reason: 'too_short' when public part < 300m");
+
+        console.log(`\n========================================`);
+        console.log(`Server Tests Summary: ${passed} passed, ${failed} failed`);
+        console.log(`========================================`);
+
+        server.close();
+        if (failed > 0) process.exit(1);
+    } catch (e) {
+        console.error('Test execution failed:', e);
+        server.close();
+        process.exit(1);
+    }
+});

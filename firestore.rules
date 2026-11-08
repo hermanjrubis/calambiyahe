@@ -685,6 +685,11 @@ service cloud.firestore {
     match /passwordResetThrottle/{key} {
       allow read, write: if false;
     }
+
+    // TomTom daily traffic routing API budget tracking (server/traffic.js): server only.
+    match /trafficUsage/{date} {
+      allow read, write: if false;
+    }
   }
 }
 

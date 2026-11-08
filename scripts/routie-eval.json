@@ -39,7 +39,7 @@
     { "id": "n22", "tags": ["faq-new"], "q": "what time is the first jeep?", "expect": { "type": "faq", "faq": "jeep_schedule" } },
     { "id": "n23", "tags": ["faq-new"], "q": "may jeep pa ba ngayon?", "expect": { "type": "faq", "faq": "jeep_schedule", "lang": "tl" } },
     { "id": "n24", "tags": ["faq-new", "regression"], "q": "anong signboard ng jeep papuntang SM?", "expect": { "type": "faq", "faq": "signboard" } },
-    { "id": "n25", "tags": ["faq-new"], "q": "what jeepney routes do you have?", "expect": { "type": "faq", "faq": "jeepney_routes", "contains": ["Tagaytay"] } },
+    { "id": "n25", "tags": ["faq-new"], "q": "what jeepney routes do you have?", "expect": { "type": "faq", "faq": "jeepney_routes", "contains": ["Tanauan"] } },
     { "id": "n26", "tags": ["faq-new"], "q": "saan bumababa ang jeep sa SM?", "expect": { "type": "faq", "faq": "sm_drop_off", "contains": ["Cinema"] } },
     { "id": "n27", "tags": ["faq-new"], "q": "saan sakayan papuntang Tagaytay?", "expect": { "type": "faq", "faq": "terminal_tagaytay", "contains": ["SM Calamba Inner Rd Terminal"] } },
     { "id": "n28", "tags": ["faq-new"], "q": "saan sakayan papuntang Sta. Rosa?", "expect": { "type": "faq", "faq": "terminal_starosa" } },

@@ -371,9 +371,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // also asks for a link that lets people report and fix map errors. The OSMF attribution guidelines
         // let the credits collapse after five seconds or on map interaction, so they show briefly when the
         // map opens, then fold into the "i" and only come back when the user taps it.
+        const BASE_CUSTOM_ATTRIBUTION = 'Coverage: Calzada · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>';
         const attributionControl = new maplibregl.AttributionControl({
             compact: true,
-            customAttribution: 'Coverage: Calzada · <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">Report a map error</a>'
+            customAttribution: BASE_CUSTOM_ATTRIBUTION
         });
         map.addControl(attributionControl, 'bottom-left');
         const attribEl = () => document.querySelector('.maplibregl-ctrl-bottom-left .maplibregl-ctrl-attrib');
@@ -431,6 +432,102 @@ document.addEventListener('DOMContentLoaded', () => {
             return undefined;
         };
 
+        // ── Traffic layer helpers (TomTom raster flow tiles) ──
+        const isTrafficLayerActive = () => {
+            try {
+                return localStorage.getItem('calzada_traffic_layer') === '1';
+            } catch (_) {
+                return false;
+            }
+        };
+
+        const setTrafficLayerActive = (active) => {
+            try {
+                localStorage.setItem('calzada_traffic_layer', active ? '1' : '0');
+            } catch (_) {}
+        };
+
+        const setTomTomAttribution = (show) => {
+            if (attributionControl) {
+                attributionControl.options.customAttribution = BASE_CUSTOM_ATTRIBUTION + (show ? ' · © TomTom' : '');
+                if (typeof attributionControl._updateAttributions === 'function') {
+                    attributionControl._updateAttributions();
+                }
+            }
+            const el = document.querySelector('.maplibregl-ctrl-attrib-inner');
+            if (el) {
+                let span = document.getElementById('czTomTomAttrib');
+                if (show) {
+                    if (!span && !el.textContent.includes('© TomTom')) {
+                        span = document.createElement('span');
+                        span.id = 'czTomTomAttrib';
+                        span.textContent = ' · © TomTom';
+                        el.appendChild(span);
+                    }
+                } else {
+                    if (span) span.remove();
+                }
+            }
+        };
+
+        let trafficTileRefreshTimer = null;
+        const startTrafficTileRefresh = () => {
+            stopTrafficTileRefresh();
+            trafficTileRefreshTimer = setInterval(() => {
+                if (!map || !isTrafficLayerActive()) return;
+                const s = map.getSource('calzada-traffic');
+                if (!s) return;
+                const freshUrl = `/api/traffic/tile/{z}/{x}/{y}.png?t=${Date.now()}`;
+                if (typeof s.setTiles === 'function') {
+                    s.setTiles([freshUrl]);
+                } else if (s.tiles) {
+                    s.tiles = [freshUrl];
+                    if (map.style && map.style.sourceCaches && map.style.sourceCaches['calzada-traffic']) {
+                        map.style.sourceCaches['calzada-traffic'].clearTiles();
+                        map.style.sourceCaches['calzada-traffic'].update(map.transform);
+                    }
+                }
+            }, 3 * 60 * 1000);
+        };
+
+        const stopTrafficTileRefresh = () => {
+            if (trafficTileRefreshTimer) {
+                clearInterval(trafficTileRefreshTimer);
+                trafficTileRefreshTimer = null;
+            }
+        };
+
+        const initTrafficMapLayer = () => {
+            if (!map || !map.isStyleLoaded() || map.getSource('calzada-traffic')) return;
+            map.addSource('calzada-traffic', {
+                type: 'raster',
+                tiles: ['/api/traffic/tile/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                bounds: [121.140022, 14.186224, 121.183498, 14.209970],
+                minzoom: 12,
+                maxzoom: 18,
+                attribution: '© TomTom'
+            });
+
+            const beforeId = getRouteInsertionBeforeId();
+            map.addLayer({
+                id: 'calzada-traffic-layer',
+                type: 'raster',
+                source: 'calzada-traffic',
+                layout: {
+                    visibility: isTrafficLayerActive() ? 'visible' : 'none'
+                },
+                paint: {
+                    'raster-opacity': 0.85
+                }
+            }, beforeId);
+
+            if (isTrafficLayerActive()) {
+                setTomTomAttribution(true);
+                startTrafficTileRefresh();
+            }
+        };
+
         let routeLayersInitialized = false;
         // Walk line: dots 6 px across every 14.4 px (dash lengths are in line widths), on white dots
         // 9 px across at the same spacing, so each dot has a white edge on any map background.
@@ -438,6 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const WALK_DOTS_CASING_PAINT = { 'line-color': '#FFFFFF', 'line-width': 9, 'line-dasharray': [0, 1.6], 'line-opacity': 0.95 };
         const initRouteLayers = () => {
             if (routeLayersInitialized || !map || !map.isStyleLoaded()) return;
+
+            initTrafficMapLayer();
 
             const beforeId = getRouteInsertionBeforeId();
 
@@ -3617,6 +3716,87 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // ── Traffic leg fetching & in-memory cache (5 min TTL) ──
+        const trafficLegCache = new Map();
+
+        async function fetchLegTraffic(routeId, fromM, toM) {
+            const T = window.CalzadaTransit;
+            const key = (T && typeof T.legKey === 'function')
+                ? T.legKey(routeId, fromM, toM)
+                : `${routeId}:${Math.round(fromM / 50) * 50}:${Math.round(toM / 50) * 50}`;
+            const now = Date.now();
+            const cached = trafficLegCache.get(key);
+            if (cached && now < cached.expiresAt) {
+                return cached.data;
+            }
+            const f = Math.round(Number(fromM) / 50) * 50;
+            const t = Math.round(Number(toM) / 50) * 50;
+            const url = `/api/traffic/leg?route=${encodeURIComponent(routeId)}&from=${f}&to=${t}`;
+            try {
+                const res = await fetch(url);
+                if (!res.ok) {
+                    return { live: false, reason: `http_${res.status}` };
+                }
+                const data = await res.json();
+                trafficLegCache.set(key, { data, expiresAt: now + 5 * 60 * 1000 });
+                return data;
+            } catch (err) {
+                return { live: false, reason: 'fetch_failed' };
+            }
+        }
+
+        async function fetchTrafficForLegs(legs) {
+            const T = window.CalzadaTransit;
+            const results = {};
+            const promises = legs.map(async (leg) => {
+                const key = (T && typeof T.legKey === 'function')
+                    ? T.legKey(leg.routeId, leg.fromM, leg.toM)
+                    : `${leg.routeId}:${Math.round(leg.fromM / 50) * 50}:${Math.round(leg.toM / 50) * 50}`;
+                const data = await fetchLegTraffic(leg.routeId, leg.fromM, leg.toM);
+                results[key] = data;
+            });
+            await Promise.all(promises);
+            return results;
+        }
+
+        let trafficNavTimer = null;
+        function startTrafficNavTracking() {
+            stopTrafficNavTracking();
+            trafficNavTimer = setInterval(async () => {
+                if (!isTrackingArrival || !transitOptions || !transitOptions[transitSelected]) return;
+                const currentOpt = transitOptions[transitSelected];
+                if (!currentOpt || !currentOpt.legs) return;
+                const jeepLeg = currentOpt.legs.find(l => l.type === 'jeep');
+                if (!jeepLeg || !currentLocation) return;
+                const T = window.CalzadaTransit;
+                if (!T) return;
+                const near = T.routeNear ? T.routeNear([currentLocation.lat, currentLocation.lng], 300, [jeepLeg.routeId]) : [];
+                if (!near || !near.length) return;
+                const currentM = near[0].pos;
+                const alightM = jeepLeg.alightPos != null ? jeepLeg.alightPos : jeepLeg.toM;
+                const fromM = Math.round(Math.min(currentM, alightM));
+                const toM = Math.round(Math.max(currentM, alightM));
+                if (toM - fromM < 300) return;
+
+                const data = await fetchLegTraffic(jeepLeg.routeId, fromM, toM);
+                if (data && data.live) {
+                    const totalJeepSec = T.jeepSecFromTraffic ? T.jeepSecFromTraffic(data, toM - fromM) : null;
+                    if (totalJeepSec != null) {
+                        const travelMin = Math.max(1, Math.round(totalJeepSec / 60));
+                        cachedRemainingSeconds = travelMin * 60;
+                        syncNavDisplays();
+                    }
+                }
+            }, 5 * 60 * 1000);
+        }
+
+        function stopTrafficNavTracking() {
+            if (trafficNavTimer) {
+                clearInterval(trafficNavTimer);
+                trafficNavTimer = null;
+            }
+        }
+
         // true when curated routes handled the trip (options shown, first jeep routed)
         async function planWithTransitRoutes(oPt, dPt, straightDistM) {
             const T = window.CalzadaTransit;
@@ -3633,26 +3813,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 const opts = T.plan(oPt, dPt);
                 if (!opts.length) { clearTransitPlan(); return false; }
 
+                // Collect unique jeep legs for traffic evaluation
+                const uniqueLegs = [];
+                const seenLegKeys = new Set();
+                opts.forEach(opt => {
+                    (opt.legs || []).forEach(leg => {
+                        if (leg.type === 'jeep' && Number.isFinite(leg.fromM) && Number.isFinite(leg.toM)) {
+                            const k = T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
+                            if (!seenLegKeys.has(k)) {
+                                seenLegKeys.add(k);
+                                uniqueLegs.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM });
+                            }
+                        }
+                    });
+                });
+
+                const trafficPromise = fetchTrafficForLegs(uniqueLegs);
+                let trafficData = null;
+                try {
+                    trafficData = await Promise.race([
+                        trafficPromise,
+                        new Promise(r => setTimeout(() => r(null), 2500))
+                    ]);
+                } catch (_) {}
+
+                let finalOpts = opts;
+                if (trafficData && T.retime) {
+                    finalOpts = T.retime(opts, trafficData);
+                } else if (!trafficData) {
+                    // Slow response (2.5s timeout): background update when data arrives without reordering or changing pick
+                    trafficPromise.then((trafficMap) => {
+                        if (!trafficMap) return;
+                        const currKey = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
+                        if (currKey !== transitODKey) return;
+                        if (transitOptions && transitOptions.length) {
+                            transitOptions = transitOptions.map(o => (T.retimeOption ? T.retimeOption(o, trafficMap) : o));
+                            renderTransitOptionsUI();
+                            if (transitOptions[transitSelected]) {
+                                const active = transitOptions[transitSelected];
+                                currentTransitDur = active.legs.filter(l => l.type === 'jeep').reduce((s, l) => s + l.min, 0);
+                                updateSummaryRow();
+                                renderItinerary();
+                            }
+                        }
+                    }).catch(e => console.warn('[traffic] Background leg retime failed:', e));
+                }
+
                 // Same trip again (e.g. a live origin moved a little): keep the option the user picked
                 const key = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
                 let sel = 0;
                 if (transferPreferred) {
-                    const i = opts.findIndex(o => {
+                    const i = finalOpts.findIndex(o => {
                         const j = o.legs.find(l => l.type === 'jeep');
                         return j && (j.routeId === transferPreferred || (j.alsoRoutes || []).includes(transferPreferred));
                     });
                     if (i >= 0) sel = i;
                 } else if (key === transitODKey) {
                     const prevKey = transitOptions[transitSelected] && transitOptions[transitSelected].key;
-                    const i = opts.findIndex(o => o.key === prevKey);
+                    const i = finalOpts.findIndex(o => o.key === prevKey);
                     if (i >= 0) sel = i;
                 }
                 transferPreferred = null;
-                transitOptions = opts;
+                transitOptions = finalOpts;
                 transitODKey = key;
                 transitSelected = sel;
                 renderTransitOptionsUI();
-                await applyTransitOption(opts[sel], straightDistM);
+                await applyTransitOption(finalOpts[sel], straightDistM);
                 return true;
             } catch (e) {
                 console.error('Curated routes failed; using the highway route:', e);
@@ -3701,6 +3927,55 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (!stopId) stopId = tc.choices[0].stopId;
             transferPreferred = null;
+
+            // Collect unique jeep legs from choices
+            const uniqueLegs = [];
+            const seenLegKeys = new Set();
+            tc.choices.forEach(c => {
+                if (c.option && c.option.legs) {
+                    c.option.legs.forEach(leg => {
+                        if (leg.type === 'jeep' && Number.isFinite(leg.fromM) && Number.isFinite(leg.toM)) {
+                            const k = T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
+                            if (!seenLegKeys.has(k)) {
+                                seenLegKeys.add(k);
+                                uniqueLegs.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM });
+                            }
+                        }
+                    });
+                }
+            });
+
+            const trafficPromise = fetchTrafficForLegs(uniqueLegs);
+            let trafficData = null;
+            try {
+                trafficData = await Promise.race([
+                    trafficPromise,
+                    new Promise(r => setTimeout(() => r(null), 2500))
+                ]);
+            } catch (_) {}
+
+            if (trafficData && T.retimeOption) {
+                tc.choices.forEach(c => {
+                    if (c.option) c.option = T.retimeOption(c.option, trafficData);
+                });
+            } else if (!trafficData) {
+                trafficPromise.then((trafficMap) => {
+                    if (!trafficMap || !terminalTC) return;
+                    const currKey = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
+                    if (currKey !== transitODKey) return;
+                    terminalTC.choices.forEach(c => {
+                        if (c.option && T.retimeOption) c.option = T.retimeOption(c.option, trafficMap);
+                    });
+                    transitOptions = terminalTC.choices.map(c => c.option);
+                    renderTransitOptionsUI();
+                    if (transitOptions[transitSelected]) {
+                        currentTransitDur = transitOptions[transitSelected].legs.filter(l => l.type === 'jeep').reduce((s, l) => s + l.min, 0);
+                        updateSummaryRow();
+                        renderItinerary();
+                    }
+                }).catch(e => console.warn('[traffic] Background terminal retime failed:', e));
+            }
+
             terminalTC = tc;
             terminalTrip = {
                 area: tc.area,
@@ -6220,6 +6495,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 arriveTextEl.innerHTML = `${arriveStr}`;
             }
 
+            // Traffic note under itinerary total (Step 4)
+            const activeTransitOpt = (transitOptions && transitOptions[transitSelected]) || null;
+            let trafficNoteEl = document.getElementById('sumTrafficNote');
+            if (activeTransitOpt && activeTransitOpt.traffic && activeTransitOpt.traffic.used) {
+                if (!trafficNoteEl) {
+                    trafficNoteEl = document.createElement('div');
+                    trafficNoteEl.id = 'sumTrafficNote';
+                    trafficNoteEl.className = 'summary-traffic-note';
+                    const sumLeft = document.querySelector('.route-summary-banner .summary-left');
+                    if (sumLeft) {
+                        sumLeft.appendChild(trafficNoteEl);
+                    }
+                }
+                const diffMin = activeTransitOpt.traffic.updated
+                    ? Math.max(0, Math.round((Date.now() - new Date(activeTransitOpt.traffic.updated).getTime()) / 60000))
+                    : 0;
+                const isTl = (window.getCurrentLang && window.getCurrentLang()) === 'tl';
+                trafficNoteEl.textContent = isTl
+                    ? `Kasama ang trapiko (TomTom) · ${diffMin} min ang nakalipas`
+                    : `Includes traffic (TomTom) · updated ${diffMin} min ago`;
+                trafficNoteEl.style.display = 'block';
+            } else {
+                if (trafficNoteEl) {
+                    trafficNoteEl.style.display = 'none';
+                }
+            }
+
             const peek = document.getElementById('peekSummary');
             if (peek) {
                 peek.textContent = selectedMode === 'walking'
@@ -7333,9 +7635,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const pillLegs = document.getElementById('pillItineraryLegs');
             const mainLegs = document.getElementById('itineraryLegs');
             if (pillLegs && mainLegs) pillLegs.innerHTML = mainLegs.innerHTML;
+            startTrafficNavTracking();
         };
 
         function stopLiveTracking() {
+            stopTrafficNavTracking();
             stopCompassListening();
             if (watchId) { navigator.geolocation.clearWatch(watchId); watchId = null; }
             if (geoRetryTimer) { clearTimeout(geoRetryTimer); geoRetryTimer = null; }
@@ -8821,6 +9125,103 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 onRemove() { this._container.remove(); }
             }, 'bottom-right');
+
+            // Traffic Toggle Control & Legend Card
+            map.addControl({
+                onAdd(mapInstance) {
+                    const container = document.createElement('div');
+                    container.className = 'maplibregl-ctrl calzada-traffic-ctrl';
+
+                    const legendCard = document.createElement('div');
+                    legendCard.id = 'trafficLegendCard';
+                    legendCard.className = 'traffic-legend-card';
+                    legendCard.style.display = isTrafficLayerActive() ? 'flex' : 'none';
+
+                    const header = document.createElement('div');
+                    header.className = 'traffic-legend-header';
+                    header.textContent = 'Live · © TomTom';
+                    legendCard.appendChild(header);
+
+                    const states = [
+                        { color: '#2EAB30', en: 'Free-flowing', tl: 'Maluwag' },
+                        { color: '#F1BF40', en: 'Slow', tl: 'Mabagal' },
+                        { color: '#F18237', en: 'Heavy', tl: 'Masikip' },
+                        { color: '#E70704', en: 'Stopped', tl: 'Sobrang sikip' }
+                    ];
+
+                    states.forEach((st) => {
+                        const row = document.createElement('div');
+                        row.className = 'traffic-legend-row';
+                        const swatch = document.createElement('span');
+                        swatch.className = 'traffic-legend-swatch';
+                        swatch.style.backgroundColor = st.color;
+                        const label = document.createElement('span');
+                        label.className = 'traffic-legend-label';
+                        const isTl = (window.getCurrentLang && window.getCurrentLang()) === 'tl';
+                        label.textContent = isTl ? st.tl : st.en;
+                        label.dataset.en = st.en;
+                        label.dataset.tl = st.tl;
+                        row.append(swatch, label);
+                        legendCard.appendChild(row);
+                    });
+
+                    const trafficBtn = document.createElement('button');
+                    trafficBtn.id = 'trafficToggleBtn';
+                    trafficBtn.type = 'button';
+                    trafficBtn.className = 'traffic-toggle-chip' + (isTrafficLayerActive() ? ' is-active' : '');
+                    trafficBtn.setAttribute('aria-pressed', isTrafficLayerActive() ? 'true' : 'false');
+                    trafficBtn.setAttribute('aria-label', 'Toggle traffic layer');
+
+                    const dot = document.createElement('span');
+                    dot.className = 'traffic-toggle-indicator';
+
+                    const btnText = document.createElement('span');
+                    btnText.className = 'traffic-toggle-text';
+                    const isTl = (window.getCurrentLang && window.getCurrentLang()) === 'tl';
+                    btnText.textContent = isTl ? 'Trapiko' : 'Traffic';
+
+                    trafficBtn.append(dot, btnText);
+
+                    trafficBtn.addEventListener('click', () => {
+                        const newState = !isTrafficLayerActive();
+                        setTrafficLayerActive(newState);
+                        trafficBtn.classList.toggle('is-active', newState);
+                        trafficBtn.setAttribute('aria-pressed', newState ? 'true' : 'false');
+                        legendCard.style.display = newState ? 'flex' : 'none';
+
+                        if (mapInstance && mapInstance.getLayer('calzada-traffic-layer')) {
+                            mapInstance.setLayoutProperty('calzada-traffic-layer', 'visibility', newState ? 'visible' : 'none');
+                        }
+                        setTomTomAttribution(newState);
+                        if (newState) {
+                            startTrafficTileRefresh();
+                        } else {
+                            stopTrafficTileRefresh();
+                        }
+                    });
+
+                    window.addEventListener('calzada_lang_changed', () => {
+                        const tlNow = (window.getCurrentLang && window.getCurrentLang()) === 'tl';
+                        btnText.textContent = tlNow ? 'Trapiko' : 'Traffic';
+                        legendCard.querySelectorAll('.traffic-legend-label').forEach((lbl) => {
+                            lbl.textContent = tlNow ? lbl.dataset.tl : lbl.dataset.en;
+                        });
+                    });
+
+                    container.append(trafficBtn, legendCard);
+
+                    if (isTrafficLayerActive()) {
+                        setTomTomAttribution(true);
+                        startTrafficTileRefresh();
+                    }
+
+                    return container;
+                },
+                onRemove() {
+                    stopTrafficTileRefresh();
+                    setTomTomAttribution(false);
+                }
+            }, 'top-right');
 
             // Save battery: stop watching while the tab is hidden, resume on return.
             document.addEventListener('visibilitychange', () => {

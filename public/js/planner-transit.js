@@ -49,7 +49,9 @@
             autoBody: "You'll board here, so your route now starts here.",
             autoRideTitle: (n) => `You're on a jeep from ${n}`,
             autoRideBody: 'Your route now follows this jeep.',
-            autoBefore: (n) => `Before: ${n}`
+            autoBefore: (n) => `Before: ${n}`,
+            trafficDelay: (n) => `Traffic: +${n} min`,
+            trafficNotice: (n) => `Includes traffic (TomTom) · updated ${n} min ago`
         },
         tl: {
             ways: (n) => `${n} paraan`,
@@ -83,7 +85,9 @@
             autoBody: 'Dito ka na sasakay, kaya inilipat na namin ang ruta mo.',
             autoRideTitle: (n) => `Nakasakay ka na mula sa ${n}`,
             autoRideBody: 'Inilipat na namin ang ruta mo sa jeep na ito.',
-            autoBefore: (n) => `Dati: ${n}`
+            autoBefore: (n) => `Dati: ${n}`,
+            trafficDelay: (n) => `May trapiko: +${n} min`,
+            trafficNotice: (n) => `Kasama ang trapiko (TomTom) · ${n} min ang nakalipas`
         }
     };
     const lang = () => {
@@ -218,6 +222,16 @@
             meta.appendChild(document.createTextNode(' · ' + t.nearDest));
         }
         card.appendChild(meta);
+
+        if (opt.traffic && opt.traffic.delayMin >= 3) {
+            const delayEl = el('div', 'czt-traffic-delay');
+            delayEl.style.color = '#B45309';
+            delayEl.style.fontSize = '12px';
+            delayEl.style.fontWeight = '500';
+            delayEl.style.marginTop = '4px';
+            delayEl.textContent = t.trafficDelay(opt.traffic.delayMin);
+            card.appendChild(delayEl);
+        }
         return card;
     }
 
@@ -341,7 +355,7 @@
         top.appendChild(el('span', 'czt-term-fare', peso(opt.fare)));
         body.appendChild(top);
 
-        // e.g. "Recommended · 3 min lakad · Tagaytay / Tanauan", or "lipat dito · Real" from farther away
+        // e.g. "Recommended · 3 min lakad · Tanauan", or "lipat dito · Real" from farther away
         const sub = el('span', 'czt-term-sub');
         const bits = [];
         if (c.recommended) bits.push(el('b', 'czt-term-rec', t.recommended));
@@ -357,6 +371,18 @@
             sub.appendChild(b);
         });
         body.appendChild(sub);
+
+        if (opt && opt.traffic && opt.traffic.delayMin >= 3) {
+            const delayEl = el('span', 'czt-traffic-delay');
+            delayEl.style.color = '#B45309';
+            delayEl.style.fontSize = '12px';
+            delayEl.style.fontWeight = '500';
+            delayEl.style.display = 'block';
+            delayEl.style.marginTop = '4px';
+            delayEl.textContent = t.trafficDelay(opt.traffic.delayMin);
+            body.appendChild(delayEl);
+        }
+
         card.appendChild(body);
         return card;
     }

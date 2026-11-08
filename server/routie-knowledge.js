@@ -160,7 +160,7 @@ const FAQS = [
 
 Key Curated Terminals in Calamba:
 1. SM City Calamba Transport Terminal (East side): Terminal papuntang Halang at Los Baños (UPLB).
-2. SM Calamba Inner Rd Terminal (West inner road by SM Cinema): Terminal papuntang Real (jeeps to Tagaytay and Tanauan via Real).
+2. SM Calamba Inner Rd Terminal (West inner road by SM Cinema): Terminal papuntang Real (jeeps to Tanauan via Real).
 3. Crossing Grand Terminal: Boarding for jeeps to Real, Halang, and Sta. Rosa.
 4. New Calamba Transport Terminal (near CMC): Boarding for jeeps to Real.
 
@@ -178,7 +178,7 @@ When using the Planner, if you are within 60 meters of any terminal, it automati
 
 Pangunahing verified terminals sa Calamba:
 1. SM City Calamba Transport Terminal (East side): Terminal papuntang Halang at Los Baños (UPLB).
-2. SM Calamba Inner Rd Terminal (West inner road tabi ng SM Cinema): Terminal papuntang Real (sakayan ng jeep papuntang Tagaytay at Tanauan via Real).
+2. SM Calamba Inner Rd Terminal (West inner road tabi ng SM Cinema): Terminal papuntang Real (sakayan ng jeep papuntang Tanauan via Real).
 3. Crossing Grand Terminal: Sakayan ng jeep papuntang Real, Halang, at Sta. Rosa.
 4. New Calamba Transport Terminal (malapit sa CMC): Sakayan ng jeep papuntang Real.
 
@@ -191,8 +191,8 @@ Sa Calzada Planner, kapag nasa loob ka ng 60 metro mula sa terminal, awtomatiko 
             'saan sasakay papuntang real', 'saan ang sakayan papuntang real', 'saan ang terminal papuntang real',
             'paano sumakay papuntang real', 'saan terminal papuntang real'
         ],
-        en: 'The primary terminal for Brgy. Real is the SM Calamba Inner Rd Terminal (located by SM Cinema on the west inner road of SM City Calamba, jeeps to Tagaytay/Tanauan via Real). You can also board at Crossing Grand Terminal (north of Crossing triangle) or New Calamba Transport Terminal (near CMC Avenue).',
-        tl: 'Ang pangunahing sakayan papuntang Brgy. Real ay ang SM Calamba Inner Rd Terminal (nasa SM Cinema side / west inner road ng SM City Calamba, sakayan ng jeep pa-Tagaytay/Tanauan via Real). Maaari ka ring sumakay sa Crossing Grand Terminal o New Calamba Transport Terminal (malapit sa CMC Avenue).'
+        en: 'The primary terminal for Brgy. Real is the SM Calamba Inner Rd Terminal (located by SM Cinema on the west inner road of SM City Calamba, jeeps to Tanauan via Real). You can also board at Crossing Grand Terminal (north of Crossing triangle) or New Calamba Transport Terminal (near CMC Avenue).',
+        tl: 'Ang pangunahing sakayan papuntang Brgy. Real ay ang SM Calamba Inner Rd Terminal (nasa SM Cinema side / west inner road ng SM City Calamba, sakayan ng jeep pa-Tanauan via Real). Maaari ka ring sumakay sa Crossing Grand Terminal o New Calamba Transport Terminal (malapit sa CMC Avenue).'
     },
     {
         id: 'terminal_halang',
@@ -224,10 +224,10 @@ const TERMINALS_INFO = [
     },
     {
         name: 'SM Calamba Inner Rd Terminal',
-        aliases: ['sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'calamba tagaytay terminal', 'tagaytay terminal', 'uv terminal sm', 'sm cinema terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
+        aliases: ['calamba tagaytay terminal', 'tagaytay terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'uv terminal sm', 'sm cinema terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
         barangay: 'Uno',
         coords: [14.2032625, 121.1547031],
-        note: 'Located along SM City Calamba inner road / bypass road by SM Cinema. Terminal papuntang Real (jeeps to Tagaytay and Tanauan via Real load here).'
+        note: 'Located along SM City Calamba inner road / bypass road by SM Cinema (Google: "Calamba-Tagaytay Terminal"). Terminal papuntang Real (jeeps to Tanauan via Real load here).'
     },
     {
         name: 'SM Calamba (Cinema side Drop-off)',
@@ -258,7 +258,6 @@ const CALAMBA_AREAS = {
     'los banos': { name: 'Los Baños', coords: [14.175, 121.220] },
     'sta rosa': { name: 'Sta. Rosa (Balibago)', coords: [14.298, 121.109] },
     'balibago': { name: 'Sta. Rosa (Balibago)', coords: [14.298, 121.109] },
-    'tagaytay': { name: 'Tagaytay', coords: [14.115, 120.962] },
     'tanauan': { name: 'Tanauan, Batangas', coords: [14.085, 121.150] }
 };
 
@@ -299,12 +298,12 @@ function detectTagalog(text) {
 function checkScope(text) {
     const norm = normalize(text);
 
-    // Check for clearly out of scope locations (unless it's Tagaytay/Tanauan terminal trips originating in Calamba)
+    // Check for clearly out of scope locations (unless it's Tanauan terminal trips originating in Calamba)
     for (const loc of OUT_OF_SCOPE_LOCATIONS) {
         const regex = new RegExp(`\\b${loc}\\b`, 'i');
         if (regex.test(norm)) {
-            // Exceptions: "Calamba to Tagaytay", "Tagaytay terminal in SM"
-            if ((loc === 'tagaytay' || loc === 'tanauan') && (norm.includes('calamba') || norm.includes('sm') || norm.includes('terminal') || norm.includes('sakayan'))) {
+            // Exceptions: "Tanauan terminal in SM"
+            if (loc === 'tanauan' && (norm.includes('calamba') || norm.includes('sm') || norm.includes('terminal') || norm.includes('sakayan'))) {
                 continue;
             }
             // If it's a local shop/restaurant inquiry (e.g. "Tokyo Grill", "Japan Surplus", "Manila Teachers")

@@ -8823,3 +8823,112 @@ body.cz-route-busy .segment-btn[data-mode] {
         animation: none;
     }
 }
+
+/* Traffic Toggle Chip & Legend (MapLibre Control) */
+.calzada-traffic-ctrl {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    margin: 0 !important;
+    z-index: 100;
+}
+
+.maplibregl-ctrl-top-right .calzada-traffic-ctrl {
+    margin-top: 72px !important;
+    margin-right: 16px !important;
+}
+
+@media (max-width: 767px) {
+    .maplibregl-ctrl-top-right .calzada-traffic-ctrl {
+        margin-top: 96px !important;
+        margin-right: 12px !important;
+    }
+}
+
+.traffic-toggle-chip {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.traffic-toggle-chip:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+}
+
+.traffic-toggle-chip.is-active {
+    background: #FFFFFF;
+    color: #2272C3;
+    border-color: #2272C3;
+}
+
+.traffic-toggle-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #94A3B8;
+}
+
+.traffic-toggle-chip.is-active .traffic-toggle-indicator {
+    background: #2EAB30;
+}
+
+.traffic-legend-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    width: 170px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-family: 'Sora', sans-serif;
+}
+
+.traffic-legend-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748B;
+    margin-bottom: 2px;
+}
+
+.traffic-legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #334155;
+    font-weight: 500;
+}
+
+.traffic-legend-swatch {
+    width: 14px;
+    height: 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.summary-traffic-note {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748B;
+    margin-top: 4px;
+    line-height: 1.3;
+}
+
+body.navigation-active .calzada-traffic-ctrl {
+    display: none !important;
+}

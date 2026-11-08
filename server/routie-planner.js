@@ -85,10 +85,10 @@ const KNOWN_TERMINALS = [
     },
     {
         name: 'SM Calamba Inner Rd Terminal',
-        aliases: ['sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'calamba tagaytay terminal', 'tagaytay terminal', 'sm cinema terminal', 'sm west terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
+        aliases: ['calamba tagaytay terminal', 'tagaytay terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'sm cinema terminal', 'sm west terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
         barangay: 'Uno',
         coords: [14.2032625, 121.1547031],
-        note: 'SM City Calamba inner road / bypass road by SM Cinema. Terminal papuntang Real (jeeps to Tagaytay and Tanauan via Real).'
+        note: 'SM City Calamba inner road / bypass road by SM Cinema (Google: "Calamba-Tagaytay Terminal"). Terminal papuntang Real (jeeps to Tanauan via Real).'
     },
     {
         name: 'SM Calamba (Cinema side Drop-off)',
@@ -131,7 +131,6 @@ const KNOWN_AREAS = {
     'los banos': { name: 'Los Baños', coords: [14.175, 121.220], barangay: 'Los Baños', outsideCalamba: true },
     'sta rosa': { name: 'Sta. Rosa (Balibago)', coords: [14.298, 121.109], barangay: 'Sta. Rosa', outsideCalamba: true },
     'balibago': { name: 'Sta. Rosa (Balibago)', coords: [14.298, 121.109], barangay: 'Sta. Rosa', outsideCalamba: true },
-    'tagaytay': { name: 'Tagaytay', coords: [14.115, 120.962], barangay: 'Tagaytay', outsideCalamba: true },
     'tanauan': { name: 'Tanauan, Batangas', coords: [14.085, 121.150], barangay: 'Tanauan', outsideCalamba: true }
 };
 

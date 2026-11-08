@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.5.1)
+ * Calzada transit engine (v1.6.0)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -17,6 +17,9 @@
  * No boarding on the road at Calamba Crossing / SM (1.5.1): in Uno a jeep is boarded only at a terminal
  * or listed stop (roadBoardingOk); along the road elsewhere it can still be flagged down.
  *
+ * Traffic-aware ETA (1.6.0): TomTom Routing travel time per jeep ride slice with JEEP_TRAFFIC_FACTOR,
+ * retime() recomputes ride times, delay minutes, tags, and clamps speed between 6 and 30 km/h.
+ *
  * Distances here are estimates (straight line x 1.25 for walks, along the route path for rides);
  * the planner replaces the walks of the option it shows with real foot routes.
  *
@@ -32,6 +35,7 @@
     // Same speeds and buffer as the planner, so option cards and the itinerary agree
     const WALK_SPEED_KPH = 4.0;      // door to door in town, 15 min per km
     const JEEP_SPEED_KPH = 20;
+    const JEEP_TRAFFIC_FACTOR = 0.75; // a jeep covers the same road at ~75% of car speed because it stops to load
     const BOARDING_BUFFER_MIN = 3;   // per jeep ride (waiting + boarding)
     const TRANSFER_EXTRA_MIN = 2;    // finding the next jeep
     const WALK_FACTOR = 1.25;        // straight line -> street walk
@@ -228,6 +232,10 @@
             signboard: info.signboard,
             board,
             alight,
+            boardPos,
+            alightPos,
+            fromM: Math.round(Math.min(boardPos, alightPos)),
+            toM: Math.round(Math.max(boardPos, alightPos)),
             coords: slicePath(r, boardPos, alightPos),
             distM,
             min: rideMin(distM),
@@ -523,10 +531,10 @@
             return s ? s.pos : null;
         }
 
-        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn };
+        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, legKey, retime, retimeOption };
     }
 
-    // Same trip on different routes (e.g. Tagaytay or Tanauan jeep from SM to Real): one card
+    // Same trip on different routes: one card
     function mergeTwins(list) {
         const out = [];
         list.forEach((o) => {
@@ -581,6 +589,96 @@
         return shown.map((o, i) => ({ ...o, index: i }));
     }
 
+    // Computes jeep ride travel seconds from live traffic data, clamping public road speed (6-30 km/h)
+    // and adding private driveway meters (privateM) at flat 20 km/h (not divided by factor).
+    function jeepSecFromTraffic(tData, distM) {
+        if (!tData || tData.live !== true) return null;
+        const privateM = Number(tData.privateM) || 0;
+        const totalM = distM != null
+            ? Number(distM)
+            : ((tData.toM != null && tData.fromM != null)
+                ? (tData.toM - tData.fromM)
+                : (Number(tData.lengthM || 0) + privateM));
+        const publicDistM = Math.max(0, totalM - privateM);
+        const rawPublicJeepSec = tData.travelSec / JEEP_TRAFFIC_FACTOR;
+        const minSec = (publicDistM * 3.6) / 30; // 30 km/h cap on public road
+        const maxSec = (publicDistM * 3.6) / 6;  // 6 km/h floor on public road
+        const clampedPublicJeepSec = Math.max(minSec, Math.min(maxSec, rawPublicJeepSec));
+        const privateSec = (privateM * 3.6) / JEEP_SPEED_KPH; // flat 20 km/h on private driveway
+        return clampedPublicJeepSec + privateSec;
+    }
+
+    // Cache key for leg traffic: 50m rounding matching server/traffic.js
+    function legKey(routeId, fromM, toM) {
+        const f = Math.round(Number(fromM) / 50) * 50;
+        const t = Math.round(Number(toM) / 50) * 50;
+        return `${routeId}:${f}:${t}`;
+    }
+
+    // Retimes a single option given a map or object of legKey -> traffic result
+    function retimeOption(opt, trafficByKey) {
+        if (!opt || !Array.isArray(opt.legs)) return opt;
+        let optionHasLive = false;
+        let totalJeepDelaySec = 0;
+        let latestUpdated = null;
+
+        const newLegs = opt.legs.map((leg) => {
+            if (leg.type !== 'jeep') return { ...leg };
+            const copy = { ...leg };
+            if (copy.alsoHeadsigns) copy.alsoHeadsigns = [...copy.alsoHeadsigns];
+            if (copy.alsoRoutes) copy.alsoRoutes = [...copy.alsoRoutes];
+
+            const key = legKey(copy.routeId, copy.fromM, copy.toM);
+            const tData = trafficByKey ? (trafficByKey instanceof Map ? trafficByKey.get(key) : trafficByKey[key]) : null;
+
+            if (tData && tData.live === true) {
+                optionHasLive = true;
+                const totalJeepSec = jeepSecFromTraffic(tData, copy.distM);
+                const travelMin = Math.max(1, Math.round(totalJeepSec / 60));
+                copy.min = travelMin + BOARDING_BUFFER_MIN;
+
+                const noTraffic = tData.noTrafficSec != null ? tData.noTrafficSec : tData.travelSec;
+                const legDelaySec = Math.max(0, tData.travelSec - noTraffic) / JEEP_TRAFFIC_FACTOR;
+                totalJeepDelaySec += legDelaySec;
+                if (tData.updated && (!latestUpdated || tData.updated > latestUpdated)) {
+                    latestUpdated = tData.updated;
+                }
+            }
+            return copy;
+        });
+
+        const jeeps = newLegs.filter((l) => l.type === 'jeep');
+        const totalMin = newLegs.reduce((s, l) => s + l.min, 0) + Math.max(0, jeeps.length - 1) * TRANSFER_EXTRA_MIN;
+        const walkTotalMin = newLegs.filter((l) => l.type === 'walk').reduce((s, l) => s + l.min, 0);
+        const cost = opt.fare + COST_PER_MIN * totalMin + COST_PER_TRANSFER * opt.transfers + COST_PER_WALK_MIN * walkTotalMin;
+
+        const traffic = {
+            used: optionHasLive,
+            delayMin: optionHasLive ? Math.round(totalJeepDelaySec / 60) : 0,
+            updated: optionHasLive ? (latestUpdated || new Date().toISOString()) : null
+        };
+
+        return {
+            ...opt,
+            legs: newLegs,
+            totalMin,
+            cost,
+            tags: [],
+            traffic
+        };
+    }
+
+    // Retimes an array of options (or single option) and re-runs ranking
+    function retime(options, trafficByKey) {
+        if (!options) return options;
+        if (!Array.isArray(options)) {
+            return retimeOption(options, trafficByKey);
+        }
+        if (!options.length) return [];
+        const retimed = options.map((o) => retimeOption(o, trafficByKey));
+        return rank(retimed);
+    }
+
     // ── Loading ─────────────────────────────────────────────────────────────────
     let loadPromise = null;
     let planner = null;
@@ -612,7 +710,7 @@
     }
 
     return {
-        VERSION: '1.5.1',
+        VERSION: '1.6.2',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
@@ -630,6 +728,11 @@
         haversineM,
         walkMin,
         rideMin,
-        constants: { WALK_SPEED_KPH, JEEP_SPEED_KPH, BOARDING_BUFFER_MIN, TRANSFER_EXTRA_MIN, MAX_ACCESS_WALK_M }
+        legKey,
+        jeepSecFromTraffic,
+        retime,
+        retimeOption,
+        JEEP_TRAFFIC_FACTOR,
+        constants: { WALK_SPEED_KPH, JEEP_SPEED_KPH, JEEP_TRAFFIC_FACTOR, BOARDING_BUFFER_MIN, TRANSFER_EXTRA_MIN, MAX_ACCESS_WALK_M }
     };
 }));
