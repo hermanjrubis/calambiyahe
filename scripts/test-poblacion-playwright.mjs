@@ -126,6 +126,36 @@ try {
 
         await context.close();
     }
+
+    // Offline route PDF of a trip with a transfer (Lawa -> Real): same total time and fare as the app,
+    // both jeeps and the last walk in the timeline data
+    console.log('\n=== Route PDF: transfer trip ===');
+    {
+        const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await preparePage(context);
+        await page.goto(trip([14.2190, 121.1330], 'Lawa', [14.1905, 121.1450], 'Real'), { waitUntil: 'domcontentloaded' });
+        await page.waitForFunction(() => window._calzadaGetRouteExportData && window.map && window.map.getSource('next-transit-route'), { timeout: 20000 });
+        await page.waitForTimeout(5000);
+        const r = await page.evaluate(async () => {
+            const data = window._calzadaGetRouteExportData();
+            const blob = await window.CalzadaRoutePdf.generateRoutePdfBlob(data);
+            const num = (id) => parseInt((document.getElementById(id) || {}).textContent.replace(/[^0-9]/g, ''), 10);
+            return {
+                size: blob.size,
+                pages: (window._calzadaLastPdfPages || []).length,
+                pdfMin: data._pdfTotalMin,
+                pdfFare: data._pdfRegularFare,
+                appMin: num('sumTime'),
+                appFare: num('sumFare'),
+                transfer: data.transfer ? { board: data.transfer.boardName, jeepKm: data.transfer.jeep.distM / 1000, walkM: data.transfer.finalWalkM } : null
+            };
+        });
+        assert(r.size > 50000 && r.pages >= 1, `PDF built (${Math.round(r.size / 1024)} KB, ${r.pages} pages)`);
+        assert(!!r.transfer && r.transfer.jeepKm > 0 && r.transfer.walkM > 0, `export data has the next jeep and the last walk (${JSON.stringify(r.transfer)})`);
+        assert(r.pdfMin === r.appMin, `PDF total time = app (${r.pdfMin} vs ${r.appMin} min)`);
+        assert(r.pdfFare === r.appFare, `PDF fare = app, both jeeps (₱${r.pdfFare} vs ₱${r.appFare})`);
+        await context.close();
+    }
 } finally {
     await browser.close();
     server.close();

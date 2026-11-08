@@ -1,5 +1,5 @@
 /**
- * Calzada Route PDF Exporter (Offline Route Export) v1.0.7
+ * Calzada Route PDF Exporter (Offline Route Export) v1.1.0 (transfer trips: both jeeps, last walk, totals)
  * 
  * Generates an A4 portrait PDF for a planned route on the planner.
  * Works entirely client-side on the device; nothing is uploaded.
@@ -304,7 +304,8 @@
         if (destLL) pts.push(destLL);
         if (boardingLL) pts.push(boardingLL);
         if (alightingLL) pts.push(alightingLL);
-        [...walkCoords, ...transitCoords, ...finalWalkCoords].forEach(c => {
+        const xferCoords = routeData.transfer ? [...(routeData.transfer.jeepCoords || []), ...(routeData.transfer.finalWalkCoords || [])] : [];
+        [...walkCoords, ...transitCoords, ...finalWalkCoords, ...xferCoords].forEach(c => {
             const ll = toLL(c);
             if (ll) pts.push(ll);
         });
@@ -395,6 +396,15 @@
             drawLeg([alightingLL, destLL], true, '#64748B', 5);
         } else if (routeData.selectedMode === 'walking' && origLL && destLL && walkCoords.length < 2) {
             drawLeg([origLL, destLL], true, '#64748B', 5);
+        }
+
+        // 4. Transfer: the next jeep (light blue, as in the app) and the walk after it
+        if (routeData.transfer && routeData.selectedMode !== 'walking') {
+            const j2 = routeData.transfer.jeepCoords || [];
+            const w2 = routeData.transfer.finalWalkCoords || [];
+            if (j2.length >= 2) drawLeg(j2, false, '#8DB8E8', 8);
+            if (w2.length >= 2) drawLeg(w2, true, '#64748B', 5);
+            else if (j2.length && destLL) drawLeg([j2[j2.length - 1], destLL], true, '#64748B', 5);
         }
 
         // Draw pill label helper
@@ -655,6 +665,10 @@
             addCoordList(walkCoords);
             addCoordList(transitCoords);
             addCoordList(finalWalkCoords);
+            if (routeData.transfer) {
+                addCoordList(routeData.transfer.jeepCoords);
+                addCoordList(routeData.transfer.finalWalkCoords);
+            }
 
             if (bounds.isEmpty() && window._calzadaPreviewRouteBounds && !window._calzadaPreviewRouteBounds.isEmpty()) {
                 bounds = window._calzadaPreviewRouteBounds;
@@ -1072,10 +1086,50 @@
         const signboard = routeData.transitRouteGeojson?.signboard
             || routeData.transitRouteGeojson?.routeName
             || routeData.transitRouteGeojson?.route_name;
-        const jeepMeta = `Jeepney · ${transitDur} min · ${transitDistKm} km${signboard ? ` (${(isTl ? 'Karatula' : 'Signboard')}: ${signboard})` : ''}`;
+        // No signboard on record (e.g. the terminal jeeps to Real / Halang): the headsign, as the app shows it
+        const headsign = !signboard && routeData.transitRouteGeojson?.curated ? routeData.transitRouteGeojson.headsign : null;
+        const jeepLabel = signboard
+            ? ` (${(isTl ? 'Karatula' : 'Signboard')}: ${signboard})`
+            : (headsign ? ` (${isTl ? 'Jeep papuntang' : 'Jeep to'} ${headsign})` : '');
+        const jeepMeta = `Jeepney · ${transitDur} min · ${transitDistKm} km${jeepLabel}`;
         rowsHtml += renderLeg(false, jeepMeta, fareStr);
 
-        if (stopsInfo.finalWalkM > 0) {
+        const xfer = (routeData.transfer && routeData.transfer.jeep) ? routeData.transfer : null;
+        if (xfer) {
+            // Get off, (walk), next jeep, (get off, walk), destination: the rows of the app's itinerary
+            const fmtPeso = (v) => (window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(v) : `₱${Number(v).toFixed(2)}`);
+            const walkMeta = (m, min) => (isTl ? `Maglakad ${formatDistanceMeters(m)} · ${min} min` : `Walk ${formatDistanceMeters(m)} · ${min} min`);
+            const alightTime = new Date(boardTime.getTime() + transitDur * 60 * 1000);
+            const xWalkM = stopsInfo.finalWalkM || 0;
+            const xWalkMin = stopsInfo.finalWalkMin || 0;
+            const sameStop = !(xWalkM > 0);
+            const sameName = (xfer.boardName || '').trim().toLowerCase() === (alightAt || '').trim().toLowerCase();
+            rowsHtml += renderStop(formatTime12(alightTime), '#378ADD', alightAt,
+                (sameStop && sameName) ? (isTl ? 'Bumaba at sumakay ng susunod na jeep dito' : 'Get off and change jeeps here') : getOffSub);
+            let changeTime = alightTime;
+            if (sameStop && !sameName) {
+                rowsHtml += renderStop(formatTime12(alightTime), '#378ADD', xfer.boardName, isTl ? 'Sumakay ng susunod na jeep dito' : 'Take the next jeep here');
+            }
+            if (!sameStop) {
+                const via = isTl ? (xfer.via_tl || xfer.via) : xfer.via;
+                rowsHtml += renderLeg(true, walkMeta(xWalkM, xWalkMin) + (via ? ` (${via})` : ''), freeLabel);
+                changeTime = new Date(alightTime.getTime() + xWalkMin * 60 * 1000);
+                rowsHtml += renderStop(formatTime12(changeTime), '#378ADD', xfer.boardName, isTl ? 'Sumakay ng susunod na jeep dito' : 'Take the next jeep here');
+            }
+            const j = xfer.jeep;
+            const label2 = j.signboard
+                ? ` (${isTl ? 'Karatula' : 'Signboard'}: ${j.signboard})`
+                : (j.headsign ? ` (${isTl ? 'Jeep papuntang' : 'Jeep to'} ${j.headsign})` : '');
+            rowsHtml += renderLeg(false, `Jeepney · ${j.min} min · ${((j.distM || 0) / 1000).toFixed(1)} km${label2}`, fmtPeso(j.fare || 0));
+            const alight2 = new Date(changeTime.getTime() + ((xfer.waitMin || 0) + (j.min || 0)) * 60 * 1000);
+            if (xfer.finalWalkM > 0) {
+                rowsHtml += renderStop(formatTime12(alight2), '#378ADD', j.alightName || (isTl ? 'Babaan' : 'Stop'), getOffSub);
+                rowsHtml += renderLeg(true, walkMeta(xfer.finalWalkM, xfer.finalWalkMin || 1), freeLabel);
+                rowsHtml += renderStop(formatTime12(arrTime), '#EF4444', routeData.destName, null);
+            } else {
+                rowsHtml += renderStop(formatTime12(arrTime), '#EF4444', routeData.destName, getOffSub);
+            }
+        } else if (stopsInfo.finalWalkM > 0) {
             const alightTime = new Date(boardTime.getTime() + transitDur * 60 * 1000);
             rowsHtml += renderStop(formatTime12(alightTime), '#378ADD', alightAt, getOffSub);
             const walk2Meta = isTl
@@ -1118,13 +1172,15 @@
             if (step.mode === 'foot' && nextMode && (nextMode === 'driving' || nextMode === 'jeepney')) {
                 stepStopName = boardAt || stepStopName;
             }
-            if ((step.mode === 'driving' || step.mode === 'jeepney') && (isLast || (nextMode && nextMode === 'foot'))) {
+            if ((step.mode === 'driving' || step.mode === 'jeepney') && (isLast || (nextMode && nextMode !== 'driving' && nextMode !== 'jeepney'))) {
                 stepStopName = alightAt || stepStopName;
                 stepGetOffStop = alightAt || stepGetOffStop;
             }
 
             let text = '';
-            if (typeof window.formatStepInstruction === 'function') {
+            if (step.pdfText) {
+                text = step.pdfText;
+            } else if (typeof window.formatStepInstruction === 'function') {
                 text = window.formatStepInstruction(step, step.mode, {
                     isLastStep: isLast,
                     nextMode,
@@ -1150,6 +1206,39 @@
                 </div>
             `;
         }).join('');
+    }
+
+    // The steps after the first jeep of a transfer: ride the next jeep, get off, walk to the destination.
+    // (The app's steps end at the next jeep's stop; the walk there is already in them.)
+    function withTransferSteps(steps, xfer, destName, isTl) {
+        if (!xfer || !xfer.jeep) return steps;
+        const j = xfer.jeep;
+        const out = steps.slice();
+        const sign = j.signboard ? ` (${isTl ? 'Karatula' : 'Signboard'}: ${j.signboard})` : '';
+        const to = j.headsign || j.alightName || destName;
+        out.push({
+            mode: 'note',
+            distance: j.distM || 0,
+            pdfText: isTl
+                ? `Sumakay ng jeep papuntang ${to} sa ${xfer.boardName}${sign}`
+                : `Take the jeep to ${to} at ${xfer.boardName}${sign}`
+        });
+        const stop = j.alightName || destName;
+        out.push({ mode: 'note', distance: 0, pdfText: isTl ? `Bumaba sa ${stop}` : `Get off at ${stop}` });
+        if (xfer.finalWalkM > 0) {
+            const named = (xfer.finalWalkSteps || []).filter((s) => s && s.maneuver && s.maneuver.type !== 'arrive' && (s.name || '').trim());
+            if (named.length > 1) {
+                named.forEach((s) => out.push({ ...s, mode: 'foot' }));
+                out.push({ mode: 'note', distance: 0, pdfText: isTl ? `Dumating sa ${destName}` : `Arrive at ${destName}` });
+            } else {
+                out.push({
+                    mode: 'note',
+                    distance: xfer.finalWalkM,
+                    pdfText: isTl ? `Maglakad papunta sa ${destName}` : `Walk to ${destName}`
+                });
+            }
+        }
+        return out;
     }
 
     function createPageElement({
@@ -1402,7 +1491,9 @@
         const depTime = routeData.journeyStartedAt
             ? new Date(routeData.journeyStartedAt)
             : (routeData.leaveAt ? new Date(routeData.leaveAt) : now);
-        const totalMin = (routeData.walkDur || 0) + (routeData.transitDur || 0) + finalWalkMin;
+        // Trip with a transfer (planner's pendingTransfer): wait + next jeep + the walk after it, as in the app
+        const xfer = (!isWalkOnly && routeData.transfer && routeData.transfer.jeep) ? routeData.transfer : null;
+        const totalMin = (routeData.walkDur || 0) + (routeData.transitDur || 0) + finalWalkMin + (xfer ? (xfer.extraMin || 0) : 0);
         const arrTime = routeData.arriveAt
             ? new Date(routeData.arriveAt)
             : new Date(depTime.getTime() + totalMin * 60 * 1000);
@@ -1411,7 +1502,9 @@
             : `Leave ${formatTime12(depTime)} · Arrive ${formatTime12(arrTime)}`;
 
         const totalDurationText = `${totalMin} min`;
-        const totalDistanceText = `${((routeData.walkDist || 0) + (routeData.transitDist || 0) + (finalWalkM / 1000)).toFixed(1)} km`;
+        routeData._pdfTotalMin = totalMin; // checked against the app's summary in scripts/test-poblacion-playwright.mjs
+        const xferKm = xfer ? ((xfer.jeep.distM || 0) + (xfer.finalWalkM || 0)) / 1000 : 0;
+        const totalDistanceText = `${((routeData.walkDist || 0) + (routeData.transitDist || 0) + (finalWalkM / 1000) + xferKm).toFixed(1)} km`;
 
         let fareSummaryText = '';
         if (isWalkOnly) {
@@ -1433,11 +1526,22 @@
                 regularFare = routeData.fare;
             }
 
+            // Both jeeps of a transfer: each ride is its own fare
+            let discountedFare = fareData.discounted;
+            if (xfer) {
+                const km2 = (xfer.jeep.distM || 0) / 1000;
+                const fare2 = (window.CalzadaFare && typeof window.CalzadaFare.fares === 'function')
+                    ? window.CalzadaFare.fares(km2)
+                    : { regular: xfer.jeep.fare || 14.00, discounted: 11.20 };
+                regularFare += (xfer.jeep.fare > 0 ? xfer.jeep.fare : fare2.regular);
+                discountedFare += fare2.discounted;
+            }
+
             routeData._pdfRegularFare = regularFare;
-            routeData._pdfDiscountedFare = fareData.discounted;
+            routeData._pdfDiscountedFare = discountedFare;
 
             const regStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(regularFare) : `₱${regularFare.toFixed(2)}`;
-            const discStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(fareData.discounted) : `₱${fareData.discounted.toFixed(2)}`;
+            const discStr = window.CalzadaFare?.formatPeso ? window.CalzadaFare.formatPeso(discountedFare) : `₱${discountedFare.toFixed(2)}`;
             fareSummaryText = isTl
                 ? `Regular: ${regStr} · Estudyante/Senior/PWD: ${discStr}`
                 : `Regular: ${regStr} · Student/Senior/PWD: ${discStr}`;
@@ -1475,7 +1579,7 @@
         // Measure / Paginate
         // Measure / Paginate
         // Fill pages by measured height, not a fixed count.
-        const steps = routeData.activeRouteSteps || [];
+        const steps = withTransferSteps(routeData.activeRouteSteps || [], xfer, routeData.destName, isTl);
         const pageConfigs = [];
 
         // Dynamic height measurement and packing helper
