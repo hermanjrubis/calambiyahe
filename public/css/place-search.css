@@ -231,8 +231,13 @@
 }
 
 .cps-tile {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+    max-width: 48px;
+    max-height: 48px;
+    flex: none;
     flex-shrink: 0;
     border-radius: 12px;
     background: #EAF2FC;
@@ -240,6 +245,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
     font-size: 20px;
 }
 
@@ -248,10 +256,63 @@
     color: #475569;
 }
 
+/* Image containment inside result row slot: strictly bounded, NEVER overflow */
+.cps-tile img {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+    object-fit: contain;
+    border: 0;
+}
+
+/* Real logos: object-fit contain with light padding and a crisp light/white background */
+.cps-tile--logo {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+}
+
+.cps-tile--logo img {
+    object-fit: contain;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+/* Storefront photos: object-fit cover full slot area */
+.cps-tile--photo {
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+}
+
+.cps-tile--photo img {
+    object-fit: cover;
+    padding: 0;
+}
+
+/* Neutral crisp category SVGs */
+.cps-tile svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    display: block;
+    flex-shrink: 0;
+}
+
 .cps-shortcut .cps-tile {
     width: 36px;
     height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 36px;
+    max-height: 36px;
     border-radius: 10px;
+}
+
+.cps-shortcut .cps-tile svg {
+    width: 20px;
+    height: 20px;
 }
 
 /* Section headings */
@@ -304,11 +365,13 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: 56px;
+    min-height: 60px;
     padding: 8px 8px;
     margin: 0 -8px;
     border-radius: 12px;
     cursor: pointer;
+    box-sizing: border-box;
+    position: relative;
 }
 
 .cps-row.is-active,
@@ -322,6 +385,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
+    overflow: hidden;
 }
 
 .cps-row-name {

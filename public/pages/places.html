@@ -1063,6 +1063,7 @@
     <script src="../js/legal-modal.js?v=3.2.0"></script>
     <script src="../js/script.js?v=2.7.0"></script>
     <script src="../js/i18n.js?v=2.12.1"></script>
+    <script src="../js/category-icons.js?v=1.0.0"></script>
     <script src="../js/places-shared.js?v=3.0.3"></script>
     <script src="../js/plans-config.js?v=3.0.0"></script>
     <script src="../js/visibility.js?v=3.0.1"></script>
@@ -1484,9 +1485,12 @@
 
                     let mediaHtml = '';
                     if (hasImagePath) {
-                        mediaHtml = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'ref-img-placeholder\\'><svg width=\\'32\\' height=\\'32\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'#378ADD\\' stroke-width=\\'1.75\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1\\'/></svg></div>';">`;
+                        mediaHtml = `<img src="${escapeHtml(imagePath)}" alt="${escapeHtml(name)}" class="ref-card-img" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover;" onerror="if(window.CalzadaCategoryIcons){window.CalzadaCategoryIcons.handleImgError(this,'${escapeHtml(category)}');}else{this.onerror=null;this.parentElement.innerHTML='<div class=\\'ref-img-placeholder\\'><svg width=\\'32\\' height=\\'32\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'#378ADD\\' stroke-width=\\'1.75\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><path d=\\'M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1\\'/></svg></div>';}">`;
                     } else {
-                        mediaHtml = `<div class="ref-img-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/></svg></div>`;
+                        const catSvg = window.CalzadaCategoryIcons
+                            ? window.CalzadaCategoryIcons.getSvg(category, { size: 36, strokeWidth: 1.75, color: '#378ADD' })
+                            : '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#378ADD" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1"/></svg>';
+                        mediaHtml = `<div class="ref-img-placeholder">${catSvg}</div>`;
                     }
 
                     const outsideLabelText = (window.t ? window.t('scope.outside_area') : 'Outside our area');
@@ -2245,18 +2249,22 @@
                     row.setAttribute('aria-selected', 'false');
                     row.setAttribute('tabindex', '-1');
 
-                    const rawImg = place.photo || place.image_path || '';
+                    const isLogo = Boolean(place.logo || place.logoUrl);
+                    const rawImg = place.logo || place.logoUrl || place.photo || place.thumbnailUrl || place.profilePhotoUrl || place.image_path || '';
                     const hasImg = rawImg && typeof rawImg === 'string' && rawImg.trim() !== '';
                     const imgSrc = hasImg ? resolvePlaceImageUrl(rawImg) : '';
 
                     const subText = formatPlaceSubtitle(place);
+                    const catSvg = window.CalzadaCategoryIcons
+                        ? window.CalzadaCategoryIcons.getSvg(place.category, { size: 24, strokeWidth: 2 })
+                        : '<i class="ti ti-map-pin" aria-hidden="true"></i>';
 
                     const thumbHtml = hasImg
-                        ? `<img src="${escapeHtml(imgSrc)}" alt="" loading="lazy" decoding="async" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\\'search-result-thumb-placeholder\\'><i class=\\'ti ti-map-pin\\' aria-hidden=\\'true\\'></i></div>';">`
-                        : `<div class="search-result-thumb-placeholder"><i class="ti ti-map-pin" aria-hidden="true"></i></div>`;
+                        ? `<img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(place.name || '')}" loading="lazy" decoding="async" style="${isLogo ? 'object-fit: contain; padding: 3px;' : 'object-fit: cover;'}" onerror="this.onerror=null;this.parentElement.className='search-result-thumb';this.parentElement.innerHTML='<div class=\\'search-result-thumb-placeholder\\'>${catSvg.replace(/'/g, "\\'")}</div>';">`
+                        : `<div class="search-result-thumb-placeholder">${catSvg}</div>`;
 
                     row.innerHTML = `
-                        <div class="search-result-thumb" aria-hidden="true">
+                        <div class="search-result-thumb${isLogo ? ' search-result-thumb--logo' : ''}" aria-hidden="true">
                             ${thumbHtml}
                         </div>
                         <div class="search-result-info">

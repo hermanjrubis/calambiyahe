@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const multer = require('multer');
+const sharp = require('sharp');
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 if (!process.env.GROQ_API_KEY) {
@@ -1643,8 +1644,18 @@ app.post('/api/businesses/upload-photo', requireAuth, (req, res) => {
 
         try {
             const safeFileName = crypto.randomBytes(8).toString('hex');
+            let uploadBufferData = file.buffer;
+            try {
+                // Resize profile photo / logo to max 512px on upload to prevent bloated assets
+                uploadBufferData = await sharp(file.buffer)
+                    .resize(512, 512, { fit: 'inside', withoutEnlargement: true })
+                    .toBuffer();
+            } catch (resizeErr) {
+                console.warn('sharp resize failed for profile photo, using original buffer:', resizeErr.message);
+            }
+
             const { url: fileUrl } = await uploadBuffer(
-                file.buffer,
+                uploadBufferData,
                 `calzada/businesses/${businessId}`,
                 safeFileName
             );
@@ -1723,8 +1734,19 @@ app.post('/api/businesses/upload-thumbnail', requireAuth, (req, res) => {
         }
 
         try {
+            let uploadBufferData = file.buffer;
+            // Downscale logos to max 512px; storefront photos to max 1280px
+            const maxDim = prefix === 'logo' ? 512 : 1280;
+            try {
+                uploadBufferData = await sharp(file.buffer)
+                    .resize(maxDim, maxDim, { fit: 'inside', withoutEnlargement: true })
+                    .toBuffer();
+            } catch (resizeErr) {
+                console.warn(`sharp resize failed for ${prefix}, using original buffer:`, resizeErr.message);
+            }
+
             const { url: fileUrl } = await uploadBuffer(
-                file.buffer,
+                uploadBufferData,
                 `calzada/businesses/${uid}`,
                 `${prefix}_${safeFileName}`
             );

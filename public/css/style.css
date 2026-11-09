@@ -5828,8 +5828,30 @@ body.chat-active .chat-toggle-pill {
 .search-result-thumb img {
     width: 100%;
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: cover;
     border-radius: 10px;
+}
+
+.search-result-thumb--logo {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+}
+
+.search-result-thumb--logo img {
+    object-fit: contain;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+.search-result-thumb svg,
+.search-result-thumb-placeholder svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    display: block;
 }
 
 .search-result-thumb-placeholder {
