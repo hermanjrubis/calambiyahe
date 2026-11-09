@@ -10814,12 +10814,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (drawerRoutieBtn) {
             drawerRoutieBtn.addEventListener('click', () => {
                 toggleDrawer(false);
-                document.getElementById('chatWindow').classList.add('open');
+                if (typeof window.openChat === 'function') {
+                    window.openChat();
+                } else {
+                    const cw = document.getElementById('chatWindow');
+                    if (cw) cw.classList.add('open');
+                }
             });
         }
-        document.getElementById('closeChatBtn').addEventListener('click', () => {
-            document.getElementById('chatWindow').classList.remove('open');
-        });
+        const closeChatBtn = document.getElementById('closeChatBtn');
+        if (closeChatBtn) {
+            closeChatBtn.addEventListener('click', () => {
+                if (typeof window.closeChat === 'function') {
+                    window.closeChat();
+                } else {
+                    const cw = document.getElementById('chatWindow');
+                    if (cw) cw.classList.remove('open');
+                }
+            });
+        }
 
         // =============================================
         // ACTIVE JOURNEY FROM BEFORE A RELOAD

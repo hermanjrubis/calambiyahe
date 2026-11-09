@@ -446,9 +446,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ensure body scroll lock is cleared if navigating away
     window.addEventListener('pagehide', () => {
         document.body.style.overflow = '';
+        if (typeof unlockChatBodyScroll === 'function' && isChatBodyScrollLocked) {
+            unlockChatBodyScroll();
+        }
     });
     window.addEventListener('beforeunload', () => {
         document.body.style.overflow = '';
+        if (typeof unlockChatBodyScroll === 'function' && isChatBodyScrollLocked) {
+            unlockChatBodyScroll();
+        }
     });
 
     // === VIRTUAL KEYBOARD DETECT (Mobile UI Fix) ===
@@ -541,6 +547,108 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     startRoutieAttentionLoop();
+
+    // === MOBILE VISUAL VIEWPORT & BODY SCROLL LOCK FOR ROUTIE CHAT ===
+    let savedChatScrollY = 0;
+    let isChatBodyScrollLocked = false;
+    let isChatVisualViewportActive = false;
+
+    function isMobileChatLayout() {
+        return window.matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches;
+    }
+
+    function scrollChatToBottom() {
+        if (!chatMessages) return;
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        requestAnimationFrame(() => {
+            if (chatMessages) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            setTimeout(() => {
+                if (chatMessages) {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            }, 180);
+        });
+    }
+
+    function syncChatVisualViewport() {
+        if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        if (!window.visualViewport) return;
+
+        const vv = window.visualViewport;
+        const vvh = vv.height;
+        const vvt = vv.offsetTop;
+
+        chatWindow.style.setProperty('--vvh', `${vvh}px`);
+        chatWindow.style.setProperty('--vvt', `${vvt}px`);
+
+        // If iOS shifts the document, cancel it immediately while chat is open
+        if (window.scrollY !== 0) {
+            window.scrollTo(0, 0);
+        }
+
+        scrollChatToBottom();
+    }
+
+    function lockChatBodyScroll() {
+        if (isChatBodyScrollLocked) return;
+        savedChatScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+        isChatBodyScrollLocked = true;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${savedChatScrollY}px`;
+        document.body.style.width = '100%';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+    }
+
+    function unlockChatBodyScroll() {
+        if (!isChatBodyScrollLocked) return;
+        isChatBodyScrollLocked = false;
+        const restoreY = savedChatScrollY;
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        window.scrollTo(0, restoreY);
+    }
+
+    function attachMobileViewportListeners() {
+        if (isChatVisualViewportActive) return;
+        if (!window.visualViewport) return;
+        isChatVisualViewportActive = true;
+        window.visualViewport.addEventListener('resize', syncChatVisualViewport);
+        window.visualViewport.addEventListener('scroll', syncChatVisualViewport);
+    }
+
+    function detachMobileViewportListeners() {
+        if (!isChatVisualViewportActive) return;
+        isChatVisualViewportActive = false;
+        if (window.visualViewport) {
+            window.visualViewport.removeEventListener('resize', syncChatVisualViewport);
+            window.visualViewport.removeEventListener('scroll', syncChatVisualViewport);
+        }
+    }
+
+    function handleChatLayoutResize() {
+        if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        if (isMobileChatLayout()) {
+            if (!isChatBodyScrollLocked) lockChatBodyScroll();
+            attachMobileViewportListeners();
+            syncChatVisualViewport();
+        } else {
+            if (isChatBodyScrollLocked) unlockChatBodyScroll();
+            detachMobileViewportListeners();
+            if (chatWindow) {
+                chatWindow.style.removeProperty('--vvh');
+                chatWindow.style.removeProperty('--vvt');
+            }
+        }
+    }
+
+    window.addEventListener('resize', handleChatLayoutResize);
+    window.addEventListener('orientationchange', handleChatLayoutResize);
 
     // === AUTO-CLOSE ON OUTSIDE CLICK & PAGE SCROLL ===
     let isAutoCloseAttached = false;
@@ -676,6 +784,14 @@ document.addEventListener('DOMContentLoaded', () => {
             inactivityTimer = null;
         }
         detachAutoCloseListeners();
+        detachMobileViewportListeners();
+        if (isChatBodyScrollLocked) {
+            unlockChatBodyScroll();
+        }
+        if (chatWindow) {
+            chatWindow.style.removeProperty('--vvh');
+            chatWindow.style.removeProperty('--vvt');
+        }
         startRoutieAttentionLoop();
     };
 
@@ -730,12 +846,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.classList.add('chat-active');
         if (chatWindow) {
             chatWindow.classList.add('open');
+            if (isMobileChatLayout()) {
+                lockChatBodyScroll();
+                attachMobileViewportListeners();
+                syncChatVisualViewport();
+            }
             // Auto-focus on desktop; on mobile let user tap the input deliberately
             if (chatInput && !isMobileOrTouch()) {
-                setTimeout(() => chatInput.focus(), 350);
+                setTimeout(() => chatInput.focus({ preventScroll: true }), 350);
             }
             resetInactivityTimer();
             attachAutoCloseListeners();
+            scrollChatToBottom();
         }
         const sideDrawer = document.getElementById('sideDrawer');
         const overlay = document.getElementById('sideDrawerOverlay');
@@ -839,7 +961,7 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.textContent = text;
         wrapper.appendChild(msgDiv);
         chatMessages.appendChild(wrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        scrollChatToBottom();
 
         if (save) {
             chatHistory.push({ text, isUser });
@@ -872,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.appendChild(cursorSpan);
         wrapper.appendChild(msgDiv);
         chatMessages.appendChild(wrapper);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        scrollChatToBottom();
 
         let currentIndex = 0;
         const punctuationChars = new Set(['.', ',', '\n', '?', '!', ':', ';']);
@@ -952,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', () => {
         typingIndicatorEl.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
         typingWrapperEl.appendChild(typingIndicatorEl);
         chatMessages.appendChild(typingWrapperEl);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        scrollChatToBottom();
     }
 
     function removeTyping() {
@@ -1102,11 +1224,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             clearVoiceError();
             document.body.classList.add('keyboard-open');
             updateVisualViewportMetrics();
-            setTimeout(() => {
-                if (chatMessages) {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }
-            }, 180);
+            scrollChatToBottom();
         });
 
         chatInput.addEventListener('keydown', (e) => {
@@ -1122,7 +1240,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         if (inputArea) {
             inputArea.addEventListener('click', (e) => {
                 if (!e.target.closest('button')) {
-                    chatInput.focus();
+                    chatInput.focus({ preventScroll: true });
                 }
             });
         }
@@ -1507,7 +1625,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                     chatInput.value = existing ? `${existing} ${transcribedText}` : transcribedText;
                     updateChatInputHeight();
                     updateSendButtonState();
-                    chatInput.focus();
+                    chatInput.focus({ preventScroll: true });
                 }
             } else {
                 showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
