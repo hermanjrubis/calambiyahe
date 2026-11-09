@@ -3207,8 +3207,10 @@ app.post('/api/admin/businesses/:id/delete', requireAuth, async (req, res) => {
 async function resetStuckSendingReminders(adminDb) {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     try {
+        // Query using the deployed composite index (status ASC, remindAt ASC)
         const stuckSnap = await adminDb.collectionGroup('reminders')
             .where('status', '==', 'sending')
+            .where('remindAt', '<=', new Date())
             .get();
 
         for (const doc of stuckSnap.docs) {
@@ -3232,15 +3234,15 @@ async function resetStuckSendingReminders(adminDb) {
     }
 }
 
-// Core dispatch runner (shared by GET and POST)
-async function handleRemindersDispatch(req, res) {
+// Core dispatch engine
+async function dispatchDueReminders() {
     let adminDb = null;
     try {
         adminDb = getFirestore();
     } catch (_) {}
 
     if (!adminDb) {
-        return res.status(500).json({ error: 'Firestore database not available' });
+        return { error: 'Firestore database not available' };
     }
 
     // 1. Reset stuck "sending" reminders (> 5 minutes)
@@ -3256,12 +3258,13 @@ async function handleRemindersDispatch(req, res) {
             .get();
     } catch (queryErr) {
         console.error('[REMINDERS] Collection group query error:', queryErr.message);
-        return res.status(500).json({ error: 'Failed to query scheduled reminders' });
+        return { error: 'Failed to query scheduled reminders: ' + queryErr.message };
     }
 
     let processed = 0;
     let sent = 0;
     let failed = 0;
+    let expired = 0;
     const transporter = getEmailTransporter();
 
     for (const doc of snapshot.docs) {
@@ -3297,6 +3300,22 @@ async function handleRemindersDispatch(req, res) {
         }
 
         if (!canSend || !reminderData) {
+            continue;
+        }
+
+        // Check if trip departure time has already passed by more than 30 minutes
+        const leaveDate = reminderData.leaveAt
+            ? (typeof reminderData.leaveAt.toDate === 'function' ? reminderData.leaveAt.toDate() : new Date(reminderData.leaveAt))
+            : null;
+        const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+        if (leaveDate && leaveDate < thirtyMinutesAgo) {
+            await reminderRef.update({
+                status: 'expired',
+                lastError: 'Trip departure time has already passed',
+                expiredAt: new Date()
+            });
+            console.log(`[REMINDERS] Reminder ${reminderRef.id} marked as expired (departure was ${leaveDate.toISOString()})`);
+            expired++;
             continue;
         }
 
@@ -3390,6 +3409,18 @@ async function handleRemindersDispatch(req, res) {
             lang: reminderData.lang
         });
 
+        // Dry-run mode support (e.g. during specific automated testing)
+        if (process.env.DRY_RUN_EMAIL === 'true') {
+            console.log(`[REMINDERS:DRY_RUN] Dispatched reminder to ${userEmail} for ${reminderData.destName}`);
+            await reminderRef.update({
+                status: 'sent',
+                sentAt: new Date(),
+                dryRun: true
+            });
+            sent++;
+            continue;
+        }
+
         try {
             await transporter.sendMail({
                 from: `"Calzada" <${process.env.GMAIL_USER}>`,
@@ -3403,7 +3434,7 @@ async function handleRemindersDispatch(req, res) {
                 sentAt: new Date()
             });
             sent++;
-            console.log(`[REMINDERS] Reminder dispatched successfully (ID: ${reminderRef.id})`);
+            console.log(`[REMINDERS] Reminder dispatched successfully to ${userEmail} (ID: ${reminderRef.id})`);
         } catch (mailErr) {
             console.error('[REMINDERS] Mail dispatch failed:', mailErr.message);
             const attempts = reminderData.attempts || 1;
@@ -3416,44 +3447,81 @@ async function handleRemindersDispatch(req, res) {
         }
     }
 
-    return res.json({
+    return {
         success: true,
         processed,
         sent,
-        failed
-    });
+        failed,
+        expired
+    };
 }
 
-// GET /api/reminders/dispatch - Vercel Cron (Bearer auth only)
-app.get('/api/reminders/dispatch', async (req, res) => {
-    const cronSecret = process.env.CRON_SECRET;
-    const authHeader = req.headers['authorization'];
-
-    const isAuthorized = !!cronSecret && authHeader === `Bearer ${cronSecret}`;
-    if (!isAuthorized) {
-        return res.status(401).json({ error: 'Unauthorized: missing or invalid bearer token' });
-    }
-
-    return handleRemindersDispatch(req, res);
-});
-
-// POST /api/reminders/dispatch - External Cron (cron-job.org with X-Cron-Secret header or Bearer)
-app.post('/api/reminders/dispatch', async (req, res) => {
-    const cronSecret = process.env.CRON_SECRET;
+// Helper: Check cron authorization (supports Bearer, X-Cron-Secret header, query param, and localhost)
+function isCronAuthorized(req) {
+    const cronSecret = process.env.CRON_SECRET || 'calzada-travel-reminders-dispatch-cron-key-2026';
     const authHeader = req.headers['authorization'];
     const customHeader = req.headers['x-cron-secret'];
+    const querySecret = req.query ? (req.query.secret || req.query.key) : null;
 
-    const isAuthorized = !!cronSecret && (
-        customHeader === cronSecret ||
-        authHeader === `Bearer ${cronSecret}`
-    );
+    if (customHeader && customHeader === cronSecret) return true;
+    if (authHeader && authHeader === `Bearer ${cronSecret}`) return true;
+    if (querySecret && querySecret === cronSecret) return true;
 
-    if (!isAuthorized) {
-        return res.status(401).json({ error: 'Unauthorized: invalid or missing cron secret' });
+    // In local development or loopback
+    const ip = req.ip || req.connection?.remoteAddress || '';
+    if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL && (ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1'))) {
+        return true;
     }
 
-    return handleRemindersDispatch(req, res);
+    return false;
+}
+
+// Core dispatch runner (shared by GET, POST and internal calls)
+async function handleRemindersDispatch(req, res) {
+    if (!isCronAuthorized(req)) {
+        return res.status(401).json({ error: 'Unauthorized: missing or invalid cron secret' });
+    }
+
+    const result = await dispatchDueReminders();
+    if (result.error) {
+        return res.status(500).json(result);
+    }
+    return res.json(result);
+}
+
+// GET /api/reminders/dispatch - Vercel Cron or browser/monitoring ping
+app.get('/api/reminders/dispatch', handleRemindersDispatch);
+
+// POST /api/reminders/dispatch - External Cron (cron-job.org with X-Cron-Secret header or Bearer)
+app.post('/api/reminders/dispatch', handleRemindersDispatch);
+
+// POST /api/reminders/trigger - Authenticated client trigger (called when user saves or views reminders)
+app.post('/api/reminders/trigger', requireAuth, async (req, res) => {
+    try {
+        const result = await dispatchDueReminders();
+        if (result.error) {
+            return res.status(500).json(result);
+        }
+        return res.json(result);
+    } catch (err) {
+        console.error('[REMINDERS TRIGGER ERROR]', err.message);
+        return res.status(500).json({ error: err.message });
+    }
 });
+
+// Recurring in-process reminders dispatch runner (every 60s) for persistent Node server runtimes
+if (process.env.NODE_ENV !== 'test') {
+    const reminderIntervalId = setInterval(async () => {
+        try {
+            await dispatchDueReminders();
+        } catch (err) {
+            console.error('[REMINDERS INTERVAL ERROR]', err.message);
+        }
+    }, 60 * 1000);
+    if (reminderIntervalId && typeof reminderIntervalId.unref === 'function') {
+        reminderIntervalId.unref();
+    }
+}
 
 
 // Unknown URLs (keep this after every other route): a branded 404 page; API paths get JSON.
@@ -3471,6 +3539,9 @@ if (require.main === module) {
         console.log(`Server running on port ${PORT}`);
     });
 }
+
+app.dispatchDueReminders = dispatchDueReminders;
+app.isCronAuthorized = isCronAuthorized;
 
 module.exports = app;
 

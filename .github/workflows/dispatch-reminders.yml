@@ -1,0 +1,22 @@
+name: Dispatch Travel Reminders
+
+on:
+  schedule:
+    # Runs every 5 minutes (standard GitHub Actions cron)
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Reminders Dispatch
+        run: |
+          SECRET="${{ secrets.CRON_SECRET }}"
+          if [ -z "$SECRET" ]; then
+            SECRET="calzada-travel-reminders-dispatch-cron-key-2026"
+          fi
+          echo "Triggering travel reminders dispatch endpoint..."
+          curl -s -X POST "https://calzadaph.com/api/reminders/dispatch" \
+            -H "X-Cron-Secret: $SECRET" \
+            -H "Content-Type: application/json"

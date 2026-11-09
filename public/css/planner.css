@@ -6864,23 +6864,42 @@ html.lang-swapping-out [data-lang-fade] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
     height: 32px;
-    padding: 0 10px;
-    background: #FFFFFF;
-    color: #2272C3;
-    border: 1px solid #93C5FD;
+    padding: 0 12px;
+    background: #2563EB;
+    color: #FFFFFF;
+    border: 1px solid #1D4ED8;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     flex-shrink: 0;
-    transition: all 0.15s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
 }
 
 .remind-me-btn:hover {
-    background: #DBEAFE;
-    border-color: #3B82F6;
+    background: #1D4ED8;
+    color: #FFFFFF;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+    transform: translateY(-1px);
+}
+
+.remind-me-btn svg {
+    stroke: #FFFFFF;
+}
+
+.remind-me-btn.attention-pulse {
+    animation: reminderPulse 1.8s ease-in-out;
+}
+
+@keyframes reminderPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
+    30% { transform: scale(1.06); box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+    60% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    80% { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
 }
 
 .remind-me-btn:active {

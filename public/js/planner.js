@@ -7115,7 +7115,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         };
 
                         if (remindBtn) {
-                            remindBtn.style.display = leaveAt.getTime() > Date.now() ? 'inline-flex' : 'none';
+                            const isFuture = leaveAt.getTime() > Date.now();
+                            remindBtn.style.display = isFuture ? 'inline-flex' : 'none';
+                            if (isFuture) {
+                                remindBtn.classList.remove('attention-pulse');
+                                void remindBtn.offsetWidth;
+                                remindBtn.classList.add('attention-pulse');
+                            }
                         }
                     }
                 } else {
@@ -10500,6 +10506,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // If a route is already calculated, refresh summary
                 if (selectedCoords && selectedCoords.destination) {
                     updateSummaryRow();
+                }
+
+                if (typeof window.showToast === 'function') {
+                    const isTl = (window.currentLang === 'tl' || localStorage.getItem('calzada_lang') === 'tl');
+                    const toastMsg = isTl
+                        ? `Naka-iskedyul: ${prefix} ${timeText}. I-click ang "Ipaalala sa akin" para sa email reminder!`
+                        : `Scheduled: ${prefix} ${timeText}. Click "Remind me" to receive an email reminder!`;
+                    window.showToast(toastMsg, 'info');
                 }
             });
         }

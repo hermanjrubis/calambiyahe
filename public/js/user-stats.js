@@ -1024,6 +1024,16 @@ async function loadReminders() {
             return true;
         });
 
+        // Opportunistically trigger server check for any due reminders in the background
+        if (typeof user.getIdToken === 'function') {
+            user.getIdToken().then(token => {
+                fetch('/api/reminders/trigger', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                }).catch(() => {});
+            }).catch(() => {});
+        }
+
         remindersState.loaded = true;
     } catch (e) {
         console.warn('Failed to load reminders:', e);
@@ -1201,6 +1211,20 @@ export async function createReminder(reminder) {
 
     const docRef = await addDoc(collection(db, `users/${user.uid}/reminders`), data);
     remindersState.loaded = false; // reload next time list opens
+
+    // Asynchronously ping the reminder trigger endpoint so due/near reminders get processed immediately
+    if (typeof user.getIdToken === 'function') {
+        user.getIdToken().then(token => {
+            fetch('/api/reminders/trigger', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                }
+            }).catch(() => {});
+        }).catch(() => {});
+    }
+
     return docRef.id;
 }
 
