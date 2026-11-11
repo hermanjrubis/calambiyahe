@@ -100,7 +100,7 @@
   "crons": [
     {
       "path": "/api/reminders/dispatch",
-      "schedule": "0 0 * * *"
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/data-retention",

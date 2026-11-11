@@ -617,7 +617,7 @@ function generateReminderEmailHtml({ destName, leaveByStr, etaStr, mode, fareStr
         ${isTl ? `Paalala para sa byahe papuntang ${safeDest}` : `Travel reminder for your trip to ${safeDest}`}
       </h1>
       <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
-        ${isTl ? 'Umalis bago mag' : 'Leave by'}: <strong style="color: #042C53;">${safeLeave}</strong> · ${isTl ? 'Tinatayang dating' : 'Estimated arrival'}: <strong style="color: #042C53;">${safeArrive}</strong>.
+        ${isTl ? 'Umalis bago mag' : 'Leave by'}: <strong style="color: #042C53;">${safeLeave}</strong>${etaStr ? ` · ${isTl ? 'Tinatayang dating' : 'Estimated arrival'}: <strong style="color: #042C53;">${safeArrive}</strong>` : ''}.
       </p>
       <p style="font-family: 'Outfit', sans-serif; font-size: 15px; line-height: 1.6; color: #334155; margin: 0 0 12px 0;">
         ${isTl ? 'Sasakyan' : 'Mode'}: ${safeMode}${fareStr ? ` · ${isTl ? 'Pamasahe' : 'Fare'}: ${escapeHtml(fareStr)}` : ''} · ${isTl ? 'Simula sa' : 'Starting from'}: ${safeOrigin}.

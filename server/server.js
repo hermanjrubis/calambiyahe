@@ -3397,14 +3397,23 @@ async function dispatchDueReminders() {
         const destQuery = encodeURIComponent(reminderData.destName || '');
         const plannerUrl = `https://calzadaph.com/planner?dest=${destQuery}&destLat=${reminderData.destLat}&destLng=${reminderData.destLng}`;
 
+        // Fare line: "₱14.00 (₱11.25 discounted)"; walking trips have no fare
+        const peso = (n) => `₱${Number(n).toFixed(2)}`;
+        let fareStr = '';
+        if (!isWalk && typeof fareRegular === 'number' && fareRegular > 0) {
+            fareStr = peso(fareRegular);
+            if (typeof fareDiscounted === 'number' && fareDiscounted > 0) {
+                fareStr += isTl ? ` (${peso(fareDiscounted)} may diskwento)` : ` (${peso(fareDiscounted)} discounted)`;
+            }
+        }
+
         const { subject, html } = generateReminderEmailHtml({
             destName: reminderData.destName,
-            originLabel: reminderData.originLabel,
-            leaveTimeStr,
-            arriveTimeStr,
-            modeStr,
-            fareRegular,
-            fareDiscounted,
+            leaveByStr: leaveTimeStr,
+            etaStr: reminderData.arriveBy ? arriveTimeStr : '',
+            mode: reminderData.mode,
+            fareStr,
+            originName: reminderData.originLabel,
             plannerUrl,
             lang: reminderData.lang
         });
@@ -3456,20 +3465,25 @@ async function dispatchDueReminders() {
     };
 }
 
-// Helper: Check cron authorization (supports Bearer, X-Cron-Secret header, query param, and localhost)
+// Helper: Check cron authorization. The password is CRON_SECRET in Vercel's environment settings, never in the code.
+//   Vercel Cron:               Authorization: Bearer <CRON_SECRET>
+//   cron-job.org (every min):  X-Cron-Secret: <CRON_SECRET>
+// Not accepted in the URL (?secret=), because URLs end up in logs. Without CRON_SECRET only localhost may call it.
 function isCronAuthorized(req) {
-    const cronSecret = process.env.CRON_SECRET || 'calzada-travel-reminders-dispatch-cron-key-2026';
-    const authHeader = req.headers['authorization'];
-    const customHeader = req.headers['x-cron-secret'];
-    const querySecret = req.query ? (req.query.secret || req.query.key) : null;
+    const cronSecret = process.env.CRON_SECRET;
+    const same = (a, b) => {
+        const x = Buffer.from(String(a || ''));
+        const y = Buffer.from(String(b || ''));
+        return x.length === y.length && x.length > 0 && crypto.timingSafeEqual(x, y);
+    };
+    if (cronSecret) {
+        if (same(req.headers['x-cron-secret'], cronSecret)) return true;
+        if (same(req.headers['authorization'], `Bearer ${cronSecret}`)) return true;
+    }
 
-    if (customHeader && customHeader === cronSecret) return true;
-    if (authHeader && authHeader === `Bearer ${cronSecret}`) return true;
-    if (querySecret && querySecret === cronSecret) return true;
-
-    // In local development or loopback
+    // Local development only: a request from this computer, never on Vercel
     const ip = req.ip || req.connection?.remoteAddress || '';
-    if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL && (ip === '127.0.0.1' || ip === '::1' || ip.includes('127.0.0.1'))) {
+    if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL && (ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1')) {
         return true;
     }
 
