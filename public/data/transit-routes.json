@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "updated": "2026-11-02",
-  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 1.5 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 6 (polylinePrecision), lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads; a route stop with \"transfer\": false is a boarding point for trips that start there, not for transfers. A route with \"terminalOnly\": true is offered only when the user picks its terminal in the planner's terminal choice (Real / Halang destinations). closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba. A transfer's path is the walking line from stop a to stop b (OpenStreetMap foot route), drawn on the map instead of a straight line.",
+  "updated": "2026-11-11",
+  "about": "Curated jeepney routes for Calamba bound trips. Flow, stops and boarding points come from Drei's local knowledge (Oct 21, 2026). Paths are road geometry from OSRM (OpenStreetMap) through the route's known stops, simplified to about 1.5 m; they are estimates of the jeepney's road, not GPS traces. Polylines use the Google encoded polyline format, precision 6 (polylinePrecision), lat/lng, ordered from 'from' to 'to'. Fares come from js/fare-calc.js (LTFRB Region IV-A jeepney guide). Route stops list the role of each stop per direction: 'board', 'alight' or 'both' (a plain id means both); a direction set to false is not served. Transfers happen only where one jeep lets passengers off and the next one loads; a route stop with \"transfer\": false is a boarding point for trips that start there, not for transfers. A route with \"terminalOnly\": true is offered only when the user picks its terminal in the planner's terminal choice (Real / Halang destinations). closedM lists parts of a path (metres from its start) where the jeep picks up and drops off only at listed stops, e.g. its loop around SM City Calamba. A transfer's path is the walking line from stop a to stop b (OpenStreetMap foot route), drawn on the map instead of a straight line. A route stop's \"wait\" ({ minMin, typicalMin, maxMin }, minutes) is the expected wait for the jeep where it is boarded, e.g. at a terminal where jeeps leave when full; the planner counts typicalMin (else 3 min) and shows the range.",
   "stops": {
     "crossing-grand-terminal": {
       "name": "Crossing Grand Terminal",
@@ -250,7 +250,13 @@
         {
           "id": "sm-transport-terminal",
           "forward": "board",
-          "reverse": null
+          "reverse": null,
+          "wait": {
+            "minMin": 10,
+            "typicalMin": 12,
+            "maxMin": 15,
+            "source": "Drei's estimate (Nov 11, 2026): jeeps to Halang and Real leave the terminal when full, 10-15 min; to be timed"
+          }
         }
       ],
       "forward": {
@@ -276,7 +282,13 @@
         {
           "id": "sm-transport-terminal",
           "forward": "board",
-          "reverse": "alight"
+          "reverse": "alight",
+          "wait": {
+            "minMin": 10,
+            "typicalMin": 12,
+            "maxMin": 15,
+            "source": "Drei's estimate (Nov 11, 2026): jeeps to Halang and Real leave the terminal when full, 10-15 min; to be timed"
+          }
         }
       ],
       "forward": {
@@ -303,7 +315,13 @@
         {
           "id": "calamba-tagaytay-terminal",
           "forward": "board",
-          "reverse": "alight"
+          "reverse": "alight",
+          "wait": {
+            "minMin": 10,
+            "typicalMin": 12,
+            "maxMin": 15,
+            "source": "Drei's estimate (Nov 11, 2026): jeeps to Halang and Real leave the terminal when full, 10-15 min; to be timed"
+          }
         }
       ],
       "forward": {
@@ -345,7 +363,13 @@
           "id": "crossing-grand-terminal",
           "forward": "board",
           "reverse": null,
-          "transfer": false
+          "transfer": false,
+          "wait": {
+            "minMin": 10,
+            "typicalMin": 12,
+            "maxMin": 15,
+            "source": "Drei's estimate (Nov 11, 2026): jeeps to Halang and Real leave the terminal when full, 10-15 min; to be timed"
+          }
         }
       ],
       "forward": {
@@ -373,7 +397,13 @@
           "id": "new-calamba-transport-terminal",
           "forward": "board",
           "reverse": null,
-          "transfer": false
+          "transfer": false,
+          "wait": {
+            "minMin": 10,
+            "typicalMin": 12,
+            "maxMin": 15,
+            "source": "Drei's estimate (Nov 11, 2026): jeeps to Halang and Real leave the terminal when full, 10-15 min; to be timed"
+          }
         }
       ],
       "forward": {
@@ -401,7 +431,13 @@
           "id": "crossing-grand-terminal",
           "forward": "board",
           "reverse": null,
-          "transfer": false
+          "transfer": false,
+          "wait": {
+            "minMin": 10,
+            "typicalMin": 12,
+            "maxMin": 15,
+            "source": "Drei's estimate (Nov 11, 2026): jeeps to Halang and Real leave the terminal when full, 10-15 min; to be timed"
+          }
         }
       ],
       "forward": {

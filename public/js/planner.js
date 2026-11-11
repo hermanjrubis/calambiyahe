@@ -2709,6 +2709,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Routing State
         let currentWalkDist = 0, currentWalkDur = 0, currentTransitDist = 0, currentTransitDur = 0;
         let currentFare = 0;
+        // Expected wait where the jeep is boarded, already inside currentTransitDur: minutes, and the
+        // range from the route data (a terminal where jeeps leave when full), else null
+        let currentWaitMin = 3, currentWaitRange = null;
         let walkRouteGeojson = null, transitRouteGeojson = null;
         // Curated jeepney routes (js/transit-engine.js): the options shown, the one picked, and for a
         // trip with a transfer the part after the first jeep (pendingTransfer). The planner routes one
@@ -2861,7 +2864,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const isWalkOnly = selectedMode === 'walking';
             const modeName = isWalkOnly
                 ? (t('planner.nav_walking') || 'Walking')
-                : (t('planner.nav_jeepney') || 'Jeepney');
+                : ((isTrackingArrival && journey) ? journeyPhaseLabel() : (t('planner.nav_jeepney') || 'Jeepney'));
             const fareLabel = isWalkOnly
                 ? (t('planner.free') || 'Free')
                 : formatPeso(currentFare + (pendingTransfer ? pendingTransfer.jeep.fare : 0));
@@ -2948,7 +2951,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const j = transitRouteGeojson?.coordinates || [];
             const f = (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates) || [];
             const head = c => (c && c.length ? `${c[0][0].toFixed(5)},${c[0][1].toFixed(5)}` : '-');
-            return [selectedMode, w.length, j.length, f.length, head(w), head(j), head(f), pendingTransfer ? pendingTransfer.extraMin : 0].join('|');
+            return [selectedMode, w.length, j.length, f.length, head(w), head(j), head(f), pendingTransfer ? pendingTransfer.extraMin : 0, currentWaitMin].join('|');
         }
 
         function resetLiveEta() {
@@ -2993,6 +2996,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 finalWalk: finalLegCoords,
                 finalWalkFallbackM: fw.finalWalkM || 0,
                 extraSec: pendingTransfer ? pendingTransfer.extraMin * 60 : 0,
+                waitSec: isWalkOnlyTrip ? 0 : currentWaitMin * 60,
                 startLeg: activeLegIndex
             });
             liveEtaSig = sig;
@@ -3008,6 +3012,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const tracker = ensureLiveEta();
             if (!tracker) return false;
             const now = Date.now();
+            // The journey state says which part of the trip this is (walking, waiting, riding, last walk)
+            if (journey && tracker.setPhase) tracker.setPhase(journeyPhase, journeyPhase === 'waiting' && journey.since ? journey.since : now);
             if (fix) tracker.onFix({ lat: fix.lat, lng: fix.lng, speed: fix.speed, t: now, legHint: activeLegIndex });
             const r = tracker.remaining(now);
             cachedRemainingSeconds = liveEtaSmoother ? liveEtaSmoother.next(r.seconds, now) : r.seconds;
@@ -3022,6 +3028,452 @@ document.addEventListener('DOMContentLoaded', () => {
         let lastMovementTimestamp = Date.now();
         let lastValidPosition = null;
         let deviationTimer = null;
+
+        // ── JOURNEY STATE (js/journey-state.js) ─────────────────────────────────
+        // One state for the whole journey screen: walking, waiting, riding, final_walk. It follows
+        // the speed and position on the jeep line, so a jeep flagged anywhere on its route is picked
+        // up; the map pointer, the next direction, the itinerary, the status line and the arrival
+        // time all follow it. Without journey-state.js the old position-only rules below still run.
+        const JOURNEY_APPROACH_M = 1500; // the jeep's road behind the boarding point (it can be flagged earlier)
+        let journey = null;
+        let journeySig = '';
+        let journeyPhase = 'walking';
+        let journeyLast = null;          // last result of journey.onFix
+        let journeyRestore = null;       // snapshot saved with the journey (reload), used once
+        let journeyKeepState = null;     // the state to keep when the route is rebuilt (a walk reroute)
+        let journeyLines = null;         // { walkOnly, walk, jeep, finalWalk, jeepBoardM } given to it
+        let journeyStepMap = null;       // per route step: { leg, along }
+        let journeyStepKey = '';
+        let journeyWaitedMin = null;     // real minutes waited before the jeep moved
+        let journeyReplanning = false;
+        let journeyLastReplanAt = 0;
+        const JOURNEY_LEG = { walking: 'walk', waiting: 'jeep', riding: 'jeep', final_walk: 'final_walk' };
+
+        const latLngLengthM = (coords) => {
+            let m = 0;
+            for (let i = 1; i < coords.length; i++) m += getHaversineDist(coords[i - 1][0], coords[i - 1][1], coords[i][0], coords[i][1]) * 1000;
+            return m;
+        };
+        // The few metres from the origin to the route and from the route to the place count too
+        const withRouteEnds = (coords, from, to) => {
+            const out = Array.isArray(coords) ? coords.slice() : [];
+            const far = (a, b) => a && b && getHaversineDist(a[0], a[1], b[0], b[1]) * 1000 > 5;
+            if (from && out.length && far(from, out[0])) out.unshift(from);
+            if (to && out.length && far(out[out.length - 1], to)) out.push(to);
+            return out;
+        };
+
+        function journeySignature() {
+            const w = walkRouteGeojson?.coordinates || [];
+            const j = transitRouteGeojson?.coordinates || [];
+            const f = (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates) || [];
+            const head = c => (c && c.length ? `${c[0][0].toFixed(5)},${c[0][1].toFixed(5)}` : '-');
+            const tail = c => (c && c.length ? `${c[c.length - 1][0].toFixed(5)},${c[c.length - 1][1].toFixed(5)}` : '-');
+            return [selectedMode, w.length, j.length, f.length, head(w), head(j), head(f), tail(f), pendingTransfer ? pendingTransfer.boardName : ''].join('|');
+        }
+
+        function journeyLinesNow() {
+            const walkOnly = selectedMode === 'walking';
+            const walk = withRouteEnds(walkRouteGeojson?.coordinates || [], selectedCoords.origin, walkOnly ? selectedCoords.destination : null);
+            if (walkOnly) return { walkOnly: true, walk, jeep: [], finalWalk: [], jeepBoardM: 0 };
+            const planned = transitRouteGeojson?.coordinates || [];
+            let jeep = planned.slice();
+            let jeepBoardM = 0;
+            // A curated route: its road behind the boarding point too, so boarding a jeep before the
+            // planned point is still "on the jeep line"
+            const tr = transitRouteGeojson;
+            const T = window.CalzadaTransit;
+            if (tr && tr.curated && tr.routeId && Number.isFinite(tr.boardPos) && planned.length >= 2
+                && T && T.isReady && T.isReady() && typeof T.pathOf === 'function') {
+                const dir = tr.routeDir === -1 ? -1 : 1;
+                const behind = T.pathOf(tr.routeId, tr.boardPos - dir * JOURNEY_APPROACH_M, tr.boardPos);
+                if (Array.isArray(behind) && behind.length >= 2) {
+                    const len = latLngLengthM(behind);
+                    if (len >= 20) { jeep = behind.slice(0, -1).concat(planned); jeepBoardM = len; }
+                }
+            }
+            const fw = getFinalWalkInfo();
+            const fwCoords = (transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates || fw.finalWalkCoordinates) || [];
+            // With a transfer the last walk ends at the next jeep's stop, not at the place
+            const finalWalk = fw.finalWalkM > 0 ? withRouteEnds(fwCoords, null, pendingTransfer ? null : selectedCoords.destination) : [];
+            return { walkOnly: false, walk, jeep, finalWalk, jeepBoardM };
+        }
+
+        function resetJourney() {
+            journey = null;
+            journeySig = '';
+            journeyLast = null;
+            journeyStepMap = null;
+            journeyStepKey = '';
+            journeyKeepState = null;
+            if (!journeyRestore) journeyWaitedMin = null; // a reload keeps the minutes it waited
+            journeyPhase = 'walking';
+            delete document.body.dataset.journeyPhase;
+        }
+
+        function ensureJourney() {
+            const J = window.CalzadaJourneyState;
+            if (!J || !isTrackingArrival) return null;
+            const sig = journeySignature();
+            if (journey && sig === journeySig) return journey;
+            const prev = journey ? journey.state : null;
+            journeyLines = journeyLinesNow();
+            // Rebuilt mid-journey: a walk reroute keeps its state; a new plan from a transfer stop or a
+            // terminal says where it starts through activeLegIndex (0 = walking, 1 = on the jeep)
+            let startState = 'walking';
+            if (journeyKeepState) startState = journeyKeepState;
+            else if (prev && ((J.LEG_INDEX[prev] >= 1) === (activeLegIndex >= 1))) startState = prev;
+            else if (activeLegIndex >= 1) startState = 'riding';
+            journeyKeepState = null;
+            const T = window.CalzadaTransit;
+            journey = J.create({
+                walkOnly: journeyLines.walkOnly,
+                walk: journeyLines.walk,
+                jeep: journeyLines.jeep,
+                finalWalk: journeyLines.finalWalk,
+                jeepBoardM: journeyLines.jeepBoardM,
+                startState,
+                // In Uno a jeep is boarded only at a terminal (transit-engine roadBoardingOk)
+                canBoardAt: (p) => (T && T.isReady && T.isReady() && T.roadBoardingOk ? T.roadBoardingOk(p) : true)
+            });
+            if (journeyRestore) { journey.restore(journeyRestore); journeyRestore = null; }
+            journeySig = sig;
+            journeyStepMap = null;
+            journeyStepKey = '';
+            setJourneyPhase(journey.state);
+            traceLegs();
+            return journey;
+        }
+
+        function setJourneyPhase(phase) {
+            journeyPhase = phase;
+            activeLegIndex = phase === 'walking' ? 0 : 1;
+            document.body.dataset.journeyPhase = phase;
+            if (liveEta && liveEta.setPhase) liveEta.setPhase(phase, phase === 'waiting' && journey && journey.since ? journey.since : Date.now());
+        }
+
+        // Which route step each part of the journey is on: steps map to a leg by their order (walk,
+        // jeep, last walk) and to metres along it by projecting their point onto that leg's line
+        function journeyStepIndexMap() {
+            const steps = window.activeRouteSteps || [];
+            const first = steps[0] && steps[0].maneuver && steps[0].maneuver.location;
+            const key = `${journeySig}|${steps.length}|${first ? first.join(',') : ''}`;
+            if (journeyStepMap && journeyStepKey === key) return journeyStepMap;
+            let seenJeep = false;
+            const last = {};
+            journeyStepMap = steps.map((s) => {
+                const isJeep = s.mode === 'driving' || s.mode === 'jeepney';
+                if (isJeep) seenJeep = true;
+                const leg = isJeep ? 'jeep' : (seenJeep ? 'final_walk' : 'walk');
+                const loc = s.maneuver && Array.isArray(s.maneuver.location) ? s.maneuver.location : null; // [lng, lat]
+                const p = loc && journey ? journey.projectOn(leg, loc[1], loc[0]) : null;
+                // Steps keep their order along a leg
+                let along = p && p.off < 120 ? p.along : null;
+                if (along !== null && last[leg] != null) along = Math.max(along, last[leg]);
+                if (along !== null) last[leg] = along;
+                return { leg, along };
+            });
+            journeyStepKey = key;
+            return journeyStepMap;
+        }
+
+        // The step for where you are: on a state change the first step of the new leg; within a leg the
+        // last step whose point is behind you (30 m ahead counts), never going back within the leg
+        function syncStepToJourney(stateChanged) {
+            if (!journey) return false;
+            const steps = window.activeRouteSteps || [];
+            if (!steps.length) return false;
+            const map = journeyStepIndexMap();
+            const legName = JOURNEY_LEG[journeyPhase];
+            const idxs = [];
+            map.forEach((m, i) => { if (m.leg === legName) idxs.push(i); });
+            const cur = window.currentStepIndex || 0;
+            let target;
+            if (!idxs.length) {
+                // e.g. off the jeep with no last walk (it stops at the place): its last step
+                if (legName !== 'final_walk') return false;
+                target = steps.length - 1;
+            } else if (journeyPhase === 'waiting') {
+                target = idxs[0];
+            } else {
+                const legAlong = journey.alongOf(legName);
+                target = idxs[0];
+                for (const i of idxs) if (map[i].along !== null && map[i].along <= legAlong + 30) target = i;
+                const curLeg = map[cur] ? map[cur].leg : null;
+                if (!stateChanged && curLeg === legName && target < cur) target = cur;
+            }
+            if (target !== cur) {
+                window.currentStepIndex = target;
+                return true;
+            }
+            return false;
+        }
+
+        // Metres left on the current step (to the next step's point, or to the end of the leg)
+        function journeyStepRemainingM() {
+            if (!journey || !journeyStepMap) return null;
+            const idx = window.currentStepIndex || 0;
+            const m = journeyStepMap[idx];
+            if (!m || m.leg !== JOURNEY_LEG[journeyPhase]) return null;
+            const legAlong = journey.alongOf(m.leg);
+            const next = journeyStepMap[idx + 1];
+            if (next && next.leg === m.leg && next.along !== null) return Math.max(0, next.along - legAlong);
+            return Math.max(0, journey.legLength(m.leg) - legAlong);
+        }
+
+        function journeyWaitingMin() {
+            if (journeyPhase !== 'waiting' || !journey || !journey.since) return 0;
+            return Math.max(0, Math.floor((Date.now() - journey.since) / 60000));
+        }
+
+        // Status words for the bottom line: "Walking", "Waiting · 6 min", "Riding"
+        function journeyPhaseLabel() {
+            const tl = transitLang() === 'tl';
+            if (journeyPhase === 'waiting') {
+                const min = journeyWaitingMin();
+                return tl ? `Naghihintay ng jeep · ${min} min` : `Waiting for the jeep · ${min} min`;
+            }
+            if (journeyPhase === 'riding') return tl ? 'Nakasakay' : 'Riding';
+            return t('planner.nav_walking') || 'Walking';
+        }
+
+        function journeyOnFix(lat, lng, accuracy, speed, heading) {
+            const js = ensureJourney();
+            if (!js) return null;
+            const r = js.onFix({ t: Date.now(), lat, lng, accuracy, speed });
+            journeyLast = r;
+            handleJourneyResult(r);
+            traceRecord(lat, lng, accuracy, speed, heading, r);
+            return r;
+        }
+
+        // Once a second: time passes even when a phone standing still sends no fix
+        function journeyTick() {
+            if (!journey || !isTrackingArrival || liveEtaPaused) return;
+            const r = journey.tick(Date.now());
+            if (r && r.events.length) {
+                journeyLast = r;
+                handleJourneyResult(r);
+                if (r.changed) updateJourneyLines(r);
+            } else if (journeyPhase === 'waiting') {
+                updateGuideStepsUI(); // the waiting minutes
+            }
+        }
+
+        function handleJourneyResult(r) {
+            const tl = transitLang() === 'tl';
+            for (const e of r.events) {
+                if (e.type === 'boarded') journeyWaitedMin = Math.max(0, Math.round((e.waitedSec || 0) / 60));
+                if (e.type === 'left_stop') journeyWaitedMin = null;
+                if (e.type === 'missed_stop') {
+                    const stop = (lastItineraryStops && lastItineraryStops.alightAt) || (transitRouteGeojson && transitRouteGeojson.alightName) || '';
+                    showToast(tl ? `Para na! Lumampas ka na sa babaan mo${stop ? ` (${stop})` : ''}.` : `Para na! You passed your stop${stop ? ` (${stop})` : ''}.`, 'info');
+                }
+                if (e.type === 'wrong_jeep') replanJourneyFromHere();
+            }
+            if (!r.changed) return;
+            setJourneyPhase(r.state);
+            if (deviationTimer) { clearTimeout(deviationTimer); deviationTimer = null; }
+            lastMatchedSegmentIndex = 0;
+            syncStepToJourney(true);
+            updateGuideStepsUI();
+            if (bottomStatusPill && bottomStatusPill.classList.contains('expanded')) renderExpandedNavTimeline();
+            saveJourneyState();
+        }
+
+        // On another jeep than planned (moving at jeep speed, off its road): plan again from here
+        async function replanJourneyFromHere() {
+            if (journeyReplanning || !isTrackingArrival || !currentLocation || Date.now() - journeyLastReplanAt < 120000) return;
+            journeyReplanning = true;
+            journeyLastReplanAt = Date.now();
+            liveEtaPaused = true;
+            try {
+                selectedCoords.origin = [currentLocation.lat, currentLocation.lng];
+                userExplicitMode = true; noJeepOverride = false;
+                selectedMode = 'jeepney';
+                pendingTransfer = null;
+                if (window.CalzadaTransitUI) window.CalzadaTransitUI.hideTransfer();
+                updateRouteSource('completed-route', []);
+                ensureOriginMarker();
+                updateODDisplay();
+                activeLegIndex = 0;
+                await executeRouteQuery();
+                lastMatchedSegmentIndex = 0;
+                startActiveJourneyUI();
+                resetJourney();
+                saveJourneyState();
+                showToast(transitLang() === 'tl'
+                    ? 'Mukhang ibang jeep ang nasakyan mo. Na-update ang ruta mula rito.'
+                    : 'Looks like a different jeep. Route updated from where you are.', 'info');
+            } catch (e) {
+                console.error('Re-plan from here failed:', e);
+            } finally {
+                liveEtaPaused = false;
+                journeyReplanning = false;
+            }
+        }
+
+        // The journey's own steps again after a walk reroute (walk, jeep, last walk)
+        function rebuildJourneySteps(firstOfLeg) {
+            const walkStepsClean = (walkRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'foot' }));
+            const transitStepsClean = selectedMode === 'walking' ? [] : (transitRouteGeojson?.steps || []).map(s => ({ ...s, mode: 'driving' }));
+            const finalWalkClean = selectedMode === 'walking' ? [] : ((transitRouteGeojson?.finalWalk?.steps || window.finalWalkRouteGeojson?.steps) || []).map(s => ({ ...s, mode: 'foot' }));
+            const combined = [...walkStepsClean, ...transitStepsClean, ...finalWalkClean];
+            if (!combined.length) return;
+            window.activeRouteSteps = deduplicateSteps(combined);
+            journeyStepMap = null;
+            if (firstOfLeg) {
+                const n = walkStepsClean.length, nj = transitStepsClean.length;
+                window.currentStepIndex = firstOfLeg === 'final_walk' ? Math.min(window.activeRouteSteps.length - 1, n + nj) : 0;
+            }
+        }
+
+        // Map lines from the state: done part grey, the rest in its colour
+        const lineLengths = new WeakMap();
+        function cumOf(coords) {
+            let c = lineLengths.get(coords);
+            if (!c || c.length !== coords.length) {
+                c = [0];
+                for (let i = 1; i < coords.length; i++) c.push(c[i - 1] + getHaversineDist(coords[i - 1][0], coords[i - 1][1], coords[i][0], coords[i][1]) * 1000);
+                lineLengths.set(coords, c);
+            }
+            return c;
+        }
+        // [lat,lng] line split at metres along it, as [lng,lat] lines: [done, ahead]
+        function splitLineAt(coords, m) {
+            if (!Array.isArray(coords) || coords.length < 2) return [[], []];
+            const cum = cumOf(coords);
+            const x = Math.max(0, Math.min(cum[cum.length - 1], m));
+            let i = 1;
+            while (i < cum.length - 1 && cum[i] < x) i++;
+            const a = coords[i - 1], b = coords[i];
+            const span = cum[i] - cum[i - 1];
+            const k = span > 0 ? (x - cum[i - 1]) / span : 0;
+            const cut = [a[1] + (b[1] - a[1]) * k, a[0] + (b[0] - a[0]) * k];
+            const done = coords.slice(0, i).map(c => [c[1], c[0]]).concat([cut]);
+            const ahead = [cut].concat(coords.slice(i).map(c => [c[1], c[0]]));
+            return [done, ahead];
+        }
+
+        function updateJourneyLines(r) {
+            if (!journey || !journeyLines) return;
+            const walk = journeyLines.walk;
+            const planned = (selectedMode === 'walking') ? [] : (transitRouteGeojson?.coordinates || []);
+            const fw = journeyLines.finalWalk;
+            const xfer = (pendingTransfer && pendingTransfer.finalWalk && Array.isArray(pendingTransfer.finalWalk.coordinates)) ? pendingTransfer.finalWalk.coordinates.map(c => [c[1], c[0]]) : [];
+            const ll = (c) => (c || []).map(p => [p[1], p[0]]);
+            const lines = (...ls) => { const out = ls.filter(l => l && l.length >= 2); return out.length > 1 ? out : (out[0] || []); };
+            let done = [], walkAhead = [], jeepAhead = [];
+            if (journeyPhase === 'walking') {
+                const [d, a] = splitLineAt(walk, journey.alongOf('walk'));
+                done = [d];
+                walkAhead = lines(a, ll(fw), xfer);
+                jeepAhead = ll(planned);
+            } else if (journeyPhase === 'waiting' || journeyPhase === 'riding') {
+                // Along the planned ride (the jeep line may start behind the boarding point)
+                const alongPlanned = journeyPhase === 'riding' ? Math.max(0, journey.alongOf('jeep') - (journeyLines.jeepBoardM || 0)) : 0;
+                const [d, a] = splitLineAt(planned, alongPlanned);
+                done = [ll(walk), alongPlanned > 0 ? d : []];
+                walkAhead = lines(ll(fw), xfer);
+                jeepAhead = planned.length >= 2 ? a : [];
+            } else {
+                const [d, a] = splitLineAt(fw, journey.alongOf('final_walk'));
+                done = [ll(walk), ll(planned), fw.length >= 2 ? d : []];
+                walkAhead = lines(fw.length >= 2 ? a : [], xfer);
+                jeepAhead = [];
+            }
+            updateRouteSource('completed-route', lines(...done));
+            updateRouteSource('walk-route', walkAhead);
+            updateRouteSource('transit-route', jeepAhead);
+        }
+
+        // ── TRIP RECORDER (/planner?trace=1) ────────────────────────────────────
+        // For testing the journey rules on real trips: every fix and the state the app chose, kept on
+        // this phone only (sessionStorage) and saved as a JSON file when you tap the chip. These are
+        // exact positions (RA 10173), so it is off unless the page is opened with ?trace=1, and
+        // nothing is ever uploaded. scripts/test-journey-state.mjs replays the file.
+        const TRACE_ON = (() => { try { return new URLSearchParams(window.location.search).get('trace') === '1'; } catch (_) { return false; } })();
+        const TRACE_KEY = 'calzada_trace';
+        let traceData = null;
+        let traceChip = null;
+        let traceSavedAt = 0;
+
+        function traceEnsure() {
+            if (!TRACE_ON) return null;
+            if (!traceData) {
+                try { traceData = JSON.parse(sessionStorage.getItem(TRACE_KEY) || 'null'); } catch (_) { traceData = null; }
+                if (!traceData || traceData.journeyId !== journeyId) {
+                    traceData = { v: 1, journeyId, startedAt: Date.now(), dest: destPlaceName || '', mode: selectedMode, legs: null, legsLater: [], fixes: [] };
+                }
+            }
+            if (!traceChip) {
+                traceChip = document.createElement('button');
+                traceChip.type = 'button';
+                traceChip.id = 'calzadaTraceChip';
+                traceChip.style.cssText = 'position:fixed;left:8px;top:45%;z-index:9999;padding:6px 10px;border-radius:10px;border:1px solid #E2E8F0;background:#FFFFFF;color:#0F172A;font:600 12px Outfit,system-ui,sans-serif;max-width:60vw;text-align:left;';
+                traceChip.addEventListener('click', traceDownload);
+                document.body.appendChild(traceChip);
+            }
+            return traceData;
+        }
+
+        function traceLegs() {
+            const tr = traceEnsure();
+            if (!tr || !journeyLines) return;
+            const legs = { walkOnly: journeyLines.walkOnly, walk: journeyLines.walk, jeep: journeyLines.jeep, finalWalk: journeyLines.finalWalk, jeepBoardM: journeyLines.jeepBoardM };
+            if (!tr.legs) tr.legs = legs;
+            else tr.legsLater.push({ t: Date.now(), legs });
+        }
+
+        function traceRecord(lat, lng, accuracy, speed, heading, r) {
+            const tr = traceEnsure();
+            if (!tr) return;
+            const round = (v, k) => (Number.isFinite(v) ? Math.round(v * k) / k : null);
+            tr.fixes.push({
+                t: Date.now(), lat: round(lat, 1e6), lng: round(lng, 1e6), acc: round(accuracy, 10), speed: round(speed, 100),
+                heading: round(heading, 10), state: r ? r.state : null, off: r ? round(r.off, 10) : null, along: r ? round(r.along, 10) : null,
+                events: r && r.events.length ? r.events.map(e => e.type === 'state' ? `${e.from}>${e.to}:${e.reason || ''}` : e.type) : undefined
+            });
+            if (tr.fixes.length > 20000) tr.fixes.splice(0, tr.fixes.length - 20000);
+            if (Date.now() - traceSavedAt > 10000) {
+                traceSavedAt = Date.now();
+                try { sessionStorage.setItem(TRACE_KEY, JSON.stringify(tr)); } catch (_) { /* full: keep it in memory */ }
+            }
+            if (traceChip) {
+                const kmh = Number.isFinite(speed) ? `${Math.round(speed * 3.6)} km/h` : 'no speed';
+                const off = r && Number.isFinite(r.off) ? `${Math.round(r.off)} m off` : '';
+                traceChip.textContent = `● ${r ? r.state : '-'} · ${kmh} · ${off} · ±${Math.round(accuracy || 0)} m · ${tr.fixes.length} fixes (tap to save)`;
+            }
+        }
+
+        function traceDownload() {
+            const tr = traceEnsure();
+            if (!tr) return;
+            try {
+                const blob = new Blob([JSON.stringify(tr)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const d = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                a.href = url;
+                a.download = `calzada-trip-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+            } catch (e) { console.error('Trace download failed:', e); }
+        }
+
+        window._calzadaJourneyDebug = () => ({
+            phase: journeyPhase,
+            state: journey ? journey.state : null,
+            last: journeyLast,
+            activeLegIndex,
+            step: window.currentStepIndex || 0,
+            jeepBoardM: journeyLines ? journeyLines.jeepBoardM : null,
+            lens: journey ? { walk: journey.legLength('walk'), jeep: journey.legLength('jeep'), final_walk: journey.legLength('final_walk') } : null,
+            waitMin: currentWaitMin
+        });
 
         // =============================================
         // UI SHELL LOGIC (Modals, Panels, Breakpoints)
@@ -4942,6 +5394,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 ],
                 curated: true,
                 routeId: j1.routeId,
+                // Where on the route the ride is (the journey also watches the road behind the
+                // boarding point) and the expected wait there
+                routeDir: j1.dir,
+                boardPos: j1.boardPos,
+                alightPos: j1.alightPos,
+                waitMin: Number.isFinite(j1.waitMin) ? j1.waitMin : null,
+                wait: j1.wait || null,
                 headsign: transitHeadsign(j1),
                 signboard: j1.signboard || null,
                 boardName,
@@ -6043,9 +6502,12 @@ document.addEventListener('DOMContentLoaded', () => {
             currentWalkDur = computeWalkDurationMin(currentWalkDist);
             currentTransitDist = tRes.distance / 1000;
 
-            // Jeepney speed correction: real jeepney avg (~20 km/h) + boarding buffer
+            // Jeepney speed correction: real jeepney avg (~20 km/h) + the wait where it is boarded
+            // (route data: a terminal where jeeps leave when full; else the 3-minute buffer)
+            currentWaitMin = Number.isFinite(tRes.waitMin) ? tRes.waitMin : Math.round(BOARDING_BUFFER_SEC / 60);
+            currentWaitRange = tRes.wait && Number.isFinite(tRes.wait.typicalMin) ? tRes.wait : null;
             const jeepKphNow = window.CalzadaLiveEta ? window.CalzadaLiveEta.jeepDefaultMps(new Date(), JEEPNEY_SPEED_KPH) * 3.6 : JEEPNEY_SPEED_KPH;
-            const correctedTransitDur = (currentTransitDist / jeepKphNow) * 3600 + BOARDING_BUFFER_SEC;
+            const correctedTransitDur = (currentTransitDist / jeepKphNow) * 3600 + currentWaitMin * 60;
             currentTransitDur = Math.max(1, Math.round(correctedTransitDur / 60));
 
             // Single centralized fare calculation based on actual transit distance (fare rates loaded
@@ -6118,6 +6580,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectedMode: selectedMode,
                     activeLegIndex: activeLegIndex,
                     currentStepIndex: window.currentStepIndex || 0,
+                    // Walking, waiting, riding or the last walk, and how far along (js/journey-state.js)
+                    journey: (isTrackingArrival && journey) ? journey.snapshot() : null,
+                    waitedMin: journeyWaitedMin,
                     isJourneyActive: isTrackingArrival,
                     startedAt: journeyStartedAt,
                     journeyId,
@@ -6589,7 +7054,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const createLegRow = ({ type, contentHtml }) => {
                 const row = document.createElement('div');
                 row.className = `timeline-row timeline-leg-row timeline-leg-row--${type}`;
-                const lineClass = type === 'walk' ? 'timeline-line--walk' : 'timeline-line--jeepney';
+                const lineClass = type === 'walk' ? 'timeline-line--walk' : (type === 'wait' ? 'timeline-line--wait' : 'timeline-line--jeepney');
                 row.innerHTML = `
                     <div class="timeline-time"></div>
                     <div class="timeline-rail">
@@ -6747,6 +7212,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 subText: boardSub
             }));
 
+            // 3b. Wait at a terminal where jeeps leave when full (route data): its own row, and the
+            // jeep row shows the ride alone. Both are inside the trip's times.
+            const waitRange = currentWaitRange;
+            const showWaitRow = !!waitRange && currentWaitMin > 0;
+            if (showWaitRow) {
+                const tlW = transitLang() === 'tl';
+                const range = waitRange.maxMin > waitRange.minMin ? `${waitRange.minMin}–${waitRange.maxMin}` : `${waitRange.typicalMin}`;
+                const waitLabel = tlW ? `Maghintay nang mga ${range} min` : `Wait about ${range} min`;
+                const waitNote = tlW ? 'Umaalis ang jeep kapag puno na' : 'Jeeps leave when full';
+                container.appendChild(createLegRow({
+                    type: 'wait',
+                    contentHtml: `
+                    <div class="timeline-wait-content">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>
+                        </svg>
+                        <span class="timeline-wait-text">${escapeHtml(waitLabel)}</span>
+                    </div>
+                    <div class="timeline-wait-note">${escapeHtml(waitNote)}</div>
+                `
+                }));
+            }
+
             // 4. Jeepney Leg Row
             // Signboard only when the route data has one; a curated route without one shows where it goes
             const isTl = transitLang() === 'tl';
@@ -6784,7 +7272,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             };
             const curatedHeadsign = transitRouteGeojson?.curated ? transitRouteGeojson.headsign : null;
-            const jeepHtml = jeepContentHtml(currentTransitDur, currentTransitDist, currentFare, signboardName, curatedHeadsign, null,
+            const jeepRideMin = showWaitRow ? Math.max(1, currentTransitDur - currentWaitMin) : currentTransitDur;
+            const jeepHtml = jeepContentHtml(jeepRideMin, currentTransitDist, currentFare, signboardName, curatedHeadsign, null,
                 isTrackingArrival ? '' : rideStripFor(transitRouteGeojson?.coordinates, boardAt, alightAt));
             container.appendChild(createLegRow({ type: 'jeepney', contentHtml: jeepHtml }));
 
@@ -7300,7 +7789,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                     <div class="nav-leg-info">
                         <div class="nav-leg-title">Jeepney towards ${escapeHtml(alightAt)}</div>
-                        <div class="nav-leg-meta">${currentTransitDur} min · ${currentTransitDist.toFixed(1)} km (Board: ${escapeHtml(boardAt)})</div>
+                        <div class="nav-leg-meta">${currentTransitDur} min${currentWaitRange ? ` (${transitLang() === 'tl' ? 'kasama ang mga' : 'incl. about'} ${currentWaitMin} min ${transitLang() === 'tl' ? 'na paghihintay' : 'wait'})` : ''} · ${currentTransitDist.toFixed(1)} km (Board: ${escapeHtml(boardAt)})</div>
                     </div>
                     <div class="nav-leg-fare">${formatPeso(currentFare)}</div>
                 </div>
@@ -7378,15 +7867,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nextMode = (idx + 1 < steps.length) ? steps[idx + 1].mode : null;
                 const prevStep = idx > 0 ? steps[idx - 1] : null;
                 const prevName = prevStep ? (prevStep.name || '').trim() : '';
-                const instructionText = formatStepInstruction(current, current.mode, {
+                let instructionText = formatStepInstruction(current, current.mode, {
                     isLastStep: isLast,
                     nextMode,
                     steps,
                     index: idx,
                     prevName
                 });
-                const distText = current.distance ? formatDist(current.distance) : '';
-                const hasDist = Boolean(current.distance && Number(current.distance) > 0 && distText);
+                // Waiting for the jeep: say so, with its signboard (or where it goes) to look for
+                if (isTrackingArrival && journey && journeyPhase === 'waiting' && transitRouteGeojson) {
+                    const tlW = transitLang() === 'tl';
+                    const sign = transitRouteGeojson.signboard || transitRouteGeojson.headsign || '';
+                    instructionText = sign
+                        ? (tlW ? `Hintayin ang jeep na ${sign}` : `Wait for the jeep: ${sign}`)
+                        : (tlW ? 'Hintayin ang jeep' : 'Wait for the jeep');
+                }
+                let distText = current.distance ? formatDist(current.distance) : '';
+                let hasDist = Boolean(current.distance && Number(current.distance) > 0 && distText);
+                // During a journey: the metres left on this step, or the minutes waited for the jeep
+                if (isTrackingArrival && journey && selectedMode !== 'walking') {
+                    if (journeyPhase === 'waiting') {
+                        const min = journeyWaitingMin();
+                        distText = transitLang() === 'tl' ? `Naghihintay · ${min} min` : `Waiting · ${min} min`;
+                        hasDist = true;
+                    } else {
+                        const rem = journeyStepRemainingM();
+                        if (rem !== null) { distText = formatDist(rem); hasDist = rem >= 1; }
+                    }
+                } else if (isTrackingArrival && journey) {
+                    const rem = journeyStepRemainingM();
+                    if (rem !== null) { distText = formatDist(rem); hasDist = rem >= 1; }
+                }
                 const iconName = getStepIcon(current, current.mode, isLast);
 
                 // Localize "NEXT STEP" badge on both desktop and mobile
@@ -7528,6 +8039,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resetLiveEta();
             countdownInterval = setInterval(() => {
                 try {
+                    journeyTick();
                     liveEtaTick();
                     syncNavDisplays(Date.now() - lastMovementTimestamp);
                 } catch (err) { console.error('[countdownInterval] syncNavDisplays failed:', err); }
@@ -8055,14 +8567,40 @@ document.addEventListener('DOMContentLoaded', () => {
             pillLegs.innerHTML = mainLegs.innerHTML;
 
             const rows = pillLegs.querySelectorAll('.timeline-row');
-            rows.forEach(r => r.classList.remove('timeline-row--active'));
+            rows.forEach(r => r.classList.remove('timeline-row--active', 'timeline-row--done'));
 
             const stepIdx = window.currentStepIndex || 0;
             const steps = window.activeRouteSteps || [];
             const currentStep = steps[stepIdx];
 
             let targetRow = null;
-            if (currentStep) {
+            if (isTrackingArrival && journey && selectedMode !== 'walking') {
+                // From the journey state: the current row highlighted, the rows before it done
+                const walks = pillLegs.querySelectorAll('.timeline-leg-row--walk');
+                const jeeps = pillLegs.querySelectorAll('.timeline-leg-row--jeepney');
+                const stopRows = pillLegs.querySelectorAll('.timeline-stop-row');
+                const waitRow = pillLegs.querySelector('.timeline-leg-row--wait');
+                if (journeyPhase === 'walking') targetRow = walks[0] || null;
+                else if (journeyPhase === 'waiting') targetRow = waitRow || stopRows[1] || jeeps[0] || null;
+                else if (journeyPhase === 'riding') targetRow = jeeps[0] || null;
+                else targetRow = walks[1] || stopRows[stopRows.length - 1] || null;
+                if (targetRow) {
+                    let before = true;
+                    rows.forEach(r => {
+                        if (r === targetRow) before = false;
+                        else if (before) r.classList.add('timeline-row--done');
+                    });
+                }
+                const waitText = waitRow ? waitRow.querySelector('.timeline-wait-text') : null;
+                if (waitText) {
+                    const tl = transitLang() === 'tl';
+                    if (journeyPhase === 'waiting') {
+                        waitText.textContent = tl ? `Naghihintay · ${journeyWaitingMin()} min` : `Waiting · ${journeyWaitingMin()} min`;
+                    } else if (journeyPhase !== 'walking' && journeyWaitedMin !== null) {
+                        waitText.textContent = tl ? `Naghintay nang ${journeyWaitedMin} min` : `Waited ${journeyWaitedMin} min`;
+                    }
+                }
+            } else if (currentStep) {
                 if (currentStep.mode === 'driving' || currentStep.mode === 'jeepney') {
                     targetRow = pillLegs.querySelector('.timeline-leg-row--jeepney');
                 } else if (currentStep.maneuver?.type === 'arrive') {
@@ -8196,6 +8734,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!navigator.geolocation) return;
 
             activeLegIndex = 0;
+            resetJourney();
             const fwCoords = transitRouteGeojson?.finalWalk?.coordinates || window.finalWalkRouteGeojson?.coordinates || [];
             trackedCoordinates = (walkRouteGeojson?.coordinates || []).concat(transitRouteGeojson?.coordinates || []).concat(fwCoords);
             completedCoords = [];
@@ -8227,6 +8766,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             resetLiveEta();
             countdownInterval = setInterval(() => {
+                try { journeyTick(); } catch (err) { console.error('[countdownInterval] journey tick failed:', err); }
                 liveEtaTick();
                 syncNavDisplays(Date.now() - lastMovementTimestamp);
             }, 1000);
@@ -8354,6 +8894,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (deviationTimer) { clearTimeout(deviationTimer); deviationTimer = null; }
             if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
             resetLiveEta();
+            resetJourney();
+            journeyRestore = null;
             liveEtaWalkKph = WALK_SPEED_KPH;
             // FIX ∗3: remainingTransitDurationStrRawTimer is declared but guard it safely
             if (remainingTransitDurationStrRawTimer) { clearInterval(remainingTransitDurationStrRawTimer); remainingTransitDurationStrRawTimer = null; }
@@ -8390,6 +8932,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // B3: Keep currentLocation as the RAW position for everything that already depends on it
             currentLocation = { lat: latitude, lng: longitude };
 
+            // Journey state first (js/journey-state.js): walking, waiting, riding or the last walk
+            // decides the line the pointer snaps to, the step, the itinerary and the off-route check
+            const jr = transferRecomputing || journeyReplanning ? null : journeyOnFix(latitude, longitude, accuracy, speed, pos.coords.heading);
+            const jLeg = jr ? JOURNEY_LEG[journeyPhase] : null;
+
             // A2: duration = time since the previous fix, clamped to 300..1200 ms. 0 if prefers-reduced-motion.
             const now = performance.now();
             const rawDt = lastFixTimestamp ? (now - lastFixTimestamp) : 800;
@@ -8397,8 +8944,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const isReducedMotion = prefersReducedMotion();
             const updateDuration = isReducedMotion ? 0 : Math.min(1200, Math.max(300, Math.round(rawDt)));
 
-            // B1: Active route polyline geometry for snapping
-            const currentPath = (activeLegIndex === 0 ? walkRouteGeojson?.coordinates : transitRouteGeojson?.coordinates) || [];
+            // B1: Active route polyline geometry for snapping (with the journey state: its leg's line;
+            // the jeep line can start behind the boarding point)
+            const currentPath = (jr && journeyLines
+                ? (jLeg === 'walk' ? journeyLines.walk : jLeg === 'jeep' ? journeyLines.jeep : (journeyLines.finalWalk.length >= 2 ? journeyLines.finalWalk : journeyLines.jeep))
+                : (activeLegIndex === 0 ? walkRouteGeojson?.coordinates : transitRouteGeojson?.coordinates)) || [];
 
             // B2: Threshold = max(25, min(accuracy, 50)) meters
             const effAccuracy = (typeof accuracy === 'number' && !isNaN(accuracy)) ? accuracy : 25;
@@ -8566,24 +9116,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (d < minD) { minD = d; closestIdx = i; }
             }
 
-            if (window.activeRouteSteps && window.currentStepIndex < window.activeRouteSteps.length - 1) {
-                const nextManeuver = window.activeRouteSteps[window.currentStepIndex + 1].maneuver;
-                if (nextManeuver && nextManeuver.location) {
-                    const stepDist = getHaversineDist(latitude, longitude, nextManeuver.location[1], nextManeuver.location[0]) * 1000;
-                    if (stepDist < 30) {
-                        window.currentStepIndex++;
-                        updateGuideStepsUI();
+            if (jr) {
+                // The step for how far along the leg you are, so a missed point never leaves a step stuck;
+                // redrawn every fix for the metres left on it (and the minutes waited)
+                syncStepToJourney(false);
+                updateGuideStepsUI();
+            } else {
+                if (window.activeRouteSteps && window.currentStepIndex < window.activeRouteSteps.length - 1) {
+                    const nextManeuver = window.activeRouteSteps[window.currentStepIndex + 1].maneuver;
+                    if (nextManeuver && nextManeuver.location) {
+                        const stepDist = getHaversineDist(latitude, longitude, nextManeuver.location[1], nextManeuver.location[0]) * 1000;
+                        if (stepDist < 30) {
+                            window.currentStepIndex++;
+                            updateGuideStepsUI();
+                        }
                     }
                 }
-            }
 
-            if (activeLegIndex === 0 && minD < 50 && closestIdx >= currentPath.length - 3) {
-                activeLegIndex = 1;
-            }
-            if (activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0) {
-                const walkEnd = walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1];
-                const distToBoard = getHaversineDist(latitude, longitude, walkEnd[0], walkEnd[1]) * 1000;
-                if (distToBoard < 40) activeLegIndex = 1;
+                if (activeLegIndex === 0 && minD < 50 && closestIdx >= currentPath.length - 3) {
+                    activeLegIndex = 1;
+                }
+                if (activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0) {
+                    const walkEnd = walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1];
+                    const distToBoard = getHaversineDist(latitude, longitude, walkEnd[0], walkEnd[1]) * 1000;
+                    if (distToBoard < 40) activeLegIndex = 1;
+                }
             }
 
             // Keep the step and leg current in session (after this fix moved them), for a reload
@@ -8595,7 +9152,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             let remainingTimeSecs = 0;
-            if (activeLegIndex === 1) {
+            if (jr) {
+                // Lines from the journey state: done part grey, the rest in its colour
+                updateJourneyLines(jr);
+                updatePillFareUI();
+                const left = jr.remainingM || 0;
+                remainingTimeSecs = journeyPhase === 'walking'
+                    ? (left / 1000 / WALK_SPEED_KPH) * 3600 + currentTransitDur * 60
+                    : (journeyPhase === 'final_walk' ? (left / 1000 / WALK_SPEED_KPH) * 3600 : (left / 1000 / JEEPNEY_SPEED_KPH) * 3600);
+            } else if (activeLegIndex === 1) {
                 // Transit leg: remaining distance on transit at 30 km/h
                 const remFare = computeLTFRBFare(remainingDist, selectedMode);
                 updatePillFareUI(remFare);
@@ -8653,19 +9218,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 getHaversineDist(latitude, longitude, pendingTransfer.boardPt[0], pendingTransfer.boardPt[1])
             ) * 1000 <= 400;
 
-            if (minD > 50 && !nearTransferStop) {
+            // With the journey state: only a walk is re-routed (never a ride: "Wrong jeep" re-plans), not
+            // while moving at jeep speed, and not while standing on the jeep's road (flagging it there)
+            const offM = jr ? (Number.isFinite(jr.off) ? jr.off : Infinity) : minD;
+            const onFoot = !jr || journeyPhase === 'walking' || journeyPhase === 'final_walk';
+            const jeepFast = !!jr && jr.speed !== null && jr.speed > 4;
+            const onJeepRoad = !!jr && journeyPhase === 'walking' && Number.isFinite(jr.jeepOff) && jr.jeepOff <= 35;
+            if (onFoot && !jeepFast && !onJeepRoad && offM > 50 && !nearTransferStop) {
                 if (!deviationTimer) {
                     deviationTimer = setTimeout(async () => {
                         deviationTimer = null;
-                        // During walk leg, reroute to the boarding point (walk leg end), not the destination
-                        const legTarget = activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0
-                            ? walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1]
-                            : selectedCoords.destination;
-                        const res = await fetchOSRMRouteCoords([latitude, longitude], legTarget, activeLegIndex === 0 ? 'foot' : 'car');
+                        const phaseNow = journey ? journeyPhase : null;
+                        if (phaseNow === 'waiting' || phaseNow === 'riding') return;
+                        const toFinal = phaseNow === 'final_walk';
+                        // During walk leg, reroute to the boarding point (walk leg end), not the destination;
+                        // on the last walk, to the place (or the next jeep's stop)
+                        const legTarget = toFinal
+                            ? (pendingTransfer ? pendingTransfer.boardPt : selectedCoords.destination)
+                            : (activeLegIndex === 0 && walkRouteGeojson && walkRouteGeojson.coordinates.length > 0
+                                ? walkRouteGeojson.coordinates[walkRouteGeojson.coordinates.length - 1]
+                                : selectedCoords.destination);
+                        const here = currentLocation ? [currentLocation.lat, currentLocation.lng] : [latitude, longitude];
+                        const res = await fetchOSRMRouteCoords(here, legTarget, (phaseNow || activeLegIndex === 0) ? 'foot' : 'car');
                         if (res) {
-                            if (activeLegIndex === 0) {
+                            if (toFinal) {
+                                const fwNew = { coordinates: res.coordinates, distance: res.distance, duration: res.duration, steps: res.steps || [] };
+                                if (transitRouteGeojson) transitRouteGeojson.finalWalk = fwNew;
+                                window.finalWalkRouteGeojson = fwNew;
+                                journeyKeepState = 'final_walk';
+                                rebuildJourneySteps('final_walk');
+                                updateGuideStepsUI();
+                            } else if (activeLegIndex === 0) {
                                 walkRouteGeojson.coordinates = res.coordinates;
                                 walkRouteGeojson.steps = res.steps;
+                                if (journey) {
+                                    journeyKeepState = 'walking';
+                                    rebuildJourneySteps('walk');
+                                    updateGuideStepsUI();
+                                }
                                 updateRouteSource('walk-route', res.coordinates.map(c => [c[1], c[0]]));
                             } else {
                                 transitRouteGeojson.coordinates = res.coordinates;
@@ -10517,6 +11107,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const today = startOfDay(new Date());
                 if (day < today || day > addDays(today, DT_MAX_DAYS)) return;
                 dtDay = day;
+                dtDateInput.hidden = true; // the "Other date" button now shows the day
                 renderDtDays();
                 updateDtSummary();
             });
@@ -11213,6 +11804,9 @@ document.addEventListener('DOMContentLoaded', () => {
             journeyId = typeof state.journeyId === 'string' && /^[A-Za-z0-9]{20}$/.test(state.journeyId) ? state.journeyId : null;
             isTrackingArrival = true; // from here on the preview replan never moves the origin
             setModeUI(selectedMode);
+            // Walking, waiting or riding as before the reload (applied when the journey state starts)
+            journeyRestore = (state.journey && typeof state.journey.state === 'string') ? state.journey : null;
+            journeyWaitedMin = Number.isFinite(state.waitedMin) ? state.waitedMin : null;
 
             const resumeNavigation = () => {
                 startActiveJourneyUI();
@@ -11244,6 +11838,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentTransitDist = stats.transitDist;
                 currentTransitDur = stats.transitDur;
                 currentFare = stats.fare;
+                currentWaitMin = Number.isFinite(route.transit.waitMin) ? route.transit.waitMin : Math.round(BOARDING_BUFFER_SEC / 60);
+                currentWaitRange = route.transit.wait && Number.isFinite(route.transit.wait.typicalMin) ? route.transit.wait : null;
                 pendingTransfer = (state.transfer && state.transfer.jeep && Array.isArray(state.transfer.jeep.coords)) ? state.transfer : null;
                 priorTrip = (state.prior && Array.isArray(state.prior.legs)) ? state.prior : null;
                 terminalTrip = (state.terminal && Array.isArray(state.terminal.choices)) ? state.terminal : null;

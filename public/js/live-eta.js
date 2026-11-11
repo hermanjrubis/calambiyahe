@@ -3,13 +3,17 @@
  *
  * Remaining time is rebuilt from where the commuter actually is on each leg, not from fixed totals:
  *   walk        remaining metres / walking pace learned from GPS (starts at 4 km/h)
- *   wait        expected jeep wait at the boarding point; counts down while you wait, and once the
+ *   wait        expected jeep wait at the boarding point (per trip: a terminal where jeeps leave when
+ *               full waits longer than a jeep flagged on the road); counts down while you wait, and once the
  *               expected wait has passed it keeps one minute in reserve, so the arrival time slides
  *               later in real time instead of freezing
  *   jeep        remaining metres / jeep speed; the speed is a blend of the normal speed for the time
  *               of day and the progress you really made over the last 3 minutes (stop-and-go, traffic)
  *   final walk  remaining metres / walking pace
  *   extra       fixed seconds for anything after (a second jeep), from the planner
+ *
+ * During a journey the planner's journey state (js/journey-state.js) tells this tracker the phase
+ * (setPhase), so the arrival time and the rest of the screen agree on walking, waiting and riding.
  *
  * Pure logic: no DOM, no map. Coordinates are [lat, lng].
  */
@@ -87,6 +91,8 @@
         let waitStart = null;
         let boarded = false;
         let lastFix = null;          // {t, lat, lng, along, leg}
+        let waitSec = opt.boardingWaitSec;
+        let phase = null;            // set by the planner's journey state (js/journey-state.js)
 
         function setLegs(def) {
             const d = def || {};
@@ -99,6 +105,10 @@
             }
             legs = legs.filter((l, i) => i === 0 || l.length > 0);
             extraSec = Math.max(0, Number(d.extraSec) || 0);
+            // Expected wait at this trip's boarding place (a terminal where jeeps leave when full
+            // waits longer than flagging one on the road)
+            waitSec = Number.isFinite(d.waitSec) && d.waitSec >= 0 ? d.waitSec : opt.boardingWaitSec;
+            phase = null;
             cur = Math.max(0, Math.min(legs.length - 1, d.startLeg | 0));
             samples = [];
             walkSamples = [];
@@ -109,6 +119,37 @@
 
         function legOf(type) { return legs.findIndex(l => l.type === type); }
 
+        // The planner's journey state decides the leg: walking, waiting, riding, final_walk.
+        // From then on this tracker only measures progress and speeds; it no longer guesses the leg.
+        function setPhase(next, tNow) {
+            const t = Number.isFinite(tNow) ? tNow : Date.now();
+            const jeepIdx = legOf('jeep');
+            const fwIdx = legOf('final_walk');
+            if (next === 'walking') {
+                cur = 0;
+                boarded = false;
+                waitStart = null;
+            } else if (next === 'waiting' && jeepIdx >= 0) {
+                cur = jeepIdx;
+                boarded = false;
+                if (waitStart === null) waitStart = t;
+            } else if (next === 'riding' && jeepIdx >= 0) {
+                cur = jeepIdx;
+                if (!boarded) {
+                    boarded = true;
+                    // Measure the ride from here on, not the minutes spent waiting at the stop
+                    samples = samples.filter(s => t - s.t <= 30000);
+                }
+            } else if (next === 'final_walk') {
+                if (jeepIdx >= 0) legs[jeepIdx].along = legs[jeepIdx].length;
+                cur = fwIdx >= 0 ? fwIdx : (jeepIdx >= 0 ? jeepIdx : cur);
+                boarded = true;
+            } else {
+                return;
+            }
+            phase = next;
+        }
+
         // legHint: the planner's own leg (0 = first walk, 1 = jeep). We never go backwards.
         function onFix(fix) {
             if (!legs.length || !fix || !isFinite(fix.lat) || !isFinite(fix.lng)) return;
@@ -117,10 +158,10 @@
 
             const jeepIdx = legOf('jeep');
             const fwIdx = legOf('final_walk');
-            if (fix.legHint === 1 && jeepIdx > cur) cur = jeepIdx;
+            if (!phase && fix.legHint === 1 && jeepIdx > cur) cur = jeepIdx;
 
             // Off the bus and onto the last walk: closer to the final-walk path near the end of the ride
-            if (legs[cur] && legs[cur].type === 'jeep' && fwIdx > cur) {
+            if (!phase && legs[cur] && legs[cur].type === 'jeep' && fwIdx > cur) {
                 const pj = project(legs[cur], fix.lat, fix.lng, legs[cur].idx);
                 const pf = project(legs[fwIdx], fix.lat, fix.lng, 0);
                 const nearEnd = pj && (legs[cur].length - pj.along) < 120;
@@ -135,7 +176,7 @@
                     leg.along = Math.max(0, Math.min(leg.length, p.along));
                     leg.idx = p.idx;
                 }
-                if (leg.type !== 'jeep' && leg.length - leg.along < 15 && cur < legs.length - 1) cur++;
+                if (!phase && leg.type !== 'jeep' && leg.length - leg.along < 15 && cur < legs.length - 1) cur++;
             }
 
             // Learn walking pace (only plausible walking speeds). Without a GPS speed, measure progress
@@ -160,7 +201,7 @@
                 samples.push({ t, along: legs[cur].along });
                 samples = samples.filter(s => t - s.t <= opt.jeepWindowSec * 1000);
                 const moved60 = samples.length > 1 ? legs[cur].along - (samples.find(s => t - s.t <= 60000) || samples[0]).along : 0;
-                if (!boarded && ((speed !== null && speed >= 3) || moved60 > 150)) {
+                if (!phase && !boarded && ((speed !== null && speed >= 3) || moved60 > 150)) {
                     boarded = true;
                     // Measure the ride from here on, not the minutes spent waiting at the stop
                     samples = samples.filter(s => t - s.t <= 30000);
@@ -186,21 +227,21 @@
         }
 
         function remaining(tNow) {
-            const t = tNow || Date.now();
-            if (!legs.length) return { seconds: 0, meters: 0, phase: 'done', walkKph: walkMps * 3.6, jeepKph: 0 };
+            const t = Number.isFinite(tNow) ? tNow : Date.now();
+            if (!legs.length) return { seconds: 0, meters: 0, phase: 'done', walkKph: walkMps * 3.6, jeepKph: 0, waitedSec: 0, waitSec };
             let sec = 0, meters = 0;
-            let phase = legs[cur].type === 'jeep' ? (boarded ? 'riding' : 'waiting') : (legs[cur].type === 'final_walk' ? 'final_walk' : 'walking');
+            const shownPhase = phase || (legs[cur].type === 'jeep' ? (boarded ? 'riding' : 'waiting') : (legs[cur].type === 'final_walk' ? 'final_walk' : 'walking'));
             for (let i = cur; i < legs.length; i++) {
                 const leg = legs[i];
                 const left = Math.max(0, leg.length - (i === cur ? leg.along : 0));
                 meters += left;
                 if (leg.type === 'jeep') {
                     if (i > cur) {
-                        sec += opt.boardingWaitSec + left / jeepDefaultMps(new Date(t), opt.jeepKph);
+                        sec += waitSec + left / jeepDefaultMps(new Date(t), opt.jeepKph);
                     } else {
                         if (!boarded) {
                             const waited = waitStart ? (t - waitStart) / 1000 : 0;
-                            sec += Math.max(opt.minWaitReserveSec, opt.boardingWaitSec - waited);
+                            sec += Math.max(opt.minWaitReserveSec, waitSec - waited);
                         }
                         sec += left / jeepMps(t);
                     }
@@ -209,10 +250,11 @@
                 }
             }
             sec += extraSec;
-            return { seconds: sec, meters, phase, walkKph: walkMps * 3.6, jeepKph: jeepMps(t) * 3.6 };
+            const waitedSec = (!boarded && waitStart) ? Math.max(0, (t - waitStart) / 1000) : 0;
+            return { seconds: sec, meters, phase: shownPhase, walkKph: walkMps * 3.6, jeepKph: jeepMps(t) * 3.6, waitedSec, waitSec };
         }
 
-        return { setLegs, onFix, remaining, get leg() { return legs[cur] ? legs[cur].type : null; } };
+        return { setLegs, onFix, remaining, setPhase, get leg() { return legs[cur] ? legs[cur].type : null; } };
     }
 
     // Smooth what we show so the minutes don't jump around on every GPS fix:
@@ -221,7 +263,7 @@
         let shown = null, at = 0;
         return {
             next(target, tNow) {
-                const t = tNow || Date.now();
+                const t = Number.isFinite(tNow) ? tNow : Date.now();
                 if (shown === null || !isFinite(shown)) { shown = target; at = t; return shown; }
                 const predicted = Math.max(0, shown - (t - at) / 1000);
                 // Big changes (reroute, boarding) apply at once

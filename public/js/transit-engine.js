@@ -37,7 +37,7 @@
     const WALK_SPEED_KPH = 4.0;      // door to door in town, 15 min per km
     const JEEP_SPEED_KPH = 20;
     const JEEP_TRAFFIC_FACTOR = 0.75; // a jeep covers the same road at ~75% of car speed because it stops to load
-    const BOARDING_BUFFER_MIN = 3;   // per jeep ride (waiting + boarding)
+    const BOARDING_BUFFER_MIN = 3;   // per jeep ride (waiting + boarding) where the data has no wait
     const TRANSFER_EXTRA_MIN = 2;    // finding the next jeep
     const WALK_FACTOR = 1.25;        // straight line -> street walk
     const MAX_ACCESS_WALK_M = 1200;  // origin -> first jeep, last jeep -> destination
@@ -112,7 +112,8 @@
                 id: e.id, name: s.name, name_tl: s.name_tl, pos: pr.pos, pt: pr.pt, offM: pr.off, stopPt: [s.lat, s.lng],
                 roles: { 1: e.forward || null, '-1': e.reverse || null },
                 // false: a boarding point for trips that start there, never a transfer stop
-                noTransfer: e.transfer === false
+                noTransfer: e.transfer === false,
+                wait: normWait(e.wait)
             });
         });
         return r;
@@ -182,7 +183,17 @@
         return L && typeof L.jeepDefaultMps === 'function' ? L.jeepDefaultMps(new Date(), JEEP_SPEED_KPH) * 3.6 : JEEP_SPEED_KPH;
     };
     const walkMin = (m) => Math.max(1, Math.round((m / 1000 / WALK_SPEED_KPH) * 60));
-    const rideMin = (m) => Math.max(1, Math.round((m / 1000 / jeepKphNow()) * 60)) + BOARDING_BUFFER_MIN;
+    const rideOnlyMin = (m) => Math.max(1, Math.round((m / 1000 / jeepKphNow()) * 60));
+    const rideMin = (m) => rideOnlyMin(m) + BOARDING_BUFFER_MIN;
+    // Expected wait where the jeep is boarded: a route stop's "wait" (a terminal where jeeps leave
+    // when full), else the default boarding buffer. { minMin, typicalMin, maxMin } or null.
+    function normWait(w) {
+        if (!w || !Number.isFinite(w.typicalMin) || w.typicalMin < 0) return null;
+        const typ = Math.round(w.typicalMin);
+        const lo = Number.isFinite(w.minMin) ? Math.min(typ, Math.round(w.minMin)) : typ;
+        const hi = Number.isFinite(w.maxMin) ? Math.max(typ, Math.round(w.maxMin)) : typ;
+        return { minMin: lo, typicalMin: typ, maxMin: hi };
+    }
 
     function fareFor(m) {
         const F = root && root.CalzadaFare;
@@ -224,6 +235,9 @@
         const distM = Math.abs(alightPos - boardPos);
         const fare = fareFor(distM);
         const info = dirInfo(r, dir);
+        const st = board && board.stopId ? r.stopPos.find((s) => s.id === board.stopId) : null;
+        const wait = st && st.wait ? { ...st.wait } : null;
+        const waitMin = wait ? wait.typicalMin : BOARDING_BUFFER_MIN;
         return {
             type: 'jeep',
             routeId: r.id,
@@ -239,7 +253,9 @@
             toM: Math.round(Math.max(boardPos, alightPos)),
             coords: slicePath(r, boardPos, alightPos),
             distM,
-            min: rideMin(distM),
+            min: rideOnlyMin(distM) + waitMin,
+            waitMin,
+            wait,
             fare: fare.regular,
             fareDisc: fare.discounted
         };
@@ -571,7 +587,16 @@
             return [minLng - lngPad, minLat - latPad, maxLng + lngPad, maxLat + latPad];
         }
 
-        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, legKey, retime, retimeOption, routesBbox };
+        // The jeep's road on route routeId between two positions (metres from its start), in the
+        // order given: e.g. the road behind a boarding point, where a jeep can be flagged earlier
+        function pathOf(routeId, fromPos, toPos) {
+            const r = routes.find((x) => x.id === routeId);
+            if (!r || !Number.isFinite(fromPos) || !Number.isFinite(toPos)) return null;
+            const clamp = (v) => Math.max(0, Math.min(r.len, v));
+            return slicePath(r, clamp(fromPos), clamp(toPos));
+        }
+
+        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, pathOf, legKey, retime, retimeOption, routesBbox };
     }
 
     // Same trip on different routes: one card
@@ -683,7 +708,7 @@
                 optionHasLive = true;
                 const totalJeepSec = jeepSecFromTraffic(tData, copy.distM);
                 const travelMin = Math.max(1, Math.round(totalJeepSec / 60));
-                copy.min = travelMin + BOARDING_BUFFER_MIN;
+                copy.min = travelMin + (Number.isFinite(copy.waitMin) ? copy.waitMin : BOARDING_BUFFER_MIN);
 
                 const noTraffic = tData.noTrafficSec != null ? tData.noTrafficSec : tData.travelSec;
                 const legDelaySec = Math.max(0, tData.travelSec - noTraffic) / JEEP_TRAFFIC_FACTOR;
@@ -758,7 +783,7 @@
     }
 
     return {
-        VERSION: '1.7.0',
+        VERSION: '1.8.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
@@ -773,11 +798,13 @@
         terminalAt: (p, area) => (planner ? planner.terminalAt(p, area) : null),
         routeNear: (p, maxM, onlyIds) => (planner ? planner.routeNear(p, maxM, onlyIds) : []),
         stopPosOn: (routeId, stopId) => (planner ? planner.stopPosOn(routeId, stopId) : null),
+        pathOf: (routeId, fromPos, toPos) => (planner ? planner.pathOf(routeId, fromPos, toPos) : null),
         createPlanner,
         decodePolyline,
         haversineM,
         walkMin,
         rideMin,
+        rideOnlyMin,
         legKey,
         legDir,
         jeepSecFromTraffic,
