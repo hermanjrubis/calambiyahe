@@ -66,7 +66,7 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.9.20">
+    <link rel="stylesheet" href="../css/planner.css?v=2.9.21">
     <link rel="stylesheet" href="../css/planner-category.css?v=1.0.3">
     <link rel="stylesheet" href="../css/planner-transit.css?v=1.5.0">
     <link rel="stylesheet" href="../css/place-search.css?v=1.0.4">
@@ -1090,53 +1090,65 @@
             data-i18n="planner.reminders_got_it">Got It!</button>
     </div>
 
-    <!-- ===== DATETIME PICKER (GLASSMORPHISM) ===== -->
+    <!-- ===== DATETIME PICKER (Leave at / Arrive by) ===== -->
     <div class="dt-picker-overlay" id="dtPickerOverlay"></div>
-    <div class="dt-picker-modal glass-panel" id="dtPickerModal">
+    <div class="dt-picker-modal" id="dtPickerModal" role="dialog" aria-modal="true" aria-labelledby="dtTitle">
         <div class="dt-picker-header">
-            <button type="button" class="dt-back-btn" id="dtBackBtn" aria-label="Back to departure options"><ion-icon
-                    name="arrow-back-outline"></ion-icon></button>
-            <div class="dt-toggle">
-                <button type="button" class="dt-toggle-btn active" id="dtLeaveBtn"
-                    data-i18n="planner.dt_leave">Leave</button>
-                <button type="button" class="dt-toggle-btn" id="dtArriveBtn"
-                    data-i18n="planner.dt_arrive">Arrive</button>
-            </div>
-            <button type="button" class="dt-now-btn" id="dtNowBtn" data-i18n="planner.dt_now">Now</button>
+            <h2 class="dt-title" id="dtTitle" data-i18n="planner.dt_title">When are you going?</h2>
+            <button type="button" class="dt-close-btn" id="dtBackBtn" aria-label="Close"
+                data-i18n="planner.dt_close" data-i18n-attr="aria-label">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+            </button>
         </div>
         <div class="dt-picker-body">
-            <div class="dt-time-display" id="dtTimeDisplay">12:00 PM</div>
-            <div class="dt-sliders">
-                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_hr">HR</span><input
-                        type="range" class="dt-slider" id="dtHrSlider" aria-label="Select hour" min="1" max="12"
-                        value="12"></div>
-                <div class="dt-slider-row"><span class="dt-slider-label" data-i18n="planner.dt_min">MIN</span><input
-                        type="range" class="dt-slider" id="dtMinSlider" aria-label="Select minute" min="0" max="59"
-                        value="0"></div>
-                <div class="dt-ampm-row">
-                    <button type="button" class="dt-ampm-btn active" id="dtAmBtn" data-i18n="planner.dt_am">AM</button>
-                    <button type="button" class="dt-ampm-btn" id="dtPmBtn" data-i18n="planner.dt_pm">PM</button>
+            <div class="dt-seg" role="radiogroup" aria-labelledby="dtTitle">
+                <button type="button" class="dt-seg-btn active" id="dtLeaveBtn" role="radio" aria-checked="true"
+                    data-i18n="planner.dt_leave_at">Leave at</button>
+                <button type="button" class="dt-seg-btn" id="dtArriveBtn" role="radio" aria-checked="false"
+                    data-i18n="planner.dt_arrive_by">Arrive by</button>
+            </div>
+
+            <div class="dt-section">
+                <div class="dt-label" id="dtDayLabel" data-i18n="planner.dt_day">Day</div>
+                <div class="dt-days" id="dtDays" role="radiogroup" aria-labelledby="dtDayLabel"></div>
+                <input type="date" class="dt-date-input" id="dtDateInput" hidden
+                    aria-label="Pick another date" data-i18n="planner.dt_pick_date" data-i18n-attr="aria-label">
+            </div>
+
+            <div class="dt-section">
+                <label class="dt-label" for="dtTimeInput" data-i18n="planner.dt_time">Time</label>
+                <div class="dt-time-row">
+                    <button type="button" class="dt-step" id="dtMinus" aria-label="15 minutes earlier"
+                        data-i18n="planner.dt_earlier" data-i18n-attr="aria-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+                            <path d="M5 12h14" />
+                        </svg>
+                    </button>
+                    <input type="time" class="dt-time-input" id="dtTimeInput" step="300" value="12:00">
+                    <button type="button" class="dt-step" id="dtPlus" aria-label="15 minutes later"
+                        data-i18n="planner.dt_later" data-i18n-attr="aria-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="dt-quick" id="dtQuick">
+                    <button type="button" class="dt-quick-btn" data-add="15"></button>
+                    <button type="button" class="dt-quick-btn" data-add="30"></button>
+                    <button type="button" class="dt-quick-btn" data-add="60"></button>
                 </div>
             </div>
-            <div class="dt-calendar">
-                <div class="dt-cal-header">
-                    <span class="dt-cal-monthyear" id="dtCalMonthYear">January 2026</span>
-                    <div class="dt-cal-nav">
-                        <button type="button" class="dt-cal-nav-btn" id="dtPrevMonth"
-                            aria-label="Previous month">&#9664;</button>
-                        <button type="button" class="dt-cal-nav-btn" id="dtNextMonth"
-                            aria-label="Next month">&#9654;</button>
-                    </div>
-                </div>
-                <div class="dt-cal-weekdays">
-                    <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
-                </div>
-                <div class="dt-cal-days" id="dtCalDays"></div>
-            </div>
+
+            <p class="dt-summary" id="dtSummary" aria-live="polite"></p>
         </div>
         <div class="dt-picker-footer">
-            <button type="button" class="dt-confirm-btn" id="dtConfirmBtn" data-i18n="planner.dt_set">Set
-                Schedule</button>
+            <button type="button" class="dt-now-btn" id="dtNowBtn" data-i18n="planner.leave_now">Leave now</button>
+            <button type="button" class="dt-confirm-btn" id="dtConfirmBtn">Set departure time</button>
         </div>
     </div>
 
@@ -1376,10 +1388,10 @@
     <script src="../js/walk-router.js?v=1.0.0"></script>
     <script src="../js/planner-transit.js?v=1.5.1"></script>
     <script src="../js/live-eta.js?v=1.0.1"></script>
-    <script src="../js/planner.js?v=2.19.3"></script>
+    <script src="../js/planner.js?v=2.20.0"></script>
     <script src="../js/legal-modal.js?v=3.2.0"></script>
     <script src="../js/script.js?v=2.7.0"></script>
-    <script src="../js/i18n.js?v=2.12.1"></script>
+    <script src="../js/i18n.js?v=2.12.2"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>

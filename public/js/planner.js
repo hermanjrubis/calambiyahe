@@ -7075,8 +7075,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 3. Valid future schedule
                     else {
                         scheduledArriveAt = arriveAt;
-                        const leaveStr = formatManila(leaveAt);
-                        const arriveStr = formatManila(arriveAt);
+                        // "7:00 AM" today; "7:00 AM (Tomorrow)" or "7:00 AM (Fri, Nov 13)" on another day
+                        const withDay = (d) => {
+                            const tag = typeof window._calzadaDayTag === 'function' ? window._calzadaDayTag(d) : '';
+                            return tag ? `${formatManila(d)} (${tag})` : formatManila(d);
+                        };
+                        const leaveStr = withDay(leaveAt);
+                        const arriveStr = withDay(arriveAt);
                         const hintMsg = window.t
                             ? window.t('reminders.leave_by_arrive', { leaveTime: leaveStr, arriveTime: arriveStr })
                             : `Leave by ${leaveStr} to arrive by ${arriveStr}`;
@@ -10221,206 +10226,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // =============================================
-        // DATETIME PICKER (LEAVE / ARRIVE) & SCHEDULE TRIGGER
+        // DATETIME PICKER (LEAVE AT / ARRIVE BY) & SCHEDULE TRIGGER
         // =============================================
+        // Day buttons (Today, Tomorrow, the next 5 days, Other date up to 30 days), one time box
+        // (native <input type="time">: typing on desktop, the phone's own wheel on mobile) with
+        // -15 / +15 and "In 15 / 30 min / 1 hour", and a sentence that says exactly what will be set.
+        // Output is unchanged: window._calzadaPlannedSchedule = { mode: 'depart'|'arrive', targetTime }.
         const dtOverlay = document.getElementById('dtPickerOverlay');
         const dtModal = document.getElementById('dtPickerModal');
-        const dtHrSlider = document.getElementById('dtHrSlider');
-        const dtMinSlider = document.getElementById('dtMinSlider');
-        const dtTimeDisplay = document.getElementById('dtTimeDisplay');
-        const dtAmBtn = document.getElementById('dtAmBtn');
-        const dtPmBtn = document.getElementById('dtPmBtn');
         const dtLeaveBtn = document.getElementById('dtLeaveBtn');
         const dtArriveBtn = document.getElementById('dtArriveBtn');
         const dtNowBtn = document.getElementById('dtNowBtn');
         const dtBackBtn = document.getElementById('dtBackBtn');
         const dtConfirmBtn = document.getElementById('dtConfirmBtn');
-        const dtCalDays = document.getElementById('dtCalDays');
-        const dtCalMonthYear = document.getElementById('dtCalMonthYear');
-        const dtPrevMonth = document.getElementById('dtPrevMonth');
-        const dtNextMonth = document.getElementById('dtNextMonth');
+        const dtDays = document.getElementById('dtDays');
+        const dtDateInput = document.getElementById('dtDateInput');
+        const dtTimeInput = document.getElementById('dtTimeInput');
+        const dtMinus = document.getElementById('dtMinus');
+        const dtPlus = document.getElementById('dtPlus');
+        const dtQuick = document.getElementById('dtQuick');
+        const dtSummary = document.getElementById('dtSummary');
 
+        const DT_MAX_DAYS = 30;      // same limit as the reminders rule
+        const DT_DAY_BUTTONS = 7;    // Today, Tomorrow + 5 more days
         let dtPickerMode = 'depart'; // 'depart' | 'arrive'
-        let dtAmPm = 'pm';
-        let dtCalDate = new Date();
-        let dtSelectedDate = new Date();
+        let dtDay = null;            // Date at local midnight
+        let dtMinutes = 0;           // minutes after midnight, 0..1439
+        let dtLastFocus = null;
 
         const pad2 = n => String(n).padStart(2, '0');
+        const dtT = (key, params) => (window.t ? window.t(key, params) : key);
+        const dtLang = () => (localStorage.getItem('calzada_lang') === 'tl' ? 'tl' : 'en');
+        const dtLocale = () => (dtLang() === 'tl' ? 'fil-PH' : 'en-US');
+        const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+        const sameDay = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+        const toDateInputValue = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 
         function convert12To24Hour(hour12, period) {
             const p = String(period || 'am').trim().toLowerCase();
             let h = parseInt(hour12, 10);
             if (isNaN(h)) h = 12;
-            h = h % 12; // 12 -> 0, 1..11 -> 1..11
-            if (p === 'pm') {
-                h += 12;
-            }
+            h = h % 12;
+            if (p === 'pm') h += 12;
             return h;
         }
         window._calzadaConvert12To24Hour = convert12To24Hour;
-
-        const updateDtTimeDisplay = () => {
-            if (!dtHrSlider || !dtMinSlider || !dtTimeDisplay) return;
-            const h = parseInt(dtHrSlider.value, 10) || 12;
-            const m = parseInt(dtMinSlider.value, 10) || 0;
-            const period = String(dtAmPm || 'am').toUpperCase();
-            dtTimeDisplay.textContent = `${pad2(h)}:${pad2(m)} ${period}`;
-        };
-
-        const setDtAmPm = (val) => {
-            dtAmPm = String(val || 'am').trim().toLowerCase();
-            if (dtAmBtn) dtAmBtn.classList.toggle('active', dtAmPm === 'am');
-            if (dtPmBtn) dtPmBtn.classList.toggle('active', dtAmPm === 'pm');
-            updateDtTimeDisplay();
-        };
-
-        const renderDtCalendar = () => {
-            if (!dtCalDays || !dtCalMonthYear) return;
-            const year = dtCalDate.getFullYear();
-            const month = dtCalDate.getMonth();
-            const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-            dtCalMonthYear.textContent = `${MONTHS[month]} ${year}`;
-
-            dtCalDays.innerHTML = '';
-            const today = new Date();
-            const todayFloor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const maxDateFloor = new Date(todayFloor.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-            // Restrict navigation: allow only current and next month (covering the 30-day limit)
-            const currentMY = today.getFullYear() * 12 + today.getMonth();
-            const calMY = dtCalDate.getFullYear() * 12 + dtCalDate.getMonth();
-            const nextMY = currentMY + 1;
-
-            if (dtPrevMonth) {
-                const disablePrev = calMY <= currentMY;
-                dtPrevMonth.disabled = disablePrev;
-                dtPrevMonth.style.opacity = disablePrev ? '0.35' : '1';
-                dtPrevMonth.style.cursor = disablePrev ? 'not-allowed' : 'pointer';
-            }
-            if (dtNextMonth) {
-                const disableNext = calMY >= nextMY;
-                dtNextMonth.disabled = disableNext;
-                dtNextMonth.style.opacity = disableNext ? '0.35' : '1';
-                dtNextMonth.style.cursor = disableNext ? 'not-allowed' : 'pointer';
-            }
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            for (let i = 0; i < firstDay; i++) {
-                const empty = document.createElement('button');
-                empty.type = 'button';
-                empty.className = 'dt-cal-day empty';
-                empty.disabled = true;
-                dtCalDays.appendChild(empty);
-            }
-
-            for (let d = 1; d <= daysInMonth; d++) {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'dt-cal-day';
-                btn.textContent = d;
-
-                const thisDate = new Date(year, month, d);
-                const isToday = todayFloor.getTime() === thisDate.getTime();
-                const isSelected = new Date(dtSelectedDate.getFullYear(), dtSelectedDate.getMonth(), dtSelectedDate.getDate()).getTime() === thisDate.getTime();
-                const isPast = thisDate < todayFloor;
-                const isBeyond30 = thisDate > maxDateFloor;
-
-                if (isToday) btn.classList.add('today');
-                if (isSelected) btn.classList.add('selected');
-                if (isPast || isBeyond30) {
-                    btn.classList.add('past');
-                    btn.disabled = true;
-                }
-
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    dtSelectedDate = new Date(year, month, d);
-                    renderDtCalendar();
-                });
-
-                dtCalDays.appendChild(btn);
-            }
-        };
-
-        const setDtNow = () => {
-            const now = new Date();
-            let h24 = now.getHours();
-            const m = now.getMinutes();
-            const period = h24 >= 12 ? 'pm' : 'am';
-            const h12 = h24 % 12 || 12;
-            if (dtHrSlider) dtHrSlider.value = h12;
-            if (dtMinSlider) dtMinSlider.value = m;
-            setDtAmPm(period);
-            dtSelectedDate = new Date();
-            dtCalDate = new Date();
-            renderDtCalendar();
-            updateDtTimeDisplay();
-        };
-
-        const openDtPicker = (mode = 'depart') => {
-            dtPickerMode = mode;
-            if (dtLeaveBtn) dtLeaveBtn.classList.toggle('active', mode === 'depart');
-            if (dtArriveBtn) dtArriveBtn.classList.toggle('active', mode === 'arrive');
-            setDtNow();
-            if (dtOverlay) dtOverlay.classList.add('visible');
-            if (dtModal) dtModal.classList.add('visible');
-        };
-
-        const closeDtPicker = () => {
-            if (dtModal) dtModal.classList.remove('visible');
-            if (dtOverlay) dtOverlay.classList.remove('visible');
-        };
-
-        if (dtHrSlider) dtHrSlider.addEventListener('input', updateDtTimeDisplay);
-        if (dtMinSlider) dtMinSlider.addEventListener('input', updateDtTimeDisplay);
-        if (dtAmBtn) dtAmBtn.addEventListener('click', (e) => { e.preventDefault(); setDtAmPm('am'); });
-        if (dtPmBtn) dtPmBtn.addEventListener('click', (e) => { e.preventDefault(); setDtAmPm('pm'); });
-        if (dtNowBtn) dtNowBtn.addEventListener('click', (e) => { e.preventDefault(); setDtNow(); });
-        if (dtBackBtn) dtBackBtn.addEventListener('click', (e) => { e.preventDefault(); closeDtPicker(); });
-        if (dtOverlay) dtOverlay.addEventListener('click', closeDtPicker);
-        if (dtPrevMonth) {
-            dtPrevMonth.addEventListener('click', (e) => {
-                e.preventDefault();
-                const now = new Date();
-                const currentMY = now.getFullYear() * 12 + now.getMonth();
-                const calMY = dtCalDate.getFullYear() * 12 + dtCalDate.getMonth();
-                if (calMY > currentMY) {
-                    dtCalDate.setMonth(dtCalDate.getMonth() - 1);
-                    renderDtCalendar();
-                }
-            });
-        }
-        if (dtNextMonth) {
-            dtNextMonth.addEventListener('click', (e) => {
-                e.preventDefault();
-                const now = new Date();
-                const currentMY = now.getFullYear() * 12 + now.getMonth();
-                const calMY = dtCalDate.getFullYear() * 12 + dtCalDate.getMonth();
-                if (calMY < currentMY + 1) {
-                    dtCalDate.setMonth(dtCalDate.getMonth() + 1);
-                    renderDtCalendar();
-                }
-            });
-        }
-
-        if (dtLeaveBtn) {
-            dtLeaveBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                dtPickerMode = 'depart';
-                dtLeaveBtn.classList.add('active');
-                if (dtArriveBtn) dtArriveBtn.classList.remove('active');
-            });
-        }
-        if (dtArriveBtn) {
-            dtArriveBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                dtPickerMode = 'arrive';
-                dtArriveBtn.classList.add('active');
-                if (dtLeaveBtn) dtLeaveBtn.classList.remove('active');
-            });
-        }
 
         const formatManilaDisplayTime = (d) => {
             if (!d) return '--:--';
@@ -10433,57 +10284,268 @@ document.addEventListener('DOMContentLoaded', () => {
             }).format(date);
         };
 
+        // "today" / "tomorrow" / "on Fri, Nov 13" (Tagalog: "ngayon" / "bukas" / "sa Biy, Nob 13")
+        const dtDayPhrase = (day) => {
+            const today = startOfDay(new Date());
+            if (sameDay(day, today)) return dtT('planner.dt_today_lc');
+            if (sameDay(day, addDays(today, 1))) return dtT('planner.dt_tomorrow_lc');
+            const label = day.toLocaleDateString(dtLocale(), { weekday: 'short', month: 'short', day: 'numeric' });
+            return dtT('planner.dt_on_day', { day: label });
+        };
+        // Short day tag for labels: "" for today, "Tomorrow", "Fri, Nov 13"
+        const dtDayTag = (date) => {
+            const today = startOfDay(new Date());
+            const day = startOfDay(date);
+            if (sameDay(day, today)) return '';
+            if (sameDay(day, addDays(today, 1))) return dtT('planner.dt_tomorrow');
+            return day.toLocaleDateString(dtLocale(), { weekday: 'short', month: 'short', day: 'numeric' });
+        };
+        window._calzadaDayTag = dtDayTag;
+
+        const dtTarget = () => new Date(dtDay.getFullYear(), dtDay.getMonth(), dtDay.getDate(), Math.floor(dtMinutes / 60), dtMinutes % 60, 0, 0);
+
+        const setDtMode = (mode) => {
+            dtPickerMode = mode === 'arrive' ? 'arrive' : 'depart';
+            [[dtLeaveBtn, 'depart'], [dtArriveBtn, 'arrive']].forEach(([btn, m]) => {
+                if (!btn) return;
+                btn.classList.toggle('active', dtPickerMode === m);
+                btn.setAttribute('aria-checked', dtPickerMode === m ? 'true' : 'false');
+            });
+            updateDtSummary();
+        };
+
+        const renderDtDays = () => {
+            if (!dtDays) return;
+            dtDays.textContent = '';
+            const today = startOfDay(new Date());
+            let picked = false;
+            for (let i = 0; i < DT_DAY_BUTTONS; i++) {
+                const day = addDays(today, i);
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'dt-day';
+                btn.setAttribute('role', 'radio');
+                const top = document.createElement('span');
+                top.className = 'dt-day-top';
+                const main = document.createElement('span');
+                main.className = 'dt-day-main';
+                if (i === 0) {
+                    top.textContent = day.toLocaleDateString(dtLocale(), { month: 'short', day: 'numeric' });
+                    main.textContent = dtT('planner.dt_today');
+                } else if (i === 1) {
+                    top.textContent = day.toLocaleDateString(dtLocale(), { month: 'short', day: 'numeric' });
+                    main.textContent = dtT('planner.dt_tomorrow');
+                } else {
+                    top.textContent = day.toLocaleDateString(dtLocale(), { weekday: 'short' });
+                    main.textContent = day.toLocaleDateString(dtLocale(), { month: 'short', day: 'numeric' });
+                }
+                btn.append(top, main);
+                const on = sameDay(day, dtDay);
+                if (on) picked = true;
+                btn.classList.toggle('active', on);
+                btn.setAttribute('aria-checked', on ? 'true' : 'false');
+                btn.addEventListener('click', () => {
+                    dtDay = day;
+                    if (dtDateInput) dtDateInput.hidden = true;
+                    renderDtDays();
+                    updateDtSummary();
+                });
+                dtDays.appendChild(btn);
+            }
+            // "Other date": a later day up to 30 days ahead
+            const other = document.createElement('button');
+            other.type = 'button';
+            other.className = 'dt-day';
+            other.setAttribute('role', 'radio');
+            const top = document.createElement('span');
+            top.className = 'dt-day-top';
+            const main = document.createElement('span');
+            main.className = 'dt-day-main';
+            if (!picked && dtDay) {
+                top.textContent = dtDay.toLocaleDateString(dtLocale(), { weekday: 'short' });
+                main.textContent = dtDay.toLocaleDateString(dtLocale(), { month: 'short', day: 'numeric' });
+            } else {
+                // Calendar icon above "Other date"
+                top.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
+                main.textContent = dtT('planner.dt_other_date');
+                other.setAttribute('aria-label', dtT('planner.dt_pick_date'));
+            }
+            other.append(top, main);
+            other.classList.toggle('active', !picked);
+            other.setAttribute('aria-checked', !picked ? 'true' : 'false');
+            other.addEventListener('click', () => {
+                if (!dtDateInput) return;
+                dtDateInput.min = toDateInputValue(today);
+                dtDateInput.max = toDateInputValue(addDays(today, DT_MAX_DAYS));
+                dtDateInput.value = toDateInputValue(dtDay || today);
+                dtDateInput.hidden = false;
+                dtDateInput.focus();
+                try { if (typeof dtDateInput.showPicker === 'function') dtDateInput.showPicker(); } catch (_) { /* typing works too */ }
+            });
+            dtDays.appendChild(other);
+        };
+
+        const syncDtTimeInput = () => {
+            if (dtTimeInput) dtTimeInput.value = `${pad2(Math.floor(dtMinutes / 60))}:${pad2(dtMinutes % 60)}`;
+        };
+
+        const updateDtSummary = () => {
+            if (!dtSummary || !dtDay) return;
+            const target = dtTarget();
+            const time = formatManilaDisplayTime(target);
+            const passed = target.getTime() <= Date.now();
+            const key = dtPickerMode === 'arrive' ? 'planner.dt_sum_arrive' : 'planner.dt_sum_leave';
+            dtSummary.textContent = '';
+            if (passed) {
+                dtSummary.textContent = dtT('planner.dt_passed');
+            } else {
+                // "Leave tomorrow at 7:00 AM" with the time in bold
+                const sentence = dtT(key, { day: dtDayPhrase(dtDay), time: '\u0000' });
+                const [before, after] = sentence.split('\u0000');
+                const strong = document.createElement('strong');
+                strong.textContent = time;
+                dtSummary.append(document.createTextNode(before || ''), strong, document.createTextNode(after || ''));
+            }
+            dtSummary.classList.toggle('is-warning', passed);
+            if (dtConfirmBtn) {
+                dtConfirmBtn.disabled = passed;
+                dtConfirmBtn.textContent = dtT(dtPickerMode === 'arrive' ? 'planner.dt_set_arrive' : 'planner.dt_set_leave');
+            }
+            if (dtQuick) {
+                dtQuick.querySelectorAll('.dt-quick-btn').forEach(b => {
+                    const n = parseInt(b.dataset.add, 10);
+                    b.textContent = n >= 60 ? dtT('planner.dt_in_hour') : dtT('planner.dt_in_min', { n });
+                });
+            }
+        };
+
+        // Moves the time; crossing midnight moves the day (within today .. 30 days)
+        const shiftDtMinutes = (delta) => {
+            const t = new Date(dtTarget().getTime() + delta * 60 * 1000);
+            const today = startOfDay(new Date());
+            const day = startOfDay(t);
+            if (day < today || day > addDays(today, DT_MAX_DAYS)) return;
+            dtDay = day;
+            dtMinutes = t.getHours() * 60 + t.getMinutes();
+            syncDtTimeInput();
+            renderDtDays();
+            updateDtSummary();
+        };
+
+        // "In 15 min" etc.: from now, rounded up to 5 minutes, on today's date
+        const setDtFromNow = (addMin) => {
+            const t = new Date(Date.now() + addMin * 60 * 1000);
+            const rounded = Math.ceil((t.getHours() * 60 + t.getMinutes()) / 5) * 5;
+            const day = startOfDay(t);
+            dtDay = rounded >= 1440 ? addDays(day, 1) : day;
+            dtMinutes = rounded % 1440;
+            syncDtTimeInput();
+            renderDtDays();
+            updateDtSummary();
+        };
+
+        const setLeaveNow = () => {
+            window._calzadaPlannedSchedule = null;
+            const schedTextEl = document.getElementById('scheduleSelectedText');
+            if (schedTextEl) schedTextEl.textContent = dtT('planner.leave_now');
+            const opts = document.getElementById('scheduleOptions');
+            if (opts) opts.querySelectorAll('li').forEach(l => l.classList.toggle('active', l.dataset.value === 'now'));
+            if (selectedCoords && selectedCoords.destination) updateSummaryRow();
+        };
+
+        const openDtPicker = (mode = 'depart') => {
+            const sched = window._calzadaPlannedSchedule;
+            if (sched && sched.targetTime && sched.targetTime.getTime() > Date.now()) {
+                // Reopen on the time already chosen
+                dtDay = startOfDay(sched.targetTime);
+                dtMinutes = sched.targetTime.getHours() * 60 + sched.targetTime.getMinutes();
+            } else {
+                // Leave: about 15 minutes from now. Arrive: about an hour from now.
+                const ahead = mode === 'arrive' ? 60 : 15;
+                const t = new Date(Date.now() + ahead * 60 * 1000);
+                const rounded = Math.ceil((t.getHours() * 60 + t.getMinutes()) / 5) * 5;
+                dtDay = rounded >= 1440 ? addDays(startOfDay(t), 1) : startOfDay(t);
+                dtMinutes = rounded % 1440;
+            }
+            if (dtDateInput) dtDateInput.hidden = true;
+            syncDtTimeInput();
+            renderDtDays();
+            setDtMode(mode);
+            dtLastFocus = document.activeElement;
+            if (dtOverlay) dtOverlay.classList.add('visible');
+            if (dtModal) dtModal.classList.add('visible');
+            // Focus the Leave/Arrive switch, not the time box (on phones that would pop the time wheel up at once)
+            setTimeout(() => {
+                const first = dtPickerMode === 'arrive' ? dtArriveBtn : dtLeaveBtn;
+                if (first) first.focus({ preventScroll: true });
+            }, 60);
+        };
+
+        const closeDtPicker = () => {
+            if (dtModal) dtModal.classList.remove('visible');
+            if (dtOverlay) dtOverlay.classList.remove('visible');
+            if (dtLastFocus && typeof dtLastFocus.focus === 'function') {
+                try { dtLastFocus.focus({ preventScroll: true }); } catch (_) {}
+            }
+        };
+
+        if (dtLeaveBtn) dtLeaveBtn.addEventListener('click', (e) => { e.preventDefault(); setDtMode('depart'); });
+        if (dtArriveBtn) dtArriveBtn.addEventListener('click', (e) => { e.preventDefault(); setDtMode('arrive'); });
+        if (dtMinus) dtMinus.addEventListener('click', () => shiftDtMinutes(-15));
+        if (dtPlus) dtPlus.addEventListener('click', () => shiftDtMinutes(15));
+        if (dtQuick) {
+            dtQuick.addEventListener('click', (e) => {
+                const b = e.target.closest('.dt-quick-btn');
+                if (b) setDtFromNow(parseInt(b.dataset.add, 10) || 15);
+            });
+        }
+        if (dtTimeInput) {
+            const readTime = () => {
+                const m = /^(\d{1,2}):(\d{2})/.exec(dtTimeInput.value || '');
+                if (!m) return;
+                dtMinutes = Math.min(1439, parseInt(m[1], 10) * 60 + parseInt(m[2], 10));
+                updateDtSummary();
+            };
+            dtTimeInput.addEventListener('input', readTime);
+            dtTimeInput.addEventListener('change', readTime);
+        }
+        if (dtDateInput) {
+            dtDateInput.addEventListener('change', () => {
+                const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dtDateInput.value || '');
+                if (!m) return;
+                const day = new Date(+m[1], +m[2] - 1, +m[3]);
+                const today = startOfDay(new Date());
+                if (day < today || day > addDays(today, DT_MAX_DAYS)) return;
+                dtDay = day;
+                renderDtDays();
+                updateDtSummary();
+            });
+        }
+        if (dtNowBtn) {
+            dtNowBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                setLeaveNow();
+                closeDtPicker();
+            });
+        }
+        if (dtBackBtn) dtBackBtn.addEventListener('click', (e) => { e.preventDefault(); closeDtPicker(); });
+        if (dtOverlay) dtOverlay.addEventListener('click', closeDtPicker);
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && dtModal && dtModal.classList.contains('visible')) closeDtPicker();
+        });
+        window.addEventListener('calzada_lang_changed', () => {
+            if (dtModal && dtModal.classList.contains('visible')) {
+                renderDtDays();
+                updateDtSummary();
+            }
+        });
+
         if (dtConfirmBtn) {
             dtConfirmBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-
-                const activePeriod = (dtPmBtn && dtPmBtn.classList.contains('active'))
-                    ? 'pm'
-                    : ((dtAmBtn && dtAmBtn.classList.contains('active')) ? 'am' : String(dtAmPm || 'am').toLowerCase());
-
-                const h12 = parseInt(dtHrSlider ? dtHrSlider.value : 12, 10) || 12;
-                const m = parseInt(dtMinSlider ? dtMinSlider.value : 0, 10) || 0;
-                const h24 = convert12To24Hour(h12, activePeriod);
-
-                // Date bounds: clamp dtSelectedDate between today and 30 days
-                const now = new Date();
-                const todayFloor = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                const maxDateFloor = new Date(todayFloor.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-                let selDate = new Date(dtSelectedDate.getFullYear(), dtSelectedDate.getMonth(), dtSelectedDate.getDate());
-                if (selDate < todayFloor) selDate = todayFloor;
-                if (selDate > maxDateFloor) selDate = maxDateFloor;
-
-                const targetTime = new Date(
-                    selDate.getFullYear(),
-                    selDate.getMonth(),
-                    selDate.getDate(),
-                    h24,
-                    m,
-                    0,
-                    0
-                );
-
-                // Depart at T in the past: treat as Leave now and tell the user
-                if (dtPickerMode === 'depart' && targetTime.getTime() <= Date.now()) {
-                    window._calzadaPlannedSchedule = null;
-                    const schedTextEl = document.getElementById('scheduleSelectedText');
-                    if (schedTextEl) {
-                        schedTextEl.textContent = window.t ? window.t('planner.leave_now') : 'Leave now';
-                    }
-                    const schedOpts = document.getElementById('scheduleOptions');
-                    if (schedOpts) {
-                        schedOpts.querySelectorAll('li').forEach(l => l.classList.toggle('active', l.dataset.value === 'now'));
-                    }
-                    closeDtPicker();
-                    if (selectedCoords && selectedCoords.destination) {
-                        updateSummaryRow();
-                    }
-                    if (typeof window.showToast === 'function') {
-                        const msg = (window.t ? window.t('reminders.depart_passed') : null)
-                            || 'That departure time has already passed. Showing route for leaving now.';
-                        window.showToast(msg, 'warning');
-                    }
+                const targetTime = dtTarget();
+                if (targetTime.getTime() <= Date.now()) {
+                    updateDtSummary(); // shows "That time has already passed"
                     return;
                 }
 
@@ -10492,14 +10554,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetTime: targetTime
                 };
 
-                const prefix = dtPickerMode === 'depart'
-                    ? (window.t ? window.t('planner.depart_at_pre') : 'Depart at')
-                    : (window.t ? window.t('planner.arrive_by_pre') : 'Arrive by');
+                const prefix = dtPickerMode === 'depart' ? dtT('planner.depart_at_pre') : dtT('planner.arrive_by_pre');
                 const timeText = formatManilaDisplayTime(targetTime);
+                const tag = dtDayTag(targetTime);
+                const label = tag ? `${prefix} ${timeText} · ${tag}` : `${prefix} ${timeText}`;
                 const schedTextEl = document.getElementById('scheduleSelectedText');
-                if (schedTextEl) {
-                    schedTextEl.textContent = `${prefix} ${timeText}`;
-                }
+                if (schedTextEl) schedTextEl.textContent = label;
 
                 closeDtPicker();
 
@@ -10509,11 +10569,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (typeof window.showToast === 'function') {
-                    const isTl = (window.currentLang === 'tl' || localStorage.getItem('calzada_lang') === 'tl');
-                    const toastMsg = isTl
-                        ? `Naka-iskedyul: ${prefix} ${timeText}. I-click ang "Ipaalala sa akin" para sa email reminder!`
-                        : `Scheduled: ${prefix} ${timeText}. Click "Remind me" to receive an email reminder!`;
-                    window.showToast(toastMsg, 'info');
+                    window.showToast(dtT('planner.dt_toast_set', { label }), 'info');
                 }
             });
         }
