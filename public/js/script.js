@@ -767,6 +767,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const closeChat = () => {
         if (!chatWindow || !chatWindow.classList.contains('open')) return;
+        // Closing Routie stops the microphone too
+        if (isListening) cancelRecording();
         // Cleanly blur input so virtual keyboard dismisses
         if (chatInput && document.activeElement === chatInput) {
             chatInput.blur();
@@ -815,7 +817,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resetInactivityTimer();
             return;
         }
-        const cancelBtn = document.getElementById('voiceCancelBtn') || document.getElementById('cancelMicBtn');
+        const cancelBtn = isListening ? document.getElementById('rvCancelBtn') : null;
         if (cancelBtn) cancelBtn.click();
         // Say so once (not again if the last message is already this notice)
         const notice = window.t('js.session_ended');
@@ -1118,6 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateChatInputHeight();
         updateSendButtonState();
         clearVoiceError();
+        hideFixNote();
         resetInactivityTimer();
 
         showTyping();
@@ -1276,9 +1279,19 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         updateSendButtonState();
     }
 
-    // === VOICE MESSAGING (Universal MediaRecorder + Groq Whisper STT) ===
+    // === VOICE MESSAGING (MediaRecorder + Groq Whisper, "Nakikinig si Routie" sheet) ===
+    // Mic → a sheet over the chat: Routie, what is heard so far (where the browser can show it), a wave that follows
+    // the voice, Stop / Cancel / Type instead. Stop → "Isinusulat ang sinabi mo…" in the input box → the transcript
+    // in the input box to check and edit before sending. Place names the server corrected are listed under it with
+    // an Undo. The transcript itself always comes from the server (Whisper), never from the browser's live caption.
     const micBtn = document.getElementById('micBtn');
     let voiceErrorEl = document.getElementById('chatVoiceError');
+
+    const VOICE_MAX_SECONDS = 60;
+    // Live words while speaking use the browser's speech recognition (Chrome/Edge on a computer). It sends the audio to
+    // the browser maker's service, so it is a separate switch; phones never use it (it can take the microphone away
+    // from the recording). Set to false to show only "Magsalita ka na…" while listening.
+    const VOICE_LIVE_CAPTION = true;
 
     let mediaRecorder = null;
     let audioStream = null;
@@ -1291,6 +1304,16 @@ Distance: ${ctx.totalDistance || 'unknown'} km
     let isListening = false;
     let isTranscribing = false;
     let voiceToastTimeout = null;
+    let liveRecognizer = null;
+    let liveFinal = '';
+    let liveInterim = '';
+    let lastVoiceFix = null; // { corrections, raw } of the last transcript, for Undo
+
+    const vt = (key, fallback, params) => {
+        const s = typeof window.t === 'function' ? window.t(key, params) : '';
+        return s && s !== key ? s : fallback;
+    };
+    const getChatWindow = () => document.getElementById('chatWindow');
 
     function getChatInputArea() {
         if (micBtn) {
@@ -1300,101 +1323,160 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         return document.querySelector('#chatWindow .chat-input-area') || document.querySelector('.chat-input-area');
     }
 
-    // Ensure Voice Dock and Transcribing UI elements exist inside .chat-input-area
-    function ensureVoiceDockUI() {
+    const svgIcon = (paths, size = 18, extra = '') =>
+        `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${paths}</svg>`;
+    const ICON_CLOSE = svgIcon('<path d="M6 6l12 12M18 6L6 18"></path>');
+    const ICON_KEYBOARD = svgIcon('<rect x="3" y="6" width="18" height="12" rx="2"></rect><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"></path>', 20);
+    const ICON_STOP = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="3" fill="currentColor"></rect></svg>';
+    const WAVE = (cls, id, stops, d, width, opacity) => `
+        <svg class="${cls}" width="440" height="70" viewBox="0 0 440 70" aria-hidden="true">
+            <defs><linearGradient id="${id}" x1="0" x2="1">${stops}</linearGradient></defs>
+            <path d="${d}" fill="none" stroke="url(#${id})" stroke-width="${width}" stroke-linecap="round" opacity="${opacity}"></path>
+        </svg>`;
+
+    // The sheet, the "writing it down" line and the corrections note are built once, from text only (no HTML from data)
+    function ensureVoiceUI() {
+        const chatWin = getChatWindow();
         const inputArea = getChatInputArea();
-        if (!inputArea) return;
+        if (!chatWin || !inputArea) return;
 
-        if (!inputArea.querySelector('.chat-voice-dock')) {
-            const dock = document.createElement('div');
-            dock.className = 'chat-voice-dock';
-            dock.setAttribute('role', 'region');
-            dock.setAttribute('aria-label', 'Voice recording');
-            dock.innerHTML = `
-                <div class="voice-dock-left">
-                    <span class="voice-rec-dot" aria-hidden="true"></span>
-                    <span class="voice-status-text" id="voiceStatusText">${window.t ? window.t('chat.voice_listening') : 'Listening...'}</span>
-                    <span class="voice-lang-badge" id="voiceLangBadge" title="${window.t ? window.t('chat.voice_lang_hint') : 'English & Tagalog'}">EN • TL</span>
-                    <div class="voice-bars" aria-hidden="true" id="voiceBars">
-                        <span class="vbar"></span>
-                        <span class="vbar"></span>
-                        <span class="vbar"></span>
-                        <span class="vbar"></span>
+        if (!chatWin.querySelector('.rv-sheet')) {
+            const avatar = chatWin.querySelector('.chat-avatar img, .chat-header img');
+            const sheet = document.createElement('div');
+            sheet.className = 'rv-sheet';
+            sheet.id = 'routieVoiceSheet';
+            sheet.hidden = true;
+            sheet.setAttribute('role', 'dialog');
+            sheet.setAttribute('aria-modal', 'false');
+            sheet.setAttribute('aria-labelledby', 'rvSheetTitle');
+            sheet.innerHTML = `
+                <div class="rv-head">
+                    <div class="rv-head-info">
+                        <span class="rv-live" aria-hidden="true"></span>
+                        <span class="rv-title" id="rvSheetTitle"></span>
+                        <span class="rv-timer" id="rvTimer" aria-hidden="true">0:00</span>
                     </div>
-                    <span class="voice-timer" id="voiceTimer" aria-live="off">0:00</span>
+                    <button type="button" class="rv-icon-btn" id="rvCloseBtn">${ICON_CLOSE.replace('width="18" height="18"', 'width="20" height="20"')}</button>
                 </div>
-                <div class="voice-dock-actions">
-                    <button type="button" class="voice-dock-btn voice-cancel-btn" id="voiceCancelBtn" title="${window.t ? window.t('chat.voice_cancel') : 'Cancel'}" aria-label="${window.t ? window.t('chat.voice_cancel') : 'Cancel voice recording'}">
-                        <ion-icon name="close-outline"></ion-icon>
-                    </button>
-                    <button type="button" class="voice-dock-btn voice-done-btn" id="voiceDoneBtn" title="${window.t ? window.t('chat.voice_done') : 'Done'}" aria-label="${window.t ? window.t('chat.voice_done') : 'Done recording and transcribe'}">
-                        <ion-icon name="checkmark-outline"></ion-icon>
-                    </button>
-                </div>
-            `;
-            inputArea.appendChild(dock);
+                <div class="rv-body">
+                    <div class="rv-glow" aria-hidden="true"><span class="rv-blob rv-b1"></span><span class="rv-blob rv-b2"></span><span class="rv-blob rv-b3"></span></div>
+                    <div class="rv-center">
+                        <div class="rv-mascot" aria-hidden="true"><span class="rv-mascot-shadow"></span><img alt="" src="${avatar ? avatar.getAttribute('src') : '../assets/DyipTok-icon.png'}"></div>
+                        <p class="rv-caption" id="rvCaption" aria-live="polite"></p>
+                        <div class="rv-waves" id="rvWaves" aria-hidden="true">
+                            ${WAVE('rv-wave3', 'rvg3', '<stop offset="0" stop-color="#5B7CF0"></stop><stop offset="1" stop-color="#7CC4F5"></stop>', 'M0 35 Q 30 20 60 35 T 120 35 T 180 35 T 240 35 T 300 35 T 360 35 T 420 35 T 480 35', 2, 0.55)}
+                            ${WAVE('rv-wave2', 'rvg2', '<stop offset="0" stop-color="#7CC4F5"></stop><stop offset="1" stop-color="#378ADD"></stop>', 'M0 35 Q 30 58 60 35 T 120 35 T 180 35 T 240 35 T 300 35 T 360 35 T 420 35 T 480 35', 2.5, 0.8)}
+                            ${WAVE('rv-wave1', 'rvg1', '<stop offset="0" stop-color="#1F69B8"></stop><stop offset=".5" stop-color="#378ADD"></stop><stop offset="1" stop-color="#5B7CF0"></stop>', 'M0 35 Q 30 6 60 35 T 120 35 T 180 35 T 240 35 T 300 35 T 360 35 T 420 35 T 480 35', 3.5, 1)}
+                        </div>
+                        <div class="rv-hints" id="rvHints">
+                            <span class="rv-hints-label" id="rvHintsLabel"></span>
+                            <button type="button" class="rv-hint" data-hint="1"></button>
+                            <button type="button" class="rv-hint" data-hint="2"></button>
+                        </div>
+                    </div>
+                    <div class="rv-actions">
+                        <button type="button" class="rv-round-btn" id="rvCancelBtn">${ICON_CLOSE}</button>
+                        <button type="button" class="rv-stop-btn" id="rvStopBtn">${ICON_STOP}</button>
+                        <button type="button" class="rv-round-btn" id="rvTypeBtn">${ICON_KEYBOARD}</button>
+                    </div>
+                </div>`;
+            chatWin.appendChild(sheet);
 
-            const cancelBtn = dock.querySelector('#voiceCancelBtn');
-            const doneBtn = dock.querySelector('#voiceDoneBtn');
-            if (cancelBtn) cancelBtn.addEventListener('click', (e) => { e.preventDefault(); cancelRecording(); });
-            if (doneBtn) doneBtn.addEventListener('click', (e) => { e.preventDefault(); stopAndTranscribe(); });
+            sheet.querySelector('#rvCloseBtn').addEventListener('click', (e) => { e.preventDefault(); cancelRecording(); });
+            sheet.querySelector('#rvCancelBtn').addEventListener('click', (e) => { e.preventDefault(); cancelRecording(); });
+            sheet.querySelector('#rvStopBtn').addEventListener('click', (e) => { e.preventDefault(); stopAndTranscribe(); });
+            sheet.querySelector('#rvTypeBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                cancelRecording();
+                if (chatInput) chatInput.focus({ preventScroll: true });
+            });
+            // A hint fills the input with that example, ready to send or edit
+            sheet.querySelectorAll('.rv-hint').forEach(btn => btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const text = btn.textContent.replace(/^["“]|["”]$/g, '');
+                cancelRecording();
+                putInInput(text, null);
+            }));
+            sheet.addEventListener('keydown', (e) => {
+                // Escape stops listening only; it does not close Routie as well
+                if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelRecording(); }
+                // Keep Tab inside the sheet while it is open
+                if (e.key === 'Tab') {
+                    const items = [...sheet.querySelectorAll('button')].filter(b => b.offsetParent !== null);
+                    if (!items.length) return;
+                    const first = items[0], last = items[items.length - 1];
+                    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+                }
+            });
         }
 
         if (!inputArea.querySelector('.chat-voice-transcribing')) {
             const transcribing = document.createElement('div');
             transcribing.className = 'chat-voice-transcribing';
             transcribing.setAttribute('aria-live', 'polite');
-            transcribing.innerHTML = `
-                <div class="voice-spinner" aria-hidden="true"></div>
-                <span class="voice-transcribing-text" id="voiceTranscribingText">${window.t ? window.t('chat.voice_transcribing') : 'Transcribing with Routie...'}</span>
-            `;
+            transcribing.innerHTML = `<span class="rv-dots" aria-hidden="true"><span></span><span></span><span></span></span><span class="voice-transcribing-text" id="voiceTranscribingText"></span>`;
             inputArea.appendChild(transcribing);
         }
 
-        if (!voiceErrorEl) {
-            voiceErrorEl = document.getElementById('chatVoiceError');
+        if (!inputArea.querySelector('.rv-fix-note')) {
+            const note = document.createElement('p');
+            note.className = 'rv-fix-note';
+            note.hidden = true;
+            note.setAttribute('aria-live', 'polite');
+            note.innerHTML = '<span class="rv-fix-text"></span> <button type="button" class="rv-undo"></button>';
+            const actions = inputArea.querySelector('.chat-input-actions, .actions');
+            inputArea.insertBefore(note, actions || null);
+            note.querySelector('.rv-undo').addEventListener('click', (e) => { e.preventDefault(); undoVoiceFix(); });
         }
-        const chatWin = document.getElementById('chatWindow');
+
+        if (!voiceErrorEl) voiceErrorEl = document.getElementById('chatVoiceError');
         if (chatWin && voiceErrorEl && voiceErrorEl.parentElement !== chatWin) {
             chatWin.insertBefore(voiceErrorEl, chatWin.querySelector('.chat-messages') || null);
         }
+        renderVoiceTexts();
+    }
+
+    // All words on the voice UI, in the current language (called again when the language changes)
+    function renderVoiceTexts() {
+        const chatWin = getChatWindow();
+        if (!chatWin) return;
+        const set = (sel, text) => { const el = chatWin.querySelector(sel); if (el) el.textContent = text; };
+        const label = (sel, text) => { const el = chatWin.querySelector(sel); if (el) { el.setAttribute('aria-label', text); el.setAttribute('title', text); } };
+        set('#rvSheetTitle', vt('chat.voice_sheet_title', 'Routie is listening'));
+        set('#rvHintsLabel', vt('chat.voice_try', 'Try saying'));
+        const hints = chatWin.querySelectorAll('.rv-hint');
+        if (hints[0]) hints[0].textContent = `"${vt('chat.voice_try_1', 'SM to Jollibee Real')}"`;
+        if (hints[1]) hints[1].textContent = `"${vt('chat.voice_try_2', 'Is SM open right now?')}"`;
+        label('#rvCloseBtn', vt('chat.voice_cancel', 'Cancel'));
+        label('#rvCancelBtn', vt('chat.voice_cancel', 'Cancel'));
+        label('#rvStopBtn', vt('chat.voice_stop_write', 'Stop and write what I said'));
+        label('#rvTypeBtn', vt('chat.voice_type_instead', 'Type instead'));
+        set('#voiceTranscribingText', vt('chat.voice_transcribing', 'Writing down what you said…'));
+        set('.rv-undo', vt('chat.voice_undo', 'Undo'));
+        if (lastVoiceFix) showFixNote(lastVoiceFix.corrections);
+        if (isListening) renderCaption();
     }
 
     function showVoiceError(key, fallback) {
-        ensureVoiceDockUI();
+        ensureVoiceUI();
         if (!voiceErrorEl) voiceErrorEl = document.getElementById('chatVoiceError');
         if (!voiceErrorEl) return;
-        const chatWin = document.getElementById('chatWindow');
-        if (chatWin && voiceErrorEl.parentElement !== chatWin) {
-            chatWin.insertBefore(voiceErrorEl, chatWin.querySelector('.chat-messages') || null);
-        }
-
         clearTimeout(voiceToastTimeout);
-        const msg = (typeof window.t === 'function' ? window.t(key) : '') || fallback;
-
+        const msg = vt(key, fallback);
         voiceErrorEl.innerHTML = `
             <div class="voice-error-content">
                 <span class="voice-error-icon"><ion-icon name="alert-circle-outline"></ion-icon></span>
-                <span class="voice-error-text">${msg}</span>
+                <span class="voice-error-text"></span>
             </div>
             <button type="button" class="voice-error-close" aria-label="Dismiss error">
                 <ion-icon name="close-outline"></ion-icon>
-            </button>
-        `;
+            </button>`;
+        voiceErrorEl.querySelector('.voice-error-text').textContent = msg;
         voiceErrorEl.style.display = 'flex';
-
         const closeBtn = voiceErrorEl.querySelector('.voice-error-close');
-        if (closeBtn) {
-            closeBtn.onclick = (e) => {
-                e.preventDefault();
-                clearVoiceError();
-            };
-        }
-
-        // Auto-dismiss floating toast after 4.5 seconds
-        voiceToastTimeout = setTimeout(() => {
-            clearVoiceError();
-        }, 4500);
+        if (closeBtn) closeBtn.onclick = (e) => { e.preventDefault(); clearVoiceError(); };
+        voiceToastTimeout = setTimeout(clearVoiceError, 4500);
     }
 
     function clearVoiceError() {
@@ -1406,276 +1488,367 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         }
     }
 
-    function updateRecordingTimerDisplay() {
-        const timerEl = document.getElementById('voiceTimer');
-        if (!timerEl) return;
+    // ── Sheet ───────────────────────────────────────────────────────────────────────────────
+    function openSheet() {
+        const chatWin = getChatWindow();
+        const sheet = chatWin && chatWin.querySelector('.rv-sheet');
+        if (!sheet) return;
+        liveFinal = ''; liveInterim = '';
+        renderCaption();
+        updateTimer();
+        sheet.hidden = false;
+        chatWin.classList.add('rv-listening');
+        requestAnimationFrame(() => sheet.classList.add('is-open'));
+        const stop = sheet.querySelector('#rvStopBtn');
+        if (stop) stop.focus({ preventScroll: true });
+        if (micBtn) micBtn.setAttribute('aria-pressed', 'true');
+    }
+
+    function closeSheet() {
+        const chatWin = getChatWindow();
+        const sheet = chatWin && chatWin.querySelector('.rv-sheet');
+        if (chatWin) chatWin.classList.remove('rv-listening');
+        if (micBtn) micBtn.setAttribute('aria-pressed', 'false');
+        if (!sheet || sheet.hidden) return;
+        sheet.classList.remove('is-open');
+        sheet.hidden = true;
+    }
+
+    // What has been heard so far: settled words dark, the word still being heard in blue
+    function renderCaption() {
+        const cap = document.getElementById('rvCaption');
+        const hints = document.getElementById('rvHints');
+        if (!cap) return;
+        const finalText = liveFinal.trim();
+        const interim = liveInterim.trim();
+        cap.textContent = '';
+        if (!finalText && !interim) {
+            cap.classList.add('is-empty');
+            cap.textContent = vt('chat.voice_speak_now', 'Go ahead, I\'m listening…');
+            if (hints) hints.hidden = false;
+            return;
+        }
+        cap.classList.remove('is-empty');
+        if (hints) hints.hidden = true;
+        if (finalText) cap.appendChild(document.createTextNode(finalText + (interim ? ' ' : '')));
+        if (interim) {
+            const span = document.createElement('span');
+            span.className = 'rv-interim';
+            span.textContent = interim;
+            cap.appendChild(span);
+        }
+        const cursor = document.createElement('span');
+        cursor.className = 'rv-cursor';
+        cursor.setAttribute('aria-hidden', 'true');
+        cap.appendChild(cursor);
+    }
+
+    function updateTimer() {
+        const el = document.getElementById('rvTimer');
+        if (!el) return;
         const mins = Math.floor(recordingSeconds / 60);
         const secs = recordingSeconds % 60;
-        timerEl.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        el.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
-    function cleanupAudioNodes() {
-        if (visualizerAnimId) {
-            cancelAnimationFrame(visualizerAnimId);
-            visualizerAnimId = null;
-        }
-        if (audioContext) {
-            try { audioContext.close(); } catch (_) { }
-            audioContext = null;
-            analyserNode = null;
-        }
-        if (audioStream) {
-            try {
-                audioStream.getTracks().forEach(track => track.stop());
-            } catch (_) { }
-            audioStream = null;
-        }
-        if (recordingTimerId) {
-            clearInterval(recordingTimerId);
-            recordingTimerId = null;
-        }
+    // ── Live caption (computer browsers that have speech recognition) ───────────────────────
+    function liveCaptionAvailable() {
+        if (!VOICE_LIVE_CAPTION) return false;
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) return false;
+        const phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+        const finePointer = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : false;
+        return !phone && finePointer;
     }
 
-    function setRecordingUIMode(mode) {
-        // mode: 'idle' | 'recording' | 'transcribing'
-        const inputArea = getChatInputArea();
-        if (!inputArea) return;
-
-        if (mode === 'recording') {
-            inputArea.classList.remove('is-transcribing');
-            inputArea.classList.add('is-recording');
-            if (micBtn) {
-                micBtn.classList.add('recording');
-                micBtn.setAttribute('aria-pressed', 'true');
-                const stopLabel = (typeof window.t === 'function' ? window.t('chat.voice_stop') : 'Stop listening');
-                micBtn.setAttribute('aria-label', stopLabel);
-                micBtn.setAttribute('title', stopLabel);
-            }
-        } else if (mode === 'transcribing') {
-            inputArea.classList.remove('is-recording');
-            inputArea.classList.add('is-transcribing');
-            if (micBtn) {
-                micBtn.classList.remove('recording');
-                micBtn.setAttribute('aria-pressed', 'false');
-            }
-        } else {
-            inputArea.classList.remove('is-recording');
-            inputArea.classList.remove('is-transcribing');
-            if (micBtn) {
-                micBtn.classList.remove('recording');
-                micBtn.setAttribute('aria-pressed', 'false');
-                const label = (typeof window.t === 'function' ? window.t('chat.voice_input') : 'Voice input');
-                micBtn.setAttribute('aria-label', label);
-                micBtn.setAttribute('title', label);
-            }
+    function startLiveCaption() {
+        if (!liveCaptionAvailable()) return;
+        try {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const rec = new SR();
+            const lang = typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en';
+            rec.lang = lang === 'tl' ? 'fil-PH' : 'en-PH';
+            rec.interimResults = true;
+            rec.continuous = true;
+            rec.onresult = (event) => {
+                if (!isListening) return;
+                let finalText = '', interim = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    const r = event.results[i];
+                    if (r.isFinal) finalText += r[0].transcript + ' ';
+                    else interim += r[0].transcript;
+                }
+                liveFinal = finalText;
+                liveInterim = interim;
+                renderCaption();
+            };
+            // Not allowed, no network (Brave), not supported: carry on without live words
+            rec.onerror = () => { stopLiveCaption(); };
+            rec.onend = () => { if (liveRecognizer === rec) liveRecognizer = null; };
+            rec.start();
+            liveRecognizer = rec;
+        } catch (_) {
+            liveRecognizer = null;
         }
     }
 
+    function stopLiveCaption() {
+        const rec = liveRecognizer;
+        liveRecognizer = null;
+        if (rec) {
+            rec.onresult = null; rec.onerror = null;
+            try { rec.abort(); } catch (_) { }
+        }
+    }
+
+    // ── Wave that follows the voice ─────────────────────────────────────────────────────────
     function setupVisualizer(stream) {
         try {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
+            const waves = document.getElementById('rvWaves');
+            if (!AudioCtx || !waves) return;
             audioContext = new AudioCtx();
             const source = audioContext.createMediaStreamSource(stream);
             analyserNode = audioContext.createAnalyser();
-            analyserNode.fftSize = 64;
+            analyserNode.fftSize = 512;
             source.connect(analyserNode);
-
-            const bufferLength = analyserNode.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            const bars = document.querySelectorAll('#voiceBars .vbar');
-            if (!bars.length) return;
-
-            function renderWave() {
+            const data = new Uint8Array(analyserNode.fftSize);
+            let amp = 0.35;
+            const frame = () => {
                 if (!isListening || !analyserNode) return;
-                analyserNode.getByteFrequencyData(dataArray);
-
-                for (let i = 0; i < bars.length; i++) {
-                    const sampleIndex = Math.min(Math.floor((i + 1) * 3), bufferLength - 1);
-                    const val = dataArray[sampleIndex] || 0;
-                    const height = Math.max(5, Math.min(22, Math.round(5 + (val / 255) * 17)));
-                    bars[i].style.height = `${height}px`;
-                }
-
-                visualizerAnimId = requestAnimationFrame(renderWave);
-            }
-            renderWave();
+                analyserNode.getByteTimeDomainData(data);
+                let sum = 0;
+                for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
+                const rms = Math.sqrt(sum / data.length);
+                const target = Math.max(0.3, Math.min(1.5, 0.3 + rms * 7));
+                amp += (target - amp) * 0.25;
+                waves.style.setProperty('--rv-amp', amp.toFixed(3));
+                visualizerAnimId = requestAnimationFrame(frame);
+            };
+            frame();
         } catch (_) {
-            // CSS keyframes animation handles fallback wave smoothly
+            // The waves keep their CSS motion without the microphone level
         }
     }
 
+    function cleanupAudioNodes() {
+        if (visualizerAnimId) { cancelAnimationFrame(visualizerAnimId); visualizerAnimId = null; }
+        if (audioContext) { try { audioContext.close(); } catch (_) { } audioContext = null; analyserNode = null; }
+        if (audioStream) { try { audioStream.getTracks().forEach(track => track.stop()); } catch (_) { } audioStream = null; }
+        if (recordingTimerId) { clearInterval(recordingTimerId); recordingTimerId = null; }
+        stopLiveCaption();
+    }
+
+    function setInputMode(mode) {
+        // mode: 'idle' | 'transcribing'
+        const inputArea = getChatInputArea();
+        if (!inputArea) return;
+        inputArea.classList.remove('is-recording');
+        inputArea.classList.toggle('is-transcribing', mode === 'transcribing');
+        if (micBtn && mode === 'idle') {
+            const label = vt('chat.voice_input', 'Voice input');
+            micBtn.setAttribute('aria-label', label);
+            micBtn.setAttribute('title', label);
+        }
+    }
+
+    // ── Recording ───────────────────────────────────────────────────────────────────────────
     async function startListening() {
         if (isListening || isTranscribing) return;
         clearVoiceError();
-        ensureVoiceDockUI();
+        ensureVoiceUI();
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === 'undefined') {
-            showVoiceError('chat.voice_err_unsupported', "Voice recording isn't supported in this browser.");
+            showVoiceError('chat.voice_err_unsupported', "Voice input isn't supported in this browser.");
             return;
         }
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true
-                }
+                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }
             });
-
             audioStream = stream;
             audioChunks = [];
 
             const supportedMime = [
-                'audio/webm;codecs=opus',
-                'audio/webm',
-                'audio/mp4',
-                'audio/ogg;codecs=opus',
-                'audio/ogg'
+                'audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/ogg'
             ].find(type => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) || '';
-
-            const options = supportedMime ? { mimeType: supportedMime } : undefined;
-            mediaRecorder = new MediaRecorder(stream, options);
-
-            mediaRecorder.ondataavailable = (e) => {
-                if (e.data && e.data.size > 0) {
-                    audioChunks.push(e.data);
-                }
-            };
+            mediaRecorder = new MediaRecorder(stream, supportedMime ? { mimeType: supportedMime, audioBitsPerSecond: 64000 } : undefined);
+            mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) audioChunks.push(e.data); };
 
             isListening = true;
             recordingSeconds = 0;
-            updateRecordingTimerDisplay();
-            setRecordingUIMode('recording');
+            hideFixNote();
+            openSheet();
             setupVisualizer(stream);
+            startLiveCaption();
             resetInactivityTimer();
 
             recordingTimerId = setInterval(() => {
                 recordingSeconds++;
-                updateRecordingTimerDisplay();
-                // Max recording duration: 60 seconds
-                if (recordingSeconds >= 60) {
-                    stopAndTranscribe();
-                }
+                updateTimer();
+                if (recordingSeconds >= VOICE_MAX_SECONDS) stopAndTranscribe();
             }, 1000);
 
             mediaRecorder.start(250);
         } catch (err) {
             cleanupAudioNodes();
-            setRecordingUIMode('idle');
+            closeSheet();
+            setInputMode('idle');
             isListening = false;
-
-            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                showVoiceError('chat.voice_err_permission', "Microphone access was denied. Please allow microphone access in your browser settings.");
+            if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.name === 'SecurityError') {
+                showVoiceError('chat.voice_err_permission', 'Microphone access was denied. Please allow microphone access in your browser settings.');
             } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                showVoiceError('chat.voice_err_generic', "No microphone detected on your device.");
+                showVoiceError('chat.voice_err_no_mic', 'No microphone was found on this device.');
             } else {
-                showVoiceError('chat.voice_err_generic', "Voice input error occurred. Please try again.");
+                showVoiceError('chat.voice_err_generic', 'Voice input error occurred. Please try again.');
             }
         }
     }
 
     function cancelRecording() {
-        if (!isListening) return;
+        if (!isListening) { closeSheet(); return; }
         isListening = false;
+        const rec = mediaRecorder;
         cleanupAudioNodes();
-
-        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-            try {
-                mediaRecorder.onstop = null;
-                mediaRecorder.stop();
-            } catch (_) { }
+        if (rec && rec.state !== 'inactive') {
+            try { rec.ondataavailable = null; rec.onstop = null; rec.stop(); } catch (_) { }
         }
         audioChunks = [];
-        setRecordingUIMode('idle');
+        closeSheet();
+        setInputMode('idle');
+        if (micBtn) micBtn.focus({ preventScroll: true });
+    }
+
+    // Stops the recorder and waits for its last piece of audio (stopping drops the final ~quarter second otherwise)
+    function finishRecorder(rec) {
+        return new Promise((resolve) => {
+            if (!rec || rec.state === 'inactive') { resolve(); return; }
+            const done = () => resolve();
+            rec.addEventListener('stop', done, { once: true });
+            setTimeout(done, 1500);
+            try { rec.stop(); } catch (_) { resolve(); }
+        });
     }
 
     async function stopAndTranscribe() {
         if (!isListening || !mediaRecorder) return;
         isListening = false;
         const totalDuration = recordingSeconds;
+        const liveText = `${liveFinal} ${liveInterim}`.replace(/\s+/g, ' ').trim();
+        const rec = mediaRecorder;
+        if (visualizerAnimId) { cancelAnimationFrame(visualizerAnimId); visualizerAnimId = null; }
+        stopLiveCaption();
+        if (recordingTimerId) { clearInterval(recordingTimerId); recordingTimerId = null; }
 
+        closeSheet();
+        isTranscribing = true;
+        setInputMode('transcribing');
+
+        await finishRecorder(rec);
+        const chunks = [...audioChunks];
+        const mimeType = rec.mimeType || 'audio/webm';
         cleanupAudioNodes();
 
-        const currentChunks = [...audioChunks];
-        const mimeType = mediaRecorder.mimeType || 'audio/webm';
-
-        if (mediaRecorder.state !== 'inactive') {
-            try { mediaRecorder.stop(); } catch (_) { }
-        }
-
-        // Check if recording was virtually empty (< 0.4s or empty chunks)
-        const totalBytes = currentChunks.reduce((acc, c) => acc + (c ? c.size : 0), 0);
-        if (totalDuration < 1 && totalBytes < 600) {
-            setRecordingUIMode('idle');
-            showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
+        const totalBytes = chunks.reduce((acc, c) => acc + (c ? c.size : 0), 0);
+        if (totalDuration < 1 && totalBytes < 4000) {
+            isTranscribing = false;
+            setInputMode('idle');
+            showVoiceError('chat.voice_err_short', 'That was too short. Hold the mic a little longer and speak.');
             return;
         }
 
-        isTranscribing = true;
-        setRecordingUIMode('transcribing');
-
         try {
-            const blob = new Blob(currentChunks, { type: mimeType });
+            const blob = new Blob(chunks, { type: mimeType });
             const formData = new FormData();
             const ext = mimeType.includes('mp4') ? 'mp4' : (mimeType.includes('ogg') ? 'ogg' : 'webm');
             formData.append('audio', blob, `voice.${ext}`);
+            formData.append('lang', typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en');
 
-            const curLang = (typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en');
-            // If current UI is Tagalog, send 'tl' hint; otherwise 'auto' allows seamless Tagalog & English speech
-            formData.append('lang', curLang === 'tl' ? 'tl' : 'auto');
-
-            const res = await fetch(`${CHAT_API}/api/voice/transcribe`, {
-                method: 'POST',
-                body: formData
-            });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 45000);
+            const res = await fetch(`${CHAT_API}/api/voice/transcribe`, { method: 'POST', body: formData, signal: controller.signal });
+            clearTimeout(timeoutId);
+            const data = await res.json().catch(() => ({}));
 
             if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.message || 'Transcription failed.');
+                if (res.status === 429) { showVoiceError('chat.voice_err_busy', 'Voice is busy right now. Please try again in a minute.'); return; }
+                // The server could not write it down, but the browser heard it: use that rather than lose it
+                if (liveText) { putInInput(liveText, null); return; }
+                throw new Error(data.message || 'Transcription failed.');
             }
 
-            const data = await res.json();
-            const transcribedText = (data.text || '').trim();
-
-            if (transcribedText) {
-                if (chatInput) {
-                    const existing = chatInput.value.trim();
-                    chatInput.value = existing ? `${existing} ${transcribedText}` : transcribedText;
-                    updateChatInputHeight();
-                    updateSendButtonState();
-                    chatInput.focus({ preventScroll: true });
-                }
+            const text = String(data.text || '').trim();
+            if (text) {
+                putInInput(text, Array.isArray(data.corrections) && data.corrections.length ? { corrections: data.corrections, raw: String(data.raw || '') } : null);
             } else {
-                showVoiceError('chat.voice_err_no_speech', "No speech was detected. Please try speaking again.");
+                showVoiceError('chat.voice_err_no_speech', 'No speech was detected. Please try speaking again.');
             }
         } catch (err) {
             console.error('Voice transcription error:', err);
-            showVoiceError('chat.voice_err_network', "Unable to transcribe audio. Please check your connection.");
+            showVoiceError('chat.voice_err_network', 'Unable to transcribe audio. Please check your connection.');
         } finally {
             isTranscribing = false;
-            setRecordingUIMode('idle');
+            setInputMode('idle');
             resetInactivityTimer();
         }
+    }
+
+    // ── Transcript into the input box, with the corrections note ────────────────────────────
+    function putInInput(text, fix) {
+        if (!chatInput) return;
+        const existing = chatInput.value.trim();
+        chatInput.value = existing ? `${existing} ${text}` : text;
+        updateChatInputHeight();
+        updateSendButtonState();
+        chatInput.focus({ preventScroll: true });
+        try { chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length); } catch (_) { }
+        lastVoiceFix = fix;
+        if (fix) showFixNote(fix.corrections); else hideFixNote();
+    }
+
+    function showFixNote(corrections) {
+        const note = document.querySelector('#chatWindow .rv-fix-note') || document.querySelector('.rv-fix-note');
+        if (!note || !corrections || !corrections.length) return;
+        const list = corrections.map(c => `"${c.from}" → ${c.to}`).join(', ');
+        note.querySelector('.rv-fix-text').textContent = vt('chat.voice_fixed', 'Fixed: {list}.', { list }).replace('{list}', list);
+        note.hidden = false;
+    }
+
+    function hideFixNote() {
+        lastVoiceFix = null;
+        const note = document.querySelector('#chatWindow .rv-fix-note') || document.querySelector('.rv-fix-note');
+        if (note) note.hidden = true;
+    }
+
+    // Undo: puts back the words exactly as heard (even if the user typed around them since)
+    function undoVoiceFix() {
+        if (!chatInput || !lastVoiceFix) return;
+        let value = chatInput.value;
+        for (const c of lastVoiceFix.corrections) {
+            const i = value.lastIndexOf(c.to);
+            if (i !== -1) value = value.slice(0, i) + c.from + value.slice(i + c.to.length);
+        }
+        chatInput.value = value;
+        updateChatInputHeight();
+        updateSendButtonState();
+        hideFixNote();
+        chatInput.focus({ preventScroll: true });
     }
 
     if (micBtn) {
         micBtn.setAttribute('type', 'button');
-        micBtn.setAttribute('aria-label', (window.t ? window.t('chat.voice_input') : 'Voice input'));
+        micBtn.setAttribute('aria-label', vt('chat.voice_input', 'Voice input'));
         micBtn.setAttribute('aria-pressed', 'false');
         micBtn.addEventListener('click', (e) => {
             e.preventDefault();
             resetInactivityTimer();
-            if (isListening) {
-                stopAndTranscribe();
-            } else if (!isTranscribing) {
-                startListening();
-            }
+            if (isListening) stopAndTranscribe();
+            else if (!isTranscribing) startListening();
         });
     }
 
-    ensureVoiceDockUI();
+    ensureVoiceUI();
 
     if (chatInput) {
         chatInput.addEventListener('input', clearVoiceError);
@@ -1700,26 +1873,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             sendMessageBtn.setAttribute('aria-label', sendLabel);
             sendMessageBtn.setAttribute('title', sendLabel);
         }
-        const statusText = document.getElementById('voiceStatusText');
-        if (statusText) statusText.textContent = (window.t ? window.t('chat.voice_listening') : 'Listening...');
-        const transcribingText = document.getElementById('voiceTranscribingText');
-        if (transcribingText) transcribingText.textContent = (window.t ? window.t('chat.voice_transcribing') : 'Transcribing with Routie...');
-        const cancelBtn = document.getElementById('voiceCancelBtn');
-        if (cancelBtn) {
-            const cancelLabel = (window.t ? window.t('chat.voice_cancel') : 'Cancel');
-            cancelBtn.setAttribute('title', cancelLabel);
-            cancelBtn.setAttribute('aria-label', cancelLabel);
-        }
-        const doneBtn = document.getElementById('voiceDoneBtn');
-        if (doneBtn) {
-            const doneLabel = (window.t ? window.t('chat.voice_done') : 'Done');
-            doneBtn.setAttribute('title', doneLabel);
-            doneBtn.setAttribute('aria-label', doneLabel);
-        }
-        const langBadge = document.getElementById('voiceLangBadge');
-        if (langBadge) {
-            langBadge.setAttribute('title', (window.t ? window.t('chat.voice_lang_hint') : 'English & Tagalog'));
-        }
+        renderVoiceTexts();
     });
 
     // === CATEGORY SCROLL NAVIGATION (Desktop) ===

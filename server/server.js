@@ -1,6 +1,6 @@
 const express = require('express');
 const compression = require('compression');
-const { Groq, toFile } = require('groq-sdk');
+const { Groq } = require('groq-sdk');
 const cors = require('cors');
 const https = require('https');
 const path = require('path');
@@ -120,6 +120,7 @@ function getGroqClient() {
 const { getFareData, fareFactsSection, fareEstimateBlock } = require('./fare-info');
 const routiePlanner = require('./routie-planner');
 const { createChatHandler } = require('./routie-chat');
+const { transcribeVoice } = require('./routie-voice');
 const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1278,36 +1279,16 @@ app.post('/api/voice/transcribe', (req, res, next) => {
         else if (mime.includes('wav')) ext = 'wav';
         else if (mime.includes('ogg')) ext = 'ogg';
 
-        const file = await toFile(req.file.buffer, `voice_${Date.now()}.${ext}`, { type: mime });
-
-        const reqLang = (req.body && req.body.lang) ? String(req.body.lang).toLowerCase().trim() : 'auto';
-
-        // Bilingual vocabulary hint with Calamba transit locations & terms in both Tagalog and English
-        const prompt = 'Calzada, Calamba, Laguna, commute, jeepney, tricycle, bus, UV Express, Crossing, Turbina, SM Calamba, Bucal, Real, Halang, Parian, Canlubang, Mayapa, Pansol, Lawa, pasahe, pamasahe, sakayan, terminal, biyahe, saan, magkano, paano.';
-
-        const transcriptionOptions = {
-            file,
-            model: 'whisper-large-v3',
-            prompt,
-            temperature: 0.0
-        };
-
-        // If explicitly requested Tagalog/Filipino, provide 'tl'.
-        // NEVER force 'en' unless explicitly forced: forcing 'en' activates Whisper's translation mode
-        // which forcibly turns Tagalog speech into English sentences. By omitting language for English/auto,
-        // Whisper auto-detects Tagalog, English, and Taglish natively and transcribes exactly what was spoken.
-        if (reqLang === 'tl' || reqLang === 'fil' || reqLang.startsWith('tl-') || reqLang.startsWith('fil-')) {
-            transcriptionOptions.language = 'tl';
-        } else if (reqLang === 'force_en') {
-            transcriptionOptions.language = 'en';
-        }
-
-        const transcription = await client.audio.transcriptions.create(transcriptionOptions);
-
-        const text = (transcription && transcription.text) ? transcription.text.trim() : '';
-        return res.json({ success: true, text });
+        // server/routie-voice.js: Calzada vocabulary, language check (Tagalog heard as Indonesian is redone as
+        // Tagalog), no text for silence, and place names corrected against our places (returned so the user can undo)
+        const places = mergeBusinessesIntoPlaces(getPlacesData(), await getLiveBusinesses().catch(() => []));
+        const out = await transcribeVoice(client, { buffer: req.file.buffer, mime, ext, places });
+        return res.json({ success: true, text: out.text, raw: out.raw, corrections: out.corrections, language: out.language });
     } catch (err) {
-        console.error('Audio transcription error:', err);
+        console.error('Audio transcription error:', err.status || '', err.message);
+        if (err.status === 429) {
+            return res.status(429).json({ success: false, error: 'busy', message: 'Voice is busy right now. Please try again in a minute.' });
+        }
         return res.status(500).json({
             success: false,
             error: 'transcription_failed',

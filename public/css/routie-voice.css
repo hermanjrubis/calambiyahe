@@ -1,0 +1,404 @@
+/* Routie voice input: the "Nakikinig si Routie" sheet (design C), the writing-it-down line and the corrections note.
+   Loaded on every page with the Routie widget. The sheet covers the whole chat window while listening. */
+
+.chat-window .rv-sheet {
+    position: absolute;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    background: #FFFFFF;
+    border-radius: inherit;
+    overflow: hidden;
+    font-family: 'Outfit', sans-serif;
+    color: #1A202C;
+    opacity: 0;
+    transition: opacity 0.18s ease-out;
+}
+
+.chat-window .rv-sheet[hidden] {
+    display: none !important;
+}
+
+.chat-window .rv-sheet.is-open {
+    opacity: 1;
+}
+
+/* Header: replaces Routie's name while listening, so Routie appears once (in the middle) */
+.rv-head {
+    position: relative;
+    z-index: 3;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 8px 10px 18px;
+    border-bottom: 1px solid #E2E8F0;
+    background: #FFFFFF;
+}
+
+.rv-head-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.rv-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #1F69B8, #378ADD 45%, #5B7CF0 90%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rv-timer {
+    font-size: 13px;
+    color: #5A6A7F;
+    font-variant-numeric: tabular-nums;
+}
+
+.rv-live {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #378ADD;
+    animation: rvPulse 1.2s ease-in-out infinite;
+}
+
+.rv-icon-btn,
+.rv-round-btn,
+.rv-stop-btn,
+.rv-hint,
+.rv-undo {
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+}
+
+.rv-icon-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: #5A6A7F;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.rv-icon-btn:hover {
+    background: #F1F5F9;
+}
+
+/* Body: soft gradient with moving light at the bottom */
+.rv-body {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F4F9FF 45%, #E6F1FC 100%);
+    overflow: hidden;
+}
+
+.rv-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.rv-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(42px);
+    opacity: 0.6;
+}
+
+.rv-b1 { width: 280px; height: 240px; left: -60px; bottom: -90px; background: #378ADD; animation: rvDrift1 4.2s ease-in-out infinite alternate; }
+.rv-b2 { width: 260px; height: 220px; left: 30%; bottom: -110px; background: #7CC4F5; animation: rvDrift2 3.4s ease-in-out infinite alternate; }
+.rv-b3 { width: 220px; height: 200px; right: -40px; bottom: -70px; background: #5B7CF0; opacity: 0.45; animation: rvDrift1 5s ease-in-out infinite alternate-reverse; }
+
+.rv-center {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 20px 24px 4px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* Routie, no circle: floating, with a soft shadow that follows */
+.rv-mascot {
+    position: relative;
+    width: 120px;
+    height: 96px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rv-mascot img {
+    position: relative;
+    width: 96px;
+    height: auto;
+    animation: rvBob 1.3s ease-in-out infinite;
+}
+
+.rv-mascot-shadow {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    bottom: 2px;
+    height: 34px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(55, 138, 221, 0.45) 0%, rgba(91, 124, 240, 0.18) 55%, rgba(255, 255, 255, 0) 75%);
+    filter: blur(4px);
+    animation: rvShadow 1.3s ease-in-out infinite;
+}
+
+/* What is heard so far */
+.rv-caption {
+    margin: 0;
+    max-width: 330px;
+    min-height: 62px;
+    font-size: 22px;
+    line-height: 1.4;
+    font-weight: 500;
+    color: #1A202C;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.rv-caption.is-empty {
+    font-size: 20px;
+    font-weight: 400;
+    color: #5A6A7F;
+}
+
+.rv-interim {
+    background: linear-gradient(90deg, #378ADD, #5B7CF0);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.rv-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 22px;
+    margin-left: 3px;
+    vertical-align: -4px;
+    background: #378ADD;
+    animation: rvBlink 1s steps(1) infinite;
+}
+
+/* Waves: their height follows the voice (--rv-amp, set from the microphone level) */
+.rv-waves {
+    position: relative;
+    flex-shrink: 0;
+    width: 300px;
+    max-width: 100%;
+    height: 70px;
+    overflow: hidden;
+    transform: scaleY(var(--rv-amp, 0.6));
+    transition: transform 0.08s linear;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+
+.rv-waves svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.rv-wave1 { animation: rvWave 2.4s linear infinite; }
+.rv-wave2 { animation: rvWave 3.6s linear infinite reverse; }
+.rv-wave3 { animation: rvWave 5s linear infinite; }
+
+.rv-hints {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.rv-hints[hidden] {
+    display: none;
+}
+
+.rv-hints-label {
+    font-size: 13px;
+    color: #5A6A7F;
+}
+
+.rv-hint {
+    min-height: 36px;
+    border: none;
+    background: transparent;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1F69B8;
+    cursor: pointer;
+}
+
+.rv-hint:hover {
+    background: rgba(55, 138, 221, 0.08);
+}
+
+/* Cancel · Stop · Type instead */
+.rv-actions {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 12px 16px 24px;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+
+.rv-round-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid #D5E3F3;
+    background: rgba(255, 255, 255, 0.85);
+    color: #495057;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+}
+
+.rv-round-btn:hover {
+    background: #FFFFFF;
+    color: #1A202C;
+}
+
+.rv-stop-btn {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    background: linear-gradient(135deg, #4C9BE8 0%, #378ADD 45%, #1F69B8 100%);
+    color: #FFFFFF;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.12s ease;
+}
+
+.rv-stop-btn:active {
+    transform: scale(0.95);
+}
+
+.rv-icon-btn:focus-visible,
+.rv-round-btn:focus-visible,
+.rv-stop-btn:focus-visible,
+.rv-hint:focus-visible,
+.rv-undo:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+/* Writing it down (in the input box) */
+.chat-voice-transcribing .rv-dots {
+    display: inline-flex;
+    gap: 5px;
+}
+
+.chat-voice-transcribing .rv-dots span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #378ADD;
+    animation: rvDot 1s ease-in-out infinite;
+}
+
+.chat-voice-transcribing .rv-dots span:nth-child(2) { animation-delay: 0.15s; }
+.chat-voice-transcribing .rv-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+.chat-input-area.is-transcribing .chat-voice-transcribing {
+    justify-content: flex-start;
+    padding-left: 4px;
+    font-size: 15px;
+}
+
+/* Corrections note under the transcript: Fixed: "chicken jo" → Chicken Joo. Undo */
+.rv-fix-note {
+    margin: 0;
+    padding: 0 2px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #5A6A7F;
+}
+
+.rv-fix-note[hidden] {
+    display: none;
+}
+
+.rv-undo {
+    min-height: 28px;
+    border: none;
+    background: transparent;
+    padding: 2px 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1F69B8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+.chat-input-area.is-transcribing .rv-fix-note {
+    display: none;
+}
+
+@keyframes rvPulse { 0%, 100% { transform: scale(0.85); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
+@keyframes rvDrift1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(50px, -40px) scale(1.2); } }
+@keyframes rvDrift2 { from { transform: translate(0, -10px) scale(1.1); } to { transform: translate(-60px, 10px) scale(0.9); } }
+@keyframes rvBob { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-5px) scale(1.04); } }
+@keyframes rvShadow { 0%, 100% { transform: scaleX(1); opacity: 0.9; } 50% { transform: scaleX(0.82); opacity: 0.6; } }
+@keyframes rvWave { from { transform: translateX(0); } to { transform: translateX(-120px); } }
+@keyframes rvBlink { 50% { opacity: 0; } }
+@keyframes rvDot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
+
+@media (max-height: 560px) {
+    .rv-center { gap: 10px; padding-top: 12px; }
+    .rv-mascot { height: 72px; }
+    .rv-mascot img { width: 72px; }
+    .rv-caption { min-height: 40px; font-size: 19px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rv-live, .rv-blob, .rv-mascot img, .rv-mascot-shadow, .rv-wave1, .rv-wave2, .rv-wave3, .rv-cursor,
+    .chat-voice-transcribing .rv-dots span {
+        animation: none;
+    }
+    .rv-waves { transition: none; }
+}
