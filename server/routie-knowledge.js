@@ -12,6 +12,7 @@ const fs = require('fs');
 
 const { getFareData, fareFactsSection, MODERN_JEEPNEY_MINIMUM } = require('./fare-info');
 const routiePlanner = require('./routie-planner');
+const routieHours = require('./routie-hours');
 const routieDataset = require('./routie-dataset');
 let fareCalc = null;
 try {
@@ -285,7 +286,10 @@ function detectTagalog(text) {
         ' bukas ', ' libre ', ' kainan ', ' tindahan ', ' kamusta ', ' kumusta ',
         ' sino ', ' anong ', ' alin ', ' ilan ', ' gaano ', ' pwede ', ' puwede ', ' kailangan ', ' wala ', ' walang ',
         ' nakalimutan ', ' burahin ', ' palitan ', ' magbayad ', ' marunong ', ' lang ', ' naman ', ' ngayon ',
-        ' salamat ', ' sige ', ' ako ', ' ikaw ', ' kami ', ' dito ', ' doon '
+        ' salamat ', ' sige ', ' ako ', ' ikaw ', ' kami ', ' dito ', ' doon ',
+        // short follow-ups ("ilang minuto?", "talaga?", "eh kung sa Crossing?")
+        ' ilang ', ' minuto ', ' nga ', ' ulit ', ' talaga ', ' totoo ', ' sigurado ', ' kung ', ' pabalik ', ' yung ',
+        ' kanina ', ' eh ', ' dun ', ' diyan ', ' dyan '
     ];
     let score = 0;
     for (const m of markers) {
@@ -632,7 +636,7 @@ function categoryContext(hit, places, rawText, userLang, anchor) {
     };
 }
 
-async function resolveRoutieContext({ message, route, lang, places, adminDb, history, lastTrip, lastType, sessionId }) {
+async function resolveRoutieContext({ message, route, lang, places, adminDb, history, lastTrip, lastType, lastPlace, now, sessionId }) {
     if (!places || !Array.isArray(places) || places.length === 0) {
         places = defaultPlacesData;
     }
@@ -652,6 +656,16 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
                 instruction: followUp.reply
             };
         }
+    }
+
+    // 0b. "ngayon 'yan?", "bukas pa ba?", "hanggang anong oras?" right after a place or a trip: open now, from its hours
+    const subject = lastType === 'place_details' ? lastPlace
+        : (lastType === 'trip' && lastTrip && lastTrip.destination ? lastTrip.destination.place : null);
+    if (subject && subject.name && routieHours.isOpenNowAsk(normalize(rawText))) {
+        const nowInfo = routieHours.manilaNow(now || new Date());
+        const reply = routieHours.openStatusText(subject.name,
+            routieHours.openStatus(subject.opening_hours || subject.openHours, nowInfo), nowInfo, userLang);
+        return { type: 'place_hours', lang: userLang, place: subject, data: { name: subject.name, slug: subject.slug || null }, directReply: reply, instruction: reply };
     }
 
     // 1. Attached Route Info from the Planner UI
@@ -885,6 +899,9 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
     const matchedPlace = namedPlace;
     if (matchedPlace) {
         const hoursFormatted = formatOpeningHours(matchedPlace.opening_hours || matchedPlace.openHours);
+        const nowInfo = routieHours.manilaNow(now || new Date());
+        const rightNow = routieHours.openStatusText(matchedPlace.name,
+            routieHours.openStatus(matchedPlace.opening_hours || matchedPlace.openHours, nowInfo), nowInfo, userLang);
         const address = matchedPlace.full_address || matchedPlace.address || `Brgy. ${matchedPlace.barangay || 'Calamba City'}`;
         const phone = matchedPlace.phone ? `Phone: ${matchedPlace.phone}` : '';
         const desc = matchedPlace.description || '';
@@ -892,8 +909,11 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
         return {
             type: 'place_details',
             lang: userLang,
+            place: matchedPlace,
             data: {
                 name: matchedPlace.name,
+                slug: matchedPlace.slug || null,
+                rightNow,
                 category: CATEGORY_MAP[matchedPlace.category] || matchedPlace.category,
                 barangay: matchedPlace.barangay,
                 address,
@@ -902,8 +922,8 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
                 desc
             },
             instruction: userLang === 'tl'
-                ? `Ibigay ang live na impormasyon tungkol sa ${matchedPlace.name}:\n- Kategorya: ${CATEGORY_MAP[matchedPlace.category] || matchedPlace.category}\n- Address: ${address}\n- Opening Hours: ${hoursFormatted}\n${phone ? `- Contact: ${matchedPlace.phone}\n` : ''}${desc ? `- Impormasyon: ${desc}\n` : ''}Maikli, magiliw, at commuter-friendly.`
-                : `Give the live verified details for ${matchedPlace.name}:\n- Category: ${CATEGORY_MAP[matchedPlace.category] || matchedPlace.category}\n- Address: ${address}\n- Opening Hours: ${hoursFormatted}\n${phone ? `- Contact: ${matchedPlace.phone}\n` : ''}${desc ? `- Info: ${desc}\n` : ''}Keep it short, friendly, and commuter-focused.`
+                ? `Ibigay ang live na impormasyon tungkol sa ${matchedPlace.name}:\n- Kategorya: ${CATEGORY_MAP[matchedPlace.category] || matchedPlace.category}\n- Address: ${address}\n- Opening Hours: ${hoursFormatted}\n- Ngayon: ${rightNow}\n${phone ? `- Contact: ${matchedPlace.phone}\n` : ''}${desc ? `- Impormasyon: ${desc}\n` : ''}Sagutin lang ang itinanong. Maikli, magiliw, at commuter-friendly.`
+                : `Give the live verified details for ${matchedPlace.name}:\n- Category: ${CATEGORY_MAP[matchedPlace.category] || matchedPlace.category}\n- Address: ${address}\n- Opening Hours: ${hoursFormatted}\n- Right now: ${rightNow}\n${phone ? `- Contact: ${matchedPlace.phone}\n` : ''}${desc ? `- Info: ${desc}\n` : ''}Answer only what was asked. Keep it short, friendly, and commuter-focused.`
         };
     }
 
@@ -985,12 +1005,23 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
 // convo.meaning: the commuter's message rewritten as a full question (follow-ups like "eh kung sa Crossing?").
 function buildRoutieSystemPrompt(context, convo = {}) {
     const isTl = context.lang === 'tl';
+    const nowBlock = convo.nowLabel ? `
+CURRENT DATE AND TIME IN CALAMBA: ${convo.nowLabel}. Use it for "now", "today", "tomorrow" and whether a place is open.
+` : '';
+    const tripBlock = convo.tripFacts ? `
+LAST TRIP PLANNED IN THIS CHAT (from Calzada's planner; use these exact figures for any question about it, and never guess other reasons or numbers):
+${convo.tripFacts}
+` : '';
+    const tripsBlock = Array.isArray(convo.trips) && convo.trips.length ? `
+TRIPS ASKED ABOUT IN THIS CHAT (oldest first; use this for "what did we talk about"): ${convo.trips.join('; ')}
+` : '';
     const conversation = convo.hasHistory ? `
 CONVERSATION (this chat is ongoing):
 - The messages before the last one are this chat so far. Your earlier replies there came from Calzada's data, so you may repeat, sum up or explain what they say.
 - Short follow-ups ("really?", "talaga?", "bakit?", "eh yung isa?", "what about…") are about your previous reply. Answer them from it.
 - Stay consistent with your earlier replies. Never say you don't have something that an earlier reply already gave. If the data below and an earlier reply disagree, use the data below and say the earlier figure changed.
-- Only say you are not sure when neither the data below nor your earlier replies cover the question.${convo.meaning ? `
+- Only say you are not sure when neither the data below nor your earlier replies cover the question.
+- When they ask again or ask to clarify something you already answered, reply in one or two short sentences with just that part. Do not repeat the whole route or the terminal list unless they ask for the steps.${convo.meaning ? `
 - The commuter's last message most likely means: "${String(convo.meaning).replace(/"/g, "'")}"` : ''}
 ` : '';
     const instruction = convo.hasHistory && context.type === 'not_in_data'
@@ -1013,7 +1044,7 @@ CORE OPERATING RULES (STRICT):
 4. AMBIGUOUS QUERIES: If a user only provides a destination or keyword, ask where they are starting from and where they are going.
 5. CALAMBA SCOPE ONLY: Calzada is strictly for Calamba, Laguna. Politely decline questions outside Calamba or off-topic general questions.
 6. NO MARKDOWN LINKS OR URL SCHEMES: Do not write [link](url) or http:// or https://. Write plain text URLs like calzadaph.com/planner and email like thecalzada@gmail.com.
-${conversation}
+${conversation}${nowBlock}${tripBlock}${tripsBlock}
 DATA & INSTRUCTION FOR THIS QUERY:
 ${instruction}
 

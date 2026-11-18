@@ -184,7 +184,7 @@
     { "id": "m02", "about": "Pick another terminal, then ask the time", "lang": "tl", "turns": [
       { "q": "SM papuntang Chicken Joo Halang", "expect": { "contextBoard": "sm-transport-terminal" } },
       { "q": "eh kung sa Crossing?", "expect": { "llm": false, "rewrite": false, "contains": ["Kung sa Crossing Grand Terminal ka sasakay"], "contextBoard": "crossing-grand-terminal" } },
-      { "q": "ilang minuto?", "expect": { "llm": false, "contains": ["minuto", "sasakay sa Crossing Grand Terminal"] } }
+      { "q": "ilang minuto?", "expect": { "llm": false, "contains": ["minuto", "kung sa Crossing Grand Terminal sasakay"], "maxChars": 220 } }
     ] },
     { "id": "m03", "about": "Same origin, new destination, through the rewrite", "lang": "tl", "turns": [
       { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
@@ -222,9 +222,48 @@
       { "q": "is Calzada free?", "expect": {} },
       { "q": "eh yung pamasahe?", "rewrite": null, "expect": { "rewrite": true, "llm": true, "historySeen": 2 } }
     ] },
-    { "id": "m12", "about": "'bakit?' stays with the model, with the trip in the history", "lang": "tl", "turns": [
-      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
-      { "q": "bakit?", "rewrite": "Bakit sa SM City Calamba Transport Terminal ang pinakamabilis?", "expect": { "rewrite": true, "llm": true, "historySeen": 2, "promptContains": ["most likely means"] } }
+    { "id": "m12", "about": "A why-question about a trip with no terminal choice goes to the model with the trip's facts", "lang": "tl", "turns": [
+      {"q": "SM papuntang Jollibee Real", "expect": {}},
+      {"q": "bakit Tanauan ang jeep?", "expect": {"llm": true, "historySeen": 2, "promptContains": ["LAST TRIP PLANNED IN THIS CHAT", "Calamba – Tanauan", "Jollibee"]}}
+    ] },
+    { "id": "m13", "about": "'bakit?' and 'again, why?' after a terminal choice: compared from the plan, not guessed", "lang": "tl", "turns": [
+      {"q": "SM papuntang Chicken Joo Halang", "expect": {}},
+      {"q": "bakit?", "expect": {"llm": false, "rewrite": false, "contains": ["Pinakamabilis ang SM City Calamba Transport Terminal", "mas maikli ang biyahe sa jeep", "Pareho ang pamasahe"], "notContains": ["mas malapit ka"]}},
+      {"q": "again, why?", "expect": {"llm": false, "contains": ["Kumpara sa Crossing Grand Terminal", "Pareho ang pamasahe"]}}
+    ] },
+    { "id": "m14", "about": "'what did we talk about' knows every trip of the chat, not only the last 6 messages", "lang": "tl", "turns": [
+      {"q": "SM papuntang Chicken Joo Halang", "expect": {}},
+      {"q": "Crossing papuntang Jollibee Real", "expect": {}},
+      {"q": "is Calzada free?", "expect": {}},
+      {"q": "magkano mag-list ng business?", "expect": {}},
+      {"q": "ano nga napag-usapan natin kanina?", "expect": {"llm": true, "rewrite": false, "promptContains": ["Ibuod nang maikli", "TRIPS ASKED ABOUT IN THIS CHAT", "SM City Calamba to Chicken Joo", "Crossing", "Jollibee"]}}
+    ] },
+    { "id": "m15", "about": "SM to Real is a jeepney trip (the Real pin was outside Real)", "lang": "tl", "turns": [
+      {"q": "magkano pamasahe mula SM papuntang Real, student", "expect": {"llm": false, "contains": ["₱"], "notContains": ["968 m"]}},
+      {"q": "magkano kung student?", "expect": {"llm": false, "contains": ["₱11.25"]}}
+    ] },
+    { "id": "m16", "about": "Asking again ('nga', 'ulit') gets a short answer, not the whole route; 'paano ulit?' gets the steps of the trip as picked", "lang": "tl", "turns": [
+      {"q": "SM papuntang Chicken Joo Halang", "expect": {}},
+      {"q": "eh kung sa Crossing?", "expect": {"contextBoard": "crossing-grand-terminal"}},
+      {"q": "ilang minuto?", "expect": {"llm": false, "maxChars": 220, "notContains": ["Kabuuan", "Iba pang suggested"]}},
+      {"q": "ilang minutes nga?", "expect": {"llm": false, "rewrite": false, "maxChars": 220, "notContains": ["Kabuuan", "Iba pang suggested"]}},
+      {"q": "magkano nga ulit?", "expect": {"llm": false, "maxChars": 200, "contains": ["₱14.00 ang pamasahe"]}},
+      {"q": "talaga?", "expect": {"llm": false, "maxChars": 260, "contains": ["Oo po", "Crossing Grand Terminal"], "notContains": ["Iba pang suggested"]}},
+      {"q": "oras ng biyahe ulit?", "rewrite": "Ilang minuto ang biyahe mula SM City Calamba papuntang Chicken Joo Halang?", "expect": {"llm": false, "maxChars": 260}},
+      {"q": "paano ulit?", "rewrite": "Paano pumunta mula SM City Calamba papuntang Chicken Joo Halang?", "expect": {"llm": false, "contains": ["Sumakay sa Crossing Grand Terminal"], "contextBoard": "crossing-grand-terminal"}}
+    ] },
+    { "id": "m17", "about": "Is the place open right now? Answered from its hours and Calamba time (Wed 10:14 PM), not 'not sure'", "lang": "tl", "now": "2026-11-18T14:14:00Z", "turns": [
+      {"q": "anong oras bukas ang Jollibee Real?", "expect": {"llm": true, "promptContains": ["Sarado ngayon ang Jollibee", "CURRENT DATE AND TIME IN CALAMBA: Wednesday, November 18, 2026"]}},
+      {"q": "ngayon 'yan?", "expect": {"llm": false, "rewrite": false, "contains": ["Sarado ngayon ang Jollibee", "Bubukas ito bukas, 6:00 AM"], "notContains": ["hindi ko po tiyak", "Hindi ko po tiyak"], "maxChars": 220}},
+      {"q": "eh hanggang anong oras?", "expect": {"llm": false, "contains": ["6:00 AM - 9:00 PM"]}}
+    ] },
+    { "id": "m18", "about": "After a trip, 'bukas pa ba?' is about the destination", "lang": "tl", "now": "2026-11-18T02:00:00Z", "turns": [
+      {"q": "SM papuntang Jollibee Real", "expect": {}},
+      {"q": "bukas pa ba?", "expect": {"llm": false, "contains": ["Bukas ngayon ang Jollibee", "hanggang 9:00 PM"]}}
+    ] },
+    { "id": "m19", "about": "English: open now", "lang": "en", "now": "2026-11-18T14:14:00Z", "turns": [
+      {"q": "what time does Jollibee Real open?", "expect": {"llm": true}},
+      {"q": "is it open now?", "expect": {"llm": false, "contains": ["closed right now", "It opens tomorrow at 6:00 AM"]}}
     ] }
   ]
 }

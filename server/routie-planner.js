@@ -108,8 +108,9 @@ const KNOWN_TERMINALS = [
 
 // ── Known Key Areas / Barangays ────────────────────────────────────────
 const KNOWN_AREAS = {
-    'real': { name: 'Brgy. Real, Calamba', coords: [14.201, 121.148], barangay: 'Real' },
-    'halang': { name: 'Brgy. Halang, Calamba', coords: [14.192, 121.166], barangay: 'Halang' },
+    // Real and Halang: their barangay halls (the earlier pins fell outside both barangays, so "SM papuntang Real" became a walk)
+    'real': { name: 'Brgy. Real, Calamba', coords: [14.197837, 121.149711], barangay: 'Real' },
+    'halang': { name: 'Brgy. Halang, Calamba', coords: [14.196813, 121.161062], barangay: 'Halang' },
     'uno': { name: 'Brgy. Uno (Poblacion / Crossing), Calamba', coords: [14.206, 121.155], barangay: 'Uno' },
     'crossing': { name: 'Calamba Crossing, Calamba', coords: [14.2061875, 121.1545625], barangay: 'Uno' },
     'calamba': { name: 'Calamba Crossing / Poblacion', coords: [14.206, 121.155], barangay: 'Uno' },
@@ -633,7 +634,12 @@ function plan_route(originInput, destInput, options = {}) {
                 recommended: !!c.recommended,
                 fare: c.option.fare,
                 totalMin: c.option.totalMin,
-                walkMin: c.walkMin
+                walkMin: c.walkMin,
+                // Whole trip from this terminal: minutes walking (all walks) and on the jeep (incl. the wait to board)
+                tripWalkMin: c.option.legs.filter(l => l.type === 'walk').reduce((n, l) => n + (l.min || 0), 0),
+                tripWalkM: Math.round(c.option.legs.filter(l => l.type === 'walk').reduce((n, l) => n + (l.distM || 0), 0)),
+                rideMin: c.option.legs.filter(l => l.type === 'jeep').reduce((n, l) => n + (l.min || 0), 0),
+                transfers: c.option.transfers || 0
             }));
         }
     }
@@ -795,7 +801,7 @@ function formatRouteReply(planRes, lang = 'tl') {
     const { summary, legs, origin, destination, outsideNote_tl, outsideNote_en } = planRes;
 
     const summaryLine = isTl
-        ? `Total: ₱${summary.totalFare.toFixed(2)}, around ${summary.totalMinutes} minutes, ${summary.transfers} transfer${summary.transfers === 1 ? '' : 's'}`
+        ? `Kabuuan: ₱${summary.totalFare.toFixed(2)}, mga ${summary.totalMinutes} minuto, ${summary.transfers} transfer`
         : `Total: ₱${summary.totalFare.toFixed(2)}, around ${summary.totalMinutes} minutes, ${summary.transfers} transfer${summary.transfers === 1 ? '' : 's'}`;
 
     const stepLines = legs.map(l => {
@@ -912,9 +918,158 @@ function tripRecap(trip, isTl) {
     return lines.join('\n');
 }
 
+// Why the recommended terminal: compares the walk and the jeep ride of every choice, from the plan itself
+const WHY_WORD_RE = /\b(?:bakit|why|how come)\b/;
+const WHY_FILLER = new Set(('bakit why how come again ulit nga po ba naman ganun ganon ganyan yun iyon yan iyan is it that the this one ' +
+    'mas mabilis faster fastest pinakamabilis recommended recommend naka ang yung sa si terminal terminals dun doon duon eh e pero but so ' +
+    'ito siya sya better maganda kesa kaysa than choose chose pinili piliin mo you did ka ko ako i should dito there doon diyan dyan ' +
+    'sakayan sasakay sumakay board boarding at from mula galing kasi because ah oh hmm hindi di not instead halip').split(' '));
+
+function isTerminalWhy(text, choices) {
+    if (!WHY_WORD_RE.test(text) || !Array.isArray(choices) || choices.length < 2) return false;
+    const words = text.split(' ');
+    if (words.length > 12) return false;
+    const terminalWords = new Set();
+    for (const c of choices) {
+        for (const w of norm(c.name).split(' ')) terminalWords.add(w);
+        for (const alt of TERMINAL_WORDS[c.stopId] || []) for (const w of alt.split(' ')) terminalWords.add(w);
+    }
+    return words.every(w => WHY_FILLER.has(w) || terminalWords.has(w));
+}
+
+function terminalWhy(trip, isTl) {
+    const list = trip.suggestedTerminals;
+    const rec = list.find(t => t.recommended) || list[0];
+    const name = (t) => (isTl && t.name_tl) ? t.name_tl : t.name;
+    const fastest = list.every(t => rec.totalMin <= t.totalMin);
+    const lines = [isTl
+        ? `${fastest ? 'Pinakamabilis' : 'Naka-recommend'} ang ${name(rec)} para sa biyaheng ${trip.origin.name} papuntang ${trip.destination.name}: mga ${rec.totalMin} minuto mula pag-alis hanggang pagdating.`
+        : `${name(rec)} is ${fastest ? 'the fastest' : 'the recommended terminal'} for the trip from ${trip.origin.name} to ${trip.destination.name}: about ${rec.totalMin} minutes door to door.`];
+    for (const t of list) {
+        if (t === rec) continue;
+        const walk = t.tripWalkMin - rec.tripWalkMin;   // > 0: the recommended one walks less
+        const ride = t.rideMin - rec.rideMin;           // > 0: the recommended one rides less
+        const good = [], bad = [];
+        const w = isTl ? `ang lakad (${rec.tripWalkMin} vs ${t.tripWalkMin} min)` : `walk (${rec.tripWalkMin} vs ${t.tripWalkMin} min)`;
+        const r = isTl ? `ang biyahe sa jeep (${rec.rideMin} vs ${t.rideMin} min)` : `jeepney ride (${rec.rideMin} vs ${t.rideMin} min)`;
+        if (walk > 0) good.push(w); else if (walk < 0) bad.push(w);
+        if (ride > 0) good.push(r); else if (ride < 0) bad.push(r);
+        let line = isTl ? `Kumpara sa ${name(t)} (mga ${t.totalMin} min): ` : `Compared with ${name(t)} (about ${t.totalMin} min): `;
+        if (isTl) {
+            if (good.length) line += `mas maikli ${good.join(' at ')}`;
+            if (good.length && bad.length) line += `, kahit mas mahaba ${bad.join(' at ')}`;
+            else if (!good.length && bad.length) line += `mas mahaba ${bad.join(' at ')}, pero mas mababa ang kabuuang tantiya`;
+            else if (!good.length) line += 'halos pareho ang lakad at biyahe';
+        } else {
+            if (good.length) line += `a shorter ${good.join(' and a shorter ')}`;
+            if (good.length && bad.length) line += `, even though the ${bad.join(' and the ')} ${bad.length > 1 ? 'are' : 'is'} longer`;
+            else if (!good.length && bad.length) line += `a longer ${bad.join(' and a longer ')}, but a lower overall estimate`;
+            else if (!good.length) line += 'about the same walk and ride';
+        }
+        if ((t.transfers || 0) !== (rec.transfers || 0)) {
+            line += isTl ? `; ${rec.transfers} vs ${t.transfers} transfer` : `; ${rec.transfers} vs ${t.transfers} transfers`;
+        }
+        lines.push(line + '.');
+    }
+    const fares = [...new Set(list.map(t => Number(t.fare).toFixed(2)))];
+    lines.push(fares.length === 1
+        ? (isTl ? `Pareho ang pamasahe: ₱${fares[0]}.` : `The fare is the same: ₱${fares[0]}.`)
+        : list.map(t => `${name(t)}: ₱${Number(t.fare).toFixed(2)}`).join(' · '));
+    lines.push(isTl
+        ? 'Kasama sa oras ng jeep ang paghihintay bago umalis. Tantiya ang mga oras at maliit ang diperensya, kaya puwede mong piliin ang mas maginhawa sa iyo.'
+        : 'The jeep time includes the wait before it leaves. These are estimates and the difference is small, so pick whichever is easier for you.');
+    return lines.join('\n');
+}
+
+// The last trip as facts for the model's system prompt (English; figures straight from the plan)
+function tripFacts(trip) {
+    if (!trip || !trip.success || !trip.origin || !trip.destination) return '';
+    const s = trip.summary || {};
+    if (trip.isWalkOnly) {
+        return `Trip: ${trip.origin.name} to ${trip.destination.name}. Walk only: about ${s.walkingDistanceM} m, ~${s.totalMinutes} min, no fare.`;
+    }
+    const out = [`Trip: ${trip.origin.name} to ${trip.destination.name}. Fare ₱${Number(s.totalFare).toFixed(2)} regular, ₱${Number(s.totalFareDiscounted).toFixed(2)} student/senior/PWD. About ${s.totalMinutes} min, ${s.transfers} transfer(s).`];
+    out.push('Steps:');
+    for (const l of trip.legs || []) {
+        if (l.type === 'walk') out.push(`${l.step}. Walk about ${l.distanceM} m (~${l.minutes} min).`);
+        else if (l.type === 'jeep') out.push(`${l.step}. Jeepney "${l.routeName}"${l.signboard ? ` (signboard "${l.signboard}")` : ''} from ${l.board} to ${l.alight}, ~${l.minutes} min including the wait, ₱${Number(l.fare).toFixed(2)}.`);
+    }
+    if (Array.isArray(trip.suggestedTerminals) && trip.suggestedTerminals.length > 1) {
+        const chosen = trip.chosenStopId;
+        out.push('Terminals the commuter can board at for this trip (walk = all walking, jeep = time on the jeep incl. the wait):');
+        for (const t of trip.suggestedTerminals) {
+            const tags = [t.recommended ? 'recommended' : '', t.stopId === chosen ? 'the plan above uses this one' : ''].filter(Boolean).join(', ');
+            out.push(`- ${t.name}${tags ? ` (${tags})` : ''}: total ${t.totalMin} min, walk ${t.tripWalkMin} min (${t.tripWalkM} m), jeep ${t.rideMin} min, ₱${Number(t.fare).toFixed(2)}`);
+        }
+        out.push('The recommended terminal has the lowest overall estimate (fare first, then time, transfers and walking).');
+    }
+    return out.join('\n');
+}
+
 const CONFIRM_RE = /^(?:(?:oh|ah|uh|hmm+|wow|weh|ows|eh)\s+)*(?:really|talaga|totoo|seryoso|sure|sure ka|sure ba|sigurado|sigurado ka|sigurado ba|tama|tama ba|tama ba yan|tama ba iyan|correct|is that right|is that correct|is that true|are you sure|legit|for real|di nga|hindi nga)(?:\s+(?:ba|po|ka|yan|iyan|yun|iyon|nga|kayo))*$/;
-const TIME_RE = /^(?:(?:eh|e|so|and|at)\s+)?(?:how long(?: will it take| does it take| is it| is the trip)?|how many minutes|ilang minuto|ilang oras|gaano katagal|gaano kabilis|tagal|travel time|eta)(?:\s+(?:ba|po|yan|iyan|yun|ang biyahe|the trip|nun|noon))*$/;
-const FARE_RE = /^(?:(?:eh|e|so|and|at)\s+)?(?:magkano|how much|magkano ang pamasahe|magkano pamasahe|magkano ang pasahe|magkano pasahe|ilan ang pamasahe|pamasahe|pasahe|fare|the fare|how much is the fare|how much is it)(?:\s+(?:ba|po|yan|iyan|yun|lahat|lahat lahat|all in|total|in total))*$/;
+// Short questions about the last trip's time or fare ("ilang minuto?", "ilang minutes nga?", "magkano ulit?",
+// "how long again?"): every word is a time/fare word or a filler word. Discount words are not here (own answer).
+const TIME_WORDS = new Set('ilang ilan minuto minutos minutes minute mins min oras hours hour gaano katagal tagal kabilis gaano how long many eta travel time byahe biyahe trip ride takes take duration'.split(' '));
+const FARE_WORDS = new Set('magkano how much pamasahe pasahe fare fares bayad babayaran presyo price cost total kabuuan lahat all in'.split(' '));
+const SHORT_FILLER = new Set('eh e so and at nga ulit again po ba yan iyan yun iyon ang the is it will does nun noon naman ulit pala ulitin repeat one more time lang only exactly mga about sa ng ito this that kaya kasi okay ok'.split(' '));
+function shortAsk(text) {
+    const words = text.split(' ').filter(Boolean);
+    if (!words.length || words.length > 8) return null;
+    let time = false, fare = false;
+    for (const w of words) {
+        if (TIME_WORDS.has(w)) time = true;
+        else if (FARE_WORDS.has(w)) fare = true;
+        else if (!SHORT_FILLER.has(w)) return null;
+    }
+    if (time && words.every(w => !TIME_WORDS.has(w) || ['how', 'many', 'gaano', 'ilang', 'ilan', 'time', 'trip', 'byahe', 'biyahe', 'take', 'takes'].includes(w))
+        && !words.some(w => ['minuto', 'minutos', 'minutes', 'minute', 'mins', 'min', 'oras', 'hours', 'hour', 'katagal', 'tagal', 'kabilis', 'long', 'eta', 'duration'].includes(w))) {
+        time = false; // "how many?", "ilang biyahe?" alone are not about the time
+    }
+    if (!time && !fare) return null;
+    return { time, fare };
+}
+
+// One-line answers about the last trip (for follow-ups; the full route was already given)
+function tripTimeLine(trip, isTl) {
+    const s = trip.summary || {};
+    const jeepMin = (trip.legs || []).filter(l => l.type === 'jeep').reduce((n, l) => n + (l.minutes || 0), 0);
+    const walkMin = (trip.legs || []).filter(l => l.type === 'walk').reduce((n, l) => n + (l.minutes || 0), 0);
+    const parts = trip.isWalkOnly ? '' : (isTl
+        ? ` (${jeepMin} min sa jeep, kasama ang paghihintay${walkMin ? `, at ${walkMin} min na lakad` : ''})`
+        : ` (${jeepMin} min on the jeep, including the wait${walkMin ? `, and ${walkMin} min walking` : ''})`);
+    const jeeps = (trip.legs || []).filter(l => l.type === 'jeep');
+    const pickedBoard = Array.isArray(trip.suggestedTerminals) && trip.suggestedTerminals.length > 1 && jeeps[0] ? jeeps[0].board : null;
+    const via = pickedBoard ? (isTl ? `, kung sa ${pickedBoard} sasakay` : `, boarding at ${pickedBoard}`) : '';
+    return isTl
+        ? `Mga ${s.totalMinutes} minuto mula ${trip.origin.name} papuntang ${trip.destination.name}${via}${parts}.`
+        : `About ${s.totalMinutes} minutes from ${trip.origin.name} to ${trip.destination.name}${via}${parts}.`;
+}
+function tripFareLine(trip, isTl) {
+    const s = trip.summary || {};
+    if (trip.isWalkOnly) return isTl ? `Walang pamasahe: lakad lang ang biyaheng ito.` : `No fare: this trip is a walk.`;
+    return isTl
+        ? `₱${Number(s.totalFare).toFixed(2)} ang pamasahe (₱${Number(s.totalFareDiscounted).toFixed(2)} kung student, senior, o PWD). Tantiya ito base sa LTFRB fare guide.`
+        : `The fare is ₱${Number(s.totalFare).toFixed(2)} (₱${Number(s.totalFareDiscounted).toFixed(2)} for students, seniors and PWDs). It is an estimate based on the LTFRB fare guide.`;
+}
+// The other terminals in one line ("Puwede ring sumakay sa X (mga 25 min)")
+function otherTerminalsLine(trip, isTl) {
+    const others = (trip.suggestedTerminals || []).filter(t => t.stopId !== trip.chosenStopId);
+    if (!others.length || !Array.isArray(trip.suggestedTerminals) || trip.suggestedTerminals.length < 2) return '';
+    const list = others.map(t => `${(isTl && t.name_tl) ? t.name_tl : t.name} (${isTl ? 'mga' : 'about'} ${t.totalMin} min)`).join(isTl ? ' o ' : ' or ');
+    return isTl ? `Puwede ring sumakay sa ${list}.` : `You can also board at ${list}.`;
+}
+// A short confirmation of the trip: fare, time, where to board, the other terminals
+function tripShortRecap(trip, isTl) {
+    const s = trip.summary || {};
+    if (trip.isWalkOnly) return tripTimeLine(trip, isTl) + ' ' + tripFareLine(trip, isTl);
+    const jeeps = (trip.legs || []).filter(l => l.type === 'jeep');
+    const board = jeeps[0] ? jeeps[0].board : null;
+    const line = isTl
+        ? `Mula ${trip.origin.name} papuntang ${trip.destination.name}: ₱${Number(s.totalFare).toFixed(2)}, mga ${s.totalMinutes} minuto${board ? `, sasakay sa ${board}` : ''}.`
+        : `From ${trip.origin.name} to ${trip.destination.name}: ₱${Number(s.totalFare).toFixed(2)}, about ${s.totalMinutes} minutes${board ? `, boarding at ${board}` : ''}.`;
+    const other = otherTerminalsLine(trip, isTl);
+    return other ? `${line} ${other}` : line;
+}
 
 // ── Follow-Up Handler ──────────────────────────────────────────────────
 // opts.lastType: what Routie's previous answer was ('trip' when it was this trip). The recap, time, fare and
@@ -946,17 +1101,26 @@ function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl', opts = {
         }
     }
 
+    // 0a. "bakit?", "why is SM faster?", "again, why?" right after a trip with a terminal choice: compare them
+    if (afterTrip && isTerminalWhy(text, lastTrip.suggestedTerminals)) {
+        return { type: 'terminal_why', reply: terminalWhy(lastTrip, isTl) };
+    }
+
     // 0b. "oh, really?", "talaga?", "sure ka?" right after the trip: confirm it from the plan
     if (afterTrip && CONFIRM_RE.test(text)) {
         return {
             type: 'trip_confirm',
-            reply: `${isTl ? 'Oo po, base sa data ng Calzada.' : 'Yes, based on Calzada\'s data.'}\n${tripRecap(lastTrip, isTl)}`
+            reply: `${isTl ? 'Oo po, base sa data ng Calzada.' : 'Yes, based on Calzada\'s data.'} ${tripShortRecap(lastTrip, isTl)}`
         };
     }
 
-    // 0c. "ilang minuto?", "how long?" / "magkano?", "how much?" right after the trip
-    if (afterTrip && (TIME_RE.test(text) || FARE_RE.test(text))) {
-        return { type: 'trip_recap', reply: tripRecap(lastTrip, isTl) };
+    // 0c. "ilang minuto?", "ilang minutes nga?", "magkano ulit?", "how long?": just that, in one line
+    const ask = afterTrip ? shortAsk(text) : null;
+    if (ask) {
+        const lines = [];
+        if (ask.time) lines.push(tripTimeLine(lastTrip, isTl));
+        if (ask.fare) lines.push(tripFareLine(lastTrip, isTl));
+        return { type: 'trip_recap', reply: lines.join(' ') };
     }
 
     // 1. "how about going back?", "pabalik?", "reverse?", "pauwi?"
@@ -1029,6 +1193,11 @@ module.exports = {
     formatRouteReply,
     handleFollowUp,
     tripRecap,
+    tripShortRecap,
+    tripTimeLine,
+    tripFareLine,
+    tripFacts,
+    terminalWhy,
     CONFIRM_RE,
     KNOWN_TERMINALS,
     KNOWN_AREAS,

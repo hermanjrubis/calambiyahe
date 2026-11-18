@@ -61,11 +61,14 @@ function check(name, ok, detail = '') {
     check('history: not an array', chat.normalizeHistory('nope', 'x').length === 0);
 
     // Context from the widget is validated
-    check('context: good', JSON.stringify(chat.readContext({ v: 1, lastType: 'trip', trip: { origin: 'SM City Calamba', dest: 'Jollibee', board: 'crossing-grand-terminal' } }))
-        === JSON.stringify({ lastType: 'trip', trip: { origin: 'SM City Calamba', dest: 'Jollibee', board: 'crossing-grand-terminal' } }));
+    check('context: good', JSON.stringify(chat.readContext({ v: 1, lastType: 'trip', trip: { origin: 'SM City Calamba', dest: 'Jollibee', board: 'crossing-grand-terminal', destPin: [14.1955, 121.1435, 'Real'] } }))
+        === JSON.stringify({ lastType: 'trip', trip: { origin: 'SM City Calamba', dest: 'Jollibee', board: 'crossing-grand-terminal', originPin: null, destPin: [14.1955, 121.1435, 'Real'] }, trips: [], place: null }));
+    check('context: pin outside Calamba is dropped', chat.readContext({ v: 1, trip: { origin: 'A', dest: 'B', destPin: [10.3, 123.9] } }).trip.destPin === null);
+    const ctxTrips = chat.readContext({ v: 1, trips: [{ origin: 'A', dest: 'B' }, { origin: 'x'.repeat(200), dest: 'C' }, 'junk', { origin: 'D', dest: 'E' }] }).trips;
+    check('context: trip list kept, bad items dropped', JSON.stringify(ctxTrips) === JSON.stringify([{ origin: 'A', dest: 'B' }, { origin: 'D', dest: 'E' }]), JSON.stringify(ctxTrips));
     check('context: wrong version', chat.readContext({ v: 2, lastType: 'trip' }) === null);
     check('context: unknown type, bad board, long name', JSON.stringify(chat.readContext({ v: 1, lastType: 'admin', trip: { origin: 'x'.repeat(101), dest: 'B' } }))
-        === JSON.stringify({ lastType: null, trip: null }));
+        === JSON.stringify({ lastType: null, trip: null, trips: [], place: null }));
     check('context: bad board id is dropped', chat.readContext({ v: 1, trip: { origin: 'A', dest: 'B', board: '../x' } }).trip.board === null);
     check('context: not an object', chat.readContext('{"v":1}') === null);
 
@@ -94,6 +97,36 @@ function check(name, ok, detail = '') {
     check('grounded: same places', g('Paano pumunta mula Chicken Joo Halang papuntang SM?'));
     check('grounded: new place dropped', !g('Paano pumunta mula SM papuntang Jollibee Real?'));
     check('grounded: new place the user typed', g('Paano pumunta mula SM papuntang Jollibee Real?', 'eh papuntang Jollibee Real?'));
+
+    // Barangay pins Routie uses for "Real", "Halang", "Uno" must sit inside those barangays
+    const planner = await quiet(() => require(path.join(ROOT, 'server/routie-planner.js')))();
+    const engine = require(path.join(ROOT, 'public/js/transit-engine.js'));
+    const tp = await quiet(() => engine.createPlanner(require(path.join(ROOT, 'public/data/transit-routes.json')), require(path.join(ROOT, 'public/data/barangays.json'))))();
+    for (const [key, a] of Object.entries(planner.KNOWN_AREAS)) {
+        if (!['real', 'halang', 'uno'].includes(key)) continue; // the barangay pins (crossing/bayan are other places)
+        check(`area pin "${key}" is inside ${a.barangay}`, tp.areaOf(a.coords) === a.barangay, `areaOf = ${tp.areaOf(a.coords)}`);
+    }
+
+    // Opening hours in Calamba time
+    const hours = await quiet(() => require(path.join(ROOT, 'server/routie-hours.js')))();
+    const at = (iso) => hours.manilaNow(new Date(iso));
+    const wed2214 = at('2026-11-18T14:14:00Z');
+    check('hours: Manila time', wed2214.day === 'wed' && wed2214.minutes === 22 * 60 + 14 && wed2214.label.startsWith('Wednesday, November 18, 2026'), JSON.stringify(wed2214));
+    const jb = { mon: '6:00 AM - 9:00 PM', tue: '6:00 AM - 9:00 PM', wed: '6:00 AM - 9:00 PM', thu: '6:00 AM - 9:00 PM', fri: '6:00 AM - 9:00 PM', sat: '6:00 AM - 9:00 PM', sun: '6:00 AM - 8:45 PM' };
+    const st = (h, iso) => hours.openStatus(h, at(iso));
+    check('hours: closed at night, opens tomorrow 6 AM', JSON.stringify(st(jb, '2026-11-18T14:14:00Z')) === JSON.stringify({ known: true, open: false, today: '6:00 AM - 9:00 PM', opensAt: '6:00 AM', opensDay: 'thu', tomorrow: true }));
+    check('hours: open in the morning until 9 PM', st(jb, '2026-11-18T02:00:00Z').open === true && st(jb, '2026-11-18T02:00:00Z').closesAt === '9:00 PM');
+    check('hours: before opening, opens later today', st(jb, '2026-11-17T21:30:00Z').opensDay === 'today');
+    const night = { mon: '8:00 PM - 2:00 AM', tue: '8:00 PM - 2:00 AM', wed: 'Closed', thu: 'Closed', fri: 'Closed', sat: 'Closed', sun: 'Closed' };
+    check('hours: open past midnight from yesterday', st(night, '2026-11-17T17:00:00Z').open === true && st(night, '2026-11-17T17:00:00Z').closesAt === '2:00 AM');
+    check('hours: closed day, next opening next Monday', st(night, '2026-11-19T04:00:00Z').opensDay === 'mon');
+    check('hours: "5:00 PM - 12:00 AM" open at 11:30 PM', st({ wed: '5:00 PM - 12:00 AM' }, '2026-11-18T15:30:00Z').open === true);
+    check('hours: open 24 hours', st({ wed: 'Open 24 hours' }, '2026-11-18T04:00:00Z').always === true);
+    check('hours: free text is unknown', st({ wed: 'depende' }, '2026-11-18T04:00:00Z').known === false && st(null, '2026-11-18T04:00:00Z').known === false);
+    for (const q of ['ngayon yan', 'bukas pa ba', 'open now', 'is it open now', 'hanggang anong oras', 'sarado na ba', 'until what time'])
+        check(`hours: "${q}" asks if open`, hours.isOpenNowAsk(q));
+    for (const q of ['ilang oras', 'anong oras', 'bukas ng umaga papuntang sm', 'paano pumunta'])
+        check(`hours: "${q}" is not an open-now ask`, !hours.isOpenNowAsk(q));
 
     check('user text: keeps [ROUTE INFO]', chat.withUserText('[ROUTE INFO]\nOrigin: A\n\nUser Message: eh?', 'full?') === '[ROUTE INFO]\nOrigin: A\n\nUser Message: full?');
     check('user text: plain', chat.withUserText('eh?', 'full?') === 'full?');
@@ -152,7 +185,8 @@ for (const conv of evalSet.conversations || []) {
                 getAdminDb: () => null,
                 getClient: () => stubClient(state),
                 callModel: (client, messages) => client.chat.completions.create({ messages }),
-                sessions
+                sessions,
+                now: () => new Date(conv.now || '2026-11-18T14:14:00Z')
             });
             const res = await quiet(handler)({
                 message: `\n\nUser Message: ${turn.q}`, lang: conv.lang, history: history.slice(-6), sessionId: `test-${conv.id}`, context
@@ -165,6 +199,7 @@ for (const conv of evalSet.conversations || []) {
             if (!reply.trim()) fails.push('empty reply');
             for (const s of e.contains || []) if (!low(reply).includes(low(s))) fails.push(`missing "${s}"`);
             for (const s of e.notContains || []) if (low(reply).includes(low(s))) fails.push(`has "${s}"`);
+            if (e.maxChars && reply.length > e.maxChars) fails.push(`reply is ${reply.length} chars, want at most ${e.maxChars}`);
             if (e.llm !== undefined && state.llm !== e.llm) fails.push(`model ${state.llm ? 'called' : 'not called'}`);
             if (e.rewrite !== undefined && state.rewrite !== e.rewrite) fails.push(`rewrite ${state.rewrite ? 'called' : 'not called'}`);
             if (e.historySeen !== undefined && state.historySeen !== e.historySeen) fails.push(`model saw ${state.historySeen} history messages, want ${e.historySeen}`);
