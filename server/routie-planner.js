@@ -616,12 +616,16 @@ function plan_route(originInput, destInput, options = {}) {
     // 4. Standard In-Calamba Transit Routing
     let planOption = null;
     let suggestedTerminals = null;
+    let chosenStopId = null;
     if (transitPlanner) {
         // Destination terminal choices (e.g. Real or Halang)
         const destBarangay = destResolved.barangay || (destResolved.place && destResolved.place.barangay);
         const tc = transitPlanner.terminalChoices(originResolved.coords, destResolved.coords, destBarangay);
         if (tc && tc.choices && tc.choices.length > 0) {
-            planOption = tc.choices[0].option;
+            // options.boardStopId: the commuter picked a terminal ("eh kung sa Crossing?"); else the recommended one
+            const picked = options.boardStopId ? tc.choices.find(c => c.stopId === options.boardStopId) : null;
+            planOption = (picked || tc.choices[0]).option;
+            chosenStopId = (picked || tc.choices[0]).stopId;
             suggestedTerminals = tc.choices.map(c => ({
                 stopId: c.stopId,
                 name: c.name,
@@ -746,7 +750,8 @@ function plan_route(originInput, destInput, options = {}) {
             transfers: planOption.transfers || 0
         },
         legs: formattedLegs,
-        suggestedTerminals
+        suggestedTerminals,
+        chosenStopId
     };
 }
 
@@ -856,11 +861,103 @@ function formatRouteReply(planRes, lang = 'tl') {
     return parts.join('\n');
 }
 
+// ── Follow-ups on the last trip (conversation memory) ──────────────────
+// Other words people use for the boarding terminals in a terminal choice
+const TERMINAL_WORDS = {
+    'crossing-grand-terminal': ['crossing grand terminal', 'crossing grand', 'crossing terminal', 'grand terminal', 'cgt', 'crossing'],
+    'calamba-tagaytay-terminal': ['inner rd terminal', 'inner road', 'inner rd', 'calamba tagaytay', 'tagaytay terminal', 'tagaytay'],
+    'sm-transport-terminal': ['sm city calamba transport terminal', 'sm transport terminal', 'sm transport', 'transport terminal'],
+    'new-calamba-transport-terminal': ['new calamba transport terminal', 'new calamba transport', 'new calamba', 'phils corp', 'phils', 'cmc', 'calamba medical']
+};
+
+// The terminal of the last trip's choices that the message names, or null
+function pickedTerminal(text, choices) {
+    if (!Array.isArray(choices) || choices.length < 2) return null;
+    const has = (w) => ` ${text} `.includes(` ${w} `);
+    const hits = choices.filter(c => has(norm(c.name)) || (TERMINAL_WORDS[c.stopId] || []).some(has));
+    if (hits.length === 1) return hits[0];
+    // Plain "SM": fine when only one of the choices is at SM
+    if (!hits.length && has('sm')) {
+        const sm = choices.filter(c => /\bsm\b/.test(norm(c.name)));
+        if (sm.length === 1) return sm[0];
+    }
+    return null;
+}
+
+// Short recap of a trip, from the plan itself (never from the model)
+function tripRecap(trip, isTl) {
+    const o = (trip.origin && trip.origin.name) || 'Origin';
+    const d = (trip.destination && trip.destination.name) || 'Destination';
+    const s = trip.summary || {};
+    if (trip.isWalkOnly) {
+        return isTl
+            ? `Lakad lang ang biyaheng ${o} papuntang ${d}: mga ${s.walkingDistanceM} m, ~${s.totalMinutes} min, walang pamasahe.`
+            : `The trip from ${o} to ${d} is a walk: about ${s.walkingDistanceM} m, ~${s.totalMinutes} min, no fare.`;
+    }
+    const jeeps = (trip.legs || []).filter(l => l.type === 'jeep');
+    const board = jeeps[0] ? jeeps[0].board : null;
+    const lines = [isTl
+        ? `Mula ${o} papuntang ${d}: ₱${Number(s.totalFare).toFixed(2)} (₱${Number(s.totalFareDiscounted).toFixed(2)} student/senior/PWD), mga ${s.totalMinutes} minuto, ${s.transfers} transfer${board ? `, sasakay sa ${board}` : ''}.`
+        : `From ${o} to ${d}: ₱${Number(s.totalFare).toFixed(2)} (₱${Number(s.totalFareDiscounted).toFixed(2)} student/senior/PWD), about ${s.totalMinutes} minutes, ${s.transfers} transfer${s.transfers === 1 ? '' : 's'}${board ? `, boarding at ${board}` : ''}.`];
+    if (Array.isArray(trip.suggestedTerminals) && trip.suggestedTerminals.length > 1) {
+        lines.push(isTl ? 'Mga terminal na puwedeng sakayan:' : 'Terminals you can board at:');
+        for (const t of trip.suggestedTerminals) {
+            const rec = t.recommended ? (isTl ? ' (Pinakamabilis)' : ' (Recommended)') : '';
+            lines.push(`• ${(isTl && t.name_tl) ? t.name_tl : t.name}${rec} – ${isTl ? 'mga' : 'about'} ${t.totalMin} min, ₱${Number(t.fare).toFixed(2)}`);
+        }
+    }
+    lines.push(isTl
+        ? 'Tantiya ang pamasahe base sa LTFRB fare guide, at tantiya rin ang oras.'
+        : 'Fares are estimates based on the LTFRB fare guide, and times are estimates too.');
+    return lines.join('\n');
+}
+
+const CONFIRM_RE = /^(?:(?:oh|ah|uh|hmm+|wow|weh|ows|eh)\s+)*(?:really|talaga|totoo|seryoso|sure|sure ka|sure ba|sigurado|sigurado ka|sigurado ba|tama|tama ba|tama ba yan|tama ba iyan|correct|is that right|is that correct|is that true|are you sure|legit|for real|di nga|hindi nga)(?:\s+(?:ba|po|ka|yan|iyan|yun|iyon|nga|kayo))*$/;
+const TIME_RE = /^(?:(?:eh|e|so|and|at)\s+)?(?:how long(?: will it take| does it take| is it| is the trip)?|how many minutes|ilang minuto|ilang oras|gaano katagal|gaano kabilis|tagal|travel time|eta)(?:\s+(?:ba|po|yan|iyan|yun|ang biyahe|the trip|nun|noon))*$/;
+const FARE_RE = /^(?:(?:eh|e|so|and|at)\s+)?(?:magkano|how much|magkano ang pamasahe|magkano pamasahe|magkano ang pasahe|magkano pasahe|ilan ang pamasahe|pamasahe|pasahe|fare|the fare|how much is the fare|how much is it)(?:\s+(?:ba|po|yan|iyan|yun|lahat|lahat lahat|all in|total|in total))*$/;
+
 // ── Follow-Up Handler ──────────────────────────────────────────────────
-function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl') {
+// opts.lastType: what Routie's previous answer was ('trip' when it was this trip). The recap, time, fare and
+// terminal follow-ups only answer right after the trip, so "talaga?" after an FAQ is not taken as being about the trip.
+function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl', opts = {}) {
     if (!lastTrip) return null;
     const isTl = lang === 'tl';
     const text = norm(rawMessage);
+    const afterTrip = opts.lastType === 'trip' && lastTrip.success !== false && !!lastTrip.summary;
+
+    // 0. "eh kung sa Crossing?", "what about from SM Transport Terminal?": the same trip, boarding at another terminal
+    // Not when the message is a new trip ("mula SM papuntang Real") or asks why/what about a terminal
+    const switchesTerminal = text.split(' ').length <= 12
+        && !/\b(?:bakit|why|ano|what is|whats|where is|saan|nasaan)\b/.test(text)
+        && !/\b(?:papunta|papuntang|going to|hanggang)\b|\bto\b/.test(text)
+        && !extractOriginAndDestination(rawMessage);
+    if (afterTrip && lastTrip.origin && lastTrip.destination && switchesTerminal) {
+        const pick = pickedTerminal(text, lastTrip.suggestedTerminals);
+        if (pick) {
+            const plan = plan_route(lastTrip.origin, lastTrip.destination, { places, boardStopId: pick.stopId });
+            if (plan && plan.success && plan.chosenStopId === pick.stopId) {
+                const name = (isTl && pick.name_tl) ? pick.name_tl : pick.name;
+                return {
+                    type: 'terminal_pick',
+                    planResult: plan,
+                    reply: `${isTl ? `Kung sa ${name} ka sasakay:` : `If you board at ${name}:`}\n${formatRouteReply(plan, lang)}`
+                };
+            }
+        }
+    }
+
+    // 0b. "oh, really?", "talaga?", "sure ka?" right after the trip: confirm it from the plan
+    if (afterTrip && CONFIRM_RE.test(text)) {
+        return {
+            type: 'trip_confirm',
+            reply: `${isTl ? 'Oo po, base sa data ng Calzada.' : 'Yes, based on Calzada\'s data.'}\n${tripRecap(lastTrip, isTl)}`
+        };
+    }
+
+    // 0c. "ilang minuto?", "how long?" / "magkano?", "how much?" right after the trip
+    if (afterTrip && (TIME_RE.test(text) || FARE_RE.test(text))) {
+        return { type: 'trip_recap', reply: tripRecap(lastTrip, isTl) };
+    }
 
     // 1. "how about going back?", "pabalik?", "reverse?", "pauwi?"
     const isReverse = /\b(going back|go back|pabalik|reverse|pauwi|pabalik naman|balik)\b/i.test(text);
@@ -931,6 +1028,8 @@ module.exports = {
     extractOriginAndDestination,
     formatRouteReply,
     handleFollowUp,
+    tripRecap,
+    CONFIRM_RE,
     KNOWN_TERMINALS,
     KNOWN_AREAS,
     AMBIGUOUS_TARGETS

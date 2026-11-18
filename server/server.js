@@ -117,10 +117,9 @@ function getGroqClient() {
     return groqClient;
 }
 
-const { normalizeLang, fallbackReply, interpretModelOutput } = require('./chat-reply');
 const { getFareData, fareFactsSection, fareEstimateBlock } = require('./fare-info');
-const { resolveRoutieContext, buildRoutieSystemPrompt } = require('./routie-knowledge');
 const routiePlanner = require('./routie-planner');
+const { createChatHandler } = require('./routie-chat');
 const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1228,106 +1227,18 @@ app.post('/api/plan-route', async (req, res) => {
     return res.json(planResult);
 });
 
+// Routie chat (server/routie-chat.js): verified answers first, then the model with the conversation so far
+const handleRoutieChat = createChatHandler({
+    getPlaces: async () => mergeBusinessesIntoPlaces(getPlacesData(), await getLiveBusinesses()),
+    getAdminDb: () => getFirestore(),
+    getClient: getGroqClient,
+    callModel: callGroqWithRetry,
+    sessions: chatSessions
+});
+
 app.post('/api/chat', async (req, res) => {
-    const { message, route, lang, history, sessionId } = req.body || {};
-    const replyLang = normalizeLang(lang);
-    // Every failure still returns a usable { reply } so the widget shows a friendly message.
-    const sendFallback = (status, error, kind) =>
-        res.status(status).json({ error, reply: fallbackReply(kind, replyLang) });
-
-    const sessionKey = sessionId || req.ip || 'default';
-    const currentSession = chatSessions.get(sessionKey);
-    let lastTrip = currentSession?.lastTrip || null;
-
-    try {
-        const liveBusinesses = await getLiveBusinesses();
-        const activePlaces = mergeBusinessesIntoPlaces(getPlacesData(), liveBusinesses);
-
-        // If lastTrip not in session, try to find in history
-        if (!lastTrip && Array.isArray(history) && history.length > 0) {
-            for (let i = history.length - 1; i >= 0; i--) {
-                const item = history[i];
-                const text = item.text || item.content || '';
-                const od = routiePlanner.extractOriginAndDestination(text);
-                if (od && od.origin && od.dest) {
-                    const r = routiePlanner.plan_route(od.origin, od.dest, { places: activePlaces });
-                    if (r && r.success) {
-                        lastTrip = r;
-                        break;
-                    }
-                }
-            }
-        }
-
-        let adminDb = null;
-        try {
-            adminDb = getFirestore();
-        } catch (_) {}
-
-        const knowledgeContext = await resolveRoutieContext({
-            message,
-            route,
-            lang: replyLang,
-            places: activePlaces,
-            adminDb,
-            history,
-            lastTrip,
-            sessionId: sessionKey
-        });
-
-        // If a route was planned or updated, save it to the session
-        if (knowledgeContext.planResult && knowledgeContext.planResult.success) {
-            chatSessions.set(sessionKey, {
-                lastTrip: knowledgeContext.planResult,
-                updatedAt: Date.now()
-            });
-        }
-
-        // Return direct verified response for route planning, follow-ups, ambiguity, out-of-scope, and FAQ queries
-        if (knowledgeContext.directReply && (
-            knowledgeContext.type === 'route_plan' ||
-            knowledgeContext.type === 'follow_up' ||
-            knowledgeContext.type === 'ambiguous' ||
-            knowledgeContext.type === 'route_not_found' ||
-            knowledgeContext.type === 'out_of_scope' ||
-            knowledgeContext.type === 'faq'
-        )) {
-            return res.json({ reply: knowledgeContext.directReply });
-        }
-
-        const client = getGroqClient();
-        if (!client) {
-            if (knowledgeContext.directReply) {
-                return res.json({ reply: knowledgeContext.directReply });
-            }
-            console.error('GROQ_API_KEY is not configured on the server. Please check your .env file.');
-            return sendFallback(500, 'not_configured', 'unavailable');
-        }
-
-        const systemPrompt = buildRoutieSystemPrompt(knowledgeContext);
-
-        const chatCompletion = await callGroqWithRetry(client, [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: String(message || '') },
-        ]);
-
-        const choice = chatCompletion.choices && chatCompletion.choices[0];
-        const { source, ...body } = interpretModelOutput(choice && choice.message && choice.message.content, {
-            lang: knowledgeContext.lang || replyLang,
-            truncated: !!choice && choice.finish_reason === 'length'
-        });
-        if (source !== 'json') console.log(`Chat reply needed repair or was replaced (${source}).`);
-        res.json(body);
-    } catch (error) {
-        console.log('Final Error Handler:', error.message);
-        if (error.message === 'Groq Timeout') {
-            return sendFallback(504, 'timeout', 'timeout');
-        }
-        if (error.status === 429) {
-            return sendFallback(429, 'rate_limited', 'busy');
-        }
-        sendFallback(500, 'ai_unavailable', 'unavailable');
-    }
+    const { status, body } = await handleRoutieChat(req.body || {}, { ip: req.ip });
+    res.status(status).json(body);
 });
 
 /**

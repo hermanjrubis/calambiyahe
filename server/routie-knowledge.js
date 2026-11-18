@@ -445,7 +445,10 @@ function resolveLocationCoords(query, places) {
 
 // ── Extract Origin and Destination from Route Inquiries ───────────────────────────────
 function extractOriginAndDestination(text) {
-    const t = text.replace(/[\?\.\!]+$/, '').trim();
+    // Lead-in words of a follow-up ("eh papuntang Real?") are not an origin
+    const t = text.replace(/[\?\.\!]+$/, '').trim()
+        .replace(/^(?:(?:eh|e|uy|so|and|at|tapos|then)[,\s]+)+/i, '')
+        .replace(/^(?:what\s+about|how\s+about|paano\s+kung|pano\s+kung|kung)[,\s]+/i, '');
 
     // 1. "paano pumunta sa Y galing (sa) X" / "how to get to Y from X" / "directions to Y from X"
     let m = t.match(/(?:paano\s+(?:ba\s+)?pumunta\s+(?:sa\s+)?|how\s+(?:do\s+i\s+)?get\s+to\s+|directions?\s+to\s+|papunta(?:ng)?\s+(?:sa\s+)?|byahe\s+papunta(?:ng)?\s+(?:sa\s+)?)(.+?)\s+(?:galing\s+(?:sa\s+)?|mula\s+(?:sa\s+)?|from\s+)(.+)/i);
@@ -629,7 +632,7 @@ function categoryContext(hit, places, rawText, userLang, anchor) {
     };
 }
 
-async function resolveRoutieContext({ message, route, lang, places, adminDb, history, lastTrip, sessionId }) {
+async function resolveRoutieContext({ message, route, lang, places, adminDb, history, lastTrip, lastType, sessionId }) {
     if (!places || !Array.isArray(places) || places.length === 0) {
         places = defaultPlacesData;
     }
@@ -639,7 +642,7 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
 
     // 0. Follow-up Inquiry using previous trip (Requirement 7)
     if (lastTrip) {
-        const followUp = routiePlanner.handleFollowUp(rawText, lastTrip, places, userLang);
+        const followUp = routiePlanner.handleFollowUp(rawText, lastTrip, places, userLang, { lastType });
         if (followUp) {
             return {
                 type: 'follow_up',
@@ -978,8 +981,23 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
 }
 
 // ── Build Clean System Prompt for Routie ───────────────────────────────────────────────
-function buildRoutieSystemPrompt(context) {
+// convo.hasHistory: earlier turns of this chat come before the commuter's message.
+// convo.meaning: the commuter's message rewritten as a full question (follow-ups like "eh kung sa Crossing?").
+function buildRoutieSystemPrompt(context, convo = {}) {
     const isTl = context.lang === 'tl';
+    const conversation = convo.hasHistory ? `
+CONVERSATION (this chat is ongoing):
+- The messages before the last one are this chat so far. Your earlier replies there came from Calzada's data, so you may repeat, sum up or explain what they say.
+- Short follow-ups ("really?", "talaga?", "bakit?", "eh yung isa?", "what about…") are about your previous reply. Answer them from it.
+- Stay consistent with your earlier replies. Never say you don't have something that an earlier reply already gave. If the data below and an earlier reply disagree, use the data below and say the earlier figure changed.
+- Only say you are not sure when neither the data below nor your earlier replies cover the question.${convo.meaning ? `
+- The commuter's last message most likely means: "${String(convo.meaning).replace(/"/g, "'")}"` : ''}
+` : '';
+    const instruction = convo.hasHistory && context.type === 'not_in_data'
+        ? (isTl
+            ? 'Kung tungkol sa naunang sagot mo ang mensahe, sagutin ito mula roon. Kung hindi: ' + context.instruction
+            : 'If the message is about your previous reply, answer it from that reply. Otherwise: ' + context.instruction)
+        : context.instruction;
 
     return `You are Routie, the friendly, helpful AI text-chat commuting assistant for Calzada (calzadaph.com), the commuting guide for Calamba, Laguna.
 
@@ -995,9 +1013,9 @@ CORE OPERATING RULES (STRICT):
 4. AMBIGUOUS QUERIES: If a user only provides a destination or keyword, ask where they are starting from and where they are going.
 5. CALAMBA SCOPE ONLY: Calzada is strictly for Calamba, Laguna. Politely decline questions outside Calamba or off-topic general questions.
 6. NO MARKDOWN LINKS OR URL SCHEMES: Do not write [link](url) or http:// or https://. Write plain text URLs like calzadaph.com/planner and email like thecalzada@gmail.com.
-
+${conversation}
 DATA & INSTRUCTION FOR THIS QUERY:
-${context.instruction}
+${instruction}
 
 OUTPUT FORMAT:
 Respond with exactly ONE valid JSON object:
@@ -1008,6 +1026,7 @@ Do not wrap in markdown codeblocks. Do not include any other text outside the JS
 module.exports = {
     resolveRoutieContext,
     buildRoutieSystemPrompt,
+    cleanUserMessage,
     checkScope,
     checkAmbiguity,
     findPlaceByName,

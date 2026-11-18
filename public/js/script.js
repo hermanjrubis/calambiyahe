@@ -820,7 +820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Say so once (not again if the last message is already this notice)
         const notice = window.t('js.session_ended');
         const lastText = chatMessages && chatMessages.lastElementChild ? chatMessages.lastElementChild.textContent || '' : '';
-        if (!lastText.includes(notice)) addMessage(notice, false, true, false);
+        if (!lastText.includes(notice)) addMessage(notice, false, true, false, 'system');
         closeChat();
     }
 
@@ -902,13 +902,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Chat History Persistence & Typing Effect State
     let chatHistory = JSON.parse(sessionStorage.getItem('calzadaChatHistory')) || [];
+    const ROUTIE_HISTORY_TURNS = 6; // messages sent with each question: the last 3 questions and 3 replies
+
+    // What Routie returns with each reply (last trip as place names, type of the last reply), sent back next time
+    function readRoutieContext() {
+        try {
+            const raw = sessionStorage.getItem('calzadaChatContext');
+            return raw ? JSON.parse(raw) : null;
+        } catch (_) { return null; }
+    }
+    function saveRoutieContext(ctx) {
+        try { sessionStorage.setItem('calzadaChatContext', JSON.stringify(ctx)); } catch (_) { /* storage full or blocked */ }
+    }
     let currentTypingState = null;
 
     // Interrupt typing effect: instantly jump to full content and stop cursor
     function interruptTyping() {
         if (!currentTypingState) return;
 
-        const { timerId, fullText, textNode, msgDiv, cursorSpan, save } = currentTypingState;
+        const { timerId, fullText, textNode, msgDiv, cursorSpan, save, kind } = currentTypingState;
         if (timerId) clearTimeout(timerId);
 
         if (textNode) {
@@ -921,10 +933,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cursorSpan.parentNode.removeChild(cursorSpan);
         }
 
-        if (save) {
-            chatHistory.push({ text: fullText, isUser: false });
-            sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
-        }
+        if (save) saveChatMessage(fullText, false, kind);
 
         currentTypingState = null;
 
@@ -933,7 +942,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addMessage(text, isUser = false, save = true, animate = true) {
+    // kind 'system': notices and error messages. They show in the chat but are not sent to Routie as conversation.
+    function saveChatMessage(text, isUser, kind) {
+        const item = { text, isUser };
+        if (kind) item.kind = kind;
+        chatHistory.push(item);
+        sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
+    }
+
+    function addMessage(text, isUser = false, save = true, animate = true, kind = null) {
         if (!chatMessages) return;
 
         // Immediately complete any ongoing bot typing when user sends message or history is restored
@@ -942,7 +959,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!isUser && animate) {
-            addBotMessageWithTyping(text, save);
+            addBotMessageWithTyping(text, save, 18, kind);
             return;
         }
 
@@ -963,13 +980,10 @@ document.addEventListener('DOMContentLoaded', () => {
         chatMessages.appendChild(wrapper);
         scrollChatToBottom();
 
-        if (save) {
-            chatHistory.push({ text, isUser });
-            sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
-        }
+        if (save) saveChatMessage(text, isUser, kind);
     }
 
-    function addBotMessageWithTyping(fullText, save = true, speed = 18) {
+    function addBotMessageWithTyping(fullText, save = true, speed = 18, kind = null) {
         if (!chatMessages) return;
 
         // Ensure any previous bot typing is resolved first
@@ -1005,7 +1019,8 @@ document.addEventListener('DOMContentLoaded', () => {
             msgDiv,
             textNode,
             cursorSpan,
-            save
+            save,
+            kind
         };
 
         function typeNextChar() {
@@ -1016,10 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cursorSpan && cursorSpan.parentNode) {
                     cursorSpan.parentNode.removeChild(cursorSpan);
                 }
-                if (save) {
-                    chatHistory.push({ text: fullText, isUser: false });
-                    sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
-                }
+                if (save) saveChatMessage(fullText, false, kind);
                 currentTypingState = null;
                 if (chatMessages) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1054,7 +1066,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!chatMessages) return;
         if (chatHistory.length === 0) return;
         chatMessages.innerHTML = '';
-        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false, false));
+        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false, false, msg.kind || null));
     }
     loadChatHistory();
 
@@ -1090,6 +1102,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!text) return;
 
         interruptTyping();
+        // The conversation so far (before this message), for Routie's memory. Notices and errors are left out.
+        const historyForRoutie = chatHistory
+            .filter(m => m && !m.kind && typeof m.text === 'string' && m.text.trim())
+            .slice(-ROUTIE_HISTORY_TURNS)
+            .map(m => ({ role: m.isUser ? 'user' : 'assistant', text: m.text }));
         addMessage(text, true);
         try {
             if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
@@ -1124,8 +1141,9 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const fullMessageWithContext = `${routeInfo}\n\nUser Message: ${text}`;
         const payload = {
             message: fullMessageWithContext,
-            history: (chatHistory || []).slice(-8),
+            history: historyForRoutie,
             sessionId: chatSessionId,
+            context: readRoutieContext(),
             lang: typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en'
         };
 
@@ -1151,8 +1169,10 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                 botReply = data.reply;
             }
 
+            if (data && data.context) saveRoutieContext(data.context);
             if (botReply) {
-                addMessage(botReply, false);
+                // A fallback ("busy", "took too long") comes with data.error: shown, but not kept as conversation
+                addMessage(botReply, false, true, true, data.error ? 'system' : null);
                 try {
                     if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
                         window.CalzadaActivity.addChatMessage('routie', botReply);
@@ -1162,16 +1182,16 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                 if (isDev) console.error("API Error:", data);
                 let errMsg = window.t('js.error_system');
                 if (data.error && data.error.message) { errMsg = `API Error: ${data.error.message}`; }
-                addMessage(errMsg, false);
+                addMessage(errMsg, false, true, true, 'system');
             }
         } catch (error) {
             clearTimeout(timeoutId);
             if (isDev) console.error("API Network Exception:", error);
             removeTyping();
             if (error.name === 'AbortError') {
-                addMessage(window.t('js.server_wakeup'), false);
+                addMessage(window.t('js.server_wakeup'), false, true, true, 'system');
             } else {
-                addMessage(window.t('js.error_connection'), false);
+                addMessage(window.t('js.error_connection'), false, true, true, 'system');
             }
         }
     }

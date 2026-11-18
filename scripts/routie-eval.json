@@ -174,5 +174,57 @@
     { "id": "s05", "tags": ["smalltalk"], "q": "hello", "expect": { "type": "greeting", "lang": "en" } },
     { "id": "s06", "tags": ["smalltalk", "lang"], "q": "magandang umaga po", "expect": { "type": "greeting", "lang": "tl" } },
     { "id": "s07", "tags": ["smalltalk", "lang"], "q": "salamat po", "expect": { "type": "acknowledgement", "lang": "tl" } }
+  ],
+  "conversations_about": "Multi-turn chats for scripts/test-routie-chat.mjs. Each turn goes through server/routie-chat.js with a stand-in model and the replies so far as history, once with the session cache and once as a cold start (context only). rewrite = what the stand-in returns for the follow-up rewrite (null = an unreadable reply; left out = the message unchanged). expect: contains / notContains (reply text), llm (the answer model was called), rewrite (the rewrite call was made), historySeen (history messages the answer model got), promptContains (text in its system prompt), contextBoard / contextOrigin / contextDest (the context returned).",
+  "conversations": [
+    { "id": "m01", "about": "The screenshot: route with two terminals, then 'oh, really?'", "lang": "en", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": { "llm": false, "contains": ["SM City Calamba Transport Terminal", "Crossing Grand Terminal"] } },
+      { "q": "oh, really?", "expect": { "llm": false, "rewrite": false, "contains": ["Yes, based on Calzada", "SM City Calamba Transport Terminal", "Crossing Grand Terminal", "₱14.00"], "notContains": ["not sure", "don't have"] } }
+    ] },
+    { "id": "m02", "about": "Pick another terminal, then ask the time", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": { "contextBoard": "sm-transport-terminal" } },
+      { "q": "eh kung sa Crossing?", "expect": { "llm": false, "rewrite": false, "contains": ["Kung sa Crossing Grand Terminal ka sasakay"], "contextBoard": "crossing-grand-terminal" } },
+      { "q": "ilang minuto?", "expect": { "llm": false, "contains": ["minuto", "sasakay sa Crossing Grand Terminal"] } }
+    ] },
+    { "id": "m03", "about": "Same origin, new destination, through the rewrite", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "eh papuntang Jollibee Real?", "rewrite": "Paano pumunta mula SM City Calamba papuntang Jollibee Real?", "expect": { "rewrite": true, "llm": false, "contains": ["Mula SM City Calamba papuntang Jollibee"], "contextDest": "Jollibee" } }
+    ] },
+    { "id": "m04", "about": "Going back", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "pabalik?", "expect": { "llm": false, "contextOrigin": "Chicken Joo", "contextDest": "SM City Calamba" } }
+    ] },
+    { "id": "m05", "about": "Student fare of the last trip", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "magkano kung student?", "expect": { "llm": false, "contains": ["₱11.25"] } }
+    ] },
+    { "id": "m06", "about": "A full new trip question is not rewritten", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "Crossing papuntang Jollibee Real", "expect": { "rewrite": false, "llm": false, "contextDest": "Jollibee" } }
+    ] },
+    { "id": "m07", "about": "Out of scope after a trip", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "eh sa Makati?", "expect": { "rewrite": false, "llm": false, "contains": ["Calamba"] } }
+    ] },
+    { "id": "m08", "about": "'talaga?' after an FAQ goes to the model with the history", "lang": "en", "turns": [
+      { "q": "is Calzada free?", "expect": { "llm": false } },
+      { "q": "talaga?", "expect": { "llm": true, "rewrite": false, "historySeen": 2, "promptContains": ["CONVERSATION", "previous reply"] } }
+    ] },
+    { "id": "m09", "about": "A rewrite that adds a place not in the chat is dropped", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "eh doon?", "rewrite": "Paano pumunta mula SM City Calamba papuntang Jollibee Real?", "expect": { "rewrite": true, "llm": true, "notContains": ["Jollibee"], "contextDest": "Chicken Joo" } }
+    ] },
+    { "id": "m10", "about": "Language switch: Tagalog trip, English follow-up", "lang": "en", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "how long?", "expect": { "llm": false, "contains": ["From SM City Calamba to Chicken Joo", "minutes"] } }
+    ] },
+    { "id": "m11", "about": "The rewrite answers with junk: the original message is used", "lang": "tl", "turns": [
+      { "q": "is Calzada free?", "expect": {} },
+      { "q": "eh yung pamasahe?", "rewrite": null, "expect": { "rewrite": true, "llm": true, "historySeen": 2 } }
+    ] },
+    { "id": "m12", "about": "'bakit?' stays with the model, with the trip in the history", "lang": "tl", "turns": [
+      { "q": "SM papuntang Chicken Joo Halang", "expect": {} },
+      { "q": "bakit?", "rewrite": "Bakit sa SM City Calamba Transport Terminal ang pinakamabilis?", "expect": { "rewrite": true, "llm": true, "historySeen": 2, "promptContains": ["most likely means"] } }
+    ] }
   ]
 }
