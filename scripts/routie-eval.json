@@ -264,6 +264,16 @@
     { "id": "m19", "about": "English: open now", "lang": "en", "now": "2026-11-18T14:14:00Z", "turns": [
       {"q": "what time does Jollibee Real open?", "expect": {"llm": true}},
       {"q": "is it open now?", "expect": {"llm": false, "contains": ["closed right now", "It opens tomorrow at 6:00 AM"]}}
+    ] },
+    { "id": "m20", "about": "A tricycle question that names its own places is not about the last trip", "lang": "tl", "turns": [
+      {"q": "SM papuntang Real", "expect": {}},
+      {"q": "magkano ang tricycle mula SM?", "expect": {"llm": false, "notContains": ["Brgy. Real", "Kung sa"], "contains": ["tricycle"]}},
+      {"q": "SM papuntang Chicken Joo Halang", "expect": {}},
+      {"q": "paano kung mag-tricycle na lang?", "expect": {"llm": false, "contains": ["tricycle mula SM City Calamba papuntang Chicken Joo"]}}
+    ] },
+    { "id": "m21", "about": "Going back boards on the road in front of the start, not 'Sakayan sa Highway'", "lang": "tl", "turns": [
+      {"q": "SM papuntang Chicken Joo Halang", "expect": {}},
+      {"q": "pabalik?", "expect": {"llm": false, "contains": ["kalsada sa tapat ng Chicken Joo"], "notContains": ["Sakayan sa Highway"]}}
     ] }
   ]
 }

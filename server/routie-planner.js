@@ -717,7 +717,10 @@ function plan_route(originInput, destInput, options = {}) {
                 });
             }
         } else if (leg.type === 'jeep') {
-            const boardName = leg.board?.name || (originResolved.name.includes('SM') ? 'SM Transport Terminal' : 'Sakayan sa Highway');
+            // A stop has a name; boarding on the road is described from the place it starts at
+            const road = leg.board?.name ? null : roadside(leg.board && leg.board.pt, originResolved);
+            const boardName = leg.board?.name || road.en;
+            const boardNameTl = leg.board?.name_tl || leg.board?.name || road.tl;
             const alightName = leg.alight?.name || destResolved.name;
             const distM = Math.round(leg.distM || 0);
             const headsign = leg.headsign || '';
@@ -728,12 +731,13 @@ function plan_route(originInput, destInput, options = {}) {
                 step: stepNum++,
                 type: 'jeep',
                 title: `Jeep: ${leg.routeName}`,
-                instruction_tl: signboard ? `Sumakay sa ${boardName} ng jeep na may karatulang "${signboard}" papuntang ${alightName}.` : `Sumakay sa ${boardName} ng jeep na ${leg.routeName} papuntang ${alightName}.`,
+                instruction_tl: signboard ? `Sumakay sa ${boardNameTl} ng jeep na may karatulang "${signboard}" papuntang ${alightName}.` : `Sumakay sa ${boardNameTl} ng jeep na ${leg.routeName} papuntang ${alightName}.`,
                 instruction_en: signboard ? `Board at ${boardName} on the "${signboard}" jeep towards ${alightName}.` : `Board at ${boardName} on the ${leg.routeName} jeep towards ${alightName}.`,
                 routeName: leg.routeName,
                 headsign,
                 signboard,
                 board: boardName,
+                board_tl: boardNameTl,
                 alight: alightName,
                 distanceM: distM,
                 minutes: leg.min,
@@ -760,6 +764,16 @@ function plan_route(originInput, destInput, options = {}) {
         chosenStopId
     };
 }
+
+// Where to wait on the road when a jeep is boarded between stops: "in front of X", or "about N m from X"
+function roadside(pt, from) {
+    const name = (from && from.name) || 'your starting point';
+    const d = Array.isArray(pt) && from && Array.isArray(from.coords) ? Math.round(haversineDistM(pt, from.coords) / 10) * 10 : null;
+    if (d == null || d <= 80) return { en: `the roadside in front of ${name}`, tl: `kalsada sa tapat ng ${name}` };
+    return { en: `the roadside about ${d} m from ${name}`, tl: `kalsada, mga ${d} m mula sa ${name}` };
+}
+// The boarding point of a jeep leg in the reply's language
+const boardOf = (l, isTl) => (isTl ? (l.board_tl || l.board) : l.board);
 
 // ── Format Output Conversationally ─────────────────────────────────────
 function formatRouteReply(planRes, lang = 'tl') {
@@ -812,7 +826,7 @@ function formatRouteReply(planRes, lang = 'tl') {
         }
         if (l.type === 'jeep') {
             return isTl
-                ? `${l.step}. Sumakay sa ${l.board} ng jeep na ${l.routeName}${l.signboard ? ` (signboard: "${l.signboard}")` : ''}, at bumaba sa ${l.alight}. Pamasahe: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), mga ${l.minutes} minuto.`
+                ? `${l.step}. Sumakay sa ${boardOf(l, true)} ng jeep na ${l.routeName}${l.signboard ? ` (signboard: "${l.signboard}")` : ''}, at bumaba sa ${l.alight}. Pamasahe: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), mga ${l.minutes} minuto.`
                 : `${l.step}. Board at ${l.board} on the ${l.routeName} jeep${l.signboard ? ` (signboard: "${l.signboard}")` : ''}, and alight at ${l.alight}. Fare: ₱${l.fare.toFixed(2)} (₱${l.fareDiscounted.toFixed(2)} student/senior/PWD), ~${l.minutes} minutes.`;
         }
         if (l.type === 'tricycle') {
@@ -901,7 +915,7 @@ function tripRecap(trip, isTl) {
             : `The trip from ${o} to ${d} is a walk: about ${s.walkingDistanceM} m, ~${s.totalMinutes} min, no fare.`;
     }
     const jeeps = (trip.legs || []).filter(l => l.type === 'jeep');
-    const board = jeeps[0] ? jeeps[0].board : null;
+    const board = jeeps[0] ? boardOf(jeeps[0], isTl) : null;
     const lines = [isTl
         ? `Mula ${o} papuntang ${d}: ₱${Number(s.totalFare).toFixed(2)} (₱${Number(s.totalFareDiscounted).toFixed(2)} student/senior/PWD), mga ${s.totalMinutes} minuto, ${s.transfers} transfer${board ? `, sasakay sa ${board}` : ''}.`
         : `From ${o} to ${d}: ₱${Number(s.totalFare).toFixed(2)} (₱${Number(s.totalFareDiscounted).toFixed(2)} student/senior/PWD), about ${s.totalMinutes} minutes, ${s.transfers} transfer${s.transfers === 1 ? '' : 's'}${board ? `, boarding at ${board}` : ''}.`];
@@ -1063,7 +1077,7 @@ function tripShortRecap(trip, isTl) {
     const s = trip.summary || {};
     if (trip.isWalkOnly) return tripTimeLine(trip, isTl) + ' ' + tripFareLine(trip, isTl);
     const jeeps = (trip.legs || []).filter(l => l.type === 'jeep');
-    const board = jeeps[0] ? jeeps[0].board : null;
+    const board = jeeps[0] ? boardOf(jeeps[0], isTl) : null;
     const line = isTl
         ? `Mula ${trip.origin.name} papuntang ${trip.destination.name}: ₱${Number(s.totalFare).toFixed(2)}, mga ${s.totalMinutes} minuto${board ? `, sasakay sa ${board}` : ''}.`
         : `From ${trip.origin.name} to ${trip.destination.name}: ₱${Number(s.totalFare).toFixed(2)}, about ${s.totalMinutes} minutes${board ? `, boarding at ${board}` : ''}.`;
@@ -1083,7 +1097,7 @@ function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl', opts = {
     // 0. "eh kung sa Crossing?", "what about from SM Transport Terminal?": the same trip, boarding at another terminal
     // Not when the message is a new trip ("mula SM papuntang Real") or asks why/what about a terminal
     const switchesTerminal = text.split(' ').length <= 12
-        && !/\b(?:bakit|why|ano|what is|whats|where is|saan|nasaan)\b/.test(text)
+        && !/\b(?:bakit|why|ano|what is|whats|where is|saan|nasaan|tricycle|trike|taxi|grab|angkas|motor)\b/.test(text)
         && !/\b(?:papunta|papuntang|going to|hanggang)\b|\bto\b/.test(text)
         && !extractOriginAndDestination(rawMessage);
     if (afterTrip && lastTrip.origin && lastTrip.destination && switchesTerminal) {
@@ -1168,7 +1182,9 @@ The jeepney fare from ${origName} to ${destName} will be ₱${discFare.toFixed(2
 
     // 3. "what if I take a tricycle?", "paano kung mag-tricycle?"
     const isTricycle = /\b(tricycle|trike|mag tricycle|mag-tricycle)\b/i.test(text);
-    if (isTricycle && lastTrip.origin && lastTrip.destination) {
+    // "magkano ang tricycle mula SM?" names its own places: not about the last trip (the FAQ answers it)
+    const namesPlaces = /\b(?:mula|galing|from|papunta|papuntang|hanggang|going to)\b|\bto\s+\w/.test(text);
+    if (isTricycle && afterTrip && !namesPlaces && lastTrip.origin && lastTrip.destination) {
         const origName = lastTrip.origin.name;
         const destName = lastTrip.destination.name;
 
