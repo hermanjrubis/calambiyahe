@@ -193,6 +193,20 @@
     color: #5A6A7F;
 }
 
+/* Each word rises in, slightly blurred, one after another (delay set per word) */
+.rv-word {
+    display: inline-block;
+}
+
+.rv-word.is-new {
+    animation: rvWordIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Routie hops a little when new words arrive */
+.rv-mascot.is-heard img {
+    animation: rvHop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1), rvBob 1.3s ease-in-out 0.45s infinite;
+}
+
 .rv-interim {
     background: linear-gradient(90deg, #378ADD, #5B7CF0);
     -webkit-background-clip: text;
@@ -386,6 +400,8 @@
 @keyframes rvShadow { 0%, 100% { transform: scaleX(1); opacity: 0.9; } 50% { transform: scaleX(0.82); opacity: 0.6; } }
 @keyframes rvWave { from { transform: translateX(0); } to { transform: translateX(-120px); } }
 @keyframes rvBlink { 50% { opacity: 0; } }
+@keyframes rvWordIn { from { opacity: 0; transform: translateY(10px) scale(0.96); filter: blur(6px); } 60% { opacity: 1; filter: blur(0); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes rvHop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-10px) scale(1.08); } 100% { transform: translateY(0) scale(1); } }
 @keyframes rvDot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
 
 @media (max-height: 560px) {
@@ -396,7 +412,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .rv-live, .rv-blob, .rv-mascot img, .rv-mascot-shadow, .rv-wave1, .rv-wave2, .rv-wave3, .rv-cursor,
+    .rv-live, .rv-blob, .rv-mascot img, .rv-mascot.is-heard img, .rv-mascot-shadow, .rv-wave1, .rv-wave2, .rv-wave3, .rv-cursor, .rv-word.is-new,
     .chat-voice-transcribing .rv-dots span {
         animation: none;
     }

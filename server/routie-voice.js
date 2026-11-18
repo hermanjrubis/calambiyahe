@@ -12,14 +12,16 @@
 'use strict';
 
 const MODEL = 'whisper-large-v3';
+// Live words while the commuter is still talking: the faster model, one call, no retry
+const PARTIAL_MODELS = ['whisper-large-v3-turbo', 'whisper-large-v3'];
 const OK_LANGUAGES = new Set(['english', 'tagalog', 'filipino', 'en', 'tl', 'fil']);
 
-// What Routie hears most: kept short (Whisper reads at most ~224 tokens of prompt)
-const VOICE_PROMPT = 'Hi Routie! Calzada, Calamba, Laguna. SM City Calamba, Crossing Grand Terminal, SM City Calamba Transport Terminal, '
-    + 'New Calamba Transport Terminal, Calamba Medical Center, Chicken Joo, Jollibee, Mang Inasal, Andok\'s, Puregold, Mercury Drug, '
-    + 'Barangay Uno, Real, Halang, Crossing, jeep, jeepney, pamasahe, terminal, student, senior. '
-    + 'Magkano ang pamasahe mula SM papuntang Jollibee Real? Saan sasakay papuntang Halang? Bukas pa ba ang SM ngayon? '
-    + 'How do I get to Chicken Joo from Crossing?';
+// What Routie hears most: names and words only. No example sentences: Whisper echoes prompt sentences into short or
+// cut-off audio (a live preview ending in "Saan?" that nobody said). Kept short (Whisper reads ~224 tokens of prompt).
+const VOICE_PROMPT = 'Hi Routie! Calzada, Calamba, Laguna, SM City Calamba, Crossing Grand Terminal, SM City Calamba Transport Terminal, '
+    + 'New Calamba Transport Terminal, Calamba Medical Center, Calamba City Hall, Chicken Joo, Jollibee, Mang Inasal, Andok\'s, '
+    + 'Puregold, Mercury Drug, 7-Eleven, Barangay Uno, Real, Halang, Crossing, jeep, jeepney, pamasahe, papuntang, sasakay, '
+    + 'terminal, student, senior.';
 
 // Stock lines Whisper writes over silence or noise
 const NOT_SPEECH = new Set([
@@ -46,6 +48,30 @@ function speechSegments(segments) {
     });
 }
 
+// Whisper repeats itself at a cut or a pause: "Hello? Hello? What's up? Saan? Saan papuntang …". A word (or a run of
+// up to four words) said twice in a row is kept once: the later copy, which carries on the sentence.
+function collapseRepeats(text) {
+    let words = String(text || '').split(/\s+/).filter(Boolean);
+    for (let n = 4; n >= 1; n--) {
+        const out = [];
+        for (let i = 0; i < words.length; i++) {
+            const a = words.slice(i, i + n), b = words.slice(i + n, i + 2 * n);
+            const same = b.length === n && norm(a.join(' ')) === norm(b.join(' ')) && norm(a.join(' ')).length >= 2;
+            // one short word twice ("po po", "ano ano") can be real speech; drop it only when Whisper split it off
+            const short = n === 1 && norm(a[0]).length < 3 && !/[?!.,]$/.test(a[0]);
+            if (same && !short) {
+                // keep the later copy (with the capital the sentence started with)
+                if (/^[A-Z]/.test(a[0]) && b[0]) words[i + n] = b[0].charAt(0).toUpperCase() + b[0].slice(1);
+                i += n - 1;
+                continue;
+            }
+            out.push(words[i]);
+        }
+        words = out;
+    }
+    return words.join(' ');
+}
+
 // The text Whisper heard, without what is probably not speech ('' = nothing was said)
 function cleanTranscript(result) {
     if (!result) return '';
@@ -59,7 +85,7 @@ function cleanTranscript(result) {
         if (doubtful) return '';
     }
     // Whisper sometimes wraps the whole line in quotes or ends with "..."
-    return text.replace(/^["“]+|["”]+$/g, '').replace(/\s*\.{3,}$/, '').trim();
+    return collapseRepeats(text.replace(/^["“]+|["”]+$/g, '').replace(/\s*\.{3,}$/, '').trim());
 }
 
 // ── Place-name corrections ───────────────────────────────────────────────────────────────────
@@ -169,10 +195,10 @@ function correctPlaceNames(text, lexicon) {
 }
 
 // ── Transcribe ───────────────────────────────────────────────────────────────────────────────
-async function whisper(client, buffer, mime, ext, language) {
+async function whisper(client, buffer, mime, ext, language, model = MODEL) {
     const { toFile } = require('groq-sdk'); // loaded here so the text helpers work (and test) without it
     const file = await toFile(buffer, `voice_${Date.now()}.${ext}`, { type: mime });
-    const opts = { file, model: MODEL, prompt: VOICE_PROMPT, temperature: 0, response_format: 'verbose_json' };
+    const opts = { file, model, prompt: VOICE_PROMPT, temperature: 0, response_format: 'verbose_json' };
     if (language) opts.language = language;
     return client.audio.transcriptions.create(opts);
 }
@@ -196,4 +222,21 @@ async function transcribeVoice(client, { buffer, mime = 'audio/webm', ext = 'web
     return { text: fixed.text, raw, corrections: fixed.corrections, language: retried ? 'tagalog' : lang || null, retried };
 }
 
-module.exports = { transcribeVoice, cleanTranscript, correctPlaceNames, buildLexicon, soundKey, VOICE_PROMPT, NOT_SPEECH };
+// The words so far, while recording (the audio from the start of the recording up to now). Shown live only:
+// the transcript the commuter gets is always transcribeVoice() on the whole recording. → { text }
+async function transcribeVoicePartial(client, { buffer, mime = 'audio/webm', ext = 'webm', places = [], lexicon = null }) {
+    let lastErr = null;
+    for (const model of PARTIAL_MODELS) {
+        try {
+            const result = await whisper(client, buffer, mime, ext, null, model);
+            const raw = cleanTranscript(result);
+            return { text: raw ? correctPlaceNames(raw, lexicon || buildLexicon(places)).text : '' };
+        } catch (err) {
+            lastErr = err;
+            if (err.status !== 404 && err.status !== 400) throw err; // a missing model: try the next one
+        }
+    }
+    throw lastErr;
+}
+
+module.exports = { transcribeVoice, transcribeVoicePartial, cleanTranscript, collapseRepeats, correctPlaceNames, buildLexicon, soundKey, VOICE_PROMPT, NOT_SPEECH };

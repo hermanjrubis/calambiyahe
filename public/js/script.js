@@ -1283,15 +1283,18 @@ Distance: ${ctx.totalDistance || 'unknown'} km
     // Mic → a sheet over the chat: Routie, what is heard so far (where the browser can show it), a wave that follows
     // the voice, Stop / Cancel / Type instead. Stop → "Isinusulat ang sinabi mo…" in the input box → the transcript
     // in the input box to check and edit before sending. Place names the server corrected are listed under it with
-    // an Undo. The transcript itself always comes from the server (Whisper), never from the browser's live caption.
+    // an Undo. Saying it again replaces what the last recording wrote (unless it was edited). The words shown while
+    // talking come from our server too (a quick transcript of the audio so far, every ~2 seconds), so they work in
+    // every browser and on phones; the transcript put in the input box is always one full pass on the whole recording.
     const micBtn = document.getElementById('micBtn');
     let voiceErrorEl = document.getElementById('chatVoiceError');
 
     const VOICE_MAX_SECONDS = 60;
-    // Live words while speaking use the browser's speech recognition (Chrome/Edge on a computer). It sends the audio to
-    // the browser maker's service, so it is a separate switch; phones never use it (it can take the microphone away
-    // from the recording). Set to false to show only "Magsalita ka na…" while listening.
+    // Live words while speaking (quick transcripts from our server). Set to false to show only "Magsalita ka na…".
     const VOICE_LIVE_CAPTION = true;
+    const LIVE_FIRST_MS = 1400;   // first live words after this long
+    const LIVE_EVERY_MS = 2000;   // then this long after each answer (one request at a time)
+    const LIVE_MIN_BYTES = 5000;  // not before there is about half a second of sound
 
     let mediaRecorder = null;
     let audioStream = null;
@@ -1304,9 +1307,12 @@ Distance: ${ctx.totalDistance || 'unknown'} km
     let isListening = false;
     let isTranscribing = false;
     let voiceToastTimeout = null;
-    let liveRecognizer = null;
-    let liveFinal = '';
-    let liveInterim = '';
+    let liveText = '';            // the words heard so far (live caption)
+    let liveTimer = null;
+    let liveController = null;
+    let liveSeq = 0;
+    let liveOff = true;
+    let lastVoicePut = null;      // { before, after }: the input box before and after the last transcript
     let lastVoiceFix = null; // { corrections, raw } of the last transcript, for Undo
 
     const vt = (key, fallback, params) => {
@@ -1493,7 +1499,8 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const chatWin = getChatWindow();
         const sheet = chatWin && chatWin.querySelector('.rv-sheet');
         if (!sheet) return;
-        liveFinal = ''; liveInterim = '';
+        liveText = '';
+        shownWords = [];
         renderCaption();
         updateTimer();
         sheet.hidden = false;
@@ -1514,15 +1521,17 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         sheet.hidden = true;
     }
 
-    // What has been heard so far: settled words dark, the word still being heard in blue
+    // What has been heard so far. Words already on screen stay still; new (or changed) words rise in one after another,
+    // the newest in blue, and Routie gives a little hop each time new words arrive.
+    let shownWords = [];
     function renderCaption() {
         const cap = document.getElementById('rvCaption');
         const hints = document.getElementById('rvHints');
         if (!cap) return;
-        const finalText = liveFinal.trim();
-        const interim = liveInterim.trim();
+        const words = liveText.trim().split(/\s+/).filter(Boolean);
         cap.textContent = '';
-        if (!finalText && !interim) {
+        if (!words.length) {
+            shownWords = [];
             cap.classList.add('is-empty');
             cap.textContent = vt('chat.voice_speak_now', 'Go ahead, I\'m listening…');
             if (hints) hints.hidden = false;
@@ -1530,17 +1539,34 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         }
         cap.classList.remove('is-empty');
         if (hints) hints.hidden = true;
-        if (finalText) cap.appendChild(document.createTextNode(finalText + (interim ? ' ' : '')));
-        if (interim) {
+        // How many words at the start are the same as what is already shown
+        let same = 0;
+        while (same < words.length && same < shownWords.length && words[same] === shownWords[same]) same++;
+        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        words.forEach((w, i) => {
             const span = document.createElement('span');
-            span.className = 'rv-interim';
-            span.textContent = interim;
+            span.className = 'rv-word' + (i === words.length - 1 ? ' rv-interim' : '');
+            span.textContent = w;
+            if (i >= same && !reduce) {
+                span.classList.add('is-new');
+                span.style.animationDelay = `${Math.min(i - same, 8) * 70}ms`;
+            }
             cap.appendChild(span);
-        }
+            if (i < words.length - 1) cap.appendChild(document.createTextNode(' '));
+        });
         const cursor = document.createElement('span');
         cursor.className = 'rv-cursor';
         cursor.setAttribute('aria-hidden', 'true');
         cap.appendChild(cursor);
+        if (same < words.length && shownWords.length && !reduce) {
+            const mascot = document.querySelector('#chatWindow .rv-mascot');
+            if (mascot) {
+                mascot.classList.remove('is-heard');
+                void mascot.offsetWidth; // restart the hop
+                mascot.classList.add('is-heard');
+            }
+        }
+        shownWords = words;
     }
 
     function updateTimer() {
@@ -1551,54 +1577,52 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         el.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
     }
 
-    // ── Live caption (computer browsers that have speech recognition) ───────────────────────
-    function liveCaptionAvailable() {
-        if (!VOICE_LIVE_CAPTION) return false;
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) return false;
-        const phone = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
-        const finePointer = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : false;
-        return !phone && finePointer;
+    // ── Live caption: a quick transcript of the audio so far, every ~2 seconds ──────────────
+    function startLiveCaption() {
+        if (!VOICE_LIVE_CAPTION) return;
+        liveOff = false;
+        liveTimer = setTimeout(liveTick, LIVE_FIRST_MS);
     }
 
-    function startLiveCaption() {
-        if (!liveCaptionAvailable()) return;
+    async function liveTick() {
+        liveTimer = null;
+        if (!isListening || liveOff || !mediaRecorder) return;
+        const chunks = [...audioChunks];
+        const bytes = chunks.reduce((n, c) => n + (c ? c.size : 0), 0);
+        if (bytes < LIVE_MIN_BYTES) { liveTimer = setTimeout(liveTick, 700); return; }
+        const seq = ++liveSeq;
+        const mime = mediaRecorder.mimeType || 'audio/webm';
+        const ext = mime.includes('mp4') ? 'mp4' : (mime.includes('ogg') ? 'ogg' : 'webm');
+        const form = new FormData();
+        form.append('audio', new Blob(chunks, { type: mime }), `live.${ext}`);
+        form.append('partial', '1');
+        form.append('lang', typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en');
+        const controller = new AbortController();
+        liveController = controller;
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
         try {
-            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-            const rec = new SR();
-            const lang = typeof window.getCurrentLang === 'function' ? window.getCurrentLang() : 'en';
-            rec.lang = lang === 'tl' ? 'fil-PH' : 'en-PH';
-            rec.interimResults = true;
-            rec.continuous = true;
-            rec.onresult = (event) => {
-                if (!isListening) return;
-                let finalText = '', interim = '';
-                for (let i = 0; i < event.results.length; i++) {
-                    const r = event.results[i];
-                    if (r.isFinal) finalText += r[0].transcript + ' ';
-                    else interim += r[0].transcript;
-                }
-                liveFinal = finalText;
-                liveInterim = interim;
+            const res = await fetch(`${CHAT_API}/api/voice/transcribe`, { method: 'POST', body: form, signal: controller.signal });
+            // Busy or not set up: stop asking for live words this time (the final transcript still comes)
+            if (res.status === 429 || res.status === 503) { liveOff = true; return; }
+            const data = await res.json().catch(() => ({}));
+            if (isListening && seq === liveSeq && res.ok && typeof data.text === 'string' && data.text.trim()) {
+                liveText = data.text.trim();
                 renderCaption();
-            };
-            // Not allowed, no network (Brave), not supported: carry on without live words
-            rec.onerror = () => { stopLiveCaption(); };
-            rec.onend = () => { if (liveRecognizer === rec) liveRecognizer = null; };
-            rec.start();
-            liveRecognizer = rec;
+            }
         } catch (_) {
-            liveRecognizer = null;
+            // A slow or failed live update is skipped; the next one carries all the audio again
+        } finally {
+            clearTimeout(timeoutId);
+            if (liveController === controller) liveController = null;
+            if (isListening && !liveOff) liveTimer = setTimeout(liveTick, LIVE_EVERY_MS);
         }
     }
 
     function stopLiveCaption() {
-        const rec = liveRecognizer;
-        liveRecognizer = null;
-        if (rec) {
-            rec.onresult = null; rec.onerror = null;
-            try { rec.abort(); } catch (_) { }
-        }
+        liveOff = true;
+        liveSeq++;
+        if (liveTimer) { clearTimeout(liveTimer); liveTimer = null; }
+        if (liveController) { try { liveController.abort(); } catch (_) { } liveController = null; }
     }
 
     // ── Wave that follows the voice ─────────────────────────────────────────────────────────
@@ -1735,7 +1759,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         if (!isListening || !mediaRecorder) return;
         isListening = false;
         const totalDuration = recordingSeconds;
-        const liveText = `${liveFinal} ${liveInterim}`.replace(/\s+/g, ' ').trim();
+        const heardLive = liveText.replace(/\s+/g, ' ').trim();
         const rec = mediaRecorder;
         if (visualizerAnimId) { cancelAnimationFrame(visualizerAnimId); visualizerAnimId = null; }
         stopLiveCaption();
@@ -1773,8 +1797,8 @@ Distance: ${ctx.totalDistance || 'unknown'} km
 
             if (!res.ok) {
                 if (res.status === 429) { showVoiceError('chat.voice_err_busy', 'Voice is busy right now. Please try again in a minute.'); return; }
-                // The server could not write it down, but the browser heard it: use that rather than lose it
-                if (liveText) { putInInput(liveText, null); return; }
+                // The full pass failed, but the live words got through: use them rather than lose what was said
+                if (heardLive) { putInInput(heardLive, null); return; }
                 throw new Error(data.message || 'Transcription failed.');
             }
 
@@ -1797,8 +1821,12 @@ Distance: ${ctx.totalDistance || 'unknown'} km
     // ── Transcript into the input box, with the corrections note ────────────────────────────
     function putInInput(text, fix) {
         if (!chatInput) return;
-        const existing = chatInput.value.trim();
-        chatInput.value = existing ? `${existing} ${text}` : text;
+        // Saying it again replaces what the last recording wrote, unless the user has changed the box since;
+        // anything typed before the recording stays in front
+        const current = chatInput.value;
+        const base = lastVoicePut && current === lastVoicePut.after ? lastVoicePut.before : current.trim();
+        chatInput.value = base ? `${base} ${text}` : text;
+        lastVoicePut = { before: base, after: chatInput.value };
         updateChatInputHeight();
         updateSendButtonState();
         chatInput.focus({ preventScroll: true });
@@ -1830,6 +1858,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             if (i !== -1) value = value.slice(0, i) + c.from + value.slice(i + c.to.length);
         }
         chatInput.value = value;
+        if (lastVoicePut) lastVoicePut.after = value; // still the last recording's words, now as heard
         updateChatInputHeight();
         updateSendButtonState();
         hideFixNote();

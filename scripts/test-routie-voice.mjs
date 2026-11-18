@@ -41,6 +41,21 @@ check('speech: without segments the text is used',
 check('speech: wrapping quotes and trailing dots are removed',
     voice.cleanTranscript({ text: '"Bukas pa ba ang SM ngayon..."' }) === 'Bukas pa ba ang SM ngayon');
 
+// ── Whisper repeating itself ───────────────────────────────────────────────────────────────
+for (const [heard, want] of [
+    ["Hello? Hello? What's up? Saan? Saan papuntang Calamba City Hall?", "Hello? What's up? Saan papuntang Calamba City Hall?"],
+    ['Saan papuntang Halang papuntang Halang?', 'Saan papuntang Halang?'],
+    ['Magkano magkano ang pamasahe', 'Magkano ang pamasahe'],
+    ['How do I get, how do I get to SM?', 'How do I get to SM?'],
+    ['salamat po po', 'salamat po po'],
+    ['SM papuntang Real', 'SM papuntang Real']
+]) {
+    const got = voice.collapseRepeats(heard);
+    check(`repeat: "${heard}"`, got === want, `got "${got}"`);
+}
+check('repeat: applied to transcripts', voice.cleanTranscript({ segments: [seg(' Hello? Hello? Saan papuntang Real?')] }) === 'Hello? Saan papuntang Real?');
+check('prompt: names only, no example questions to echo', !/\?/.test(voice.VOICE_PROMPT), voice.VOICE_PROMPT);
+
 // ── Place names: fixed when misheard ────────────────────────────────────────────────────────
 const fixes = [
     ['SM papuntang chicken jo Halang', 'SM papuntang Chicken Joo Halang', ['chicken jo → Chicken Joo']],
@@ -138,6 +153,37 @@ const buffer = Buffer.from('fake-audio');
     check('request: Calzada vocabulary, verbose JSON, temperature 0', /Chicken Joo/.test(p.prompt) && /Crossing Grand Terminal/.test(p.prompt)
         && /pamasahe/.test(p.prompt) && p.format === 'verbose_json' && p.temperature === 0);
     check('request: prompt stays short for Whisper', voice.VOICE_PROMPT.length < 700, `${voice.VOICE_PROMPT.length} chars`);
+}
+
+// ── Live words (partial): fast model, one call, names fixed ────────────────────────────────
+{
+    const c = fakeClient([{ text: 'SM papuntang chicken jo', language: 'tagalog', segments: [seg('SM papuntang chicken jo')] }]);
+    const models = [];
+    const orig = c.audio.transcriptions.create;
+    c.audio.transcriptions.create = async (opts) => { models.push(opts.model); return orig(opts); };
+    const r = await voice.transcribeVoicePartial(c, { buffer, lexicon });
+    check('live: one call on the fast model, names fixed', models.length === 1 && models[0] === 'whisper-large-v3-turbo' && r.text === 'SM papuntang Chicken Joo', JSON.stringify({ models, r }));
+}
+{
+    const missing = Object.assign(new Error('model not found'), { status: 404 });
+    const c = fakeClient([missing, { text: 'Magkano', language: 'tagalog', segments: [seg('Magkano')] }]);
+    const models = [];
+    const orig = c.audio.transcriptions.create;
+    c.audio.transcriptions.create = async (opts) => { models.push(opts.model); return orig(opts); };
+    const r = await voice.transcribeVoicePartial(c, { buffer, lexicon });
+    check('live: falls back when the fast model is missing', models.join(',') === 'whisper-large-v3-turbo,whisper-large-v3' && r.text === 'Magkano', JSON.stringify({ models, r }));
+}
+{
+    const busy = Object.assign(new Error('rate limited'), { status: 429 });
+    const c = fakeClient([busy]);
+    let threw = null;
+    try { await voice.transcribeVoicePartial(c, { buffer, lexicon }); } catch (err) { threw = err.status; }
+    check('live: busy is passed on (the widget stops asking)', threw === 429 && c.calls.length === 1);
+}
+{
+    const c = fakeClient([{ text: ' Thank you.', language: 'english', segments: [seg(' Thank you.', { no_speech_prob: 0.9, avg_logprob: -0.8 })] }]);
+    const r = await voice.transcribeVoicePartial(c, { buffer, lexicon });
+    check('live: silence shows no words', r.text === '');
 }
 
 console.log(`\nChecks: ${checks - failures}/${checks} pass`);

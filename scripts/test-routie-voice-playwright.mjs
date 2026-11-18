@@ -6,10 +6,11 @@
  *   node scripts/test-routie-voice-playwright.mjs
  *
  * Env: BASE (default http://localhost:5000), CHROMIUM_PATH (a Chrome/Chromium binary), SHOTS=dir (save screenshots).
- * The transcription and chat APIs are stubbed in the page, so no AI key is needed. A stand-in speech recognizer
- * plays live words on desktop. Checks the sheet, live caption, timer, wave level, writing-it-down, the transcript
- * with its corrections note and Undo, Cancel / Escape / Type instead / hints, closing Routie while listening, errors,
- * Tagalog texts, the phone layout (no live caption) and the planner page. Exit code 1 when a check fails.
+ * The transcription and chat APIs are stubbed in the page, so no AI key is needed: live (partial) requests answer
+ * with more words each time, the full pass with the corrected sentence. Checks the sheet, live words on desktop and
+ * phone, timer, wave level, writing-it-down, the transcript with its corrections note and Undo, a second recording
+ * replacing the first, Cancel / Escape / Type instead / hints, closing Routie while listening, errors, Tagalog texts,
+ * the phone layout and the planner page. Exit code 1 when a check fails.
  */
 import fs from 'fs';
 import path from 'path';
@@ -27,44 +28,42 @@ const browser = await chromium.launch({
     args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream', '--autoplay-policy=no-user-gesture-required', '--no-sandbox']
 });
 
-// Stand-in speech recognizer: says "SM papuntang chicken" (heard so far), then "jo Halang"
-const FAKE_SR = `
+// Keeps the microphone stream so the test can see it released; no browser speech recognition anywhere
+const INIT = `
 (() => {
-  window.__srStarted = 0;
   window.__lastStream = null;
+  window.__srStarted = 0;
   const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
   navigator.mediaDevices.getUserMedia = async (c) => { const s = await gum(c); window.__lastStream = s; return s; };
-  class FakeSR {
-    constructor() { this.onresult = null; this.onerror = null; this.onend = null; this._t = []; }
-    start() {
-      window.__srStarted++;
-      const r = (parts) => { const res = parts.map(([t, f]) => Object.assign([{ transcript: t }], { isFinal: f })); return { results: res }; };
-      this._t.push(setTimeout(() => this.onresult && this.onresult(r([['SM papuntang chicken', false]])), 400));
-      this._t.push(setTimeout(() => this.onresult && this.onresult(r([['SM papuntang chicken', true], ['jo Halang', false]])), 900));
-    }
-    abort() { this._t.forEach(clearTimeout); if (this.onend) this.onend(); }
-    stop() { this.abort(); }
-  }
-  window.SpeechRecognition = FakeSR;
-  window.webkitSpeechRecognition = FakeSR;
+  class NoSR { constructor() { window.__srStarted++; } start() {} abort() {} stop() {} }
+  window.SpeechRecognition = NoSR; window.webkitSpeechRecognition = NoSR;
 })();`;
+const LIVE = ['SM papuntang', 'SM papuntang chicken jo', 'SM papuntang Chicken Joo Halang'];
 
-async function setupPage({ mobile = false, lang = 'en', transcribe = null, pagePath = '/' } = {}) {
+async function setupPage({ mobile = false, lang = 'en', transcribe = null, partial = null, pagePath = '/' } = {}) {
     const context = await browser.newContext(mobile
         ? { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2,
             userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' }
         : { viewport: { width: 1280, height: 800 } });
     await context.grantPermissions(['microphone'], { origin: BASE });
-    await context.addInitScript(FAKE_SR);
+    await context.addInitScript(INIT);
     await context.addInitScript((l) => { try { localStorage.setItem('calzada_lang', l); } catch (_) { } }, lang);
     const page = await context.newPage();
-    const state = { uploads: [], chat: 0 };
+    const state = { uploads: [], partials: 0, chat: 0, finals: [] };
     await page.route(/(tiles|openfreemap|cartocdn|basemaps|arcgis|nominatim|googleapis\.com\/maps|firebase|gstatic)/, r => r.abort());
     await page.route('**/api/voice/transcribe', async (route) => {
         const body = route.request().postDataBuffer() || Buffer.alloc(0);
+        if (/name="partial"\r\n\r\n1/.test(body.toString('latin1'))) {
+            const n = state.partials++;
+            await new Promise(r => setTimeout(r, 150));
+            const p = partial || { status: 200, body: { success: true, partial: true, text: LIVE[Math.min(n, LIVE.length - 1)] } };
+            return route.fulfill({ status: p.status, contentType: 'application/json', body: JSON.stringify(p.body) });
+        }
         state.uploads.push({ bytes: body.length, hasAudio: /name="audio"/.test(body.toString('latin1')), lang: (body.toString('latin1').match(/name="lang"\r\n\r\n([a-z]+)/) || [])[1] });
         await new Promise(r => setTimeout(r, 700));
-        const t = transcribe || { status: 200, body: { success: true, text: 'SM papuntang Chicken Joo Halang', raw: 'SM papuntang chicken jo Halang', corrections: [{ from: 'chicken jo', to: 'Chicken Joo' }] } };
+        const list = Array.isArray(transcribe) ? transcribe : [transcribe];
+        const t = list[Math.min(state.uploads.length - 1, list.length - 1)]
+            || { status: 200, body: { success: true, text: 'SM papuntang Chicken Joo Halang', raw: 'SM papuntang chicken jo Halang', corrections: [{ from: 'chicken jo', to: 'Chicken Joo' }] } };
         await route.fulfill({ status: t.status, contentType: 'application/json', body: JSON.stringify(t.body) });
     });
     await page.route('**/api/chat', async (route) => { state.chat++; await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ reply: 'Kabuuan: ₱14.00', context: null }) }); });
@@ -99,18 +98,22 @@ const shot = async (page, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursiv
     check('desktop: focus on Stop, mic pressed', first.focus === 'rvStopBtn' && first.pressed === 'true', JSON.stringify(first));
     check('desktop: every button has a label', first.labels.every(Boolean) && first.labels[1] === 'Stop and write what I said', JSON.stringify(first.labels));
     await shot(page, 'desktop-listening-empty');
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(3900);
     const live = await page.evaluate(() => ({
         caption: document.getElementById('rvCaption').textContent,
         interim: (document.querySelector('#rvCaption .rv-interim') || {}).textContent,
         hints: document.getElementById('rvHints').hidden,
         timer: document.getElementById('rvTimer').textContent,
         amp: getComputedStyle(document.getElementById('rvWaves')).getPropertyValue('--rv-amp').trim(),
-        sr: window.__srStarted
+        sr: window.__srStarted,
+        words: [...document.querySelectorAll('#rvCaption .rv-word')].map(w => w.textContent + (w.classList.contains('is-new') ? '*' : '')),
+        hop: document.querySelector('#chatWindow .rv-mascot').classList.contains('is-heard')
     }));
-    check('desktop: live words appear, word in progress marked', live.caption === 'SM papuntang chicken jo Halang' && live.interim === 'jo Halang', JSON.stringify(live));
+    check('desktop: live words appear from the server, newest word marked', live.caption === 'SM papuntang chicken jo' && live.interim === 'jo' && state.partials >= 2, JSON.stringify({ ...live, partials: state.partials }));
+    check('desktop: browser speech recognition not used', live.sr === 0);
+    check('desktop: only the new words animate in, Routie hops', JSON.stringify(live.words) === JSON.stringify(['SM', 'papuntang', 'chicken*', 'jo*']) && live.hop, JSON.stringify(live));
     check('desktop: hints hide once words come', live.hints === true);
-    check('desktop: timer runs', live.timer === '0:01' || live.timer === '0:02', live.timer);
+    check('desktop: timer runs', live.timer === '0:03' || live.timer === '0:04', live.timer);
     check('desktop: wave follows the mic level', live.amp !== '' && Number(live.amp) >= 0.3, `--rv-amp=${live.amp}`);
     await shot(page, 'desktop-listening-words');
     await page.click('#rvStopBtn');
@@ -135,6 +138,9 @@ const shot = async (page, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursiv
     check('desktop: transcript in the input box', done.value === 'SM papuntang Chicken Joo Halang' && !done.cls, JSON.stringify(done));
     check('desktop: corrections note with Undo', done.note && done.noteText === 'Fixed: "chicken jo" → Chicken Joo.' && done.undo === 'Undo', JSON.stringify(done));
     check('desktop: microphone released after Stop', done.tracks.length > 0 && done.tracks.every(s => s === 'ended'), JSON.stringify(done.tracks));
+    const partialsAtStop = state.partials;
+    await page.waitForTimeout(2500);
+    check('desktop: no more live requests after Stop', state.partials === partialsAtStop, `${partialsAtStop} → ${state.partials}`);
     check('desktop: audio uploaded with the language', state.uploads.length === 1 && state.uploads[0].hasAudio && state.uploads[0].bytes > 1000 && state.uploads[0].lang === 'en', JSON.stringify(state.uploads));
     await shot(page, 'desktop-ready');
     await page.click('#chatWindow .rv-undo');
@@ -182,6 +188,30 @@ const shot = async (page, name) => { if (SHOTS) { fs.mkdirSync(SHOTS, { recursiv
     await context.close();
 }
 
+// ── Saying it again ──────────────────────────────────────────────────────────────────────────
+{
+    const said = (text) => ({ status: 200, body: { success: true, text, raw: text, corrections: [] } });
+    const { context, page } = await setupPage({ transcribe: [said('Saan sasakay papuntang Halang'), said('Magkano papuntang Halang'), said('ilang minuto'), said('salamat')] });
+    const record = async () => { await page.click('#micBtn'); await page.waitForTimeout(1200); await page.click('#rvStopBtn'); await page.waitForTimeout(1300); };
+    const value = () => page.evaluate(() => document.getElementById('chatInput').value);
+    await record();
+    const a = await value();
+    await record();
+    const b = await value();
+    check('again: a new recording replaces the last one', a === 'Saan sasakay papuntang Halang' && b === 'Magkano papuntang Halang', JSON.stringify({ a, b }));
+    await page.click('#chatInput');
+    await page.keyboard.press('End');
+    await page.keyboard.type(' po');
+    await record();
+    const c = await value();
+    check('again: after the user edits, a new recording is added after it', c === 'Magkano papuntang Halang po ilang minuto', c);
+    await page.fill('#chatInput', 'Hi Routie');
+    await record();
+    const d = await value();
+    check('again: typed text stays in front of the recording', d === 'Hi Routie salamat', d);
+    await context.close();
+}
+
 // ── Errors ───────────────────────────────────────────────────────────────────────────────────
 for (const [name, t, want] of [
     ['busy', { status: 429, body: { success: false, error: 'busy' } }, 'Voice is busy right now. Please try again in a minute.'],
@@ -196,12 +226,22 @@ for (const [name, t, want] of [
     await context.close();
 }
 {
-    // The server fails but the browser heard the words: they are kept
+    // The full pass fails but live words got through: they are kept
     const { context, page } = await setupPage({ transcribe: { status: 500, body: { success: false, error: 'transcription_failed' } } });
-    await page.click('#micBtn'); await page.waitForTimeout(1300);
+    await page.click('#micBtn'); await page.waitForTimeout(2200);
     await page.click('#rvStopBtn'); await page.waitForTimeout(1300);
     const v = await page.evaluate(() => document.getElementById('chatInput').value);
-    check('error: server failure keeps the live words', v === 'SM papuntang chicken jo Halang', v);
+    check('error: a failed full pass keeps the live words', v === 'SM papuntang', v);
+    await context.close();
+}
+{
+    // Live words busy: no more live requests, the full pass still fills the box
+    const { context, page, state } = await setupPage({ partial: { status: 429, body: { success: false, error: 'busy' } } });
+    await page.click('#micBtn'); await page.waitForTimeout(4500);
+    const cap = await page.evaluate(() => document.getElementById('rvCaption').textContent);
+    await page.click('#rvStopBtn'); await page.waitForTimeout(1300);
+    const v = await page.evaluate(() => document.getElementById('chatInput').value);
+    check('error: live words busy stops asking, transcript still comes', state.partials === 1 && cap === "Go ahead, I'm listening…" && v === 'SM papuntang Chicken Joo Halang', JSON.stringify({ partials: state.partials, cap, v }));
     await context.close();
 }
 
@@ -240,8 +280,11 @@ for (const [name, t, want] of [
             cover: Math.abs(s.width - w.width) < 2 && Math.abs(s.height - w.height) < 2, stopVisible: stop.bottom <= window.innerHeight && stop.top >= 0,
             overflowX: document.documentElement.scrollWidth > window.innerWidth };
     });
-    check('phone: no live caption, prompt shown', ph.sr === 0 && ph.caption === "Go ahead, I'm listening…", JSON.stringify(ph));
+    check('phone: prompt shown first, no browser speech recognition', ph.sr === 0 && ph.caption === "Go ahead, I'm listening…", JSON.stringify(ph));
     check('phone: sheet covers the chat, Stop on screen', ph.cover && ph.stopVisible && !ph.overflowX, JSON.stringify(ph));
+    await page.waitForTimeout(1000);
+    const phLive = await page.evaluate(() => document.getElementById('rvCaption').textContent);
+    check('phone: live words appear', phLive === 'SM papuntang' && state.partials >= 1, `${phLive} (${state.partials})`);
     await shot(page, 'phone-listening');
     await page.tap('#rvStopBtn'); await page.waitForTimeout(1300);
     const v = await page.evaluate(() => document.getElementById('chatInput').value);

@@ -120,7 +120,7 @@ function getGroqClient() {
 const { getFareData, fareFactsSection, fareEstimateBlock } = require('./fare-info');
 const routiePlanner = require('./routie-planner');
 const { createChatHandler } = require('./routie-chat');
-const { transcribeVoice } = require('./routie-voice');
+const { transcribeVoice, transcribeVoicePartial } = require('./routie-voice');
 const { uploadBuffer, destroyByUrl, isConfigured: cloudinaryConfigured } = require('./cloudinary-upload');
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -1282,6 +1282,11 @@ app.post('/api/voice/transcribe', (req, res, next) => {
         // server/routie-voice.js: Calzada vocabulary, language check (Tagalog heard as Indonesian is redone as
         // Tagalog), no text for silence, and place names corrected against our places (returned so the user can undo)
         const places = mergeBusinessesIntoPlaces(getPlacesData(), await getLiveBusinesses().catch(() => []));
+        // partial=1: the words so far while the commuter is still talking (live caption), from the faster model
+        if (req.body && req.body.partial === '1') {
+            const live = await transcribeVoicePartial(client, { buffer: req.file.buffer, mime, ext, places });
+            return res.json({ success: true, partial: true, text: live.text });
+        }
         const out = await transcribeVoice(client, { buffer: req.file.buffer, mime, ext, places });
         return res.json({ success: true, text: out.text, raw: out.raw, corrections: out.corrections, language: out.language });
     } catch (err) {
