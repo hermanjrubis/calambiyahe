@@ -9075,7 +9075,8 @@ input#searchInput,
     font-weight: 700;
     font-size: 0.85rem;
     flex: 0 0 34px;
-    overflow: hidden;
+    /* No overflow: hidden here: the photo rounds itself (below), and the badge counter sits
+       over the edge of the circle, so clipping cut it to a red sliver with no number */
     box-sizing: border-box;
 }
 
