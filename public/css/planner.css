@@ -6169,6 +6169,33 @@ body.navigation-active #hamburgerBtn {
     right: 45px;
 }
 
+/* A category pin at the trip's destination or start (planner.js syncPinsUnderTripMarkers): the red
+   pin / start dot takes its place; its name stays beside the trip marker */
+.calzada-custom-marker.czp-at-dest .calzada-pin-wrapper,
+.calzada-custom-marker.czp-at-origin .calzada-pin-wrapper {
+    visibility: hidden;
+}
+
+.calzada-custom-marker.czp-at-dest .czp-label {
+    left: 33px;
+    top: 24px;
+}
+
+.calzada-custom-marker.czp-at-origin .czp-label {
+    left: 30px;
+    top: 46px;
+}
+
+.calzada-custom-marker.czp-at-dest.czp-label-left .czp-label {
+    left: auto;
+    right: 33px;
+}
+
+.calzada-custom-marker.czp-at-origin.czp-label-left .czp-label {
+    left: auto;
+    right: 30px;
+}
+
 .maplibregl-popup-content {
     border-radius: 16px !important;
     padding: 0 !important;

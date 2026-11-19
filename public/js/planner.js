@@ -1929,7 +1929,26 @@ document.addEventListener('DOMContentLoaded', () => {
             return destMarker;
         }
 
+        // A category pin standing exactly where the trip starts or ends (e.g. Terminals on, trip to
+        // SM Terminal 1) would sit under the red pin / start dot: hide that pin's body and keep its
+        // name beside the trip marker (planner.css .czp-at-dest / .czp-at-origin)
+        const TRIP_PIN_MATCH_M = 15;
+        function syncPinsUnderTripMarkers(el) {
+            const near = (pt, lat, lng) => Array.isArray(pt) && pt.length >= 2
+                && getHaversineDist(Number(pt[0]), Number(pt[1]), lat, lng) * 1000 <= TRIP_PIN_MATCH_M;
+            const els = el ? [el] : document.querySelectorAll('.calzada-custom-marker[data-lat]');
+            els.forEach((pin) => {
+                const lat = Number(pin.dataset.lat), lng = Number(pin.dataset.lng);
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                const atDest = !!destMarker && near(selectedCoords.destination, lat, lng);
+                const atOrigin = !atDest && !!originMarker && near(selectedCoords.origin, lat, lng);
+                pin.classList.toggle('czp-at-dest', atDest);
+                pin.classList.toggle('czp-at-origin', atOrigin);
+            });
+        }
+
         function ensureOriginMarker() {
+            syncTripPinsSoon();
             if (isTrackingArrival) return;
             if (isMyLocationOrigin()) {
                 if (originMarker) {
@@ -1953,7 +1972,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // After the marker below is added or removed
+        function syncTripPinsSoon() { setTimeout(() => syncPinsUnderTripMarkers(), 0); }
+
         function ensureDestMarker() {
+            syncTripPinsSoon();
             if (isTrackingArrival) return;
             if (selectedCoords.destination && Array.isArray(selectedCoords.destination) && selectedCoords.destination.length >= 2) {
                 if (!destMarker) {
@@ -2250,6 +2273,8 @@ document.addEventListener('DOMContentLoaded', () => {
             iconEl.setAttribute('tabindex', '0');
             iconEl.setAttribute('aria-label', place.name || 'Place');
             if (place.slug) iconEl.dataset.slug = place.slug;
+            iconEl.dataset.lat = String(lat);
+            iconEl.dataset.lng = String(lng);
 
             iconEl.style.setProperty('--pin-color', meta.color);
             const wrapper = document.createElement('div');
@@ -2307,6 +2332,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .setLngLat([lng, lat])
                 .addTo(map);
             pinDeclutter.add(marker, iconEl, place.slug || place.name || '');
+            syncPinsUnderTripMarkers(iconEl);
             return { marker, el: iconEl };
         }
         window._calzadaBuildPlaceMarker = buildCategoryPlaceMarker;
