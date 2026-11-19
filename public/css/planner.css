@@ -8153,7 +8153,10 @@ body.pick-destination .mp-icon-to {
    something is being looked up, so the planner never looks stuck.
    ============================================= */
 
-/* A field being filled (GPS fix, place lookup): text shimmer + three dots */
+/* A field being filled (GPS fix, place lookup): text shimmer + three dots. The dots are plain 5px
+   circles (the pseudo-element plus two box-shadow copies), 3px apart, lighting up one after another,
+   so they stay round and separate at any screen scale. (The old gradient dots ran into each other
+   and the last one was cut off.) */
 .od-field.is-loading {
     position: relative;
     color: #64748B !important;
@@ -8169,17 +8172,16 @@ body.pick-destination .mp-icon-to {
 .od-field.is-loading::after {
     content: "";
     position: absolute;
-    right: 6px;
+    right: 20px;
     top: 50%;
-    width: 22px;
-    height: 6px;
-    margin-top: -3px;
-    background:
-        radial-gradient(circle, #378ADD 2.6px, transparent 3px) 0 50% / 8px 6px no-repeat,
-        radial-gradient(circle, #378ADD 2.6px, transparent 3px) 8px 50% / 8px 6px no-repeat,
-        radial-gradient(circle, #378ADD 2.6px, transparent 3px) 16px 50% / 8px 6px no-repeat;
+    width: 5px;
+    height: 5px;
+    margin-top: -2.5px;
+    border-radius: 50%;
+    background: #378ADD;
+    box-shadow: 8px 0 0 rgba(55, 138, 221, 0.3), 16px 0 0 rgba(55, 138, 221, 0.3);
     -webkit-text-fill-color: initial;
-    animation: od-dots 1s steps(1) infinite;
+    animation: od-dots 1.2s ease-in-out infinite;
 }
 
 @keyframes od-text-shimmer {
@@ -8193,21 +8195,27 @@ body.pick-destination .mp-icon-to {
 }
 
 @keyframes od-dots {
-    0% {
-        opacity: 1;
-        clip-path: inset(0 66% 0 0);
+    0%,
+    100% {
+        background: #378ADD;
+        box-shadow: 8px 0 0 rgba(55, 138, 221, 0.3), 16px 0 0 rgba(55, 138, 221, 0.3);
     }
 
     33% {
-        clip-path: inset(0 33% 0 0);
+        background: rgba(55, 138, 221, 0.3);
+        box-shadow: 8px 0 0 #378ADD, 16px 0 0 rgba(55, 138, 221, 0.3);
     }
 
     66% {
-        clip-path: inset(0 0 0 0);
+        background: rgba(55, 138, 221, 0.3);
+        box-shadow: 8px 0 0 rgba(55, 138, 221, 0.3), 16px 0 0 #378ADD;
     }
+}
 
-    100% {
-        clip-path: inset(0 66% 0 0);
+@media (prefers-reduced-motion: reduce) {
+    .od-field.is-loading,
+    .od-field.is-loading::after {
+        animation: none;
     }
 }
 
