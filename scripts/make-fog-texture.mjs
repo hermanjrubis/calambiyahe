@@ -1,8 +1,9 @@
 /**
  * scripts/make-fog-texture.mjs
  *
- * Generates a 256x256 seamless texture of soft white clouds on transparent.
- * Written to public/assets/map/fog-clouds.png. Must be under 40 KB.
+ * Generates a 512x512 seamless texture of soft white clouds on transparent: big, clearly visible
+ * clouds over the fog (Nov 2026; was 256x256 with faint, small clouds).
+ * Written to public/assets/map/fog-clouds.png. Must be under 100 KB (full alpha: a palette PNG shows bands in the soft edges).
  */
 
 import fs from 'fs';
@@ -13,8 +14,8 @@ import sharp from 'sharp';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const WIDTH = 256;
-const HEIGHT = 256;
+const WIDTH = 512;
+const HEIGHT = 512;
 
 // Pseudo-random deterministic noise table
 function makeNoiseGrid(w, h, seed = 42) {
@@ -65,10 +66,11 @@ function sampleToroidalNoise(grid, gw, gh, x, y, periodX, periodY) {
 
 async function generateFogTexture() {
     const octaves = [
-        { grid: makeNoiseGrid(4, 4, 101), gw: 4, gh: 4, period: 64, weight: 0.5 },
-        { grid: makeNoiseGrid(8, 8, 202), gw: 8, gh: 8, period: 32, weight: 0.28 },
-        { grid: makeNoiseGrid(16, 16, 303), gw: 16, gh: 16, period: 16, weight: 0.15 },
-        { grid: makeNoiseGrid(32, 32, 404), gw: 32, gh: 32, period: 8, weight: 0.07 }
+        // grid size x period = WIDTH, so the texture tiles without a seam
+        { grid: makeNoiseGrid(4, 4, 101), gw: 4, gh: 4, period: 128, weight: 0.55 },
+        { grid: makeNoiseGrid(8, 8, 202), gw: 8, gh: 8, period: 64, weight: 0.25 },
+        { grid: makeNoiseGrid(16, 16, 303), gw: 16, gh: 16, period: 32, weight: 0.13 },
+        { grid: makeNoiseGrid(32, 32, 404), gw: 32, gh: 32, period: 16, weight: 0.07 }
     ];
 
     const buf = Buffer.alloc(WIDTH * HEIGHT * 4);
@@ -81,13 +83,13 @@ async function generateFogTexture() {
             }
 
             // Soft cloud threshold and smooth falloff
-            // Value ranges around 0..1; clouds appear when n > 0.35
-            const threshold = 0.34;
+            // Value ranges around 0..1; clouds appear when n > 0.30
+            const threshold = 0.30;
             let alpha = 0;
             if (n > threshold) {
                 const norm = (n - threshold) / (1 - threshold);
-                const soft = Math.pow(norm, 1.4);
-                alpha = Math.max(0, Math.min(255, Math.round(soft * 190)));
+                const soft = Math.pow(norm, 1.1);
+                alpha = Math.max(0, Math.min(255, Math.round(soft * 245)));
             }
 
             const idx = (y * WIDTH + x) * 4;
@@ -110,8 +112,8 @@ async function generateFogTexture() {
 
     const stats = fs.statSync(outFile);
     console.log(`[make-fog-texture] Written ${outFile} (${stats.size} bytes)`);
-    if (stats.size > 40 * 1024) {
-        throw new Error(`Fog texture exceeds 40 KB: ${stats.size} bytes`);
+    if (stats.size > 100 * 1024) {
+        throw new Error(`Fog texture exceeds 100 KB: ${stats.size} bytes`);
     }
 }
 

@@ -11,7 +11,7 @@
  *    - BBox: ~[121.1400, 14.1862, 121.1835, 14.2099]
  *    - Outliers: none (places outside Uno / Real / Halang are not listed)
  * 2. fog-clouds.png texture validation:
- *    - Exists, size > 0 and < 40 KB
+ *    - Exists, size > 0 and < 100 KB
  * 3. Scope module unit checks:
  *    - load(), contains(lat, lng), bbox(), barangays(), getBaseBounds(), resetBounds(), expandBoundsForStart()
  *    - Points inside Brgy. Uno, Real, Halang return true
@@ -196,7 +196,7 @@ async function runFogTests() {
     const texturePath = path.join(ROOT_DIR, 'public', 'assets', 'map', 'fog-clouds.png');
     report(fs.existsSync(texturePath), 'public/assets/map/fog-clouds.png exists');
     const textureStats = fs.statSync(texturePath);
-    report(textureStats.size > 0 && textureStats.size < 40960, `Texture size is < 40 KB (actual: ${(textureStats.size / 1024).toFixed(1)} KB)`);
+    report(textureStats.size > 0 && textureStats.size < 102400, `Texture size is < 100 KB (actual: ${(textureStats.size / 1024).toFixed(1)} KB)`);
 
     // --- TEST 3: Browser Verification via Playwright ---
     console.log('\n--- TEST 3: Planner Browser Integration ---');
@@ -260,7 +260,7 @@ async function runFogTests() {
             report(mapInfo.minZoom >= 13, `Map minZoom is 13+ (actual: ${mapInfo.minZoom})`);
             report(mapInfo.hasFogFill, 'Fog fill layer (scope-fog-fill) present in map style');
             report(mapInfo.hasFogClouds, 'Fog pattern layer (scope-fog-clouds) present in map style');
-            report(mapInfo.hasOutline, 'Dashed outline layer (scope-outline) present in map style');
+            report(!mapInfo.hasOutline, 'No dashed outline layer (scope-outline was removed, Nov 2026)');
             report(mapInfo.hasBarangayLabels, 'Barangay labels layer (scope-barangay-labels) present in map style');
             report(!!mapInfo.maxBounds, 'Map maxBounds is configured around 3 barangays padded ~1.5 km');
         }

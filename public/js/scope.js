@@ -8,7 +8,8 @@
  * - contains(lat, lng): small ray-casting point-in-polygon (no library)
  * - bbox(): returns [minLng, minLat, maxLng, maxLat]
  * - barangays(): returns ['Uno', 'Real', 'Halang']
- * - addFog(map, { beforeLayerId }): adds fog fill, pattern, slow drift, soft edge, outline, labels
+ * - addFog(map, { beforeLayerId }): adds fog fill, drifting clouds, soft edge, labels (no outline line
+ *   since Nov 2026: the clear map inside and the clouds outside show the edge)
  */
 
 (function () {
@@ -366,24 +367,25 @@
                 });
             }
 
-            // 1. scope-fog-fill: fill-color #EEF2F7, fill-opacity 0.8
+            // 1. scope-fog-fill: a light blue-grey, a little darker than before so the white clouds show
+            const FOG_COLOR = '#D5DEEA';
             if (!map.getLayer('scope-fog-fill')) {
                 map.addLayer({
                     id: 'scope-fog-fill',
                     type: 'fill',
                     source: 'scope-fog-mask',
                     paint: {
-                        'fill-color': '#E2E8F0',
-                        'fill-opacity': 0.82
+                        'fill-color': FOG_COLOR,
+                        'fill-opacity': 0.84
                     }
                 }, targetBefore);
             }
 
-            // 2. Soft edge: three line layers on the coverage outline, line-color #EEF2F7
+            // 2. Soft edge: three line layers on the coverage outline, in the fog colour
             const edgeTiers = [
-                { id: 'scope-fog-edge-1', width: 6, blur: 4, opacity: 0.7 },
-                { id: 'scope-fog-edge-2', width: 14, blur: 10, opacity: 0.45 },
-                { id: 'scope-fog-edge-3', width: 26, blur: 20, opacity: 0.25 }
+                { id: 'scope-fog-edge-1', width: 6, blur: 4, opacity: 0.8 },
+                { id: 'scope-fog-edge-2', width: 14, blur: 10, opacity: 0.5 },
+                { id: 'scope-fog-edge-3', width: 26, blur: 20, opacity: 0.3 }
             ];
 
             edgeTiers.forEach(tier => {
@@ -393,7 +395,7 @@
                         type: 'line',
                         source: 'scope-coverage-outline',
                         paint: {
-                            'line-color': '#E2E8F0',
+                            'line-color': FOG_COLOR,
                             'line-width': tier.width,
                             'line-blur': tier.blur,
                             'line-opacity': tier.opacity
@@ -402,19 +404,7 @@
                 }
             });
 
-            // 3. scope-outline: 1.5px #378ADD line with line-dasharray [2, 2]
-            if (!map.getLayer('scope-outline')) {
-                map.addLayer({
-                    id: 'scope-outline',
-                    type: 'line',
-                    source: 'scope-coverage-outline',
-                    paint: {
-                        'line-color': '#378ADD',
-                        'line-width': 1.5,
-                        'line-dasharray': [2, 2]
-                    }
-                }, targetBefore);
-            }
+            // 3. (The blue dashed scope-outline line was removed in Nov 2026.)
 
             // 4. Barangay names at center points
             if (!map.getLayer('scope-barangay-labels')) {
@@ -436,7 +426,10 @@
                 });
             }
 
-            // 5. scope-fog-clouds: fill-pattern with fog-clouds.png, fill-opacity 0.5
+            // 5. scope-fog-clouds: fill-pattern with fog-clouds.png (512 px, white clouds), drifting
+            //    right and down at 10 px/s. The drift moves the texture's pixels (map.updateImage),
+            //    not the layer: fill-translate would move the fog's holes too, and the clouds would
+            //    slide over Uno, Real and Halang.
             function addCloudPatternLayer() {
                 if (map.getLayer('scope-fog-clouds')) return;
                 map.addLayer({
@@ -445,36 +438,62 @@
                     source: 'scope-fog-mask',
                     paint: {
                         'fill-pattern': 'fog-clouds-pattern',
-                        'fill-opacity': 0.5
+                        'fill-opacity': 0.95
                     }
                 }, targetBefore);
 
-                // Slow drift: change fill-translate by 1px every 150 ms in a loop of 256px
-                let driftX = 0;
-                let driftY = 0;
-                let driftTimer = null;
+                const pixels = map._calzadaFogPixels;
+                if (!pixels) return; // the texture's pixels could not be read: clouds stay still
+                const W = pixels.width, H = pixels.height, src = pixels.data, rowBytes = W * 4;
+                const frame = new Uint8ClampedArray(src.length);
+                let dx = 0, dy = 0, tick = 0;
 
                 function tickDrift() {
                     const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                    if (!prefersReduced && !document.hidden && map && map.getLayer('scope-fog-clouds')) {
-                        driftX = (driftX + 1) % 256;
-                        driftY = (driftY + 0.5) % 256;
-                        try {
-                            map.setPaintProperty('scope-fog-clouds', 'fill-translate', [driftX, driftY]);
-                        } catch (_) {}
+                    if (prefersReduced || document.hidden || !map || !map.getLayer('scope-fog-clouds') || !map.hasImage('fog-clouds-pattern')) return;
+                    tick++;
+                    dx = (dx + 1) % W;
+                    if (tick % 2 === 0) dy = (dy + 1) % H;
+                    // Each row of the texture, shifted dx to the right, rows shifted dy down (wrapping)
+                    const cut = (W - dx) * 4;
+                    for (let y = 0; y < H; y++) {
+                        const s = ((y - dy + H) % H) * rowBytes;
+                        const o = y * rowBytes;
+                        frame.set(src.subarray(s + cut, s + rowBytes), o);
+                        frame.set(src.subarray(s, s + cut), o + dx * 4);
                     }
+                    try {
+                        map.updateImage('fog-clouds-pattern', { width: W, height: H, data: frame });
+                    } catch (_) {}
                 }
 
-                driftTimer = setInterval(tickDrift, 150);
+                const driftTimer = setInterval(tickDrift, 100);
                 map.once('remove', () => clearInterval(driftTimer));
+            }
+
+            // The texture's pixels, for the drift (null if the canvas cannot read them)
+            function readPixels(img) {
+                try {
+                    const c = document.createElement('canvas');
+                    c.width = img.naturalWidth || img.width;
+                    c.height = img.naturalHeight || img.height;
+                    const ctx = c.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const d = ctx.getImageData(0, 0, c.width, c.height);
+                    return { width: d.width, height: d.height, data: d.data };
+                } catch (e) {
+                    console.warn('[CalzadaScope] Fog texture pixels unreadable; clouds will not drift', e);
+                    return null;
+                }
             }
 
             if (!map.hasImage('fog-clouds-pattern')) {
                 const img = new Image();
                 img.onload = () => {
                     if (!map.hasImage('fog-clouds-pattern')) {
+                        map._calzadaFogPixels = readPixels(img);
                         try {
-                            map.addImage('fog-clouds-pattern', img);
+                            map.addImage('fog-clouds-pattern', map._calzadaFogPixels || img);
                         } catch (_) {}
                     }
                     addCloudPatternLayer();
@@ -482,7 +501,7 @@
                 img.onerror = (e) => {
                     console.warn('[CalzadaScope] Could not load fog-clouds.png', e);
                 };
-                img.src = '/assets/map/fog-clouds.png';
+                img.src = '/assets/map/fog-clouds.png?v=2';
             } else {
                 addCloudPatternLayer();
             }

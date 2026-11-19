@@ -6967,9 +6967,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 map.setPaintProperty(id, 'line-color', WALK_DOTS_PAINT['line-color']);
                 map.setPaintProperty(id, 'line-dasharray', WALK_DOTS_PAINT['line-dasharray']);
             });
-            // On this map blue means a jeepney ride. The coverage outline (scope.js) is a blue dashed line,
-            // which read like a route, so here it is drawn in a quiet grey.
-            if (map.getLayer('scope-outline')) map.setPaintProperty('scope-outline', 'line-color', '#A3AEBD');
         };
         // The route layers are created on load, after a route that arrived early was drawn
         map.on('load', applyRouteLineColors);
