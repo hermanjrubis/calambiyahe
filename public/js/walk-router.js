@@ -27,7 +27,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
-    const VERSION = '1.1.0';
+    const VERSION = '1.2.0';
     const WALK_SPEED_KPH = 4.0;
     const M_LAT = 110574, M_LNG = 107550;   // metres per degree at about 14°N
 
@@ -474,6 +474,14 @@
                 merged.push(gr);
             });
 
+            // A walk that starts a few metres from its first street (e.g. off the jeep, at the kerb):
+            // that bit is no step of its own, the street is the first step
+            while (merged.length > 1 && merged[0].kind === 'street' && merged[0].metres < 8) {
+                const head = merged.shift();
+                merged[0].from = head.from;
+                if (merged[0].kind === 'street') merged[0].metres += head.metres;
+            }
+
             const loc = (p) => [p[1], p[0]];
             const dur = (m) => (m / 1000 / WALK_SPEED_KPH) * 3600;
             const steps = [];
@@ -487,9 +495,11 @@
                 if (gr.kind === 'bridge') { step.walk = 'footbridge'; step.maneuver.type = i === 0 ? 'depart' : 'continue'; step.maneuver.modifier = 'straight'; }
                 if (gr.kind === 'cross') { step.walk = 'cross'; step.crossing = gr.code; step.maneuver.type = i === 0 ? 'depart' : 'continue'; step.maneuver.modifier = 'straight'; }
                 steps.push(step);
-                // After a footbridge or a crossing the next street is "continue on", not a turn worked out
-                // from the direction of the stairs
-                lastBearing = gr.kind === 'street' ? bearing(gr.endDirFrom || gr.dirFrom, gr.endDirTo || gr.dirTo) : null;
+                // After a crossing or a footbridge the next street's turn is worked out from the street
+                // walked before it (crossing a road does not change where you were heading; the
+                // stairs' own direction says nothing). Leaving them out made "turn left after
+                // crossing" read "continue".
+                if (gr.kind === 'street') lastBearing = bearing(gr.endDirFrom || gr.dirFrom, gr.endDirTo || gr.dirTo);
             });
             const end = pts[pts.length - 1];
             steps.push({ name: merged.length ? (merged[merged.length - 1].kind === 'street' ? merged[merged.length - 1].name : '') : '', distance: 0, duration: 0, maneuver: { type: 'arrive', modifier: '', location: loc(end) }, mode: 'foot' });

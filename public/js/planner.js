@@ -7863,31 +7863,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.activeRouteSteps = [];
         window.currentStepIndex = 0;
 
-        const getStepIcon = (step, mode, isLastStep = true) => {
-            const type = step?.maneuver?.type || '';
-            const mod = step?.maneuver?.modifier || '';
-
-            if (type === 'depart') {
-                return mode === 'foot' ? 'walk-outline' : 'bus-outline';
-            }
-            if (type === 'arrive') {
-                if (!isLastStep) {
-                    return mode === 'foot' ? 'bus-outline' : 'walk-outline';
-                }
-                return 'flag-outline';
-            }
-
-            if (type === 'turn' || type === 'end of road') {
-                if (mod.includes('right')) return 'arrow-forward-outline';
-                if (mod.includes('left')) return 'arrow-back-outline';
-                return 'arrow-up-outline';
-            }
-
-            if (type === 'new name' || mod.includes('straight')) return 'arrow-up-outline';
-
-            return 'arrow-forward-outline';
-        };
-
         const formatDist = (m) => m >= 1000 ? (m / 1000).toFixed(1) + ' ' + t('planner.unit_km') : (Math.round(m / 10) * 10) + ' ' + t('planner.unit_m');
 
         // ── ACTIVE NAVIGATION ITINERARY LEGS RENDERER (Full Route Section) ──
@@ -8002,137 +7977,228 @@ document.addEventListener('DOMContentLoaded', () => {
             if (countEl) countEl.textContent = `(${legCount} ${legCount === 1 ? 'leg' : 'legs'})`;
         }
 
+        // ── Guide banner (the instruction at the top during a journey) ──
+        // Like Google Maps: the banner shows the NEXT thing to do and the distance to it ("120 m · Turn
+        // left onto Avocado Street"), not the step you are already on. "Then" previews the one after only
+        // when it comes soon. Waiting and riding say which jeep to board and where to get off.
+        // Glyphs: Tabler line icons (MIT), drawn in currentColor.
+        const NAV_GLYPHS = {
+            straight: 'M12 5l0 14M18 11l-6 -6M6 11l6 -6',
+            'turn-right': 'M6 18v-6a3 3 0 0 1 3 -3h10l-4 -4m0 8l4 -4',
+            'turn-left': 'M18 18v-6a3 3 0 0 0 -3 -3h-10l4 -4m0 8l-4 -4',
+            'slight-right': 'M15 3h5v5M20 3l-7.536 7.536a5 5 0 0 0 -1.464 3.534v6.93',
+            'slight-left': 'M9 3h-5v5M4 3l7.536 7.536a5 5 0 0 1 1.464 3.534v6.93',
+            'sharp-right': 'M7 18v-11.31a.7 .7 0 0 1 1.195 -.495l9.805 9.805M13 16h5v-5',
+            'sharp-left': 'M17 18v-11.31a.7 .7 0 0 0 -1.195 -.495l-9.805 9.805M11 16h-5v-5',
+            uturn: 'M9 14l-4 -4l4 -4M5 10h11a4 4 0 1 1 0 8h-1',
+            cross: 'M4 4v16M20 4v16M8 7h8M8 12h8M8 17h8',
+            footbridge: 'M4 20h5v-5h5v-5h5v-5',
+            walk: 'M12 4a1 1 0 1 0 2 0a1 1 0 1 0 -2 0M7 21l3 -4M16 21l-2 -4l-3 -3l1 -6M6 12l2 -3l4 -1l3 3l3 1',
+            board: 'M4 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M16 17a2 2 0 1 0 4 0a2 2 0 1 0 -4 0M4 17h-2v-11a1 1 0 0 1 1 -1h14a5 7 0 0 1 5 7v5h-2m-4 0h-8M16 5l1.5 7l4.5 0M2 10l15 0M7 5l0 5M12 5l0 5',
+            getoff: 'M13 12v.01M3 21h18M5 21v-16a2 2 0 0 1 2 -2h7.5m2.5 10.5v7.5M14 7h7m-3 -3l3 3l-3 3',
+            arrive: 'M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z',
+            wait: 'M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 7v5l3 3'
+        };
+        function navGlyphSvg(kind, size) {
+            const d = NAV_GLYPHS[kind] || NAV_GLYPHS.straight;
+            return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+        }
+        function setNavGlyph(el, kind, size) {
+            if (!el) return;
+            if (el.dataset.glyph === kind && el.firstElementChild) return;
+            el.dataset.glyph = kind;
+            el.innerHTML = navGlyphSvg(kind, size);
+        }
+        // The glyph for doing a step (its maneuver)
+        function glyphForStep(step, isLast) {
+            if (!step) return 'straight';
+            if (step.walk === 'cross') return 'cross';
+            if (step.walk === 'footbridge') return 'footbridge';
+            const type = step.maneuver?.type || '';
+            const mod = step.maneuver?.modifier || '';
+            const jeep = step.mode === 'driving' || step.mode === 'jeepney';
+            if (type === 'arrive') return jeep ? 'getoff' : (isLast ? 'arrive' : 'board');
+            if (type === 'depart') return jeep ? 'board' : 'walk';
+            if (mod.includes('uturn')) return 'uturn';
+            const side = mod.includes('right') ? 'right' : (mod.includes('left') ? 'left' : '');
+            if (!side) return 'straight';
+            if (mod.includes('slight')) return `slight-${side}`;
+            if (mod.includes('sharp')) return `sharp-${side}`;
+            return `turn-${side}`;
+        }
+
+        const THEN_SOON_M = 80; // "Then" shows the step after the next one only when it is this close after it
+
+        // Which leg each step belongs to: walk, jeep or final_walk (by order: walk, jeep, last walk)
+        function navStepLegs(steps) {
+            if (journey) {
+                const m = journeyStepIndexMap();
+                if (m && m.length === steps.length) return m.map((x) => x.leg);
+            }
+            let seenJeep = false;
+            return steps.map((s) => {
+                const isJeep = s.mode === 'driving' || s.mode === 'jeepney';
+                if (isJeep) seenJeep = true;
+                return isJeep ? 'jeep' : (seenJeep ? 'final_walk' : 'walk');
+            });
+        }
+
+        // What the banner says: { glyph, big, text, then: { label, glyph, text } | null, soon }
+        function navGuideModel() {
+            const steps = window.activeRouteSteps || [];
+            const idx = Math.min(window.currentStepIndex || 0, Math.max(0, steps.length - 1));
+            const tracking = Boolean(isTrackingArrival && journey);
+            const phase = tracking ? journeyPhase : 'walking';
+            const walkOnly = selectedMode === 'walking';
+            const destName = destPlaceName || t('planner.nav_destination');
+            const boardName = (lastItineraryStops && lastItineraryStops.boardAt) || (transitRouteGeojson && transitRouteGeojson.boardName) || '';
+            const alightName = (lastItineraryStops && lastItineraryStops.alightAt) || (transitRouteGeojson && transitRouteGeojson.alightName) || '';
+            const legLeft = (leg) => (tracking ? Math.max(0, journey.legLength(leg) - journey.alongOf(leg)) : null);
+            const fw = getFinalWalkInfo();
+
+            if (!walkOnly && phase === 'waiting') {
+                const sign = (transitRouteGeojson && (transitRouteGeojson.signboard || transitRouteGeojson.headsign)) || '';
+                const min = journeyWaitingMin();
+                let waitText = t('planner.nav_waiting_min', { n: min });
+                if (currentWaitRange && Number.isFinite(currentWaitRange.minMin) && Number.isFinite(currentWaitRange.maxMin)) {
+                    waitText += ` · ${t('planner.nav_wait_usual', { a: currentWaitRange.minMin, b: currentWaitRange.maxMin })}`;
+                }
+                return {
+                    glyph: 'board',
+                    big: t('planner.nav_board_jeep'),
+                    text: sign ? t('planner.nav_signboard', { sign }) : (boardName ? t('planner.step.board_jeepney_stop', { stop: boardName }) : ''),
+                    then: { label: t('planner.nav_wait_label'), glyph: 'wait', text: waitText },
+                    soon: false
+                };
+            }
+
+            if (!walkOnly && phase === 'riding') {
+                const rem = legLeft('jeep');
+                const stop = alightName || destName;
+                let then = null;
+                if (pendingTransfer) {
+                    const x = pendingTransfer;
+                    const sign = x.jeep.signboard || x.jeep.headsign || '';
+                    then = { label: t('planner.nav_then'), glyph: 'board', text: sign ? t('planner.nav_change_jeep_sign', { sign, stop: x.boardName }) : t('planner.nav_change_jeep', { stop: x.boardName }) };
+                } else if (fw.finalWalkM > 20) {
+                    then = { label: t('planner.nav_then'), glyph: 'walk', text: t('planner.nav_walk_to', { dist: formatDist(fw.finalWalkM), name: destName }) };
+                }
+                return {
+                    glyph: 'getoff',
+                    big: rem !== null ? formatDist(rem) : (currentTransitDist ? formatDist(currentTransitDist * 1000) : ''),
+                    text: t('planner.step.alight_jeepney_stop', { stop, name: stop }),
+                    then,
+                    soon: rem !== null && rem <= 300
+                };
+            }
+
+            // Walking (to the jeep, the last walk, or a walk-only trip)
+            const legName = walkOnly ? 'walk' : (phase === 'final_walk' ? 'final_walk' : 'walk');
+            const legs = navStepLegs(steps);
+            const legIdx = [];
+            legs.forEach((l, i) => { if (l === legName) legIdx.push(i); });
+            const toEnd = legName === 'walk' && !walkOnly
+                ? { glyph: 'board', text: boardName ? t('planner.step.board_jeepney_stop', { stop: boardName }) : t('planner.step.board_jeepney') }
+                : { glyph: 'arrive', text: t('planner.step.arrive_at', { name: destName }) };
+            const legRemaining = legLeft(legName);
+            if (!legIdx.length) {
+                // No turn-by-turn for this walk (a straight-line walk): where it goes and how far
+                const plannedM = legName === 'final_walk' ? fw.finalWalkM : currentWalkDist * 1000;
+                return { glyph: 'walk', big: formatDist(legRemaining !== null ? legRemaining : plannedM), text: legName === 'walk' && !walkOnly && boardName ? t('planner.nav_walk_to_name', { name: boardName }) : t('planner.nav_walk_to_name', { name: destName }), then: null, soon: false };
+            }
+            const cur = legIdx.includes(idx) ? idx : legIdx[0];
+            const nextI = legIdx.find((i) => i > cur);
+            const remToNext = tracking ? journeyStepRemainingM() : (steps[cur] && steps[cur].distance);
+            if (nextI === undefined || (steps[nextI] && steps[nextI].maneuver && steps[nextI].maneuver.type === 'arrive')) {
+                // Nothing left to do on this walk but reach its end
+                const rem = legRemaining !== null ? legRemaining : (remToNext || 0);
+                return { glyph: toEnd.glyph, big: formatDist(rem), text: toEnd.text, then: null, soon: false };
+            }
+            const next = steps[nextI];
+            const nextIsLast = nextI === steps.length - 1;
+            const text = formatStepInstruction(next, next.mode, {
+                isLastStep: nextIsLast,
+                nextMode: nextI + 1 < steps.length ? steps[nextI + 1].mode : null,
+                steps,
+                index: nextI,
+                prevName: (steps[cur].name || '').trim()
+            });
+            let then = null;
+            const afterI = legIdx.find((i) => i > nextI);
+            if (afterI !== undefined && (Number(next.distance) || 0) <= THEN_SOON_M) {
+                const after = steps[afterI];
+                const afterIsEnd = after.maneuver && after.maneuver.type === 'arrive';
+                then = afterIsEnd
+                    ? { label: t('planner.nav_then'), glyph: toEnd.glyph, text: toEnd.text }
+                    : {
+                        label: t('planner.nav_then'),
+                        glyph: glyphForStep(after, afterI === steps.length - 1),
+                        text: formatStepInstruction(after, after.mode, { isLastStep: afterI === steps.length - 1, steps, index: afterI, prevName: (next.name || '').trim(), prevText: text })
+                    };
+            }
+            const big = remToNext !== null && remToNext !== undefined ? formatDist(remToNext) : '';
+            return { glyph: glyphForStep(next, nextIsLast), big, text, name: (next.name || '').trim(), then, soon: false };
+        }
+
         function updateGuideStepsUI() {
-            if (!window.activeRouteSteps || window.activeRouteSteps.length === 0) return;
-            const steps = window.activeRouteSteps;
-            const idx = window.currentStepIndex || 0;
+            const steps = window.activeRouteSteps || [];
+            if (!steps.length && !(isTrackingArrival && journey)) return;
+            const m = navGuideModel();
 
-            if (idx < steps.length) {
-                const current = steps[idx];
-                const isLast = (idx === steps.length - 1);
-                const nextMode = (idx + 1 < steps.length) ? steps[idx + 1].mode : null;
-                const prevStep = idx > 0 ? steps[idx - 1] : null;
-                const prevName = prevStep ? (prevStep.name || '').trim() : '';
-                let instructionText = formatStepInstruction(current, current.mode, {
-                    isLastStep: isLast,
-                    nextMode,
-                    steps,
-                    index: idx,
-                    prevName
-                });
-                // Waiting for the jeep: say so, with its signboard (or where it goes) to look for
-                if (isTrackingArrival && journey && journeyPhase === 'waiting' && transitRouteGeojson) {
-                    const tlW = transitLang() === 'tl';
-                    const sign = transitRouteGeojson.signboard || transitRouteGeojson.headsign || '';
-                    instructionText = sign
-                        ? (tlW ? `Hintayin ang jeep na ${sign}` : `Wait for the jeep: ${sign}`)
-                        : (tlW ? 'Hintayin ang jeep' : 'Wait for the jeep');
-                }
-                let distText = current.distance ? formatDist(current.distance) : '';
-                let hasDist = Boolean(current.distance && Number(current.distance) > 0 && distText);
-                // During a journey: the metres left on this step, or the minutes waited for the jeep
-                if (isTrackingArrival && journey && selectedMode !== 'walking') {
-                    if (journeyPhase === 'waiting') {
-                        const min = journeyWaitingMin();
-                        distText = transitLang() === 'tl' ? `Naghihintay · ${min} min` : `Waiting · ${min} min`;
-                        hasDist = true;
-                    } else {
-                        const rem = journeyStepRemainingM();
-                        if (rem !== null) { distText = formatDist(rem); hasDist = rem >= 1; }
-                    }
-                } else if (isTrackingArrival && journey) {
-                    const rem = journeyStepRemainingM();
-                    if (rem !== null) { distText = formatDist(rem); hasDist = rem >= 1; }
-                }
-                const iconName = getStepIcon(current, current.mode, isLast);
+            // Desktop "Next step" block
+            const nextStepLabel = t('planner.next_step');
+            document.querySelectorAll('#navPanelNextBlock .nav-panel-next-tag').forEach((tag) => { tag.textContent = nextStepLabel; });
+            const dInstr = document.getElementById('dNavNextInstruction');
+            const dDist = document.getElementById('dNavNextDist');
+            if (dInstr) dInstr.textContent = m.text;
+            if (dDist) {
+                dDist.textContent = m.big || '';
+                dDist.style.display = m.big ? '' : 'none';
+            }
+            setNavGlyph(document.getElementById('dNavNextIcon'), m.glyph, 26);
 
-                // Localize "NEXT STEP" badge on both desktop and mobile
-                const nextStepLabel = t('planner.next_step');
-                document.querySelectorAll('#navPanelNextBlock .nav-panel-next-tag, #activeGuideCard .nav-panel-next-tag').forEach(tag => {
-                    tag.textContent = nextStepLabel;
-                    tag.setAttribute('data-i18n', 'planner.next_step');
-                });
-
-                // Desktop Next Step block
-                const dInstr = document.getElementById('dNavNextInstruction');
-                const dDist = document.getElementById('dNavNextDist');
-                const dIcon = document.getElementById('dNavNextIcon');
-                if (dInstr) dInstr.textContent = instructionText;
-                if (dDist) {
-                    if (hasDist) {
-                        dDist.textContent = distText;
-                        dDist.style.display = '';
-                    } else {
-                        dDist.textContent = '';
-                        dDist.style.display = 'none';
-                    }
-                }
-                if (dIcon) dIcon.setAttribute('name', iconName);
-
-                // Mobile Current/Next Step
-                const mInstr = document.getElementById('guideCurrentText');
-                const mDist = document.getElementById('mNavNextDist');
-                const mIcon = document.getElementById('mNavNextIcon');
-                if (mInstr) {
-                    const rawStreetName = (current.name || '').trim();
-                    if (rawStreetName && instructionText.includes(rawStreetName)) {
-                        const escName = escapeHtml(rawStreetName);
-                        const escInstr = escapeHtml(instructionText);
-                        mInstr.innerHTML = escInstr.replace(escName, `<span class="step-street-name">${escName}</span>`);
-                    } else {
-                        mInstr.textContent = instructionText;
-                    }
-                }
-                if (mDist) {
-                    if (hasDist) {
-                        mDist.textContent = distText;
-                        mDist.style.display = '';
-                    } else {
-                        mDist.textContent = '';
-                        mDist.style.display = 'none';
-                    }
-                }
-                if (mIcon) mIcon.setAttribute('name', iconName);
-
-                // Following step preview on mobile ("Then" strip attached under the banner)
-                const mobileFollowing = document.getElementById('mobileGuideFollowing');
-                const mobileNextText = document.getElementById('guideNextText');
-                const mobileFollowingIcon = document.getElementById('mFollowingIcon');
-                const thenLabel = document.querySelector('#mobileGuideFollowing .mobile-guide-then-label');
-                if (thenLabel) thenLabel.textContent = t('planner.nav_then') || 'Then';
-
-                if (idx + 1 < steps.length) {
-                    const nextS = steps[idx + 1];
-                    const nextIsLast = (idx + 1 === steps.length - 1);
-                    const afterNextMode = (idx + 2 < steps.length) ? steps[idx + 2].mode : null;
-
-                    // If nextS is the final arrival step of a walking leg, do not preview "You have arrived" prematurely
-                    if (nextIsLast && nextS.maneuver?.type === 'arrive' && nextS.mode === 'foot') {
-                        if (mobileFollowing) mobileFollowing.style.display = 'none';
-                    } else {
-                        const nextInstr = formatStepInstruction(nextS, nextS.mode, {
-                            isLastStep: nextIsLast,
-                            nextMode: afterNextMode,
-                            steps,
-                            index: idx + 1,
-                            prevName: (current.name || '').trim(),
-                            prevText: instructionText
-                        });
-                        const cleanNextInstr = (nextInstr || '')
-                            .replace(/\s*\(--\)\s*/g, ' ')
-                            .replace(/\s*\(0\s*m\)\s*/gi, ' ')
-                            .trim();
-                        if (mobileNextText) mobileNextText.textContent = cleanNextInstr;
-                        if (mobileFollowingIcon) mobileFollowingIcon.setAttribute('name', getStepIcon(nextS, nextS.mode, nextIsLast));
-                        if (mobileFollowing) mobileFollowing.style.display = 'flex';
-                    }
+            // Mobile banner
+            const card = document.getElementById('activeGuideCard');
+            if (card) card.classList.toggle('is-soon', Boolean(m.soon));
+            const mInstr = document.getElementById('guideCurrentText');
+            const mDist = document.getElementById('mNavNextDist');
+            if (mInstr) {
+                // The street name in the instruction in bold, as before
+                const nm = m.name || '';
+                const at = nm ? m.text.indexOf(nm) : -1;
+                mInstr.textContent = '';
+                if (at >= 0) {
+                    const b = document.createElement('span');
+                    b.className = 'step-street-name';
+                    b.textContent = nm;
+                    mInstr.append(m.text.slice(0, at), b, m.text.slice(at + nm.length));
                 } else {
-                    if (mobileFollowing) mobileFollowing.style.display = 'none';
+                    mInstr.textContent = m.text;
                 }
+            }
+            if (mDist) {
+                mDist.textContent = m.big || '';
+                mDist.style.display = m.big ? '' : 'none';
+            }
+            setNavGlyph(document.getElementById('mNavNextIcon'), m.glyph, 36);
 
-                if (bottomStatusPill && bottomStatusPill.classList.contains('expanded')) {
-                    renderExpandedNavTimeline();
+            // "Then" / waiting strip under the banner
+            const strip = document.getElementById('mobileGuideFollowing');
+            if (strip) {
+                if (m.then && m.then.text) {
+                    const lbl = strip.querySelector('.mobile-guide-then-label');
+                    if (lbl) lbl.textContent = m.then.label;
+                    const txt = document.getElementById('guideNextText');
+                    if (txt) txt.textContent = m.then.text;
+                    setNavGlyph(document.getElementById('mFollowingIcon'), m.then.glyph, 18);
+                    strip.style.display = 'flex';
+                } else {
+                    strip.style.display = 'none';
                 }
+            }
+
+            if (bottomStatusPill && bottomStatusPill.classList.contains('expanded')) {
+                renderExpandedNavTimeline();
             }
         }
 
@@ -8761,9 +8827,71 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (targetRow) {
                 targetRow.classList.add('timeline-row--active');
+                // On a walk: the turns still to come on it, under its row (as in Google Maps' step list)
+                const walking = isTrackingArrival && (selectedMode === 'walking' || journeyPhase === 'walking' || journeyPhase === 'final_walk');
+                const upcoming = walking ? navUpcomingSteps() : [];
+                if (upcoming.length) {
+                    const ul = document.createElement('ul');
+                    ul.className = 'nav-steps-list';
+                    upcoming.forEach((u) => {
+                        const li = document.createElement('li');
+                        li.className = 'nav-steps-item';
+                        const g = document.createElement('span');
+                        g.className = 'nav-maneuver';
+                        g.innerHTML = navGlyphSvg(u.glyph, 20);
+                        const tx = document.createElement('span');
+                        tx.className = 'nav-steps-text';
+                        tx.textContent = u.text;
+                        const d = document.createElement('span');
+                        d.className = 'nav-steps-dist';
+                        d.textContent = u.dist;
+                        li.append(g, tx, d);
+                        ul.appendChild(li);
+                    });
+                    targetRow.insertAdjacentElement('afterend', ul);
+                }
             }
         }
         window._calzadaRenderExpandedNavTimeline = renderExpandedNavTimeline;
+
+        // The steps still to come on the walk you are on: { glyph, text, dist } (dist = from where you are)
+        function navUpcomingSteps() {
+            const steps = window.activeRouteSteps || [];
+            if (!steps.length) return [];
+            const walkOnly = selectedMode === 'walking';
+            const legName = walkOnly ? 'walk' : (journeyPhase === 'final_walk' ? 'final_walk' : 'walk');
+            const legs = navStepLegs(steps);
+            const legIdx = [];
+            legs.forEach((l, i) => { if (l === legName) legIdx.push(i); });
+            if (!legIdx.length) return [];
+            const idx = window.currentStepIndex || 0;
+            const cur = legIdx.includes(idx) ? idx : legIdx[0];
+            let ahead = journey ? journeyStepRemainingM() : null;
+            if (ahead === null || ahead === undefined) ahead = Number(steps[cur].distance) || 0;
+            const destName = destPlaceName || t('planner.nav_destination');
+            const boardName = (lastItineraryStops && lastItineraryStops.boardAt) || '';
+            const out = [];
+            for (const i of legIdx) {
+                if (i <= cur) continue;
+                const s = steps[i];
+                const isEnd = s.maneuver && s.maneuver.type === 'arrive';
+                let glyph, text;
+                if (isEnd) {
+                    const toJeep = legName === 'walk' && !walkOnly;
+                    glyph = toJeep ? 'board' : 'arrive';
+                    text = toJeep
+                        ? (boardName ? t('planner.step.board_jeepney_stop', { stop: boardName }) : t('planner.step.board_jeepney'))
+                        : t('planner.step.arrive_at', { name: destName });
+                } else {
+                    glyph = glyphForStep(s, i === steps.length - 1);
+                    text = formatStepInstruction(s, s.mode, { isLastStep: i === steps.length - 1, steps, index: i, prevName: (steps[i - 1] && steps[i - 1].name || '').trim() });
+                }
+                out.push({ glyph, text, dist: formatDist(ahead) });
+                ahead += Number(s.distance) || 0;
+                if (isEnd) break;
+            }
+            return out;
+        }
 
         function toggleNavExpanded(force) {
             if (!bottomStatusPill) return;

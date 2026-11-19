@@ -66,7 +66,7 @@
     </noscript>
     <link href="https://unpkg.com/maplibre-gl@5.1.0/dist/maplibre-gl.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
-    <link rel="stylesheet" href="../css/planner.css?v=2.9.24">
+    <link rel="stylesheet" href="../css/planner.css?v=2.10.0">
     <link rel="stylesheet" href="../css/routie-voice.css?v=1.3.0">
     <link rel="stylesheet" href="../css/planner-category.css?v=1.0.3">
     <link rel="stylesheet" href="../css/planner-transit.css?v=1.5.0">
@@ -846,7 +846,7 @@
             <!-- NEXT STEP Prominent Block -->
             <div class="nav-panel-next-block" id="navPanelNextBlock">
                 <div class="nav-panel-next-badge" id="navPanelNextBadge">
-                    <ion-icon name="arrow-up-outline" id="dNavNextIcon"></ion-icon>
+                    <span class="nav-maneuver" id="dNavNextIcon" aria-hidden="true"></span>
                 </div>
                 <div class="nav-panel-next-body">
                     <div class="nav-panel-next-tag">NEXT STEP</div>
@@ -879,7 +879,7 @@
         <div class="active-guide-card" id="activeGuideCard" style="display:none;">
             <div class="mobile-guide-main">
                 <div class="nav-guide-icon-wrap" id="mNavNextBadge">
-                    <ion-icon name="arrow-up-outline" id="mNavNextIcon"></ion-icon>
+                    <span class="nav-maneuver" id="mNavNextIcon" aria-hidden="true"></span>
                 </div>
                 <div class="nav-guide-body">
                     <div class="nav-guide-dist" id="mNavNextDist">--</div>
@@ -889,7 +889,7 @@
             <!-- "Then" strip attached under the banner, 18px from left edge -->
             <div class="mobile-guide-following" id="mobileGuideFollowing" style="display:none;">
                 <span class="mobile-guide-then-label" data-i18n="planner.nav_then">Then</span>
-                <ion-icon name="arrow-redo-outline" id="mFollowingIcon"></ion-icon>
+                <span class="nav-maneuver nav-maneuver--then" id="mFollowingIcon" aria-hidden="true"></span>
                 <span class="mobile-guide-then-text" id="guideNextText">Turn right</span>
             </div>
         </div>
@@ -1386,14 +1386,14 @@
     <script src="../js/planner-category.js?v=1.1.2"></script>
     <script src="../js/transit-engine.js?v=1.9.1"></script>
     <script src="../js/traffic-colors.js?v=1.0.0"></script>
-    <script src="../js/walk-router.js?v=1.1.0"></script>
+    <script src="../js/walk-router.js?v=1.2.0"></script>
     <script src="../js/planner-transit.js?v=1.5.1"></script>
     <script src="../js/live-eta.js?v=1.1.0"></script>
     <script src="../js/journey-state.js?v=1.0.0"></script>
-    <script src="../js/planner.js?v=2.22.2"></script>
+    <script src="../js/planner.js?v=2.23.0"></script>
     <script src="../js/legal-modal.js?v=3.2.0"></script>
     <script src="../js/script.js?v=2.9.4"></script>
-    <script src="../js/i18n.js?v=2.12.6"></script>
+    <script src="../js/i18n.js?v=2.12.7"></script>
 
     <!-- Firebase Auth State & User Profile Dropdown / Stats Integration -->
     <script type="module" src="../js/firebase-init.js"></script>

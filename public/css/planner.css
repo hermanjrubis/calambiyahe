@@ -9403,3 +9403,84 @@ body.navigation-active .cz-route-colors-legend {
     background: #FFFFFF;
     color: #334155;
 }
+
+
+/* =============================================
+   JOURNEY GUIDE GLYPHS (Nov 2026)
+   Line icons for each maneuver (planner.js NAV_GLYPHS): turn arrows, crossing, footbridge, board the
+   jeep, get off, arrive. Drawn in currentColor: white on the blue banner, navy in the "Then" strip.
+   ============================================= */
+.nav-maneuver {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    flex-shrink: 0;
+}
+
+.nav-maneuver svg {
+    display: block;
+}
+
+.nav-panel-next-badge .nav-maneuver svg {
+    width: 22px;
+    height: 22px;
+}
+
+.mobile-guide-following .nav-maneuver {
+    color: #0E2A47;
+}
+
+/* Close to the stop (300 m or less): the banner turns white with a blue outline so "Get off" stands out */
+.active-guide-card.is-soon {
+    background: #FFFFFF !important;
+    box-shadow: inset 0 0 0 2px #2272C3, 0 8px 22px rgba(14, 42, 71, 0.22) !important;
+}
+
+.active-guide-card.is-soon .nav-guide-dist,
+.active-guide-card.is-soon .nav-guide-instr,
+.active-guide-card.is-soon .nav-guide-icon-wrap {
+    color: #2272C3;
+}
+
+/* The drag handle already says the sheet opens; the extra "Swipe up for all steps" line is gone */
+.nav-swipe-hint {
+    display: none !important;
+}
+
+/* Expanded sheet: the turns left on the walk you are on, under its row */
+.nav-steps-list {
+    list-style: none;
+    margin: 4px 0 8px 0;
+    padding: 0 0 0 46px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-steps-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    color: #0E2A47;
+}
+
+.nav-steps-item .nav-maneuver {
+    color: #2272C3;
+    width: 22px;
+}
+
+.nav-steps-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.nav-steps-dist {
+    flex-shrink: 0;
+    font-size: 13px;
+    color: #5A6A7F;
+}
+
