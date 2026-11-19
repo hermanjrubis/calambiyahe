@@ -732,6 +732,7 @@
 
             if (tData && tData.live === true) {
                 optionHasLive = true;
+                copy.trafficLive = true; // this leg's time is TomTom's (the planner's summary uses it)
                 const totalJeepSec = jeepSecFromTraffic(tData, copy.distM);
                 const travelMin = Math.max(1, Math.round(totalJeepSec / 60));
                 copy.min = travelMin + (Number.isFinite(copy.waitMin) ? copy.waitMin : BOARDING_BUFFER_MIN);
@@ -809,7 +810,7 @@
     }
 
     return {
-        VERSION: '1.9.0',
+        VERSION: '1.9.1',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),

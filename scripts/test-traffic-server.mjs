@@ -66,7 +66,7 @@ server.listen(0, '127.0.0.1', async () => {
         const validTile = await req('/api/traffic/tile/14/13705/7539.png');
         assert(validTile.status === 200, `Valid tile returns 200 (got ${validTile.status})`);
         assert(validTile.headers['content-type'] === 'image/png', `Tile content-type is image/png (got ${validTile.headers['content-type']})`);
-        assert(validTile.headers['cache-control'] === 'public, s-maxage=120, max-age=60', `Tile Cache-Control header matches spec (got ${validTile.headers['cache-control']})`);
+        assert(validTile.headers['cache-control'] === 'public, s-maxage=60, max-age=30', `Tile Cache-Control header matches spec (got ${validTile.headers['cache-control']})`);
         assert(validTile.buffer.length > 50, `Tile payload has valid byte length (${validTile.buffer.length} bytes)`);
 
         // 1b. Corridor tile: z15 tile over starosa-calamba near Banlic/Cabuyao (14.237683, 121.133406) -> allowed (mock tile, 200)
@@ -74,7 +74,7 @@ server.listen(0, '127.0.0.1', async () => {
         const banlicTile = await req('/api/traffic/tile/15/27409/15074.png');
         assert(banlicTile.status === 200, `Banlic corridor tile returns 200 (got ${banlicTile.status})`);
         assert(banlicTile.headers['content-type'] === 'image/png', `Banlic tile is image/png (got ${banlicTile.headers['content-type']})`);
-        assert(banlicTile.headers['cache-control'] === 'public, s-maxage=120, max-age=60', `Banlic tile Cache-Control is s-maxage=120 (got ${banlicTile.headers['cache-control']})`);
+        assert(banlicTile.headers['cache-control'] === 'public, s-maxage=60, max-age=30', `Banlic tile Cache-Control is s-maxage=60 (got ${banlicTile.headers['cache-control']})`);
         assert(banlicTile.buffer.length > 50, `Banlic tile payload is non-empty (${banlicTile.buffer.length} bytes)`);
 
         // 1c. Lake tile: z15 tile over Laguna de Bay at about 14.25, 121.21 -> transparent placeholder (200, s-maxage=86400, no upstream call)
@@ -115,7 +115,7 @@ server.listen(0, '127.0.0.1', async () => {
         // 4. Valid leg endpoint
         const validLeg = await req('/api/traffic/leg?route=calamba-tanauan&from=0&to=2150');
         assert(validLeg.status === 200, `Valid leg returns 200 (got ${validLeg.status})`);
-        assert(validLeg.headers['cache-control'] === 'public, s-maxage=300', `Leg Cache-Control header matches spec (got ${validLeg.headers['cache-control']})`);
+        assert(validLeg.headers['cache-control'] === 'public, s-maxage=120, stale-while-revalidate=60', `Leg Cache-Control header matches spec (got ${validLeg.headers['cache-control']})`);
         const legJson = JSON.parse(validLeg.body);
         assert(legJson.live === true, 'Leg json has live: true');
         assert(legJson.routeId === 'calamba-tanauan', `Leg routeId matches (got ${legJson.routeId})`);
@@ -184,7 +184,7 @@ server.listen(0, '127.0.0.1', async () => {
         const lc = await req('/api/traffic/leg-colors?route=calamba-tanauan&from=0&to=2150');
         const lcJson = JSON.parse(lc.body);
         assert(lc.status === 200 && lcJson.live === true, 'leg-colors returns live: true in mock mode');
-        assert((lc.headers['cache-control'] || '').includes('s-maxage=120'), `leg-colors Cache-Control s-maxage=120 (got ${lc.headers['cache-control']})`);
+        assert((lc.headers['cache-control'] || '').includes('s-maxage=60'), `leg-colors Cache-Control s-maxage=60 (got ${lc.headers['cache-control']})`);
         const st = lcJson.stretches || [];
         assert(st.length > 2 && st[0].fromM === 0 && st[0].toM === 625 && st[0].cls === 'unknown', 'leg-colors: SM driveway (privateM 0-625) is unknown');
         const tiles = st.every((s, i) => i === 0 || Math.abs(s.fromM - st[i - 1].toM) <= 1);

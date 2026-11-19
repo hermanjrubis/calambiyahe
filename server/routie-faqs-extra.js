@@ -196,13 +196,13 @@ const FAQS_EXTRA = [
     },
     {
         id: 'terminal_tagaytay',
-        source: 'SM Calamba Inner Rd Terminal check (jeeps to Tanauan only, no Tagaytay jeep exists; Google: "Calamba-Tagaytay Terminal")',
+        source: 'SM Terminal 1 check (jeeps to Tanauan only, no Tagaytay jeep exists; Google: "Calamba-Tagaytay Terminal")',
         triggers: [
             'sakayan papuntang tagaytay', 'terminal papuntang tagaytay', 'saan sasakay papuntang tagaytay',
             'terminal to tagaytay', 'jeep terminal to tagaytay', 'where to ride to tagaytay'
         ],
-        en: 'There is no Tagaytay-bound jeep route in Calzada. Jeeps at the SM Calamba Inner Rd Terminal (by SM Cinema on SM City Calamba\'s west side) go to Tanauan, Batangas only, passing Real.',
-        tl: 'Walang rutang jeep papuntang Tagaytay sa Calzada. Ang mga jeep sa SM Calamba Inner Rd Terminal (tabi ng SM Cinema sa west side ng SM City Calamba) ay papuntang Tanauan, Batangas lamang, na dumadaan sa Real.'
+        en: 'There is no Tagaytay-bound jeep route in Calzada. Jeeps at SM Terminal 1 (by Starbucks and SM Cinema on SM City Calamba\'s west side) go to Tanauan, Batangas only, passing Real.',
+        tl: 'Walang rutang jeep papuntang Tagaytay sa Calzada. Ang mga jeep sa SM Terminal 1 (tabi ng Starbucks at SM Cinema sa west side ng SM City Calamba) ay papuntang Tanauan, Batangas lamang, na dumadaan sa Real.'
     },
     {
         id: 'terminal_tanauan',
@@ -211,8 +211,8 @@ const FAQS_EXTRA = [
             'sakayan papuntang tanauan', 'terminal papuntang tanauan', 'saan sasakay papuntang tanauan',
             'terminal to tanauan', 'where to ride to tanauan', 'jeep papuntang tanauan', 'jeep to tanauan'
         ],
-        en: 'Jeeps to Tanauan load at SM Calamba Inner Rd Terminal, west side of SM next to the Cinema drop-off, and pass Real.',
-        tl: 'Sa SM Calamba Inner Rd Terminal nagsasakay ang mga jeep papuntang Tanauan, sa west side ng SM tabi ng Cinema drop-off, at dumadaan sa Real.'
+        en: 'Jeeps to Tanauan load at SM Terminal 1, by Starbucks and SM Cinema on the west side of SM, and pass Real.',
+        tl: 'Sa SM Terminal 1 nagsasakay ang mga jeep papuntang Tanauan, tabi ng Starbucks at SM Cinema sa west side ng SM, at dumadaan sa Real.'
     },
     {
         id: 'terminal_uplb',
@@ -223,8 +223,8 @@ const FAQS_EXTRA = [
             'terminal papuntang los banos', 'saan sasakay papuntang uplb', 'saan sasakay papuntang los banos',
             'jeep to uplb', 'jeep to los banos'
         ],
-        en: 'Jeeps to Los Baños (UPLB) load at the SM City Calamba Transport Terminal, on the east side of SM City Calamba, and go through Halang on the National Highway.',
-        tl: 'Sa SM City Calamba Transport Terminal nagsasakay ang mga jeep papuntang Los Baños (UPLB), sa east side ng SM City Calamba, at dumadaan ito sa Halang sa National Highway.'
+        en: 'Jeeps to Los Baños (UPLB) load at SM Terminal 2, by the National Highway on the east side of SM City Calamba, and go through Halang on the National Highway.',
+        tl: 'Sa SM Terminal 2 nagsasakay ang mga jeep papuntang Los Baños (UPLB), tabi ng National Highway sa east side ng SM City Calamba, at dumadaan ito sa Halang sa National Highway.'
     },
     {
         id: 'terminal_starosa',

@@ -1,6 +1,6 @@
 {
  "about": "Other names for the places in server/data/places.json, keyed by slug, used by Routie to find a place in a message. All text is normalized (lowercase, no accents, \"&\" -> \"and\", apostrophes removed, other punctuation -> space). \"aliases\" are safe to use: the official name, the name without its branch or \"Calamba\", well-known short forms. \"confirm\" are local nicknames Drei has not confirmed yet: they are NOT loaded until moved into \"aliases\". \"ambiguous\" maps a short name to every place it could mean: Routie asks which one. Rebuild after places.json changes and re-run scripts/test-routie.mjs (it checks every slug exists and no alias is listed twice).",
- "generated": "2026-11-08",
+ "generated": "2026-11-19",
  "places": {
   "puregold-halang": {
    "name": "Puregold – Halang, Calamba",
@@ -51,14 +51,16 @@
    "confirm": []
   },
   "sm-transport-term": {
-   "name": "SM City Calamba Transport Terminal",
+   "name": "SM Terminal 2",
    "barangay": "Uno",
    "aliases": [
     "sm city calamba transport terminal",
     "sm calamba transport terminal",
     "sm city transport terminal",
     "sm transport terminal",
-    "sm terminal"
+    "sm terminal 2",
+    "sm terminal",
+    "terminal 2"
    ],
    "confirm": []
   },
@@ -1578,15 +1580,18 @@
    ]
   },
   "sm-calamba-inner-rd-terminal": {
-   "name": "SM Calamba Inner Rd Terminal",
+   "name": "SM Terminal 1",
    "barangay": "Uno",
    "aliases": [
     "sm calamba inner rd terminal",
     "sm inner road terminal",
+    "sm starbucks terminal",
     "sm inner rd terminal",
     "inner road terminal",
     "inner rd terminal",
-    "tagaytay terminal"
+    "tagaytay terminal",
+    "sm terminal 1",
+    "terminal 1"
    ],
    "confirm": []
   }

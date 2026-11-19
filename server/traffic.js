@@ -436,7 +436,7 @@ function parseLegQuery(query, minLenM) {
 // ── Vector flow tiles (for /leg-colors) ──
 const VECTOR_ZOOM = 15;
 const MAX_VECTOR_TILES = 24;          // per request; longer legs fall back to the plain blue line
-const VECTOR_TILE_TTL_MS = 2 * 60 * 1000;
+const VECTOR_TILE_TTL_MS = 60 * 1000;     // the planner refreshes the line colours every minute
 const vectorTileCache = new Map();    // 'z/x/y' -> { expiresAt, features }
 
 function vectorTileUrl(z, x, y, apiKey) {
@@ -531,7 +531,7 @@ function createTrafficRouter({ adminDb } = {}) {
         }
 
         res.setHeader('Content-Type', 'image/png');
-        res.setHeader('Cache-Control', 'public, s-maxage=120, max-age=60');
+        res.setHeader('Cache-Control', 'public, s-maxage=60, max-age=30');
 
         const isMock = process.env.TRAFFIC_MOCK === '1' || !process.env.TOMTOM_API_KEY;
         if (isMock) {
@@ -574,7 +574,9 @@ function createTrafficRouter({ adminDb } = {}) {
         }
         const { routeId, preparedRoute, fromRounded, toRounded, dir, legKey } = q;
 
-        res.setHeader('Cache-Control', 'public, s-maxage=300');
+        // One TomTom Routing call per ride slice per 2 min across all users (the planner refreshes the
+        // jeep times every 2 min); a stale copy is served at once while the CDN fetches the next
+        res.setHeader('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=60');
 
         const isMock = process.env.TRAFFIC_MOCK === '1';
 
@@ -751,7 +753,7 @@ function createTrafficRouter({ adminDb } = {}) {
             return res.status(400).json({ error: q.error });
         }
         const { routeId, preparedRoute, fromRounded, toRounded, dir, legKey } = q;
-        res.setHeader('Cache-Control', 'public, s-maxage=120');
+        res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=30');
 
         const { effFrom, effTo, publicLenM } = trimPrivateRanges(preparedRoute.privateM, fromRounded, toRounded);
         const privateParts = [];

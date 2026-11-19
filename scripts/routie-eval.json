@@ -5,8 +5,8 @@
     { "id": "f02", "tags": ["faq", "lang"], "q": "sino si routie?", "expect": { "type": "faq", "faq": "what_is_routie", "lang": "tl" } },
     { "id": "f03", "tags": ["faq", "lang"], "q": "Paano kinakalkula ang pamasahe?", "expect": { "type": "faq", "faq": "fare_computation", "lang": "tl" } },
     { "id": "f04", "tags": ["faq"], "q": "How are jeepney fares computed?", "expect": { "type": "faq", "faq": "fare_computation", "lang": "en" } },
-    { "id": "f05", "tags": ["faq"], "q": "saan ang terminal papuntang Real?", "expect": { "type": "faq", "faq": "terminal_real", "contains": ["SM Calamba Inner Rd Terminal"] } },
-    { "id": "f06", "tags": ["faq"], "q": "terminal papuntang halang", "expect": { "type": "faq", "faq": "terminal_halang", "contains": ["SM City Calamba Transport Terminal"] } },
+    { "id": "f05", "tags": ["faq"], "q": "saan ang terminal papuntang Real?", "expect": { "type": "faq", "faq": "terminal_real", "contains": ["SM Terminal 1"] } },
+    { "id": "f06", "tags": ["faq"], "q": "terminal papuntang halang", "expect": { "type": "faq", "faq": "terminal_halang", "contains": ["SM Terminal 2"] } },
     { "id": "f07", "tags": ["faq"], "q": "suggested terminals", "expect": { "type": "faq", "faq": "suggested_terminals" } },
     { "id": "f08", "tags": ["faq"], "q": "How long does approval take?", "expect": { "type": "faq", "faq": "business_approval" } },
     { "id": "f09", "tags": ["faq"], "q": "how do I list my business?", "expect": { "type": "faq", "faq": "business_register" } },
@@ -41,7 +41,7 @@
     { "id": "n24", "tags": ["faq-new", "regression"], "q": "anong signboard ng jeep papuntang SM?", "expect": { "type": "faq", "faq": "signboard" } },
     { "id": "n25", "tags": ["faq-new"], "q": "what jeepney routes do you have?", "expect": { "type": "faq", "faq": "jeepney_routes", "contains": ["Tanauan"] } },
     { "id": "n26", "tags": ["faq-new"], "q": "saan bumababa ang jeep sa SM?", "expect": { "type": "faq", "faq": "sm_drop_off", "contains": ["Cinema"] } },
-    { "id": "n27", "tags": ["faq-new"], "q": "saan sakayan papuntang Tagaytay?", "expect": { "type": "faq", "faq": "terminal_tagaytay", "contains": ["SM Calamba Inner Rd Terminal"] } },
+    { "id": "n27", "tags": ["faq-new"], "q": "saan sakayan papuntang Tagaytay?", "expect": { "type": "faq", "faq": "terminal_tagaytay", "contains": ["SM Terminal 1"] } },
     { "id": "n28", "tags": ["faq-new"], "q": "saan sakayan papuntang Sta. Rosa?", "expect": { "type": "faq", "faq": "terminal_starosa" } },
     { "id": "n29", "tags": ["faq-new"], "q": "what areas do you cover?", "expect": { "type": "faq", "faq": "coverage_area", "contains": ["Uno", "Real", "Halang"] } },
     { "id": "n30", "tags": ["faq-new"], "q": "sakop ba ang Canlubang?", "expect": { "type": "faq", "faq": "coverage_area" } },
@@ -108,7 +108,7 @@
     { "id": "c03", "tags": ["place", "lang"], "q": "may kainan ba sa Halang?", "expect": { "type": "category_places", "lang": "tl" } },
     { "id": "c04", "tags": ["place"], "q": "hotels near crossing", "expect": { "type": "category_places" } },
 
-    { "id": "t01", "tags": ["route"], "q": "SM to Halang", "expect": { "type": "route_plan", "contains": ["SM City Calamba Transport Terminal", "₱"] } },
+    { "id": "t01", "tags": ["route"], "q": "SM to Halang", "expect": { "type": "route_plan", "contains": ["SM Terminal 2", "₱"] } },
     { "id": "t02", "tags": ["route", "lang"], "q": "paano pumunta sa Puregold Halang galing SM", "expect": { "type": "route_plan", "lang": "tl", "contains": ["₱"] } },
     { "id": "t03", "tags": ["route"], "q": "how much is the fare from SM to Halang", "expect": { "type": "route_plan", "contains": ["₱"] } },
     { "id": "t04", "tags": ["route", "alias"], "q": "galing CMC papuntang Jollibee Real", "expect": { "type": "route_plan" } },
@@ -185,8 +185,8 @@
   "conversations_about": "Multi-turn chats for scripts/test-routie-chat.mjs. Each turn goes through server/routie-chat.js with a stand-in model and the replies so far as history, once with the session cache and once as a cold start (context only). rewrite = what the stand-in returns for the follow-up rewrite (null = an unreadable reply; left out = the message unchanged). expect: contains / notContains (reply text), llm (the answer model was called), rewrite (the rewrite call was made), historySeen (history messages the answer model got), promptContains (text in its system prompt), contextBoard / contextOrigin / contextDest (the context returned).",
   "conversations": [
     { "id": "m01", "about": "The screenshot: route with two terminals, then 'oh, really?'", "lang": "en", "turns": [
-      { "q": "SM papuntang Chicken Joo Halang", "expect": { "llm": false, "contains": ["SM City Calamba Transport Terminal", "Crossing Grand Terminal"] } },
-      { "q": "oh, really?", "expect": { "llm": false, "rewrite": false, "contains": ["Yes, based on Calzada", "SM City Calamba Transport Terminal", "Crossing Grand Terminal", "₱14.00"], "notContains": ["not sure", "don't have"] } }
+      { "q": "SM papuntang Chicken Joo Halang", "expect": { "llm": false, "contains": ["SM Terminal 2", "Crossing Grand Terminal"] } },
+      { "q": "oh, really?", "expect": { "llm": false, "rewrite": false, "contains": ["Yes, based on Calzada", "SM Terminal 2", "Crossing Grand Terminal", "₱14.00"], "notContains": ["not sure", "don't have"] } }
     ] },
     { "id": "m02", "about": "Pick another terminal, then ask the time", "lang": "tl", "turns": [
       { "q": "SM papuntang Chicken Joo Halang", "expect": { "contextBoard": "sm-transport-terminal" } },
@@ -235,7 +235,7 @@
     ] },
     { "id": "m13", "about": "'bakit?' and 'again, why?' after a terminal choice: compared from the plan, not guessed", "lang": "tl", "turns": [
       {"q": "SM papuntang Chicken Joo Halang", "expect": {}},
-      {"q": "bakit?", "expect": {"llm": false, "rewrite": false, "contains": ["Pinakamabilis ang SM City Calamba Transport Terminal", "mas maikli ang biyahe sa jeep", "Pareho ang pamasahe"], "notContains": ["mas malapit ka"]}},
+      {"q": "bakit?", "expect": {"llm": false, "rewrite": false, "contains": ["Pinakamabilis ang SM Terminal 2", "mas maikli ang biyahe sa jeep", "Pareho ang pamasahe"], "notContains": ["mas malapit ka"]}},
       {"q": "again, why?", "expect": {"llm": false, "contains": ["Kumpara sa Crossing Grand Terminal", "Pareho ang pamasahe"]}}
     ] },
     { "id": "m14", "about": "'what did we talk about' knows every trip of the chat, not only the last 6 messages", "lang": "tl", "turns": [

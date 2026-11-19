@@ -477,7 +477,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!map || !isTrafficLayerActive()) return;
                 const s = map.getSource('calzada-traffic');
                 if (!s) return;
-                const freshUrl = `/api/traffic/tile/{z}/{x}/{y}.png?t=${Date.now()}`;
+                // Same URL for everyone in the same minute, so the CDN shares the tile (one TomTom call)
+                const freshUrl = `/api/traffic/tile/{z}/{x}/{y}.png?t=${Math.floor(Date.now() / 60000)}`;
                 if (typeof s.setTiles === 'function') {
                     s.setTiles([freshUrl]);
                 } else if (s.tiles) {
@@ -487,7 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         map.style.sourceCaches['calzada-traffic'].update(map.transform);
                     }
                 }
-            }, 3 * 60 * 1000);
+            }, 60 * 1000);
         };
 
         const stopTrafficTileRefresh = () => {
@@ -1144,7 +1145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = { live: false, reason: 'fetch_failed' };
             }
             if (!data || !data.live) console.info(`[traffic-line] ${key}: plain line (${data && data.reason ? data.reason : 'no data'})`);
-            legColorsCache.set(key, { data, expiresAt: now + 2 * 60 * 1000 });
+            legColorsCache.set(key, { data, expiresAt: now + 55 * 1000 });
             return data;
         }
 
@@ -1172,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
             Object.keys(TRAFFIC_OVERLAYS).forEach((srcId) => syncTrafficOverlay(srcId));
+            startLiveTraffic();
             await refreshTrafficLegColors(token);
         }
 
@@ -1186,7 +1188,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.live && Array.isArray(data.stretches)) {
                     c.travel = TLX.toTravel(data.stretches, c.boardPos, c.alightPos);
                     c.updated = data.updated || null;
-                } else {
+                } else if (!(c.travel && c.updated && Date.now() - Date.parse(c.updated) < 10 * 60 * 1000)) {
+                    // A refresh that fails keeps the last colours for up to 10 min
                     c.travel = null;
                 }
             });
@@ -2030,8 +2033,8 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'sti-calamba', name: 'STI College - Calamba', category: 'schools', full_address: 'Manila S Rd, Calamba, 4027 Laguna', image_path: '../assets/places/sti-college/sti-1.webp' },
             { id: 'saint-benilde', name: 'Saint Benilde International School (Calamba), Inc.', category: 'schools', full_address: 'Brgy. Real, Calamba City, Laguna', image_path: '../assets/places/saint-benilde-international-school/saint-benilde-international-school-1.webp' },
             // Terminals
-            { id: 'sm-transport-term', name: 'SM City Calamba Transport Terminal', category: 'terminals', full_address: 'SM City Calamba Complex (East Side), Calamba City', image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp' },
-            { id: 'sm-calamba-inner-rd-terminal', name: 'SM Calamba Inner Rd Terminal', category: 'terminals', defaultLat: 14.2032625, defaultLng: 121.1547031, full_address: 'SM City Calamba Inner Road (Cinema Side), Brgy. Uno, Calamba City', image_path: '../assets/places/sm-city-calamba/photo.webp' },
+            { id: 'sm-transport-term', name: 'SM Terminal 2', category: 'terminals', full_address: 'SM City Calamba Complex (East Side), Calamba City', image_path: '../assets/places/sm-city-calamba-transport-terminal/sm-city-calamba-transport-terminal-1.webp' },
+            { id: 'sm-calamba-inner-rd-terminal', name: 'SM Terminal 1', category: 'terminals', defaultLat: 14.2032625, defaultLng: 121.1547031, full_address: 'SM City Calamba Inner Road (Cinema Side), Brgy. Uno, Calamba City', image_path: '../assets/places/sm-city-calamba/photo.webp' },
             // Eateries
             { id: 'ding-hao', name: 'Ding Hao', category: 'eateries', full_address: 'National Highway, Brgy. Halang, Calamba City', image_path: '../assets/places/ding-hao/ding-hao-1.webp' },
             { id: 'uncle-johns', name: "Uncle John's", category: 'eateries', full_address: 'Manila S Rd, Calamba City, Laguna', image_path: '../assets/places/uncle-johns/uncle-johns-1.webp' },
@@ -4774,7 +4777,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // ── Traffic leg fetching & in-memory cache (5 min TTL) ──
+        // ── Traffic leg fetching & in-memory cache (110 s, so the 2-minute refresh gets new data) ──
         const trafficLegCache = new Map();
 
         // dir -1: the jeep rides its route's path backwards (other side of the road, other traffic)
@@ -4797,7 +4800,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return { live: false, reason: `http_${res.status}` };
                 }
                 const data = await res.json();
-                trafficLegCache.set(key, { data, expiresAt: now + 5 * 60 * 1000 });
+                trafficLegCache.set(key, { data, expiresAt: now + 110 * 1000 });
                 return data;
             } catch (err) {
                 return { live: false, reason: 'fetch_failed' };
@@ -4823,15 +4826,17 @@ document.addEventListener('DOMContentLoaded', () => {
         function startTrafficNavTracking() {
             stopTrafficNavTracking();
             walkHintDismissed = false;
-            // Traffic colours of the road ahead, and the walk-is-faster check, every 3 min
+            // Traffic colours of the road ahead, and the walk-is-faster check, every minute (not while
+            // the page is hidden; the live-traffic loop catches up when it is back)
             const lineTick = () => {
-                if (!isTrackingArrival) return;
+                if (!isTrackingArrival || document.hidden) return;
+                liveColorsAt = Date.now();
                 refreshTrafficLegColors().then(() => maybeShowWalkHint()).catch((e) => console.warn('[traffic-line] refresh failed:', e));
             };
-            trafficLineTimer = setInterval(lineTick, 3 * 60 * 1000);
+            trafficLineTimer = setInterval(lineTick, LIVE_COLORS_MS);
             setTimeout(lineTick, 15 * 1000);
             trafficNavTimer = setInterval(async () => {
-                if (!isTrackingArrival || !transitOptions || !transitOptions[transitSelected]) return;
+                if (!isTrackingArrival || document.hidden || !transitOptions || !transitOptions[transitSelected]) return;
                 const currentOpt = transitOptions[transitSelected];
                 if (!currentOpt || !currentOpt.legs) return;
                 const jeepLeg = currentOpt.legs.find(l => l.type === 'jeep');
@@ -4855,7 +4860,134 @@ document.addEventListener('DOMContentLoaded', () => {
                         syncNavDisplays();
                     }
                 }
-            }, 5 * 60 * 1000);
+            }, LIVE_ETA_MS);
+        }
+
+        // ── Live traffic while a jeep route is on screen (before the journey starts) ──
+        // Line colours every minute (TomTom flow tiles), jeep times every 2 min (TomTom Routing, which
+        // has the smaller daily budget). Paused while the page is hidden; back on the page it catches up
+        // at once. The cards keep their order and the user's pick; a failed refresh keeps the last data.
+        const LIVE_COLORS_MS = 60 * 1000;
+        const LIVE_ETA_MS = 2 * 60 * 1000;
+        let liveTrafficTimer = null;
+        let liveColorsAt = 0, liveEtaAt = 0, liveTrafficBusy = false;
+
+        const liveTrafficShown = () => selectedMode !== 'walking' && Array.isArray(transitOptions)
+            && transitOptions.length > 0 && trafficLegCtxs.length > 0;
+
+        function startLiveTraffic() {
+            liveColorsAt = liveEtaAt = Date.now();
+            if (!liveTrafficTimer) liveTrafficTimer = setInterval(liveTrafficTick, 15 * 1000);
+        }
+
+        async function liveTrafficTick() {
+            if (document.hidden || liveTrafficBusy) return;
+            if (!liveTrafficShown()) {
+                clearInterval(liveTrafficTimer);
+                liveTrafficTimer = null;
+                return;
+            }
+            const now = Date.now();
+            if (isTrackingArrival) {
+                // The journey has its own timers; this only catches up after the page was hidden
+                if (now - liveColorsAt >= LIVE_COLORS_MS) {
+                    liveColorsAt = now;
+                    refreshTrafficLegColors().then(() => maybeShowWalkHint()).catch((e) => console.warn('[traffic-line] refresh failed:', e));
+                }
+                return;
+            }
+            const dueColors = now - liveColorsAt >= LIVE_COLORS_MS;
+            const dueEta = now - liveEtaAt >= LIVE_ETA_MS;
+            if (!dueColors && !dueEta) return;
+            liveTrafficBusy = true;
+            try {
+                if (dueColors) { liveColorsAt = now; await refreshTrafficLegColors(trafficLegsToken); }
+                if (dueEta) { liveEtaAt = now; await refreshShownTrafficTimes(); }
+            } catch (e) {
+                console.warn('[traffic] live refresh failed:', e);
+            } finally {
+                liveTrafficBusy = false;
+            }
+        }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && liveTrafficTimer) liveTrafficTick(); });
+
+        // Unique jeep legs of the given options, for /api/traffic/leg
+        function trafficLegsOf(opts) {
+            const T = window.CalzadaTransit;
+            const out = [];
+            const seen = new Set();
+            (opts || []).forEach((opt) => (opt && opt.legs || []).forEach((leg) => {
+                if (leg.type !== 'jeep' || !Number.isFinite(leg.fromM) || !Number.isFinite(leg.toM)) return;
+                const dir = T && T.legDir ? T.legDir(leg) : 1;
+                const k = T && T.legKey ? T.legKey(leg.routeId, leg.fromM, leg.toM, dir) : `${leg.routeId}:${leg.fromM}:${leg.toM}`;
+                if (seen.has(k)) return;
+                seen.add(k);
+                out.push({ routeId: leg.routeId, fromM: leg.fromM, toM: leg.toM, dir });
+            }));
+            return out;
+        }
+
+        // The jeep times of the shown trip come from TomTom where it answered: the summary, the transfer
+        // and (through syncSelectedCardTotal) the selected card. true when something changed.
+        function syncShownTrafficTimes() {
+            const opt = transitOptions && transitOptions[transitSelected];
+            if (!opt || selectedMode === 'walking') return false;
+            const jeeps = opt.legs.filter((l) => l.type === 'jeep');
+            let changed = false;
+            if (jeeps[0] && jeeps[0].trafficLive && jeeps[0].min !== currentTransitDur) {
+                currentTransitDur = jeeps[0].min;
+                changed = true;
+            }
+            if (pendingTransfer && jeeps[1] && jeeps[1].trafficLive && pendingTransfer.jeep.min !== jeeps[1].min) {
+                pendingTransfer.jeep.min = jeeps[1].min;
+                pendingTransfer.extraMin = pendingTransfer.waitMin + jeeps[1].min + pendingTransfer.finalWalkMin;
+                changed = true;
+            }
+            return changed;
+        }
+
+        // The selected card shows the same total as the summary (real walks instead of estimates)
+        function syncSelectedCardTotal(opt) {
+            const fw = getFinalWalkInfo();
+            const total = currentWalkDur + currentTransitDur + (fw.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
+            const walkM = currentWalkDist * 1000 + (fw.finalWalkM || 0) + (pendingTransfer ? pendingTransfer.finalWalkM : 0);
+            if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionActual(transitSelected, total, walkM);
+            // Terminal choice: the map pin of the picked terminal shows the same time as its card
+            if (terminalTC && opt && transitOptions[transitSelected] === opt && Number.isFinite(total)) opt.totalMin = total;
+        }
+
+        // New TomTom times into the options on screen: same order, same pick, same tags; each card's
+        // total moves by its jeep time change (the walks it shows stay)
+        function applyTrafficToShown(trafficMap) {
+            const T = window.CalzadaTransit;
+            if (!trafficMap || !T || !T.retimeOption || !transitOptions || !transitOptions.length) return;
+            if (!Object.values(trafficMap).some((d) => d && d.live)) return; // nothing new: keep the times shown
+            const jeepMin = (o) => o.legs.filter((l) => l.type === 'jeep').reduce((s, l) => s + l.min, 0);
+            const prev = transitOptions;
+            transitOptions = prev.map((o) => {
+                const r = T.retimeOption(o, trafficMap);
+                return { ...r, tags: o.tags, totalMin: o.totalMin + jeepMin(r) - jeepMin(o) };
+            });
+            if (terminalTC) terminalTC.choices.forEach((c, i) => { if (c.option && transitOptions[i]) c.option = transitOptions[i]; });
+            renderTransitOptionsUI();
+            if (transitOptions[transitSelected]) {
+                syncShownTrafficTimes();
+                updateSummaryRow();
+                renderItinerary();
+                syncSelectedCardTotal(transitOptions[transitSelected]);
+            }
+            // The map pins show each terminal's minutes too: keep them in step with the cards
+            if (terminalTC) drawTerminalPins();
+        }
+
+        async function refreshShownTrafficTimes() {
+            const opts = transitOptions, odKey = transitODKey;
+            const legs = trafficLegsOf(opts);
+            if (!legs.length) return;
+            const trafficMap = await fetchTrafficForLegs(legs);
+            // The trip changed or the journey started while the data was on its way
+            if (opts !== transitOptions || odKey !== transitODKey || isTrackingArrival) return;
+            applyTrafficToShown(trafficMap);
         }
 
         function stopTrafficNavTracking() {
@@ -4918,17 +5050,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     trafficPromise.then((trafficMap) => {
                         if (!trafficMap) return;
                         const currKey = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
-                        if (currKey !== transitODKey) return;
-                        if (transitOptions && transitOptions.length) {
-                            transitOptions = transitOptions.map(o => (T.retimeOption ? T.retimeOption(o, trafficMap) : o));
-                            renderTransitOptionsUI();
-                            if (transitOptions[transitSelected]) {
-                                const active = transitOptions[transitSelected];
-                                currentTransitDur = active.legs.filter(l => l.type === 'jeep').reduce((s, l) => s + l.min, 0);
-                                updateSummaryRow();
-                                renderItinerary();
-                            }
-                        }
+                        if (currKey !== transitODKey || terminalTC) return;
+                        applyTrafficToShown(trafficMap);
                     }).catch(e => console.warn('[traffic] Background leg retime failed:', e));
                 }
 
@@ -5036,16 +5159,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!trafficMap || !terminalTC) return;
                     const currKey = [oPt, dPt].map(p => `${p[0].toFixed(3)},${p[1].toFixed(3)}`).join('|');
                     if (currKey !== transitODKey) return;
-                    terminalTC.choices.forEach(c => {
-                        if (c.option && T.retimeOption) c.option = T.retimeOption(c.option, trafficMap);
-                    });
-                    transitOptions = terminalTC.choices.map(c => c.option);
-                    renderTransitOptionsUI();
-                    if (transitOptions[transitSelected]) {
-                        currentTransitDur = transitOptions[transitSelected].legs.filter(l => l.type === 'jeep').reduce((s, l) => s + l.min, 0);
-                        updateSummaryRow();
-                        renderItinerary();
-                    }
+                    applyTrafficToShown(trafficMap);
                 }).catch(e => console.warn('[traffic] Background terminal retime failed:', e));
             }
 
@@ -5462,13 +5576,12 @@ document.addEventListener('DOMContentLoaded', () => {
             drawTransitMarkers();
             setTrafficLegs(opt);
 
-            // The selected card shows the same total as the summary (real walks instead of estimates)
-            const fw = getFinalWalkInfo();
-            const total = currentWalkDur + currentTransitDur + (fw.finalWalkMin || 0) + (pendingTransfer ? pendingTransfer.extraMin : 0);
-            const walkM = currentWalkDist * 1000 + (fw.finalWalkM || 0) + (pendingTransfer ? pendingTransfer.finalWalkM : 0);
-            if (window.CalzadaTransitUI) window.CalzadaTransitUI.setOptionActual(transitSelected, total, walkM);
-            // Terminal choice: the map pin of the picked terminal shows the same time as its card
-            if (terminalTC && transitOptions[transitSelected] === opt && Number.isFinite(total)) opt.totalMin = total;
+            // TomTom's jeep times, where it answered, in the summary and the itinerary too
+            if (transitOptions[transitSelected] === opt && syncShownTrafficTimes()) {
+                updateSummaryRow();
+                renderItinerary();
+            }
+            syncSelectedCardTotal(opt);
         }
 
         // ── Labelled stops on the map: where to get on, off, and on the next jeep ──
@@ -5750,7 +5863,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // A local trip (both ends in or by Uno / Real / Halang) with no curated trip: walk. Every jeep that
             // runs there is in the route data, so the guessed ride below (a car route turned into a jeep) would
-            // put a jeep where none runs, e.g. from SM Transport Terminal up Sampaguita St, Elepaño and down
+            // put a jeep where none runs, e.g. from SM Terminal 2 up Sampaguita St, Elepaño and down
             // Chipeco Ave to Halang (Drei, Nov 19 2026: no jeep passes there)
             const Tl = window.CalzadaTransit;
             if (Tl && Tl.isReady && Tl.isReady() && Tl.isLocal && Tl.isLocal(oPt) && Tl.isLocal(dPt)) {
@@ -11655,6 +11768,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         "sm-city-calamba": "sm-city-calamba",
                         "sm city calamba transport terminal": "sm-transport-term",
                         "sm transport terminal": "sm-transport-term",
+                        "sm terminal 2": "sm-transport-term",
+                        "sm terminal 1": "sm-calamba-inner-rd-terminal",
                         "sm calamba inner rd terminal": "sm-calamba-inner-rd-terminal",
                         "sm calamba inner road terminal": "sm-calamba-inner-rd-terminal",
                         "sm inner rd terminal": "sm-calamba-inner-rd-terminal",
@@ -11880,7 +11995,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // No active journey: bring back the last route preview (as before)
+            // No active journey: bring back the last route preview (as before), unless this page was
+            // opened with a route link: then the link's trip wins over the stale preview
+            try {
+                const params = new URL(window.location.href).searchParams;
+                if (ROUTE_URL_PARAMS.some(k => params.has(k))) return;
+            } catch (_) { /* URL API unavailable: fall back to the saved preview */ }
             const raw = sessionStorage.getItem('calzada_journey');
             if (!raw) return;
             let state;

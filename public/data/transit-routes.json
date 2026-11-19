@@ -14,21 +14,21 @@
       "name_tl": "SM Calamba (tabi ng SM Cinema)",
       "lat": 14.203297,
       "lng": 121.154669,
-      "note": "Driveway on SM City Calamba's west side (SM City Calamba Bypass Road), by SM Cinema and Starbucks. Jeeps drop passengers here for SM; the SM Calamba Inner Rd Terminal is here too (Google: 'Calamba-Tagaytay Terminal', plus code 6533+8V4)."
+      "note": "Driveway on SM City Calamba's west side (SM City Calamba Bypass Road), by SM Cinema and Starbucks. Jeeps drop passengers here for SM; SM Terminal 1 is here too (Google: 'Calamba-Tagaytay Terminal', plus code 6533+8V4)."
     },
     "calamba-tagaytay-terminal": {
-      "name": "SM Calamba Inner Rd Terminal",
-      "name_tl": "SM Calamba Inner Rd Terminal",
+      "name": "SM Terminal 1",
+      "name_tl": "SM Terminal 1",
       "lat": 14.2032625,
       "lng": 121.1547031,
-      "note": "SM Calamba Inner Rd Terminal by SM Cinema on SM City Calamba's west inner road (Google: 'Calamba-Tagaytay Terminal', plus code 6533+8V4). Terminal papuntang Real (jeeps to Tanauan via Real load here)."
+      "note": "SM Terminal 1, by Starbucks and SM Cinema on SM City Calamba's west inner road (Google: 'Calamba-Tagaytay Terminal', plus code 6533+8V4). Terminal papuntang Real (jeeps to Tanauan via Real load here)."
     },
     "sm-transport-terminal": {
-      "name": "SM City Calamba Transport Terminal",
-      "name_tl": "SM City Calamba Transport Terminal",
+      "name": "SM Terminal 2",
+      "name_tl": "SM Terminal 2",
       "lat": 14.202953,
       "lng": 121.15715,
-      "note": "SM City Calamba Transport Terminal, east side of SM City Calamba. Terminal papuntang Halang (at Los Baños/UPLB)."
+      "note": "SM Terminal 2, by the National Highway (east side of SM City Calamba). Terminal papuntang Halang (at Los Baños/UPLB)."
     },
     "new-calamba-transport-terminal": {
       "name": "New Calamba Transport Terminal",
@@ -243,7 +243,7 @@
       "id": "calamba-uplb",
       "mode": "jeepney",
       "name": "Calamba – Los Baños (UPLB)",
-      "from": "SM Transport Terminal",
+      "from": "SM Terminal 2",
       "to": "Los Baños (UPLB)",
       "polyline": "qc{aZ{`zafFA}R}H{TpwB}{AffAes@f}Bi_Br`Ast@b`Go|E|p@kl@v_Aot@ncBa{Ar~BogBjjAot@dm@uUlMiJjE}EtbAkoBz`EgfHbe@k{@bwBehFli@oyAvc@}gA|m@kvArTs`@bQ_XrzAc|B|i@mv@jIsOhFmPt@eSu@e`@aFcaAcCkSoK_uAuBoi@qAmr@r@iXjb@enCpD{OlAoDzKuPjh@qq@pGqOdDkQlXcyBdCoLpRkp@jMo^zN_[nF}Px@{FHoRiSqqAw@{Mr@qVtCsWiAuRqMch@qI}MqIqEqTyHor@yQmPuHiI}FwHyK}BkFqA}IMyKtQc~DkE{Uki@uaBk[weAqNq_@cT}Ps{@yf@uk@oYuM}IgG_J_FeOmU_~AeYw{AiEqKuPiYmMaM{JsG}ViLwh@yMay@oOeNmI{M_JgJy\\oDuS_HygGbAymCfAcJvDmOzcAa_CrI{TnNef@`\\csAtF}ZtB}QpEu_AnGcaA~Dab@lTo~AxuCwg@bbByUloA_AjvAJhLuAfYiHnwAol@hUmIpFk@rG^xDpAxaBx|@nIyOlD{Bdv@eVzp@qWtl@sQbVcJxUcLx\\yKpX{Kv\\oRjZkSdp@k[hDhCjEx@pEnJ`_@r}@~@lFdOd]l]t_Am@vDmAbBc]tUoW|N",
       "stops": [
@@ -263,7 +263,7 @@
         "headsign": "UPLB"
       },
       "reverse": false,
-      "notes": "Outbound to Los Baños on the National Highway through Halang (Drei: riding it to Halang is fine). Loading point at SM assumed to be SM Transport Terminal, like the Halang jeeps (to confirm).",
+      "notes": "Outbound to Los Baños on the National Highway through Halang (Drei: riding it to Halang is fine). Loading point at SM assumed to be SM Terminal 2, like the Halang jeeps (to confirm).",
       "verified": {
         "flow": true,
         "signboard": false,
@@ -275,7 +275,7 @@
       "id": "calamba-halang",
       "mode": "jeepney",
       "name": "SM Calamba – Halang",
-      "from": "SM Transport Terminal",
+      "from": "SM Terminal 2",
       "to": "Halang",
       "polyline": "qc{aZ{`zafFA}R}H{TpwB}{AffAes@f}Bi_BzcAiw@tmBq~A",
       "stops": [
@@ -297,7 +297,7 @@
       "reverse": {
         "headsign": "SM Calamba"
       },
-      "notes": "Loads at SM Transport Terminal. Where it ends past Halang is not recorded yet; the path stops at Halang.",
+      "notes": "Loads at SM Terminal 2. Where it ends past Halang is not recorded yet; the path stops at Halang.",
       "verified": {
         "flow": true,
         "signboard": false,
@@ -308,7 +308,7 @@
       "id": "calamba-tanauan",
       "mode": "jeepney",
       "name": "Calamba – Tanauan",
-      "from": "SM Calamba Inner Rd Terminal",
+      "from": "SM Terminal 1",
       "to": "Tanauan",
       "polyline": "{v{aZ}guafFdd@u[}^s~@}{A|y@e@n@HzChGlLaUrOaGkGeDdDk@~DbXlG|MhJvfAz{@vp@zm@~\\zU~lBdkAlGdEfJvJl]vl@l_ChpEdg@pz@txBl_DtmAh}A~~@`vAfYb_@fRjS`\\vX|_@dYzlAbz@b^vT``@lPf[nJ|m@dKtd@rCtk@MfcUeo@tdWmq@~oAwApm@xA~T~Ap`@jDvd@`GnaVjgDp`@`Ebj@hDxc@l@zGfAnd@Qp_DcQnYy@ha@ZzPiAflAvCdpF_i@lt@qIjb@qGlkHgwAxr@iLzSuB|Kz~@hFfUjHpNnLhLfKrFtMlAhMPh|A_Mzi@Npi@`FhQ|E`i@vSv^vL",
       "stops": [
@@ -331,7 +331,7 @@
       "reverse": {
         "headsign": "SM Calamba"
       },
-      "notes": "Passes Real on the way to Tanauan. Loads at the SM Calamba Inner Rd Terminal by SM Cinema (west side of SM, out to Crossing), then down Real Road / National Highway 1 past Real. The path ends on Maharlika Highway past Turbina; the Batangas part comes later.",
+      "notes": "Passes Real on the way to Tanauan. Loads at SM Terminal 1 (by Starbucks and SM Cinema) (west side of SM, out to Crossing), then down Real Road / National Highway 1 past Real. The path ends on Maharlika Highway past Turbina; the Batangas part comes later.",
       "verified": {
         "flow": true,
         "signboard": "forward",

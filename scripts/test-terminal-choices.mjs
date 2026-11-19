@@ -41,7 +41,7 @@ check('SM -> Jollibee Real: recommended has the lowest cost', real && real.choic
 
 const hal = P.terminalChoices(SM, CHICKEN_JOO);
 check('SM -> Chicken Joo Halang: 2 terminals', hal && hal.choices.length === 2, names(hal));
-check('SM -> Chicken Joo Halang: SM Transport Terminal recommended', hal && hal.choices[0].stopId === 'sm-transport-terminal');
+check('SM -> Chicken Joo Halang: SM Terminal 2 recommended', hal && hal.choices[0].stopId === 'sm-transport-terminal');
 
 check('Destination in Uno: no choice', P.terminalChoices(SM, JOLLIBEE_CROSSING) === null);
 check('Origin next to Jollibee Real: no choice', P.terminalChoices([14.1957, 121.1442], JOLLIBEE_REAL) === null);
@@ -96,12 +96,12 @@ const b3Real = P.terminalChoices(BRGY3, JOLLIBEE_REAL);
 check('Barangay 3 -> Jollibee Real: 3 terminals to walk to', b3Real && b3Real.choices.length === 3 && b3Real.area === 'Real', names(b3Real));
 check('Barangay 3 -> Jollibee Real: walk, then one jeep from the picked terminal', walksToTerminal(b3Real));
 const b5Halang = P.terminalChoices(BRGY5, CHICKEN_JOO);
-check('Barangay 5 -> Chicken Joo Halang: 2 terminals, SM Transport Terminal recommended', b5Halang && b5Halang.choices.length === 2 && b5Halang.choices[0].stopId === 'sm-transport-terminal', names(b5Halang));
+check('Barangay 5 -> Chicken Joo Halang: 2 terminals, SM Terminal 2 recommended', b5Halang && b5Halang.choices.length === 2 && b5Halang.choices[0].stopId === 'sm-transport-terminal', names(b5Halang));
 check('Barangay 5 -> Chicken Joo Halang: walk, then one jeep from the picked terminal', walksToTerminal(b5Halang));
 check('San Juan -> Jollibee Real: terminals over 2.5 km away, walk', P.plan(SAN_JUAN, JOLLIBEE_REAL).length === 0 && P.terminalChoices(SAN_JUAN, JOLLIBEE_REAL) === null);
 // Other places a terminal's jeep reaches (no picker): plan() boards at that terminal
 const b3Uplb = P.plan(BRGY3, [14.1675, 121.2433]);
-check('Barangay 3 -> UPLB: walk to SM Transport Terminal, then the UPLB jeep', b3Uplb.length > 0 && b3Uplb.every((o) => firstJeep(o).board.stopId === 'sm-transport-terminal'),
+check('Barangay 3 -> UPLB: walk to SM Terminal 2, then the UPLB jeep', b3Uplb.length > 0 && b3Uplb.every((o) => firstJeep(o).board.stopId === 'sm-transport-terminal'),
     b3Uplb.map((o) => `${firstJeep(o).routeId}@${firstJeep(o).board.stopId}`).join(' | '));
 // Every poblacion -> anywhere option: boards at a listed stop, the terminal is nearer than the destination,
 // and the trip beats walking all the way by MUCH_FASTER_MIN (5 min)

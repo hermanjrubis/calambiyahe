@@ -70,8 +70,10 @@ const CURATED = {
     'halang-elementary': { common: ['halang elementary', 'halang elem', 'halang es'], confirm: [] },
     'crossing-elementary-school': { common: ['crossing elementary', 'crossing elem', 'crossing es'], confirm: [] },
     'new-calamba-transport-terminal': { common: ['new calamba transport terminal', 'new calamba terminal', 'cmc terminal'], confirm: ['nct'] },
-    'sm-calamba-inner-rd-terminal': { common: ['sm inner rd terminal', 'inner rd terminal', 'inner road terminal', 'sm inner road terminal', 'tagaytay terminal'], confirm: [] },
-    'sm-transport-term': { common: ['sm transport terminal', 'sm terminal', 'sm calamba transport terminal'], confirm: [] },
+    // SM Terminal 1 (by Starbucks) was "SM Calamba Inner Rd Terminal"; SM Terminal 2 (by the National
+    // Highway) was "SM City Calamba Transport Terminal" (renamed Nov 2026): the old names stay as aliases
+    'sm-calamba-inner-rd-terminal': { common: ['sm terminal 1', 'terminal 1', 'sm starbucks terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'inner rd terminal', 'inner road terminal', 'sm inner road terminal', 'tagaytay terminal'], confirm: [] },
+    'sm-transport-term': { common: ['sm terminal 2', 'terminal 2', 'sm city calamba transport terminal', 'sm city transport terminal', 'sm transport terminal', 'sm terminal', 'sm calamba transport terminal'], confirm: [] },
     'lli-bus-terminal': { common: ['lli', 'lli bus', 'lli terminal', 'lli bus terminal'], confirm: [] },
     'hm-transport-inc': { common: ['hm transport', 'hm bus'], confirm: [] },
     'saint-rose-transit': { common: ['saint rose transit', 'st rose transit'], confirm: [] },

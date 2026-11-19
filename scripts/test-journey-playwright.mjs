@@ -1,7 +1,7 @@
 // scripts/test-journey-playwright.mjs
 // The real planner page through two trips, with made-up GPS fixes fed one per (fake) second:
 //   A. Walk to the National Highway, wait, flag a jeep to SM City Calamba, ride, walk to the place
-//   B. Wait 12 min at the SM City Calamba Transport Terminal for a jeep to Halang, then ride
+//   B. Wait 12 min at the SM Terminal 2 for a jeep to Halang, then ride
 // At every journey state change it records the state, the next direction, the bottom line and the
 // highlighted itinerary row, and takes a phone screenshot (scratch/journey-*.png).
 // Run: node scripts/test-journey-playwright.mjs
@@ -242,13 +242,13 @@ try {
     check(!!(a.trace && a.trace.chip) && tr && tr.legs && tr.legs.jeep.length > 1 && tr.fixes.length > 500 && tr.fixes.some((f) => f.state === 'riding'),
         'Highway: the trip recorder (?trace=1) shows its chip and keeps the fixes, states and lines', a.trace ? `${a.trace.chip} · ${tr ? tr.fixes.length : 0} fixes` : 'no trace');
 
-    // B. Near the SM City Calamba Transport Terminal, to Halang: a 12-minute wait until the jeep fills
+    // B. Near the SM Terminal 2, to Halang: a 12-minute wait until the jeep fills
     const TERM = [14.202953, 121.15715];
     const originB = offsetPt(TERM, 90, 60);
     const CHICKEN_JOO = [14.197064, 121.162786];
-    const b = await runTrip(browser, 'terminal', trip(originB, 'Near SM Transport Terminal', CHICKEN_JOO, 'Chicken Joo Halang'), {
+    const b = await runTrip(browser, 'terminal', trip(originB, 'Near SM Terminal 2', CHICKEN_JOO, 'Chicken Joo Halang'), {
         waitSec: 720,
-        pickTerminal: 'SM City Calamba Transport Terminal',
+        pickTerminal: 'SM Terminal 2',
         expectItinerary: (txt) => check(/Wait about 10–15 min/.test(txt) && /Jeeps leave when full/.test(txt), 'Terminal: the itinerary has the wait row (about 10–15 min)', txt.slice(0, 300))
     });
     const phasesB = b.seen.map((s) => s.phase);

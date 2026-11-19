@@ -146,22 +146,22 @@ const FAQS = [
             'mga terminal sa calamba', 'saan ang mga terminal', 'saan sasakay',
             'terminals in calamba', 'anong mga terminal', 'anong terminal',
             'ano ang mga terminal', 'terminal sa calamba', 'inner rd terminal',
-            'sm inner rd terminal', 'sm transport terminal'
+            'sm inner rd terminal', 'sm transport terminal', 'sm terminal 1', 'sm terminal 2'
         ],
         en: `In Calzada, "Suggested Terminals" helps commuters choose the best boarding terminal for destinations served by multiple hubs (such as Brgy. Real and Brgy. Halang):
 
 • For Brgy. Real destinations:
-  - SM Calamba Inner Rd Terminal (Terminal papuntang Real, Cinema side) [Recommended / Fastest]
+  - SM Terminal 1 (Terminal papuntang Real, by Starbucks and SM Cinema) [Recommended / Fastest]
   - Crossing Grand Terminal (North of Crossing triangle)
   - New Calamba Transport Terminal (near CMC Avenue)
 
 • For Brgy. Halang destinations:
-  - SM City Calamba Transport Terminal (Terminal papuntang Halang, East side) [Recommended]
+  - SM Terminal 2 (Terminal papuntang Halang, by the National Highway) [Recommended]
   - Crossing Grand Terminal (North of Crossing triangle)
 
 Key Curated Terminals in Calamba:
-1. SM City Calamba Transport Terminal (East side): Terminal papuntang Halang at Los Baños (UPLB).
-2. SM Calamba Inner Rd Terminal (West inner road by SM Cinema): Terminal papuntang Real (jeeps to Tanauan via Real).
+1. SM Terminal 1 (by Starbucks and SM Cinema, west side of SM): Terminal papuntang Real (jeeps to Tanauan via Real).
+2. SM Terminal 2 (by the National Highway, east side of SM): Terminal papuntang Halang at Los Baños (UPLB).
 3. Crossing Grand Terminal: Boarding for jeeps to Real, Halang, and Sta. Rosa.
 4. New Calamba Transport Terminal (near CMC): Boarding for jeeps to Real.
 
@@ -169,17 +169,17 @@ When using the Planner, if you are within 60 meters of any terminal, it automati
         tl: `Sa Calzada, ang "Suggested Terminals" ay tumutulong sa commuter na pumili ng pinakamabilis o pinakamalapit na sakayan para sa mga rutang may iba't ibang terminal (tulad ng papuntang Brgy. Real at Brgy. Halang):
 
 • Papuntang Brgy. Real:
-  - SM Calamba Inner Rd Terminal (Terminal papuntang Real, Cinema side) [Recommended / Pinakamabilis]
+  - SM Terminal 1 (Terminal papuntang Real, tabi ng Starbucks at SM Cinema) [Recommended / Pinakamabilis]
   - Crossing Grand Terminal (Hilaga ng Crossing triangle)
   - New Calamba Transport Terminal (malapit sa CMC Avenue)
 
 • Papuntang Brgy. Halang:
-  - SM City Calamba Transport Terminal (Terminal papuntang Halang, East side) [Recommended]
+  - SM Terminal 2 (Terminal papuntang Halang, tabi ng National Highway) [Recommended]
   - Crossing Grand Terminal (Hilaga ng Crossing triangle)
 
 Pangunahing verified terminals sa Calamba:
-1. SM City Calamba Transport Terminal (East side): Terminal papuntang Halang at Los Baños (UPLB).
-2. SM Calamba Inner Rd Terminal (West inner road tabi ng SM Cinema): Terminal papuntang Real (sakayan ng jeep papuntang Tanauan via Real).
+1. SM Terminal 1 (tabi ng Starbucks at SM Cinema, west side ng SM): Terminal papuntang Real (sakayan ng jeep papuntang Tanauan via Real).
+2. SM Terminal 2 (tabi ng National Highway, east side ng SM): Terminal papuntang Halang at Los Baños (UPLB).
 3. Crossing Grand Terminal: Sakayan ng jeep papuntang Real, Halang, at Sta. Rosa.
 4. New Calamba Transport Terminal (malapit sa CMC): Sakayan ng jeep papuntang Real.
 
@@ -192,8 +192,8 @@ Sa Calzada Planner, kapag nasa loob ka ng 60 metro mula sa terminal, awtomatiko 
             'saan sasakay papuntang real', 'saan ang sakayan papuntang real', 'saan ang terminal papuntang real',
             'paano sumakay papuntang real', 'saan terminal papuntang real'
         ],
-        en: 'The primary terminal for Brgy. Real is the SM Calamba Inner Rd Terminal (located by SM Cinema on the west inner road of SM City Calamba, jeeps to Tanauan via Real). You can also board at Crossing Grand Terminal (north of Crossing triangle) or New Calamba Transport Terminal (near CMC Avenue).',
-        tl: 'Ang pangunahing sakayan papuntang Brgy. Real ay ang SM Calamba Inner Rd Terminal (nasa SM Cinema side / west inner road ng SM City Calamba, sakayan ng jeep pa-Tanauan via Real). Maaari ka ring sumakay sa Crossing Grand Terminal o New Calamba Transport Terminal (malapit sa CMC Avenue).'
+        en: 'The primary terminal for Brgy. Real is SM Terminal 1 (by Starbucks and SM Cinema on the west side of SM City Calamba, jeeps to Tanauan via Real). You can also board at Crossing Grand Terminal (north of Crossing triangle) or New Calamba Transport Terminal (near CMC Avenue).',
+        tl: 'Ang pangunahing sakayan papuntang Brgy. Real ay ang SM Terminal 1 (tabi ng Starbucks at SM Cinema sa west side ng SM City Calamba, sakayan ng jeep pa-Tanauan via Real). Maaari ka ring sumakay sa Crossing Grand Terminal o New Calamba Transport Terminal (malapit sa CMC Avenue).'
     },
     {
         id: 'terminal_halang',
@@ -202,8 +202,8 @@ Sa Calzada Planner, kapag nasa loob ka ng 60 metro mula sa terminal, awtomatiko 
             'saan sasakay papuntang halang', 'saan ang sakayan papuntang halang', 'saan ang terminal papuntang halang',
             'paano sumakay papuntang halang', 'saan terminal papuntang halang'
         ],
-        en: 'The primary terminal for Brgy. Halang is the SM City Calamba Transport Terminal (located on the east side of SM City Calamba, jeeps to Halang and Los Baños/UPLB). You can also board at Crossing Grand Terminal (north of Crossing triangle).',
-        tl: 'Ang pangunahing sakayan papuntang Brgy. Halang ay ang SM City Calamba Transport Terminal (nasa east side ng SM City Calamba, sakayan ng jeep pa-Halang at Los Baños/UPLB). Maaari ka ring sumakay sa Crossing Grand Terminal (hilaga ng Crossing triangle).'
+        en: 'The primary terminal for Brgy. Halang is SM Terminal 2 (by the National Highway on the east side of SM City Calamba, jeeps to Halang and Los Baños/UPLB). You can also board at Crossing Grand Terminal (north of Crossing triangle).',
+        tl: 'Ang pangunahing sakayan papuntang Brgy. Halang ay ang SM Terminal 2 (tabi ng National Highway sa east side ng SM City Calamba, sakayan ng jeep pa-Halang at Los Baños/UPLB). Maaari ka ring sumakay sa Crossing Grand Terminal (hilaga ng Crossing triangle).'
     }
 ];
 
@@ -217,18 +217,18 @@ const TERMINALS_INFO = [
         note: 'Located on the west side of National Highway 1, north of the Crossing triangle. Boarding terminal for jeeps to Real and Halang. Jeeps from Sta. Rosa drop off passengers here.'
     },
     {
-        name: 'SM City Calamba Transport Terminal',
-        aliases: ['sm transport terminal', 'sm calamba transport terminal', 'sm city calamba transport terminal', 'sm calamba terminal', 'sm terminal', 'sm east terminal', 'terminal papuntang halang', 'sm terminal halang', 'sakayan papuntang halang'],
+        name: 'SM Terminal 2',
+        aliases: ['sm terminal 2', 'terminal 2', 'sm terminal two', 'sm transport terminal', 'sm calamba transport terminal', 'sm city calamba transport terminal', 'sm calamba terminal', 'sm terminal', 'sm east terminal', 'terminal papuntang halang', 'sm terminal halang', 'sakayan papuntang halang'],
         barangay: 'Uno',
         coords: [14.202953, 121.15715],
-        note: 'Located on the east side of SM City Calamba. Terminal papuntang Halang at Los Baños (UPLB).'
+        note: 'By the National Highway, on the east side of SM City Calamba (formerly called SM City Calamba Transport Terminal). Terminal papuntang Halang at Los Baños (UPLB).'
     },
     {
-        name: 'SM Calamba Inner Rd Terminal',
-        aliases: ['calamba tagaytay terminal', 'tagaytay terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'uv terminal sm', 'sm cinema terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
+        name: 'SM Terminal 1',
+        aliases: ['sm terminal 1', 'terminal 1', 'sm terminal one', 'sm starbucks terminal', 'calamba tagaytay terminal', 'tagaytay terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'uv terminal sm', 'sm cinema terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
         barangay: 'Uno',
         coords: [14.2032625, 121.1547031],
-        note: 'Located along SM City Calamba inner road / bypass road by SM Cinema (Google: "Calamba-Tagaytay Terminal"). Terminal papuntang Real (jeeps to Tanauan via Real load here).'
+        note: 'By Starbucks and SM Cinema, on the inner road / bypass road on the west side of SM City Calamba (formerly called SM Calamba Inner Rd Terminal; Google: "Calamba-Tagaytay Terminal"). Terminal papuntang Real (jeeps to Tanauan via Real load here).'
     },
     {
         name: 'SM Calamba (Cinema side Drop-off)',

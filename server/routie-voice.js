@@ -18,7 +18,7 @@ const OK_LANGUAGES = new Set(['english', 'tagalog', 'filipino', 'en', 'tl', 'fil
 
 // What Routie hears most: names and words only. No example sentences: Whisper echoes prompt sentences into short or
 // cut-off audio (a live preview ending in "Saan?" that nobody said). Kept short (Whisper reads ~224 tokens of prompt).
-const VOICE_PROMPT = 'Hi Routie! Calzada, Calamba, Laguna, SM City Calamba, Crossing Grand Terminal, SM City Calamba Transport Terminal, '
+const VOICE_PROMPT = 'Hi Routie! Calzada, Calamba, Laguna, SM City Calamba, Crossing Grand Terminal, SM Terminal 1, SM Terminal 2, '
     + 'New Calamba Transport Terminal, Calamba Medical Center, Calamba City Hall, Chicken Joo, Jollibee, Mang Inasal, Andok\'s, '
     + 'Puregold, Mercury Drug, 7-Eleven, Barangay Uno, Real, Halang, Crossing, jeep, jeepney, pamasahe, papuntang, sasakay, '
     + 'terminal, student, senior.';
@@ -125,12 +125,13 @@ function similarity(a, b) {
 
 // The names a commuter says: the short form of each place name ("Chicken Joo – Halang" → "Chicken Joo"),
 // the terminals and the barangays in Calzada's coverage
-const EXTRA_NAMES = ['SM City Calamba', 'Crossing Grand Terminal', 'SM City Calamba Transport Terminal', 'New Calamba Transport Terminal',
+const EXTRA_NAMES = ['SM City Calamba', 'Crossing Grand Terminal', 'SM Terminal 1', 'SM Terminal 2', 'New Calamba Transport Terminal',
     'Calamba Medical Center', 'Calamba', 'Calzada', 'Routie', 'Halang', 'Crossing', 'Lecheria', 'Parian'];
 
 // How some names are said out loud ("seven eleven" for 7-Eleven)
 const SPOKEN = { 'seven eleven': '7-Eleven', 'mc donalds': "McDonald's", 'mcdonalds': "McDonald's", 'mcdo': "McDonald's",
     'mc do': "McDonald's", 'jabee': 'Jollibee', 'mercury': 'Mercury Drug',
+    'sm terminal one': 'SM Terminal 1', 'sm terminal two': 'SM Terminal 2',
     // Routie's own name as Whisper writes it
     'ruti': 'Routie', 'rooti': 'Routie', 'routi': 'Routie', 'routy': 'Routie', 'ruty': 'Routie', 'rauti': 'Routie',
     'rowti': 'Routie', 'rooty': 'Routie', 'ruoti': 'Routie', 'route e': 'Routie', 'root e': 'Routie' };
@@ -159,7 +160,7 @@ function correctPlaceNames(text, lexicon) {
     tokens.forEach((t, i) => { if (t.trim()) words.push({ i, t }); });
     const corrections = [];
     const used = new Set();
-    // Longest names first, so "SM City Calamba Transport Terminal" wins over "SM City Calamba"
+    // Longest names first, so "New Calamba Transport Terminal" wins over "Calamba"
     const entries = [...lexicon].sort((a, b) => b.words - a.words || b.norm.length - a.norm.length);
     for (const entry of entries) {
         const len = entry.words;
@@ -177,6 +178,9 @@ function correctPlaceNames(text, lexicon) {
             // An ordinary word at either end must be the name's own word there ("... terminal" in "Crossing Grand Terminal")
             const nw = n.split(' '), ew = entry.norm.split(' ');
             if (len > 1 && ((COMMON.has(nw[0]) && nw[0] !== ew[0]) || (COMMON.has(nw[len - 1]) && nw[len - 1] !== ew[len - 1]))) continue;
+            // Numbers are never misheard spellings: "SM Terminal 2" is not a slip for "SM Terminal 1"
+            if ((n.match(/\d+/g) || []).join(' ') !== (entry.norm.match(/\d+/g) || []).join(' ')) continue;
+            if (/^(one|two|three|four)$/.test(ew[len - 1]) && nw[len - 1] !== ew[len - 1]) continue;
             const key = soundKey(n);
             if (key[0] !== entry.key[0]) continue;
             const sim = similarity(key, entry.key);

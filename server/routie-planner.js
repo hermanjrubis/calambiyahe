@@ -70,11 +70,11 @@ function haversineDistM(a, b) {
 // ── Known Terminals in Calamba ──────────────────────────────────────────
 const KNOWN_TERMINALS = [
     {
-        name: 'SM City Calamba Transport Terminal',
-        aliases: ['sm transport terminal', 'sm calamba terminal', 'sm terminal', 'sm east terminal', 'sm sakayan', 'sm city calamba transport terminal', 'terminal papuntang halang', 'sm terminal halang', 'sakayan papuntang halang'],
+        name: 'SM Terminal 2',
+        aliases: ['sm terminal 2', 'terminal 2', 'sm terminal two', 'sm transport terminal', 'sm calamba terminal', 'sm terminal', 'sm east terminal', 'sm sakayan', 'sm city calamba transport terminal', 'terminal papuntang halang', 'sm terminal halang', 'sakayan papuntang halang'],
         barangay: 'Uno',
         coords: [14.202953, 121.15715],
-        note: 'East side of SM City Calamba. Terminal papuntang Halang at Los Baños (UPLB).'
+        note: 'By the National Highway, east side of SM City Calamba (formerly SM City Calamba Transport Terminal). Terminal papuntang Halang at Los Baños (UPLB).'
     },
     {
         name: 'Crossing Grand Terminal',
@@ -84,11 +84,11 @@ const KNOWN_TERMINALS = [
         note: 'West side of National Highway 1, north of Crossing triangle. Boarding for jeeps to Real, Halang, Sta. Rosa.'
     },
     {
-        name: 'SM Calamba Inner Rd Terminal',
-        aliases: ['calamba tagaytay terminal', 'tagaytay terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'sm cinema terminal', 'sm west terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
+        name: 'SM Terminal 1',
+        aliases: ['sm terminal 1', 'terminal 1', 'sm terminal one', 'sm starbucks terminal', 'calamba tagaytay terminal', 'tagaytay terminal', 'sm calamba inner rd terminal', 'sm inner rd terminal', 'sm calamba inner road terminal', 'sm inner road terminal', 'sm inner rd', 'sm inner road', 'sm cinema terminal', 'sm west terminal', 'terminal papuntang real', 'sm real terminal', 'sakayan papuntang real'],
         barangay: 'Uno',
         coords: [14.2032625, 121.1547031],
-        note: 'SM City Calamba inner road / bypass road by SM Cinema (Google: "Calamba-Tagaytay Terminal"). Terminal papuntang Real (jeeps to Tanauan via Real).'
+        note: 'By Starbucks and SM Cinema on the inner road / bypass road, west side of SM City Calamba (formerly SM Calamba Inner Rd Terminal; Google: "Calamba-Tagaytay Terminal"). Terminal papuntang Real (jeeps to Tanauan via Real).'
     },
     {
         name: 'SM Calamba (Cinema side Drop-off)',
@@ -942,8 +942,8 @@ function formatRouteReply(planRes, lang = 'tl') {
 // Other words people use for the boarding terminals in a terminal choice
 const TERMINAL_WORDS = {
     'crossing-grand-terminal': ['crossing grand terminal', 'crossing grand', 'crossing terminal', 'grand terminal', 'cgt', 'crossing'],
-    'calamba-tagaytay-terminal': ['inner rd terminal', 'inner road', 'inner rd', 'calamba tagaytay', 'tagaytay terminal', 'tagaytay'],
-    'sm-transport-terminal': ['sm city calamba transport terminal', 'sm transport terminal', 'sm transport', 'transport terminal'],
+    'calamba-tagaytay-terminal': ['sm terminal 1', 'terminal 1', 'terminal one', 'starbucks', 'inner rd terminal', 'inner road', 'inner rd', 'calamba tagaytay', 'tagaytay terminal', 'tagaytay'],
+    'sm-transport-terminal': ['sm terminal 2', 'terminal 2', 'terminal two', 'sm city calamba transport terminal', 'sm transport terminal', 'sm transport', 'transport terminal'],
     'new-calamba-transport-terminal': ['new calamba transport terminal', 'new calamba transport', 'new calamba', 'phils corp', 'phils', 'cmc', 'calamba medical']
 };
 
@@ -1187,7 +1187,7 @@ function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl', opts = {
     const text = norm(rawMessage);
     const afterTrip = opts.lastType === 'trip' && lastTrip.success !== false && !!lastTrip.summary;
 
-    // 0. "eh kung sa Crossing?", "what about from SM Transport Terminal?": the same trip, boarding at another terminal
+    // 0. "eh kung sa Crossing?", "what about from SM Terminal 2?": the same trip, boarding at another terminal
     // Not when the message is a new trip ("mula SM papuntang Real") or asks why/what about a terminal
     const switchesTerminal = text.split(' ').length <= 12
         && !/\b(?:bakit|why|ano|what is|whats|where is|saan|nasaan|tricycle|trike|taxi|grab|angkas|motor)\b/.test(text)
