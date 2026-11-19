@@ -4,7 +4,7 @@
  *
  *   node scripts/test-routie-voice-route.mjs
  *
- * Env: CHROMIUM_PATH (a Chrome/Chromium binary), SHOTS=dir (save screenshots).
+ * Env: CHROMIUM_PATH (a Chrome/Chromium binary), SHOTS=dir (save screenshots), CDN_DIR (see below).
  * Port 5000 must be free (stop `npm start` first): on localhost the widget always calls the API at :5000.
  *
  * Runs the real Calzada server in this process with a stand-in for Groq (GROQ_BASE_URL points at a small local
@@ -29,6 +29,15 @@ const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHOTS = process.env.SHOTS || '';
 const PORT = 5000;
+// No internet for CDNs (a sandbox): CDN_DIR=dir with maplibre-gl-5.1.0/ and flatpickr-4.6.13/ unpacked from npm,
+// served in place of unpkg/jsdelivr (the Planner needs MapLibre). Left unset, the CDNs are used as on the site.
+const CDN_DIR = process.env.CDN_DIR || '';
+const CDN_FILES = [
+    [/maplibre-gl@[\d.]+\/dist\/maplibre-gl\.js/, 'maplibre-gl-5.1.0/dist/maplibre-gl.js'],
+    [/maplibre-gl@[\d.]+\/dist\/maplibre-gl\.css/, 'maplibre-gl-5.1.0/dist/maplibre-gl.css'],
+    [/npm\/flatpickr(?:@[\d.]+)?(?:\/dist\/flatpickr(?:\.min)?\.js)?$/, 'flatpickr-4.6.13/dist/flatpickr.min.js'],
+    [/flatpickr(?:@[\d.]+)?\/dist\/flatpickr\.min\.css/, 'flatpickr-4.6.13/dist/flatpickr.min.css']
+];
 let chromium;
 try { ({ chromium } = await import('playwright')); } catch (_) { ({ chromium } = await import('/opt/npm-tools/node_modules/playwright/index.mjs')); }
 
@@ -88,9 +97,16 @@ async function openRoutie({ mobile, lang, size = { width: 390, height: 844 } }) 
             userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' }
         : { viewport: { width: 1280, height: 800 } });
     await context.grantPermissions(['microphone'], { origin: BASE });
-    await context.addInitScript((l) => { try { localStorage.setItem('calzada_lang', l); sessionStorage.clear(); } catch (_) { } }, lang);
+    // A fresh chat for each test, kept across reloads within it
+    await context.addInitScript((l) => { try { localStorage.setItem('calzada_lang', l); if (!sessionStorage.getItem('__routieTest')) { sessionStorage.clear(); sessionStorage.setItem('__routieTest', '1'); } } catch (_) { } }, lang);
     const page = await context.newPage();
-    await page.route(/(tiles|openfreemap|cartocdn|basemaps|arcgis|nominatim|googleapis\.com\/maps|firebase|gstatic|unpkg|cdnjs)/, r => r.abort());
+    await page.route(/(tiles|openfreemap|cartocdn|basemaps|arcgis|nominatim|googleapis\.com\/maps|firebase|gstatic)/, r => r.abort());
+    if (CDN_DIR) await page.route(/^https:\/\/(unpkg\.com|cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com)\//, (r) => {
+        const local = CDN_FILES.find(([re]) => re.test(r.request().url()));
+        if (!local) return r.abort();
+        const file = path.join(CDN_DIR, local[1]);
+        return r.fulfill({ status: 200, contentType: file.endsWith('.css') ? 'text/css' : 'application/javascript', body: fs.readFileSync(file) });
+    });
     await page.goto(BASE + '/', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(700);
     await page.evaluate(() => document.getElementById('chatToggleBtn').click());
@@ -99,6 +115,13 @@ async function openRoutie({ mobile, lang, size = { width: 390, height: 844 } }) 
     return { context, page, press: (sel) => (mobile ? page.tap(sel) : page.click(sel)) };
 }
 
+// The "Tingnan sa Planner" buttons in the chat: which reply has one, its text, label and link
+const plannerButtons = (page) => page.evaluate(() => [...document.querySelectorAll('#chatMessages .bot-message')].map((m, i) => {
+    const a = m.querySelector('.routie-planner-btn');
+    if (!a) return null;
+    const r = a.getBoundingClientRect(), u = new URL(a.href);
+    return { i, text: a.textContent.trim(), label: a.getAttribute('aria-label'), path: u.pathname, q: Object.fromEntries(u.searchParams), h: Math.round(r.height), w: Math.round(r.width) };
+}).filter(Boolean));
 const botCount = (page) => page.evaluate(() => document.querySelectorAll('#chatMessages .bot-message').length);
 // The reply is typed out letter by letter: wait until it is complete (no typing cursor left)
 async function lastBotReplyAfter(page, before, timeout = 40000) {
@@ -108,7 +131,11 @@ async function lastBotReplyAfter(page, before, timeout = 40000) {
         return b.length > n && !last.querySelector('.typing-cursor') && last.textContent.trim().length > 0;
     }, before, { timeout });
     await page.waitForTimeout(300);
-    return page.evaluate(() => { const b = document.querySelectorAll('#chatMessages .bot-message'); return b[b.length - 1].innerText; });
+    return page.evaluate(() => {
+        const b = document.querySelectorAll('#chatMessages .bot-message'), last = b[b.length - 1].cloneNode(true);
+        last.querySelectorAll('.routie-planner-btn').forEach(x => x.remove());
+        return last.innerText.trim();
+    });
 }
 
 // Speak (the stand-in hears `final`, with `partials` while talking), Stop, wait for the transcript in the box
@@ -189,6 +216,12 @@ const LONG_PARTIALS = [8, 18, 30, 42, 54, 66, 78, 90, LONG_WORDS.length].map(n =
     check('phone: Routie answers the spoken trip with the route', /Kabuuan: ₱14\.00/.test(reply) && reply.includes('Chicken Joo – Halang') && reply.includes('₱11.25') && /SM City Calamba Transport Terminal/.test(reply), reply.slice(0, 300));
     check('phone: the box is cleared and small again, the reply in view', afterSend.value === '' && afterSend.h <= 30 && afterSend.atBottom && !afterSend.note, JSON.stringify(afterSend));
     await shot(page, 'route-phone-3-route-reply');
+    let btns = await plannerButtons(page);
+    const b0 = btns[0] || {};
+    check('phone: the route reply has "Tingnan sa Planner"', btns.length === 1 && b0.text === 'Tingnan sa Planner' && b0.h >= 40
+        && b0.label === 'Buksan ang rutang ito sa Planner: SM City Calamba papuntang Chicken Joo – Halang', JSON.stringify(btns));
+    check('phone: its link sets the trip in the Planner (names and pins)', b0.path === '/planner' && b0.q && b0.q.originName === 'SM City Calamba' && b0.q.destName === 'Chicken Joo – Halang'
+        && Math.abs(Number(b0.q.originLat) - 14.2039) < 0.001 && Math.abs(Number(b0.q.destLng) - 121.1628) < 0.001, JSON.stringify(b0.q));
 
     await speak(page, press, 'Saan ako sasakay?', ['Saan ako', 'Saan ako sasakay?'], 3600);
     const small = await page.evaluate(() => ({ value: document.getElementById('chatInput').value, h: Math.round(document.getElementById('chatInput').getBoundingClientRect().height) }));
@@ -210,6 +243,45 @@ const LONG_PARTIALS = [8, 18, 30, 42, 54, 66, 78, 90, LONG_WORDS.length].map(n =
     reply = await lastBotReplyAfter(page, n);
     check('phone: "Magkano kung student ako?" → the discounted fare', reply.includes('₱11.25'), reply);
     await shot(page, 'route-phone-4-follow-ups');
+    btns = await plannerButtons(page);
+    check('phone: follow-ups about the same trip add no second button', btns.length === 1, JSON.stringify(btns.map(b => b.i)));
+
+    // A new trip gets its own button
+    await speak(page, press, 'Eh mula Chicken Joo Halang papuntang Calamba City Hall?', ['Eh mula Chicken Joo', 'Eh mula Chicken Joo Halang papuntang Calamba City Hall?'], 3600);
+    n = await botCount(page);
+    await press('#sendMessageBtn');
+    reply = await lastBotReplyAfter(page, n);
+    btns = await plannerButtons(page);
+    check('phone: a new trip gets its own button', btns.length === 2 && btns[1].q.originName === 'Chicken Joo – Halang' && btns[1].q.destName === 'Calamba City Hall', JSON.stringify(btns.map(b => b.q)));
+
+    // Still there after the page reloads (chat history restored)
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForTimeout(700);
+    await page.evaluate(() => document.getElementById('chatToggleBtn').click());
+    await page.waitForSelector('#chatWindow.open');
+    await page.waitForTimeout(300);
+    btns = await plannerButtons(page);
+    check('phone: the buttons come back with the chat after a reload', btns.length === 2 && btns[0].text === 'Tingnan sa Planner', JSON.stringify(btns.map(b => b.text)));
+
+    // Tap the first one: the Planner opens with that trip and plans it
+    await page.locator('#chatMessages .routie-planner-btn').first().scrollIntoViewIfNeeded();
+    await Promise.all([page.waitForURL(/\/planner\?/, { timeout: 15000 }), page.locator('#chatMessages .routie-planner-btn').first().tap()]);
+    let planner = null;
+    try {
+        await page.waitForFunction(() => {
+            const o = document.getElementById('openOriginModal'), d = document.getElementById('openDestModal');
+            return o && d && /SM City Calamba/.test(o.textContent) && /Chicken Joo/.test(d.textContent);
+        }, null, { timeout: 15000 });
+        await page.waitForTimeout(2500);
+        planner = await page.evaluate(() => ({
+            origin: document.getElementById('openOriginModal').textContent.replace(/\s+/g, ' ').trim(),
+            dest: document.getElementById('openDestModal').textContent.replace(/\s+/g, ' ').trim(),
+            summary: (() => { const s = document.getElementById('routeSummaryBlock'); return s && getComputedStyle(s).display !== 'none' ? s.innerText.replace(/\s+/g, ' ').trim() : ''; })()
+        }));
+    } catch (e) { planner = { error: e.message.split('\n')[0] }; }
+    check('phone: "Tingnan sa Planner" opens the Planner with the trip set', !!planner && /SM City Calamba/.test(planner.origin || '') && /Chicken Joo – Halang/.test(planner.dest || ''), JSON.stringify(planner));
+    check('phone: the Planner plans the route right away', !!planner && /₱/.test(planner.summary || ''), JSON.stringify(planner));
+    await shot(page, 'route-phone-5-planner');
     await context.close();
 }
 
@@ -228,6 +300,9 @@ const LONG_PARTIALS = [8, 18, 30, 42, 54, 66, 78, 90, LONG_WORDS.length].map(n =
     await page.keyboard.press('Enter');
     reply = await lastBotReplyAfter(page, n);
     check('computer: "Where do I get off?" by voice', /^Get off at SM Calamba \(Cinema side\)/.test(reply), reply);
+    const enBtns = await plannerButtons(page);
+    check('computer: English button "Open in Planner", once', enBtns.length === 1 && enBtns[0].text === 'Open in Planner'
+        && enBtns[0].label === 'Open this route in the Planner: Calamba City Hall to SM City Calamba', JSON.stringify(enBtns));
     await shot(page, 'route-desktop');
     await context.close();
 }

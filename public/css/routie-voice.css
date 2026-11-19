@@ -1,4 +1,4 @@
-/* Routie voice input (v1.2.0): the "Nakikinig si Routie" sheet (design C), the writing-it-down line and the corrections note.
+/* Routie voice input (v1.3.0), and the "Tingnan sa Planner" button under route replies: the "Nakikinig si Routie" sheet (design C), the writing-it-down line and the corrections note.
    Loaded on every page with the Routie widget. The sheet covers the whole chat window while listening. */
 
 .chat-window .rv-sheet {
@@ -488,6 +488,51 @@
     mask-image: linear-gradient(180deg, transparent, #000 22px, #000 calc(100% - 22px), transparent);
 }
 
+/* "Tingnan sa Planner" under a route reply: opens the Planner with the trip set (flat, on-brand) */
+.bot-message .routie-planner-btn {
+    display: flex;
+    width: fit-content;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    margin-top: 12px;
+    padding: 8px 16px 8px 12px;
+    box-sizing: border-box;
+    border: 1px solid #CFE2F7;
+    border-radius: 999px;
+    background: #EAF3FC;
+    color: #1F69B8;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+    animation: rvFilled 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.bot-message .routie-planner-btn:hover {
+    background: #DCEBFA;
+    border-color: #B5D3F2;
+    color: #18548F;
+}
+
+.bot-message .routie-planner-btn:active {
+    background: #CFE2F7;
+}
+
+.bot-message .routie-planner-btn:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 2px;
+}
+
+.bot-message .routie-planner-btn svg {
+    flex-shrink: 0;
+}
+
 @keyframes rvPulse { 0%, 100% { transform: scale(0.85); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
 @keyframes rvDrift1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(50px, -40px) scale(1.2); } }
 @keyframes rvDrift2 { from { transform: translate(0, -10px) scale(1.1); } to { transform: translate(-60px, 10px) scale(0.9); } }
@@ -512,7 +557,7 @@
 
 @media (prefers-reduced-motion: reduce) {
     .rv-live, .rv-blob, .rv-mascot img, .rv-mascot.is-heard img, .rv-mascot-shadow, .rv-wave1, .rv-wave2, .rv-wave3, .rv-cursor, .rv-word.is-new,
-    .rv-word.is-swap, .chat-input-area.rv-filled #chatInput, .chat-input-area.rv-filled .rv-fix-note,
+    .rv-word.is-swap, .chat-input-area.rv-filled #chatInput, .chat-input-area.rv-filled .rv-fix-note, .bot-message .routie-planner-btn,
     .chat-voice-transcribing .rv-dots span {
         animation: none;
     }

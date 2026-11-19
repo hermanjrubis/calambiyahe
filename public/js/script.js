@@ -916,13 +916,56 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveRoutieContext(ctx) {
         try { sessionStorage.setItem('calzadaChatContext', JSON.stringify(ctx)); } catch (_) { /* storage full or blocked */ }
     }
+
+    // ── "Tingnan sa Planner": after Routie gives a route, one tap opens the Planner with that trip set ──────
+    // The reply's context names the trip and carries both pins; the Planner reads originName/originLat/originLng
+    // and destName/destLat/destLng from the link and plans the route right away. Shown once per trip: the reply
+    // that first gives it (a follow-up like "saan ako sasakay?" keeps the same trip, so no second button).
+    const tripKey = (trip) => (trip ? `${trip.origin}|${trip.dest}` : '');
+    function plannerLinkFor(trip) {
+        const pin = (p) => Array.isArray(p) && Number.isFinite(Number(p[0])) && Number.isFinite(Number(p[1])) && Number(p[0]) !== 0;
+        if (!trip || !trip.origin || !trip.dest || !pin(trip.originPin) || !pin(trip.destPin)) return null;
+        return { origin: String(trip.origin), dest: String(trip.dest),
+            o: [Number(trip.originPin[0]), Number(trip.originPin[1])], d: [Number(trip.destPin[0]), Number(trip.destPin[1])] };
+    }
+    function plannerHref(link) {
+        const q = new URLSearchParams({
+            originName: link.origin, originLat: String(link.o[0]), originLng: String(link.o[1]),
+            destName: link.dest, destLat: String(link.d[0]), destLng: String(link.d[1])
+        });
+        return `/planner?${q.toString()}`;
+    }
+    const ICON_MAP_ROUTE = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="5" r="2"></circle><path d="M8 19h8.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H16"></path></svg>';
+    function labelPlannerButton(btn) {
+        const link = btn._plannerLink;
+        if (!link) return;
+        const text = btn.querySelector('.routie-planner-text');
+        if (text) text.textContent = (window.t && window.t('chat.open_planner') !== 'chat.open_planner') ? window.t('chat.open_planner') : 'Open in Planner';
+        const lbl = (window.t && window.t('chat.open_planner_label') !== 'chat.open_planner_label')
+            ? window.t('chat.open_planner_label') : 'Open this route in the Planner: {origin} to {dest}';
+        btn.setAttribute('aria-label', lbl.replace('{origin}', link.origin).replace('{dest}', link.dest));
+    }
+    function addPlannerButton(msgDiv, link) {
+        if (!msgDiv || !link || msgDiv.querySelector('.routie-planner-btn')) return;
+        const btn = document.createElement('a');
+        btn.className = 'routie-planner-btn';
+        btn.href = plannerHref(link);
+        btn.innerHTML = `${ICON_MAP_ROUTE}<span class="routie-planner-text"></span>`;
+        btn._plannerLink = link;
+        labelPlannerButton(btn);
+        msgDiv.appendChild(btn);
+        if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    window.addEventListener('calzada_lang_changed', () => {
+        document.querySelectorAll('.routie-planner-btn').forEach(labelPlannerButton);
+    });
     let currentTypingState = null;
 
     // Interrupt typing effect: instantly jump to full content and stop cursor
     function interruptTyping() {
         if (!currentTypingState) return;
 
-        const { timerId, fullText, textNode, msgDiv, cursorSpan, save, kind } = currentTypingState;
+        const { timerId, fullText, textNode, msgDiv, cursorSpan, save, kind, planner } = currentTypingState;
         if (timerId) clearTimeout(timerId);
 
         if (textNode) {
@@ -934,8 +977,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cursorSpan && cursorSpan.parentNode) {
             cursorSpan.parentNode.removeChild(cursorSpan);
         }
+        if (planner) addPlannerButton(msgDiv, planner);
 
-        if (save) saveChatMessage(fullText, false, kind);
+        if (save) saveChatMessage(fullText, false, kind, planner);
 
         currentTypingState = null;
 
@@ -945,14 +989,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // kind 'system': notices and error messages. They show in the chat but are not sent to Routie as conversation.
-    function saveChatMessage(text, isUser, kind) {
+    function saveChatMessage(text, isUser, kind, planner) {
         const item = { text, isUser };
         if (kind) item.kind = kind;
+        if (planner) item.planner = planner;
         chatHistory.push(item);
         sessionStorage.setItem('calzadaChatHistory', JSON.stringify(chatHistory));
     }
 
-    function addMessage(text, isUser = false, save = true, animate = true, kind = null) {
+    function addMessage(text, isUser = false, save = true, animate = true, kind = null, planner = null) {
         if (!chatMessages) return;
 
         // Immediately complete any ongoing bot typing when user sends message or history is restored
@@ -961,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!isUser && animate) {
-            addBotMessageWithTyping(text, save, 18, kind);
+            addBotMessageWithTyping(text, save, 18, kind, planner);
             return;
         }
 
@@ -980,12 +1025,13 @@ document.addEventListener('DOMContentLoaded', () => {
         msgDiv.textContent = text;
         wrapper.appendChild(msgDiv);
         chatMessages.appendChild(wrapper);
+        if (!isUser && planner) addPlannerButton(msgDiv, planner);
         scrollChatToBottom();
 
-        if (save) saveChatMessage(text, isUser, kind);
+        if (save) saveChatMessage(text, isUser, kind, planner);
     }
 
-    function addBotMessageWithTyping(fullText, save = true, speed = 18, kind = null) {
+    function addBotMessageWithTyping(fullText, save = true, speed = 18, kind = null, planner = null) {
         if (!chatMessages) return;
 
         // Ensure any previous bot typing is resolved first
@@ -1022,7 +1068,8 @@ document.addEventListener('DOMContentLoaded', () => {
             textNode,
             cursorSpan,
             save,
-            kind
+            kind,
+            planner
         };
 
         function typeNextChar() {
@@ -1033,7 +1080,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cursorSpan && cursorSpan.parentNode) {
                     cursorSpan.parentNode.removeChild(cursorSpan);
                 }
-                if (save) saveChatMessage(fullText, false, kind);
+                if (planner) addPlannerButton(msgDiv, planner);
+                if (save) saveChatMessage(fullText, false, kind, planner);
                 currentTypingState = null;
                 if (chatMessages) {
                     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1068,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!chatMessages) return;
         if (chatHistory.length === 0) return;
         chatMessages.innerHTML = '';
-        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false, false, msg.kind || null));
+        chatHistory.forEach(msg => addMessage(msg.text, msg.isUser, false, false, msg.kind || null, msg.planner || null));
     }
     loadChatHistory();
 
@@ -1172,10 +1220,14 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                 botReply = data.reply;
             }
 
+            // A new trip in this reply (not the one already shown): it gets the "Tingnan sa Planner" button
+            const prevTrip = (payload.context && payload.context.trip) || null;
+            const newTrip = data && data.context && data.context.lastType === 'trip' ? data.context.trip : null;
+            const planner = botReply && !data.error && newTrip && tripKey(newTrip) !== tripKey(prevTrip) ? plannerLinkFor(newTrip) : null;
             if (data && data.context) saveRoutieContext(data.context);
             if (botReply) {
                 // A fallback ("busy", "took too long") comes with data.error: shown, but not kept as conversation
-                addMessage(botReply, false, true, true, data.error ? 'system' : null);
+                addMessage(botReply, false, true, true, data.error ? 'system' : null, planner);
                 try {
                     if (window.CalzadaActivity && typeof window.CalzadaActivity.addChatMessage === 'function') {
                         window.CalzadaActivity.addChatMessage('routie', botReply);
