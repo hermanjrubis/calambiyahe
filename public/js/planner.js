@@ -5727,7 +5727,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         walkHintEl.style.display = 'inline-flex';
                     } else if (walkInstead) {
                         walkHintEl.innerHTML = '<ion-icon name="information-circle-outline"></ion-icon><span></span>';
-                        walkHintEl.querySelector('span').textContent = t('planner.walk_terminal_only');
+                        walkHintEl.querySelector('span').textContent = t(opts.walkReason === 'no_faster_jeep' ? 'planner.walk_no_faster_jeep' : 'planner.walk_terminal_only');
                         walkHintEl.style.display = 'inline-flex';
                     } else if (totalWalkM < 800) {
                         walkHintEl.innerHTML = `<ion-icon name="walk-outline"></ion-icon><span>This distance is walkable (${formatDistanceM(totalWalkM)})</span>`;
@@ -5747,6 +5747,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // From a no-jeepney barangay with no curated trip: walk, never the guessed highway ride below
             if (noJeepArea) return executeRouteQueryCore({ noJeep: true });
+
+            // A local trip (both ends in or by Uno / Real / Halang) with no curated trip: walk. Every jeep that
+            // runs there is in the route data, so the guessed ride below (a car route turned into a jeep) would
+            // put a jeep where none runs, e.g. from SM Transport Terminal up Sampaguita St, Elepaño and down
+            // Chipeco Ave to Halang (Drei, Nov 19 2026: no jeep passes there)
+            const Tl = window.CalzadaTransit;
+            if (Tl && Tl.isReady && Tl.isReady() && Tl.isLocal && Tl.isLocal(oPt) && Tl.isLocal(dPt)) {
+                console.info('Local trip with no jeep route that helps: shown as a walk (no guessed highway ride)');
+                return executeRouteQueryCore({ walkOnly: true, walkReason: 'no_faster_jeep' });
+            }
 
             // ── JEEPNEY MODE: walk to boarding point + transit on highway ───────────
             let fullCarRes = null;

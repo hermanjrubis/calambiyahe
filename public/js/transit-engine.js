@@ -49,6 +49,7 @@
     const TERMINAL_RADIUS_M = 60;     // default "you are at this terminal" distance (data can override)
     const NEAR_TERMINAL_DEST_M = 700; // destinations closer than this to a terminal get no terminal choice
     const MUCH_FASTER_MIN = 5;        // the usual plan wins when it is this much faster than every terminal
+    const LOCAL_MARGIN_M = 400;       // "local": in Uno / Real / Halang or this close to them (all jeeps there are in the data)
 
     // Balanced score for "Recommended": fare first, but time and transfers count
     const COST_PER_MIN = 0.5;        // pesos per minute
@@ -416,7 +417,13 @@
             const maxWalk = Math.max(400, straight * 0.6);
             // A picked terminal: its options, best first (the walk there is the user's choice)
             if (force) return mergeTwins(found.sort((a, b) => a.cost - b.cost || a.totalMin - b.totalMin));
-            return rank(found.filter((o) => o.walkM <= maxWalk));
+            const kept = rank(found.filter((o) => o.walkM <= maxWalk));
+            // A local trip with no jeep near the way (e.g. from inside the Crossing / SM area, where jeeps load only
+            // at the terminals): the same rule as from the poblacion, walk to a terminal and ride when that beats
+            // walking all the way by MUCH_FASTER_MIN; else nothing, and the planner walks it (it never guesses a
+            // jeep ride from a car route on a local trip)
+            if (!kept.length && isLocal(origin) && isLocal(dest)) return planFromTerminals(origin, dest);
+            return kept;
         }
 
         // From a no-jeepney barangay: walk to a terminal, then the jeep that loads there. Kept only when
@@ -474,6 +481,25 @@
             if (!p || !noJeepPolys.length) return null;
             const hit = noJeepPolys.find((a) => inRing(p, a.rings[0]) && !a.rings.slice(1).some((h) => inRing(p, h)));
             return hit ? hit.name : null;
+        }
+        // In Uno, Real or Halang, or within LOCAL_MARGIN_M of them. Every jeep that runs there is in the route
+        // data (checked with Drei, Nov 2026: e.g. none on Chipeco Ave, Elepaño or Sampaguita St), so a local
+        // trip is a curated jeep or a walk, never a ride guessed from a car route.
+        function isLocal(p) {
+            if (!p || !areaPolys.length) return false;
+            if (areaOf(p)) return true;
+            const ML = 110574, MG = 107550 * Math.cos(toRad(p[0])) / Math.cos(toRad(14.2));
+            const py = p[0] * ML, px = p[1] * MG;
+            return areaPolys.some((a) => {
+                const ring = a.rings[0];
+                for (let i = 1; i < ring.length; i++) {
+                    const ay = ring[i - 1][1] * ML, ax = ring[i - 1][0] * MG, by = ring[i][1] * ML, bx = ring[i][0] * MG;
+                    const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+                    const t = L ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)) : 0;
+                    if (Math.hypot(ax + t * dx - px, ay + t * dy - py) <= LOCAL_MARGIN_M) return true;
+                }
+                return false;
+            });
         }
         function areaOf(p) {
             if (!p || !areaPolys.length) return null;
@@ -596,7 +622,7 @@
             return slicePath(r, clamp(fromPos), clamp(toPos));
         }
 
-        return { plan, routes, stops, areaOf, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, pathOf, legKey, retime, retimeOption, routesBbox };
+        return { plan, routes, stops, areaOf, isLocal, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, pathOf, legKey, retime, retimeOption, routesBbox };
     }
 
     // Same trip on different routes: one card
@@ -783,7 +809,7 @@
     }
 
     return {
-        VERSION: '1.8.0',
+        VERSION: '1.9.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
@@ -791,6 +817,7 @@
         routes: () => (planner ? planner.routes : []),
         routesBbox: (padKm = 1.5) => (planner ? planner.routesBbox(padKm) : null),
         areaOf: (p) => (planner ? planner.areaOf(p) : null),
+        isLocal: (p) => (planner ? planner.isLocal(p) : false),
         noJeepAreaOf: (p) => (planner ? planner.noJeepAreaOf(p) : null),
         roadBoardingOk: (p) => (planner ? planner.roadBoardingOk(p) : true),
         boardingStops: () => (planner ? planner.boardingStops() : []),

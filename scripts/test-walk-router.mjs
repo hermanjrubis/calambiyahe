@@ -92,5 +92,31 @@ check('Calamba Crossing: covered', R.covers(CGT) && R.covers(SM));
 r = R.route(NCT, CGT);
 check('NCT -> CGT line has points', r && r.coordinates.length >= 2);
 
+// Inside STI College Calamba (Drei, Nov 19 2026): the way out is the front, on the National Highway.
+// The roads behind the campus (and the cemetery paths beyond them) cannot be reached from STI; the
+// router used to snap a GPS fix deep inside the campus to them and walk a 1.7-2 km loop through
+// Elepaño and back. Points across the campus, from the highway to ~25 m from the back roads:
+const STI = [14.2025089, 121.1583962];
+const SM_CITY = [14.203928, 121.154516];
+const BACK_ROADS = ['Elepaño II', 'Chipeco Avenue', 'Larino Street'];
+const viaBack = (x) => x.steps.some((s) => BACK_ROADS.includes(s.name)) || x.crossings.some((c) => BACK_ROADS.includes(c.name));
+const stiPoints = [STI, [14.20317, 121.15827], [14.2031, 121.1592], [14.2033, 121.1593], [14.2026, 121.1592],
+    [14.2028, 121.1594], [14.2026, 121.1596], [14.2032, 121.1596], [14.2020, 121.1588]];
+stiPoints.forEach((p) => {
+    const toTerminal = R.route(p, SMTT), toMall = R.route(p, SM_CITY);
+    check(`STI ${p.join(',')} -> SM Transport Terminal: out the front, across at the lane (under 600 m)`,
+        toTerminal && !viaBack(toTerminal) && toTerminal.distance < 600 && toTerminal.crossings.some((c) => /National Highway/.test(c.name) && c.code === 'z'), desc(toTerminal));
+    check(`STI ${p.join(',')} -> SM City Calamba: not through the back roads (under 900 m)`, toMall && !viaBack(toMall) && toMall.distance < 900, desc(toMall));
+});
+// A point on (or right by) a road keeps that road: someone on the back road really walks out that way
+r = R.route([14.20318, 121.15986], SMTT);
+check('on the road behind STI: walks that road (no cutting through the campus)', r && viaBack(r), desc(r));
+// A farther road is never reached across a highway: the other side of the National Highway is reached
+// by crossing it on the network (lane, light, footbridge)
+r = R.route([14.20317, 121.15827], SMTT);
+check('east of the National Highway by STI: the walk crosses it (not snapped to the far side)', r && r.crossings.some((c) => /National Highway/.test(c.name)), desc(r));
+r = R.route(SMTT, [14.2031, 121.1592]);
+check('SM Transport Terminal -> inside STI: arrives from the front (same as the other way)', r && !viaBack(r) && r.distance < 600, desc(r));
+
 console.log(fails ? `\n${fails} failed` : '\nall passed');
 process.exit(fails ? 1 : 0);

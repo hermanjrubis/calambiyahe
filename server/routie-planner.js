@@ -683,10 +683,9 @@ function plan_route(originInput, destInput, options = {}) {
         }
     }
 
-    // Short trips: under 800m straight-line distance without terminal choices -> walk only, no jeep
-    if (!suggestedTerminals && originResolved.coords && destResolved.coords) {
-        const straightDistM = haversineDistM(originResolved.coords, destResolved.coords);
-        if (straightDistM < 800) {
+    // A walk only, no jeep: short trips (and local trips with no jeep that helps, below)
+    const walkOnlyTrip = (straightDistM, extra = {}) => {
+        {
             const walkDistM = Math.round(straightDistM * 1.25);
             const walkMin = Math.max(1, Math.round((walkDistM / 1000 / 4.0) * 60));
             return {
@@ -714,9 +713,15 @@ function plan_route(originInput, destInput, options = {}) {
                         fare: 0
                     }
                 ],
-                plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`
+                plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`,
+                ...extra
             };
         }
+    };
+    // Short trips: under 800m straight-line distance without terminal choices -> walk only, no jeep
+    if (!suggestedTerminals && originResolved.coords && destResolved.coords) {
+        const straightDistM = haversineDistM(originResolved.coords, destResolved.coords);
+        if (straightDistM < 800) return walkOnlyTrip(straightDistM);
     }
 
     if (transitPlanner && !planOption) {
@@ -724,6 +729,14 @@ function plan_route(originInput, destInput, options = {}) {
         if (directOpts && directOpts.length > 0) {
             planOption = directOpts[0];
         }
+    }
+
+    // A local trip (in or by Uno / Real / Halang) with no jeep option: every jeep that runs there is in the
+    // route data, so the trip is a walk, as on the Planner ("No jeepney route makes this trip faster")
+    if ((!planOption || !planOption.legs || !planOption.legs.length) && transitPlanner && transitPlanner.isLocal
+        && originResolved.coords && destResolved.coords
+        && transitPlanner.isLocal(originResolved.coords) && transitPlanner.isLocal(destResolved.coords)) {
+        return walkOnlyTrip(haversineDistM(originResolved.coords, destResolved.coords), { noFasterJeep: true });
     }
 
     if (!planOption || !planOption.legs || planOption.legs.length === 0) {
@@ -846,6 +859,11 @@ function formatRouteReply(planRes, lang = 'tl') {
         const leg = (planRes.legs && planRes.legs[0]) || {};
         const dist = leg.distanceM != null ? leg.distanceM : Math.round(planRes.summary?.walkingDistanceM || 0);
         const mins = leg.minutes != null ? leg.minutes : Math.round(planRes.summary?.totalMinutes || 1);
+        if (planRes.noFasterJeep) {
+            return isTl
+                ? `Maglakad nang humigit-kumulang ${dist} m (~${mins} min). Walang rutang jeep na magpapabilis sa biyaheng ito.`
+                : `Walk about ${dist} m (~${mins} min). No jeepney route makes this trip faster.`;
+        }
         return isTl
             ? `Maglakad nang humigit-kumulang ${dist} m (~${mins} min). Mas mainam maglakad para sa biyaheng ito.`
             : `Walk about ${dist} m (~${mins} min). Walking is better for this trip.`;

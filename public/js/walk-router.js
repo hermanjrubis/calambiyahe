@@ -27,7 +27,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.0';
     const WALK_SPEED_KPH = 4.0;
     const M_LAT = 110574, M_LNG = 107550;   // metres per degree at about 14°N
 
@@ -44,6 +44,16 @@
     const ATTACH_M = 15;                          // loose footway ends join the nearest road this close
     const SNAP_MAX_M = 150;                       // farther from any road than this: not covered
     const BOTH_SIDES_M = 1.5;                     // a point this close to the centre line is on both sides
+    // A point well off every road (GPS inside a school, a mall, a compound) is not always reached from the
+    // nearest road: that road can be behind the back wall (STI College Calamba: the roads behind it lead
+    // through the cemetery paths to Elepaño and Chipeco Ave, a 1.7 km loop; the way out is the front gate on
+    // the National Highway). So roads a little farther away are tried too, each with the extra distance to
+    // it counted APPROACH_FACTOR times (cutting across a lot is slower and less certain than a street), and
+    // the walk with the lowest total wins. Points on or near a road (GPS on the street) keep the nearest road.
+    const OFFROAD_M = 15;                         // nearest road farther than this: the point is off the roads
+    const ALT_RANGE_M = 120;                      // other roads up to this much farther than the nearest
+    const APPROACH_FACTOR = 3;                    // each extra metre to a farther road counts as 3 m of walking
+    const MAX_ALT_EDGES = 200;
 
     const toM = (lat, lng) => [lat * M_LAT, lng * M_LNG];
 
@@ -208,6 +218,43 @@
             return hit && hit.d <= SNAP_MAX_M && inMain(hit.e) ? hit : null;
         };
         const covers = (p) => inBox(p, 100) && !!snap(p);
+        // The nearest road (extra 0) and, for a point off the roads, the other roads in reach with their extra cost
+        const snapCandidates = (p, h0) => {
+            const out = [{ ...h0, extra: 0 }];
+            if (h0.d <= OFFROAD_M) return out;
+            const maxD = Math.min(SNAP_MAX_M, h0.d + ALT_RANGE_M);
+            const alts = [];
+            for (let e = 0; e < eu.length; e++) {
+                if (e === h0.e || removed.has(e) || ecls[e] > 3 || !inMain(e)) continue;
+                const q = project(e, p[0], p[1]);
+                if (q.d <= maxD) alts.push({ e, ...q, extra: APPROACH_FACTOR * Math.max(0, q.d - h0.d) });
+            }
+            alts.sort((x, y) => x.d - y.d);
+            // The way across to a farther road may not cross a street or a highway: the other side of a road
+            // is reached by crossing it on the network (its crossing rules: footbridge zones, pedestrian lanes)
+            return out.concat(alts.slice(0, MAX_ALT_EDGES).filter((q) => !crossesRoad(p, [q.la, q.ln], q.e)));
+        };
+        // Does the straight line a→b cross a road (classes 0–2)? Footways and stairs do not count.
+        const crossesRoad = (a, b, skipE) => {
+            const [ay, ax] = toM(a[0], a[1]), [by, bx] = toM(b[0], b[1]);
+            const minX = Math.min(ax, bx) - 1, maxX = Math.max(ax, bx) + 1, minY = Math.min(ay, by) - 1, maxY = Math.max(ay, by) + 1;
+            const o = (px, py, qx, qy, rx, ry) => (qx - px) * (ry - py) - (qy - py) * (rx - px);
+            for (let e = 0; e < eu.length; e++) {
+                if (e === skipE || removed.has(e) || ecls[e] > 2) continue;
+                const [cy, cx] = toM(lat[eu[e]], lng[eu[e]]), [dy, dx] = toM(lat[ev[e]], lng[ev[e]]);
+                if (Math.max(cx, dx) < minX || Math.min(cx, dx) > maxX || Math.max(cy, dy) < minY || Math.min(cy, dy) > maxY) continue;
+                const d1 = o(cx, cy, dx, dy, ax, ay), d2 = o(cx, cy, dx, dy, bx, by), d3 = o(ax, ay, bx, by, cx, cy), d4 = o(ax, ay, bx, by, dx, dy);
+                if (d1 * d2 < 0 && d3 * d4 < 0) return true;
+                // A small road whose nearest point is right on a highway or a secondary road (their junction):
+                // the side of the big road it continues on is not reached this way either
+                if (ecls[e] <= 1 && ecls[skipE] >= 2) {
+                    const L2 = (dx - cx) ** 2 + (dy - cy) ** 2;
+                    const t = L2 ? Math.max(0, Math.min(1, ((bx - cx) * (dx - cx) + (by - cy) * (dy - cy)) / L2)) : 0;
+                    if (Math.hypot(cx + t * (dx - cx) - bx, cy + t * (dy - cy) - by) < 2) return true;
+                }
+            }
+            return false;
+        };
 
         // Sector ends of a snapped point, with the walking cost from the point to each
         const ends = (hit) => {
@@ -242,9 +289,10 @@
             const dist = new Float64Array(NS + 2).fill(Infinity);
             const prev = new Int32Array(NS + 2).fill(-1);
             const via = new Array(NS + 2);
-            const startPhase = epriv[ha.e] ? 0 : 1;
-            const goalPhases = epriv[hb.e] ? [0, 2] : [1];
-            const startEnds = ends(ha), goalEnds = ends(hb);
+            // Every candidate road at each end (one unless the point is off the roads), with its extra cost
+            const startEnds = [], goalEnds = [];
+            snapCandidates(a, ha).forEach((h) => ends(h).forEach((x) => startEnds.push({ ...x, cost: x.cost + h.extra, hit: h, phase: epriv[h.e] ? 0 : 1 })));
+            snapCandidates(b, hb).forEach((h) => ends(h).forEach((x) => goalEnds.push({ ...x, cost: x.cost + h.extra, hit: h, phases: epriv[h.e] ? [0, 2] : [1] })));
             const goalBySec = new Map();
             goalEnds.forEach((g2) => { const o = goalBySec.get(g2.sec); if (!o || g2.cost < o.cost) goalBySec.set(g2.sec, g2); });
             const nextPhase = (ph, e) => {
@@ -267,8 +315,8 @@
                 push(c, DST);
             }
             startEnds.forEach((s) => {
-                const st = s.sec * 3 + (relaxed ? 1 : startPhase);
-                if (s.cost < dist[st]) { dist[st] = s.cost; prev[st] = SRC; via[st] = { kind: 3, side: s.side }; push(s.cost, st); }
+                const st = s.sec * 3 + (relaxed ? 1 : s.phase);
+                if (s.cost < dist[st]) { dist[st] = s.cost; prev[st] = SRC; via[st] = { kind: 3, side: s.side, hit: s.hit }; push(s.cost, st); }
             });
             while (hk.length) {
                 const [d, x] = pop();
@@ -276,7 +324,7 @@
                 if (x === DST) break;
                 const u = (x / 3) | 0, ph = x % 3;
                 const g2 = goalBySec.get(u);
-                if (g2 && (relaxed || goalPhases.includes(ph)) && d + g2.cost < dist[DST]) { dist[DST] = d + g2.cost; prev[DST] = x; via[DST] = { kind: 4, side: g2.side }; push(dist[DST], DST); }
+                if (g2 && (relaxed || g2.phases.includes(ph)) && d + g2.cost < dist[DST]) { dist[DST] = d + g2.cost; prev[DST] = x; via[DST] = { kind: 4, side: g2.side, hit: g2.hit }; push(dist[DST], DST); }
                 const list = adj[u];
                 for (let i = 0; i < list.length; i++) {
                     const l = list[i];
@@ -297,7 +345,11 @@
                 items.push({ sec: x === DST ? -1 : (x / 3) | 0, prevSec: p === SRC ? -1 : (p / 3) | 0, v: via[x] });
             }
             items.reverse();
-            return buildResult(ha, hb, items, dist[DST]);
+            // The roads the walk actually starts and ends on (the nearest ones, or farther ones that won)
+            const first = items[0].v, last = items[items.length - 1].v;
+            const sa = first.kind === 3 && first.hit ? first.hit : ha;
+            const sb = last.kind === 4 && last.hit ? last.hit : hb;
+            return buildResult(sa, sb, items, dist[DST]);
         }
 
         // ── Geometry and steps ──
