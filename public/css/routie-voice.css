@@ -1,4 +1,4 @@
-/* Routie voice input: the "Nakikinig si Routie" sheet (design C), the writing-it-down line and the corrections note.
+/* Routie voice input (v1.2.0): the "Nakikinig si Routie" sheet (design C), the writing-it-down line and the corrections note.
    Loaded on every page with the Routie widget. The sheet covers the whole chat window while listening. */
 
 .chat-window .rv-sheet {
@@ -13,7 +13,8 @@
     font-family: 'Outfit', sans-serif;
     color: #1A202C;
     opacity: 0;
-    transition: opacity 0.18s ease-out;
+    pointer-events: none;
+    transition: opacity 0.2s ease-out;
 }
 
 .chat-window .rv-sheet[hidden] {
@@ -22,6 +23,23 @@
 
 .chat-window .rv-sheet.is-open {
     opacity: 1;
+    pointer-events: auto;
+}
+
+/* Opening: the middle rises gently into place; closing: it fades and sinks a little */
+.chat-window .rv-sheet .rv-center,
+.chat-window .rv-sheet .rv-actions {
+    transform: translateY(14px);
+    transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), gap 0.3s ease;
+}
+
+.chat-window .rv-sheet.is-open .rv-center,
+.chat-window .rv-sheet.is-open .rv-actions {
+    transform: none;
+}
+
+.chat-window .rv-sheet.is-closing {
+    transition-duration: 0.18s;
 }
 
 /* Header: replaces Routie's name while listening, so Routie appears once (in the middle) */
@@ -141,7 +159,7 @@
     gap: 18px;
     padding: 20px 24px 4px;
     box-sizing: border-box;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 /* Routie, no circle: floating, with a soft shadow that follows */
@@ -153,13 +171,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: height 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .rv-mascot img {
     position: relative;
     width: 96px;
     height: auto;
-    animation: rvBob 1.3s ease-in-out infinite;
+    animation: rvBob 1.6s ease-in-out infinite;
 }
 
 .rv-mascot-shadow {
@@ -171,20 +190,56 @@
     border-radius: 50%;
     background: radial-gradient(ellipse at center, rgba(55, 138, 221, 0.45) 0%, rgba(91, 124, 240, 0.18) 55%, rgba(255, 255, 255, 0) 75%);
     filter: blur(4px);
-    animation: rvShadow 1.3s ease-in-out infinite;
+    animation: rvShadow 1.6s ease-in-out infinite;
 }
 
-/* What is heard so far */
+/* What is heard so far. A long message scrolls inside this box (it follows the newest line), so nothing is cut
+   off at the top on a small phone; the top edge fades once it has scrolled. */
 .rv-caption {
     margin: 0;
+    width: 100%;
     max-width: 330px;
     min-height: 62px;
+    flex: 0 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    scrollbar-width: none;
     font-size: 22px;
     line-height: 1.4;
     font-weight: 500;
     color: #1A202C;
     text-align: center;
     overflow-wrap: anywhere;
+    transition: font-size 0.3s ease;
+}
+
+.rv-caption::-webkit-scrollbar {
+    display: none;
+}
+
+.rv-caption.is-scrolled {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 30px);
+    mask-image: linear-gradient(180deg, transparent 0, #000 30px);
+}
+
+/* Long message: Routie steps back to make room for the words */
+.rv-sheet.is-long .rv-center {
+    gap: 10px;
+}
+
+.rv-sheet.is-long .rv-mascot {
+    height: 60px;
+    transform: scale(0.62);
+}
+
+.rv-sheet.is-long .rv-caption {
+    font-size: 19px;
+}
+
+.rv-sheet.is-long .rv-waves {
+    height: 52px;
 }
 
 .rv-caption.is-empty {
@@ -199,12 +254,22 @@
 }
 
 .rv-word.is-new {
-    animation: rvWordIn 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: rvWordIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-/* Routie hops a little when new words arrive */
+/* A word the newer pass heard differently changes in place, softly */
+.rv-word.is-swap {
+    animation: rvWordSwap 0.35s ease-out both;
+}
+
+/* Routie nods along now and then while words come in */
 .rv-mascot.is-heard img {
-    animation: rvHop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1), rvBob 1.3s ease-in-out 0.45s infinite;
+    animation: rvNod 0.6s cubic-bezier(0.3, 1.3, 0.5, 1), rvBob 1.6s ease-in-out 0.6s infinite;
+}
+
+/* The blue of the newest word moves on smoothly to the next one */
+.rv-word {
+    transition: color 0.25s ease;
 }
 
 .rv-interim {
@@ -233,7 +298,9 @@
     height: 70px;
     overflow: hidden;
     transform: scaleY(var(--rv-amp, 0.6));
-    transition: transform 0.08s linear;
+    transform-origin: center;
+    transition: transform 0.12s ease-out, height 0.3s ease;
+    will-change: transform;
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
     mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
 }
@@ -393,6 +460,34 @@
     display: none;
 }
 
+/* The transcript eases into the box */
+.chat-input-area.rv-filled #chatInput,
+.chat-input-area.rv-filled .rv-fix-note {
+    animation: rvFilled 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* A long transcript scrolls inside the box with a finger, without pulling the page */
+#chatInput.scrolling {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+#chatInput.scrolling.more-below {
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 22px), transparent);
+    mask-image: linear-gradient(180deg, #000 calc(100% - 22px), transparent);
+}
+
+#chatInput.scrolling.more-above {
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 22px);
+    mask-image: linear-gradient(180deg, transparent, #000 22px);
+}
+
+#chatInput.scrolling.more-above.more-below {
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 22px, #000 calc(100% - 22px), transparent);
+    mask-image: linear-gradient(180deg, transparent, #000 22px, #000 calc(100% - 22px), transparent);
+}
+
 @keyframes rvPulse { 0%, 100% { transform: scale(0.85); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; } }
 @keyframes rvDrift1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(50px, -40px) scale(1.2); } }
 @keyframes rvDrift2 { from { transform: translate(0, -10px) scale(1.1); } to { transform: translate(-60px, 10px) scale(0.9); } }
@@ -400,8 +495,10 @@
 @keyframes rvShadow { 0%, 100% { transform: scaleX(1); opacity: 0.9; } 50% { transform: scaleX(0.82); opacity: 0.6; } }
 @keyframes rvWave { from { transform: translateX(0); } to { transform: translateX(-120px); } }
 @keyframes rvBlink { 50% { opacity: 0; } }
-@keyframes rvWordIn { from { opacity: 0; transform: translateY(10px) scale(0.96); filter: blur(6px); } 60% { opacity: 1; filter: blur(0); } to { opacity: 1; transform: none; filter: none; } }
-@keyframes rvHop { 0% { transform: translateY(0) scale(1); } 40% { transform: translateY(-10px) scale(1.08); } 100% { transform: translateY(0) scale(1); } }
+@keyframes rvWordIn { from { opacity: 0; transform: translateY(8px); filter: blur(4px); } 70% { opacity: 1; filter: blur(0); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes rvNod { 0% { transform: translateY(0) rotate(0); } 35% { transform: translateY(-5px) rotate(-4deg); } 70% { transform: translateY(0) rotate(2deg); } 100% { transform: translateY(0) rotate(0); } }
+@keyframes rvWordSwap { from { opacity: 0.25; filter: blur(3px); } to { opacity: 1; filter: none; } }
+@keyframes rvFilled { from { opacity: 0.35; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @keyframes rvDot { 0%, 100% { opacity: 0.25; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-3px); } }
 
 @media (max-height: 560px) {
@@ -409,12 +506,17 @@
     .rv-mascot { height: 72px; }
     .rv-mascot img { width: 72px; }
     .rv-caption { min-height: 40px; font-size: 19px; }
+    .rv-sheet.is-long .rv-mascot { height: 44px; transform: scale(0.48); }
+    .rv-sheet.is-long .rv-caption { font-size: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .rv-live, .rv-blob, .rv-mascot img, .rv-mascot.is-heard img, .rv-mascot-shadow, .rv-wave1, .rv-wave2, .rv-wave3, .rv-cursor, .rv-word.is-new,
+    .rv-word.is-swap, .chat-input-area.rv-filled #chatInput, .chat-input-area.rv-filled .rv-fix-note,
     .chat-voice-transcribing .rv-dots span {
         animation: none;
     }
-    .rv-waves { transition: none; }
+    .rv-waves, .rv-mascot, .rv-caption, .rv-center, .rv-word,
+    .chat-window .rv-sheet .rv-center, .chat-window .rv-sheet .rv-actions { transition: none; }
+    .chat-window .rv-sheet .rv-center, .chat-window .rv-sheet .rv-actions { transform: none; }
 }

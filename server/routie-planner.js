@@ -216,11 +216,22 @@ function cleanPlaceQuery(raw) {
 }
 
 // ── Place Resolver ─────────────────────────────────────────────────────
-function resolvePlace(rawQuery, places = []) {
+function resolvePlace(rawQuery, places = [], opts = {}) {
     if (!rawQuery) return null;
     const cleanQ = cleanPlaceQuery(rawQuery);
     const nq = norm(cleanQ);
     if (!nq) return null;
+
+    // 0. "Chicken Joo sa Halang", "Jollibee at Crossing", "Mercury Drug in Real" (how people say it, often by voice):
+    // the place in that area, when one is listed ("Chicken Joo Halang"), rather than the area itself
+    const inArea = cleanQ.match(/^(.+?)\s+(?:sa|at|in|near|malapit sa|along)\s+(.+)$/i);
+    if (inArea && !opts.noArea) {
+        const joined = resolvePlace(`${inArea[1]} ${inArea[2]}`, places, { noArea: true });
+        const first = norm(inArea[1]).split(' ')[0];
+        if (joined && !joined.isAmbiguous && joined.found !== false && joined.name && first && norm(joined.name).split(' ').includes(first)) {
+            return joined;
+        }
+    }
 
     // 1. Check Ambiguity first
     for (const amb of AMBIGUOUS_TARGETS) {
@@ -385,8 +396,36 @@ function resolvePlace(rawQuery, places = []) {
 }
 
 // ── Extract Origin and Destination ─────────────────────────────────────
+// A long message (often spoken) with the trip somewhere in the middle: "Hello Routie, good morning! Gusto kong malaman
+// kung paano pumunta mula SM City Calamba papuntang Chicken Joo sa Halang, tapos magkano kung student ako, at saan…"
+// Finds the "mula X papuntang Y" (or "papuntang Y mula X") part and cuts each place at the end of its clause
+// (a comma or period, or "tapos", "at", "kasi", "and", …), so the rest of the sentence is not taken as a place name.
+// "at" (Tagalog "and") ends the place only before a lowercase word: "Halang at magkano…", not "Jollibee at Crossing"
+const CLAUSE_END_RE = /[,.;!?]|\s(?:tapos|pagkatapos|at saka|kasi|dahil|kaya|para|pero|kung|then|and|so|because|but|since|please|pls|salamat|thanks|thank you)(?=\s|$)/i;
+const cutClause = (s) => String(s).split(CLAUSE_END_RE)[0].split(/\sat\s(?=[a-zñ])/)[0]
+    .replace(/(?:\s+(?:ako|kami|tayo|po|naman|lang|sana|ba|na|please|pls))+\s*$/i, '').trim();
+function tripClause(raw) {
+    if (raw.split(/\s+/).length <= 8 && !/[,.;!?]/.test(raw)) return null;
+    const FROM = '(?:mula|galing|from|starting from)\\s+(?:sa\\s+|ng\\s+|the\\s+)?';
+    const TO = '(?:papunta(?:ng)?|patungo(?:ng)?|hanggang|going to|to)\\s+(?:sa\\s+|the\\s+)?';
+    let m = raw.match(new RegExp(`(?:^|[\\s,.;!?])${FROM}([^,.;!?]+?)\\s+${TO}(.+)$`, 'i'));
+    if (m) {
+        const origin = cutClause(m[1]), dest = cutClause(m[2]);
+        if (origin && dest) return { origin, dest };
+    }
+    m = raw.match(new RegExp(`(?:^|[\\s,.;!?])${TO}([^,.;!?]+?)\\s+${FROM}(.+)$`, 'i'));
+    if (m) {
+        const dest = cutClause(m[1]), origin = cutClause(m[2]);
+        if (origin && dest) return { origin, dest };
+    }
+    return null;
+}
+
 function extractOriginAndDestination(text) {
     let raw = String(text || '').trim();
+    // A long message: just its trip part, when it has one
+    const clause = tripClause(raw.replace(/[\?\.\!]+$/, ''));
+    if (clause) return { origin: cleanPlaceQuery(clause.origin), dest: cleanPlaceQuery(clause.dest) };
     raw = raw.replace(/^(?:eh|uy|hi|hello|kuya|ate|routie)[,\s]+/i, '');
     raw = raw.replace(/^(?:what\s+about|how\s+about)[,\s]+/i, '');
     raw = raw.replace(/^(?:tanong\s+ko\s+lang|ask\s+ko\s+lang)[,\s]+/i, '');
@@ -1072,6 +1111,42 @@ function otherTerminalsLine(trip, isTl) {
     const list = others.map(t => `${(isTl && t.name_tl) ? t.name_tl : t.name} (${isTl ? 'mga' : 'about'} ${t.totalMin} min)`).join(isTl ? ' o ' : ' or ');
     return isTl ? `Puwede ring sumakay sa ${list}.` : `You can also board at ${list}.`;
 }
+// "saan ako sasakay?", "anong jeep sasakyan ko?", "where do I get off?" (short, about the trip just given; not a new trip)
+const BOARD_ASK_RE = /\b(?:(?:saan|san|where)\b.*\b(?:sasakay|sakay|sumakay|sakayan|board|ride|get on|catch)|(?:anong|ano ang|aling|which|what) (?:jeep|jeepney|sasakyan|sakay|signboard|route|ruta))\b/;
+const ALIGHT_ASK_RE = /\b(?:saan|san|where|kailan|when)\b.*\b(?:bababa|baba|bumaba|babaan|get off|alight|drop off|stop)\b/;
+function rideAsk(text, rawMessage) {
+    if (text.split(' ').length > 10) return null;
+    if (/\b(?:papunta|papuntang|patungo|going to|hanggang|mula|galing|from)\b|\bto\b/.test(text) || extractOriginAndDestination(rawMessage)) return null;
+    const board = BOARD_ASK_RE.test(text), alight = ALIGHT_ASK_RE.test(text);
+    return board || alight ? { board, alight } : null;
+}
+function tripRideLine(trip, isTl, ask) {
+    if (trip.isWalkOnly) return isTl ? `Lakad lang po ang biyaheng ito, walang jeep na sasakyan. ${tripTimeLine(trip, isTl)}` : `This trip is a walk, with no jeep to ride. ${tripTimeLine(trip, isTl)}`;
+    const jeeps = (trip.legs || []).filter(l => l.type === 'jeep');
+    if (!jeeps.length) return tripShortRecap(trip, isTl);
+    const sign = (l) => (l.signboard ? ` (signboard: "${l.signboard}")` : '');
+    const lines = [];
+    if (ask.board) {
+        jeeps.forEach((l, i) => lines.push(isTl
+            ? `${i ? 'Tapos lumipat: s' : 'S'}umakay sa ${boardOf(l, true)} ng jeep na ${l.routeName}${sign(l)}.`
+            : `${i ? 'Then transfer: b' : 'B'}oard at ${boardOf(l, false)}, the ${l.routeName} jeep${sign(l)}.`));
+        const other = otherTerminalsLine(trip, isTl);
+        if (other) lines.push(other);
+    }
+    if (ask.alight) {
+        const last = jeeps[jeeps.length - 1];
+        const legs = trip.legs || [];
+        const end = legs[legs.length - 1];
+        const walk = end && end.type === 'walk' && end.distanceM ? end : null;
+        // "Bumaba sa Chicken Joo – Halang; 33m na lakad na lang mula roon" (no "papuntang Chicken Joo" twice)
+        const sameStop = norm(last.alight) === norm(trip.destination.name);
+        lines.push(isTl
+            ? `Bumaba sa ${last.alight}${walk ? (sameStop ? `; mga ${walk.distanceM}m (~${walk.minutes} min) na lakad na lang mula roon` : `, tapos maglakad nang mga ${walk.distanceM}m (~${walk.minutes} min) papuntang ${trip.destination.name}`) : ''}.`
+            : `Get off at ${last.alight}${walk ? (sameStop ? `; it is a ${walk.distanceM}m (~${walk.minutes} min) walk from there` : `, then walk about ${walk.distanceM}m (~${walk.minutes} min) to ${trip.destination.name}`) : ''}.`);
+    }
+    return lines.join(' ');
+}
+
 // A short confirmation of the trip: fare, time, where to board, the other terminals
 function tripShortRecap(trip, isTl) {
     const s = trip.summary || {};
@@ -1135,6 +1210,12 @@ function handleFollowUp(rawMessage, lastTrip, places = [], lang = 'tl', opts = {
         if (ask.time) lines.push(tripTimeLine(lastTrip, isTl));
         if (ask.fare) lines.push(tripFareLine(lastTrip, isTl));
         return { type: 'trip_recap', reply: lines.join(' ') };
+    }
+
+    // 0d. "saan ako sasakay?", "anong jeep?", "saan bababa?", "where do I get off?": the ride part only, in a line or two
+    const ride = afterTrip ? rideAsk(text, rawMessage) : null;
+    if (ride) {
+        return { type: 'trip_ride', reply: tripRideLine(lastTrip, isTl, ride) };
     }
 
     // 1. "how about going back?", "pabalik?", "reverse?", "pauwi?"

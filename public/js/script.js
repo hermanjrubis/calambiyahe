@@ -1206,14 +1206,28 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         sendMessageBtn.disabled = !text;
     }
 
+    // How tall the box may grow before it scrolls: about 5 rows on a computer; on a phone up to 7 rows
+    // (about a quarter of the chat), fewer while the keyboard takes half the screen
+    function chatInputMaxHeight() {
+        const win = document.getElementById('chatWindow');
+        const phone = window.matchMedia && window.matchMedia('(max-width: 640px), (max-height: 500px) and (orientation: landscape)').matches;
+        if (!phone) return 120;
+        const h = (win && win.clientHeight) || window.innerHeight || 640;
+        return Math.max(72, Math.min(168, Math.round(h * 0.24)));
+    }
+
     function updateChatInputHeight() {
         if (!chatInput) return;
         const wasNearBottom = chatMessages ?
             (chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop <= 60) : false;
 
+        // A hidden box (while a voice message is being written down) measures 0: size it once it is shown again
+        if (!chatInput.offsetParent && chatInput.getClientRects().length === 0) return;
+
+        const maxHeight = chatInputMaxHeight();
+        chatInput.style.maxHeight = maxHeight + 'px';
         chatInput.style.height = 'auto';
         const scrollH = chatInput.scrollHeight;
-        const maxHeight = 96; // auto-grows up to ~4 rows
         if (scrollH > maxHeight) {
             chatInput.style.height = maxHeight + 'px';
             chatInput.classList.add('scrolling');
@@ -1223,6 +1237,7 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             chatInput.classList.remove('scrolling');
             chatInput.style.overflowY = 'hidden';
         }
+        markInputMore();
 
         // If user was viewing latest messages, keep scroll position pinned to bottom
         // so the expanding textarea doesn't obscure the latest message text
@@ -1230,6 +1245,15 @@ Distance: ${ctx.totalDistance || 'unknown'} km
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     }
+
+    // A soft fade at the edge where more text is hidden, so a long (spoken) message shows it scrolls
+    function markInputMore() {
+        if (!chatInput) return;
+        const scrolls = chatInput.classList.contains('scrolling');
+        chatInput.classList.toggle('more-below', scrolls && chatInput.scrollTop + chatInput.clientHeight < chatInput.scrollHeight - 2);
+        chatInput.classList.toggle('more-above', scrolls && chatInput.scrollTop > 2);
+    }
+    if (chatInput) chatInput.addEventListener('scroll', markInputMore, { passive: true });
 
     function triggerAutoExpand() {
         updateChatInputHeight();
@@ -1415,6 +1439,19 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
                 }
             });
+            // A long message scrolls inside the words box. Scrolling up to read pauses following the newest line;
+            // back at the bottom, it follows again.
+            const cap = sheet.querySelector('#rvCaption');
+            if (cap) {
+                const touched = () => { cap._userAt = Date.now(); };
+                ['wheel', 'touchstart', 'touchmove', 'pointerdown', 'keydown'].forEach(ev => cap.addEventListener(ev, touched, { passive: true }));
+                cap.addEventListener('scroll', () => {
+                    cap.classList.toggle('is-scrolled', cap.scrollTop > 2);
+                    // Only the user's own scrolling counts (not the box following the words)
+                    if (Date.now() - (cap._userAt || 0) > 1200) return;
+                    cap._userScrolled = cap.scrollHeight - cap.clientHeight - cap.scrollTop > 24;
+                }, { passive: true });
+            }
         }
 
         if (!inputArea.querySelector('.chat-voice-transcribing')) {
@@ -1500,9 +1537,13 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const sheet = chatWin && chatWin.querySelector('.rv-sheet');
         if (!sheet) return;
         liveText = '';
-        shownWords = [];
+        stopReveal();
+        const cap = document.getElementById('rvCaption');
+        if (cap) { cap._userScrolled = false; cap.scrollTop = 0; }
         renderCaption();
         updateTimer();
+        clearTimeout(sheet._hideTimer);
+        sheet.classList.remove('is-closing');
         sheet.hidden = false;
         chatWin.classList.add('rv-listening');
         requestAnimationFrame(() => sheet.classList.add('is-open'));
@@ -1516,57 +1557,157 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const sheet = chatWin && chatWin.querySelector('.rv-sheet');
         if (chatWin) chatWin.classList.remove('rv-listening');
         if (micBtn) micBtn.setAttribute('aria-pressed', 'false');
+        stopReveal();
         if (!sheet || sheet.hidden) return;
         sheet.classList.remove('is-open');
-        sheet.hidden = true;
+        // Fade out, then hide (at once when no motion is wanted)
+        if (prefersReducedMotion()) { sheet.hidden = true; return; }
+        sheet.classList.add('is-closing');
+        clearTimeout(sheet._hideTimer);
+        sheet._hideTimer = setTimeout(() => {
+            sheet.classList.remove('is-closing');
+            if (!sheet.classList.contains('is-open')) sheet.hidden = true;
+        }, 200);
     }
 
-    // What has been heard so far. Words already on screen stay still; new (or changed) words rise in one after another,
-    // the newest in blue, and Routie gives a little hop each time new words arrive.
-    let shownWords = [];
+    // What has been heard so far. The live words arrive in batches (every ~2 seconds), so they are let out one at a
+    // time, spread over the wait until the next batch, which reads like a steady flow instead of jumps. Words already
+    // on screen stay put; a word the newer pass heard differently changes in place with a soft fade. The newest word
+    // is blue, the box follows the newest line when the message gets long, and Routie gives a small nod now and then.
+    let shownWords = [];          // the words now on screen (one span each)
+    let wordSpans = [];
+    let targetWords = [];         // the words heard so far, some maybe still waiting to be shown
+    let revealTimer = null;
+    let lastNodAt = 0;
+    const LONG_CAPTION_WORDS = 16; // past this the sheet makes room: Routie smaller, words smaller
+
+    function stopReveal() {
+        if (revealTimer) { clearTimeout(revealTimer); revealTimer = null; }
+    }
+
     function renderCaption() {
         const cap = document.getElementById('rvCaption');
         const hints = document.getElementById('rvHints');
+        const sheet = cap && cap.closest('.rv-sheet');
         if (!cap) return;
         const words = liveText.trim().split(/\s+/).filter(Boolean);
-        cap.textContent = '';
+        targetWords = words;
         if (!words.length) {
+            stopReveal();
             shownWords = [];
-            cap.classList.add('is-empty');
+            wordSpans = [];
             cap.textContent = vt('chat.voice_speak_now', 'Go ahead, I\'m listening…');
+            cap.classList.add('is-empty');
+            cap.classList.remove('is-scrolled');
+            if (sheet) sheet.classList.remove('is-long');
             if (hints) hints.hidden = false;
             return;
         }
-        cap.classList.remove('is-empty');
+        if (cap.classList.contains('is-empty') || !cap.querySelector('.rv-cursor')) {
+            cap.textContent = '';
+            cap.classList.remove('is-empty');
+            const cursor = document.createElement('span');
+            cursor.className = 'rv-cursor';
+            cursor.setAttribute('aria-hidden', 'true');
+            cap.appendChild(cursor);
+            shownWords = [];
+            wordSpans = [];
+        }
         if (hints) hints.hidden = true;
-        // How many words at the start are the same as what is already shown
-        let same = 0;
-        while (same < words.length && same < shownWords.length && words[same] === shownWords[same]) same++;
-        const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        words.forEach((w, i) => {
-            const span = document.createElement('span');
-            span.className = 'rv-word' + (i === words.length - 1 ? ' rv-interim' : '');
-            span.textContent = w;
-            if (i >= same && !reduce) {
-                span.classList.add('is-new');
-                span.style.animationDelay = `${Math.min(i - same, 8) * 70}ms`;
-            }
-            cap.appendChild(span);
-            if (i < words.length - 1) cap.appendChild(document.createTextNode(' '));
-        });
-        const cursor = document.createElement('span');
-        cursor.className = 'rv-cursor';
-        cursor.setAttribute('aria-hidden', 'true');
-        cap.appendChild(cursor);
-        if (same < words.length && shownWords.length && !reduce) {
-            const mascot = document.querySelector('#chatWindow .rv-mascot');
-            if (mascot) {
-                mascot.classList.remove('is-heard');
-                void mascot.offsetWidth; // restart the hop
-                mascot.classList.add('is-heard');
+        const reduce = prefersReducedMotion();
+        // Words on screen that the newer pass heard differently: change them where they are
+        const keep = Math.min(shownWords.length, words.length);
+        for (let i = 0; i < keep; i++) {
+            if (shownWords[i] === words[i]) continue;
+            const span = wordSpans[i];
+            span.textContent = words[i];
+            shownWords[i] = words[i];
+            if (!reduce) {
+                span.classList.remove('is-new', 'is-swap');
+                void span.offsetWidth;
+                span.classList.add('is-swap');
             }
         }
-        shownWords = words;
+        // Fewer words than before (the newer pass dropped a doubtful one): take the extra ones away
+        while (shownWords.length > words.length) {
+            const span = wordSpans.pop();
+            shownWords.pop();
+            if (span._space) span._space.remove();
+            span.remove();
+        }
+        markNewest();
+
+        // Too many waiting, or no motion wanted: show them all now
+        const waiting = words.length - shownWords.length;
+        if (reduce || waiting > 30) {
+            stopReveal();
+            while (shownWords.length < targetWords.length) addWord(targetWords[shownWords.length], false);
+            markNewest();
+            followCaption(cap, true);
+        } else if (waiting > 0 && !revealTimer) {
+            revealNext();
+        }
+        if (sheet) sheet.classList.toggle('is-long', words.length > LONG_CAPTION_WORDS);
+    }
+
+    function addWord(word, animate) {
+        const cap = document.getElementById('rvCaption');
+        if (!cap) return;
+        const cursor = cap.querySelector('.rv-cursor');
+        const span = document.createElement('span');
+        span.className = 'rv-word' + (animate ? ' is-new' : '');
+        span.textContent = word;
+        span.addEventListener('animationend', () => span.classList.remove('is-new', 'is-swap'));
+        if (wordSpans.length) {
+            span._space = document.createTextNode(' ');
+            cap.insertBefore(span._space, cursor);
+        }
+        cap.insertBefore(span, cursor);
+        wordSpans.push(span);
+        shownWords.push(word);
+    }
+
+    // One word at a time; the pace spreads the waiting words over the time until the next batch (quicker when many wait)
+    function revealNext() {
+        revealTimer = null;
+        const cap = document.getElementById('rvCaption');
+        if (!cap || !isListening) return;
+        if (shownWords.length >= targetWords.length) return;
+        addWord(targetWords[shownWords.length], true);
+        markNewest();
+        followCaption(cap, false);
+        nod();
+        const waiting = targetWords.length - shownWords.length;
+        if (waiting > 0) {
+            const pace = Math.max(55, Math.min(190, Math.round((LIVE_EVERY_MS * 0.75) / waiting)));
+            revealTimer = setTimeout(revealNext, pace);
+        }
+    }
+
+    function markNewest() {
+        wordSpans.forEach((s, i) => s.classList.toggle('rv-interim', i === wordSpans.length - 1));
+    }
+
+    // Keep the newest line in view when the words fill the space (unless the user scrolled up to read)
+    function followCaption(cap, instant) {
+        if (!cap) return;
+        const room = cap.scrollHeight - cap.clientHeight;
+        if (room <= 1) { cap.classList.remove('is-scrolled'); return; }
+        if (cap._userScrolled) return;
+        cap.scrollTo({ top: room, behavior: instant || prefersReducedMotion() ? 'auto' : 'smooth' });
+        cap.classList.add('is-scrolled');
+    }
+
+    function nod() {
+        if (prefersReducedMotion()) return;
+        const now = Date.now();
+        if (now - lastNodAt < 1100) return;
+        lastNodAt = now;
+        const mascot = document.querySelector('#chatWindow .rv-mascot');
+        if (!mascot) return;
+        mascot.classList.remove('is-heard');
+        void mascot.offsetWidth; // restart the nod
+        mascot.classList.add('is-heard');
     }
 
     function updateTimer() {
@@ -1645,7 +1786,8 @@ Distance: ${ctx.totalDistance || 'unknown'} km
                 for (let i = 0; i < data.length; i++) { const v = (data[i] - 128) / 128; sum += v * v; }
                 const rms = Math.sqrt(sum / data.length);
                 const target = Math.max(0.3, Math.min(1.5, 0.3 + rms * 7));
-                amp += (target - amp) * 0.25;
+                // Rises quickly with the voice, settles slowly between words (no flicker)
+                amp += (target - amp) * (target > amp ? 0.22 : 0.07);
                 waves.style.setProperty('--rv-amp', amp.toFixed(3));
                 visualizerAnimId = requestAnimationFrame(frame);
             };
@@ -1827,12 +1969,40 @@ Distance: ${ctx.totalDistance || 'unknown'} km
         const base = lastVoicePut && current === lastVoicePut.after ? lastVoicePut.before : current.trim();
         chatInput.value = base ? `${base} ${text}` : text;
         lastVoicePut = { before: base, after: chatInput.value };
-        updateChatInputHeight();
-        updateSendButtonState();
-        chatInput.focus({ preventScroll: true });
-        try { chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length); } catch (_) { }
+        // Show the box first: it is hidden while "Writing down what you said…" is on, and a hidden box can't be sized
+        isTranscribing = false;
+        setInputMode('idle');
         lastVoiceFix = fix;
         if (fix) showFixNote(fix.corrections); else hideFixNote();
+        updateChatInputHeight();
+        updateSendButtonState();
+        // On a phone, focusing would pop up the keyboard over half the screen: leave the words in view, ready to send
+        // (a tap on the box edits them). On a computer, the cursor goes at the end, ready to add or change words.
+        if (isTouchOnly()) {
+            chatInput.scrollTop = base ? chatInput.scrollHeight : 0;
+        } else {
+            chatInput.focus({ preventScroll: true });
+            try { chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length); } catch (_) { }
+            chatInput.scrollTop = chatInput.scrollHeight;
+        }
+        markInputMore();
+        const area = getChatInputArea();
+        if (area && !prefersReducedMotion()) {
+            area.classList.remove('rv-filled');
+            void area.offsetWidth; // restart the fade
+            area.classList.add('rv-filled');
+        }
+        // Keep the latest message in view above the taller box
+        const msgs = document.getElementById('chatMessages');
+        if (msgs) msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    function isTouchOnly() {
+        return !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+    }
+
+    function prefersReducedMotion() {
+        return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     }
 
     function showFixNote(corrections) {
@@ -1878,6 +2048,15 @@ Distance: ${ctx.totalDistance || 'unknown'} km
     }
 
     ensureVoiceUI();
+
+    // The box's height limit depends on the screen: size it again when the keyboard opens or the phone turns
+    let inputResizeFrame = 0;
+    const resizeInputSoon = () => {
+        if (!chatInput || !chatInput.value || inputResizeFrame) return;
+        inputResizeFrame = requestAnimationFrame(() => { inputResizeFrame = 0; updateChatInputHeight(); });
+    };
+    window.addEventListener('resize', resizeInputSoon);
+    if (window.visualViewport) window.visualViewport.addEventListener('resize', resizeInputSoon);
 
     if (chatInput) {
         chatInput.addEventListener('input', clearVoiceError);
