@@ -50,6 +50,12 @@
     const NEAR_TERMINAL_DEST_M = 700; // destinations closer than this to a terminal get no terminal choice
     const MUCH_FASTER_MIN = 5;        // the usual plan wins when it is this much faster than every terminal
     const LOCAL_MARGIN_M = 400;       // "local": in Uno / Real / Halang or this close to them (all jeeps there are in the data)
+    // Jeepney tab when walking is faster (e.g. SM City -> Calamba City Hall): a terminal ride is still offered
+    // when the trip is at least SLOWER_RIDE_MIN_M, the ride cuts the walk to at most SLOWER_RIDE_WALK_SHARE of
+    // walking all the way, and it is at most SLOWER_RIDE_MAX_EXTRA_MIN slower
+    const SLOWER_RIDE_MIN_M = 800;
+    const SLOWER_RIDE_WALK_SHARE = 0.7;
+    const SLOWER_RIDE_MAX_EXTRA_MIN = 15;
 
     // Balanced score for "Recommended": fare first, but time and transfers count
     const COST_PER_MIN = 0.5;        // pesos per minute
@@ -442,6 +448,28 @@
             return rank(found);
         }
 
+        // A local trip (or one from a no-jeepney barangay) with no jeep option because walking is about as
+        // fast or faster: the terminal rides anyway, for a user who picks Jeepney (less walking, heat, rain).
+        // Each option carries walkAllMin (walking all the way) and walkFasterMin (> 0: walking is that much faster).
+        // [] when the usual plan has options or no ride saves real walking.
+        function terminalRides(origin, dest) {
+            if (!origin || !dest) return [];
+            if (!(noJeepAreaOf(origin) || (isLocal(origin) && isLocal(dest)))) return [];
+            const straight = haversineM(origin, dest);
+            if (straight < SLOWER_RIDE_MIN_M || plan(origin, dest).length) return [];
+            const walkAllM = straight * WALK_FACTOR;
+            const walkAllMin = walkMin(walkAllM);
+            const found = [];
+            boardingStops().forEach((st) => {
+                if (haversineM(origin, st.pt) >= straight) return;
+                plan(origin, dest, st.id).forEach((o) => {
+                    if (o.walkM > walkAllM * SLOWER_RIDE_WALK_SHARE || o.totalMin > walkAllMin + SLOWER_RIDE_MAX_EXTRA_MIN) return;
+                    found.push({ ...o, tags: [], walkAllMin, walkFasterMin: o.totalMin - walkAllMin });
+                });
+            });
+            return rank(found).map((o) => ({ ...o, tags: [], walkAllMin, walkFasterMin: o.totalMin - walkAllMin }));
+        }
+
         // ── Terminal choice (destinations in Real / Halang) ──
         const tc = data.terminalChoices || null;
         const radiusM = (tc && Number.isFinite(tc.radiusM)) ? tc.radiusM : TERMINAL_RADIUS_M;
@@ -622,7 +650,7 @@
             return slicePath(r, clamp(fromPos), clamp(toPos));
         }
 
-        return { plan, routes, stops, areaOf, isLocal, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalAt, routeNear, stopPosOn, pathOf, legKey, retime, retimeOption, routesBbox };
+        return { plan, routes, stops, areaOf, isLocal, noJeepAreaOf, roadBoardingOk, boardingStops, terminalChoices, terminalRides, terminalAt, routeNear, stopPosOn, pathOf, legKey, retime, retimeOption, routesBbox };
     }
 
     // Same trip on different routes: one card
@@ -812,7 +840,7 @@
     }
 
     return {
-        VERSION: '1.9.2',
+        VERSION: '1.10.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),
@@ -825,6 +853,7 @@
         roadBoardingOk: (p) => (planner ? planner.roadBoardingOk(p) : true),
         boardingStops: () => (planner ? planner.boardingStops() : []),
         terminalChoices: (o, d, destArea) => (planner ? planner.terminalChoices(o, d, destArea) : null),
+        terminalRides: (o, d) => (planner ? planner.terminalRides(o, d) : []),
         terminalAt: (p, area) => (planner ? planner.terminalAt(p, area) : null),
         routeNear: (p, maxM, onlyIds) => (planner ? planner.routeNear(p, maxM, onlyIds) : []),
         stopPosOn: (routeId, stopId) => (planner ? planner.stopPosOn(routeId, stopId) : null),

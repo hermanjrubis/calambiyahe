@@ -5130,9 +5130,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // true when curated routes handled the trip (options shown, first jeep routed)
-        async function planWithTransitRoutes(oPt, dPt, straightDistM) {
+        // Jeepney picked on a trip where walking is about as fast or faster (engine terminalRides): say so.
+        // opt null: hide that note (other notes in the same spot are left alone)
+        function showSlowerRideHint(opt) {
+            const el = document.getElementById('walkableTripHint');
+            if (!el) return;
+            if (!opt || !Number.isFinite(opt.walkAllMin)) {
+                if (el.dataset.kind === 'slower') { el.style.display = 'none'; delete el.dataset.kind; }
+                return;
+            }
+            const n = Math.round(opt.totalMin - opt.walkAllMin);
+            const m = formatDistanceM(Math.round(opt.walkM));
+            el.innerHTML = '<ion-icon name="walk-outline"></ion-icon><span></span>';
+            el.querySelector('span').textContent = n >= 1
+                ? t('planner.jeep_slower_than_walk', { n, w: opt.walkAllMin, m })
+                : t('planner.jeep_as_fast_as_walk', { w: opt.walkAllMin, m });
+            el.dataset.kind = 'slower';
+            el.style.display = 'inline-flex';
+        }
+
+        // how.slower: with no usual option, the terminal rides where walking is faster (Jeepney picked)
+        async function planWithTransitRoutes(oPt, dPt, straightDistM, how) {
             const T = window.CalzadaTransit;
             if (!T) return false;
+            showSlowerRideHint(null);
             try {
                 await Promise.race([T.load(), new Promise(r => setTimeout(r, 2500))]);
                 if (window.CalzadaFare) await Promise.race([window.CalzadaFare.load(), new Promise(r => setTimeout(r, 2000))]);
@@ -5142,7 +5163,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (tc) return await planWithTerminalChoice(T, tc, oPt, dPt, straightDistM);
                 clearTerminalChoice();
                 terminalTrip = null;
-                const opts = T.plan(oPt, dPt);
+                let opts = T.plan(oPt, dPt);
+                // Jeepney picked where walking is faster (e.g. SM City -> Calamba City Hall): the terminal ride anyway
+                const slowerRides = (!opts.length && how && how.slower && T.terminalRides) ? T.terminalRides(oPt, dPt) : [];
+                if (!opts.length) opts = slowerRides;
                 if (!opts.length) { clearTransitPlan(); return false; }
 
                 // Collect unique jeep legs for traffic evaluation
@@ -5203,6 +5227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 transitSelected = sel;
                 renderTransitOptionsUI();
                 await applyTransitOption(finalOpts[sel], straightDistM);
+                showSlowerRideHint(slowerRides.length ? finalOpts[sel] : null);
                 return true;
             } catch (e) {
                 console.error('Curated routes failed; using the highway route:', e);
@@ -5902,7 +5927,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const noJeepArea = (T0 && T0.isReady && T0.isReady() && T0.noJeepAreaOf) ? T0.noJeepAreaOf(oPt) : null;
             const walkInstead = !!opts.walkOnly;
             const noJeepTrip = !!noJeepArea && (opts.noJeep
-                || (!T0.plan(oPt, dPt).length && !(T0.terminalChoices && T0.terminalChoices(oPt, dPt, destKnownBarangay()))));
+                || (!T0.plan(oPt, dPt).length && !(T0.terminalChoices && T0.terminalChoices(oPt, dPt, destKnownBarangay()))
+                    // Jeepney picked and a terminal ride exists (walking is faster): show the ride
+                    && !(userExplicitMode && selectedMode === 'jeepney' && T0.terminalRides && T0.terminalRides(oPt, dPt).length)));
 
             // Intelligent default: for very short trips under ~800m, default to walking unless user explicitly chose a mode
             if (noJeepOverride && userExplicitMode) selectedMode = 'jeepney';
@@ -5972,7 +5999,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (walkHintEl) {
                     // Same walk distance as the leg and the summary
                     const totalWalkM = Math.round(currentWalkDist * 1000 || straightDistM);
-                    if (noJeepTrip) {
+                    // Walking is faster, but a terminal ride exists: offer it (tap: Jeepney)
+                    const Tw = window.CalzadaTransit;
+                    const rideOffer = (Tw && Tw.isReady && Tw.isReady() && Tw.terminalRides) ? Tw.terminalRides(oPt, dPt)[0] : null;
+                    delete walkHintEl.dataset.kind;
+                    if (rideOffer) {
+                        walkHintEl.innerHTML = '<ion-icon name="walk-outline"></ion-icon><span></span><button type="button" class="walk-hint-link"></button>';
+                        walkHintEl.querySelector('span').textContent = t('planner.walk_slower_jeep', { j: rideOffer.totalMin, fare: formatPeso(rideOffer.fare) });
+                        const link = walkHintEl.querySelector('.walk-hint-link');
+                        link.textContent = t('planner.walk_slower_jeep_show');
+                        link.addEventListener('click', () => { const b = document.getElementById('modeJeepney'); if (b) b.click(); });
+                        walkHintEl.dataset.kind = 'offer';
+                        walkHintEl.style.display = 'inline-flex';
+                    } else if (noJeepTrip) {
                         walkHintEl.innerHTML = '<ion-icon name="information-circle-outline"></ion-icon><span></span>';
                         walkHintEl.querySelector('span').textContent = t('planner.no_jeep_from', { area: noJeepArea });
                         walkHintEl.style.display = 'inline-flex';
@@ -5995,6 +6034,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ── JEEPNEY MODE: curated routes first (options, transfers), else the highway heuristic ──
             if (await planWithTransitRoutes(oPt, dPt, straightDistM)) return;
+            // Jeepney picked where walking is faster: the terminal ride anyway, with a note (default stays Walking)
+            if (userExplicitMode && await planWithTransitRoutes(oPt, dPt, straightDistM, { slower: true })) return;
 
             // From a no-jeepney barangay with no curated trip: walk, never the guessed highway ride below
             if (noJeepArea) return executeRouteQueryCore({ noJeep: true });

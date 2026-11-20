@@ -1844,6 +1844,19 @@ body.navigation-active .calzada-map-card {
     animation: fadeIn 0.2s ease-in-out;
 }
 
+.walkable-trip-hint .walk-hint-link {
+    margin-left: 4px;
+    padding: 0;
+    background: none;
+    border: 0;
+    color: #15803D;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
 .walkable-trip-hint ion-icon {
     font-size: 1.05rem;
     color: #15803D;
