@@ -21,6 +21,8 @@ const SAMPLE_STEP_M = 10;        // one matched point every 10 m of jeep path
 const MAX_MATCH_M = 25;          // a road shape farther than this from the jeep path is not its road
 const MAX_BEARING_DIFF = 45;     // one_side shapes must run within 45° of the jeep's direction
 const MIN_STRETCH_M = 40;        // shorter stretches merge into a neighbour (no confetti)
+const MIN_RED_M = 80;            // heavy/stopped shorter than this shows as slow: a red blip at a
+                                 // light or a short slow segment read as a jam that was not there
 const MIN_MATCHED_PCT = 60;      // under this the result is not shown (live:false, low_match)
 
 // one_side shapes carry one direction of a two-way road. true: the shape's drawing order is its
@@ -221,6 +223,16 @@ function buildStretches(matched, totalM, minM = MIN_STRETCH_M) {
                 runs.splice(i, 1);
                 changed = true;
             }
+        }
+    }
+    // Short red stretches (not road closures) become slow, then neighbours of one class join again
+    runs.forEach((r) => {
+        if ((r.cls === 'heavy' || r.cls === 'stopped') && !r.closed && r.s1 - r.s0 < MIN_RED_M) r.cls = 'slow';
+    });
+    for (let i = runs.length - 1; i > 0; i--) {
+        if (runs[i].cls === runs[i - 1].cls && runs[i].closed === runs[i - 1].closed) {
+            runs[i - 1].s1 = runs[i].s1;
+            runs.splice(i, 1);
         }
     }
     return runs.map((r) => ({ s0: Math.round(r.s0), s1: Math.round(r.s1), cls: r.cls, closed: r.closed }));

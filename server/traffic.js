@@ -820,12 +820,14 @@ function createTrafficRouter({ adminDb } = {}) {
                         return { t, error: 'decode_error' };
                     }
                 }));
-                const failed = results.find((r) => r.error);
-                if (failed) {
-                    console.error(`[traffic] leg-colors ${legKey}: tile ${failed.t.z}/${failed.t.x}/${failed.t.y} ${failed.error}`);
-                    return res.json({ live: false, reason: failed.error });
+                // One failed tile no longer drops the whole line: the rest is matched, and the matched
+                // share below decides (a ride mostly on a failed tile still gets live:false)
+                const failed = results.filter((r) => r.error);
+                failed.forEach((f) => console.error(`[traffic] leg-colors ${legKey}: tile ${f.t.z}/${f.t.x}/${f.t.y} ${f.error}`));
+                if (failed.length === results.length) {
+                    return res.json({ live: false, reason: failed[0].error });
                 }
-                results.forEach((r) => vectorTileCache.set(`${r.t.z}/${r.t.x}/${r.t.y}`, { expiresAt: now + VECTOR_TILE_TTL_MS, features: r.features }));
+                results.filter((r) => !r.error).forEach((r) => vectorTileCache.set(`${r.t.z}/${r.t.x}/${r.t.y}`, { expiresAt: now + VECTOR_TILE_TTL_MS, features: r.features }));
                 if (vectorTileCache.size > 400) {
                     // drop the oldest entries
                     const keys = Array.from(vectorTileCache.keys()).slice(0, vectorTileCache.size - 400);

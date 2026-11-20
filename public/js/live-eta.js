@@ -93,6 +93,7 @@
         let lastFix = null;          // {t, lat, lng, along, leg}
         let waitSec = opt.boardingWaitSec;
         let phase = null;            // set by the planner's journey state (js/journey-state.js)
+        let trafficKph = null;       // the jeep's speed with traffic now (TomTom), when known
 
         function setLegs(def) {
             const d = def || {};
@@ -212,8 +213,18 @@
             lastFix = { t, lat: fix.lat, lng: fix.lng, along: legs[cur].along, leg: cur };
         }
 
+        // Usual jeep speed: TomTom's speed with traffic for this ride when known, else the time-of-day speed
+        function baseJeepMps(t) {
+            return trafficKph ? trafficKph / 3.6 : jeepDefaultMps(new Date(t), opt.jeepKph);
+        }
+
+        function setTrafficKph(kph) {
+            const k = Number(kph);
+            trafficKph = Number.isFinite(k) && k > 0 ? Math.max(6, Math.min(30, k)) : null;
+        }
+
         function jeepMps(t) {
-            const base = jeepDefaultMps(new Date(t), opt.jeepKph);
+            const base = baseJeepMps(t);
             if (!boarded || samples.length < 2) return base;
             const first = samples[0], last = samples[samples.length - 1];
             const span = (last.t - first.t) / 1000;
@@ -237,7 +248,7 @@
                 meters += left;
                 if (leg.type === 'jeep') {
                     if (i > cur) {
-                        sec += waitSec + left / jeepDefaultMps(new Date(t), opt.jeepKph);
+                        sec += waitSec + left / baseJeepMps(t);
                     } else {
                         if (!boarded) {
                             const waited = waitStart ? (t - waitStart) / 1000 : 0;
@@ -254,7 +265,7 @@
             return { seconds: sec, meters, phase: shownPhase, walkKph: walkMps * 3.6, jeepKph: jeepMps(t) * 3.6, waitedSec, waitSec };
         }
 
-        return { setLegs, onFix, remaining, setPhase, get leg() { return legs[cur] ? legs[cur].type : null; } };
+        return { setLegs, onFix, remaining, setPhase, setTrafficKph, get leg() { return legs[cur] ? legs[cur].type : null; } };
     }
 
     // Smooth what we show so the minutes don't jump around on every GPS fix:

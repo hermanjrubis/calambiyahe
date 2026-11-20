@@ -457,7 +457,9 @@
             frag.appendChild(infoRow('web', a));
         }
 
-        if (place.pano) {
+        // No 360° view during a journey (planner.js _calzadaJourneyActive)
+        const journeyRunning = typeof window._calzadaJourneyActive === 'function' && window._calzadaJourneyActive();
+        if (place.pano && !journeyRunning) {
             const v = el('button', 'czc-360');
             v.type = 'button';
             v.setAttribute('aria-label', t.open360);

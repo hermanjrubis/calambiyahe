@@ -73,6 +73,16 @@ const path = [pt(0, 0), pt(500, 0), pt(1000, 0)];
     for (let s = 0; s <= 300; s += 10) m2.push({ s, level: s >= 100 && s <= 200 ? 0.1 : 0.9, closed: false });
     const st2 = TM.buildStretches(m2, 300);
     check('110 m jam kept', st2.length === 3 && st2[1].cls === 'stopped', st2);
+    // A 60 m red stretch (e.g. at a light) shows as slow, not as a jam
+    const m3 = [];
+    for (let s = 0; s <= 300; s += 10) m3.push({ s, level: s >= 120 && s <= 170 ? 0.1 : 0.9, closed: false });
+    const st3 = TM.buildStretches(m3, 300);
+    check('60 m red shows as slow', st3.length === 3 && st3[1].cls === 'slow', st3);
+    // A closed road stays red however short
+    const m4 = [];
+    for (let s = 0; s <= 300; s += 10) m4.push({ s, level: 0.9, closed: s >= 120 && s <= 170 });
+    const st4 = TM.buildStretches(m4, 300);
+    check('short closure stays stopped', st4.some((x) => x.cls === 'stopped' && x.closed), st4);
 }
 
 // 6. Travel stretches -> route positions (dir and private parts)

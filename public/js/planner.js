@@ -1129,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             routeColorsLegendEl.style.display = '';
         }
 
+        const legColorsPending = new Map(); // key -> promise: one request per ride slice at a time
         async function fetchLegColors(ctx) {
             const f = Math.round(ctx.fromM / 50) * 50;
             const tt = Math.round(ctx.toM / 50) * 50;
@@ -1136,17 +1137,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const now = Date.now();
             const c = legColorsCache.get(key);
             if (c && now < c.expiresAt) return c.data;
+            if (legColorsPending.has(key)) return legColorsPending.get(key);
             const url = `/api/traffic/leg-colors?route=${encodeURIComponent(ctx.routeId)}&from=${f}&to=${tt}${ctx.dir === -1 ? '&dir=r' : ''}`;
-            let data;
-            try {
-                const res = await fetch(url);
-                data = res.ok ? await res.json() : { live: false, reason: `http_${res.status}` };
-            } catch (_) {
-                data = { live: false, reason: 'fetch_failed' };
-            }
-            if (!data || !data.live) console.info(`[traffic-line] ${key}: plain line (${data && data.reason ? data.reason : 'no data'})`);
-            legColorsCache.set(key, { data, expiresAt: now + 55 * 1000 });
-            return data;
+            const p = (async () => {
+                let data;
+                try {
+                    const res = await fetch(url);
+                    data = res.ok ? await res.json() : { live: false, reason: `http_${res.status}` };
+                } catch (_) {
+                    data = { live: false, reason: 'fetch_failed' };
+                }
+                if (!data || !data.live) console.info(`[traffic-line] ${key}: plain line (${data && data.reason ? data.reason : 'no data'})`);
+                legColorsCache.set(key, { data, expiresAt: Date.now() + 55 * 1000 });
+                return data;
+            })();
+            legColorsPending.set(key, p);
+            try { return await p; } finally { legColorsPending.delete(key); }
+        }
+
+        // When a plan comes in: ask for the line colours of the option that will be shown first right
+        // away, together with the travel times, so the coloured line is ready when the route is drawn
+        function prefetchLegColors(opt) {
+            if (!opt || !Array.isArray(opt.legs)) return;
+            opt.legs.forEach((l) => {
+                if (l.type !== 'jeep' || !Number.isFinite(l.boardPos) || !Number.isFinite(l.alightPos)) return;
+                fetchLegColors({
+                    routeId: l.routeId,
+                    fromM: Math.min(l.boardPos, l.alightPos),
+                    toM: Math.max(l.boardPos, l.alightPos),
+                    dir: l.alightPos < l.boardPos ? -1 : 1
+                }).catch(() => {});
+            });
         }
 
         // Called when an option is shown: remember its jeep legs, then colour them when data arrives
@@ -1188,8 +1209,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.live && Array.isArray(data.stretches)) {
                     c.travel = TLX.toTravel(data.stretches, c.boardPos, c.alightPos);
                     c.updated = data.updated || null;
-                } else if (!(c.travel && c.updated && Date.now() - Date.parse(c.updated) < 10 * 60 * 1000)) {
-                    // A refresh that fails keeps the last colours for up to 10 min
+                } else if (!(c.travel && c.updated && Date.now() - Date.parse(c.updated) < 2 * 60 * 1000)
+                    || (data && (data.reason === 'budget' || data.reason === 'low_match'))) {
+                    // A refresh that fails keeps the last colours for 2 min at most (a jam that cleared
+                    // must not stay red); with no data at all (budget, unmatched road) they go at once
                     c.travel = null;
                 }
             });
@@ -1432,6 +1455,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // E: Compass & Heading tracking state
         let compassHeading = null;
         let lastCameraApplyAt = 0;
+        let lastCamera = null; // { center, bearing, zoom } of the last journey camera move
         let currentGpsSpeed = null;
         let currentGpsHeading = null;
         let activeCompassListener = null;
@@ -1443,6 +1467,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         function setMapAutoFollow(val) {
             mapAutoFollow = Boolean(val);
+            lastCamera = null; // following again (or not): the next camera move always happens
             const btn = document.getElementById('reCenterBtn');
             if (btn) {
                 const shouldShow = Boolean(isTrackingArrival && !mapAutoFollow);
@@ -1484,6 +1509,34 @@ document.addEventListener('DOMContentLoaded', () => {
         // E3: Shortest angular difference and smoothing
         function getAngularDiff(target, current) {
             return ((target - current + 540) % 360) - 180;
+        }
+
+        // Compass bearing from a to b, both [lng, lat]
+        function bearingBetween(a, b) {
+            const toR = Math.PI / 180;
+            const y = Math.sin((b[0] - a[0]) * toR) * Math.cos(b[1] * toR);
+            const x = Math.cos(a[1] * toR) * Math.sin(b[1] * toR) - Math.sin(a[1] * toR) * Math.cos(b[1] * toR) * Math.cos((b[0] - a[0]) * toR);
+            return (Math.atan2(y, x) / toR + 360) % 360;
+        }
+        // Direction of a route ([lat, lng] points) from where you are to a point aheadM metres further
+        // along it: steadier than one segment's bearing on bends and at vertices
+        function pathBearingAhead(path, segIdx, ptLngLat, aheadM = 30) {
+            if (!Array.isArray(path) || path.length < 2 || !ptLngLat) return null;
+            let i = Math.max(0, Math.min(path.length - 2, segIdx | 0)) + 1;
+            let prev = ptLngLat;
+            let left = aheadM;
+            while (i < path.length) {
+                const p = [path[i][1], path[i][0]];
+                const d = getHaversineDist(prev[1], prev[0], p[1], p[0]) * 1000;
+                if (d >= left || i === path.length - 1) {
+                    if (getHaversineDist(ptLngLat[1], ptLngLat[0], p[1], p[0]) * 1000 < 2) return null;
+                    return bearingBetween(ptLngLat, p);
+                }
+                left -= d;
+                prev = p;
+                i++;
+            }
+            return null;
         }
 
         function smoothHeading(current, target, thresholdDeg = 4, alpha = 0.3) {
@@ -1559,6 +1612,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const padding = opts.padding !== undefined ? opts.padding : computeCameraPadding();
             const zoom = opts.zoom !== undefined ? opts.zoom : NAV_ZOOM;
             const duration = opts.duration !== undefined ? opts.duration : (prefersReducedMotion() ? 0 : 300);
+            // Same place and heading as the last move: no new move (each one cuts the previous glide short)
+            if (lastCamera && !opts.force && lastCamera.zoom === zoom
+                && getHaversineDist(lastCamera.center[1], lastCamera.center[0], center[1], center[0]) * 1000 < 0.5
+                && Math.abs(getAngularDiff(finalMapBearing, lastCamera.bearing)) < 1.5
+                && Math.abs(getAngularDiff(map.getBearing(), lastCamera.bearing)) < 1.5) {
+                return;
+            }
+            lastCamera = { center: [center[0], center[1]], bearing: finalMapBearing, zoom };
 
             map.easeTo({
                 center: center,
@@ -1599,10 +1660,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     compassHeading = smoothHeading(compassHeading, rawHeading, 4, 0.25);
                 }
 
-                // E2: Heading source: speed >= 2 m/s and GPS heading valid -> GPS heading; else compass heading
-                const isFastJeep = (currentGpsSpeed !== null && currentGpsSpeed >= 2.0 && currentGpsHeading !== null);
-                if (!isFastJeep) {
-                    currentNavHeading = compassHeading;
+                // The compass turns the map only on foot and standing still. In a jeep (waiting or
+                // riding) the phone's compass swings with the vehicle and the hand, so the map keeps the
+                // road's direction; while moving, the road / GPS heading in handleLocationUpdate wins.
+                const onJeep = journeyPhase === 'waiting' || journeyPhase === 'riding';
+                const moving = currentGpsSpeed !== null && currentGpsSpeed >= 1.0;
+                if (!onJeep && !moving) {
+                    currentNavHeading = smoothHeading(currentNavHeading, compassHeading, 10, 0.2);
 
                     const finalMapBearing = navMapBearing();
 
@@ -1614,10 +1678,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         compass.style.transform = `rotate(${-finalMapBearing}deg)`;
                     }
 
-                    // E4: Camera: compass may call applyCamera at most 4 times per second (>= 250ms interval)
+                    // Camera: at most twice a second, and only for a turn of 3° or more
                     const now = performance.now();
-                    if (mapAutoFollow && isTrackingArrival && (now - lastCameraApplyAt >= 250)) {
-                        applyCamera({ bearing: finalMapBearing, duration: 200 });
+                    if (mapAutoFollow && isTrackingArrival && (now - lastCameraApplyAt >= 500)
+                        && Math.abs(getAngularDiff(finalMapBearing, map.getBearing())) >= 3) {
+                        applyCamera({ bearing: finalMapBearing, duration: 450 });
                     }
                 }
             };
@@ -2216,6 +2281,8 @@ document.addEventListener('DOMContentLoaded', () => {
             global360ClickBound = true;
 
             map.on('click', (e) => {
+                // No 360° street view during a journey: the map is for following the trip
+                if (isTrackingArrival) return;
                 // Don't hijack clicks that already landed on an existing marker/popup —
                 // those already have their own (richer) popup with the 360 thumbnail.
                 const targetEl = e.originalEvent && e.originalEvent.target;
@@ -2845,8 +2912,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let currentRemainingDistanceMeters = 0;
 
+        // During a journey the arrival time moves only when the estimate really moved (90 s or more), so
+        // it does not flick between two minutes; the minutes left count down from it
+        let shownArrivalMs = null;
+        function journeyArrivalMs() {
+            const est = Date.now() + cachedRemainingSeconds * 1000;
+            if (!isTrackingArrival) { shownArrivalMs = null; return est; }
+            if (shownArrivalMs === null || Math.abs(est - shownArrivalMs) >= 90 * 1000) shownArrivalMs = est;
+            return shownArrivalMs;
+        }
+
         function updateDynamicBottomPill(timeSinceLastMove = 0) {
-            let mins = Math.ceil(cachedRemainingSeconds / 60);
+            const arrivalMs = journeyArrivalMs();
+            let mins = Math.ceil(Math.max(0, arrivalMs - Date.now()) / 60000);
             const minText = mins < 1 ? "< 1" : `${mins}`;
 
             let minColor = '#16181d';
@@ -2865,7 +2943,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 el.style.animation = minAnim;
             });
 
-            const d = new Date(Date.now() + cachedRemainingSeconds * 1000);
+            const d = new Date(arrivalMs);
             const arrivalText = fmt24h(d);
             document.querySelectorAll('.nav-stat-arrival, #navPanelArrival, #dNavArrival, #pillArrival').forEach(el => {
                 el.textContent = arrivalText;
@@ -2939,7 +3017,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updatePillFareUI();
             // The route list's arrival time follows the live estimate during a journey
             if (isTrackingArrival && cachedRemainingSeconds > 0) {
-                const arr = fmt24h(new Date(Date.now() + cachedRemainingSeconds * 1000));
+                const arr = fmt24h(new Date(journeyArrivalMs()));
                 document.querySelectorAll('.timeline-ring--dest').forEach((ring) => {
                     const cell = ring.closest('.timeline-row')?.querySelector('.timeline-time');
                     if (cell && cell.textContent !== arr) cell.textContent = arr;
@@ -2983,7 +3061,23 @@ document.addEventListener('DOMContentLoaded', () => {
             return [selectedMode, w.length, j.length, f.length, head(w), head(j), head(f), pendingTransfer ? pendingTransfer.extraMin : 0, currentWaitMin].join('|');
         }
 
+        // TomTom's jeep speed with traffic (km/h) for the ride being tracked: from the plan, then the
+        // 2-minute refresh. Kept per ride (route + where you get off), so a transfer starts fresh.
+        let liveTrafficKph = null; // { key, kph }
+        const trafficKphKey = (leg) => (leg ? `${leg.routeId}:${Math.round(leg.alightPos != null ? leg.alightPos : leg.toM)}` : '');
+        function currentJeepLeg() {
+            const opt = transitOptions && transitOptions[transitSelected];
+            return opt && opt.legs ? opt.legs.find((l) => l.type === 'jeep') || null : null;
+        }
+        function trafficKphForTracking() {
+            const leg = currentJeepLeg();
+            if (!leg) return null;
+            if (liveTrafficKph && liveTrafficKph.key === trafficKphKey(leg)) return liveTrafficKph.kph;
+            return leg.trafficLive && leg.trafficKph ? leg.trafficKph : null;
+        }
+
         function resetLiveEta() {
+            shownArrivalMs = null;
             liveEta = null;
             liveEtaSig = '';
             if (liveEtaSmoother) liveEtaSmoother.reset();
@@ -3029,6 +3123,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 startLeg: activeLegIndex
             });
             liveEtaSig = sig;
+            // The jeep part goes at TomTom's speed with traffic when known (like the plan before Start)
+            const tk = trafficKphForTracking();
+            if (tk && liveEta.setTrafficKph) liveEta.setTrafficKph(tk);
             if (liveEtaSmoother) liveEtaSmoother.reset();
             return liveEta;
         }
@@ -3056,6 +3153,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let completedCoords = [];
         let lastMovementTimestamp = Date.now();
         let lastValidPosition = null;
+        let prevNavFix = null;       // previous raw fix { lat, lng, t }: speed when the phone gives none
         let deviationTimer = null;
 
         // ── JOURNEY STATE (js/journey-state.js) ─────────────────────────────────
@@ -3258,10 +3356,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Status words for the bottom line: "Walking", "Waiting · 6 min", "Riding"
         function journeyPhaseLabel() {
             const tl = transitLang() === 'tl';
-            if (journeyPhase === 'waiting') {
-                const min = journeyWaitingMin();
-                return tl ? `Naghihintay ng jeep · ${min} min` : `Waiting for the jeep · ${min} min`;
-            }
+            // Short, so the fare after it still fits; the minutes waited are in the banner
+            if (journeyPhase === 'waiting') return tl ? 'Naghihintay' : 'Waiting';
             if (journeyPhase === 'riding') return tl ? 'Nakasakay' : 'Riding';
             return t('planner.nav_walking') || 'Walking';
         }
@@ -3492,6 +3588,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 setTimeout(() => URL.revokeObjectURL(url), 5000);
             } catch (e) { console.error('Trace download failed:', e); }
         }
+
+        // Other scripts (360 viewer, place panel, category cards) ask this before opening a 360° view
+        window._calzadaJourneyActive = () => Boolean(isTrackingArrival);
 
         window._calzadaJourneyDebug = () => ({
             phase: journeyPhase,
@@ -4861,32 +4960,34 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             trafficLineTimer = setInterval(lineTick, LIVE_COLORS_MS);
             setTimeout(lineTick, 15 * 1000);
-            trafficNavTimer = setInterval(async () => {
-                if (!isTrackingArrival || document.hidden || !transitOptions || !transitOptions[transitSelected]) return;
-                const currentOpt = transitOptions[transitSelected];
-                if (!currentOpt || !currentOpt.legs) return;
-                const jeepLeg = currentOpt.legs.find(l => l.type === 'jeep');
-                if (!jeepLeg || !currentLocation) return;
+            // Jeep speed with traffic for the ride, every 2 min: fed to the live ETA (which still adds
+            // the walks, the wait and the transfer), never shown on its own
+            const navTrafficTick = async () => {
+                if (!isTrackingArrival || document.hidden) return;
+                const jeepLeg = currentJeepLeg();
                 const T = window.CalzadaTransit;
-                if (!T) return;
-                const near = T.routeNear ? T.routeNear([currentLocation.lat, currentLocation.lng], 300, [jeepLeg.routeId]) : [];
-                if (!near || !near.length) return;
-                const currentM = near[0].pos;
+                if (!jeepLeg || !T || !T.jeepSecFromTraffic) return;
                 const alightM = jeepLeg.alightPos != null ? jeepLeg.alightPos : jeepLeg.toM;
-                const fromM = Math.round(Math.min(currentM, alightM));
-                const toM = Math.round(Math.max(currentM, alightM));
-                if (toM - fromM < 300) return;
-
-                const data = await fetchLegTraffic(jeepLeg.routeId, fromM, toM, T.legDir ? T.legDir(jeepLeg) : 1);
-                if (data && data.live) {
-                    const totalJeepSec = T.jeepSecFromTraffic ? T.jeepSecFromTraffic(data, toM - fromM) : null;
-                    if (totalJeepSec != null) {
-                        const travelMin = Math.max(1, Math.round(totalJeepSec / 60));
-                        cachedRemainingSeconds = travelMin * 60;
-                        syncNavDisplays();
-                    }
+                // Riding: from where the jeep is now; before boarding: the whole ride
+                let fromPos = jeepLeg.fromM;
+                if (journeyPhase === 'riding' && currentLocation && T.routeNear) {
+                    const near = T.routeNear([currentLocation.lat, currentLocation.lng], 300, [jeepLeg.routeId]);
+                    if (near && near.length) fromPos = near[0].pos;
                 }
-            }, LIVE_ETA_MS);
+                const fromM = Math.round(Math.min(fromPos, alightM));
+                const toM = Math.round(Math.max(fromPos, alightM));
+                if (!(toM - fromM >= 300)) return;
+                const data = await fetchLegTraffic(jeepLeg.routeId, fromM, toM, T.legDir ? T.legDir(jeepLeg) : 1);
+                if (!isTrackingArrival || !data || !data.live) return;
+                const sec = T.jeepSecFromTraffic(data, toM - fromM);
+                if (!(sec > 0)) return;
+                liveTrafficKph = { key: trafficKphKey(jeepLeg), kph: ((toM - fromM) / sec) * 3.6 };
+                const tracker = ensureLiveEta();
+                if (tracker && tracker.setTrafficKph) tracker.setTrafficKph(liveTrafficKph.kph);
+                liveEtaTick();
+                syncNavDisplays();
+            };
+            trafficNavTimer = setInterval(() => { navTrafficTick().catch((e) => console.warn('[traffic] journey ETA refresh failed:', e)); }, LIVE_ETA_MS);
         }
 
         // ── Live traffic while a jeep route is on screen (before the journey starts) ──
@@ -5060,6 +5161,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 const trafficPromise = fetchTrafficForLegs(uniqueLegs);
+                prefetchLegColors(opts[0]);
                 let trafficData = null;
                 try {
                     trafficData = await Promise.race([
@@ -5168,6 +5270,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const trafficPromise = fetchTrafficForLegs(uniqueLegs);
+            const firstChoice = tc.choices.find((c) => c.stopId === stopId);
+            prefetchLegColors(firstChoice && firstChoice.option);
             let trafficData = null;
             try {
                 trafficData = await Promise.race([
@@ -5420,7 +5524,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (currentWalkDist * 1000 >= 10) doneLegs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: Math.round(currentWalkDist * 100) / 100, fare: 0, boardStop: null, alightStop: null });
                     doneLegs.push({
                         type: 'jeepney',
-                        durationMin: Math.round(currentTransitDur),
+                        durationMin: Math.max(1, Math.round(currentTransitDur - (currentWaitMin || 0))),
+                        waitMin: Number.isFinite(journeyWaitedMin) ? journeyWaitedMin : (currentWaitMin || 0),
                         distanceKm: Math.round(currentTransitDist * 100) / 100,
                         fare: Math.round(currentFare * 100) / 100,
                         boardStop: String(stops.boardAt || transitRouteGeojson?.boardName || 'National Highway').slice(0, 120),
@@ -5697,6 +5802,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
             }
+            // Only near the stop (150 m): before that the banner's "Then" line already says where to change,
+            // and an "I'm here" button kilometres away is easy to tap by mistake
+            if (!near) {
+                window.CalzadaTransitUI.hideTransfer();
+                return;
+            }
             st.near = near;
             window.CalzadaTransitUI.showTransfer(st, () => {
                 const here = currentLocation && Number.isFinite(currentLocation.lat) ? [currentLocation.lat, currentLocation.lng] : null;
@@ -5715,7 +5826,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (currentWalkDist * 1000 >= 10) doneLegs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: Math.round(currentWalkDist * 100) / 100, fare: 0, boardStop: null, alightStop: null });
                 doneLegs.push({
                     type: 'jeepney',
-                    durationMin: Math.round(currentTransitDur),
+                    durationMin: Math.max(1, Math.round(currentTransitDur - (currentWaitMin || 0))),
+                    waitMin: Number.isFinite(journeyWaitedMin) ? journeyWaitedMin : (currentWaitMin || 0),
                     distanceKm: Math.round(currentTransitDist * 100) / 100,
                     fare: Math.round(currentFare * 100) / 100,
                     boardStop: String(stops.boardAt || transitRouteGeojson?.boardName || 'National Highway').slice(0, 120),
@@ -6732,6 +6844,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Walking, waiting, riding or the last walk, and how far along (js/journey-state.js)
                     journey: (isTrackingArrival && journey) ? journey.snapshot() : null,
                     waitedMin: journeyWaitedMin,
+                    // Walking pace learned so far and the jeep's speed with traffic: a reload keeps the ETA
+                    walkKph: liveEta ? Math.round(liveEta.remaining().walkKph * 100) / 100 : liveEtaWalkKph,
+                    trafficKph: liveTrafficKph,
                     isJourneyActive: isTrackingArrival,
                     startedAt: journeyStartedAt,
                     journeyId,
@@ -8059,7 +8174,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!walkOnly && phase === 'waiting') {
                 const sign = (transitRouteGeojson && (transitRouteGeojson.signboard || transitRouteGeojson.headsign)) || '';
                 const min = journeyWaitingMin();
-                let waitText = t('planner.nav_waiting_min', { n: min });
+                let waitText = min < 1 ? t('planner.nav_waiting_just') : t('planner.nav_waiting_min', { n: min });
                 if (currentWaitRange && Number.isFinite(currentWaitRange.minMin) && Number.isFinite(currentWaitRange.maxMin)) {
                     waitText += ` · ${t('planner.nav_wait_usual', { a: currentWaitRange.minMin, b: currentWaitRange.maxMin })}`;
                 }
@@ -8104,14 +8219,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!legIdx.length) {
                 // No turn-by-turn for this walk (a straight-line walk): where it goes and how far
                 const plannedM = legName === 'final_walk' ? fw.finalWalkM : currentWalkDist * 1000;
-                return { glyph: 'walk', big: formatDist(legRemaining !== null ? legRemaining : plannedM), text: legName === 'walk' && !walkOnly && boardName ? t('planner.nav_walk_to_name', { name: boardName }) : t('planner.nav_walk_to_name', { name: destName }), then: null, soon: false };
+                const endOfTrip = (walkOnly || legName === 'final_walk') && tracking && currentRemainingDistanceMeters > 0;
+                return { glyph: 'walk', big: formatDist(endOfTrip ? currentRemainingDistanceMeters : (legRemaining !== null ? legRemaining : plannedM)), text: legName === 'walk' && !walkOnly && boardName ? t('planner.nav_walk_to_name', { name: boardName }) : t('planner.nav_walk_to_name', { name: destName }), then: null, soon: false };
             }
             const cur = legIdx.includes(idx) ? idx : legIdx[0];
             const nextI = legIdx.find((i) => i > cur);
             const remToNext = tracking ? journeyStepRemainingM() : (steps[cur] && steps[cur].distance);
             if (nextI === undefined || (steps[nextI] && steps[nextI].maneuver && steps[nextI].maneuver.type === 'arrive')) {
-                // Nothing left to do on this walk but reach its end
-                const rem = legRemaining !== null ? legRemaining : (remToNext || 0);
+                // Nothing left to do on this walk but reach its end. The trip's end: the same metres as
+                // the bottom sheet (the live estimate), so the two never disagree
+                const tripEnd = walkOnly || legName === 'final_walk';
+                const rem = tripEnd && tracking && currentRemainingDistanceMeters > 0
+                    ? currentRemainingDistanceMeters
+                    : (legRemaining !== null ? legRemaining : (remToNext || 0));
                 return { glyph: toEnd.glyph, big: formatDist(rem), text: toEnd.text, then: null, soon: false };
             }
             const next = steps[nextI];
@@ -8205,6 +8325,9 @@ document.addEventListener('DOMContentLoaded', () => {
         function startActiveJourneyUI() {
             isTrackingArrival = true;
             document.body.classList.add('navigation-active');
+            // No 360° street view during a journey: close one left open, and its map popups
+            try { if (typeof window.close360Viewer === 'function') window.close360Viewer(); } catch (_) {}
+            document.querySelectorAll('.calzada-360-only-popup').forEach((p) => { const w = p.closest('.maplibregl-popup'); if (w) w.remove(); });
             // Terminal pins are for choosing; in the journey the labelled boarding stop takes over
             if (terminalPins.length) {
                 clearTerminalPins();
@@ -9017,6 +9140,8 @@ document.addEventListener('DOMContentLoaded', () => {
             lastMatchedSegmentIndex = 0;
             currentDisplayPosition = null;
             displayLocation = null;
+            prevNavFix = null;
+            lastCamera = null;
             lastFixTimestamp = 0;
             currentNavHeading = null;
             setMapAutoFollow(true);
@@ -9171,6 +9296,7 @@ document.addEventListener('DOMContentLoaded', () => {
             resetJourney();
             journeyRestore = null;
             liveEtaWalkKph = WALK_SPEED_KPH;
+            liveTrafficKph = null;
             // FIX ∗3: remainingTransitDurationStrRawTimer is declared but guard it safely
             if (remainingTransitDurationStrRawTimer) { clearInterval(remainingTransitDurationStrRawTimer); remainingTransitDurationStrRawTimer = null; }
 
@@ -9181,6 +9307,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             currentDisplayPosition = null;
             displayLocation = null;
+            prevNavFix = null;
+            lastCamera = null;
             lastFixTimestamp = 0;
             currentNavHeading = null;
             compassHeading = null;
@@ -9256,6 +9384,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             }
 
+            // Moving or not: the GPS speed when the phone gives one, else the distance from the last fix
+            let fixSpeed = (typeof speed === 'number' && !isNaN(speed) && speed >= 0) ? speed : null;
+            if (fixSpeed === null && prevNavFix) {
+                const dtS = (Date.now() - prevNavFix.t) / 1000;
+                if (dtS > 0.3) fixSpeed = (getHaversineDist(latitude, longitude, prevNavFix.lat, prevNavFix.lng) * 1000) / dtS;
+            }
+            prevNavFix = { lat: latitude, lng: longitude, t: Date.now() };
+            const isSlow = fixSpeed !== null && fixSpeed < 0.8;
+
+            // Standing still, or a jeep stopped or crawling: GPS noise moves the point a few metres back
+            // and forth. The pointer (and so the camera) stays where it is until you really move.
+            if (currentDisplayPosition && displayLocation && effAccuracy <= 100) {
+                const d = getHaversineDist(currentDisplayPosition[1], currentDisplayPosition[0], targetPt[1], targetPt[0]) * 1000;
+                let hold = isSlow && d < Math.max(6, Math.min(effAccuracy, 20));
+                // On the jeep line it never slides back a few metres (noise at a stop); a real U-turn is longer
+                if (!hold && isSnapped && journeyPhase === 'riding' && d < 25 && currentNavHeading !== null && currentNavHeading !== undefined) {
+                    if (Math.abs(getAngularDiff(bearingBetween(currentDisplayPosition, targetPt), currentNavHeading)) > 110) hold = true;
+                }
+                if (hold) {
+                    targetPt = [currentDisplayPosition[0], currentDisplayPosition[1]];
+                    displayLocation = { ...displayLocation, lng: targetPt[0], lat: targetPt[1], point: targetPt };
+                }
+            }
+
             // Determine if the user is moving (speed > 0.5 m/s or position moved > 1m)
             let isMoving = false;
             if (typeof speed === 'number' && !isNaN(speed)) {
@@ -9272,24 +9424,23 @@ document.addEventListener('DOMContentLoaded', () => {
             currentGpsSpeed = (typeof speed === 'number' && !isNaN(speed)) ? speed : null;
             currentGpsHeading = (typeof pos.coords.heading === 'number' && !isNaN(pos.coords.heading)) ? pos.coords.heading : null;
 
-            let targetHeading;
-            const isFastJeep = (currentGpsSpeed !== null && currentGpsSpeed >= 2.0 && currentGpsHeading !== null);
-
-            if (isFastJeep) {
-                targetHeading = currentGpsHeading;
-                currentNavHeading = currentGpsHeading;
-            } else if (compassHeading !== null && !isNaN(compassHeading)) {
-                targetHeading = compassHeading;
-                currentNavHeading = compassHeading;
-            } else if (isSnapped && isMoving) {
-                targetHeading = matchedSegmentBearing;
-                currentNavHeading = smoothHeading(currentNavHeading, targetHeading, 4, 0.3);
-            } else if (!isSnapped && (typeof speed === 'number' && speed >= 1.5) && currentGpsHeading !== null) {
-                targetHeading = currentGpsHeading;
-                currentNavHeading = currentGpsHeading;
-            } else {
-                targetHeading = (currentNavHeading !== null) ? currentNavHeading : (currentGpsHeading !== null ? currentGpsHeading : 0);
-                currentNavHeading = smoothHeading(currentNavHeading, targetHeading, 4, 0.3);
+            // Heading (the map turns with it), steady like Google Maps:
+            // - on the route and moving: the road's own direction a little ahead (no GPS heading noise)
+            // - off the route and moving at 1.5 m/s or more: the GPS heading, smoothed
+            // - on foot and standing still: the phone's compass (startCompassListening), smoothed
+            // - stopped or crawling in a jeep, or no source: the last heading is kept
+            const onJeepNow = journeyPhase === 'waiting' || journeyPhase === 'riding';
+            if (isSnapped && !isSlow) {
+                const ahead = pathBearingAhead(currentPath, lastMatchedSegmentIndex, targetPt, 30);
+                currentNavHeading = smoothHeading(currentNavHeading, ahead !== null ? ahead : matchedSegmentBearing, 6, 0.35);
+            } else if (!isSlow && currentGpsHeading !== null && currentGpsSpeed !== null && currentGpsSpeed >= 1.5) {
+                currentNavHeading = smoothHeading(currentNavHeading, currentGpsHeading, 8, 0.3);
+            } else if (!onJeepNow && compassHeading !== null && !isNaN(compassHeading)) {
+                currentNavHeading = smoothHeading(currentNavHeading, compassHeading, 10, 0.2);
+            }
+            if (currentNavHeading === null || currentNavHeading === undefined || isNaN(currentNavHeading)) {
+                const ahead = pathBearingAhead(currentPath, lastMatchedSegmentIndex, targetPt, 30);
+                currentNavHeading = ahead !== null ? ahead : (currentGpsHeading !== null ? currentGpsHeading : 0);
             }
 
             // 3D journey view, phones and desktop: heading-up. Map bearing = heading, arrow points straight up.
@@ -9571,9 +9722,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 legs.push({ type: 'walk', durationMin: Math.round(currentWalkDur), distanceKm: roundTo(currentWalkDist, 2), fare: 0, boardStop: null, alightStop: null });
             }
             if (!walkOnly) {
+                // The ride and the wait at the stop apart (the wait as measured when known)
+                const waitMin = Number.isFinite(journeyWaitedMin) ? journeyWaitedMin : (currentWaitMin || 0);
                 legs.push({
                     type: 'jeepney',
-                    durationMin: Math.round(currentTransitDur),
+                    durationMin: Math.max(1, Math.round(currentTransitDur - (currentWaitMin || 0))),
+                    waitMin,
                     distanceKm: roundTo(currentTransitDist, 2),
                     fare: roundTo(currentFare, 2), // keeps centavos (e.g. 16.25), as the ticket shows
                     boardStop: clip(stops.boardAt || 'National Highway', 120),
@@ -12083,6 +12237,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Walking, waiting or riding as before the reload (applied when the journey state starts)
             journeyRestore = (state.journey && typeof state.journey.state === 'string') ? state.journey : null;
             journeyWaitedMin = Number.isFinite(state.waitedMin) ? state.waitedMin : null;
+            if (Number.isFinite(state.walkKph) && state.walkKph >= 2.5 && state.walkKph <= 7) liveEtaWalkKph = state.walkKph;
+            liveTrafficKph = (state.trafficKph && typeof state.trafficKph.key === 'string' && Number.isFinite(state.trafficKph.kph)) ? state.trafficKph : null;
 
             const resumeNavigation = () => {
                 startActiveJourneyUI();

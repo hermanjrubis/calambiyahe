@@ -862,7 +862,16 @@
         return best;
     }
 
+    // No 360° street view during a journey (the planner says when one is running)
+    function journeyRunning() {
+        try { return typeof window._calzadaJourneyActive === 'function' && window._calzadaJourneyActive(); } catch (_) { return false; }
+    }
+
     async function launch360Viewer(startNodeId) {
+        if (journeyRunning()) {
+            console.log('[StreetView] Not opened: a journey is running.');
+            return;
+        }
         initDOM();
         await loadData();
 

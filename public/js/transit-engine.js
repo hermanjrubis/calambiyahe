@@ -735,6 +735,8 @@
                 copy.trafficLive = true; // this leg's time is TomTom's (the planner's summary uses it)
                 const totalJeepSec = jeepSecFromTraffic(tData, copy.distM);
                 const travelMin = Math.max(1, Math.round(totalJeepSec / 60));
+                // The jeep's speed on this ride with traffic (km/h), for the live ETA during a journey
+                if (Number(copy.distM) > 0 && totalJeepSec > 0) copy.trafficKph = Math.round((copy.distM / totalJeepSec) * 3.6 * 10) / 10;
                 copy.min = travelMin + (Number.isFinite(copy.waitMin) ? copy.waitMin : BOARDING_BUFFER_MIN);
 
                 const noTraffic = tData.noTrafficSec != null ? tData.noTrafficSec : tData.travelSec;
@@ -810,7 +812,7 @@
     }
 
     return {
-        VERSION: '1.9.1',
+        VERSION: '1.9.2',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),

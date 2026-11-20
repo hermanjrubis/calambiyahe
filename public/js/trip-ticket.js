@@ -32,6 +32,7 @@
         'ticket.departed': 'Departed',
         'ticket.arrived': 'Arrived',
         'ticket.boarded': 'Boarded jeepney',
+        'ticket.waited': 'waited {n} min',
         'ticket.got_off': 'Got off',
         'ticket.save': 'Save',
         'ticket.done': 'Done',
@@ -401,7 +402,9 @@
                 html += legRow('walk', `<div class="tkt-walk">${ICON_WALK}<span>${esc(label)}</span></div>`);
                 return;
             }
-            html += stopRow('', 'stop', leg.boardStop || 'National Highway', tr('ticket.boarded'));
+            // The wait at the stop on its own, so the jeepney minutes are the ride only
+            const waited = Number(leg.waitMin) > 0 ? ` · ${tr('ticket.waited', { n: Math.round(leg.waitMin) })}` : '';
+            html += stopRow('', 'stop', leg.boardStop || 'National Highway', tr('ticket.boarded') + waited);
             html += legRow('jeepney', `
                 <div class="tkt-jeep">
                     <div class="tkt-jeep-left">

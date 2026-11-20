@@ -856,6 +856,7 @@ function addTourSceneTabs(container, viewer, scenes, firstKey) {
 
 async function initInline360Viewer(place) {
     if (!place) return;
+    if (typeof window._calzadaJourneyActive === 'function' && window._calzadaJourneyActive()) return;
     if (place.name && typeof window !== 'undefined' && window.placesData && window.placesData[place.name]) {
         place = { ...place, ...window.placesData[place.name] };
     }
@@ -1330,7 +1331,9 @@ function setupCarousel(place) {
     // - NOT Plan 1
     // - For businesses: MUST have a 360 plan (or published 360 tour)
     // - For public landmarks (non-business): if they have a pano or public coming soon placeholder
-    const hasSlide2 = !isPlan1 && (
+    // No 360° view during a journey (planner.js _calzadaJourneyActive): the photo only
+    const journeyRunning = typeof window._calzadaJourneyActive === 'function' && window._calzadaJourneyActive();
+    const hasSlide2 = !journeyRunning && !isPlan1 && (
         isBusiness
             ? (has360Plan && (hasPano || show360ComingSoon))
             : Boolean(hasPano || true)
