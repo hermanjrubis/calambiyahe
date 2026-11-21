@@ -26,8 +26,6 @@ const BUILT_IN_FARES = fareCalc ? fareCalc.FALLBACK_FARES : {
     roundTo: 0.25,
     maxKm: 50
 };
-// Modern jeepneys are not in the fare guide PDF; this is the announced minimum fare.
-const MODERN_JEEPNEY_MINIMUM = 17;
 
 const REFRESH_MS = 10 * 60 * 1000;
 const DATA_PATHS = [
@@ -110,7 +108,7 @@ function fareFactsSection() {
 - Minimum fare (first ${data.baseKm} km), the amounts to quote: regular ${peso(minRegular)}; student, senior citizen or PWD ${peso(minDiscounted)}.
 - Each succeeding km adds ${peso(data.regular.perKm)} (regular) or ${peso(data.discounted.perKm)} (student, senior citizen or PWD, a ${data.discountPercent}% discount), and every fare is rounded to the nearest ${centavos} centavos. The guide's unrounded student minimum (${peso(data.discounted.baseFare)}) is never the fare to quote: say ${peso(minDiscounted)}.
 - Distance counts in whole km: any part of a km counts as a full km (4.2 km counts as 5 km).
-- Modern jeepneys: ₱${MODERN_JEEPNEY_MINIMUM} minimum fare. Mention this ONLY if the user asks about modern jeeps.
+- Calzada quotes only the traditional jeepney (PUJ) fare from this guide. Never give a fare for modern jeepneys, buses, UV Express or tricycles; if asked, say Calzada only has the PUJ fare guide.
 - Every fare you give is an estimate based on the LTFRB fare guide; say so.`;
 }
 
@@ -160,4 +158,4 @@ Basis: ${data.source}, effective ${formatDate(data.effectiveDate, 'en')}. This i
 `;
 }
 
-module.exports = { getFareData, fareFactsSection, fareEstimateBlock, userText, MODERN_JEEPNEY_MINIMUM };
+module.exports = { getFareData, fareFactsSection, fareEstimateBlock, userText };

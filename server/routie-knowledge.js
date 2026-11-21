@@ -10,7 +10,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const { getFareData, fareFactsSection, MODERN_JEEPNEY_MINIMUM } = require('./fare-info');
+const { getFareData, fareFactsSection } = require('./fare-info');
 const routiePlanner = require('./routie-planner');
 const routieHours = require('./routie-hours');
 const routieDataset = require('./routie-dataset');
@@ -818,14 +818,17 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
 
     if (isFareQuestion) {
         const { data: fareData } = getFareData();
+        // Calzada has only the traditional jeepney (PUJ) fare guide: no fare for modern jeeps
+        const minReg = fareCalc ? fareCalc.fareFor(fareData.baseKm, 'regular', fareData) : 14;
+        const minDisc = fareCalc ? fareCalc.fareFor(fareData.baseKm, 'discounted', fareData) : 11.25;
         if (asksModernJeep) {
             return {
                 type: 'fare_info',
                 lang: userLang,
-                data: { modernMin: MODERN_JEEPNEY_MINIMUM },
+                data: { pujOnly: true, minReg, minDisc, baseKm: fareData.baseKm },
                 instruction: userLang === 'tl'
-                    ? `Ang minimum fare sa modern jeep ay ₱${MODERN_JEEPNEY_MINIMUM}. Sabihing ito ay tantiya base sa LTFRB guidelines.`
-                    : `The minimum fare for modern jeepneys is ₱${MODERN_JEEPNEY_MINIMUM}. State that this is an estimate based on LTFRB announcements.`
+                    ? `Sabihing ang pamasahe lang sa traditional jeepney (PUJ) mula sa LTFRB fare guide ang nasa Calzada, kaya wala itong pamasahe para sa modern jeep. Ang minimum fare sa PUJ para sa unang ${fareData.baseKm} km ay ₱${minReg.toFixed(2)} (regular) at ₱${minDisc.toFixed(2)} (estudyante, senior, PWD). Huwag magbigay ng halaga para sa modern jeep.`
+                    : `Say that Calzada only has the traditional jeepney (PUJ) fare from the LTFRB fare guide, so it has no fare for modern jeepneys. The PUJ minimum fare for the first ${fareData.baseKm} km is ₱${minReg.toFixed(2)} (regular) and ₱${minDisc.toFixed(2)} (student, senior, PWD). Do not give an amount for modern jeepneys.`
             };
         }
 
@@ -846,8 +849,6 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
         }
 
         // General minimum fare inquiry
-        const minReg = fareData.regular.baseFare;
-        const minDisc = 11.25; // rounded student minimum
         return {
             type: 'fare_info',
             lang: userLang,

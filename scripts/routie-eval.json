@@ -120,7 +120,7 @@
     { "id": "x01", "tags": ["fare"], "q": "magkano pamasahe 7 km", "expect": { "type": "fare_info", "contains": ["₱20.00", "₱16.00"] } },
     { "id": "x02", "tags": ["fare"], "q": "how much is 4.2 km", "expect": { "type": "fare_info", "contains": ["₱16.00", "₱12.75"] } },
     { "id": "x03", "tags": ["fare"], "q": "minimum fare", "expect": { "type": "fare_info", "contains": ["₱14.00", "₱11.25"] } },
-    { "id": "x04", "tags": ["fare"], "q": "modern jeep fare", "expect": { "type": "fare_info", "contains": ["₱17"] } },
+    { "id": "x04", "tags": ["fare"], "q": "modern jeep fare", "expect": { "type": "fare_info", "contains": ["PUJ", "₱14.00"], "notContains": ["₱17"] } },
     { "id": "x06", "tags": ["fare", "regression"], "q": "Magkano ang student fare kung 5 km ang biyahe?", "expect": { "type": "fare_info", "contains": ["₱16.00", "₱12.75"] } },
     { "id": "f14", "tags": ["faq", "lang"], "q": "Paano ko maililista ang aking negosyo sa Calzada?", "expect": { "type": "faq", "faq": "business_register", "lang": "tl" } },
     { "id": "t09", "tags": ["route"], "q": "SM to Tokyo Grill", "expect": { "type": "route_not_found", "contains": ["Tokyo Grill"] } },
