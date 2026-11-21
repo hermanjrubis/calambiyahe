@@ -976,6 +976,9 @@ window.translations = {
         // Coverage scope
         'scope.outside_toast':           'Calzada covers Brgy. Uno, Real and Halang for now.',
         'scope.your_location_outside':   "You're outside Calzada's area. Pick a starting point inside it.",
+        'planner.swap_blocked_title':    "Can't swap these",
+        'planner.swap_blocked_body':     '{name} is outside Brgy. Uno, Real and Halang, so it can only be your starting point, not your destination.',
+        'planner.swap_blocked_close':    'Close',
         'scope.outside_area':            'Outside our area',
         'scope.attribution':             'Coverage: Calzada',
     },
@@ -1946,6 +1949,9 @@ window.translations = {
         // Coverage scope
         'scope.outside_toast':           'Sakop ng Calzada ang Brgy. Uno, Real at Halang sa ngayon.',
         'scope.your_location_outside':   'Nasa labas ka ng sakop ng Calzada. Pumili ng panimulang punto sa loob nito.',
+        'planner.swap_blocked_title':    'Hindi puwedeng i-swap',
+        'planner.swap_blocked_body':     'Nasa labas ng Brgy. Uno, Real at Halang ang {name}, kaya panimulang punto lang ito puwede, hindi destinasyon.',
+        'planner.swap_blocked_close':    'Isara',
         'scope.outside_area':            'Nasa labas ng aming sakop',
         'scope.attribution':             'Coverage: Calzada',
     }

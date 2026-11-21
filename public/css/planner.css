@@ -1749,6 +1749,114 @@ body.navigation-active .calzada-map-card {
     transform: rotate(180deg) scale(0.9);
 }
 
+/* Swap not allowed: the starting point is outside Brgy. Uno, Real and Halang (Nov 21, 2026) */
+.swap-btn.is-blocked {
+    position: relative;
+    color: #94A3B8;
+    background: #F8FAFC;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.swap-btn.is-blocked:active {
+    transform: none;
+}
+
+/* Small "no" badge on the blocked button */
+.swap-btn.is-blocked::after {
+    content: "";
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FFFFFF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23DC2626' stroke-width='3' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M5.7 5.7l12.6 12.6'/%3E%3C/svg%3E") center / 12px no-repeat;
+}
+
+.swap-btn.is-shake {
+    animation: swapShake 0.45s ease;
+}
+
+@keyframes swapShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-4px); }
+    40% { transform: translateX(4px); }
+    60% { transform: translateX(-3px); }
+    80% { transform: translateX(3px); }
+}
+
+.od-scope-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 12px;
+    color: #7F1D1D;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.od-scope-note[hidden] {
+    display: none;
+}
+
+.od-scope-note.is-in {
+    animation: odNoteIn 0.22s ease-out;
+}
+
+@keyframes odNoteIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.od-scope-note-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: #DC2626;
+}
+
+.od-scope-note-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.od-scope-note-text strong {
+    display: block;
+    font-weight: 700;
+    color: #991B1B;
+}
+
+.od-scope-note-close {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    margin: -4px -6px -4px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 0;
+    border-radius: 8px;
+    color: #991B1B;
+    cursor: pointer;
+}
+
+.od-scope-note-close:focus-visible {
+    outline: 2px solid #378ADD;
+    outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .swap-btn.is-shake,
+    .od-scope-note.is-in {
+        animation: none;
+    }
+}
+
 /* =============================================
    SCHEDULE ROW
    ============================================= */

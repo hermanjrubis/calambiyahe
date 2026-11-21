@@ -4398,6 +4398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             updateCategoryBarVisibility();
+            updateSwapGuard();
         };
 
         // B2: Clear origin only
@@ -4573,6 +4574,64 @@ document.addEventListener('DOMContentLoaded', () => {
             renderPlannerState();
         };
 
+        // ── Swap guard: a starting point outside Brgy. Uno, Real and Halang (allowed) cannot become the
+        // destination (not allowed), so the swap button is marked as blocked and, when tapped, shakes
+        // and says why instead of swapping. Function declarations: renderPlannerState calls updateSwapGuard.
+        function originOutsideArea() {
+            const o = selectedCoords.origin;
+            const S = window.CalzadaScope;
+            return !!(o && o.length >= 2 && S && typeof S.contains === 'function' && !S.contains(Number(o[0]), Number(o[1])));
+        }
+        let swapNoteTimer = null;
+        function hideSwapNote() {
+            if (swapNoteTimer) { clearTimeout(swapNoteTimer); swapNoteTimer = null; }
+            const note = document.getElementById('odScopeNote');
+            if (note) note.hidden = true;
+        }
+        function updateSwapGuard() {
+            const btn = document.getElementById('swapLocationsBtn');
+            if (!btn) return;
+            const blocked = originOutsideArea();
+            btn.classList.toggle('is-blocked', blocked);
+            btn.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+            if (blocked) btn.title = t('planner.swap_blocked_title');
+            else { btn.removeAttribute('title'); hideSwapNote(); }
+        }
+        function showSwapBlocked() {
+            const btn = document.getElementById('swapLocationsBtn');
+            if (btn) {
+                btn.classList.remove('is-shake');
+                void btn.offsetWidth; // restart the shake
+                btn.classList.add('is-shake');
+                setTimeout(() => btn.classList.remove('is-shake'), 500);
+            }
+            let note = document.getElementById('odScopeNote');
+            if (!note) {
+                const block = document.querySelector('.od-input-block');
+                if (!block) return;
+                note = document.createElement('div');
+                note.id = 'odScopeNote';
+                note.className = 'od-scope-note';
+                note.setAttribute('role', 'status');
+                note.setAttribute('aria-live', 'polite');
+                note.innerHTML = '<svg class="od-scope-note-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.7 5.7l12.6 12.6"></path></svg>'
+                    + '<div class="od-scope-note-text"><strong></strong><span></span></div>'
+                    + '<button type="button" class="od-scope-note-close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg></button>';
+                note.querySelector('.od-scope-note-close').addEventListener('click', hideSwapNote);
+                block.insertAdjacentElement('afterend', note);
+            }
+            const name = originPlaceName || t('planner.pinned_location');
+            note.querySelector('strong').textContent = t('planner.swap_blocked_title');
+            note.querySelector('span').textContent = t('planner.swap_blocked_body', { name });
+            note.querySelector('.od-scope-note-close').setAttribute('aria-label', t('planner.swap_blocked_close'));
+            note.hidden = false;
+            note.classList.remove('is-in');
+            void note.offsetWidth;
+            note.classList.add('is-in');
+            if (swapNoteTimer) clearTimeout(swapNoteTimer);
+            swapNoteTimer = setTimeout(hideSwapNote, 6000);
+        }
+
         let isLocatingOrigin = false;
         let myLocWatchId = null;
         let myLocWatchTimer = null;
@@ -4722,6 +4781,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.getElementById('swapLocationsBtn').addEventListener('click', () => {
+            // A starting point outside Brgy. Uno, Real and Halang cannot become the destination
+            if (originOutsideArea()) { showSwapBlocked(); return; }
             const tempC = selectedCoords.origin;
             selectedCoords.origin = selectedCoords.destination;
             selectedCoords.destination = tempC;
@@ -6738,6 +6799,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const [dLat, dLng] = selectedCoords.destination;
                 if (!window.CalzadaScope.contains(dLat, dLng)) {
                     (window.showToast || showToast)(window.t ? window.t('scope.outside_toast') : 'Calzada covers Brgy. Uno, Real and Halang for now.', 'warning');
+                    // Not a trip Calzada can plan: drop that destination and the old route with it, so no
+                    // stale route (and no Start Journey) stays on screen
+                    clearDestField();
                     return;
                 }
             }
