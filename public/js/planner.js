@@ -4620,9 +4620,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 note.querySelector('.od-scope-note-close').addEventListener('click', hideSwapNote);
                 block.insertAdjacentElement('afterend', note);
             }
-            const name = originPlaceName || t('planner.pinned_location');
+            // Say it the way the start was set: "Your location…", "The spot you pinned…", or the place's name
+            let body;
+            if (isMyLocationOrigin() || currentOriginKind === 'my_location') body = t('planner.swap_blocked_body_mine');
+            else if (currentOriginKind === 'pinned' || !originPlaceName || originPlaceName === t('planner.pinned_location')) body = t('planner.swap_blocked_body_pinned');
+            else body = t('planner.swap_blocked_body', { name: originPlaceName });
             note.querySelector('strong').textContent = t('planner.swap_blocked_title');
-            note.querySelector('span').textContent = t('planner.swap_blocked_body', { name });
+            note.querySelector('span').textContent = body;
             note.querySelector('.od-scope-note-close').setAttribute('aria-label', t('planner.swap_blocked_close'));
             note.hidden = false;
             note.classList.remove('is-in');
