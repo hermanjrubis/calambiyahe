@@ -24,15 +24,24 @@
     const FALLBACK_BBOX = [121.140019, 14.186221, 121.183502, 14.209973];
     const PRIMARY_BARANGAYS = ['Uno', 'Real', 'Halang'];
 
-    // Room around the area the map may show: about 7.8 km north/south (0.070 lat) and 5.4 km
-    // east/west (0.050 lng). The limits apply to the whole screen, including the part under the
-    // bottom sheet, so on a tall phone they must be much taller than the area itself, or the map
-    // cannot show all 3 barangays above the sheet (the old 1.5 km was too tight).
-    const PAD_1_5KM_LAT = 0.070;
-    const PAD_1_5KM_LNG = 0.050;
-    // 500 m padding (~0.0045 lat, ~0.0046 lng at 14.2° N)
-    const PAD_500M_LAT = 0.0045;
-    const PAD_500M_LNG = 0.0046;
+    // Room around the area the map may show: about 27 km on every side (0.25°), so a user outside
+    // Uno / Real / Halang (Sta. Rosa, Cabuyao, Los Baños, Sto. Tomas...) can browse the map and pin a
+    // starting point near home. Destinations stay limited to the 3 barangays (planner.js).
+    // (Before Nov 21, 2026: 7.8 km north/south and 5.4 km east/west, plus 500 m around the user.)
+    const PAD_BROWSE_LAT = 0.25;
+    const PAD_BROWSE_LNG = 0.25;
+    // Around a live location or trip start beyond that: about 5 km (~0.045° at 14.2° N)
+    const PAD_POINT_LAT = 0.045;
+    const PAD_POINT_LNG = 0.046;
+    const MIN_ZOOM = 10;
+
+    // Fog outside the area: thick in the overview, thinner at street zoom (16+) so the streets
+    // outside can be read; light while a starting point is being pinned (setFogLight).
+    const FOG_FILL_OPACITY = ['interpolate', ['linear'], ['zoom'], 14, 0.84, 16, 0.5];
+    const FOG_CLOUD_OPACITY = ['interpolate', ['linear'], ['zoom'], 14, 0.95, 16, 0.3];
+    const FOG_FILL_LIGHT = 0.3;
+    const FOG_CLOUD_LIGHT = 0.08;
+    let fogLight = false;
 
     // Center points of places in each primary barangay for labels
     const BARANGAY_CENTERS = [
@@ -170,8 +179,8 @@
     function getBaseBounds() {
         const b = (coverageData && coverageData.bbox) ? coverageData.bbox : FALLBACK_BBOX;
         return [
-            [b[0] - PAD_1_5KM_LNG, b[1] - PAD_1_5KM_LAT],
-            [b[2] + PAD_1_5KM_LNG, b[3] + PAD_1_5KM_LAT]
+            [b[0] - PAD_BROWSE_LNG, b[1] - PAD_BROWSE_LAT],
+            [b[2] + PAD_BROWSE_LNG, b[3] + PAD_BROWSE_LAT]
         ];
     }
 
@@ -187,14 +196,13 @@
         const base = getBaseBounds();
         let minLng = base[0][0], minLat = base[0][1], maxLng = base[1][0], maxLat = base[1][1];
         Object.values(extraPoints).forEach((p) => {
-            minLng = Math.min(minLng, p.lng - PAD_500M_LNG);
-            minLat = Math.min(minLat, p.lat - PAD_500M_LAT);
-            maxLng = Math.max(maxLng, p.lng + PAD_500M_LNG);
-            maxLat = Math.max(maxLat, p.lat + PAD_500M_LAT);
+            minLng = Math.min(minLng, p.lng - PAD_POINT_LNG);
+            minLat = Math.min(minLat, p.lat - PAD_POINT_LAT);
+            maxLng = Math.max(maxLng, p.lng + PAD_POINT_LNG);
+            maxLat = Math.max(maxLat, p.lat + PAD_POINT_LAT);
         });
         try {
-            // A user outside the area may need a wider view than zoom 13 to see both.
-            map.setMinZoom(extraPoints.user ? 11 : 12);
+            map.setMinZoom(MIN_ZOOM);
             map.setMaxBounds([
                 [minLng, minLat],
                 [maxLng, maxLat]
@@ -241,7 +249,7 @@
         }
         const prev = extraPoints.user;
         extraPoints.user = { lat, lng };
-        // Re-apply only when the user moved enough to matter (bounds carry 500 m of room).
+        // Re-apply only when the user moved enough to matter (bounds carry 5 km of room).
         if (!prev || Math.abs(prev.lat - lat) > 0.001 || Math.abs(prev.lng - lng) > 0.001) applyBounds(map);
         return true;
     }
@@ -376,7 +384,7 @@
                     source: 'scope-fog-mask',
                     paint: {
                         'fill-color': FOG_COLOR,
-                        'fill-opacity': 0.84
+                        'fill-opacity': fogLight ? FOG_FILL_LIGHT : FOG_FILL_OPACITY
                     }
                 }, targetBefore);
             }
@@ -438,7 +446,7 @@
                     source: 'scope-fog-mask',
                     paint: {
                         'fill-pattern': 'fog-clouds-pattern',
-                        'fill-opacity': 0.95
+                        'fill-opacity': fogLight ? FOG_CLOUD_LIGHT : FOG_CLOUD_OPACITY
                     }
                 }, targetBefore);
 
@@ -513,6 +521,8 @@
             map.on('click', (e) => {
                 if (!e || !e.lngLat) return;
                 const { lat, lng } = e.lngLat;
+                // Not while a starting point is being pinned (it may be outside the area)
+                if (document.body.classList.contains('is-map-picking')) return;
                 if (!checkPointInCoverage(lat, lng)) {
                     const toastMsg = (typeof window.t === 'function')
                         ? window.t('scope.outside_toast')
@@ -535,6 +545,19 @@
         map.on('style.load', onMapStyleReady);
     }
 
+    /**
+     * Thin the fog (on) so the streets outside the area show, e.g. while a starting point is
+     * pinned; off: back to the usual fog (thick in the overview, thinner at street zoom).
+     */
+    function setFogLight(map, on) {
+        fogLight = !!on;
+        if (!map) return;
+        try {
+            if (map.getLayer('scope-fog-fill')) map.setPaintProperty('scope-fog-fill', 'fill-opacity', fogLight ? FOG_FILL_LIGHT : FOG_FILL_OPACITY);
+            if (map.getLayer('scope-fog-clouds')) map.setPaintProperty('scope-fog-clouds', 'fill-opacity', fogLight ? FOG_CLOUD_LIGHT : FOG_CLOUD_OPACITY);
+        } catch (_) {}
+    }
+
     window.CalzadaScope = {
         load,
         contains: (lat, lng) => checkPointInCoverage(lat, lng),
@@ -544,6 +567,7 @@
         resetBounds,
         expandBoundsForStart,
         includeUser,
+        setFogLight,
         addFog
     };
 })();

@@ -328,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
             style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [121.1618, 14.1981], // middle of Brgy. Uno, Real and Halang [lng, lat]; framed exactly on load
             zoom: 13,
-            minZoom: 12,
+            minZoom: 10, // outside the 3 barangays the map can be browsed too (scope.js sets the limits)
             dragRotate: true,
             touchPitch: false,
             pitchWithRotate: false,
@@ -10085,6 +10085,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             mapCenterPin.style.display = '';
             mapPickerUI.style.display = '';
+            // A starting point may be outside the 3 barangays: thin the fog so the streets show
+            if (isFrom && window.CalzadaScope && typeof window.CalzadaScope.setFogLight === 'function') window.CalzadaScope.setFogLight(map, true);
             const hint = document.getElementById('mapPickerHint');
             if (hint) { hint.style.display = ''; hint.classList.remove('is-gone'); }
 
@@ -10140,6 +10142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hint = document.getElementById('mapPickerHint');
             if (hint) hint.style.display = 'none';
             document.body.classList.remove('is-map-picking', 'pick-origin', 'pick-destination');
+            if (window.CalzadaScope && typeof window.CalzadaScope.setFogLight === 'function') window.CalzadaScope.setFogLight(map, false);
             map.off('move', mapMovedHandler);
             map.off('movestart', pickerMoveStart);
             map.off('moveend', pickerMoveEnd);

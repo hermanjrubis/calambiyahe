@@ -257,12 +257,17 @@ async function runFogTests() {
 
         report(!!mapInfo, 'MapLibre GL map instance accessible on window');
         if (mapInfo) {
-            report(mapInfo.minZoom >= 13, `Map minZoom is 13+ (actual: ${mapInfo.minZoom})`);
+            // Since Nov 21, 2026 the map can be browsed outside the area (zoom out to 10)
+            report(mapInfo.minZoom === 10, `Map minZoom is 10 (actual: ${mapInfo.minZoom})`);
             report(mapInfo.hasFogFill, 'Fog fill layer (scope-fog-fill) present in map style');
             report(mapInfo.hasFogClouds, 'Fog pattern layer (scope-fog-clouds) present in map style');
             report(!mapInfo.hasOutline, 'No dashed outline layer (scope-outline was removed, Nov 2026)');
             report(mapInfo.hasBarangayLabels, 'Barangay labels layer (scope-barangay-labels) present in map style');
-            report(!!mapInfo.maxBounds, 'Map maxBounds is configured around 3 barangays padded ~1.5 km');
+            report(!!mapInfo.maxBounds, 'Map maxBounds is configured around 3 barangays padded ~27 km');
+            // Sta. Rosa (~12 km north) and Los Baños (~6 km east) can be browsed without a trip
+            const mb = mapInfo.maxBounds;
+            const inMb = (lat, lng) => lng >= mb[0][0] && lng <= mb[1][0] && lat >= mb[0][1] && lat <= mb[1][1];
+            report(inMb(14.3122, 121.1114) && inMb(14.17, 121.24), 'Sta. Rosa and Los Baños are inside the map limits');
         }
 
         // Attribution check
@@ -331,8 +336,8 @@ async function runFogTests() {
             const initialWest = m.getMaxBounds().getWest();
             const initialSouth = m.getMaxBounds().getSouth();
 
-            // Outside origin (lat 14.170, lng 121.100 - west of coverage base west 121.126)
-            const outsideOrigin = [14.170, 121.100];
+            // Outside origin beyond the ~27 km browse room (south of base south ~13.936)
+            const outsideOrigin = [13.900, 121.100];
             const insideDest = [14.203928, 121.154516]; // SM City Calamba
 
             // Stub user so executeRouteQuery doesn't trigger route gate redirect
