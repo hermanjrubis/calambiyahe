@@ -1150,13 +1150,13 @@
         "phone": null,
         "website": null,
         "opening_hours": {
-            "mon": "9:00 AM - 7:00 PM",
-            "tue": "9:00 AM - 7:00 PM",
-            "wed": "9:00 AM - 7:00 PM",
-            "thu": "9:00 AM - 7:00 PM",
-            "fri": "9:00 AM - 7:00 PM",
-            "sat": "9:00 AM - 7:00 PM",
-            "sun": "9:00 AM - 6:00 PM"
+            "mon": "8:00 AM - 9:00 PM",
+            "tue": "8:00 AM - 9:00 PM",
+            "wed": "8:00 AM - 9:00 PM",
+            "thu": "8:00 AM - 9:00 PM",
+            "fri": "8:00 AM - 9:00 PM",
+            "sat": "8:00 AM - 9:00 PM",
+            "sun": "8:00 AM - 9:00 PM"
         },
         "social": "https://www.facebook.com/p/JLT-Fashion-Botique-61579614793442/"
     },
