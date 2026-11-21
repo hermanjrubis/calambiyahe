@@ -10639,8 +10639,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const showUser = () => {
                     if (!reachable) { frameCoverage(); return; } // too far away: keep the area in view
                     if (insideArea) { centerOn(next); return; }
-                    // Outside the area: frame both the user and the 3 barangays.
+                    // Outside the area: frame both the user and the 3 barangays when the user is within
+                    // about 3 km of it; farther away, keep the 3 barangays centred (the locate button
+                    // still goes to the user). Since the map can be browsed ~27 km out, framing both
+                    // zoomed far out and left Calamba in a corner.
                     const b = window.CalzadaScope.bbox();
+                    const offLng = Math.max(b[0] - next.lng, 0, next.lng - b[2]);
+                    const offLat = Math.max(b[1] - next.lat, 0, next.lat - b[3]);
+                    if (Math.hypot(offLng, offLat) > 0.027) { frameCoverage(); return; }
                     map.fitBounds([
                         [Math.min(b[0], next.lng), Math.min(b[1], next.lat)],
                         [Math.max(b[2], next.lng), Math.max(b[3], next.lat)]
