@@ -464,11 +464,6 @@
      "distance": 47.4
     },
     {
-     "targetId": "14.203729_121.153589",
-     "bearing": 239.6,
-     "distance": 85.9
-    },
-    {
      "targetId": "14.204386_121.154190",
      "bearing": 328.9,
      "distance": 30.9
@@ -677,13 +672,18 @@
    "connections": [
     {
      "targetId": "14.202561_121.158257",
-     "bearing": 142.3,
+     "bearing": 142.4,
      "distance": 54
     },
     {
      "targetId": "14.203101_121.157724",
-     "bearing": 322.3,
+     "bearing": 303.4,
      "distance": 30
+    },
+    {
+     "targetId": "14.203303_121.157764",
+     "bearing": 334.4,
+     "distance": 44.6
     }
    ]
   },
@@ -700,7 +700,7 @@
    "connections": [
     {
      "targetId": "14.202258_121.158469",
-     "bearing": 143.1,
+     "bearing": 145.8,
      "distance": 40.7
     },
     {
@@ -722,8 +722,13 @@
    "heading": -3.9,
    "connections": [
     {
+     "targetId": "14.201897_121.158835",
+     "bearing": 143.3,
+     "distance": 56.3
+    },
+    {
      "targetId": "14.202047_121.158428",
-     "bearing": 143.1,
+     "bearing": 180,
      "distance": 23.9
     },
     {
@@ -1593,9 +1598,9 @@
    "heading": 0.5,
    "connections": [
     {
-     "targetId": "14.195902_121.161088",
+     "targetId": "14.195894_121.161381",
      "bearing": 59.4,
-     "distance": 41.6
+     "distance": 61.7
     },
     {
      "targetId": "14.195408_121.160657",
@@ -1621,8 +1626,13 @@
      "distance": 50
     },
     {
+     "targetId": "14.195566_121.160919",
+     "bearing": 237.2,
+     "distance": 61.7
+    },
+    {
      "targetId": "14.195902_121.161088",
-     "bearing": 232.8,
+     "bearing": 269.3,
      "distance": 31.6
     }
    ]
@@ -1639,9 +1649,9 @@
    "heading": -5.2,
    "connections": [
     {
-     "targetId": "14.196668_121.161952",
+     "targetId": "14.196584_121.162267",
      "bearing": 50.9,
-     "distance": 52.4
+     "distance": 64.7
     },
     {
      "targetId": "14.196250_121.161664",
@@ -1667,8 +1677,13 @@
      "distance": 41.7
     },
     {
+     "targetId": "14.196221_121.161798",
+     "bearing": 230.5,
+     "distance": 64.7
+    },
+    {
      "targetId": "14.196668_121.161952",
-     "bearing": 230.2,
+     "bearing": 272.5,
      "distance": 35.2
     }
    ]
@@ -2559,9 +2574,9 @@
      "distance": 67
     },
     {
-     "targetId": "14.203303_121.157764",
+     "targetId": "14.202258_121.158469",
      "bearing": 323.5,
-     "distance": 194.3
+     "distance": 56.3
     }
    ]
   },
@@ -2577,9 +2592,9 @@
    "heading": -10.6,
    "connections": [
     {
-     "targetId": "14.201897_121.158835",
-     "bearing": 143.5,
-     "distance": 194.3
+     "targetId": "14.202946_121.157952",
+     "bearing": 152.9,
+     "distance": 44.6
     },
     {
      "targetId": "14.203101_121.157724",
@@ -2611,8 +2626,13 @@
     },
     {
      "targetId": "14.203885_121.157170",
-     "bearing": 322.5,
+     "bearing": 288.6,
      "distance": 27.5
+    },
+    {
+     "targetId": "14.204158_121.157143",
+     "bearing": 323.4,
+     "distance": 48.7
     }
    ]
   },
@@ -2628,8 +2648,13 @@
    "heading": -15,
    "connections": [
     {
+     "targetId": "14.203806_121.157412",
+     "bearing": 143.4,
+     "distance": 48.7
+    },
+    {
      "targetId": "14.203885_121.157170",
-     "bearing": 144.6,
+     "bearing": 174.5,
      "distance": 30.5
     },
     {
@@ -2851,8 +2876,13 @@
     },
     {
      "targetId": "14.204121_121.154276",
-     "bearing": 219.1,
+     "bearing": 187.7,
      "distance": 30.9
+    },
+    {
+     "targetId": "14.203729_121.153589",
+     "bearing": 219.2,
+     "distance": 97.6
     }
    ]
   },
@@ -2868,9 +2898,9 @@
    "heading": -14.9,
    "connections": [
     {
-     "targetId": "14.204121_121.154276",
+     "targetId": "14.204386_121.154190",
      "bearing": 39.3,
-     "distance": 85.9
+     "distance": 97.6
     },
     {
      "targetId": "14.203106_121.153041",
@@ -4479,13 +4509,8 @@
    "connections": [
     {
      "targetId": "14.196584_121.162267",
-     "bearing": 107.9,
+     "bearing": 139.7,
      "distance": 35.2
-    },
-    {
-     "targetId": "14.196221_121.161798",
-     "bearing": 178.1,
-     "distance": 52.4
     },
     {
      "targetId": "14.196250_121.161664",
@@ -4685,11 +4710,6 @@
      "targetId": "14.195894_121.161381",
      "bearing": 91.6,
      "distance": 31.6
-    },
-    {
-     "targetId": "14.195566_121.160919",
-     "bearing": 154.2,
-     "distance": 41.6
     },
     {
      "targetId": "14.196335_121.160829",

@@ -35,6 +35,13 @@
     let isDragging = false;
     let dragStartX = 0;
     let dragStartY = 0;
+    const CLICK_SLOP_PX = 5;      // a press that moves farther than this is a drag (looking around)
+    const CLICK_HOLD_MS = 500;    // a press held longer than this is looking around, not a click
+    let mouseDownAt = 0;
+    let downWhileMoving = false;   // the press only stopped the view spinning
+    let lastViewMotionAt = 0;      // last frame the camera turned (dragging or gliding)
+    let lastViewYaw = null;
+    let lastViewPitch = null;
     let rafCursorId = null;
     let lastCursorEvent = null;
     let touchStartX = 0;
@@ -300,6 +307,13 @@
         const node = getCurrentNode();
         if (!canvas || !cam || !node) return;
 
+        // Remember when the view last turned, so a click that only stops it gliding does not move you
+        if (lastViewYaw !== null && (Math.abs(normYaw(cam.yaw - lastViewYaw)) > 0.04 || Math.abs(cam.pitch - lastViewPitch) > 0.04)) {
+            lastViewMotionAt = performance.now();
+        }
+        lastViewYaw = cam.yaw;
+        lastViewPitch = cam.pitch;
+
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         const cw = Math.round(cam.W * dpr), ch = Math.round(cam.H * dpr);
         if (canvas.width !== cw || canvas.height !== ch) {
@@ -516,7 +530,7 @@
      * Which road (connection) is under the pointer: a drawn chevron first, else
      * the ground area below the horizon in that road's direction.
      */
-    function detectNavigableConnectionAtScreen(clientX, clientY) {
+    function detectNavigableConnectionAtScreen(clientX, clientY, isMouse) {
         if (!containerEl || !manifestData || !currentNodeId || isTransitioning || isNavLocked) return null;
         const node = getCurrentNode();
         if (!node || !node.connections || node.connections.length === 0) return null;
@@ -526,15 +540,23 @@
         const y = clientY - rect.top;
         if (x < 0 || x > rect.width || y < 0 || y > rect.height) return null;
 
+        // The arrow under the pointer; where two hit areas overlap, the nearer arrow
+        let nearest = null;
+        let nearestD = Infinity;
         for (const c of drawnChevrons) {
-            if (Math.hypot(x - c.x, y - c.y) <= c.r) return { connection: c.conn };
+            const d = Math.hypot(x - c.x, y - c.y);
+            if (d <= c.r && d < nearestD) { nearestD = d; nearest = c; }
         }
+        if (nearest) return { connection: nearest.conn };
 
         const spherical = calculateCursorSphericalCoords({ clientX, clientY });
-        if (!spherical || spherical.pitch > -4) return null; // only the road, below the horizon
-
-        // Wider tolerance the closer to your feet
-        const tolerance = 12 + Math.min(20, (-spherical.pitch - 4) * 0.6);
+        // A mouse is precise: only the road well below the horizon, close to the arrow's direction.
+        // A finger gets the wider area.
+        const minDown = isMouse ? 10 : 4;
+        if (!spherical || spherical.pitch > -minDown) return null;
+        const tolerance = isMouse
+            ? 8 + Math.min(8, (-spherical.pitch - minDown) * 0.3)
+            : 12 + Math.min(20, (-spherical.pitch - minDown) * 0.6);
         const BACKTRACK_RATIO_PENALTY = 1.6;
         let best = null;
         let bestRatio = Infinity;
@@ -550,7 +572,7 @@
 
     function updateHoverAtCursor(e) {
         if (isDragging || isTransitioning || isNavLocked) { clearHover(); return; }
-        const match = detectNavigableConnectionAtScreen(e.clientX, e.clientY);
+        const match = detectNavigableConnectionAtScreen(e.clientX, e.clientY, true);
         if (!match) { clearHover(); return; }
         activeHoverConnection = match.connection;
         if (containerEl) containerEl.classList.add('zone-hovered');
@@ -563,7 +585,7 @@
 
     function onContainerMouseMove(e) {
         if (isTransitioning || isNavLocked) { clearHover(); return; }
-        if (isMouseDown && Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 6) {
+        if (isMouseDown && Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > CLICK_SLOP_PX) {
             isDragging = true;
             clearHover();
             return;
@@ -589,6 +611,8 @@
         isDragging = false;
         dragStartX = e.clientX;
         dragStartY = e.clientY;
+        mouseDownAt = performance.now();
+        downWhileMoving = performance.now() - lastViewMotionAt < 120;
     }
 
     function onContainerMouseUp() {
@@ -596,15 +620,18 @@
     }
 
     function onContainerClick(e) {
-        if (isDragging || isTransitioning || isNavLocked) {
-            isDragging = false;
-            return;
-        }
-        // A click that arrives without a mouse move first (e.g. a pen or a quick tap) still finds the arrow
-        if (!activeHoverConnection) {
-            const match = detectNavigableConnectionAtScreen(e.clientX, e.clientY);
-            if (match) activeHoverConnection = match.connection;
-        }
+        const pressed = mouseDownAt > 0;
+        const wasDrag = isDragging
+            || (pressed && Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > CLICK_SLOP_PX)
+            || (pressed && performance.now() - mouseDownAt > CLICK_HOLD_MS) // held to look around
+            || downWhileMoving; // the press only stopped the view gliding
+        isDragging = false;
+        downWhileMoving = false;
+        mouseDownAt = 0;
+        if (wasDrag || isTransitioning || isNavLocked) return;
+        // Use what is under the pointer now (the view may have turned since the last hover)
+        const match = detectNavigableConnectionAtScreen(e.clientX, e.clientY, e.pointerType !== 'touch' && e.pointerType !== 'pen');
+        activeHoverConnection = match ? match.connection : null;
         if (activeHoverConnection) {
             const conn = activeHoverConnection;
             e.preventDefault();

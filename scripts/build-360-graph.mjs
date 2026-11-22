@@ -11,14 +11,16 @@
  *      one arrow per street.
  *   3. Each arrow points along the road (the road's direction for the first ARROW_M), not straight at the next
  *      photo (straight at it when the road leaves almost sideways). Two arrows in almost the same direction
- *      become one: the nearer photo, which then links on to the farther one. At a fork the arrows follow each
- *      road further until they come apart.
+ *      become one: the nearer photo, which then links on to the farther one, but only along one street (the
+ *      arrow down a main road never leads to a photo just around the corner on a side road). At a fork the
+ *      arrows follow each road further until they come apart, or are turned a little apart so both show.
  *   4. A photo away from the roads (a parking lot, a building's entrance) links to the nearest photo.
  *
  * northOffset, heading, street, area and source stay as they are.
  *
  *   node scripts/build-360-graph.mjs            rebuild the links and write manifest.json (keeps a .bak copy)
  *   node scripts/build-360-graph.mjs --dry      only print the report
+ *   node scripts/build-360-graph.mjs --chains   also list each "farther photo through the nearer one" change
  *
  * Run it again after adding photos (after generate-360-manifest.js and the calibration).
  */
@@ -254,6 +256,7 @@ for (const [i, m] of links) for (const j of [...m.keys()]) {
 console.log('turn links added:', turns, '| cross-block links removed:', crossBlock);
 // One arrow per direction: the nearer photo (unless that leaves a photo unreachable)
 let droppedSameDir = 0;
+const CHAIN_LOG = process.argv.includes("--chains"); const chainLog = [];
 // One arrow per direction: when two arrows point almost the same way, the farther photo is reached through the
 // nearer one (near -> far is linked), as along a street in Google Maps
 for (let pass = 0; pass < 6; pass++) {
@@ -266,6 +269,10 @@ for (let pass = 0; pass < 6; pass++) {
             if (angDiff(arr[a][1].bearing, arr[b][1].bearing) >= SAME_DIR_DEG) continue;
             const nf = straightOf(near, far);
             if (nf > MAX_LINK_M || nf >= arr[b][1].distance) continue; // the near photo is not on the way
+            // Only along one street: a photo just around the corner (a side road) is not on the way down the
+            // main road, even when the first metres of both roads point the same way
+            if ((P[near].n.street || '') !== (P[far].n.street || '') && (P[i].n.street || '') === (P[far].n.street || '')) continue;
+            if (CHAIN_LOG) chainLog.push(`${P[i].n.id} (${P[i].n.street}): ${P[far].n.id} via ${P[near].n.id} (${P[near].n.street})`);
             if (!links.get(near).has(far)) { setLink(near, far, 'chain'); setLink(far, near, 'chain'); }
             m.delete(far); links.get(far).delete(i); droppedSameDir++; changed = true;
         }
@@ -275,6 +282,10 @@ for (let pass = 0; pass < 6; pass++) {
 // Two arrows still pointing the same way go to photos on different roads that start together (a fork):
 // look further along each road until the arrows come apart (the straight line as a last resort)
 let separated = 0, stillSame = [];
+// (a chain made at one photo can bring two arrows together at the next, so go round until nothing changes)
+for (let round = 0; round < 4; round++) {
+const before = separated + droppedSameDir;
+stillSame = [];
 for (const [i, m] of links) {
     for (let guard = 0; guard < 4; guard++) {
         const arr = [...m.entries()];
@@ -289,9 +300,29 @@ for (const [i, m] of links) {
                 pair[0][1].bearing = b1; pair[1][1].bearing = b2; done = angDiff(b1, b2) >= SAME_DIR_DEG; break;
             }
         }
-        if (done) separated++; else { stillSame.push(`${P[i].n.id} -> ${P[pair[0][0]].n.id} / ${P[pair[1][0]].n.id}`); break; }
+        if (done) { separated++; continue; }
+        // Still together: nearly the same way -> keep the nearer photo (if the farther stays reachable);
+        // a real fork a little narrower than SAME_DIR_DEG -> turn both arrows apart a bit so both show
+        const [nearE, farE] = pair[0][1].distance <= pair[1][1].distance ? pair : [pair[1], pair[0]];
+        const gap = angDiff(nearE[1].bearing, farE[1].bearing);
+        if (gap < 15 && straightOf(nearE[0], farE[0]) < farE[1].distance) {
+            // the farther photo is reached through the nearer one (a long link, like the capture link it replaces)
+            if (!links.get(nearE[0]).has(farE[0])) { setLink(nearE[0], farE[0], 'chain'); setLink(farE[0], nearE[0], 'chain'); }
+            m.delete(farE[0]); links.get(farE[0]).delete(i); droppedSameDir++; continue;
+        } else {
+            const mid = (nearE[1].bearing + ((((farE[1].bearing - nearE[1].bearing) % 360) + 540) % 360 - 180) / 2 + 360) % 360;
+            const sign = ((((farE[1].bearing - nearE[1].bearing) % 360) + 540) % 360 - 180) >= 0 ? 1 : -1;
+            const half = (SAME_DIR_DEG + 1) / 2;
+            nearE[1].bearing = (mid - sign * half + 360) % 360;
+            farE[1].bearing = (mid + sign * half + 360) % 360;
+            separated++; continue;
+        }
+        stillSame.push(`${P[i].n.id} -> ${P[pair[0][0]].n.id} / ${P[pair[1][0]].n.id}`); break;
     }
 }
+if (separated + droppedSameDir === before) break;
+}
+if (CHAIN_LOG) console.log(chainLog.join('\n'));
 console.log('forks separated:', separated, '| still the same way:', stillSame.join('; ') || 'none');
 function reachableWithout(i, j) {
     const q = [i], seenR = new Set([i]);
