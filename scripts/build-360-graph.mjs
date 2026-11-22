@@ -51,6 +51,15 @@ const angDiff = (a, b) => { const d = Math.abs(a - b) % 360; return d > 180 ? 36
 const r1 = (x) => Math.round(x * 10) / 10;
 
 const manifest = JSON.parse(fs.readFileSync(MANIFEST, 'utf8'));
+// Checked by eye against the photos (Nov 23, 2026). northOffset: the photo's north, where the road in the photo
+// shows it was off; bearings: arrows set by hand, target id -> degrees.
+//   14.202258 (National Highway x LTO Road): north was 247.5, but the highway runs at 143/323 degrees in the
+//   photo only with about 188 (the photo before it, 14.202561, has 182). The LTO Road arrow points at the side road,
+//   31 degrees from the highway arrow so both show (Drei: the highway arrow was crooked, the one back missing).
+const FIXES = {
+    '14.202258_121.158469': { northOffset: 188, bearings: { '14.202047_121.158428': 174 } }
+};
+manifest.nodes.forEach((n) => { const f = FIXES[n.id]; if (f && Number.isFinite(f.northOffset)) n.northOffset = f.northOffset; });
 const g = JSON.parse(fs.readFileSync(GRAPH, 'utf8'));
 
 // ── Roads (classes 0 highway, 1 secondary/tertiary, 2 small road; footways only for photos far from roads) ──
@@ -208,6 +217,10 @@ const addOrig = (fromId, list) => {
 };
 manifest.nodes.forEach((n) => { if (idx.has(n.id)) addOrig(n.id, n.connections); });
 manifest.nodes.forEach((n) => { if (!idx.has(n.id) && aliases[n.id]) addOrig(aliases[n.id], n.connections); });
+for (const [id, f] of Object.entries(FIXES)) {
+    const i = idx.get(id);
+    for (const [tid, b] of Object.entries((f && f.bearings) || {})) { const j = keptOf(tid); if (i !== undefined && j !== undefined) origBearing.set(`${i}>${j}`, b); }
+}
 const setLink = (i, j, why) => {
     if (i === j || i == null || j == null) return;
     const f = alongRoad(i, j);

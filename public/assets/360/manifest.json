@@ -715,7 +715,7 @@
    "lat": 14.202258,
    "lng": 121.158469,
    "file": "14.202258, 121.158469.jpg",
-   "northOffset": 247.5,
+   "northOffset": 188,
    "source": "IMG_20261024_133401_00_420",
    "street": "National Highway",
    "area": "Barangay 1",
@@ -728,7 +728,7 @@
     },
     {
      "targetId": "14.202047_121.158428",
-     "bearing": 243.6,
+     "bearing": 174,
      "distance": 23.9
     },
     {
