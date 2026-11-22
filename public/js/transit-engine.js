@@ -1,5 +1,5 @@
 /**
- * Calzada transit engine (v1.7.0)
+ * Calzada transit engine (v1.11.0)
  *
  * Plans jeepney trips on the curated routes in /data/transit-routes.json: direct rides and
  * rides with one transfer at a shared stop (or a short walk between stops, e.g. through SM).
@@ -330,7 +330,8 @@
         }
 
         // boardStopId: the first jeep must load at this stop (the user picked that terminal)
-        function plan(origin, dest, boardStopId) {
+        // how.all: every road option, also those that still walk most of the way (for terminalRides)
+        function plan(origin, dest, boardStopId, how) {
             if (!origin || !dest) return [];
             const found = [];
             const force = boardStopId || null;
@@ -423,7 +424,15 @@
             const maxWalk = Math.max(400, straight * 0.6);
             // A picked terminal: its options, best first (the walk there is the user's choice)
             if (force) return mergeTwins(found.sort((a, b) => a.cost - b.cost || a.totalMin - b.totalMin));
-            const kept = rank(found.filter((o) => o.walkM <= maxWalk));
+            if (how && how.all) return rank(found);
+            let kept = rank(found.filter((o) => o.walkM <= maxWalk));
+            // Nothing under that rule, but a ride that walks more is still clearly faster than walking all the way
+            // (e.g. Calamba City Hall -> Crossing Elementary School: 17 min by jeep, 23 min on foot): offer it
+            if (!kept.length) {
+                const walkAllM = straight * WALK_FACTOR;
+                const walkAllMin = walkMin(walkAllM);
+                kept = rank(found.filter((o) => o.walkM <= walkAllM * SLOWER_RIDE_WALK_SHARE && o.totalMin + MUCH_FASTER_MIN <= walkAllMin));
+            }
             // A local trip with no jeep near the way (e.g. from inside the Crossing / SM area, where jeeps load only
             // at the terminals): the same rule as from the poblacion, walk to a terminal and ride when that beats
             // walking all the way by MUCH_FASTER_MIN; else nothing, and the planner walks it (it never guesses a
@@ -460,12 +469,17 @@
             const walkAllM = straight * WALK_FACTOR;
             const walkAllMin = walkMin(walkAllM);
             const found = [];
+            const fits = (o) => o.walkM <= walkAllM * SLOWER_RIDE_WALK_SHARE && o.totalMin <= walkAllMin + SLOWER_RIDE_MAX_EXTRA_MIN;
             boardingStops().forEach((st) => {
                 if (haversineM(origin, st.pt) >= straight) return;
                 plan(origin, dest, st.id).forEach((o) => {
-                    if (o.walkM > walkAllM * SLOWER_RIDE_WALK_SHARE || o.totalMin > walkAllMin + SLOWER_RIDE_MAX_EXTRA_MIN) return;
-                    found.push({ ...o, tags: [], walkAllMin, walkFasterMin: o.totalMin - walkAllMin });
+                    if (fits(o)) found.push({ ...o, tags: [], walkAllMin, walkFasterMin: o.totalMin - walkAllMin });
                 });
+            });
+            // A jeep flagged on the road that the usual plan left out because the walks to and from it are long
+            // (e.g. Calamba City Hall -> Crossing Elementary School): still less walking than going on foot
+            plan(origin, dest, null, { all: true }).forEach((o) => {
+                if (fits(o)) found.push({ ...o, tags: [], walkAllMin, walkFasterMin: o.totalMin - walkAllMin });
             });
             return rank(found).map((o) => ({ ...o, tags: [], walkAllMin, walkFasterMin: o.totalMin - walkAllMin }));
         }
@@ -840,7 +854,7 @@
     }
 
     return {
-        VERSION: '1.10.0',
+        VERSION: '1.11.0',
         load,
         isReady: () => !!planner,
         plan: (o, d) => (planner ? planner.plan(o, d) : []),

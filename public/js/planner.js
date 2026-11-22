@@ -2830,6 +2830,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let terminalOldPin = null;
         const terminalAuto = { at: null, hits: 0, atSince: 0, timer: null, rideRoute: null, rideFixes: 0, lastPos: null, lastNear: null, lastSwitchAt: 0, switching: false, lastFix: null };
         let routeLoading = false;    // a route is being computed (the panel shows a skeleton)
+        // One route search at a time: a search asked for while one runs (e.g. swap tapped twice, Walk then
+        // Jeepney) waits and runs once after it with the places then set; the running one stops drawing
+        let routeQueryRunning = null;
+        let routeQueryAgain = false;
         let lastPeekTripKey = null;  // phones: the trip the sheet last opened at half height for
         let journeyStartedAt = null; // epoch ms of START JOURNEY; null outside a journey
         let journeyId = null;        // one id per journey, so its trip is saved to the account once
@@ -5215,6 +5219,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // how.slower: with no usual option, the terminal rides where walking is faster (Jeepney picked)
+        // Live traffic for the ride times: wait this long, then show the route and retime it when traffic
+        // arrives (applyTrafficToShown). Was 2.5 s, which made "Finding routes" feel slow on every jeep trip.
+        const TRAFFIC_WAIT_MS = 1200;
         async function planWithTransitRoutes(oPt, dPt, straightDistM, how) {
             const T = window.CalzadaTransit;
             if (!T) return false;
@@ -5255,9 +5262,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     trafficData = await Promise.race([
                         trafficPromise,
-                        new Promise(r => setTimeout(() => r(null), 2500))
+                        new Promise(r => setTimeout(() => r(null), TRAFFIC_WAIT_MS))
                     ]);
                 } catch (_) {}
+                // A newer search is waiting: this one is out of date, draw nothing
+                if (routeQueryAgain) return true;
 
                 let finalOpts = opts;
                 if (trafficData && T.retime) {
@@ -5366,9 +5375,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 trafficData = await Promise.race([
                     trafficPromise,
-                    new Promise(r => setTimeout(() => r(null), 2500))
+                    new Promise(r => setTimeout(() => r(null), TRAFFIC_WAIT_MS))
                 ]);
             } catch (_) {}
+            if (routeQueryAgain) return true;
 
             if (trafficData && T.retimeOption) {
                 tc.choices.forEach(c => {
@@ -5963,7 +5973,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // opts.noJeep: the curated routes have no trip from a no-jeepney barangay (set by the retry below)
         // opts.walkOnly: the only jeep would load at a terminal farther than walking there is worth
         const executeRouteQueryCore = async (opts = {}) => {
-            if (!selectedCoords.origin || !selectedCoords.destination) {
+            if (!(opts.oPt || selectedCoords.origin) || !(opts.dPt || selectedCoords.destination)) {
                 renderPlannerState();
                 return;
             }
@@ -5978,9 +5988,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (sumTime) sumTime.innerHTML = '<span class="skeleton sk-route-val" role="status" aria-label="Calculating route"></span>';
             if (sumFare) sumFare.innerHTML = '<span class="skeleton sk-route-val sk-route-fare"></span>';
 
-            const oPt = selectedCoords.origin;
-            const dPt = selectedCoords.destination;
+            // The retries below (walk instead) keep the trip this search started with, even if the
+            // places changed meanwhile (that change runs its own search next)
+            const oPt = opts.oPt || selectedCoords.origin;
+            const dPt = opts.dPt || selectedCoords.destination;
             const straightDistM = getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000;
+            const redo = (more) => executeRouteQueryCore({ ...more, oPt, dPt });
 
             // No jeepney leaves the poblacion barangays (Barangay 2–7, San Jose, San Juan: noJeepFrom in
             // /data/barangays.json) toward Uno, Real or Halang, so the transit engine has no trip from there
@@ -5989,6 +6002,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (T0 && typeof T0.load === 'function') {
                 try { await Promise.race([T0.load(), new Promise(r => setTimeout(r, 2500))]); } catch (_) { /* engine unavailable */ }
             }
+            if (routeQueryAgain) return;
             const noJeepArea = (T0 && T0.isReady && T0.isReady() && T0.noJeepAreaOf) ? T0.noJeepAreaOf(oPt) : null;
             const walkInstead = !!opts.walkOnly;
             const noJeepTrip = !!noJeepArea && (opts.noJeep
@@ -6026,6 +6040,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     wRes = await fetchOSRMRouteCoords(oPt, dPt, 'foot');
                 } catch (e) { console.error('Walk OSRM error:', e); }
+                if (routeQueryAgain) return;
 
                 if (!wRes || !wRes.coordinates || wRes.coordinates.length < 2) {
                     const dist = getHaversineDist(oPt[0], oPt[1], dPt[0], dPt[1]) * 1000;
@@ -6070,7 +6085,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     delete walkHintEl.dataset.kind;
                     if (rideOffer) {
                         walkHintEl.innerHTML = '<ion-icon name="walk-outline"></ion-icon><span></span><button type="button" class="walk-hint-link"></button>';
-                        walkHintEl.querySelector('span').textContent = t('planner.walk_slower_jeep', { j: rideOffer.totalMin, fare: formatPeso(rideOffer.fare) });
+                        // The ride can be about as fast as the walk, only with less walking: then it says so
+                        walkHintEl.querySelector('span').textContent = t(rideOffer.totalMin <= Math.round(currentWalkDur) ? 'planner.walk_jeep_less_walk' : 'planner.walk_slower_jeep', { j: rideOffer.totalMin, fare: formatPeso(rideOffer.fare) });
                         const link = walkHintEl.querySelector('.walk-hint-link');
                         link.textContent = t('planner.walk_slower_jeep_show');
                         link.addEventListener('click', () => { const b = document.getElementById('modeJeepney'); if (b) b.click(); });
@@ -6103,7 +6119,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (userExplicitMode && await planWithTransitRoutes(oPt, dPt, straightDistM, { slower: true })) return;
 
             // From a no-jeepney barangay with no curated trip: walk, never the guessed highway ride below
-            if (noJeepArea) return executeRouteQueryCore({ noJeep: true });
+            if (routeQueryAgain) return;
+            if (noJeepArea) return redo({ noJeep: true });
 
             // A local trip (both ends in or by Uno / Real / Halang) with no curated trip: walk. Every jeep that
             // runs there is in the route data, so the guessed ride below (a car route turned into a jeep) would
@@ -6112,7 +6129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const Tl = window.CalzadaTransit;
             if (Tl && Tl.isReady && Tl.isReady() && Tl.isLocal && Tl.isLocal(oPt) && Tl.isLocal(dPt)) {
                 console.info('Local trip with no jeep route that helps: shown as a walk (no guessed highway ride)');
-                return executeRouteQueryCore({ walkOnly: true, walkReason: 'no_faster_jeep' });
+                return redo({ walkOnly: true, walkReason: 'no_faster_jeep' });
             }
 
             // ── JEEPNEY MODE: walk to boarding point + transit on highway ───────────
@@ -6170,7 +6187,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!best || score < best.score) best = { st, score, walkM };
                 });
                 // Most of the way on foot to the terminal anyway: the trip is a walk
-                if (best && best.walkM > straightDistM * 0.6) return executeRouteQueryCore({ walkOnly: true });
+                if (best && best.walkM > straightDistM * 0.6) return redo({ walkOnly: true });
                 if (best) {
                     console.info(`Highway route: boarding moved from the road to ${best.st.name} (no boarding on the road at Crossing / SM)`);
                     boardingPt = best.st.pt.slice();
@@ -6417,7 +6434,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     ? (transitLang() === 'tl' ? 'Ina-update ang ruta' : 'Updating your route')
                     : routeLoadingText();
                 chip.classList.toggle('is-journey', !!isTrackingArrival);
-                requestAnimationFrame(() => chip.classList.add('is-visible'));
+                // Only if still searching: a quick route can finish before this frame, and the chip stayed up
+                requestAnimationFrame(() => { if (routeLoading) chip.classList.add('is-visible'); });
             } else {
                 chip.classList.remove('is-visible');
             }
@@ -6789,7 +6807,22 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const executeRouteQuery = async () => {
+        const executeRouteQuery = () => {
+            if (routeQueryRunning) { routeQueryAgain = true; return routeQueryRunning; }
+            routeQueryRunning = (async () => {
+                try {
+                    do {
+                        routeQueryAgain = false;
+                        await runRouteQuery();
+                    } while (routeQueryAgain);
+                } finally {
+                    routeQueryRunning = null;
+                    routeQueryAgain = false;
+                }
+            })();
+            return routeQueryRunning;
+        };
+        const runRouteQuery = async () => {
             if (!authInitDone) {
                 await authInitPromise;
             }
@@ -6825,8 +6858,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Route failed:', e);
                 failed = true;
             } finally {
-                setRouteLoading(false);
+                // A newer search runs right after this one: keep "Finding routes" up until it is done
+                if (!routeQueryAgain) setRouteLoading(false);
             }
+            if (routeQueryAgain) return;
             const hasRoute = !!((walkRouteGeojson && walkRouteGeojson.coordinates?.length >= 2) || (transitRouteGeojson && transitRouteGeojson.coordinates?.length >= 2));
             if (hasRoute && !failed) {
                 recordPlannedRouteHistory();
