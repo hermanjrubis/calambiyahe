@@ -193,10 +193,29 @@ const alongRoad = (i, j) => {
     const s = straightOf(i, j);
     return f && f.d <= Math.max(s * MAX_DETOUR, s + 25) ? f : null;
 };
+// The arrows of the capture links as they were set (by the photo pass and the calibration): they point down the
+// road as seen in the photo, even where a photo's GPS fix is off (e.g. by LTO Road, the next photo's fix sits
+// 50 degrees off the road). Kept as they are; only links the rebuild adds get a computed arrow.
+const origBearing = new Map();
+const addOrig = (fromId, list) => {
+    const i = idx.get(fromId);
+    if (i === undefined) return;
+    for (const c of list || []) {
+        const j = keptOf(c.targetId);
+        if (j === undefined || j === i || origBearing.has(`${i}>${j}`) || !Number.isFinite(c.bearing)) continue;
+        origBearing.set(`${i}>${j}`, c.bearing);
+    }
+};
+manifest.nodes.forEach((n) => { if (idx.has(n.id)) addOrig(n.id, n.connections); });
+manifest.nodes.forEach((n) => { if (!idx.has(n.id) && aliases[n.id]) addOrig(aliases[n.id], n.connections); });
 const setLink = (i, j, why) => {
     if (i === j || i == null || j == null) return;
     const f = alongRoad(i, j);
     const straightB = bearingXY([P[i].x, P[i].y], [P[j].x, P[j].y]);
+    if (origBearing.has(`${i}>${j}`)) {
+        links.get(i).set(j, { bearing: origBearing.get(`${i}>${j}`), distance: straightOf(i, j), road: f ? f.d : straightOf(i, j), why, path: f ? f.path : null, orig: true });
+        return;
+    }
     let b = f ? pathBearing(f.path) : straightB;
     // The road leaves almost sideways (a GPS fix beside the road, a U-turn): point at the photo instead
     if (angDiff(b, straightB) > 60) b = straightB;
@@ -292,7 +311,7 @@ for (const [i, m] of links) {
         let pair = null;
         for (let a = 0; a < arr.length && !pair; a++) for (let b = a + 1; b < arr.length; b++) if (angDiff(arr[a][1].bearing, arr[b][1].bearing) < SAME_DIR_DEG) { pair = [arr[a], arr[b]]; break; }
         if (!pair) break;
-        const bOf = ([j, l], L) => (l.path && L !== Infinity) ? pathBearing(l.path, L) : bearingXY([P[i].x, P[i].y], [P[j].x, P[j].y]);
+        const bOf = ([j, l], L) => l.orig ? l.bearing : (l.path && L !== Infinity) ? pathBearing(l.path, L) : bearingXY([P[i].x, P[i].y], [P[j].x, P[j].y]);
         let done = false;
         for (const L of [20, 30, 45, Infinity]) {
             const b1 = bOf(pair[0], L), b2 = bOf(pair[1], L);
@@ -309,12 +328,17 @@ for (const [i, m] of links) {
             // the farther photo is reached through the nearer one (a long link, like the capture link it replaces)
             if (!links.get(nearE[0]).has(farE[0])) { setLink(nearE[0], farE[0], 'chain'); setLink(farE[0], nearE[0], 'chain'); }
             m.delete(farE[0]); links.get(farE[0]).delete(i); droppedSameDir++; continue;
-        } else {
-            const mid = (nearE[1].bearing + ((((farE[1].bearing - nearE[1].bearing) % 360) + 540) % 360 - 180) / 2 + 360) % 360;
-            const sign = ((((farE[1].bearing - nearE[1].bearing) % 360) + 540) % 360 - 180) >= 0 ? 1 : -1;
-            const half = (SAME_DIR_DEG + 1) / 2;
-            nearE[1].bearing = (mid - sign * half + 360) % 360;
-            farE[1].bearing = (mid + sign * half + 360) % 360;
+        } else if (!(nearE[1].orig && farE[1].orig)) {
+            const sd = (((farE[1].bearing - nearE[1].bearing) % 360) + 540) % 360 - 180; // far relative to near
+            const sign = sd >= 0 ? 1 : -1;
+            if (nearE[1].orig) farE[1].bearing = (nearE[1].bearing + sign * (SAME_DIR_DEG + 1) + 360) % 360;
+            else if (farE[1].orig) nearE[1].bearing = (farE[1].bearing - sign * (SAME_DIR_DEG + 1) + 360) % 360;
+            else {
+                const mid = (nearE[1].bearing + sd / 2 + 360) % 360;
+                const half = (SAME_DIR_DEG + 1) / 2;
+                nearE[1].bearing = (mid - sign * half + 360) % 360;
+                farE[1].bearing = (mid + sign * half + 360) % 360;
+            }
             separated++; continue;
         }
         stillSame.push(`${P[i].n.id} -> ${P[pair[0][0]].n.id} / ${P[pair[1][0]].n.id}`); break;
