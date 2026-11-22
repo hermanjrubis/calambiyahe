@@ -147,8 +147,34 @@ function autoAliases(p) {
             out.add(s.replace(/\bsaint\b/g, 'st'));
         }
     }
+    // More ways people say a name (Nov 22, 2026): without the kind of place at the end ("Liporada Dental Clinic"
+    // -> "liporada dental", "liporada"; "JLT Fashion Boutique" -> "jlt"), without a possessive s ("Lola Nena's" ->
+    // "lola nena"), written as one word ("chicken joo" -> "chickenjoo"), and with its barangay ("tara kape halang").
+    // A short form that another place also has becomes ambiguous (Routie asks which one).
+    const acronyms = new Set((name.match(/\b[A-Z]{3,5}\b/g) || []).map((w) => w.toLowerCase()));
+    const possessive = /'s\b|’s\b/.test(name);
+    for (const s of [...out]) {
+        let cur = s;
+        for (let k = 0; k < 3; k++) {
+            const m = cur.match(GENERIC_TAIL);
+            if (!m) break;
+            cur = cur.slice(0, m.index).trim();
+            const w = cur.split(' ').filter(Boolean);
+            if (w.length >= 2 || (w.length === 1 && ((w[0].length >= 5 && !COMMON_WORDS.has(w[0])) || acronyms.has(w[0])))) out.add(cur);
+        }
+        if (possessive) out.add(s.replace(/\b([a-z]{3,})s\b/g, (x, y) => y));
+        const w = s.split(' ');
+        if (w.length >= 2 && w.length <= 3 && w.every((x) => x.length >= 2) && s.replace(/\s/g, '').length >= 6) out.add(s.replace(/\s/g, ''));
+    }
+    const core = norm(base.replace(/\s*\([^)]*\)\s*/g, ' ').replace(/,?\s*calamba.*$/i, ''));
+    const brgy = norm(p.barangay);
+    if (core && brgy && !core.split(' ').includes(brgy)) out.add(`${core} ${brgy}`);
     return [...out].filter(Boolean);
 }
+// The kind of place at the end of a name (dropped for a shorter alias)
+const GENERIC_TAIL = /\s(?:dental clinic|veterinary clinic|clinic|pharmacy|restaurant|resto|caffe|cafe|coffee shop|coffee|building|commercial complex|auto care center|care center|paint center|center|centre|gas station|station|store|shop|hair and beauty salon|beauty salon|salon|everyday grocery|grocery|canteen|kitchen|manpower services|services|upholstery supply|supply|tiles depot|depot|hotel|apartelle|ktv lounge|lounge|foodhub|food house|food town|events place|serviced homes|auto shop|car service|driving school|bakery|sweets|fashion boutique|boutique|electric bicycle|enterprise e bike|authorized dealer|motoplaza|pansitan|lutong bahay|halo halo|brew)$/;
+// Single words too common to be a place on their own
+const COMMON_WORDS = new Set(['tranquility', 'dynasty', 'alpha', 'alpha family', 'creekside', 'family', 'korean', 'piece', 'stars', 'flight', 'aroma', 'south', 'smiles', 'mercury', 'agape', 'meat', 'dear', 'kupi', 'macks', 'bigstop', 'pitcrew', 'jenny', 'clarisse', 'olene', 'citi', 'mariz', 'herrera', 'julita', 'marcelita', 'jaydens', 'shiprito', 'suerte', 'sungold', 'margimel', 'daikin', 'just', 'news', 'army', 'navy', 'laguna', 'calamba']);
 
 const bySlug = new Map(places.map((p) => [p.slug, p]));
 for (const slug of Object.keys(CURATED)) if (!bySlug.has(slug)) throw new Error('Unknown slug in CURATED: ' + slug);

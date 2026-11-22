@@ -1,0 +1,1660 @@
+{
+ "about": "Places outside Calzada's area (Brgy. Uno, Real and Halang, Calamba) that Routie recognizes, so it can say a trip is not applicable. Rule (same as the Planner): a trip may START outside the area (within about 25 km of it) but must END in Uno, Real or Halang. kind: barangay (other barangays of Calamba), area, town (nearby towns, within ~25 km, can be a starting point), far (too far to start a trip; no coordinates). needsCue: the name is also an everyday word (\"punta\", \"lawa\", \"burol\"…), so in free text it counts only after a word like \"from\", \"to\", \"galing\", \"papunta\" or \"brgy\". Coordinates: PhilAtlas (philatlas.com, PSA-based) barangay/municipality points, Nov 22, 2026; San Isidro, Pulo, Balibago and UPLB kept from Routie's earlier data. San Cristobal has no coordinates (source unavailable): as a starting point Routie asks the user to pin it in the Planner.",
+ "updated": "2026-11-22",
+ "places": [
+  {
+   "name": "Brgy. Bagong Kalsada, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "bagong kalsada",
+    "bagong kalsada calamba",
+    "barangay bagong kalsada",
+    "bgy bagong kalsada",
+    "brgy bagong kalsada",
+    "brgy bagong kalsada calamba"
+   ],
+   "coords": [
+    14.1738,
+    121.1974
+   ]
+  },
+  {
+   "name": "Brgy. Banadero, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "banadero",
+    "banadero calamba",
+    "barangay banadero",
+    "bgy banadero",
+    "brgy banadero",
+    "brgy banadero calamba"
+   ],
+   "coords": [
+    14.218,
+    121.166
+   ]
+  },
+  {
+   "name": "Brgy. Banlic, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "banlic",
+    "banlic calamba",
+    "barangay banlic",
+    "bgy banlic",
+    "brgy banlic",
+    "brgy banlic calamba"
+   ],
+   "coords": [
+    14.2285,
+    121.1529
+   ]
+  },
+  {
+   "name": "Brgy. Barandal, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barandal",
+    "barandal calamba",
+    "barangay barandal",
+    "bgy barandal",
+    "brgy barandal",
+    "brgy barandal calamba"
+   ],
+   "coords": [
+    14.1883,
+    121.1306
+   ]
+  },
+  {
+   "name": "Barangay 2 (Poblacion), Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay 2",
+    "barangay 2 calamba",
+    "barangay dos",
+    "barangay ii",
+    "barangay two",
+    "bgy 2",
+    "brgy 2",
+    "brgy 2 calamba",
+    "brgy dos",
+    "brgy ii",
+    "brgy two"
+   ],
+   "coords": [
+    14.213,
+    121.1611
+   ]
+  },
+  {
+   "name": "Barangay 3 (Poblacion), Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay 3",
+    "barangay 3 calamba",
+    "barangay iii",
+    "barangay three",
+    "barangay tres",
+    "bgy 3",
+    "brgy 3",
+    "brgy 3 calamba",
+    "brgy iii",
+    "brgy three",
+    "brgy tres"
+   ],
+   "coords": [
+    14.2085,
+    121.1611
+   ]
+  },
+  {
+   "name": "Barangay 4 (Poblacion), Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay 4",
+    "barangay 4 calamba",
+    "barangay cuatro",
+    "barangay four",
+    "barangay iv",
+    "barangay kuwatro",
+    "barangay kwatro",
+    "bgy 4",
+    "brgy 4",
+    "brgy 4 calamba",
+    "brgy cuatro",
+    "brgy four",
+    "brgy iv",
+    "brgy kuwatro",
+    "brgy kwatro"
+   ],
+   "coords": [
+    14.2146,
+    121.1648
+   ]
+  },
+  {
+   "name": "Barangay 5 (Poblacion), Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay 5",
+    "barangay 5 calamba",
+    "barangay cinco",
+    "barangay five",
+    "barangay singko",
+    "barangay sinko",
+    "barangay v",
+    "bgy 5",
+    "brgy 5",
+    "brgy 5 calamba",
+    "brgy cinco",
+    "brgy five",
+    "brgy singko",
+    "brgy sinko",
+    "brgy v"
+   ],
+   "coords": [
+    14.2099,
+    121.1662
+   ]
+  },
+  {
+   "name": "Barangay 6 (Poblacion), Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay 6",
+    "barangay 6 calamba",
+    "barangay sais",
+    "barangay seis",
+    "barangay six",
+    "barangay vi",
+    "bgy 6",
+    "brgy 6",
+    "brgy 6 calamba",
+    "brgy sais",
+    "brgy seis",
+    "brgy six",
+    "brgy vi"
+   ],
+   "coords": [
+    14.2126,
+    121.1639
+   ]
+  },
+  {
+   "name": "Barangay 7 (Poblacion), Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay 7",
+    "barangay 7 calamba",
+    "barangay seven",
+    "barangay siete",
+    "barangay siyete",
+    "barangay syete",
+    "barangay vii",
+    "bgy 7",
+    "brgy 7",
+    "brgy 7 calamba",
+    "brgy seven",
+    "brgy siete",
+    "brgy siyete",
+    "brgy syete",
+    "brgy vii"
+   ],
+   "coords": [
+    14.2123,
+    121.1694
+   ]
+  },
+  {
+   "name": "Brgy. Batino, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay batino",
+    "batino",
+    "batino calamba",
+    "bgy batino",
+    "brgy batino",
+    "brgy batino calamba"
+   ],
+   "coords": [
+    14.2015,
+    121.1332
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Bubuyan, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay bubuyan",
+    "bgy bubuyan",
+    "brgy bubuyan",
+    "brgy bubuyan calamba",
+    "bubuyan",
+    "bubuyan calamba"
+   ],
+   "coords": [
+    14.1724,
+    121.1045
+   ]
+  },
+  {
+   "name": "Brgy. Bucal, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay bucal",
+    "bgy bucal",
+    "brgy bucal",
+    "brgy bucal calamba",
+    "bucal",
+    "bucal calamba"
+   ],
+   "coords": [
+    14.1888,
+    121.1695
+   ]
+  },
+  {
+   "name": "Brgy. Bunggo, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay bunggo",
+    "bgy bunggo",
+    "brgy bunggo",
+    "brgy bunggo calamba",
+    "bunggo",
+    "bunggo calamba"
+   ],
+   "coords": [
+    14.1569,
+    121.0641
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Burol, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay burol",
+    "bgy burol",
+    "brgy burol",
+    "brgy burol calamba",
+    "burol",
+    "burol calamba"
+   ],
+   "coords": [
+    14.1654,
+    121.0938
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Camaligan, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay camaligan",
+    "bgy camaligan",
+    "brgy camaligan",
+    "brgy camaligan calamba",
+    "camaligan",
+    "camaligan calamba"
+   ],
+   "coords": [
+    14.1592,
+    121.151
+   ]
+  },
+  {
+   "name": "Brgy. Canlubang, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay canlubang",
+    "bgy canlubang",
+    "brgy canlubang",
+    "brgy canlubang calamba",
+    "canlubang",
+    "canlubang calamba",
+    "canlubang market",
+    "canlubang public market",
+    "kanlubang"
+   ],
+   "coords": [
+    14.216,
+    121.1079
+   ]
+  },
+  {
+   "name": "Brgy. Hornalan, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay hornalan",
+    "bgy hornalan",
+    "brgy hornalan",
+    "brgy hornalan calamba",
+    "hornalan",
+    "hornalan calamba"
+   ],
+   "coords": [
+    14.1704,
+    121.0679
+   ]
+  },
+  {
+   "name": "Brgy. Kay-Anlog, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay kay anlog",
+    "bgy kay anlog",
+    "brgy kay anlog",
+    "brgy kay anlog calamba",
+    "kay anlog",
+    "kay anlog calamba",
+    "kayanlog"
+   ],
+   "coords": [
+    14.164,
+    121.1188
+   ]
+  },
+  {
+   "name": "Brgy. La Mesa, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay la mesa",
+    "bgy la mesa",
+    "brgy la mesa",
+    "brgy la mesa calamba",
+    "la mesa",
+    "la mesa calamba"
+   ],
+   "coords": [
+    14.1848,
+    121.154
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Laguerta, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay laguerta",
+    "bgy laguerta",
+    "brgy laguerta",
+    "brgy laguerta calamba",
+    "laguerta",
+    "laguerta calamba"
+   ],
+   "coords": [
+    14.1734,
+    121.0897
+   ]
+  },
+  {
+   "name": "Brgy. Lawa, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay lawa",
+    "bgy lawa",
+    "brgy lawa",
+    "brgy lawa calamba",
+    "lawa",
+    "lawa calamba"
+   ],
+   "coords": [
+    14.2076,
+    121.1457
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Lecheria, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay lecheria",
+    "bgy lecheria",
+    "brgy lecheria",
+    "brgy lecheria calamba",
+    "lecheria",
+    "lecheria calamba"
+   ],
+   "coords": [
+    14.2028,
+    121.1635
+   ]
+  },
+  {
+   "name": "Brgy. Lingga, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay lingga",
+    "bgy lingga",
+    "brgy lingga",
+    "brgy lingga calamba",
+    "lingga",
+    "lingga calamba"
+   ],
+   "coords": [
+    14.2148,
+    121.1813
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Looc, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay looc",
+    "bgy looc",
+    "brgy looc",
+    "brgy looc calamba",
+    "looc",
+    "looc calamba"
+   ],
+   "coords": [
+    14.2233,
+    121.1789
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Mabato, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay mabato",
+    "bgy mabato",
+    "brgy mabato",
+    "brgy mabato calamba",
+    "mabato",
+    "mabato calamba"
+   ],
+   "coords": [
+    14.1577,
+    121.0383
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Majada Labas, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay majada labas",
+    "bgy majada labas",
+    "brgy majada labas",
+    "brgy majada labas calamba",
+    "majada",
+    "majada labas",
+    "majada labas calamba"
+   ],
+   "coords": [
+    14.1942,
+    121.1055
+   ]
+  },
+  {
+   "name": "Brgy. Makiling, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay makiling",
+    "bgy makiling",
+    "brgy makiling",
+    "brgy makiling calamba",
+    "makiling",
+    "makiling calamba"
+   ],
+   "coords": [
+    14.1536,
+    121.1366
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Mapagong, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay mapagong",
+    "bgy mapagong",
+    "brgy mapagong",
+    "brgy mapagong calamba",
+    "mapagong",
+    "mapagong calamba"
+   ],
+   "coords": [
+    14.2178,
+    121.1304
+   ]
+  },
+  {
+   "name": "Brgy. Masili, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay masili",
+    "bgy masili",
+    "brgy masili",
+    "brgy masili calamba",
+    "masili",
+    "masili calamba"
+   ],
+   "coords": [
+    14.1816,
+    121.2017
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Maunong, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay maunong",
+    "bgy maunong",
+    "brgy maunong",
+    "brgy maunong calamba",
+    "maunong",
+    "maunong calamba"
+   ],
+   "coords": [
+    14.1705,
+    121.1598
+   ]
+  },
+  {
+   "name": "Brgy. Mayapa, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay mayapa",
+    "bgy mayapa",
+    "brgy mayapa",
+    "brgy mayapa calamba",
+    "mayapa",
+    "mayapa calamba"
+   ],
+   "coords": [
+    14.2118,
+    121.1269
+   ]
+  },
+  {
+   "name": "Brgy. Milagrosa, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay milagrosa",
+    "bgy milagrosa",
+    "brgy milagrosa",
+    "brgy milagrosa calamba",
+    "milagrosa",
+    "milagrosa calamba"
+   ],
+   "coords": [
+    14.1692,
+    121.1376
+   ]
+  },
+  {
+   "name": "Brgy. Paciano Rizal, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay paciano rizal",
+    "bgy paciano rizal",
+    "brgy paciano",
+    "brgy paciano rizal",
+    "brgy paciano rizal calamba",
+    "paciano",
+    "paciano rizal",
+    "paciano rizal calamba"
+   ],
+   "coords": [
+    14.212,
+    121.1333
+   ]
+  },
+  {
+   "name": "Brgy. Palingon, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay palingon",
+    "bgy palingon",
+    "brgy palingon",
+    "brgy palingon calamba",
+    "palingon",
+    "palingon calamba"
+   ],
+   "coords": [
+    14.2152,
+    121.1854
+   ]
+  },
+  {
+   "name": "Brgy. Palo-Alto, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay palo alto",
+    "bgy palo alto",
+    "brgy palo alto",
+    "brgy palo alto calamba",
+    "palo alto",
+    "palo alto calamba",
+    "paloalto"
+   ],
+   "coords": [
+    14.1842,
+    121.1082
+   ]
+  },
+  {
+   "name": "Brgy. Pansol, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay pansol",
+    "bgy pansol",
+    "brgy pansol",
+    "brgy pansol calamba",
+    "pansol",
+    "pansol calamba",
+    "pansol hot spring",
+    "pansol hot springs",
+    "pansol resorts"
+   ],
+   "coords": [
+    14.1785,
+    121.184
+   ]
+  },
+  {
+   "name": "Brgy. Parian, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay parian",
+    "bgy parian",
+    "brgy parian",
+    "brgy parian calamba",
+    "parian",
+    "parian calamba"
+   ],
+   "coords": [
+    14.2137,
+    121.151
+   ]
+  },
+  {
+   "name": "Brgy. Prinza, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay prinza",
+    "bgy prinza",
+    "brgy prinza",
+    "brgy prinza calamba",
+    "prinza",
+    "prinza calamba"
+   ],
+   "coords": [
+    14.1956,
+    121.1368
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Punta, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay punta",
+    "bgy punta",
+    "brgy punta",
+    "brgy punta calamba",
+    "punta",
+    "punta calamba"
+   ],
+   "coords": [
+    14.1767,
+    121.1181
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Puting Lupa, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay puting lupa",
+    "bgy puting lupa",
+    "brgy puting lupa",
+    "brgy puting lupa calamba",
+    "puting lupa",
+    "puting lupa calamba"
+   ],
+   "coords": [
+    14.1527,
+    121.1635
+   ]
+  },
+  {
+   "name": "Brgy. Saimsim, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay saimsim",
+    "bgy saimsim",
+    "brgy saimsim",
+    "brgy saimsim calamba",
+    "saimsim",
+    "saimsim calamba"
+   ],
+   "coords": [
+    14.167,
+    121.1464
+   ]
+  },
+  {
+   "name": "Brgy. Sampiruhan, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay sampiruhan",
+    "bgy sampiruhan",
+    "brgy sampiruhan",
+    "brgy sampiruhan calamba",
+    "sampiruhan",
+    "sampiruhan calamba"
+   ],
+   "coords": [
+    14.2173,
+    121.1823
+   ]
+  },
+  {
+   "name": "Brgy. San Cristobal, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay san cristobal",
+    "bgy san cristobal",
+    "brgy san cristobal",
+    "brgy san cristobal calamba",
+    "san cristobal",
+    "san cristobal calamba"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Brgy. San Jose, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay san jose",
+    "bgy san jose",
+    "brgy san jose",
+    "brgy san jose calamba",
+    "san jose",
+    "san jose calamba"
+   ],
+   "coords": [
+    14.2128,
+    121.171
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. San Juan, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay san juan",
+    "bgy san juan",
+    "brgy san juan",
+    "brgy san juan calamba",
+    "san juan",
+    "san juan calamba"
+   ],
+   "coords": [
+    14.2164,
+    121.1756
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Sirang Lupa, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay sirang lupa",
+    "bgy sirang lupa",
+    "brgy sirang lupa",
+    "brgy sirang lupa calamba",
+    "sirang lupa",
+    "sirang lupa calamba"
+   ],
+   "coords": [
+    14.2018,
+    121.1038
+   ]
+  },
+  {
+   "name": "Brgy. Sucol, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay sucol",
+    "bgy sucol",
+    "brgy sucol",
+    "brgy sucol calamba",
+    "sucol",
+    "sucol calamba"
+   ],
+   "coords": [
+    14.1808,
+    121.1968
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Brgy. Turbina, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay turbina",
+    "bgy turbina",
+    "brgy turbina",
+    "brgy turbina calamba",
+    "turbina",
+    "turbina calamba"
+   ],
+   "coords": [
+    14.1845,
+    121.1347
+   ]
+  },
+  {
+   "name": "Brgy. Ulango, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay ulango",
+    "bgy ulango",
+    "brgy ulango",
+    "brgy ulango calamba",
+    "ulango",
+    "ulango calamba"
+   ],
+   "coords": [
+    14.153,
+    121.1174
+   ]
+  },
+  {
+   "name": "Brgy. Uwisan, Calamba",
+   "kind": "barangay",
+   "municipality": "Calamba",
+   "aliases": [
+    "barangay uwisan",
+    "bgy uwisan",
+    "brgy uwisan",
+    "brgy uwisan calamba",
+    "uwisan",
+    "uwisan calamba"
+   ],
+   "coords": [
+    14.2366,
+    121.1735
+   ]
+  },
+  {
+   "name": "Calamba Poblacion (Bayan)",
+   "kind": "area",
+   "municipality": "Calamba",
+   "aliases": [
+    "bayan",
+    "calamba bayan",
+    "bayan ng calamba",
+    "poblacion",
+    "calamba poblacion",
+    "bayan calamba",
+    "calamba church",
+    "simbahan ng calamba",
+    "rizal shrine",
+    "rizal shrine calamba",
+    "bahay ni rizal"
+   ],
+   "coords": [
+    14.211,
+    121.165
+   ],
+   "note": "Barangays 2–7; Barangay 1 (Uno) is the part Calzada covers"
+  },
+  {
+   "name": "Cabuyao, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "cabuyao",
+    "cabuyao bayan",
+    "cabuyao city",
+    "cabuyao laguna"
+   ],
+   "coords": [
+    14.277,
+    121.1232
+   ]
+  },
+  {
+   "name": "San Isidro, Cabuyao",
+   "kind": "town",
+   "municipality": "Cabuyao",
+   "aliases": [
+    "brgy san isidro",
+    "san isidro",
+    "san isidro cabuyao"
+   ],
+   "coords": [
+    14.24195,
+    121.14168
+   ]
+  },
+  {
+   "name": "Pulo, Cabuyao",
+   "kind": "town",
+   "municipality": "Cabuyao",
+   "aliases": [
+    "brgy pulo",
+    "pulo",
+    "pulo cabuyao"
+   ],
+   "coords": [
+    14.246,
+    121.135
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Santa Rosa, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "santa rosa",
+    "santa rosa city",
+    "santa rosa laguna",
+    "sta rosa",
+    "sta rosa city",
+    "sta rosa laguna",
+    "starosa"
+   ],
+   "coords": [
+    14.3157,
+    121.1122
+   ]
+  },
+  {
+   "name": "Balibago, Santa Rosa",
+   "kind": "town",
+   "municipality": "Santa Rosa",
+   "aliases": [
+    "balibago",
+    "balibago complex",
+    "balibago sta rosa"
+   ],
+   "coords": [
+    14.298,
+    121.109
+   ]
+  },
+  {
+   "name": "Los Baños, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "elbi",
+    "los banos",
+    "los banos laguna",
+    "los banyos",
+    "losbanos"
+   ],
+   "coords": [
+    14.1775,
+    121.2214
+   ]
+  },
+  {
+   "name": "UPLB, Los Baños",
+   "kind": "town",
+   "municipality": "Los Baños",
+   "aliases": [
+    "university of the philippines los banos",
+    "up lb",
+    "up los banos",
+    "upelbi",
+    "uplb"
+   ],
+   "coords": [
+    14.167,
+    121.243
+   ]
+  },
+  {
+   "name": "Santo Tomas, Batangas",
+   "kind": "town",
+   "municipality": "Batangas",
+   "aliases": [
+    "santo tomas",
+    "santo tomas batangas",
+    "sto tomas",
+    "sto tomas batangas"
+   ],
+   "coords": [
+    14.1068,
+    121.1616
+   ]
+  },
+  {
+   "name": "Tanauan, Batangas",
+   "kind": "town",
+   "municipality": "Batangas",
+   "aliases": [
+    "tanauan",
+    "tanauan batangas",
+    "tanauan city"
+   ],
+   "coords": [
+    14.0853,
+    121.1528
+   ]
+  },
+  {
+   "name": "Bay, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "bay",
+    "bay laguna",
+    "munisipyo ng bay"
+   ],
+   "coords": [
+    14.18,
+    121.2799
+   ],
+   "needsCue": true
+  },
+  {
+   "name": "Biñan, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "binan",
+    "binan city",
+    "binan laguna"
+   ],
+   "coords": [
+    14.3373,
+    121.0827
+   ]
+  },
+  {
+   "name": "Tagaytay, Cavite",
+   "kind": "town",
+   "municipality": "Cavite",
+   "aliases": [
+    "tagaytay",
+    "tagaytay cavite",
+    "tagaytay city"
+   ],
+   "coords": [
+    14.1149,
+    120.9635
+   ]
+  },
+  {
+   "name": "Silang, Cavite",
+   "kind": "town",
+   "municipality": "Cavite",
+   "aliases": [
+    "silang",
+    "silang cavite"
+   ],
+   "coords": [
+    14.2236,
+    120.9741
+   ]
+  },
+  {
+   "name": "Calauan, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "calauan",
+    "calauan laguna"
+   ],
+   "coords": [
+    14.1486,
+    121.3158
+   ]
+  },
+  {
+   "name": "San Pedro, Laguna",
+   "kind": "town",
+   "municipality": "Laguna",
+   "aliases": [
+    "san pedro city",
+    "san pedro laguna"
+   ],
+   "coords": [
+    14.362,
+    121.0574
+   ]
+  },
+  {
+   "name": "Manila",
+   "kind": "far",
+   "aliases": [
+    "manila"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Metro Manila",
+   "kind": "far",
+   "aliases": [
+    "metro manila"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Makati",
+   "kind": "far",
+   "aliases": [
+    "makati"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Quezon City",
+   "kind": "far",
+   "aliases": [
+    "quezon city"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Quezon City",
+   "kind": "far",
+   "aliases": [
+    "qc"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Pasay",
+   "kind": "far",
+   "aliases": [
+    "pasay"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Taguig",
+   "kind": "far",
+   "aliases": [
+    "taguig"
+   ],
+   "coords": null
+  },
+  {
+   "name": "BGC",
+   "kind": "far",
+   "aliases": [
+    "bgc"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Bonifacio Global City",
+   "kind": "far",
+   "aliases": [
+    "bonifacio global city"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Mandaluyong",
+   "kind": "far",
+   "aliases": [
+    "mandaluyong"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Pasig",
+   "kind": "far",
+   "aliases": [
+    "pasig"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Marikina",
+   "kind": "far",
+   "aliases": [
+    "marikina"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Paranaque",
+   "kind": "far",
+   "aliases": [
+    "paranaque"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Las Pinas",
+   "kind": "far",
+   "aliases": [
+    "las pinas"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Valenzuela",
+   "kind": "far",
+   "aliases": [
+    "valenzuela"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Navotas",
+   "kind": "far",
+   "aliases": [
+    "navotas"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Malabon",
+   "kind": "far",
+   "aliases": [
+    "malabon"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Caloocan",
+   "kind": "far",
+   "aliases": [
+    "caloocan"
+   ],
+   "coords": null
+  },
+  {
+   "name": "SM Mall of Asia",
+   "kind": "far",
+   "aliases": [
+    "moa"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Mall Of Asia",
+   "kind": "far",
+   "aliases": [
+    "mall of asia"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Monumento",
+   "kind": "far",
+   "aliases": [
+    "monumento"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Cubao",
+   "kind": "far",
+   "aliases": [
+    "cubao"
+   ],
+   "coords": null
+  },
+  {
+   "name": "EDSA",
+   "kind": "far",
+   "aliases": [
+    "edsa"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Alabang",
+   "kind": "far",
+   "aliases": [
+    "alabang"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Muntinlupa",
+   "kind": "far",
+   "aliases": [
+    "muntinlupa"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Ortigas",
+   "kind": "far",
+   "aliases": [
+    "ortigas"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Divisoria",
+   "kind": "far",
+   "aliases": [
+    "divisoria"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Quiapo",
+   "kind": "far",
+   "aliases": [
+    "quiapo"
+   ],
+   "coords": null
+  },
+  {
+   "name": "NAIA",
+   "kind": "far",
+   "aliases": [
+    "naia"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Airport",
+   "kind": "far",
+   "aliases": [
+    "airport"
+   ],
+   "coords": null,
+   "needsCue": true
+  },
+  {
+   "name": "Cebu",
+   "kind": "far",
+   "aliases": [
+    "cebu"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Davao",
+   "kind": "far",
+   "aliases": [
+    "davao"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Baguio",
+   "kind": "far",
+   "aliases": [
+    "baguio"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Iloilo",
+   "kind": "far",
+   "aliases": [
+    "iloilo"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Bacolod",
+   "kind": "far",
+   "aliases": [
+    "bacolod"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Cagayan De Oro",
+   "kind": "far",
+   "aliases": [
+    "cagayan de oro"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Pampanga",
+   "kind": "far",
+   "aliases": [
+    "pampanga"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Angeles",
+   "kind": "far",
+   "aliases": [
+    "angeles"
+   ],
+   "coords": null,
+   "needsCue": true
+  },
+  {
+   "name": "Subic",
+   "kind": "far",
+   "aliases": [
+    "subic"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Clark",
+   "kind": "far",
+   "aliases": [
+    "clark"
+   ],
+   "coords": null,
+   "needsCue": true
+  },
+  {
+   "name": "Bataan",
+   "kind": "far",
+   "aliases": [
+    "bataan"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Bulacan",
+   "kind": "far",
+   "aliases": [
+    "bulacan"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Cavite City",
+   "kind": "far",
+   "aliases": [
+    "cavite city"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Dasmarinas",
+   "kind": "far",
+   "aliases": [
+    "dasmarinas"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Bacoor",
+   "kind": "far",
+   "aliases": [
+    "bacoor"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Imus",
+   "kind": "far",
+   "aliases": [
+    "imus"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Batangas City",
+   "kind": "far",
+   "aliases": [
+    "batangas city"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Lipa",
+   "kind": "far",
+   "aliases": [
+    "lipa"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Lucena",
+   "kind": "far",
+   "aliases": [
+    "lucena"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Naga",
+   "kind": "far",
+   "aliases": [
+    "naga"
+   ],
+   "coords": null,
+   "needsCue": true
+  },
+  {
+   "name": "San Pablo",
+   "kind": "far",
+   "aliases": [
+    "san pablo"
+   ],
+   "coords": null
+  },
+  {
+   "name": "San Pablo City",
+   "kind": "far",
+   "aliases": [
+    "san pablo city"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Sta Cruz Laguna",
+   "kind": "far",
+   "aliases": [
+    "sta cruz laguna"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Santa Cruz Laguna",
+   "kind": "far",
+   "aliases": [
+    "santa cruz laguna"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Pagsanjan",
+   "kind": "far",
+   "aliases": [
+    "pagsanjan"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Nasugbu",
+   "kind": "far",
+   "aliases": [
+    "nasugbu"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Tokyo",
+   "kind": "far",
+   "aliases": [
+    "tokyo"
+   ],
+   "coords": null
+  },
+  {
+   "name": "Japan",
+   "kind": "far",
+   "aliases": [
+    "japan"
+   ],
+   "coords": null,
+   "needsCue": true
+  },
+  {
+   "name": "America",
+   "kind": "far",
+   "aliases": [
+    "america"
+   ],
+   "coords": null,
+   "needsCue": true
+  }
+ ]
+}

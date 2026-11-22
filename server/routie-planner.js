@@ -53,6 +53,8 @@ try {
 
 const { getFareData } = require('./fare-info');
 const routieDataset = require('./routie-dataset');
+// Calzada's area (same rule as the Planner): trips END in Uno, Real or Halang and may START within ~25 km of it
+const routieScope = require('./routie-scope');
 
 function haversineDistM(a, b) {
     if (transitEngine && typeof transitEngine.haversineM === 'function') {
@@ -114,26 +116,13 @@ const KNOWN_AREAS = {
     'uno': { name: 'Brgy. Uno (Poblacion / Crossing), Calamba', coords: [14.206, 121.155], barangay: 'Uno' },
     'crossing': { name: 'Calamba Crossing, Calamba', coords: [14.2061875, 121.1545625], barangay: 'Uno' },
     'calamba': { name: 'Calamba Crossing / Poblacion', coords: [14.206, 121.155], barangay: 'Uno' },
-    'calamba city': { name: 'Calamba Crossing / Poblacion', coords: [14.206, 121.155], barangay: 'Uno' },
-    'bayan': { name: 'Calamba Poblacion (Bayan)', coords: [14.211, 121.165], barangay: 'Uno' },
-    'lecheria': { name: 'Brgy. Lecheria, Calamba', coords: [14.198, 121.161], barangay: 'Lecheria' },
-    'bucal': { name: 'Brgy. Bucal, Calamba', coords: [14.188, 121.166], barangay: 'Bucal' },
-    'parian': { name: 'Brgy. Parian, Calamba', coords: [14.215, 121.147], barangay: 'Parian' },
-    'canlubang': { name: 'Brgy. Canlubang, Calamba', coords: [14.218, 121.105], barangay: 'Canlubang' },
-    'mayapa': { name: 'Brgy. Mayapa, Calamba', coords: [14.218, 121.135], barangay: 'Mayapa' },
-    'pansol': { name: 'Brgy. Pansol, Calamba', coords: [14.180, 121.180], barangay: 'Pansol' },
-    'turbina': { name: 'Brgy. Turbina, Calamba', coords: [14.185, 121.142], barangay: 'Turbina' },
-    // External served corridors
-    'san isidro': { name: 'San Isidro, Cabuyao, Laguna', coords: [14.24195, 121.14168], barangay: 'San Isidro', outsideCalamba: true },
-    'san isidro cabuyao': { name: 'San Isidro, Cabuyao, Laguna', coords: [14.24195, 121.14168], barangay: 'San Isidro', outsideCalamba: true },
-    'cabuyao': { name: 'Cabuyao, Laguna', coords: [14.246, 121.132], barangay: 'Cabuyao', outsideCalamba: true },
-    'pulo': { name: 'Pulo, Cabuyao', coords: [14.246, 121.135], barangay: 'Pulo', outsideCalamba: true },
-    'uplb': { name: 'Los Baños (UPLB)', coords: [14.167, 121.243], barangay: 'Los Baños', outsideCalamba: true },
-    'los banos': { name: 'Los Baños', coords: [14.175, 121.220], barangay: 'Los Baños', outsideCalamba: true },
-    'sta rosa': { name: 'Sta. Rosa (Balibago)', coords: [14.298, 121.109], barangay: 'Sta. Rosa', outsideCalamba: true },
-    'balibago': { name: 'Sta. Rosa (Balibago)', coords: [14.298, 121.109], barangay: 'Sta. Rosa', outsideCalamba: true },
-    'tanauan': { name: 'Tanauan, Batangas', coords: [14.085, 121.150], barangay: 'Tanauan', outsideCalamba: true }
+    'calamba city': { name: 'Calamba Crossing / Poblacion', coords: [14.206, 121.155], barangay: 'Uno' }
+    // Other barangays (Lecheria, Pansol, Parian, the Poblacion "Bayan" …) and nearby towns (Cabuyao, Sta. Rosa,
+    // Los Baños, Tanauan …) are in server/data/outside-places.json (routie-scope.js), Nov 22, 2026: a trip may
+    // start there but cannot end there.
 };
+// Words after an area name that still mean the area: "Halang Calamba", "Real, Laguna", "Brgy. Uno proper"
+const AREA_TAIL = /^(?:calamba|calamba city|city|laguna|calamba laguna|proper|area|brgy|barangay)$/;
 
 // ── Known Ambiguous Queries ───────────────────────────────────────────
 const AMBIGUOUS_TARGETS = [
@@ -201,16 +190,19 @@ function cleanPlaceQuery(raw) {
     let q = String(raw || '').trim();
     // Strip conversational fillers
     q = q.replace(/^(?:eh|uy|hi|hello|kuya|ate|routie)[,\s]+/i, '');
-    q = q.replace(/^(?:what\s+about|how\s+about)[,\s]+/i, '');
+    q = q.replace(/^(?:what\s+about|how\s+about|what\s+if|paano\s+kung|pano\s+kung|eh\s+kung)[,\s]+/i, '');
     q = q.replace(/^(?:tanong\s+ko\s+lang|ask\s+ko\s+lang)[,\s]+/i, '');
     q = q.replace(/^(?:pwede\s+ba|maaari\s+bang|can\s+i|how\s+do\s+i)[,\s]+/i, '');
+    // "go Chicken Joo", "going to SM", "punta sa City Hall", "pupunta ako ng SM" (Nov 22, 2026)
+    if (!routieDataset.aliasFor(q) && !fuzzyAlias(norm(q))) q = q.replace(/^(?:i\s+(?:want|wanna|need)\s+to\s+)?(?:go(?:ing)?\s+(?:to\s+)?|(?:pu)?punta\s+(?:ako\s+)?(?:sa\s+|ng\s+)?|pumunta\s+(?:sa\s+)?)/i, '');
     q = q.replace(/^(?:saan\s+(?:ako\s+|ang\s+)?(?:sasakay|sakayan)\s+)?(?:paano\s+(?:ba\s+)?(?:pumunta|makapunta|sumakay)\s+(?:sa\s+)?)/i, '');
     q = q.replace(/^(?:magkano\s+(?:po\s+)?(?:ang\s+)?(?:pamasahe|pasahe|bayad)\s+(?:mula|galing|from|sa\s+)?)/i, '');
     q = q.replace(/^(?:how\s+much\s+(?:is\s+)?(?:the\s+)?fare\s+(?:from\s+)?)/i, '');
     q = q.replace(/^(?:mula|galing|from)\s+(?:sa\s+)?/i, '');
     q = q.replace(/^(?:papunta(?:ng)?|hanggang|to)\s+(?:sa\s+)?/i, '');
     q = q.replace(/^(?:yung\s+|ang\s+|sa\s+)/i, '');
-    q = q.replace(/\s+(?:magkano\s+(?:po\s+)?(?:ang\s+)?(?:pamasahe|pasahe|bayad)|how\s+much(?:\s+fare)?)$/i, '');
+    q = q.replace(/\s+(?:magkano(?:\s+(?:po\s+)?(?:ang\s+)?(?:pamasahe|pasahe|bayad))?|how\s+much(?:\s+fare)?)$/i, '');
+    q = q.replace(/^kung\s+/i, '');
     q = q.replace(/[\?\.\!]+$/, '').trim();
     return q;
 }
@@ -218,6 +210,12 @@ function cleanPlaceQuery(raw) {
 // ── Place Resolver ─────────────────────────────────────────────────────
 function resolvePlace(rawQuery, places = [], opts = {}) {
     if (!rawQuery) return null;
+    // A whole name that starts like a filler ("Go Clinic") is still that place
+    const whole = routieDataset.aliasFor(String(rawQuery).trim());
+    if (whole && whole.slug && whole.slug !== 'sm-city-calamba') {
+        const p = places.find((x) => x.slug === whole.slug);
+        if (p && p.lat != null && p.lng != null) return { name: p.name, coords: [Number(p.lat), Number(p.lng)], barangay: p.barangay, place: p, outsideCalamba: false };
+    }
     const cleanQ = cleanPlaceQuery(rawQuery);
     const nq = norm(cleanQ);
     if (!nq) return null;
@@ -301,7 +299,8 @@ function resolvePlace(rawQuery, places = [], opts = {}) {
     }
 
     // "Calamba" / "Calamba City" when used as origin/dest -> refers to Crossing / Poblacion (Uno)
-    if (nq === 'calamba' || nq === 'calamba city' || nq === 'calamba bayan' || nq === 'bayan ng calamba') {
+    // ("Calamba bayan" / "bayan ng Calamba" is the Poblacion, outside the area: outside-places.json)
+    if (nq === 'calamba' || nq === 'calamba city') {
         return {
             name: 'Calamba Crossing / Poblacion',
             coords: [14.206, 121.155],
@@ -323,8 +322,10 @@ function resolvePlace(rawQuery, places = [], opts = {}) {
     }
 
     // 4. Known Areas & Barangays (and outside points like San Isidro, Cabuyao)
+    // Only the area itself ("halang", "brgy real", "real calamba"): "Calamba Doctors Hospital" is not "Calamba"
     for (const [key, area] of Object.entries(KNOWN_AREAS)) {
-        if (nq === key || nq.startsWith(`${key} `) || nq.endsWith(` ${key}`) || nq === `brgy ${key}` || nq === `barangay ${key}`) {
+        const tail = nq.startsWith(`${key} `) ? nq.slice(key.length + 1) : null;
+        if (nq === key || (tail && AREA_TAIL.test(tail)) || nq === `brgy ${key}` || nq === `barangay ${key}` || nq === `bgy ${key}`) {
             return {
                 name: area.name,
                 coords: area.coords,
@@ -346,11 +347,22 @@ function resolvePlace(rawQuery, places = [], opts = {}) {
         };
     }
 
+    // 5b. Places outside Calzada's area (other barangays, nearby towns, far cities): known, so a trip there is
+    // "not applicable" rather than "not in our data"
+    const outside = routieScope.findOutside(cleanQ);
+    if (outside) return outside;
+
     // 6. Substring match on place name (e.g. "Letran", "CityMall", "Puregold Halang")
-    matchedPlace = places.find(p => {
-        const pNorm = norm(p.name);
-        return pNorm.includes(nq) || nq.includes(pNorm);
-    });
+    // (3+ letters: "d" is in many names; the longest name contained wins: "Dali Everyday Grocery – Halang")
+    // A place name inside the query counts only as whole words of 4+ letters ("D & A" is not in "a and a gadgets")
+    const inQuery = (pNorm) => pNorm.length >= 4 && ` ${nq} `.includes(` ${pNorm} `);
+    matchedPlace = nq.length < 3 ? null : places
+        .filter(p => { const pNorm = norm(p.name); return pNorm.includes(nq) || inQuery(pNorm); })
+        .sort((x, y) => {
+            const xin = inQuery(norm(x.name)) ? norm(x.name).length : 0;
+            const yin = inQuery(norm(y.name)) ? norm(y.name).length : 0;
+            return yin - xin;
+        })[0];
     if (matchedPlace && matchedPlace.lat != null && matchedPlace.lng != null) {
         return {
             name: matchedPlace.name,
@@ -375,9 +387,10 @@ function resolvePlace(rawQuery, places = [], opts = {}) {
     }
 
     // Check places with fuzzy match
+    const numbersOf = (s) => (s.match(/\d+/g) || []).join(' ');
     for (const p of places) {
         const pNorm = norm(p.name);
-        if (pNorm.length >= 5 && levenshteinDistance(nq, pNorm) <= 2) {
+        if (pNorm.length >= 5 && numbersOf(pNorm) === numbersOf(nq) && levenshteinDistance(nq, pNorm) <= 2) {
             return {
                 name: p.name,
                 coords: [p.lat, p.lng],
@@ -385,6 +398,15 @@ function resolvePlace(rawQuery, places = [], opts = {}) {
                 place: p,
                 outsideCalamba: false
             };
+        }
+    }
+
+    // 8. A small typo in another name of a place ("chiken joo", "jolibee real")
+    const fz = fuzzyAlias(nq);
+    if (fz) {
+        const p = places.find((x) => x.slug === fz);
+        if (p && p.lat != null && p.lng != null) {
+            return { name: p.name, coords: [Number(p.lat), Number(p.lng)], barangay: p.barangay, place: p, outsideCalamba: false };
         }
     }
 
@@ -455,6 +477,102 @@ function extractOriginAndDestination(text) {
     return null;
 }
 
+// A small typo in a place's other name ("chiken joo", "jolibee real", "city hal"): the one alias within 1 letter
+// (2 for long names), when exactly one place has the closest one. Aliases with digits are not guessed.
+let aliasList = null;
+function fuzzyAlias(q) {
+    if (!q || q.length < 5) return null;
+    // Numbers are never guessed: "studio 8" may be "stdio 8", not "studio 9"
+    const digits = (s) => (s.match(/\d+/g) || []).join(' ');
+    if (!aliasList) {
+        aliasList = [];
+        try {
+            const doc = require('./data/place-aliases.json');
+            for (const [slug, r] of Object.entries(doc.places || {})) for (const a of r.aliases || []) if (a.length >= 6) aliasList.push({ a, slug });
+        } catch (_) { /* no aliases file */ }
+    }
+    let best = null;
+    for (const e of aliasList) {
+        if (Math.abs(e.a.length - q.length) > 2 || digits(e.a) !== digits(q)) continue;
+        const d = levenshteinDistance(q, e.a);
+        const max = e.a.length >= 10 ? 2 : 1;
+        if (d > max) continue;
+        if (!best || d < best.d) best = { d, slugs: new Set([e.slug]) };
+        else if (d === best.d) best.slugs.add(e.slug);
+    }
+    return best && best.slugs.size === 1 ? [...best.slugs][0] : null;
+}
+
+// ── Find the trip anywhere in a message (Nov 22, 2026) ────────────────
+// For the ways people ask that the patterns above miss: "what if STI Calamba to Chicken Joo", "I want to go
+// Chicken Joo and I'm from STI College Calamba", "Chicken Joo galing STI", "nasa SM ako, pupunta ako sa City Hall".
+// Finds the known places in the text (longest names first, never overlapping) and tells origin from destination
+// by the words before each one; with no such word, the first place is the origin.
+const ORIGIN_CUES = new Set(['from', 'galing', 'mula', 'nasa', 'andito', 'nandito', 'andto', 'nandto', 'starting', 'start', 'leaving', 'umalis', 'aalis', 'im', 'iam', 'currently']);
+const DEST_CUES = new Set(['to', 'papunta', 'papuntang', 'punta', 'pupunta', 'pumunta', 'pumupunta', 'puntahan', 'go', 'going', 'goto', 'hanggang', 'patungo', 'patungong', 'reach', 'makarating', 'makapunta', 'into', 'toward', 'towards', 'pa', 'derecho', 'diretso', 'deretso']);
+// Words that may sit between a cue and the place ("from the", "galing sa", "punta ako ng", "going to the")
+const CUE_FILLER = new Set(['sa', 'ng', 'the', 'ako', 'po', 'kami', 'tayo', 'na', 'ko', 'lang', 'naman', 'at', 'in', 'a', 'to', 'ka', 'mo', 'here', 'dito', 'yung', 'ang', 'akong', 'me', 'am', 'right', 'now', 'ngayon']);
+// Span edges that are never part of a place name
+const EDGE_STOP = new Set(['to', 'from', 'sa', 'ng', 'the', 'and', 'at', 'ako', 'po', 'go', 'galing', 'mula', 'papunta', 'papuntang', 'punta', 'pupunta', 'pumunta', 'i', 'im', 'if', 'what', 'want', 'wanna', 'gusto', 'ko', 'kong', 'is', 'in', 'a', 'an', 'na', 'ba', 'paano', 'pano', 'how', 'magkano', 'much', 'fare', 'route', 'jeep', 'byahe', 'biyahe', 'sakay', 'saan', 'where', 'then', 'tapos', 'kung', 'eh']);
+function strictPlace(span, places) {
+    const q = norm(span);
+    if (!q || q.length < 2) return null;
+    if (EDGE_STOP.has(q)) return null;
+    const a = routieDataset.aliasFor(q);
+    if (a) return a.ambiguous ? { ambiguous: true } : { slug: a.slug };
+    if (places.some((p) => norm(p.name) === q || (p.slug && norm(p.slug) === q))) return { exact: true };
+    for (const term of KNOWN_TERMINALS) if (norm(term.name) === q || term.aliases.some((x) => norm(x) === q)) return { terminal: true };
+    for (const amb of AMBIGUOUS_TARGETS) if (amb.triggers.includes(q)) return { ambiguous: true };
+    for (const key of Object.keys(KNOWN_AREAS)) if (q === key || q === `brgy ${key}` || q === `barangay ${key}` || (q.startsWith(`${key} `) && AREA_TAIL.test(q.slice(key.length + 1)))) return { area: true };
+    const out = routieScope.findOutside(q);
+    if (out && out.alias === q) return { outside: true, needsCue: (routieScope.findOutsideInText(q) == null) };
+    if (q.length >= 5 && fuzzyAlias(q)) return { fuzzy: true };
+    return null;
+}
+function findTripInText(text, places = []) {
+    const words = norm(String(text || '').replace(/\bi['’]?m\b/gi, 'im').replace(/->|→|=>/g, ' to ')).split(' ').filter(Boolean);
+    if (words.length < 2) return null;
+    const spans = [];
+    const taken = new Array(words.length).fill(false);
+    // Longest spans first, up to 7 words
+    for (let len = Math.min(7, words.length); len >= 1; len--) {
+        for (let i = 0; i + len <= words.length; i++) {
+            if (taken.slice(i, i + len).some(Boolean)) continue;
+            // ("Go Clinic" starts with "go": a whole other name of a place is still allowed)
+            if ((EDGE_STOP.has(words[i]) || EDGE_STOP.has(words[i + len - 1])) && !routieDataset.aliasFor(words.slice(i, i + len).join(' '))
+                && !(len >= 2 && fuzzyAlias(words.slice(i, i + len).join(' ')))) continue;
+            const hit = strictPlace(words.slice(i, i + len).join(' '), places);
+            if (!hit) continue;
+            // The nearest word before it that is a cue, looking past fillers ("going to the", "galing sa", "to")
+            let cueWord = null;
+            for (let k = i - 1; k >= Math.max(0, i - 4); k--) {
+                const w = words[k];
+                if (ORIGIN_CUES.has(w) || DEST_CUES.has(w) || w === 'brgy' || w === 'barangay') { cueWord = w; break; }
+                if (!CUE_FILLER.has(w)) { cueWord = w; break; }
+            }
+            // Everyday words ("punta", "lawa", "real") count as places only right after a cue or "brgy"
+            const cued = cueWord && (ORIGIN_CUES.has(cueWord) || DEST_CUES.has(cueWord) || cueWord === 'brgy' || cueWord === 'barangay');
+            if ((hit.needsCue || hit.area || hit.fuzzy) && !cued) continue;
+            // Only a whole name: "Tokyo" in "Tokyo Grill" is not the place Tokyo
+            const next = words[i + len];
+            if (next && !EDGE_STOP.has(next) && !CUE_FILLER.has(next) && !ORIGIN_CUES.has(next) && !DEST_CUES.has(next)
+                && !/^(?:magkano|how|much|fare|pamasahe|pasahe|please|pls|thanks|salamat|ilang|minutes|minuto|student|estudyante|senior|pwd|now|ngayon|today|bukas|later|mamaya|via|by|on|using|sakay|jeep|jeepney)$/.test(next)) continue;
+            for (let k = i; k < i + len; k++) taken[k] = true;
+            spans.push({ i, text: words.slice(i, i + len).join(' '), role: cueWord && ORIGIN_CUES.has(cueWord) ? 'origin' : cueWord && DEST_CUES.has(cueWord) ? 'dest' : null });
+        }
+    }
+    if (spans.length !== 2) return null;
+    spans.sort((x, y) => x.i - y.i);
+    const [a, b] = spans;
+    // A trip needs a trip word: a from/to cue before a place, or "to" / "papunta" between them
+    // ("saan ang LBC sa Crossing" is a question about LBC, not a trip)
+    const between = words.slice(a.i + a.text.split(' ').length, b.i);
+    if (!a.role && !b.role && !between.some((w) => w === 'to' || w === 'papunta' || w === 'papuntang' || w === 'hanggang' || w === 'patungong')) return null;
+    if (a.role === 'origin' || b.role === 'dest') return a.role === 'dest' && b.role === 'dest' ? null : { origin: a.text, dest: b.text };
+    if (a.role === 'dest' || b.role === 'origin') return { origin: b.text, dest: a.text };
+    return { origin: a.text, dest: b.text };
+}
+
 // ── Shared Routing Function: plan_route ────────────────────────────────
 function plan_route(originInput, destInput, options = {}) {
     const places = options.places || [];
@@ -496,6 +614,40 @@ function plan_route(originInput, destInput, options = {}) {
             originUnderstood: validOrigName,
             destUnderstood: validDestName,
             plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(validOrigName)}&dest=${encodeURIComponent(validDestName)}`
+        };
+    }
+
+    // 1b. Calzada's area, the same rule as the Planner (Nov 22, 2026): the trip must END in Brgy. Uno, Real or
+    // Halang; it may START outside, within about 25 km of them. Places from places.json and the terminals are inside.
+    const plannerLink = `calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`;
+    const insideArea = (r) => !r.outsideScope && (r.place || !r.coords || routieScope.inScope(r.coords));
+    if (!insideArea(destResolved)) {
+        return {
+            success: false,
+            reason: 'out_of_scope_dest',
+            destName: destResolved.name,
+            originUnderstood: originResolved.name,
+            destUnderstood: destResolved.name
+        };
+    }
+    const originOutside = !insideArea(originResolved);
+    if (originOutside && (originResolved.far || (originResolved.coords && !routieScope.originReachable(originResolved.coords)))) {
+        return {
+            success: false,
+            reason: 'origin_too_far',
+            originName: originResolved.name,
+            originUnderstood: originResolved.name,
+            destUnderstood: destResolved.name
+        };
+    }
+    if (originOutside && !originResolved.coords) {
+        return {
+            success: false,
+            reason: 'origin_no_coords',
+            originName: originResolved.name,
+            originUnderstood: originResolved.name,
+            destUnderstood: destResolved.name,
+            plannerUrl: `calzadaph.com/planner?dest=${encodeURIComponent(destResolved.name)}`
         };
     }
 
@@ -577,87 +729,13 @@ function plan_route(originInput, destInput, options = {}) {
         };
     }
 
-    // 3. Handle Destination Outside Calamba (e.g. Calamba to San Isidro, Cabuyao)
-    if (destResolved.outsideCalamba && norm(destResolved.name).includes('cabuyao')) {
-        const cabuyaoHighwayPt = [14.238286, 121.133176];
-        const origCoords = originResolved.coords;
-
-        let jeepRide = null;
-        if (transitPlanner) {
-            const highwayPlans = transitPlanner.plan(origCoords, cabuyaoHighwayPt);
-            if (highwayPlans && highwayPlans.length > 0) {
-                jeepRide = highwayPlans[0];
-            }
-        }
-
-        const jeepFareReg = jeepRide ? jeepRide.fare : 18.00;
-        const jeepFareDisc = jeepRide ? jeepRide.fareDisc : 14.50;
-        const jeepMin = jeepRide ? jeepRide.totalMin : 18;
-        const jeepLeg = jeepRide?.legs.find(l => l.type === 'jeep');
-
-        const boardName = jeepLeg?.board?.name || 'Crossing Grand Terminal / SM Calamba West';
-        const alightName = 'National Highway (Cabuyao / San Isidro access point)';
-        const routeName = 'Sta. Rosa – Calamba';
-        const headsign = 'Sta. Rosa';
-        const signboard = 'Sta. Rosa / Cabuyao';
-
-        const legs = [
-            {
-                step: 1,
-                type: 'jeep',
-                title: `Jeep: ${routeName}`,
-                instruction_tl: `Mula ${originResolved.name}, sumakay sa ${boardName} ng jeep na may karatulang "${signboard}" papuntang Cabuyao.`,
-                instruction_en: `From ${originResolved.name}, board a jeep at ${boardName} with headsign "${signboard}" towards Cabuyao.`,
-                routeName,
-                headsign,
-                signboard,
-                board: boardName,
-                alight: alightName,
-                distanceM: 5065,
-                minutes: jeepMin,
-                fare: jeepFareReg,
-                fareDiscounted: jeepFareDisc
-            },
-            {
-                step: 2,
-                type: 'tricycle',
-                title: 'Tricycle papasok sa San Isidro',
-                instruction_tl: `Bumaba sa highway junction ng San Isidro, Cabuyao, at sumakay ng tricycle papasok sa iyong destinasyon.`,
-                instruction_en: `Alight at the highway junction in Cabuyao, then take a local tricycle to San Isidro.`,
-                from: alightName,
-                to: destResolved.name,
-                distanceM: 1000,
-                minutes: 10,
-                fare: 0,
-                fareNote: 'Tricycle fare estimate: ~₱20–₱40',
-                warning: 'Ang tricycle fare ay lokal na tantiya.'
-            }
-        ];
-
-        return {
-            success: true,
-            origin: originResolved,
-            destination: destResolved,
-            summary: {
-                totalFare: jeepFareReg,
-                totalFareDiscounted: jeepFareDisc,
-                totalMinutes: jeepMin + 10,
-                totalDistanceM: 6065,
-                walkingDistanceM: 100,
-                transfers: 1,
-                hasOutsideLeg: true
-            },
-            legs,
-            outsideNote_tl: 'Ang destinasyon ay nasa San Isidro, Cabuyao. Sakop ng Calzada ang jeepney route hanggang sa highway junction ng Cabuyao.',
-            outsideNote_en: 'The destination is in San Isidro, Cabuyao. Calzada covers the jeepney route up to the Cabuyao highway junction.'
-        };
-    }
-
     // 4. Standard In-Calamba Transit Routing
     let planOption = null;
     let suggestedTerminals = null;
     let chosenStopId = null;
-    if (transitPlanner) {
+    // Like the Planner: a trip under 800 m (straight line) is a walk, even where a terminal choice exists
+    const shortTrip = originResolved.coords && destResolved.coords && haversineDistM(originResolved.coords, destResolved.coords) < 800;
+    if (transitPlanner && !shortTrip) {
         // Destination terminal choices (e.g. Real or Halang)
         const destBarangay = destResolved.barangay || (destResolved.place && destResolved.place.barangay);
         const tc = transitPlanner.terminalChoices(originResolved.coords, destResolved.coords, destBarangay);
@@ -736,16 +814,24 @@ function plan_route(originInput, destInput, options = {}) {
     if ((!planOption || !planOption.legs || !planOption.legs.length) && transitPlanner && transitPlanner.isLocal
         && originResolved.coords && destResolved.coords
         && transitPlanner.isLocal(originResolved.coords) && transitPlanner.isLocal(destResolved.coords)) {
-        return walkOnlyTrip(haversineDistM(originResolved.coords, destResolved.coords), { noFasterJeep: true });
+        // Like the Planner (Nov 21, 2026): walking is faster, but a terminal ride that saves walking is offered too
+        let jeepOffer = null;
+        try {
+            const r = transitPlanner.terminalRides ? transitPlanner.terminalRides(originResolved.coords, destResolved.coords)[0] : null;
+            const j = r && r.legs.find((l) => l.type === 'jeep');
+            if (r && j) jeepOffer = { totalMin: r.totalMin, fare: r.fare, fareDisc: r.fareDisc, board: (j.board && j.board.name) || null, board_tl: (j.board && (j.board.name_tl || j.board.name)) || null, walkM: Math.round(r.walkM || 0) };
+        } catch (_) { /* no offer */ }
+        return walkOnlyTrip(haversineDistM(originResolved.coords, destResolved.coords), { noFasterJeep: true, jeepOffer });
     }
 
     if (!planOption || !planOption.legs || planOption.legs.length === 0) {
         return {
             success: false,
             reason: 'no_route',
+            originOutside,
             originUnderstood: originResolved.name,
             destUnderstood: destResolved.name,
-            plannerUrl: `calzadaph.com/planner?origin=${encodeURIComponent(originResolved.name)}&dest=${encodeURIComponent(destResolved.name)}`
+            plannerUrl: plannerLink
         };
     }
 
@@ -813,7 +899,12 @@ function plan_route(originInput, destInput, options = {}) {
         },
         legs: formattedLegs,
         suggestedTerminals,
-        chosenStopId
+        chosenStopId,
+        ...(originOutside ? {
+            originOutside: true,
+            outsideNote_tl: `Paalala: nasa labas ng Brgy. Uno, Real at Halang ang ${originResolved.name}, kaya mula lang sa sakayang nasa data ng Calzada ang rutang ito.`,
+            outsideNote_en: `Note: ${originResolved.name} is outside Brgy. Uno, Real and Halang, so this route only uses the boarding points in Calzada's data.`
+        } : {})
     };
 }
 
@@ -845,6 +936,35 @@ function formatRouteReply(planRes, lang = 'tl') {
                 : `Sorry, I am not sure because "${missing}" is not in Calzada's verified data. You may try searching or pinning the location directly in the Planner at ${url} or emailing thecalzada@gmail.com.`;
         }
 
+        // Calzada's area (Nov 22, 2026): "not applicable", never "not in our data", for a place Routie knows is outside
+        if (planRes.reason === 'out_of_scope_dest') {
+            const dest = planRes.destName;
+            return isTl
+                ? `Hindi applicable: nasa labas ng Brgy. Uno, Real at Halang ang ${dest}. Sa loob lang ng 3 barangay na iyon ng Calamba puwedeng magtapos ang biyaheng pina-plano ng Calzada.`
+                : `Not applicable: ${dest} is outside Brgy. Uno, Real and Halang. Calzada only plans trips that end in those 3 barangays of Calamba.`;
+        }
+        if (planRes.reason === 'origin_too_far') {
+            const orig = planRes.originName;
+            return isTl
+                ? `Hindi applicable: masyadong malayo ang ${orig} sa sakop ng Calzada. Puwedeng magsimula ang biyahe hanggang mga 25 km mula sa Brgy. Uno, Real at Halang, at doon dapat ito magtapos.`
+                : `Not applicable: ${orig} is too far from Calzada's area. A trip can start up to about 25 km from Brgy. Uno, Real and Halang, and has to end in one of them.`;
+        }
+        if (planRes.reason === 'origin_no_coords') {
+            const orig = planRes.originName;
+            const dest = planRes.destUnderstood;
+            return isTl
+                ? `Wala sa data ko ang eksaktong lokasyon ng ${orig}. Buksan ang Planner sa ${planRes.plannerUrl}, i-pin ang panimulang punto mo, at ${dest} ang destinasyon.`
+                : `I don't have the exact location of ${orig}. Open the Planner at ${planRes.plannerUrl}, pin your starting point, and keep ${dest} as the destination.`;
+        }
+
+        if (planRes.reason === 'no_route' && planRes.originOutside) {
+            const orig = planRes.originUnderstood;
+            const dest = planRes.destUnderstood;
+            return isTl
+                ? `Walang jeep sa data ng Calzada na direktang mula ${orig} papuntang ${dest}. Puwedeng magsimula sa labas ng sakop ang biyahe sa Planner: buksan ang ${planRes.plannerUrl} para sa ruta sa kalsada.`
+                : `Calzada's jeep data has no direct ride from ${orig} to ${dest}. The Planner can start a trip outside the area: open ${planRes.plannerUrl} for the road route.`;
+        }
+
         if (planRes.reason === 'no_route') {
             const orig = planRes.originUnderstood;
             const dest = planRes.destUnderstood;
@@ -860,9 +980,13 @@ function formatRouteReply(planRes, lang = 'tl') {
         const dist = leg.distanceM != null ? leg.distanceM : Math.round(planRes.summary?.walkingDistanceM || 0);
         const mins = leg.minutes != null ? leg.minutes : Math.round(planRes.summary?.totalMinutes || 1);
         if (planRes.noFasterJeep) {
+            const o = planRes.jeepOffer;
+            const offer = o ? (isTl
+                ? ` Kung ayaw ng mahabang lakad: jeep mula sa ${o.board_tl || o.board || 'terminal'}, mga ${o.totalMin} min, ₱${o.fare.toFixed(2)} (₱${o.fareDisc.toFixed(2)} student/senior/PWD), ${o.walkM} m na lang ang lakad.`
+                : ` If you'd rather walk less: jeep from ${o.board || 'the terminal'}, about ${o.totalMin} min, ₱${o.fare.toFixed(2)} (₱${o.fareDisc.toFixed(2)} student/senior/PWD), with ${o.walkM} m of walking.`) : '';
             return isTl
-                ? `Maglakad nang humigit-kumulang ${dist} m (~${mins} min). Walang rutang jeep na magpapabilis sa biyaheng ito.`
-                : `Walk about ${dist} m (~${mins} min). No jeepney route makes this trip faster.`;
+                ? `Maglakad nang humigit-kumulang ${dist} m (~${mins} min). Walang rutang jeep na magpapabilis sa biyaheng ito.${offer}`
+                : `Walk about ${dist} m (~${mins} min). No jeepney route makes this trip faster.${offer}`;
         }
         return isTl
             ? `Maglakad nang humigit-kumulang ${dist} m (~${mins} min). Mas mainam maglakad para sa biyaheng ito.`
@@ -1305,6 +1429,7 @@ module.exports = {
     plan_route,
     resolvePlace,
     extractOriginAndDestination,
+    findTripInText,
     formatRouteReply,
     handleFollowUp,
     tripRecap,

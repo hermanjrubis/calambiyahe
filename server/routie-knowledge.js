@@ -262,15 +262,7 @@ const CALAMBA_AREAS = {
     'tanauan': { name: 'Tanauan, Batangas', coords: [14.085, 121.150] }
 };
 
-// ── Out-of-Scope Geographic Keywords ─────────────────────────────────────────────────
-const OUT_OF_SCOPE_LOCATIONS = [
-    'manila', 'makati', 'quezon city', 'pasay', 'taguig', 'bgc', 'bonifacio global city',
-    'mandaluyong', 'pasig', 'marikina', 'paranaque', 'las pinas', 'valenzuela', 'navotas',
-    'malabon', 'caloocan', 'moa', 'mall of asia', 'monumento', 'cubao', 'edsa',
-    'cebu', 'davao', 'baguio', 'iloilo', 'bacolod', 'cagayan de oro', 'pampanga',
-    'angeles', 'subic', 'clark', 'bataan', 'bulacan', 'cavite city', 'dasmarinas',
-    'bacoor', 'imus', 'batangas city', 'lipa', 'lucena', 'naga', 'tokyo', 'japan', 'america'
-];
+// ── Out-of-scope places: server/data/outside-places.json (routie-scope.js), Nov 22, 2026
 
 function normalize(text) {
     return String(text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -302,23 +294,27 @@ function detectTagalog(text) {
 function checkScope(text) {
     const norm = normalize(text);
 
-    // Check for clearly out of scope locations (unless it's Tanauan terminal trips originating in Calamba)
-    for (const loc of OUT_OF_SCOPE_LOCATIONS) {
-        const regex = new RegExp(`\\b${loc}\\b`, 'i');
-        if (regex.test(norm)) {
-            // Exceptions: "Tanauan terminal in SM"
-            if (loc === 'tanauan' && (norm.includes('calamba') || norm.includes('sm') || norm.includes('terminal') || norm.includes('sakayan'))) {
-                continue;
+    // Places too far for Calzada (Manila, Makati, Batangas City …; server/data/outside-places.json, kind "far"):
+    // not applicable as a start or an end. Nearby towns and other barangays are handled per trip (plan_route).
+    const far = require('./routie-scope').findOutsideInText(text);
+    // ("Monumento ni Rizal" is a place in Calamba, not Monumento in Caloocan)
+    let inName = false;
+    if (far && far.far) {
+        const w = routieDataset.normalizeText(text).split(' ');
+        const fw = far.alias.split(' ');
+        for (let i = 0; i + fw.length <= w.length && !inName; i++) {
+            if (w.slice(i, i + fw.length).join(' ') !== far.alias) continue;
+            for (let a = Math.max(0, i - 3); a <= i && !inName; a++) {
+                for (let b = i + fw.length; b <= Math.min(w.length, i + fw.length + 4) && !inName; b++) {
+                    if ((a < i || b > i + fw.length) && routieDataset.aliasFor(w.slice(a, b).join(' '))) inName = true;
+                }
             }
-            // If it's a local shop/restaurant inquiry (e.g. "Tokyo Grill", "Japan Surplus", "Manila Teachers")
-            if (/\b(grill|restaurant|resto|ramen|cafe|coffee|store|shop|surplus|bank|hotel|bbq|bakeshop)\b/i.test(norm)) {
-                continue;
-            }
-            return {
-                outOfScope: true,
-                reason: 'location',
-                location: loc
-            };
+        }
+    }
+    if (far && far.far && !inName) {
+        // A local shop named after a place ("Tokyo Grill", "Japan Surplus", "Manila Teachers") is not that place
+        if (!/\b(grill|restaurant|resto|ramen|cafe|coffee|store|shop|surplus|bank|hotel|bbq|bakeshop|teachers)\b/i.test(norm)) {
+            return { outOfScope: true, reason: 'location', location: far.name };
         }
     }
 
@@ -691,9 +687,9 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
     if (scope.outOfScope) {
         const isTl = userLang === 'tl';
         const replyText = scope.reason === 'location'
-            ? (isTl 
-                ? `Paumanhin po, ang sakop lamang ni Routie at ng Calzada ay ang lungsod ng Calamba, Laguna. Hindi po sakop ang ${scope.location ? scope.location.toUpperCase() : 'ibang lugar'} o mga biyahe sa labas ng aming service area. Handa po akong tumulong para sa mga sakayan at lugar sa Calamba!`
-                : `Sorry, Routie and Calzada strictly cover Calamba, Laguna only. Trips in ${scope.location ? scope.location.toUpperCase() : 'other areas'} outside our service coverage are not supported. I am glad to assist with routes and places within Calamba!`)
+            ? (isTl
+                ? `Hindi applicable: nasa labas ng sakop ng Calzada ang ${scope.location || 'lugar na iyan'}. Ang mga biyaheng pina-plano ng Calzada ay nagtatapos sa Brgy. Uno, Real o Halang (Calamba) at nagsisimula hanggang mga 25 km mula sa mga ito.`
+                : `Not applicable: ${scope.location || 'that place'} is outside Calzada's area. Calzada plans trips that end in Brgy. Uno, Real or Halang (Calamba) and start within about 25 km of them.`)
             : (isTl
                 ? `Paumanhin po, ang sakop lamang ni Routie ay ang pag-commute, pamasahe sa jeep, at mga lugar sa Calamba, Laguna. Hindi po ako makakasagot sa mga usaping walang kinalaman sa biyahe o lokal na gabay sa Calamba.`
                 : `Sorry, Routie is strictly a commuting assistant for Calamba, Laguna. I cannot assist with topics outside commuting and places in Calamba.`);
@@ -743,7 +739,11 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
     }
 
     // 4. Origin & Destination Route Planning (Priority over general fare inquiries)
-    const odCandidates = [routiePlanner.extractOriginAndDestination(rawText), extractOriginAndDestination(rawText)]
+    // findTripInText: the two places anywhere in the message, for the ways of asking the patterns miss
+    // ("what if STI Calamba to Chicken Joo", "I want to go Chicken Joo and I'm from STI") (Nov 22, 2026)
+    // (it goes first: it only takes whole names of known places, so "A&A Gadgets" is not cut at "and")
+    const odCandidates = [routiePlanner.findTripInText(rawText, places), routiePlanner.extractOriginAndDestination(rawText),
+        extractOriginAndDestination(rawText)]
         .filter(x => x && x.origin && x.dest)
         .map(x => ({ origin: x.origin.replace(/^(?:the\s+)?(?:distance|layo|fare|pamasahe|pasahe|travel\s+time|oras)\s+(?:from|mula|galing)?\s*/i, '').trim(), dest: x.dest }));
     const GENERIC = /^(?:the\s+|ang\s+)?(?:terminal|terminals|sakayan|jeep|jeepney|jeeps|dyip|babaan|place|lugar|here|dito|there|doon)$/i;
@@ -756,7 +756,10 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
     // 2) Else, if a FAQ matches ("terminal papuntang halang", "anong signboard ng jeep papuntang SM"), the FAQ answers.
     // 3) Else, a parse with one known end and no generic word ("SM to Tokyo Grill") gets the "not in our data" reply.
     const notGeneric = (x) => !GENERIC.test(String(x.origin).trim()) && !GENERIC.test(String(x.dest).trim());
-    let od = odCandidates.find(x => notGeneric(x) && known(x.origin) && known(x.dest)) || null;
+    // A reading where both places are clear wins over one that needs "which one?" ("Jollibee sa Real papuntang SM")
+    const clear = (q) => { const r = routiePlanner.resolvePlace(q, places); return r && !r.isAmbiguous && r.found !== false; };
+    let od = odCandidates.find(x => notGeneric(x) && clear(x.origin) && clear(x.dest))
+        || odCandidates.find(x => notGeneric(x) && known(x.origin) && known(x.dest)) || null;
     const hasKmFare = /\b(magkano|how much|pamasahe|pasahe|fare|fares|bayad|price|cost)\b/i.test(rawText)
         && /(\d+(?:[.,]\d+)?)\s*(?:km|kms|kilometers?|kilometres?|kilometro)\b/i.test(rawText);
     const earlyFaq = od || hasKmFare ? null : matchFaq(rawText);
@@ -781,6 +784,16 @@ async function resolveRoutieContext({ message, route, lang, places, adminDb, his
             return {
                 type: 'ambiguous',
                 lang: userLang,
+                directReply: formattedReply,
+                instruction: formattedReply
+            };
+        } else if (planRes.reason === 'out_of_scope_dest' || planRes.reason === 'origin_too_far') {
+            // A place Routie knows, outside Calzada's area: "not applicable" (Nov 22, 2026)
+            return {
+                type: 'out_of_scope',
+                lang: userLang,
+                data: { reason: planRes.reason, location: planRes.destName || planRes.originName },
+                planResult: planRes,
                 directReply: formattedReply,
                 instruction: formattedReply
             };
@@ -1043,7 +1056,8 @@ CORE OPERATING RULES (STRICT):
 2. FARES & TRAVEL TIMES: Fares must come only from the provided calculation. Always mention that fares are estimates based on the LTFRB fare guide.
 3. OPENING HOURS & ADDRESSES: State only the live values provided in the context.
 4. AMBIGUOUS QUERIES: If a user only provides a destination or keyword, ask where they are starting from and where they are going.
-5. CALAMBA SCOPE ONLY: Calzada is strictly for Calamba, Laguna. Politely decline questions outside Calamba or off-topic general questions.
+4b. TRIPS: Routes come only from Calzada's route planner. If the message asks for a trip and the data below has no route for it, NEVER say you have no route data for those places. Ask the commuter to write it as "from [starting point] to [destination]", or suggest the Planner (calzadaph.com/planner).
+5. CALZADA'S AREA: Calzada plans trips that END in Brgy. Uno, Real or Halang (Calamba) and may START outside, within about 25 km of them. For a trip that ends anywhere else, say it is not applicable (Tagalog: "hindi applicable"). Politely decline off-topic general questions.
 6. NO MARKDOWN LINKS OR URL SCHEMES: Do not write [link](url) or http:// or https://. Write plain text URLs like calzadaph.com/planner and email like thecalzada@gmail.com.
 ${conversation}${nowBlock}${tripBlock}${tripsBlock}
 DATA & INSTRUCTION FOR THIS QUERY:

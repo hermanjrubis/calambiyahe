@@ -302,7 +302,7 @@ function withUserText(message, text) {
 function tripFromTurns(turns, places) {
     for (let i = turns.length - 1; i >= 0; i--) {
         if (turns[i].role !== 'user') continue;
-        const od = routiePlanner.extractOriginAndDestination(turns[i].text);
+        const od = routiePlanner.extractOriginAndDestination(turns[i].text) || routiePlanner.findTripInText(turns[i].text, places);
         if (od && od.origin && od.dest) {
             const r = routiePlanner.plan_route(od.origin, od.dest, { places });
             if (r && r.success) return r;
