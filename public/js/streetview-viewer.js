@@ -193,7 +193,12 @@
     }
 
     function nodeById(id) {
-        return manifestData?.nodes?.find(n => n.id === id) || null;
+        if (!id || !manifestData?.nodes) return null;
+        const direct = manifestData.nodes.find(n => n.id === id);
+        if (direct) return direct;
+        // Photos merged into one spot keep their old id as an alias of the kept node
+        const kept = manifestData.aliases && manifestData.aliases[id];
+        return kept ? (manifestData.nodes.find(n => n.id === kept) || null) : null;
     }
 
     function photoYawOf(node, bearing) {
