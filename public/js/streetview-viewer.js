@@ -35,6 +35,11 @@
     let isDragging = false;
     let dragStartX = 0;
     let dragStartY = 0;
+    // Motion: the arrow you pick lights up, a ring spreads on the road where you tapped, the view moves
+    // forward into the next photo and settles (Drei: "masyado siyang static"). Less of it with reduced motion.
+    const reduceMotion = (() => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) { return false; } })();
+    let pressedTargetId = null;     // the arrow just picked (drawn blue and larger until the move starts)
+    let groundPointer = null;       // { x, y } of the mouse over the photo, for the ring on the road
     const CLICK_SLOP_PX = 5;      // a press that moves farther than this is a drag (looking around)
     const CLICK_HOLD_MS = 500;    // a press held longer than this is looking around, not a click
     let mouseDownAt = 0;
@@ -330,7 +335,8 @@
             compassNeedleEl.style.transform = `rotate(${-heading}deg)`;
         }
 
-        if (isTransitioning) { drawnChevrons = []; return; }
+        // While moving, only the arrow just picked stays (lit) for its short press
+        if (isTransitioning && !pressedTargetId) { drawnChevrons = []; return; }
 
         // Street names painted on the road first, arrows on top
         for (const lab of streetLabelsFor(node, cam)) drawStreetLabel(ctx, cam, lab.text, lab.yaw, dpr);
@@ -342,6 +348,7 @@
             drawArrow(ctx, cam, conn, baseYaw, hovered, chevrons);
         }
         drawnChevrons = chevrons;
+        drawGroundRing(ctx, cam);
     }
 
     function polyAt(cam, baseYaw, dist, scale, height) {
@@ -363,7 +370,11 @@
         // Phones show more ground per pixel, so bring the arrow closer and make it larger
         const narrow = cam.W < 600;
         const dist = narrow ? 3.3 : 4.0;
-        const scale = (narrow ? 1.15 : 0.95) * (hovered ? 1.08 : 1);
+        const pressed = pressedTargetId && conn.targetId === pressedTargetId;
+        if (pressed) hovered = true;
+        // A slow, small swell so the arrows read as something to tap (none while hovered or with reduced motion)
+        const breathe = (hovered || reduceMotion) ? 1 : 1 + 0.035 * Math.sin(performance.now() / 1800 * Math.PI * 2);
+        const scale = (narrow ? 1.15 : 0.95) * (pressed ? 1.16 : hovered ? 1.08 : breathe);
         const base = polyAt(cam, baseYaw, dist, scale, 0);
         const top = polyAt(cam, baseYaw, dist, scale, CHEVRON_RAISE);
         if (!base || !top) return;
@@ -385,6 +396,61 @@
         if (!c) return;
         const span = Math.hypot(top[1].x - top[5].x, top[1].y - top[5].y);
         chevrons.push({ conn, x: c.x, y: c.y, r: Math.max(30, span * 0.75) });
+    }
+
+    // Mouse over a road you can move along: a ring lies on the road under the pointer (as in Google Maps)
+    function drawGroundRing(ctx, cam) {
+        if (!groundPointer || !activeHoverConnection || isDragging || isTransitioning || !containerEl) return;
+        const sph = calculateCursorSphericalCoords({ clientX: groundPointer.x, clientY: groundPointer.y });
+        if (!sph || sph.pitch > -6) return;
+        const fwd = Math.min(25, CAMERA_HEIGHT_M / Math.tan(-sph.pitch * Math.PI / 180));
+        const pulse = reduceMotion ? 1 : 1 + 0.06 * Math.sin(performance.now() / 700 * Math.PI * 2);
+        const ring = (r) => {
+            const pts = [];
+            for (let k = 0; k < 28; k++) {
+                const t = k / 28 * Math.PI * 2;
+                const p = projectGround(cam, sph.yaw, fwd + r * Math.cos(t), r * Math.sin(t), 0.02);
+                if (!p) return null;
+                pts.push(p);
+            }
+            return pts;
+        };
+        const outer = ring(0.55 * pulse), inner = ring(0.2);
+        if (!outer) return;
+        ctx.save();
+        ctx.beginPath();
+        outer.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        if (inner) {
+            ctx.beginPath();
+            inner.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(94, 162, 234, 0.9)';
+            ctx.shadowBlur = 0;
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    // A ring that spreads on the road where you tapped
+    function tapRipple(clientX, clientY) {
+        if (!overlayEl || !Number.isFinite(clientX) || !Number.isFinite(clientY)) return;
+        const rect = overlayEl.getBoundingClientRect();
+        const el = document.createElement('div');
+        el.className = 'sv-tap-ripple';
+        el.style.left = `${clientX - rect.left}px`;
+        el.style.top = `${clientY - rect.top}px`;
+        overlayEl.appendChild(el);
+        const done = () => { try { el.remove(); } catch (_) {} };
+        el.addEventListener('animationend', done);
+        setTimeout(done, 900);
     }
 
     // ── Street names painted on the road ───────────────────────────────────────
@@ -591,6 +657,7 @@
             return;
         }
         lastCursorEvent = e;
+        groundPointer = { x: e.clientX, y: e.clientY };
         if (!rafCursorId) {
             rafCursorId = requestAnimationFrame(() => {
                 rafCursorId = null;
@@ -600,6 +667,7 @@
     }
 
     function onContainerMouseLeave() {
+        groundPointer = null;
         clearHover();
         isMouseDown = false;
         isDragging = false;
@@ -789,30 +857,36 @@
         lastCursorEvent = null;
         cleanupPannellumFadeImages();
 
-        // Short dolly toward where you clicked
-        if (containerEl) {
-            if (clickEvent && typeof clickEvent.clientX === 'number') {
-                const rect = containerEl.getBoundingClientRect();
-                const ox = Math.max(0, Math.min(rect.width, clickEvent.clientX - rect.left));
-                const oy = Math.max(0, Math.min(rect.height, clickEvent.clientY - rect.top));
-                containerEl.style.transformOrigin = `${ox}px ${oy}px`;
-            } else {
-                containerEl.style.transformOrigin = '50% 65%';
-            }
-            containerEl.classList.add('dolly-forward');
-        }
+        // The picked arrow lights up and a ring spreads where you tapped
+        const hasPoint = clickEvent && typeof clickEvent.clientX === 'number';
+        if (hasPoint) tapRipple(clickEvent.clientX, clickEvent.clientY);
+        pressedTargetId = targetId;
+        await new Promise(r => setTimeout(r, reduceMotion ? 40 : 110));
+        pressedTargetId = null;
 
-        await new Promise(r => setTimeout(r, 100));
+        // Move forward: the view pushes in toward the arrow (or where you tapped) and blurs a little,
+        // while the curtain closes over it
+        if (containerEl) {
+            let ox = '50%', oy = '65%';
+            if (hasPoint) {
+                const rect = containerEl.getBoundingClientRect();
+                ox = `${Math.max(0, Math.min(rect.width, clickEvent.clientX - rect.left))}px`;
+                oy = `${Math.max(0, Math.min(rect.height, clickEvent.clientY - rect.top))}px`;
+            } else {
+                // Keyboard: toward the arrow on screen, if it is drawn
+                const c = drawnChevrons.find((x) => x.conn.targetId === targetId);
+                if (c) { ox = `${c.x}px`; oy = `${c.y}px`; }
+            }
+            containerEl.style.transformOrigin = `${ox} ${oy}`;
+            containerEl.classList.remove('sv-arrive', 'sv-settle');
+            if (!reduceMotion) containerEl.classList.add('sv-fly');
+        }
+        await new Promise(r => setTimeout(r, reduceMotion ? 0 : 140));
         if (fadeCurtainEl) fadeCurtainEl.classList.add('fading');
-        await new Promise(r => setTimeout(r, 100));
+        await new Promise(r => setTimeout(r, reduceMotion ? 160 : 200));
 
         previousNodeId = currentNodeId;
         currentNodeId = targetId;
-
-        if (containerEl) {
-            containerEl.classList.remove('dolly-forward');
-            containerEl.style.transformOrigin = 'center center';
-        }
 
         // Keep facing the direction of travel
         let targetYaw = 0;
@@ -830,8 +904,20 @@
         }
         prefetchNeighbors(targetNode);
 
+        // Arrive: the new photo starts a little pushed in and soft, then settles as the curtain opens
+        if (containerEl) {
+            containerEl.classList.remove('sv-fly');
+            containerEl.style.transformOrigin = '50% 60%';
+            if (!reduceMotion) {
+                containerEl.classList.add('sv-arrive');
+                void containerEl.offsetWidth; // apply the start state before the transition
+                containerEl.classList.remove('sv-arrive');
+                containerEl.classList.add('sv-settle');
+                setTimeout(() => { if (containerEl) containerEl.classList.remove('sv-settle'); }, 600);
+            }
+        }
         if (fadeCurtainEl) fadeCurtainEl.classList.remove('fading');
-        await new Promise(r => setTimeout(r, 220));
+        await new Promise(r => setTimeout(r, 260));
         cleanupPannellumFadeImages();
         isTransitioning = false;
 
@@ -984,6 +1070,12 @@
         }
         isTransitioning = false;
         isNavLocked = false;
+        pressedTargetId = null;
+        groundPointer = null;
+        if (containerEl) {
+            containerEl.classList.remove('sv-fly', 'sv-arrive', 'sv-settle', 'dolly-forward');
+            containerEl.style.transformOrigin = 'center center';
+        }
         cleanupPannellumFadeImages();
         stopDrawing();
 
