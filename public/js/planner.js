@@ -8931,6 +8931,137 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast(t('journey.signed_in_start'), 'success');
         }
 
+        // =============================================
+        // START JOURNEY AWAY FROM THE STARTING POINT
+        // The route starts at a place (e.g. SM City Calamba) but the location dot is somewhere else:
+        // ask, "re-route from here?" Yes: the start becomes your location, the route is planned again
+        // and the journey starts. No: nothing starts (the route begins somewhere you are not), the
+        // route stays as planned, and Start asks again next time.
+        // =============================================
+        const OFF_ORIGIN_M = 150;          // farther than this from the start (and well beyond the GPS error)
+        const OFF_ORIGIN_FIX_AGE_MS = 120000;
+        const journeyRerouteModal = document.getElementById('journeyRerouteModal');
+        const journeyRerouteOverlay = document.getElementById('journeyRerouteOverlay');
+        let journeyRerouteFix = null;
+        let journeyRerouteReturnFocus = null;
+        let journeyRerouteBusy = false;
+
+        function offOriginFix() {
+            if (!journeyRerouteModal || !selectedCoords.origin) return null;
+            if (isMyLocationOrigin() || currentOriginKind === 'my_location') return null; // already from here
+            const fix = typeof window._calzadaGetRecentFix === 'function' ? window._calzadaGetRecentFix(OFF_ORIGIN_FIX_AGE_MS) : null;
+            if (!fix || !Number.isFinite(fix.lat) || !Number.isFinite(fix.lng)) return null;
+            const d = getHaversineDist(fix.lat, fix.lng, selectedCoords.origin[0], selectedCoords.origin[1]) * 1000;
+            const acc = Number.isFinite(fix.acc) ? fix.acc : 0;
+            if (d <= Math.max(OFF_ORIGIN_M, acc * 1.5)) return null;
+            return { lat: fix.lat, lng: fix.lng, acc, distM: d };
+        }
+
+        function originLabelForPrompt() {
+            const name = (originPlaceName || '').trim();
+            return name && name !== 'My Location' ? name : t('journey.reroute_start_fallback');
+        }
+
+        function openJourneyReroutePrompt(fix) {
+            journeyRerouteFix = fix;
+            const origin = originLabelForPrompt();
+            const body = document.getElementById('journeyRerouteBody');
+            if (body) body.textContent = t('journey.reroute_body', { dist: formatDistanceM(fix.distM), origin });
+            const noBtn = document.getElementById('journeyRerouteNoBtn');
+            if (noBtn) noBtn.textContent = t('journey.reroute_no', { origin });
+            journeyRerouteReturnFocus = document.activeElement;
+            journeyRerouteModal.style.display = 'block';
+            if (journeyRerouteOverlay) journeyRerouteOverlay.classList.add('visible');
+            requestAnimationFrame(() => {
+                journeyRerouteModal.classList.add('visible');
+                const yes = document.getElementById('journeyRerouteYesBtn');
+                requestAnimationFrame(() => { if (yes) yes.focus(); });
+            });
+            document.addEventListener('keydown', onJourneyRerouteKey, true);
+        }
+
+        function closeJourneyReroutePrompt(restoreFocus = true) {
+            if (!journeyRerouteModal || journeyRerouteModal.style.display === 'none') return;
+            journeyRerouteModal.classList.remove('visible');
+            journeyRerouteModal.style.display = 'none';
+            if (journeyRerouteOverlay) journeyRerouteOverlay.classList.remove('visible');
+            document.removeEventListener('keydown', onJourneyRerouteKey, true);
+            if (restoreFocus && journeyRerouteReturnFocus && typeof journeyRerouteReturnFocus.focus === 'function') journeyRerouteReturnFocus.focus();
+            journeyRerouteReturnFocus = null;
+        }
+
+        function onJourneyRerouteKey(e) {
+            if (e.key === 'Escape') { e.preventDefault(); closeJourneyReroutePrompt(); return; }
+            if (e.key !== 'Tab' || !journeyRerouteModal) return;
+            const items = [...journeyRerouteModal.querySelectorAll('button:not([disabled])')];
+            if (!items.length) return;
+            const first = items[0], last = items[items.length - 1];
+            if (!journeyRerouteModal.contains(document.activeElement)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+            else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }
+
+        // iOS asks for the compass inside a tap: called from the Start, Yes and No taps
+        function requestOrientationPermissionInTap() {
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    DeviceOrientationEvent.requestPermission().catch(e => console.warn('DeviceOrientation error:', e));
+                } catch (e) {
+                    console.warn('DeviceOrientation permission error:', e);
+                }
+            }
+        }
+
+        if (journeyRerouteOverlay) journeyRerouteOverlay.addEventListener('click', () => closeJourneyReroutePrompt());
+        { const b = document.getElementById('closeJourneyRerouteBtn'); if (b) b.addEventListener('click', () => closeJourneyReroutePrompt()); }
+        { const b = document.getElementById('journeyRerouteNoBtn');
+          if (b) b.addEventListener('click', () => {
+              // You are not at the start, so the journey cannot follow this route: do not start it
+              const origin = originLabelForPrompt();
+              closeJourneyReroutePrompt();
+              showToast(t('journey.reroute_not_started', { origin }), 'info');
+          }); }
+        { const b = document.getElementById('journeyRerouteYesBtn');
+          if (b) b.addEventListener('click', async () => {
+              const fix = journeyRerouteFix;
+              closeJourneyReroutePrompt(false);
+              if (!fix || journeyRerouteBusy) return;
+              requestOrientationPermissionInTap();
+              journeyRerouteBusy = true;
+              const before = {
+                  origin: selectedCoords.origin, name: originPlaceName, kind: currentOriginKind,
+                  placeId: originPlaceId, barangay: currentOriginBarangay
+              };
+              try {
+                  // The start becomes your location (as "My Location" does), then plan again
+                  selectedCoords.origin = [fix.lat, fix.lng];
+                  currentLocation = { lat: fix.lat, lng: fix.lng };
+                  originPlaceName = 'My Location';
+                  currentOriginKind = 'my_location';
+                  originPlaceId = '';
+                  currentOriginBarangay = null;
+                  window.__calzadaMyLocOriginFix = { lat: fix.lat, lng: fix.lng, accuracy: fix.acc };
+                  updateODDisplay();
+                  await executeRouteQuery();
+                  const btn = document.getElementById('startJourneyBtn');
+                  if (btn && !btn.disabled && selectedCoords.origin && selectedCoords.destination && !isTrackingArrival) {
+                      beginJourney();
+                  } else {
+                      // No route from here: put the planned start back
+                      selectedCoords.origin = before.origin;
+                      originPlaceName = before.name;
+                      currentOriginKind = before.kind;
+                      originPlaceId = before.placeId;
+                      currentOriginBarangay = before.barangay;
+                      updateODDisplay();
+                      await executeRouteQuery();
+                      showToast(t('journey.reroute_failed'), 'error');
+                  }
+              } finally {
+                  journeyRerouteBusy = false;
+              }
+          }); }
+
         document.getElementById('startJourneyBtn').addEventListener('click', () => {
             if (!selectedCoords.origin || !selectedCoords.destination) return;
 
@@ -8942,15 +9073,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 openJourneyAuthPrompt();
                 return;
             }
+            if (journeyRerouteBusy) return;
+
+            // Away from the starting point: ask before starting
+            const off = offOriginFix();
+            if (off) { openJourneyReroutePrompt(off); return; }
 
             // E1: iOS DeviceOrientationEvent.requestPermission() inside user gesture
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                try {
-                    DeviceOrientationEvent.requestPermission().catch(e => console.warn('DeviceOrientation error:', e));
-                } catch (e) {
-                    console.warn('DeviceOrientation permission error:', e);
-                }
-            }
+            requestOrientationPermissionInTap();
+            beginJourney();
+        });
+
+        function beginJourney() {
+            if (!selectedCoords.origin || !selectedCoords.destination || isTrackingArrival) return;
 
             // A3: Reset progress to first step (currentStepIndex = 0)
             window.currentStepIndex = 0;
@@ -8990,7 +9125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Persist active journey state immediately
             saveJourneyState();
             map.resize();
-        });
+        }
 
         // Delegated Cancel Route handler: works cleanly on desktop and mobile buttons without double firing
         document.addEventListener('click', (e) => {

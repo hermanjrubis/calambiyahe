@@ -9135,6 +9135,13 @@ body.cz-route-busy .segment-btn[data-mode] {
     box-sizing: border-box;
 }
 
+/* The re-route question's Yes is a <button>, not a link: same font as the other buttons */
+button.journey-auth-primary {
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+}
+
 .journey-auth-secondary,
 .journey-auth-ghost {
     display: flex;
