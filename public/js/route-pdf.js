@@ -1,5 +1,5 @@
 /**
- * Calzada Route PDF Exporter (Offline Route Export) v1.1.0 (transfer trips: both jeeps, last walk, totals)
+ * Calzada Route PDF Exporter (Offline Route Export) v1.2.0 (sharp map drawn off screen, framed on the whole route)
  * 
  * Generates an A4 portrait PDF for a planned route on the planner.
  * Works entirely client-side on the device; nothing is uploaded.
@@ -604,6 +604,74 @@
         }
     }
 
+    // The route map for the PDF, rendered in a hidden map of the PDF box's size (710 px wide) at
+    // OFFSCREEN_PIXEL_RATIO, with the planner's current style and route layers. Returns null when it
+    // cannot (no MapLibre, no WebGL, tiles not loaded in time).
+    const OFFSCREEN_PIXEL_RATIO = 2.5;
+    async function captureOffscreenRouteMap(map, bounds, paintOverlay, boxH, toLL) {
+        if (typeof maplibregl === 'undefined' || !map || !bounds || bounds.isEmpty()) return null;
+        const W = 710;
+        const H = Math.max(500, Math.round(boxH || 760));
+        const PR = OFFSCREEN_PIXEL_RATIO;
+        const holder = document.createElement('div');
+        holder.setAttribute('aria-hidden', 'true');
+        holder.style.cssText = `position:fixed;left:-${W + 400}px;top:0;width:${W}px;height:${H}px;pointer-events:none;`;
+        document.body.appendChild(holder);
+        let off = null;
+        try {
+            off = new maplibregl.Map({
+                container: holder,
+                style: map.getStyle(),
+                center: map.getCenter(),
+                zoom: map.getZoom(),
+                bearing: 0,
+                pitch: 0,
+                interactive: false,
+                attributionControl: false,
+                fadeDuration: 0,
+                pixelRatio: PR,
+                preserveDrawingBuffer: true,
+                canvasContextAttributes: { preserveDrawingBuffer: true, antialias: true }
+            });
+            // Icons the planner added at run time (category pins) are not in the style: copy them over
+            off.on('styleimagemissing', (e) => {
+                try {
+                    const img = map.style && typeof map.style.getImage === 'function' ? map.style.getImage(e.id) : null;
+                    if (img && img.data && !off.hasImage(e.id)) off.addImage(e.id, img.data, { pixelRatio: img.pixelRatio || 1, sdf: !!img.sdf });
+                } catch (_) { /* that icon is left out */ }
+            });
+            await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error('offscreen map did not load')), 10000);
+                off.once('load', () => { clearTimeout(timer); resolve(); });
+            });
+            // Room for the destination pin (36 px tall) above its point and for the other dots
+            const padding = { top: 56, bottom: 28, left: 32, right: 32 };
+            off.fitBounds(bounds, { padding, maxZoom: 17.5, duration: 0, bearing: 0, pitch: 0 });
+            await waitForMapTilesLoaded(off, 8000);
+            off.triggerRepaint();
+            await new Promise(r => { off.once('render', r); setTimeout(r, 1500); });
+
+            const src = off.getCanvas();
+            if (!src || !src.width || !src.height) return null;
+            const canvas = document.createElement('canvas');
+            canvas.width = src.width;
+            canvas.height = src.height;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#EEF2F6';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(src, 0, 0);
+            const sx = canvas.width / W;
+            paintOverlay(ctx, (ll) => { const p = off.project((toLL && toLL(ll)) || ll); return { x: p.x * sx, y: p.y * sx }; }, sx);
+            try {
+                window._calzadaLastMapCropVerification = { offscreen: true, width: canvas.width, height: canvas.height, zoom: off.getZoom() };
+            } catch (_) {}
+            return { dataUrl: canvas.toDataURL('image/jpeg', 0.9), width: canvas.width, height: canvas.height, isOffline: false };
+        } finally {
+            try { if (off) off.remove(); } catch (_) {}
+            holder.remove();
+        }
+    }
+
     async function captureRouteMapSnapshot(map, routeData, isTl) {
         if (!map) return createOfflineRouteDiagram(routeData, isTl);
 
@@ -649,6 +717,105 @@
             const boardingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[0]) : null;
             const alightingLL = transitCoords && transitCoords.length > 0 ? toLL(transitCoords[transitCoords.length - 1]) : null;
 
+            // Route ends, stops and the last walk painted over the map image (both capture paths)
+            const paintOverlay = (ctx, toCanvasPt, dpr) => {
+                // Draw dotted final walk line on cropCanvas BEFORE markers if route has final walk
+                if (finalWalkCoords && finalWalkCoords.length >= 2 && routeData.selectedMode !== 'walking') {
+                    ctx.save();
+                    ctx.strokeStyle = '#64748B';
+                    ctx.lineWidth = 5 * dpr;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.setLineDash([8 * dpr, 8 * dpr]);
+                    ctx.beginPath();
+                    const p0 = toCanvasPt(finalWalkCoords[0]);
+                    ctx.moveTo(p0.x, p0.y);
+                    for (let i = 1; i < finalWalkCoords.length; i++) {
+                        const pi = toCanvasPt(finalWalkCoords[i]);
+                        ctx.lineTo(pi.x, pi.y);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // 1. Origin marker (blue dot, white ring)
+                if (origLL) {
+                    const p = toCanvasPt(origLL);
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(28, 110, 242, 0.45)';
+                    ctx.shadowBlur = 6 * dpr;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 8 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 5 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#1C6EF2';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 2. Boarding point marker (white circle with blue ring)
+                if (boardingLL && (!origLL || Math.hypot(boardingLL[0] - origLL[0], boardingLL[1] - origLL[1]) > 0.0001)) {
+                    const p = toCanvasPt(boardingLL);
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                    ctx.shadowBlur = 4 * dpr;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 7 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#3B82F6';
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 3. Drop-off point marker (alighting point)
+                if (alightingLL && destLL && Math.hypot(alightingLL[0] - destLL[0], alightingLL[1] - destLL[1]) > 0.0001) {
+                    const p = toCanvasPt(alightingLL);
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                    ctx.shadowBlur = 4 * dpr;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 7 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#2272C3';
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // 4. Destination marker (red pin)
+                if (destLL) {
+                    const p = toCanvasPt(destLL);
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(239, 68, 68, 0.45)';
+                    ctx.shadowBlur = 6 * dpr;
+                    ctx.translate(p.x, p.y);
+                    ctx.scale(dpr, dpr);
+                    ctx.translate(-14, -36);
+                    ctx.fillStyle = '#EF4444';
+                    ctx.beginPath();
+                    ctx.moveTo(14, 0);
+                    ctx.bezierCurveTo(6.268, 0, 0, 6.268, 0, 14);
+                    ctx.bezierCurveTo(0, 22.75, 14, 36, 14, 36);
+                    ctx.bezierCurveTo(14, 36, 28, 22.75, 28, 14);
+                    ctx.bezierCurveTo(28, 6.268, 21.732, 0, 14, 0);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(14, 14, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            };
+
             if (origLL) bounds.extend(origLL);
             if (destLL) bounds.extend(destLL);
             if (boardingLL) bounds.extend(boardingLL);
@@ -678,6 +845,17 @@
                     const mb = map.getBounds();
                     if (mb && !mb.isEmpty()) bounds = mb;
                 } catch (_) {}
+            }
+
+            // A map drawn off screen at the PDF's own size and a high pixel ratio: sharp, and framed on
+            // the whole route (every walk, both jeeps, the walk after getting off) whatever the screen
+            // shows. The screen-crop below stays as the fallback.
+            try {
+                const routeTitle0 = isTl ? `Ruta papuntang ${routeData.destName || ''}` : `Route to ${routeData.destName || ''}`;
+                const off = await captureOffscreenRouteMap(map, bounds, paintOverlay, computePage1MapHeight(routeTitle0, isTl), toLL);
+                if (off) return off;
+            } catch (e) {
+                console.warn('Offscreen map capture failed, using the screen:', e);
             }
 
             // Step 1: Measure real marker sizes (fallback 48px height, 32px width)
@@ -900,101 +1078,7 @@
                 };
             };
 
-            // Draw dotted final walk line on cropCanvas BEFORE markers if route has final walk
-            if (finalWalkCoords && finalWalkCoords.length >= 2 && routeData.selectedMode !== 'walking') {
-                ctx.save();
-                ctx.strokeStyle = '#64748B';
-                ctx.lineWidth = 5 * dpr;
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.setLineDash([8 * dpr, 8 * dpr]);
-                ctx.beginPath();
-                const p0 = toCanvasPt(finalWalkCoords[0]);
-                ctx.moveTo(p0.x, p0.y);
-                for (let i = 1; i < finalWalkCoords.length; i++) {
-                    const pi = toCanvasPt(finalWalkCoords[i]);
-                    ctx.lineTo(pi.x, pi.y);
-                }
-                ctx.stroke();
-                ctx.restore();
-            }
-
-            // 1. Origin marker (blue dot, white ring)
-            if (origLL) {
-                const p = toCanvasPt(origLL);
-                ctx.save();
-                ctx.shadowColor = 'rgba(28, 110, 242, 0.45)';
-                ctx.shadowBlur = 6 * dpr;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 8 * dpr, 0, Math.PI * 2);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 5 * dpr, 0, Math.PI * 2);
-                ctx.fillStyle = '#1C6EF2';
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // 2. Boarding point marker (white circle with blue ring)
-            if (boardingLL && (!origLL || Math.hypot(boardingLL[0] - origLL[0], boardingLL[1] - origLL[1]) > 0.0001)) {
-                const p = toCanvasPt(boardingLL);
-                ctx.save();
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-                ctx.shadowBlur = 4 * dpr;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 7 * dpr, 0, Math.PI * 2);
-                ctx.fillStyle = '#3B82F6';
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // 3. Drop-off point marker (alighting point)
-            if (alightingLL && destLL && Math.hypot(alightingLL[0] - destLL[0], alightingLL[1] - destLL[1]) > 0.0001) {
-                const p = toCanvasPt(alightingLL);
-                ctx.save();
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.25)';
-                ctx.shadowBlur = 4 * dpr;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 7 * dpr, 0, Math.PI * 2);
-                ctx.fillStyle = '#2272C3';
-                ctx.fill();
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 4 * dpr, 0, Math.PI * 2);
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fill();
-                ctx.restore();
-            }
-
-            // 4. Destination marker (red pin)
-            if (destLL) {
-                const p = toCanvasPt(destLL);
-                ctx.save();
-                ctx.shadowColor = 'rgba(239, 68, 68, 0.45)';
-                ctx.shadowBlur = 6 * dpr;
-                ctx.translate(p.x, p.y);
-                ctx.scale(dpr, dpr);
-                ctx.translate(-14, -36);
-                ctx.fillStyle = '#EF4444';
-                ctx.beginPath();
-                ctx.moveTo(14, 0);
-                ctx.bezierCurveTo(6.268, 0, 0, 6.268, 0, 14);
-                ctx.bezierCurveTo(0, 22.75, 14, 36, 14, 36);
-                ctx.bezierCurveTo(14, 36, 28, 22.75, 28, 14);
-                ctx.bezierCurveTo(28, 6.268, 21.732, 0, 14, 0);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.fillStyle = '#FFFFFF';
-                ctx.beginPath();
-                ctx.arc(14, 14, 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
+            paintOverlay(ctx, toCanvasPt, dpr);
 
             return {
                 dataUrl: cropCanvas.toDataURL('image/jpeg', 0.92),

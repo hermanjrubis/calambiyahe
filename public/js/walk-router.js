@@ -27,7 +27,7 @@
 }(typeof self !== 'undefined' ? self : this, function () {
     'use strict';
 
-    const VERSION = '1.2.0';
+    const VERSION = '1.3.0';
     const WALK_SPEED_KPH = 4.0;
     const M_LAT = 110574, M_LNG = 107550;   // metres per degree at about 14°N
 
@@ -506,10 +506,19 @@
             return steps;
         }
 
+        // Name of the street at a point: the nearest named way of class <= maxCls within maxM
+        // (0 highway, 1 secondary/tertiary, 2 small road). Names where a jeep lets you off.
+        const streetAt = (p, maxM = 30, maxCls = 2) => {
+            if (!p) return null;
+            const hit = nearestEdge(p[0], p[1], (e) => ecls[e] <= maxCls && !!names[ename[e]]);
+            return hit && hit.d <= maxM ? names[ename[hit.e]] : null;
+        };
+
         return {
             version: VERSION,
             route,
             covers,
+            streetAt,
             stats: { nodes: nodeCount, edges: eu.length - removed.size, sectors: SN, attached, mainNodes: mainSize }
         };
     }

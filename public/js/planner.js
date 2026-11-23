@@ -4940,6 +4940,65 @@ document.addEventListener('DOMContentLoaded', () => {
             return best ? best.name : null;
         }
 
+        // Where the jeep lets you off, named as exactly as the map allows (Drei: a trip to Calamba City
+        // Hall said "get off at 2GO", a shop that only happens to be within 200 m):
+        //   1. the stop's own name (curated stops);
+        //   2. your destination, when the stop is right at it;
+        //   3. the corner, when the walk turns off the jeep's road right at the stop: "National Highway
+        //      cor. Chipeco Avenue Extension" (the City Hall trip);
+        //   4. a landmark at the stop (government, mall, school, hospital, terminal, bank, hotel within 35 m),
+        //      or any place within 15 m;
+        //   5. a landmark within 80 m; else the road's name.
+        const ALIGHT_LANDMARK_CATS = new Set(['government', 'malls', 'schools', 'health', 'terminals', 'banks', 'hotels']);
+        const isLandmarkPlace = (p) => ALIGHT_LANDMARK_CATS.has(p.category) && (p.category !== 'health' || /hospital|medical center|doctors/i.test(p.name));
+        function alightPlaceNear(pt, maxM, landmarksOnly) {
+            const lists = [window.FALLBACK_PLACES || [], typeof CALAMBA_PLACES_FALLBACK !== 'undefined' ? CALAMBA_PLACES_FALLBACK : []];
+            let best = null;
+            lists.forEach((list) => list.forEach((p) => {
+                const lat = Number(p.lat), lng = Number(p.lng);
+                if (!p.name || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+                if (landmarksOnly && !isLandmarkPlace(p)) return;
+                const d = getHaversineDist(pt[0], pt[1], lat, lng) * 1000;
+                if (d <= maxM && (!best || d < best.d)) best = { name: p.name, d };
+            }));
+            return best ? best.name : null;
+        }
+        async function streetAtPoint(pt, maxM, maxCls) {
+            try {
+                const router = await Promise.race([walkGraphReady, new Promise(r => setTimeout(() => r(null), 1500))]);
+                return router && typeof router.streetAt === 'function' ? router.streetAt(pt, maxM, maxCls) : null;
+            } catch (_) { return null; }
+        }
+        async function alightLabel(ref, alightPt, dPt, finalWalk) {
+            const stop = transitStopName(ref);
+            if (stop) return stop;
+            const dest = (destPlaceName || '').trim();
+            const destIsPlace = dest && dest !== 'My Location' && !isPinnedLabel(dest) && !COORDINATE_LIKE.test(dest);
+            if (destIsPlace && dPt) {
+                const dM = getHaversineDist(alightPt[0], alightPt[1], dPt[0], dPt[1]) * 1000;
+                const walkM = finalWalk && Number.isFinite(finalWalk.distance) ? finalWalk.distance : dM * 1.25;
+                if (dM <= 120 && walkM <= 180) return dest;
+            }
+            // "National Highway 1" (the route number in the map data) reads "National Highway"
+            const cleanRoad = (n) => (n ? n.replace(/^(National Highway)\s+\d+$/i, '$1') : n);
+            const road = cleanRoad(await streetAtPoint(alightPt, 30, 1));
+            // The street the walk turns into within its first 60 m (so not a turn far down the road)
+            let turnInto = null;
+            if (road && finalWalk && Array.isArray(finalWalk.steps)) {
+                let walked = 0;
+                for (const s of finalWalk.steps) {
+                    const n = cleanRoad((s.name || '').trim());
+                    if (walked > 60) break;
+                    if (n && n !== road) { turnInto = n; break; }
+                    walked += Number(s.distance) || 0;
+                }
+            }
+            if (road && turnInto) return `${road} cor. ${turnInto}`;
+            const atSpot = alightPlaceNear(alightPt, 35, true) || alightPlaceNear(alightPt, 15, false);
+            if (atSpot) return atSpot;
+            return alightPlaceNear(alightPt, 80, true) || road || null;
+        }
+
         function transitStopName(ref) {
             if (!ref || !ref.stopId) return null;
             return (transitLang() === 'tl' && ref.name_tl) ? ref.name_tl : (ref.name || null);
@@ -5725,7 +5784,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (token !== transitApplyToken) return;
             }
             const fwFirst = fwRes ? (fwRes.steps || []).map(s => (s.name || '').trim()).find(Boolean) : null;
-            let alightName = transitStopName(j1.alight) || transitPlaceNear(alightPt, 200) || fwFirst || roadName || 'National Highway';
+            let alightName = (await alightLabel(j1.alight, alightPt, j2 ? null : dPt, j2 ? null : fwRes)) || fwFirst || roadName || 'National Highway';
+            if (token !== transitApplyToken) return;
             if (alightName === boardName) alightName = `${alightName} · ${(j1.distM / 1000).toFixed(1)} km`;
 
             const durSec = (j1.distM / 1000 / JEEPNEY_SPEED_KPH) * 3600;
@@ -5788,7 +5848,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         fare: j2.fare,
                         fareDisc: j2.fareDisc,
                         coords: j2.coords,
-                        alightName: transitStopName(j2.alight) || transitPlaceNear(j2End, 200) || null,
+                        alightName: (await alightLabel(j2.alight, j2End, dPt, null)) || null,
                         alightPt: j2End
                     },
                     finalWalkM,
